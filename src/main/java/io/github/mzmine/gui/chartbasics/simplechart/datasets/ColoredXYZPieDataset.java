@@ -49,9 +49,10 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
   public ColoredXYZPieDataset(@Nonnull PieXYZDataProvider<T> dataProvider,
       @Nonnull final RunOption runOption) {
     super(dataProvider, RunOption.DO_NOT_RUN);
-    this.runOption = runOption;
     this.pieDataProvider = dataProvider;
     renderer = new XYBlockPixelSizeRenderer();
+
+    this.runOption = checkRunOption(runOption);
     handleRunOption(runOption);
   }
 

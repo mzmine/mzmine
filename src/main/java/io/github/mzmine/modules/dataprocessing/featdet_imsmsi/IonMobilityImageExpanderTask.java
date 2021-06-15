@@ -91,7 +91,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 //    List<List<ModularFeature>> partionedLists = Lists.partition(sortedFeatures, featuresPerStep);
 
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
-    access = new BinningMobilogramDataAccess(file, 0.0008);
+    access = new BinningMobilogramDataAccess(file, 1);
 
     description = "Sorting frames";
     List<ImagingFrame> frames = new ArrayList<>((Collection<ImagingFrame>) file.getFrames(1));

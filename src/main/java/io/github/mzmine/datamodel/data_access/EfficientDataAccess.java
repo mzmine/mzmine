@@ -101,7 +101,7 @@ public class EfficientDataAccess {
    * @return
    */
   public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile,
-      final double binWidth) {
+      final int binWidth) {
     return new BinningMobilogramDataAccess(dataFile, binWidth);
   }
 

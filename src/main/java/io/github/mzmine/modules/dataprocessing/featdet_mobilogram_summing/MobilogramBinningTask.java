@@ -49,9 +49,9 @@ public class MobilogramBinningTask extends AbstractTask {
   private final boolean createNewFlist;
   private final MZmineProject project;
   private final AtomicLong processedFeatures = new AtomicLong(0);
-  private final double timsBinningWidth;
-  private final double twimsBinningWidth;
-  private final double dtimsBinningWidth;
+  private final int timsBinningWidth;
+  private final int twimsBinningWidth;
+  private final int dtimsBinningWidth;
   private final BinningSource binningSource;
   private long totalFeatures = 1;
 
@@ -104,7 +104,7 @@ public class MobilogramBinningTask extends AbstractTask {
       final List<ModularFeature> features = (List<ModularFeature>) (List<? extends Feature>) flist
           .getFeatures(file);
 
-      final double binWidth = switch (((IMSRawDataFile) file).getMobilityType()) {
+      final int binWidth = switch (((IMSRawDataFile) file).getMobilityType()) {
         case TIMS -> timsBinningWidth;
         case TRAVELING_WAVE -> twimsBinningWidth;
         case DRIFT_TUBE -> dtimsBinningWidth;

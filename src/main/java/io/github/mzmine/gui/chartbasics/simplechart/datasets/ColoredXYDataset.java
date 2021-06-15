@@ -87,7 +87,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.valuesComputed = false;
     status = new SimpleObjectProperty<>(TaskStatus.WAITING);
     errorMessage = "";
-    this.runOption = runOption;
 
     // dataset stuff
     this.xyValueProvider = xyValueProvider;
@@ -104,6 +103,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.computedItemCount = 0;
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
+    this.runOption = checkRunOption(runOption);
     handleRunOption(runOption);
   }
 
@@ -129,19 +129,26 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   protected void handleRunOption(@Nonnull final RunOption runOption) {
     switch (runOption) {
-      case THIS_THREAD -> {
-        if (Platform.isFxApplicationThread()) {
-          logger.severe(() -> "Calculation of data set values was started on the JavaFX thread."
-              + " Creating a new thread instead.\nProvider: " + xyValueProvider.getClass()
-              .getName());
-          MZmineCore.getTaskController().addTask(this);
-        } else {
-          run();
-        }
-      }
+      case THIS_THREAD -> run();
       case NEW_THREAD -> MZmineCore.getTaskController().addTask(this);
       case DO_NOT_RUN -> {
       }
+    }
+  }
+
+  /**
+   * Checks if the thread and given run option are valid. Running on the FX thread is not allowed.
+   *
+   * @param runOption The requested run option.
+   * @return a valid run option.
+   */
+  protected final RunOption checkRunOption(final RunOption runOption) {
+    if (runOption == RunOption.THIS_THREAD && Platform.isFxApplicationThread()) {
+      logger.warning(() -> "Calculation of data set values was started on the JavaFX thread."
+          + " Creating a new thread instead. Provider: " + xyValueProvider.getClass().getName());
+      return RunOption.NEW_THREAD;
+    } else {
+      return runOption;
     }
   }
 

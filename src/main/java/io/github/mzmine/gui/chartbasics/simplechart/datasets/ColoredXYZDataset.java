@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -45,6 +46,8 @@ import org.jfree.data.xy.XYZDataset;
  * @author https://github.com/SteffenHeu
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
+
+  private static Logger logger = Logger.getLogger(ColoredXYZDataset.class.getName());
 
   private final XYZValueProvider xyzValueProvider;
   private final RunOption runOption;
@@ -73,7 +76,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       final boolean useAlphaInPaintscale, @Nonnull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
     super(dataProvider, RunOption.DO_NOT_RUN);
-    this.runOption = runOption;
 
     if (dataProvider instanceof PieXYZDataProvider) {
       throw new IllegalArgumentException(
@@ -84,6 +86,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this.useAlphaInPaintscale = useAlphaInPaintscale;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
+
+    this.runOption = checkRunOption(runOption);
     handleRunOption(runOption);
   }
 

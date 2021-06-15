@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
  *
  */
 public interface MassDetector extends MZmineModule {
-  public static final double[][] EMPTY_DATA = new double[0][0];
+  public static final double[][] EMPTY_DATA = new double[2][0];
 
   /**
    * Returns mass and intensity values detected in given spectrum
