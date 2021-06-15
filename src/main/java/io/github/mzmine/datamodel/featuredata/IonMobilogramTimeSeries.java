@@ -24,8 +24,8 @@ import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores data points from ion mobility frames (summed across the mobility axis at one retention
@@ -41,7 +41,7 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
   }
 
   IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Frame> subset, @Nonnull BinningMobilogramDataAccess mobilogramBinning);
+      @NotNull List<Frame> subset, @NotNull BinningMobilogramDataAccess mobilogramBinning);
 
   List<IonMobilitySeries> getMobilograms();
 
@@ -71,7 +71,7 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
    * @return
    */
   IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull SummedIntensityMobilitySeries summedMobilogram);
+      @NotNull SummedIntensityMobilitySeries summedMobilogram);
 
   /**
    * @param scan
@@ -102,5 +102,5 @@ public interface IonMobilogramTimeSeries extends IonTimeSeries<Frame>, Modifiabl
 
   @Override
   IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Frame> subset);
+      @NotNull List<Frame> subset);
 }

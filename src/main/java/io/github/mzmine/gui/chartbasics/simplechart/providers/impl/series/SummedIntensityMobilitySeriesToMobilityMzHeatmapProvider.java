@@ -32,8 +32,8 @@ import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
@@ -51,7 +51,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
   private Double mzwidth;
   private final ModularFeature feature;
 
-  public SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(@Nonnull final ModularFeature f) {
+  public SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider(@NotNull final ModularFeature f) {
     data = ((IonMobilogramTimeSeries) f.getFeatureData()).getSummedMobilogram();
     feature = f;
     mz = f.getMZ();
@@ -94,13 +94,13 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
         f.getRawDataPointsMZRange().upperEndpoint() - f.getRawDataPointsMZRange().lowerEndpoint();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -118,7 +118,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -172,7 +172,7 @@ public class SummedIntensityMobilitySeriesToMobilityMzHeatmapProvider implements
     return mzwidth;
   }
 
-  @Nonnull
+  @NotNull
   public SummedIntensityMobilitySeries getSourceSeries() {
     return data;
   }

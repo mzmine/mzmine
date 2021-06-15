@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.modules.dataanalysis.clustering.ClusteringAlgorithm;
 import io.github.mzmine.modules.dataanalysis.clustering.ClusteringResult;
@@ -40,7 +40,7 @@ public class FarthestFirstClusterer implements ClusteringAlgorithm {
   private static final String MODULE_NAME = "Farthest first clusterer";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
@@ -73,7 +73,7 @@ public class FarthestFirstClusterer implements ClusteringAlgorithm {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FarthestFirstClustererParameters.class;
   }
 }

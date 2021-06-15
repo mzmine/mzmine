@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -157,8 +157,8 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param row to add identities
    * @param amount of identities to be added from list
    */
-  public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations,
-      @Nonnull FeatureListRow row, int amount) {
+  public synchronized static void addSiriusCompounds(@NotNull List<IonAnnotation> annotations,
+      @NotNull FeatureListRow row, int amount) {
     for (int i = 0; i < amount; i++) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation);

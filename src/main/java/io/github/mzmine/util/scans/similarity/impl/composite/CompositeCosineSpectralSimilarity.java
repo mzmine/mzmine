@@ -21,8 +21,8 @@ package io.github.mzmine.util.scans.similarity.impl.composite;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.ParameterSet;
@@ -140,7 +140,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
     return "Composite dot -product identity (similar to NIST search)";
   }

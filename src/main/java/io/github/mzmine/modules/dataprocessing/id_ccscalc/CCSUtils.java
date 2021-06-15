@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.modules.io.import_bruker_tdf.TDFUtils;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @see CCSCalcModule
@@ -33,8 +33,8 @@ public class CCSUtils {
   /**
    * @return
    */
-  public static Float calcCCS(double mz, @Nonnull Float mobility,
-      @Nonnull MobilityType mobilityType, int charge) {
+  public static Float calcCCS(double mz, @NotNull Float mobility,
+      @NotNull MobilityType mobilityType, int charge) {
     return switch (mobilityType) {
       case TIMS -> calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
       case DRIFT_TUBE -> logUnsupportedMobilityUnit();

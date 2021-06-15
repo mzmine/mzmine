@@ -19,7 +19,7 @@
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The methods in this interface are used to set the <b>initial</b> dataset color. Note that the
@@ -32,10 +32,10 @@ import javax.annotation.Nonnull;
  */
 public interface ColorProvider {
 
-  @Nonnull
+  @NotNull
   public java.awt.Color getAWTColor();
 
-  @Nonnull
+  @NotNull
   public javafx.scene.paint.Color getFXColor();
 
 }

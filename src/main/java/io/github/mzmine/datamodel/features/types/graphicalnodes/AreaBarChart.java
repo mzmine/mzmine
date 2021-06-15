@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
 import java.util.Map.Entry;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -39,7 +39,7 @@ import javafx.scene.paint.Color;
 
 public class AreaBarChart extends StackPane {
 
-  public AreaBarChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public AreaBarChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
     XYChart.Series data = new XYChart.Series();
     int i = 1;
     int size = row.getFilesFeatures().size();

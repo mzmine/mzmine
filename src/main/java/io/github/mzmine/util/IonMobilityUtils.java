@@ -43,8 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityUtils {
 
@@ -72,7 +72,7 @@ public class IonMobilityUtils {
    * @return A map of frame -> mobility range, sorted with ascending frame id.
    */
   public static Map<Frame, Range<Double>> getUniqueMobilityRanges(
-      @Nonnull final IMSRawDataFile file) {
+      @NotNull final IMSRawDataFile file) {
     Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
     for (Frame frame : file.getFrames()) {
       if(!ranges.containsValue(frame.getMobilityRange())) {
@@ -82,8 +82,8 @@ public class IonMobilityUtils {
     return ranges;
   }
 
-  public static boolean isRowWithinMzMobilityRegion(@Nonnull ModularFeatureListRow row,
-      @Nonnull final Collection<Path2D> regions) {
+  public static boolean isRowWithinMzMobilityRegion(@NotNull ModularFeatureListRow row,
+      @NotNull final Collection<Path2D> regions) {
       Property<Float> mobility = row.get(MobilityType.class);
       if (mobility != null) {
         Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.getValue().doubleValue());
@@ -96,8 +96,8 @@ public class IonMobilityUtils {
     return false;
   }
 
-  public static boolean isRowWithinMzCCSRegion(@Nonnull ModularFeatureListRow feature,
-      @Nonnull final Collection<Path2D> regions) {
+  public static boolean isRowWithinMzCCSRegion(@NotNull ModularFeatureListRow feature,
+      @NotNull final Collection<Path2D> regions) {
       Float ccs = feature.getAverageCCS();
       if (ccs != null) {
         Point2D point = new Point2D.Double(feature.getAverageMZ() * feature.getRowCharge(),
@@ -121,8 +121,8 @@ public class IonMobilityUtils {
    * @param storage The storage to use
    * @return The built mobilogram.
    */
-  public static IonMobilitySeries buildMobilogramForMzRange(@Nonnull final Frame frame,
-      @Nonnull final Range<Double> mzRange, @Nonnull final MobilogramType type,
+  public static IonMobilitySeries buildMobilogramForMzRange(@NotNull final Frame frame,
+      @NotNull final Range<Double> mzRange, @NotNull final MobilogramType type,
       @Nullable final MemoryMapStorage storage) {
 
     final int numScans = frame.getNumberOfMobilityScans();
@@ -171,7 +171,7 @@ public class IonMobilityUtils {
    * @return The mobility scan. Null if this feature does not possess a mobility dimension.
    */
   @Nullable
-  public static MobilityScan getBestMobilityScan(@Nonnull final ModularFeature f) {
+  public static MobilityScan getBestMobilityScan(@NotNull final ModularFeature f) {
     Scan bestScan = f.getRepresentativeScan();
     if (!(bestScan instanceof Frame bestFrame)) {
       return null;

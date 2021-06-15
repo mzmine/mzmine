@@ -18,8 +18,8 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represent one spectrum of a raw data file.
@@ -29,7 +29,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return RawDataFile containing this Scan
    */
-  @Nonnull
+  @NotNull
   RawDataFile getDataFile();
 
   /**
@@ -40,7 +40,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return Instrument-specific scan definition as String
    */
-  @Nonnull
+  @NotNull
   String getScanDefinition();
 
   /**
@@ -56,7 +56,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return The actual scanning range of the instrument
    */
-  @Nonnull
+  @NotNull
   Range<Double> getScanningMZRange();
 
   /**
@@ -64,7 +64,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    */
   double getPrecursorMZ();
 
-  @Nonnull
+  @NotNull
   PolarityType getPolarity();
 
   /**
@@ -75,7 +75,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   @Nullable
   MassList getMassList();
 
-  void addMassList(@Nonnull MassList massList);
+  void addMassList(@NotNull MassList massList);
 
   /**
    * Standard method to sort scans based on scan number (or if not available retention time)
@@ -84,7 +84,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    * @return
    */
   @Override
-  default int compareTo(@Nonnull Scan s) {
+  default int compareTo(@NotNull Scan s) {
     assert s != null;
     int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
     if (result != 0) {

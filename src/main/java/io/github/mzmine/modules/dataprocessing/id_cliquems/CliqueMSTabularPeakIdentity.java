@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * modified peakIdentity to contain a combination of key value pairs and multiple values for a
@@ -75,7 +75,7 @@ public class CliqueMSTabularPeakIdentity implements FeatureIdentity {
     singularProperties.put(property,value);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return name;
@@ -86,7 +86,7 @@ public class CliqueMSTabularPeakIdentity implements FeatureIdentity {
     return this.getName();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     if( (singularProperties.size()+multiProperties.size()) == 0)
@@ -167,7 +167,7 @@ public class CliqueMSTabularPeakIdentity implements FeatureIdentity {
    * returns all properties, singular-value type or multi-value type
    * @return
    */
-  @Nonnull
+  @NotNull
   @Override
   public Map<String, String> getAllProperties() {
     Map<String,String> allProperty = new HashMap<>();
@@ -188,7 +188,7 @@ public class CliqueMSTabularPeakIdentity implements FeatureIdentity {
    */
 
   @Override
-  public synchronized   @Nonnull Object clone() {
+  public synchronized   @NotNull Object clone() {
     CliqueMSTabularPeakIdentity temp = new CliqueMSTabularPeakIdentity(this.name);
     temp.singularProperties = (Hashtable<String, String>) this.singularProperties.clone();
     temp.multiProperties = (Hashtable<String, List<String>>) this.multiProperties.clone();

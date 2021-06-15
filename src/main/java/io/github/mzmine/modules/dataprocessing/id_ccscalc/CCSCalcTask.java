@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu

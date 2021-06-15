@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A list of {@link IonIdentity}. The first is generally the active element.
@@ -31,7 +31,7 @@ import javax.annotation.Nonnull;
 public class IonIdentityListType extends ListDataType<IonIdentity>
     implements AnnotationType, EditableColumnType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Ion identity";

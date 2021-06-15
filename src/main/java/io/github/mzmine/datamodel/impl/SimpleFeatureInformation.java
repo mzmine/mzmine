@@ -18,7 +18,7 @@ package io.github.mzmine.datamodel.impl;
 import io.github.mzmine.datamodel.FeatureInformation;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -62,13 +62,13 @@ public class SimpleFeatureInformation implements FeatureInformation {
   // ------------------------------------------------------------------------
 
   @Override
-  @Nonnull
+  @NotNull
   public String getPropertyValue(String propertyName) {
     return properties.get(propertyName);
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getPropertyValue(String propertyName, String defaultValue) {
     String value = properties.get(propertyName);
     if (value == null)
@@ -77,13 +77,13 @@ public class SimpleFeatureInformation implements FeatureInformation {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Map<String, String> getAllProperties() {
     return properties;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public synchronized SimpleFeatureInformation clone() {
     return new SimpleFeatureInformation(new HashMap<>(properties));
   }

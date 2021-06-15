@@ -34,8 +34,8 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureConvertorIonMobility {
 
@@ -63,7 +63,7 @@ public class FeatureConvertorIonMobility {
    * mobility scan number.
    */
   public static SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> groupDataPointsByFrameId(
-      @Nonnull final Collection<? extends DataPoint> originalDataPoints) {
+      @NotNull final Collection<? extends DataPoint> originalDataPoints) {
 
     // group by frame & sort ascending
     SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> sortedDataPoints = new TreeMap<>(

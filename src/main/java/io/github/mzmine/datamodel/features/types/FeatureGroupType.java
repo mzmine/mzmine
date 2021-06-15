@@ -22,8 +22,8 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.RowGroup;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Level of feature grouping
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 public class FeatureGroupType extends DataType<ObjectProperty<RowGroup>> {
 
   @Override
-  @Nonnull
+  @NotNull
   public String getHeaderString() {
     return "Group";
   }
@@ -41,7 +41,7 @@ public class FeatureGroupType extends DataType<ObjectProperty<RowGroup>> {
     return new SimpleObjectProperty<>();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getFormattedString(@Nullable Object value) {
     if (value instanceof RowGroup group) {

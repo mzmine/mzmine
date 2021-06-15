@@ -28,7 +28,7 @@ import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryM
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This type has multiple sub columns. The first is a list of complex objects ({@link
@@ -46,13 +46,13 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
       new CosineScoreType(), new MatchingSignalsType(), new GNPSLibraryUrlType(),
       new GNPSClusterUrlType(), new GNPSNetworkUrlType());
 
-  @Nonnull
+  @NotNull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "GNPS library match";

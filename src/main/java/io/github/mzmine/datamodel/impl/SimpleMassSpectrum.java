@@ -28,8 +28,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of MassSpectrum that stores all data in memory.
@@ -66,12 +66,12 @@ public class SimpleMassSpectrum implements MassSpectrum {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     return mzValues;
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     return intensityValues;
   }
 
@@ -144,7 +144,7 @@ public class SimpleMassSpectrum implements MassSpectrum {
     return Streams.stream(this);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     return new DataPointIterator(this);

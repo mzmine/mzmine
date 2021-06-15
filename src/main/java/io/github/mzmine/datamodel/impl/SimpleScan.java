@@ -25,14 +25,14 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Simple implementation of the Scan interface.
  */
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
-  @Nonnull
+  @NotNull
   private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
@@ -48,7 +48,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   /**
    * Clone constructor
    */
-  public SimpleScan(@Nonnull RawDataFile dataFile, Scan sc, double[] newMzValues,
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
 
     this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
@@ -61,7 +61,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   /**
    * Constructor for creating scan with given data
    */
-  public SimpleScan(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+  public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
       double precursorMZ, int precursorCharge, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
@@ -163,7 +163,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  public synchronized void addMassList(final @Nonnull MassList massList) {
+  public synchronized void addMassList(final @NotNull MassList massList) {
     // we are not going into any details if this.massList equals massList
     // do not call listeners if the same object is passed multiple times
     if (this.massList == massList) {
@@ -183,13 +183,13 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public RawDataFile getDataFile() {
     return dataFile;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public PolarityType getPolarity() {
     if (polarity == null) {
       polarity = PolarityType.UNKNOWN;
@@ -197,7 +197,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return polarity;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getScanDefinition() {
     if (scanDefinition == null) {
@@ -207,7 +207,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getScanningMZRange() {
     if (scanMZRange == null) {
       scanMZRange = getDataPointMZRange();

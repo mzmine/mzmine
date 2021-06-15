@@ -38,7 +38,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in the axis of retention
@@ -52,7 +52,7 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
   private static final int SG_FILTER_LEVEL = 12;
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Savitzky-Golay";
   }
 
@@ -311,7 +311,7 @@ public class SavitzkyGolayFeatureResolver implements FeatureResolver {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SavitzkyGolayFeatureResolverParameters.class;
   }
 

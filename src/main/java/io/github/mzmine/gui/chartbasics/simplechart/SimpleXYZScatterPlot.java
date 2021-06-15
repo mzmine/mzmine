@@ -52,8 +52,8 @@ import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYShapeAnnotation;
@@ -128,7 +128,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     this("");
   }
 
-  public SimpleXYZScatterPlot(@Nonnull String title) {
+  public SimpleXYZScatterPlot(@NotNull String title) {
 
     super(ChartFactory.createScatterPlot("", "x", "y", null,
         PlotOrientation.VERTICAL, true, false, true), true, true, true, true, false);
@@ -396,7 +396,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   /**
    * @return current cursor position or null
    */
-  @Nonnull
+  @NotNull
   private PlotCursorPosition getCurrentCursorPosition() {
     final double domainValue = getXYPlot().getDomainCrosshairValue();
     final double rangeValue = getXYPlot().getRangeCrosshairValue();
@@ -602,7 +602,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @param scale The paint scale
    * @return Legend based on the {@link LookupPaintScale}.
    */
-  private PaintScaleLegend generateLegend(@Nonnull PaintScale scale) {
+  private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
     Paint axisPaint = getXYPlot().getDomainAxis().getAxisLinePaint();
     Font axisLabelFont = getXYPlot().getDomainAxis().getLabelFont();
     Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();

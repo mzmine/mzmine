@@ -18,7 +18,7 @@
 package io.github.mzmine.datamodel.features.types.modifiers;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * DataType, which is either hidden or expanded, must have a buddy type, which is either expanded or
@@ -26,10 +26,10 @@ import javax.annotation.Nonnull;
  */
 public interface ExpandableType {
 
-  @Nonnull
+  @NotNull
   Class<? extends DataType<?>> getExpandedTypeClass();
 
-  @Nonnull
+  @NotNull
   Class<? extends DataType<?>> getHiddenTypeClass();
 
   default boolean isHiddenType() {
@@ -40,7 +40,7 @@ public interface ExpandableType {
     return getClass().equals(getExpandedTypeClass());
   }
 
-  @Nonnull
+  @NotNull
   default Class<? extends DataType<?>> getBuddyTypeClass() {
     return isExpandedType() ? getHiddenTypeClass() : getExpandedTypeClass();
   }

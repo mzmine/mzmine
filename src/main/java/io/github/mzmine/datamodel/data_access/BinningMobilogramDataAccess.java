@@ -49,8 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to efficiently access mobilogram data of a raw data file. The data can be binned by mobility
@@ -75,7 +75,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
   private final double approximateBinSize;
 
-  public BinningMobilogramDataAccess(@Nonnull final IMSRawDataFile rawDataFile,
+  public BinningMobilogramDataAccess(@NotNull final IMSRawDataFile rawDataFile,
       final int binWidth) {
     if (binWidth < 1) {
       throw new IllegalArgumentException("Illegal bin width (" + binWidth + ")");
@@ -151,7 +151,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   @Nullable
-  public static Integer getPreviousBinningWith(@Nonnull final ModularFeatureList flist,
+  public static Integer getPreviousBinningWith(@NotNull final ModularFeatureList flist,
       MobilityType mt) {
     List<FeatureListAppliedMethod> methods = flist.getAppliedMethods();
 
@@ -249,7 +249,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
    *
    * @param summedMobilogram
    */
-  public void setMobilogram(@Nonnull final SummedIntensityMobilitySeries summedMobilogram) {
+  public void setMobilogram(@NotNull final SummedIntensityMobilitySeries summedMobilogram) {
     clearIntensities();
 
     final int numValues = summedMobilogram.getNumberOfValues();
@@ -284,7 +284,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
    *
    * @param mobilograms The list of {@link IonMobilitySeries}.
    */
-  public void setMobilogram(@Nonnull final List<IonMobilitySeries> mobilograms) {
+  public void setMobilogram(@NotNull final List<IonMobilitySeries> mobilograms) {
     clearIntensities();
 
     int order = 1;

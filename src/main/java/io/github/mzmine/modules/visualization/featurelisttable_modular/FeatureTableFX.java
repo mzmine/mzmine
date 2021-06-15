@@ -71,8 +71,8 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * JavaFX FeatureTable based on {@link FeatureListRow} and {@link DataType}
@@ -351,7 +351,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 
-  @Nonnull
+  @NotNull
   public FilteredList<TreeItem<ModularFeatureListRow>> getFilteredRowItems() {
     return filteredRowItems;
   }
@@ -489,7 +489,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @return A set of selected data types. Does not contain duplicates if multiple cells of the same
    * type were selected. Does not contain null.
    */
-  public Set<DataType<?>> getSelectedDataTypes(@Nonnull ColumnType columnType) {
+  public Set<DataType<?>> getSelectedDataTypes(@NotNull ColumnType columnType) {
     ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
         .getSelectedCells();
 

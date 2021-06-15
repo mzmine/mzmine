@@ -29,7 +29,7 @@ import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface ModularDataModel {
 

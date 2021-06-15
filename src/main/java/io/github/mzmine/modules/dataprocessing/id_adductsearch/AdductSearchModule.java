@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -38,33 +38,33 @@ public class AdductSearchModule implements MZmineProcessingModule {
       "This method searches for adduct peaks that appear at the same retention time as other peaks and have a defined mass difference.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
 
     return NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
 
     return DESCRIPTION;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
 
     return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
 
     return AdductSearchParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-      @Nonnull final Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Collection<Task> tasks) {
 
     for (final FeatureList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {

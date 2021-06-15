@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.apache.commons.codec.digest.DigestUtils;
 import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKMethod;
@@ -72,10 +72,10 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final @Nonnull RawDataFile rawDataFile;
-  private final @Nonnull File target;
-  private final @Nonnull MzMLCompressionType doubleArrayCompression;
-  private final @Nonnull MzMLCompressionType floatArrayCompression;
+  private final @NotNull RawDataFile rawDataFile;
+  private final @NotNull File target;
+  private final @NotNull MzMLCompressionType doubleArrayCompression;
+  private final @NotNull MzMLCompressionType floatArrayCompression;
 
   private boolean canceled = false;
 
@@ -93,8 +93,8 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * @param doubleArrayCompression compression type for <code>double[]</code> which are encoded
    * @param floatArrayCompression compression type for <code>float[]</code> which are encoded
    */
-  public MzMLFileExportMethod(@Nonnull RawDataFile rawDataFile, @Nonnull File target,
-      @Nonnull MzMLCompressionType doubleArrayCompression,
+  public MzMLFileExportMethod(@NotNull RawDataFile rawDataFile, @NotNull File target,
+      @NotNull MzMLCompressionType doubleArrayCompression,
       MzMLCompressionType floatArrayCompression) {
     this.rawDataFile = rawDataFile;
     this.target = target;

@@ -31,7 +31,7 @@ import java.util.Map;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This type describes the negative or positive charge of an ion (feature)
@@ -44,7 +44,7 @@ public class ChargeType extends IntegerType {
   }
 
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));

@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.parameters.ParameterSet;
 
@@ -34,7 +34,7 @@ public interface MZmineModule {
    * 
    * @return Module name
    */
-  @Nonnull
+  @NotNull
   public String getName();
 
   /**

@@ -21,8 +21,8 @@ package io.github.mzmine.datamodel.featuredata;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to store a consecutive number of data points (mz and intensity values).
@@ -60,9 +60,9 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   }
 
   @Override
-  IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);
+  IonTimeSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
 
   @Override
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues);
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 }

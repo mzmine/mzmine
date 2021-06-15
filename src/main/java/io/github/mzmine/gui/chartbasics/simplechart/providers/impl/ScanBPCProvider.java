@@ -30,8 +30,8 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider<Scan> {
 
@@ -59,13 +59,13 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -77,7 +77,7 @@ public class ScanBPCProvider implements PlotXYDataProvider, MassSpectrumProvider
     return mzFormat.format(scans.get(index).getBasePeakMz());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

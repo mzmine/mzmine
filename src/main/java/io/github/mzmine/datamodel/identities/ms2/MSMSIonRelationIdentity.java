@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A relationshiop between two data points in an MS/MS spectrum
@@ -31,9 +31,9 @@ import javax.annotation.Nonnull;
  */
 public class MSMSIonRelationIdentity extends MSMSIonIdentity {
 
-  @Nonnull
+  @NotNull
   protected final DataPoint parentDP;
-  @Nonnull
+  @NotNull
   protected final Relation relation;
 
   /**
@@ -58,7 +58,7 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
    * @param parent      the parent data point
    */
   public MSMSIonRelationIdentity(MZTolerance mzTolerance, DataPoint dp, IonType type,
-      @Nonnull DataPoint parent) {
+      @NotNull DataPoint parent) {
     super(mzTolerance, dp, type);
     this.parentDP = parent;
     this.relation = Relation.NEUTRAL_LOSS;
@@ -73,7 +73,7 @@ public class MSMSIonRelationIdentity extends MSMSIonIdentity {
     return super.getName();
   }
 
-  @Nonnull
+  @NotNull
   public Relation getRelation() {
     return relation;
   }

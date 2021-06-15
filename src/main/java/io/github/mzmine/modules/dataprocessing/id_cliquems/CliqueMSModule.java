@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class CliqueMSModule implements MZmineProcessingModule {
 
@@ -37,21 +37,21 @@ public class CliqueMSModule implements MZmineProcessingModule {
       "This method groups features and annotates the groups/cliques using CliqueMS algorithm.";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     FeatureList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
@@ -65,13 +65,13 @@ public class CliqueMSModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return CliqueMSParameters.class;
   }

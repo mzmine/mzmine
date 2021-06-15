@@ -21,7 +21,7 @@ package io.github.mzmine.parameters;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 /**
@@ -51,7 +51,7 @@ public interface ParameterSet extends ParameterContainer {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   default IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.UNTESTED;
   }

@@ -18,7 +18,7 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.abstr.UrlType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Link to the GNPS cluster
@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
  */
 public class GNPSClusterUrlType extends UrlType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "GNPS cluster";

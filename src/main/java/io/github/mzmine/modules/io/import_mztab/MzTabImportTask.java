@@ -50,7 +50,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RawDataFileUtils;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab.model.Assay;
 import uk.ac.ebi.pride.jmztab.model.MZTabFile;
 import uk.ac.ebi.pride.jmztab.model.MsRun;

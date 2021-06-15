@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * All partner FeatureListRows that were correlated, matched, or connected by a specific module.
@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  */
 public class PartnerIdsType extends StringType implements AnnotationType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Partner IDs";

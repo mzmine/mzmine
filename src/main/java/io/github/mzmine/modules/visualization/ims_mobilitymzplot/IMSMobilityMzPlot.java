@@ -76,7 +76,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 
 /**

@@ -22,7 +22,7 @@ import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Remove peaks below the given noise level.
@@ -80,12 +80,12 @@ public class CentroidMassDetector implements MassDetector {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Centroid";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return CentroidMassDetectorParameters.class;
   }
 

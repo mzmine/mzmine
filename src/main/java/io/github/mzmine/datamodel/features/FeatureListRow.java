@@ -29,8 +29,8 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface representing feature list row
@@ -209,7 +209,7 @@ public interface FeatureListRow {
   /**
    * Returns all fragmentation scans of this row
    */
-  @Nonnull
+  @NotNull
   public ObservableList<Scan> getAllMS2Fragmentations();
 
   /**
@@ -221,7 +221,7 @@ public interface FeatureListRow {
   @Nullable
   FeatureList getFeatureList();
 
-  void setFeatureList(@Nonnull FeatureList flist);
+  void setFeatureList(@NotNull FeatureList flist);
 
   default void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     addFeatureIdentity(id, false);
@@ -317,7 +317,7 @@ public interface FeatureListRow {
    *
    * @param ion the preferred ion
    */
-  default void setBestIonIdentity(@Nonnull IonIdentity ion) {
+  default void setBestIonIdentity(@NotNull IonIdentity ion) {
     addIonIdentity(ion, true);
   }
 

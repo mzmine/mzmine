@@ -18,7 +18,7 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.math.MathException;
 
 /**

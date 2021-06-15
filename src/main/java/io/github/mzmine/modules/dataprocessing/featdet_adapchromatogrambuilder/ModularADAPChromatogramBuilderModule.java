@@ -29,7 +29,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ModularADAPChromatogramBuilderModule implements MZmineProcessingModule {
 
@@ -38,21 +38,21 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
       "This module connects data points from mass lists and builds chromatograms.";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
@@ -69,13 +69,13 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return ADAPChromatogramBuilderParameters.class;
   }

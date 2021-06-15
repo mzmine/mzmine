@@ -21,7 +21,7 @@ package io.github.mzmine.modules.visualization.rawdataoverview;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -177,7 +177,7 @@ public class RawDataFileInfoPaneController {
     MZmineCore.getTaskController().addTask(new PopulateTask(rawDataFile));
   }
 
-  @Nonnull
+  @NotNull
   public Range<Integer> getVisibleRange() {
     TableViewSkin<?> skin = (TableViewSkin) rawDataTableView.getSkin();
     if (skin == null) {

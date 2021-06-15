@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.Range;
@@ -49,7 +49,7 @@ public class ImageChart extends StackPane {
 
   private static Logger logger = Logger.getLogger(ImageChart.class.getName());
 
-  public ImageChart(@Nonnull ModularFeature f, AtomicDouble progress) {
+  public ImageChart(@NotNull ModularFeature f, AtomicDouble progress) {
 
     FeatureImageProvider prov = new FeatureImageProvider(f);
     ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);

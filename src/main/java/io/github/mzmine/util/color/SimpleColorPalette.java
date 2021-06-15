@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
 
@@ -99,19 +99,19 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(@Nonnull Color[] clrs) {
+  public SimpleColorPalette(@NotNull Color[] clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
     }
   }
 
-  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name) {
+  public SimpleColorPalette(@NotNull Color[] clrs, @NotNull String name) {
     this(clrs);
     setName(name);
   }
 
-  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name, Color positiveColor,
+  public SimpleColorPalette(@NotNull Color[] clrs, @NotNull String name, Color positiveColor,
       Color neutralColor, Color negativeColor) {
     this(clrs, name);
 
@@ -162,7 +162,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return FxColorUtil.fxColorToAWT(getNextColor());
   }
 
-  @Nonnull
+  @NotNull
   public Color getMainColor() {
     if (isValid()) {
       return get(MAIN_COLOR);
@@ -192,12 +192,12 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return true;
   }
 
-  @Nonnull
+  @NotNull
   public String getName() {
     return name;
   }
 
-  public void setName(@Nonnull String name) {
+  public void setName(@NotNull String name) {
     this.name = name;
   }
 

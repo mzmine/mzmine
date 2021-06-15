@@ -28,7 +28,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class IMSRawDataOverviewParameters extends SimpleParameterSet {
 
@@ -60,7 +60,7 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
         mzTolerance, scanSelection, rtWidth, binWidth});
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

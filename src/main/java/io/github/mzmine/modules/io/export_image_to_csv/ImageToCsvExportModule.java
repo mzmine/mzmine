@@ -27,8 +27,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ImageToCsvExportModule implements MZmineModule {
 
@@ -49,7 +49,7 @@ public class ImageToCsvExportModule implements MZmineModule {
     });
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "Image to csv export";

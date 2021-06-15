@@ -9,13 +9,13 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityImageExpanderModule implements
     MZmineProcessingModule {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "Ion mobility image expander";
@@ -27,16 +27,16 @@ public class IonMobilityImageExpanderModule implements
     return IonMobilityImageExpanderParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Expands images into the mobility dimension";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     for (ModularFeatureList matchingFeatureList : parameters
         .getParameter(IonMobilityImageExpanderParameters.featureLists).getValue()
@@ -48,7 +48,7 @@ public class IonMobilityImageExpanderModule implements
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;

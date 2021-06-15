@@ -23,7 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -99,7 +99,7 @@ public class DPPParameterValueWrapper {
     return val;
   }
 
-  public void saveValueToXML(@Nonnull Element xmlElement) {
+  public void saveValueToXML(@NotNull Element xmlElement) {
     final Document document = xmlElement.getOwnerDocument();
 
     final Element[] msLevelElements = new Element[MSLevel.cropValues().length];
@@ -115,7 +115,7 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public void loadfromXML(final @Nonnull Element xmlElement) {
+  public void loadfromXML(final @NotNull Element xmlElement) {
 
     setDifferentiateMSn(Boolean.valueOf(xmlElement.getAttribute(DIFFMSN_ELEMENT)));
 
@@ -134,7 +134,7 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public void saveToFile(final @Nonnull File file) {
+  public void saveToFile(final @NotNull File file) {
     try {
       Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
       final Element element = document.createElement(MAINFILE_ELEMENT);
@@ -159,7 +159,7 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public void loadFromFile(@Nonnull File file) {
+  public void loadFromFile(@NotNull File file) {
     try {
       Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
           .getDocumentElement();
@@ -169,12 +169,12 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public @Nonnull DataPointProcessingQueue getQueue(int ordinal) {
+  public @NotNull DataPointProcessingQueue getQueue(int ordinal) {
     checkValues();
     return this.queues[ordinal];
   }
 
-  public @Nonnull DataPointProcessingQueue getQueue(MSLevel mslevel) {
+  public @NotNull DataPointProcessingQueue getQueue(MSLevel mslevel) {
     return getQueue(mslevel.ordinal());
   }
 

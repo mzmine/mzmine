@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface XYZValueProvider extends XYValueProvider {
 

@@ -46,7 +46,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;

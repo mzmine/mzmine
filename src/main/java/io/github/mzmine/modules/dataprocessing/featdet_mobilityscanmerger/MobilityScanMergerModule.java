@@ -27,14 +27,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MobilityScanMergerModule implements MZmineProcessingModule {
 
   public static final String NAME = "Mobility scan merging module";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;
@@ -46,16 +46,16 @@ public class MobilityScanMergerModule implements MZmineProcessingModule {
     return MobilityScanMergerParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Merges mobility scans at the same retention time to a summed frame spectrum.";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     for (RawDataFile file : parameters.getParameter(MobilityScanMergerParameters.rawDataFiles)
         .getValue().getMatchingRawDataFiles()) {
@@ -67,7 +67,7 @@ public class MobilityScanMergerModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATA;

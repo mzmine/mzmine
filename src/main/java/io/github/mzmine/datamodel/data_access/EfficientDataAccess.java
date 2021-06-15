@@ -23,8 +23,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A factory to get efficient data access to scans in RawDataFile and features in FeatureList.
@@ -105,8 +105,8 @@ public class EfficientDataAccess {
     return new BinningMobilogramDataAccess(dataFile, binWidth);
   }
 
-  public static MobilityScanDataAccess of(@Nonnull final IMSRawDataFile file,
-      @Nonnull final MobilityScanDataType type, @Nullable final ScanSelection selection) {
+  public static MobilityScanDataAccess of(@NotNull final IMSRawDataFile file,
+      @NotNull final MobilityScanDataType type, @Nullable final ScanSelection selection) {
     return new MobilityScanDataAccess(file, type, selection);
   }
 

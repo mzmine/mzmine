@@ -25,7 +25,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public class MZTabmExportModule implements MZmineProcessingModule {
@@ -36,16 +36,16 @@ public class MZTabmExportModule implements MZmineProcessingModule {
       "This method exports the feature list contents into a mzTab-m file.";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
 
   @Override
-  public @Nonnull
-  ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  public @NotNull
+  ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
     MZTabmExportTask task = new MZTabmExportTask(project, parameters);
     tasks.add(task);
     return ExitCode.OK;
@@ -53,19 +53,19 @@ public class MZTabmExportModule implements MZmineProcessingModule {
 
   //TODO update on addition of SMF and SME support
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return MZTabmExportParameters.class;
   }

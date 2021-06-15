@@ -19,14 +19,14 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Size of a list, group, ion network, ...
  */
 public class SizeType extends IntegerType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Size";

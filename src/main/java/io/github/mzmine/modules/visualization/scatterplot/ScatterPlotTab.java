@@ -36,7 +36,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Main window of the scatter plot visualizer.
@@ -119,19 +119,19 @@ public class ScatterPlotTab extends MZmineTab {
 
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return featureList.getRawDataFiles();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return new ArrayList<>(Collections.singletonList((ModularFeatureList) featureList));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

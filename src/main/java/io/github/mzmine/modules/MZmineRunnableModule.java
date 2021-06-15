@@ -20,7 +20,7 @@ package io.github.mzmine.modules;
 
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
@@ -39,7 +39,7 @@ public interface MZmineRunnableModule extends MZmineModule {
    * 
    * @return Module description
    */
-  @Nonnull
+  @NotNull
   public String getDescription();
 
   /**
@@ -60,15 +60,15 @@ public interface MZmineRunnableModule extends MZmineModule {
    *         it does not guarantee that the Tasks will finish without error. ExitCode.ERROR means
    *         there was a problem starting the module.
    */
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks);
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks);
 
   /**
    * Returns the category of the module (e.g. raw data processing, peak picking etc.). A menu item
    * for this module will be created according to the category.
    */
-  @Nonnull
+  @NotNull
   public MZmineModuleCategory getModuleCategory();
 
 }

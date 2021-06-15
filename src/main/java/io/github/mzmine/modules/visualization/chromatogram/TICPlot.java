@@ -42,8 +42,8 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -667,7 +667,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     chartSubTitle.setText(subTitleText);
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<TICPlotType> plotTypeProperty() {
     return plotType;
   }

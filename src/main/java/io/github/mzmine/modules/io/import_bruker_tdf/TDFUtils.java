@@ -52,8 +52,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -247,7 +247,7 @@ public class TDFUtils {
    */
   @Nullable
   public static List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long handle,
-      final long frameId, @Nonnull final TDFFrameTable frameTable) {
+      final long frameId, @NotNull final TDFFrameTable frameTable) {
     return loadSpectraForTIMSFrame(handle, frameId, frameTable, null, null);
   }
 
@@ -264,7 +264,7 @@ public class TDFUtils {
    */
   @Nullable
   public static List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long handle,
-      final long frameId, @Nonnull final TDFFrameTable frameTable,
+      final long frameId, @NotNull final TDFFrameTable frameTable,
       @Nullable final MassDetector msDetector,
       @Nullable final ParameterSet msParam) {
 
@@ -320,9 +320,9 @@ public class TDFUtils {
    * @return The frame.
    */
   public static SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile,
-      final long handle, final long frameId, @Nonnull final TDFMetaDataTable metaDataTable,
-      @Nonnull final TDFFrameTable frameTable,
-      @Nonnull final FramePrecursorTable framePrecursorTable,
+      final long handle, final long frameId, @NotNull final TDFMetaDataTable metaDataTable,
+      @NotNull final TDFFrameTable frameTable,
+      @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable) {
     return extractCentroidScanForTimsFrame(newFile, handle, frameId, metaDataTable, frameTable,
         framePrecursorTable, maldiFrameInfoTable, null, null, null, null);
@@ -337,9 +337,9 @@ public class TDFUtils {
    * @return The frame.
    */
   public static SimpleFrame extractCentroidScanForTimsFrame(IMSRawDataFile newFile,
-      final long handle, final long frameId, @Nonnull final TDFMetaDataTable metaDataTable,
-      @Nonnull final TDFFrameTable frameTable,
-      @Nonnull final FramePrecursorTable framePrecursorTable,
+      final long handle, final long frameId, @NotNull final TDFMetaDataTable metaDataTable,
+      @NotNull final TDFFrameTable frameTable,
+      @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
       @Nullable final MassDetector ms1Detector,
       @Nullable final ParameterSet ms1Param,

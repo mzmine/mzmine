@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
@@ -42,26 +42,26 @@ public class IntensityPlotModule implements MZmineRunnableModule {
   private static final String MODULE_DESCRIPTION = "Feature intensity plot."; // TODO
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     IntensityPlotTab newTab = new IntensityPlotTab(parameters);
     //newFrame.show();
     MZmineCore.getDesktop().addTab(newTab);
     return ExitCode.OK;
   }
 
-  public static void showIntensityPlot(@Nonnull MZmineProject project, FeatureList featureList,
+  public static void showIntensityPlot(@NotNull MZmineProject project, FeatureList featureList,
       FeatureListRow rows[]) {
 
     ParameterSet parameters =
@@ -106,12 +106,12 @@ public class IntensityPlotModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return IntensityPlotParameters.class;
   }
 

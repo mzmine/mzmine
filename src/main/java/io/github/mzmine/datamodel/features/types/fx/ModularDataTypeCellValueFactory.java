@@ -31,7 +31,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -52,7 +52,7 @@ public class ModularDataTypeCellValueFactory implements
   private ModularType modularParentType;
   private DataType<?> subType;
 
-  private final @Nonnull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
+  private final @NotNull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
 
   public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType, DataType<?> subType) {
     this(raw, modularParentType, subType, null);

@@ -15,8 +15,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonNetworkLibrary {
 
@@ -112,7 +112,7 @@ public class IonNetworkLibrary {
   /**
    * Does find all possible adduct combinations
    */
-  public @Nonnull
+  public @NotNull
   List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
       final FeatureListRow row2, final CheckMode mode, final double minHeight) {
     return findAdducts(featureList, row1, row2, row1.getRowCharge(), row2.getRowCharge(), mode,
@@ -126,7 +126,7 @@ public class IonNetworkLibrary {
    * @param z2 -1 or 0 if not set (charge state always positive)
    * @return returns list of adducts for [row1, row2]
    */
-  public @Nonnull
+  public @NotNull
   List<IonIdentity[]> findAdducts(final FeatureList featureList, final FeatureListRow row1,
       final FeatureListRow row2, int z1, int z2, final CheckMode mode, final double minHeight) {
     z1 = Math.abs(z1);

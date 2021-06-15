@@ -28,7 +28,7 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MZRangeType extends DoubleRangeType implements ExpandableType {
 
@@ -47,24 +47,24 @@ public class MZRangeType extends DoubleRangeType implements ExpandableType {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getHeaderString() {
     return "m/z range";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getExpandedTypeClass() {
     return getClass();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return MZType.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.RANGE));

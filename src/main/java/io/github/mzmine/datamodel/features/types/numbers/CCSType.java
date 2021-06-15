@@ -26,7 +26,7 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Type to store collision cross section values for features.
@@ -40,7 +40,7 @@ public class CCSType extends FloatType {
     super(new DecimalFormat("0.0"));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return headerString;
@@ -51,7 +51,7 @@ public class CCSType extends FloatType {
     return MZmineCore.getConfiguration().getCCSFormat();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.AVERAGE));

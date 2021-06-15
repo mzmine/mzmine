@@ -55,8 +55,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 
 /**
@@ -646,8 +646,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * otherwise.
    */
   private @Nullable
-  ModularFeatureListRow getRowFromCandidate(@Nonnull Candidates[] candidates,
-      int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
+  ModularFeatureListRow getRowFromCandidate(@NotNull Candidates[] candidates,
+      int bestPatternIndex, int peakIndex, @NotNull PeakListHandler plh) {
 
     if (bestPatternIndex >= candidates.length) {
       return null;

@@ -27,8 +27,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
@@ -39,7 +39,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  */
 public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
-  @Nonnull
+  @NotNull
   protected final IonModification adduct;
   @Nullable
   protected final IonModification mod;
@@ -82,7 +82,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return modified IonType
    */
-  public IonType createModified(final @Nonnull IonModification... newMod) {
+  public IonType createModified(final @NotNull IonModification... newMod) {
     List<IonModification> allMods = new ArrayList<>();
     Collections.addAll(allMods, newMod);
 
@@ -310,7 +310,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public IonType subtractMods(IonType ion) {
     // return an identity with only the modifications
     if (hasMods() && ion.hasMods()) {

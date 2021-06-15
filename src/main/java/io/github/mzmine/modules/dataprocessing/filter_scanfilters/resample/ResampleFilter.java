@@ -29,7 +29,7 @@ import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ResampleFilter implements ScanFilter {
 
@@ -75,12 +75,12 @@ public class ResampleFilter implements ScanFilter {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Resampling filter";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ResampleFilterParameters.class;
   }
 }

@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.import_bruker_tdf.datamodel.sql;
 
 import java.util.ArrayList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -27,12 +27,12 @@ import javax.annotation.Nonnull;
 public class TDFDataColumn<DataType> extends ArrayList<DataType> {
   protected final String coulumnName;
 
-  public TDFDataColumn(@Nonnull String coulumnName) {
+  public TDFDataColumn(@NotNull String coulumnName) {
     super();
     this.coulumnName = coulumnName;
   }
 
-  @Nonnull
+  @NotNull
   public String getCoulumnName() {
     return coulumnName;
   }

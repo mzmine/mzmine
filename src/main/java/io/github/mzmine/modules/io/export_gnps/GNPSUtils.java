@@ -26,8 +26,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -97,7 +97,7 @@ public class GNPSUtils {
   /**
    * Submit feature-based molecular networking (FBMN) job to GNPS
    */
-  public static String submitFbmnJob(@Nonnull File mgf, @Nonnull File quan, @Nullable File meta,
+  public static String submitFbmnJob(@NotNull File mgf, @NotNull File quan, @Nullable File meta,
       @Nullable File[] additionalEdges,
       String title, String email, String username, String password, String presets,
       boolean openWebsite) throws IOException {

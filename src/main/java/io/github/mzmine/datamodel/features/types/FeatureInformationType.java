@@ -23,21 +23,21 @@ import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.stream.Collectors;
 
 public class FeatureInformationType extends
     DataType<ObjectProperty<SimpleFeatureInformation>> implements NullColumnType {
 
   @Override
-  @Nonnull
+  @NotNull
   public String getHeaderString() {
     return "Feature information";
   }
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ObjectProperty<SimpleFeatureInformation> property) {
+  @NotNull
+  public String getFormattedString(@NotNull ObjectProperty<SimpleFeatureInformation> property) {
     return property.getValue() != null ? property.getValue().getAllProperties().entrySet().stream()
             .map(Object::toString).collect(Collectors.joining(";")) : "";
   }

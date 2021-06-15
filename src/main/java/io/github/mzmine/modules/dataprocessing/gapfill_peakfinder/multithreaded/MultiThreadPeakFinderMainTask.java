@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub

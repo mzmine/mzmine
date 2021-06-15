@@ -74,8 +74,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Conditions should be chosen in a way that exceptions are impossible when the item is clicked. On
@@ -421,7 +421,7 @@ public class FeatureTableContextMenu extends ContextMenu {
                .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
   }
 
-  @Nonnull
+  @NotNull
   private List<ModularFeature> getFeaturesFromSelectedRaw(Collection<ModularFeature> features) {
     if (selectedFeature == null || selectedFeature.getRawDataFile() == null) {
       return Collections.emptyList();

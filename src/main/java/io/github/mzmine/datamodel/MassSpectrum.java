@@ -20,8 +20,8 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represent one mass spectrum. Typically the implementation will store the m/z and
@@ -56,7 +56,7 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * @return The buffer the m/z values were written into. Usually the same as the supplied buffer.
    * However, a new buffer will be allocated if the original buffer is not big enough.
    */
-  double[] getMzValues(@Nonnull double[] dst);
+  double[] getMzValues(@NotNull double[] dst);
 
   /**
    * @param dst A buffer the intensity values will be written into. The buffer should ideally have
@@ -65,7 +65,7 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * @return The buffer the intensity values were written into. Usually the same as the supplied
    * buffer. However, a new buffer will be allocated if the original buffer is not big enough.
    */
-  double[] getIntensityValues(@Nonnull double[] dst);
+  double[] getIntensityValues(@NotNull double[] dst);
 
   /**
    *

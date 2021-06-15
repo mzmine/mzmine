@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrector;
@@ -81,12 +81,12 @@ public class RubberBandCorrector extends BaselineCorrector {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "RubberBand baseline corrector";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return RubberBandCorrectorParameters.class;
   }
 

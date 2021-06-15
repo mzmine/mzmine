@@ -39,8 +39,8 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
@@ -80,7 +80,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
-      @Nonnull final RunOption runOption) {
+      @NotNull final RunOption runOption) {
 
     // Task stuff
     this.computed = false;
@@ -114,12 +114,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    * Note: Computation task has to be started by the respective extending class.
    */
   public ColoredXYDataset(PlotXYDataProvider datasetProvider,
-      @Nonnull final RunOption runOption) {
+      @NotNull final RunOption runOption) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider, runOption);
   }
 
-  public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
+  public ColoredXYDataset(@NotNull PlotXYDataProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider, RunOption.NEW_THREAD);
   }
@@ -127,7 +127,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   /**
    *
    */
-  protected void handleRunOption(@Nonnull final RunOption runOption) {
+  protected void handleRunOption(@NotNull final RunOption runOption) {
     switch (runOption) {
       case THIS_THREAD -> run();
       case NEW_THREAD -> MZmineCore.getTaskController().addTask(this);

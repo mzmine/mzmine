@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types.fx;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -45,7 +45,7 @@ public class DataTypeCellValueFactory implements
 
   private RawDataFile raw;
   private DataType<?> type;
-  private final @Nonnull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
+  private final @NotNull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
 
   public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type) {
     this(raw, type, null);

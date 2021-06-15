@@ -30,27 +30,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface for feature list
  */
 public interface FeatureList {
 
-  @Nonnull
+  @NotNull
   String getNameProperty();
 
   /**
    * @return Short descriptive name for the feature list
    */
-  @Nonnull
+  @NotNull
   public String getName();
 
   /**
    * Change the name of this feature list
    */
-  public void setName(@Nonnull String name);
+  public void setName(@NotNull String name);
 
   /**
    * Returns number of raw data files participating in the feature list
@@ -156,7 +156,7 @@ public interface FeatureList {
    * @param scans all filtered scans that were used to build the chromatogram in the first place.
    *              For ion mobility data, the Frames are returned
    */
-  void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans);
+  void setSelectedScans(@NotNull RawDataFile file, @Nullable List<? extends Scan> scans);
 
   /**
    * @param file the data file
@@ -164,7 +164,7 @@ public interface FeatureList {
    * returned.
    */
   @Nullable
-  List<? extends Scan> getSeletedScans(@Nonnull RawDataFile file);
+  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
@@ -349,7 +349,7 @@ public interface FeatureList {
    *
    * @return a map that stores different relationship maps
    */
-  @Nonnull
+  @NotNull
   Map<Type, R2RMap<RowsRelationship>> getRowMaps();
 
   /**
@@ -358,7 +358,7 @@ public interface FeatureList {
    */
   public interface FeatureListAppliedMethod {
 
-    @Nonnull
+    @NotNull
     public String getDescription();
 
     /**
@@ -367,7 +367,7 @@ public interface FeatureList {
      * @return A clone of the parameter set stored in this object, so the stored values cannot be
      * edited.
      */
-    @Nonnull
+    @NotNull
     public ParameterSet getParameters();
 
     public MZmineModule getModule();

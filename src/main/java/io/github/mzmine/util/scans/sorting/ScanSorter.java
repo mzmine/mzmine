@@ -20,7 +20,7 @@ package io.github.mzmine.util.scans.sorting;
 
 import java.util.Comparator;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;

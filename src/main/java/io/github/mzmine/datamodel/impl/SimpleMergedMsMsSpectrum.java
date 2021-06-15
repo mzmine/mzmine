@@ -26,8 +26,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a merged spectrum from scans of the same raw data file. If a merged spectrum across
@@ -46,10 +46,10 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
   protected final double precursorMz;
   protected final int precursorCharge;
 
-  public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, double precursorMz, int precursorCharge,
-      float collisionEnergy, int msLevel, @Nonnull List<? extends MassSpectrum> sourceSpectra,
-      @Nonnull MergingType mergingType, @Nonnull CenterFunction centerFunction) {
+  public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, double precursorMz, int precursorCharge,
+      float collisionEnergy, int msLevel, @NotNull List<? extends MassSpectrum> sourceSpectra,
+      @NotNull MergingType mergingType, @NotNull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues, msLevel, sourceSpectra, mergingType,
         centerFunction);
 

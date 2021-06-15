@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class StandardCompoundNormalizerTask extends AbstractTask {
 

@@ -24,7 +24,7 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;

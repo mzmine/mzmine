@@ -59,7 +59,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.entity.ChartEntity;
@@ -391,19 +391,19 @@ public class TICVisualizerTab extends MZmineTab {
     ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<RawDataFile> getRawDataFiles() {
     return ticDataSets.keySet();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

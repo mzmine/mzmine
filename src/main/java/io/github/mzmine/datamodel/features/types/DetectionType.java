@@ -28,13 +28,13 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.shape.Circle;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class DetectionType extends DataType<ObjectProperty<FeatureStatus>>
     implements GraphicalColumType<FeatureStatus> {
 
   @Override
-  @Nonnull
+  @NotNull
   public String getHeaderString() {
     return "State";
   }

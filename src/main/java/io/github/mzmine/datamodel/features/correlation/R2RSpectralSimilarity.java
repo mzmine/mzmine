@@ -18,7 +18,7 @@
 package io.github.mzmine.datamodel.features.correlation;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Cosine similarity between two rows (the best MS2 spectra)
@@ -48,13 +48,13 @@ public class R2RSpectralSimilarity extends AbstractRowsRelationship {
     return similarity.cosine();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Type getType() {
     return type;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getAnnotation() {
     return "cos=" + getScoreFormatted();

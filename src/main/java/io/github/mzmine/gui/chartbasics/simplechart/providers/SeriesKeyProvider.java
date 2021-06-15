@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides a dataset with an "series key". The series key is used to label the dataset in the
@@ -33,6 +33,6 @@ public interface SeriesKeyProvider<ValueType extends Comparable<?>> {
   /**
    * @return The series key to label the dataset in the chart's legend.
    */
-  @Nonnull
+  @NotNull
   public ValueType getSeriesKey();
 }

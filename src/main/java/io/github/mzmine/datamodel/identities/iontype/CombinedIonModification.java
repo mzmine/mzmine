@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Combination of multiple IonModifications. Use the static create method to combine modifications
@@ -37,7 +37,7 @@ public class CombinedIonModification extends IonModification {
   /**
    * Modification parts
    */
-  @Nonnull
+  @NotNull
   private final IonModification[] mods;
 
   /**
@@ -48,7 +48,7 @@ public class CombinedIonModification extends IonModification {
    * @param deltaMZ delta m/z
    * @param charge  charge state
    */
-  protected CombinedIonModification(@Nonnull IonModification[] mods, IonModificationType type,
+  protected CombinedIonModification(@NotNull IonModification[] mods, IonModificationType type,
       double deltaMZ, int charge) {
     super(type, deltaMZ, charge);
     this.mods = mods;
@@ -61,7 +61,7 @@ public class CombinedIonModification extends IonModification {
    * @param modifications all modifications
    * @return a combined ion modification or if the argument modification if only one was provided
    */
-  public static IonModification create(@Nonnull IonModification... modifications) {
+  public static IonModification create(@NotNull IonModification... modifications) {
     if (modifications.length == 1) {
       return modifications[0];
     }
@@ -88,7 +88,7 @@ public class CombinedIonModification extends IonModification {
     return create(modifications.toArray(IonModification[]::new));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonModification[] getModifications() {
     return mods;

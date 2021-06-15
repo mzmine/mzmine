@@ -36,8 +36,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -120,13 +120,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
      */
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<Frame> getFrames() {
     return frames;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<Frame> getFrames(int msLevel) {
     return frameMsLevelCache.computeIfAbsent(msLevel, level -> getFrames().stream()
@@ -140,13 +140,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<Frame> getFrames(int msLevel, Range<Float> rtRange) {
     return getFrames(msLevel).stream().filter(frame -> rtRange.contains(frame.getRetentionTime()))
         .toList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<Scan> getFrameNumbers(int msLevel) {
     return frameNumbersCache.computeIfAbsent(msLevel, (key) -> {
@@ -167,16 +167,16 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     return frames.size();
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public List<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public List<Scan> getFrameNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     // since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
         .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime()))
         .toList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getDataMobilityRange() {
     mobilityRange = dataMobilityRangeCache.computeIfAbsent(0, level -> {
@@ -241,13 +241,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MobilityType getMobilityType() {
     return mobilityType;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getDataMobilityRange(int msLevel) {
     if (dataMobilityRangeCache.get(msLevel) == null) {

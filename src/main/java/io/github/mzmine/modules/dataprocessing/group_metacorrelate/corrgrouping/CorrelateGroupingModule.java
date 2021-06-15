@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class CorrelateGroupingModule implements MZmineProcessingModule {
 
@@ -36,34 +36,34 @@ public class CorrelateGroupingModule implements MZmineProcessingModule {
       "This method correlates and groups feature list rows based on multiple criteria (feature shape, intensity across samples, ...) ";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
 
     return DESCRIPTION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURE_GROUPING;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return CorrelateGroupingParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-      @Nonnull final Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Collection<Task> tasks) {
 
     ModularFeatureList[] featureLists = parameters
         .getParameter(CorrelateGroupingParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();

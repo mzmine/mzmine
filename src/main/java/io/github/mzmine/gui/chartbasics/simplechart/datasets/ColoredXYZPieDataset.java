@@ -23,7 +23,7 @@ import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.Color;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.data.xy.XYZDataset;
 
@@ -42,12 +42,12 @@ public class ColoredXYZPieDataset<T> extends ColoredXYDataset implements XYZData
   protected T[] sliceIdentifiers;
   private Range<Double> zRange;
 
-  public ColoredXYZPieDataset(@Nonnull PieXYZDataProvider<T> dataProvider) {
+  public ColoredXYZPieDataset(@NotNull PieXYZDataProvider<T> dataProvider) {
     this(dataProvider, RunOption.NEW_THREAD);
   }
 
-  public ColoredXYZPieDataset(@Nonnull PieXYZDataProvider<T> dataProvider,
-      @Nonnull final RunOption runOption) {
+  public ColoredXYZPieDataset(@NotNull PieXYZDataProvider<T> dataProvider,
+      @NotNull final RunOption runOption) {
     super(dataProvider, RunOption.DO_NOT_RUN);
     this.pieDataProvider = dataProvider;
     renderer = new XYBlockPixelSizeRenderer();

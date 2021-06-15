@@ -31,8 +31,8 @@ import java.text.NumberFormat;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to plot a {@link SummedIntensityMobilitySeries} in an XY chart.
@@ -76,13 +76,13 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     this.swapAxes = swapAxes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public java.awt.Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color.get());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color.get();
@@ -94,7 +94,7 @@ public class SummedMobilogramXYProvider implements PlotXYDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

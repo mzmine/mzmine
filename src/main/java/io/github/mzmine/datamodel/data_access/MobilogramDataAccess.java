@@ -33,8 +33,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobilitySeries> {
 
@@ -51,7 +51,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   protected int currentNumDataPoints;
   protected IonMobilitySeries currentMobilogram;
 
-  protected MobilogramDataAccess(@Nonnull final IonMobilogramTimeSeries imts, @Nonnull
+  protected MobilogramDataAccess(@NotNull final IonMobilogramTimeSeries imts, @NotNull
       MobilogramAccessType accessType) {
     assert imts.getNumberOfValues() > 0;
 
@@ -202,13 +202,13 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
 
   @Override
   public IonSpectrumSeries<MobilityScan> subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<MobilityScan> subset) {
+      @NotNull List<MobilityScan> subset) {
     return currentMobilogram.subSeries(storage, subset);
   }
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     // depending on the type of data access, we can have more scans in currentSpectra than data points. (if 0s are included)
     // hence, this method is unsupported. A new SimpleIonMobilitySeries should be created with the respective spectra instead.
     throw new IllegalArgumentException(

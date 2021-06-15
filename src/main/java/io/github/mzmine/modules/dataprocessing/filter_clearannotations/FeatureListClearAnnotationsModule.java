@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -42,19 +42,19 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
       "This method clears the annotations from the peaklist";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     final FeatureList[] peakLists =
         parameters.getParameter(FeatureListClearAnnotationsParameters.PEAK_LISTS).getValue()
@@ -71,12 +71,12 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTFILTERING;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FeatureListClearAnnotationsParameters.class;
   }
 }

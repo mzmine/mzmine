@@ -55,7 +55,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -345,7 +345,7 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    @Nonnull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
+    @NotNull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
