@@ -164,20 +164,29 @@ public class ScanUtils {
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
 
+    final double lower = mzRange.lowerEndpoint();
+    final double upper = mzRange.upperEndpoint();
+
+    boolean found = false;
     double baseMz = 0d;
     double baseIntensity = 0d;
+
     for (int i = 0; i < scan.getNumberOfDataPoints(); i++) {
       double mz = scan.getMzValue(i);
-      if (!mzRange.contains(mz)) {
+      if (mz < lower) {
         continue;
+      } else if(mz > upper) {
+        break;
       }
+
       double intensity = scan.getIntensityValue(i);
       if (intensity > baseIntensity) {
+        found = true;
         baseIntensity = intensity;
         baseMz = mz;
       }
     }
-    return new SimpleDataPoint(baseMz, baseIntensity);
+    return found ? new SimpleDataPoint(baseMz, baseIntensity) : null;
   }
 
   /**
@@ -416,7 +425,7 @@ public class ScanUtils {
           // Find existing right neighbour
           double rightNeighbourValue = afterY;
           int rightNeighbourBinIndex = (binValues.length - 1)
-                                       + (int) Math
+              + (int) Math
               .ceil((afterX - binRange.upperEndpoint()) / binWidth);
           for (int anotherBinIndex =
               binIndex + 1; anotherBinIndex < binValues.length; anotherBinIndex++) {
@@ -428,7 +437,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue)
-                         / (rightNeighbourBinIndex - leftNeighbourBinIndex);
+              / (rightNeighbourBinIndex - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -648,7 +657,7 @@ public class ScanUtils {
 
     return dataFile.getScanNumbers(2).stream()
         .filter(s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime())
-                     && mzRange.contains(s.getPrecursorMZ()))
+            && mzRange.contains(s.getPrecursorMZ()))
         .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 

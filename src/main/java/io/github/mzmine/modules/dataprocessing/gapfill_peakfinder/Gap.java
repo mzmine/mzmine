@@ -34,17 +34,17 @@ import java.util.Vector;
 
 public class Gap {
 
-  private FeatureListRow peakListRow;
-  private RawDataFile rawDataFile;
+  protected FeatureListRow peakListRow;
+  protected RawDataFile rawDataFile;
 
-  private Range<Double> mzRange;
-  private Range<Float> rtRange;
-  private double intTolerance;
+  protected Range<Double> mzRange;
+  protected Range<Float> rtRange;
+  protected double intTolerance;
 
   // These store information about peak that is currently under construction
   private List<GapDataPoint> currentPeakDataPoints;
   private List<GapDataPoint> bestPeakDataPoints;
-  private double bestPeakHeight;
+  protected double bestPeakHeight;
 
   /**
    * Constructor: Initializes an empty gap
@@ -75,7 +75,7 @@ public class Gap {
       return;
 
     // Find top m/z peak in our range
-    DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+    DataPoint basePeak = findDataPoint(scan);
 
     GapDataPoint currentDataPoint;
     if (basePeak != null) {
@@ -109,6 +109,10 @@ public class Gap {
 
     }
 
+  }
+
+  protected DataPoint findDataPoint(Scan scan) {
+    return ScanUtils.findBasePeak(scan, mzRange);
   }
 
   /**
