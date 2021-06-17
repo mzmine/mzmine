@@ -23,7 +23,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -31,7 +30,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -43,19 +42,19 @@ public class ImageBuilderModule implements MZmineProcessingModule {
       "This module connects data points from mass lists and builds images.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles();
@@ -67,19 +66,19 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         continue;
       }
       ImageBuilderTask task = new ImageBuilderTask(project, file, parameters, storage);
-      MZmineCore.getTaskController().addTask(task);
+      tasks.add(task);
     }
 
     return ExitCode.OK;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ImageBuilderParameters.class;
   }
 

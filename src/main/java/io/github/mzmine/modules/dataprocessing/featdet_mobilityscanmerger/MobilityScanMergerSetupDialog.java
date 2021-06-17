@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
@@ -109,15 +109,15 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     Weighting weighting = parameterSet.getParameter(MobilityScanMergerParameters.weightingType)
         .getValue();
 
-    if (mergingType == null || mzTolerance == null) {
+    if (mergingType == null || mzTolerance == null || frameComboBox.getValue() == null) {
       return;
     }
 
     logger.info("Start calc");
     double[][] merged = SpectraMerging
-        .calculatedMergedMzsAndIntensities(frameComboBox.getValue().getMobilityScans(), noiseLevel,
+        .calculatedMergedMzsAndIntensities(frameComboBox.getValue().getMobilityScans(),
             mzTolerance, mergingType, new CenterFunction(
-                CenterMeasure.AVG, weighting));
+                CenterMeasure.AVG, weighting), noiseLevel);
     logger.info("End calc");
 
     if (merged == null) {
@@ -129,8 +129,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     plot.removeAllDatasets();
-    plot.addDataset(
-        new FastColoredXYDataset(new MassSpectrumProvider(merged[0], merged[1], "Preview")),
+    plot.addDataset(new ColoredXYDataset(new MassSpectrumProvider(merged[0], merged[1], "Preview")),
         coloredXYBarRenderer);
     theme.apply(plot.getChart());
   }

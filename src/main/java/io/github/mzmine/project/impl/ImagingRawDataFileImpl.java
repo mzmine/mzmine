@@ -18,15 +18,15 @@
 
 package io.github.mzmine.project.impl;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.collections.ObservableList;
 
 
@@ -61,7 +61,7 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     //
     Scan[][][] numbers = getXYZScanNumbers();
     // yline:
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
@@ -82,10 +82,10 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     y2 = Math.max(tmp, y2);
 
     Scan[][][] numbers = getXYZScanNumbers();
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
-    int iy2 = (int) ((y2) / param.getPixelShape());
+    int iy2 = (int) ((y2) / param.getPixelHeight());
     int ix2 = (int) (x2 / param.getPixelWidth());
 
     List<Scan> list = new ArrayList<>();

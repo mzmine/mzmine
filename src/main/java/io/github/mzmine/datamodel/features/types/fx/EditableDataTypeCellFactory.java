@@ -25,10 +25,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import javafx.geometry.Pos;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.cell.ComboBoxTreeTableCell;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.util.Callback;
 

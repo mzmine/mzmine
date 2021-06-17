@@ -44,7 +44,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ADAP3DTask extends AbstractTask {
 

@@ -30,7 +30,7 @@ import io.github.mzmine.modules.io.import_bruker_tdf.datamodel.callbacks.Profile
 /**
  * Inteface for Java Native Access for Bruker Daltonic's tdf data format.
  * <p>
- * Javadoc added according to documentation in tdf-sdk-2.8.7_pre
+ * Javadoc added according to documentation in timsdata-2.8.7.1-win32-vc141
  *
  * @author Bruker Daltonik GmbH - copied from the SDK by SteffenHeu.
  */
@@ -58,7 +58,7 @@ public interface TDFLibrary extends Library {
    * @param handle btained by tims_open(); passing 0 is ok and has no effect.
    * @return not documented
    */
-  long tims_close(long handle);
+  void tims_close(long handle);
 
   /**
    * Return the last error as a string (thread-local).

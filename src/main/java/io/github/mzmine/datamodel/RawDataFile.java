@@ -21,7 +21,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.util.MemoryMapStorage;
 import javafx.beans.property.ObjectProperty;
@@ -34,13 +34,13 @@ public interface RawDataFile {
    * Returns the name of this data file (can be a descriptive name, not necessarily the original
    * file name)
    */
-  @Nonnull
+  @NotNull
   String getName();
 
   /**
    * Change the name of this data file
    */
-  void setName(@Nonnull String name);
+  void setName(@NotNull String name);
 
   int getNumOfScans();
 
@@ -65,7 +65,7 @@ public interface RawDataFile {
   /**
    * Returns sorted array of all MS levels in this file
    */
-  @Nonnull
+  @NotNull
   int[] getMSLevels();
 
   /**
@@ -74,7 +74,7 @@ public interface RawDataFile {
    * @param msLevel MS level (0 for all scans)
    * @return Sorted array of scan numbers, never returns null
    */
-  @Nonnull
+  @NotNull
   List<Scan> getScanNumbers(int msLevel);
 
   /**
@@ -84,8 +84,8 @@ public interface RawDataFile {
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
    */
-  @Nonnull
-  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  @NotNull
+  Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
    * @param rt The rt
@@ -102,16 +102,16 @@ public interface RawDataFile {
    */
   Scan getScanNumberAtRT(float rt);
 
-  @Nonnull
+  @NotNull
   Range<Double> getDataMZRange();
 
-  @Nonnull
+  @NotNull
   Range<Float> getDataRTRange();
 
-  @Nonnull
+  @NotNull
   Range<Double> getDataMZRange(int msLevel);
 
-  @Nonnull
+  @NotNull
   Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);
@@ -123,7 +123,7 @@ public interface RawDataFile {
    *
    * @return Scan polarity types.
    */
-  @Nonnull
+  @NotNull
   List<PolarityType> getDataPolarity();
 
   java.awt.Color getColorAWT();
@@ -139,7 +139,7 @@ public interface RawDataFile {
    */
   void close();
 
-  @Nonnull
+  @NotNull
   MemoryMapStorage getMemoryMapStorage();
 
   void addScan(Scan newScan) throws IOException;
@@ -182,6 +182,6 @@ public interface RawDataFile {
     return getScans().get(i);
   }
 
-  @Nonnull
+  @NotNull
   ObservableList<FeatureListAppliedMethod> getAppliedMethods();
 }

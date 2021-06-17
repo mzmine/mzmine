@@ -18,19 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.Color;
-import java.io.File;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -63,6 +50,15 @@ import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.io.File;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -72,13 +68,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Spectrum visualizer using JFreeChart library
  */
 public class SpectraVisualizerTab extends MZmineTab {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final Image centroidIcon =
       FxIconUtil.loadImageFromResources("icons/centroidicon.png");
@@ -210,7 +210,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       // open window with all selected rows
       MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
       libraryWindow.setData(currentScan);
-      libraryWindow.setVisible(true);
+      libraryWindow.show();
     });
 
     dbOnlineButton = new Button(null, new ImageView(dbOnlineIcon));
@@ -586,6 +586,14 @@ public class SpectraVisualizerTab extends MZmineTab {
     spectrumDataSet.addAnnotation(annotation);
   }
 
+  /**
+   * Add annotations for m/z values
+   * @param annotation m/z value and annotation map
+   */
+  public void addMzAnnotation(Map<Double, String> annotation) {
+    spectrumDataSet.addMzAnnotation(annotation);
+  }
+
   public SpectraPlot getSpectrumPlot() {
     return spectrumPlot;
   }
@@ -598,19 +606,19 @@ public class SpectraVisualizerTab extends MZmineTab {
     spectrumPlot.addDataSet(dataset, color, true);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return new ArrayList<>(Collections.singletonList(dataFile));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

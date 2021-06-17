@@ -26,8 +26,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -315,7 +315,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   /**
    * @return The raw data files currently visualised.
    */
-  @Nonnull
+  @NotNull
   public Collection<RawDataFile> getRawDataFiles() {
     return filesAndDataSets.keySet();
   }
@@ -327,7 +327,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param rawDataFiles
    */
-  public void setRawDataFiles(@Nonnull Collection<RawDataFile> rawDataFiles) {
+  public void setRawDataFiles(@NotNull Collection<RawDataFile> rawDataFiles) {
     // remove files first
     List<RawDataFile> filesToProcess = new ArrayList<>();
     for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
@@ -350,7 +350,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param rawDataFile
    */
-  public void addRawDataFile(@Nonnull final RawDataFile rawDataFile) {
+  public void addRawDataFile(@NotNull final RawDataFile rawDataFile) {
 
     if (filesAndDataSets.keySet().contains(rawDataFile)) {
       logger.fine("Raw data file " + rawDataFile.getName() + " already displayed.");
@@ -381,7 +381,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param file The raw data file
    */
-  public void removeRawDataFile(@Nonnull final RawDataFile file) {
+  public void removeRawDataFile(@NotNull final RawDataFile file) {
     logger.fine("Removing raw data file " + file.getName());
     TICDataSet dataset = filesAndDataSets.get(file);
     chromPlot.getXYPlot().setDataset(chromPlot.getXYPlot().indexOf(dataset), null);
@@ -428,7 +428,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param pos
    */
-  private void updateChromatogramDomainMarker(@Nonnull ChromatogramCursorPosition pos) {
+  private void updateChromatogramDomainMarker(@NotNull ChromatogramCursorPosition pos) {
     chromPlot.getXYPlot().clearDomainMarkers();
 
     if (rtMarker == null) {
@@ -442,7 +442,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     chromPlot.getXYPlot().addDomainMarker(rtMarker);
   }
 
-  private void updateSpectrumDomainMarker(@Nonnull SpectrumCursorPosition pos) {
+  private void updateSpectrumDomainMarker(@NotNull SpectrumCursorPosition pos) {
     spectrumPlot.getXYPlot().clearDomainMarkers();
 
     if (mzMarker == null) {
@@ -463,7 +463,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum The scan number.
    */
-  public void setFocusedScan(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
+  public void setFocusedScan(@NotNull RawDataFile rawDataFile, Scan scanNum) {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
       return;
     }
@@ -479,7 +479,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The raw data file
    * @param scanNum The number of the scan
    */
-  private void forceScanDataSet(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
+  private void forceScanDataSet(@NotNull RawDataFile rawDataFile, Scan scanNum) {
     spectrumPlot.removeAllDataSets();
     ScanDataSet dataSet = new ScanDataSet(scanNum);
     spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false);
@@ -493,7 +493,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFile The rawDataFile to focus.
    * @param scanNum The scan number.
    */
-  public void setFocusedScanSilent(@Nonnull RawDataFile rawDataFile, Scan scanNum) {
+  public void setFocusedScanSilent(@NotNull RawDataFile rawDataFile, Scan scanNum) {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
       return;
     }
@@ -551,8 +551,8 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFiles The raw data files in the chromatogram plot.
    * @param pos the currently selected {@link ChromatogramCursorPosition}.
    */
-  private void updateSpectraPlot(@Nonnull Collection<RawDataFile> rawDataFiles,
-      @Nonnull ChromatogramCursorPosition pos) {
+  private void updateSpectraPlot(@NotNull Collection<RawDataFile> rawDataFiles,
+      @NotNull ChromatogramCursorPosition pos) {
     SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles, pos, getScanSelection(),
         showSpectraOfEveryRawFile, getSpectrumPlot());
 
@@ -578,30 +578,30 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param plotType The new plot type.
    */
-  public void setPlotType(@Nonnull TICPlotType plotType) {
+  public void setPlotType(@NotNull TICPlotType plotType) {
     this.plotType.set(plotType);
   }
 
-  @Nonnull
+  @NotNull
   public TICPlotType getPlotType() {
     return plotType.get();
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<TICPlotType> plotTypeProperty() {
     return plotType;
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<ChromatogramCursorPosition> chromPositionProperty() {
     return chromPosition;
   }
 
-  private void setChromPosition(@Nonnull ChromatogramCursorPosition chromPosition) {
+  private void setChromPosition(@NotNull ChromatogramCursorPosition chromPosition) {
     this.chromPosition.set(chromPosition);
   }
 
-  @Nonnull
+  @NotNull
   public ChromatogramCursorPosition getChromPosition() {
     return chromPosition.get();
   }
@@ -639,7 +639,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     this.mzRange.set(mzRange);
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<Range<Double>> mzRangeProperty() {
     return mzRange;
   }
@@ -649,31 +649,31 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    *
    * @param selection The new scan selection.
    */
-  public void setScanSelection(@Nonnull ScanSelection selection) {
+  public void setScanSelection(@NotNull ScanSelection selection) {
     scanSelection.set(selection);
   }
 
-  @Nonnull
+  @NotNull
   public ScanSelection getScanSelection() {
     return scanSelection.get();
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<ScanSelection> scanSelectionProperty() {
     return scanSelection;
   }
 
-  @Nonnull
+  @NotNull
   public MZTolerance getChromMzTolerance() {
     return chromMzTolerance.get();
   }
 
-  @Nonnull
+  @NotNull
   public ObjectProperty<MZTolerance> chromMzToleranceProperty() {
     return chromMzTolerance;
   }
 
-  public void setChromMzTolerance(@Nonnull MZTolerance chromMzTolerance) {
+  public void setChromMzTolerance(@NotNull MZTolerance chromMzTolerance) {
     this.chromMzTolerance.set(chromMzTolerance);
   }
 

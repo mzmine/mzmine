@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -39,11 +39,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureShapeMobilogramChart extends StackPane {
 
-  public FeatureShapeMobilogramChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public FeatureShapeMobilogramChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
 
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
@@ -52,14 +52,15 @@ public class FeatureShapeMobilogramChart extends StackPane {
         mt.getAxisLabel(), uf.format("Intensity", "cps"));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
-    chart.switchLegendVisible();
+    chart.setLegendItemsVisible(false);
 
     Set<ColoredXYDataset> datasets = new LinkedHashSet<>();
     int size = row.getFilesFeatures().size();
     for (Feature f : row.getFeatures()) {
       IonTimeSeries<? extends Scan> series = ((ModularFeature) f).getFeatureData();
       if (series instanceof IonMobilogramTimeSeries) {
-        datasets.add(new FastColoredXYDataset(new SummedMobilogramXYProvider((ModularFeature) f)));
+        datasets.add(new ColoredXYDataset(new SummedMobilogramXYProvider((ModularFeature) f),
+            RunOption.THIS_THREAD));
       }
 
       if (progress != null) {
@@ -71,7 +72,9 @@ public class FeatureShapeMobilogramChart extends StackPane {
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-    getChildren().add(chart);
-    Platform.runLater(() -> chart.addDatasets(datasets));
+    Platform.runLater(() -> {
+      getChildren().add(chart);
+      chart.addDatasets(datasets);
+    });
   }
 }

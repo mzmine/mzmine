@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
@@ -46,8 +46,8 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
   }
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull Property<Integer> value) {
+  @NotNull
+  public String getFormattedString(@NotNull Property<Integer> value) {
     if (value.getValue() == null)
       return "";
     return getFormatter().format(value.getValue().intValue());

@@ -28,7 +28,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Raw data export module
@@ -40,19 +40,19 @@ public class MzMLExportModule implements MZmineProcessingModule {
       "This module exports raw data files from your MZmine project into various formats";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(final @Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     String extension = "mzML";
 
@@ -72,12 +72,12 @@ public class MzMLExportModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATAEXPORT;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MzMLExportParameters.class;
   }
 

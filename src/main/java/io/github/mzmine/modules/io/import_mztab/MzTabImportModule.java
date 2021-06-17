@@ -22,7 +22,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -38,28 +38,28 @@ public class MzTabImportModule implements MZmineProcessingModule {
       "This method imports a feature list from a mzTab file.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTIMPORT;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MzTabImportParameters.class;
   }
 
   @Override
-  public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
     File inputFiles[] = parameters.getParameter(MzTabImportParameters.file).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {

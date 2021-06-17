@@ -18,8 +18,9 @@
 
 package io.github.mzmine.datamodel;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import com.google.common.collect.Range;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
@@ -27,16 +28,16 @@ import javax.annotation.Nullable;
  *
  * @author https://github.com/SteffenHeu
  */
-public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
+public interface MobilityScan extends MassSpectrum, Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
-  @Nonnull
+  @NotNull
   RawDataFile getDataFile();
 
   /**
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
-   *         spectrometer and can be checked via {@link MobilityScan#getMobilityType()}.
+   * spectrometer and can be checked via {@link MobilityScan#getMobilityType()}.
    */
   double getMobility();
 
@@ -65,13 +66,58 @@ public interface MobilityScan extends MassSpectrum, Comparable<MobilityScan> {
   @Nullable
   ImsMsMsInfo getMsMsInfo();
 
-  void setMassList(final @Nonnull MassList massList);
-
   @Nullable
   MassList getMassList();
 
   @Override
-  default int compareTo(@Nonnull MobilityScan o) {
-    return Integer.compare(this.getMobilityScanNumber(), o.getMobilityScanNumber());
+  default int compareTo(@NotNull Scan s) {
+    int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
+    if (result != 0) {
+      return result;
+    }
+    result = Float.compare(this.getRetentionTime(), s.getRetentionTime());
+    if (result != 0 || !(s instanceof MobilityScan ms)) {
+      return result;
+    }
+
+    return Integer.compare(this.getMobilityScanNumber(), ms.getMobilityScanNumber());
+  }
+
+  @Override
+  default int getScanNumber() {
+    return getFrame().getFrameId();
+  }
+
+  @NotNull
+  @Override
+  default String getScanDefinition() {
+    return getFrame().getScanDefinition() + " - Mobility scan #" + getMobilityScanNumber();
+  }
+
+  @NotNull
+  @Override
+  default Range<Double> getScanningMZRange() {
+    return getFrame().getScanningMZRange();
+  }
+
+  @Override
+  default double getPrecursorMZ() {
+    return getMsMsInfo() != null ? getMsMsInfo().getLargestPeakMz() : 0d;
+  }
+
+  @NotNull
+  @Override
+  default PolarityType getPolarity() {
+    return getFrame().getPolarity();
+  }
+
+  @Override
+  default int getPrecursorCharge() {
+    return getMsMsInfo() != null ? getMsMsInfo().getPrecursorCharge() : 0;
+  }
+
+  @Override
+  default int getMSLevel() {
+    return getFrame().getMSLevel();
   }
 }

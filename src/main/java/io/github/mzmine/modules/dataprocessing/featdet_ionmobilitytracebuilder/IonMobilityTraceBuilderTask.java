@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -76,15 +77,15 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final int minDataPointsRt;
   private final int minTotalSignals;
-  private final double timsBindWidth;
-  private final double twimsBindWidth;
-  private final double dtimsBindWidth;
+  private final int timsBindWidth;
+  private final int twimsBindWidth;
+  private final int dtimsBindWidth;
   private final ScanSelection scanSelection;
+  private final ParameterSet parameters;
   private RangeSet<Double> rangeSet = TreeRangeSet.create();
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
-  private final ParameterSet parameters;
   private int allowedMissingFrames = DEFAULT_ALLOWED_MISSING_FRAMES;
   private int allowedMissingMobilityScans = DEFAULT_ALLOWED_MISSING_MOBILITY_SCANS;
 
@@ -108,23 +109,23 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     final ParameterSet advancedParam = parameters
         .getParameter(IonMobilityTraceBuilderParameters.advancedParameters).getValue();
     timsBindWidth =
-        advancedParam.getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
+        advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
             .getValue() ? advancedParam
-            .getParameter(OptionalImsTraceBuilderParameters.timsBinningWidth)
+            .getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : OptionalImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
     dtimsBindWidth =
-        advancedParam.getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
+        advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getValue() ? advancedParam
-            .getParameter(OptionalImsTraceBuilderParameters.dtimsBinningWidth)
+            .getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : OptionalImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
     twimsBindWidth =
-        advancedParam.getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
+        advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getValue() ? advancedParam
-            .getParameter(OptionalImsTraceBuilderParameters.twimsBinningWidth)
+            .getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : OptionalImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
 
     this.parameters = parameters;
     setStatus(TaskStatus.WAITING);
@@ -185,7 +186,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
               "Scan #" + scan.getMobilityScanNumber()
-                  + " does not have a mass list. Run mass detection ");
+              + " does not have a mass list. Run mass detection ");
         } else {
           MassList ml = scan.getMassList();
           mzBuffer = ml.getMzValues(mzBuffer);
@@ -613,11 +614,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);
     featureList.setSelectedScans(rawDataFile, frames);
 
-    final double binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
+    final int binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
       case DRIFT_TUBE -> dtimsBindWidth;
       case TIMS -> timsBindWidth;
       case TRAVELING_WAVE -> twimsBindWidth;
-      default -> 0d;
+      default -> 1;
     };
 
     final BinningMobilogramDataAccess mobilogramBinner = EfficientDataAccess.of(
@@ -629,7 +630,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
       ModularFeature modular = FeatureConvertors
           .IonMobilityIonTraceToModularFeature(ionTrace, rawDataFile, mobilogramBinner);
       ModularFeatureListRow newRow =
-          new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
+          new ModularFeatureListRow(featureList, featureId, modular);
 //      newRow.set(MobilityType.class, ionTrace.getMobility());
       featureList.addRow(newRow);
       featureId++;

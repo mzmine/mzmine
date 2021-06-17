@@ -26,8 +26,8 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Calculates feature specific collision cross section values based on ion mobility values and the
@@ -48,7 +48,7 @@ public class CCSCalcModule implements MZmineProcessingModule {
 
   public static final String NAME = "CCS calculation module";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;
@@ -60,22 +60,22 @@ public class CCSCalcModule implements MZmineProcessingModule {
     return CCSCalcParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Calculates CCS values for features.";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     Task task = new CCSCalcTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(task);
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.IDENTIFICATION;

@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -49,7 +49,7 @@ public abstract class TDFDataTable<EntryKeyType> {
     columns.add(keyList);
   }
 
-  public void addColumn(@Nonnull TDFDataColumn<?> column) {
+  public void addColumn(@NotNull TDFDataColumn<?> column) {
     assert column != null;
     columns.add(column);
   }

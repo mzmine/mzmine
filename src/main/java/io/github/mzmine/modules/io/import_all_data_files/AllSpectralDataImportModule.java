@@ -49,7 +49,7 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Raw data import module
@@ -66,33 +66,33 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private MemoryMapStorage storageMassLists = null;
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATAIMPORT;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
     return AllSpectralDataImportParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(final @Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     File[] fileNames = parameters.getParameter(AllSpectralDataImportParameters.fileNames)
         .getValue();
@@ -184,20 +184,22 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    * @return the task or null if the data format is not supported for direct mass detection
    */
   private Task createAdvancedTask(RawDataFileType fileType, MZmineProject project, File file,
-      RawDataFile newMZmineFile, @Nonnull AdvancedSpectraImportParameters advancedParam) {
+      RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam) {
     return switch (fileType) {
       // MS
       case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam);
+      case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile,
+          advancedParam);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, BRUKER_TDF, MZML_IMS -> createWrappedAdvancedTask(
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
           fileType, project, file, newMZmineFile, advancedParam);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }
 
   private Task createWrappedAdvancedTask(RawDataFileType fileType, MZmineProject project, File file,
-      RawDataFile newMZmineFile, @Nonnull AdvancedSpectraImportParameters advancedParam) {
+      RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
         + " and file " + file.getAbsolutePath());

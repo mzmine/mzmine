@@ -18,17 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Map;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -41,7 +30,17 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import javafx.application.Platform;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Map;
+import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -53,7 +52,7 @@ import javafx.stage.FileChooser;
 
 
 public class ResultWindowController {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
@@ -258,20 +257,15 @@ public class ResultWindowController {
 
     if (msmsPlot == null)
       return;
-    Map<Integer, String> annotation = formula.getMSMSannotation();
+    Map<Double, String> annotation = formula.getMSMSannotation();
 
     if (annotation == null)
       return;
-    msmsPlot.addAnnotation(annotation);
+    msmsPlot.addMzAnnotation(annotation);
   }
 
   public void addNewListItem(final ResultFormula formula) {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        formulas.add(formula);
-      }
-    });
+    MZmineCore.runLater(() -> formulas.add(formula));
   }
 
   public void dispose() {

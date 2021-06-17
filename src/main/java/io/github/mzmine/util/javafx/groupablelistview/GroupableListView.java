@@ -35,7 +35,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class extending ListView with possibility of items grouping.
@@ -92,7 +92,7 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
    *
    * @param values list to be binded
    */
-  public final void setValues(@Nonnull ObservableList<T> values) {
+  public final void setValues(@NotNull ObservableList<T> values) {
     listItems.clear();
     listGroups.clear();
 

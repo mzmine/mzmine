@@ -18,49 +18,34 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import java.util.Map;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.datamodel.IsotopePattern;
 
-public class ResultFormula {
+public class ResultFormula extends MolecularFormulaIdentity {
 
-  private final IMolecularFormula cdkFormula;
-  private Double rdbeValue, isotopeScore, msmsScore;
+  private Double isotopeScore, msmsScore;
   private IsotopePattern predictedIsotopePattern;
-  private Map<Integer, String> msmsAnnotation;
+  private Map<Double, String> msmsAnnotation;
 
+  protected ResultFormula(ResultFormula f) {
+    this(f.cdkFormula, f.predictedIsotopePattern, f.getIsotopeScore(), f.getMSMSScore(), f.getMSMSannotation(),
+        f.getSearchedNeutralMass());
+  }
   public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
-      Double rdbeValue, Double isotopeScore, Double msmsScore,
-      Map<Integer, String> msmsAnnotation) {
-
-    this.cdkFormula = cdkFormula;
+      Double isotopeScore, Double msmsScore,
+      Map<Double, String> msmsAnnotation, double searchedNeutralMass) {
+    super(cdkFormula, searchedNeutralMass);
     this.predictedIsotopePattern = predictedIsotopePattern;
     this.isotopeScore = isotopeScore;
     this.msmsScore = msmsScore;
     this.msmsAnnotation = msmsAnnotation;
-    this.rdbeValue = rdbeValue;
-
+    this.searchedNeutralMass = searchedNeutralMass;
   }
 
-  public Double getRDBE() {
-    return rdbeValue;
-  }
-
-  public Map<Integer, String> getMSMSannotation() {
+  public Map<Double, String> getMSMSannotation() {
     return msmsAnnotation;
-  }
-
-  public String getFormulaAsString() {
-    return MolecularFormulaManipulator.getString(cdkFormula);
-  }
-
-  public String getFormulaAsHTML() {
-    return MolecularFormulaManipulator.getHTML(cdkFormula);
-  }
-
-  public IMolecularFormula getFormulaAsObject() {
-    return cdkFormula;
   }
 
   public IsotopePattern getPredictedIsotopes() {
@@ -75,8 +60,24 @@ public class ResultFormula {
     return msmsScore;
   }
 
-  public double getExactMass() {
-    return MolecularFormulaManipulator.getMass(cdkFormula);
+  @Override
+  public double getScore(double neutralMass, double ppmMax, double fIsotopeScore,
+      double fMSMSscore) {
+    double ppmScore = super.getPPMScore(neutralMass, ppmMax);
+    double totalScore = ppmScore;
+    double div = 1;
+    Double isoScore = getIsotopeScore();
+    if (isoScore != null) {
+      totalScore += isoScore * fIsotopeScore;
+      div += fIsotopeScore;
+    }
+    Double msmsScore = getMSMSScore();
+    if (msmsScore != null) {
+      totalScore += msmsScore * fMSMSscore;
+      div += fMSMSscore;
+    }
+
+    return totalScore / div;
   }
 
 }

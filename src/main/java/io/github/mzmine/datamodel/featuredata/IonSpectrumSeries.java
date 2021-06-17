@@ -21,8 +21,8 @@ package io.github.mzmine.datamodel.featuredata;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores combinations of intensity and mz values.
@@ -65,7 +65,7 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param subset  The subset of spectra. sorted by their scan number (retention time or mobility)
    * @return The subset series.
    */
-  IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);
+  IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
 
   /**
    * Creates a copy of this series using the same list of scans but possibly new mz/intensity
@@ -76,6 +76,6 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param newIntensityValues
    * @return
    */
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @Nonnull double[] newMzValues,
-      @Nonnull double[] newIntensityValues);
+  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @NotNull double[] newMzValues,
+      @NotNull double[] newIntensityValues);
 }

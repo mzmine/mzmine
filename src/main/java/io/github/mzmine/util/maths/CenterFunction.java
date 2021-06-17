@@ -18,11 +18,12 @@
 
 package io.github.mzmine.util.maths;
 
-import javax.annotation.Nullable;
-
 import io.github.mzmine.util.MathUtils;
+import org.jetbrains.annotations.Nullable;
 
 public class CenterFunction {
+  public static final Weighting DEFAULT_MZ_WEIGHTING = Weighting.LINEAR;
+
   private final CenterMeasure measure;
   // weight transform is only applied to avg
   private final Weighting weightTransform;

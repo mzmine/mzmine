@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public class FeaturesToMobilityMzHeatmapProvider implements
@@ -51,7 +51,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
   private double boxWidth;
   private double boxHeight;
 
-  public FeaturesToMobilityMzHeatmapProvider(@Nonnull final List<ModularFeature> f) {
+  public FeaturesToMobilityMzHeatmapProvider(@NotNull final List<ModularFeature> f) {
     features = f;
     seriesKey = (f.isEmpty()) ? "No features found" : f.get(0).getFeatureList().getName();
 
@@ -62,13 +62,13 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -86,7 +86,7 @@ public class FeaturesToMobilityMzHeatmapProvider implements
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

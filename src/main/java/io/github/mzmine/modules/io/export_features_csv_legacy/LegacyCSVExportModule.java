@@ -19,7 +19,7 @@ package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -35,19 +35,19 @@ public class LegacyCSVExportModule implements MZmineProcessingModule {
       "Legacy MZmine 2 method: This method exports the feature list contents into a CSV (comma-separated values) file.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     LegacyCSVExportTask task = new LegacyCSVExportTask(parameters);
     tasks.add(task);
     return ExitCode.OK;
@@ -55,12 +55,12 @@ public class LegacyCSVExportModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return LegacyCSVExportParameters.class;
   }
 

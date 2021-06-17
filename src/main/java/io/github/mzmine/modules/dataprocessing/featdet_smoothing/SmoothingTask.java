@@ -29,8 +29,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SmoothingTask extends AbstractTask {
 
@@ -50,9 +50,10 @@ public class SmoothingTask extends AbstractTask {
   private final String suffix;
   private final boolean smoothMobility;
   private final boolean smoothRt;
+  private final boolean removeOriginal;
 
-  public SmoothingTask(@Nonnull MZmineProject project, @Nonnull ModularFeatureList flist,
-      @Nullable MemoryMapStorage storage, @Nonnull ParameterSet parameters) {
+  public SmoothingTask(@NotNull MZmineProject project, @NotNull ModularFeatureList flist,
+      @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters) {
     super(storage);
 
     this.flist = flist;
@@ -69,6 +70,7 @@ public class SmoothingTask extends AbstractTask {
     smoothMobility = parameters.getParameter(SmoothingParameters.mobilitySmoothing).getValue();
     mobilityFilterWidth = parameters.getParameter(SmoothingParameters.mobilitySmoothing)
         .getEmbeddedParameter().getValue();
+    removeOriginal = parameters.getParameter(SmoothingParameters.removeOriginal).getValue();
     rtWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);
     mobilityWeights = SavitzkyGolayFilter.getNormalizedWeights(mobilityFilterWidth);
   }
@@ -93,7 +95,7 @@ public class SmoothingTask extends AbstractTask {
    */
   public static IonTimeSeries<? extends Scan> replaceOldIntensities(
       @Nullable final MemoryMapStorage storage,
-      @Nonnull final IntensitySeries dataAccess, @Nonnull final ModularFeature feature,
+      @NotNull final IntensitySeries dataAccess, @NotNull final ModularFeature feature,
       @Nullable final double[] smoothedIntensities, ZeroHandlingType zht, boolean smoothMobility,
       double[] mobilityWeights) {
 
@@ -151,7 +153,7 @@ public class SmoothingTask extends AbstractTask {
     }
 
     final ModularFeatureList smoothedList = flist
-        .createCopy(flist.getName() + " " + suffix, getMemoryMapStorage());
+        .createCopy(flist.getName() + " " + suffix, getMemoryMapStorage(), false);
     final SGIntensitySmoothing smoother = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
         rtWeights);
     // include zeros
@@ -182,13 +184,17 @@ public class SmoothingTask extends AbstractTask {
         .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters));
     project.addFeatureList(smoothedList);
 
+    if(removeOriginal) {
+      project.removeFeatureList(flist);
+    }
+
     setStatus(TaskStatus.FINISHED);
   }
 
   public static SummedIntensityMobilitySeries smoothSummedMobilogram(
       @Nullable MemoryMapStorage storage,
-      @Nonnull final IonMobilogramTimeSeries originalSeries,
-      @Nonnull final ZeroHandlingType zht, @Nonnull final double[] weights) {
+      @NotNull final IonMobilogramTimeSeries originalSeries,
+      @NotNull final ZeroHandlingType zht, @NotNull final double[] weights) {
 
     final double[] mobilities = DataPointUtils.getDoubleBufferAsArray(
         originalSeries.getSummedMobilogram().getMobilityValues());
@@ -207,11 +213,11 @@ public class SmoothingTask extends AbstractTask {
   //   need the same number of mobilograms as for rt data points
   //  2. Which m/z do we put for newly created intensities? they will influence the overall m/z of
   //   the feature
-  private List<IonMobilitySeries> smoothMobilograms(@Nonnull final ModularFeature feature,
-      @Nonnull final double[] smoothedRtIntensities,
-      @Nonnull final MobilogramAccessType dataAccessType,
-      @Nonnull final ZeroHandlingType zht,
-      @Nonnull final double[] weights) {
+  private List<IonMobilitySeries> smoothMobilograms(@NotNull final ModularFeature feature,
+      @NotNull final double[] smoothedRtIntensities,
+      @NotNull final MobilogramAccessType dataAccessType,
+      @NotNull final ZeroHandlingType zht,
+      @NotNull final double[] weights) {
     final IonTimeSeries<? extends Scan> s = feature.getFeatureData();
     assert s instanceof IonMobilogramTimeSeries;
 
@@ -228,9 +234,9 @@ public class SmoothingTask extends AbstractTask {
     return new ArrayList<>();
   }
 
-  private IonTimeSeries<? extends Scan> createNewSeries(@Nonnull final IntensitySeries dataAccess,
-      @Nonnull final ModularFeature feature,
-      @Nonnull final double[] smoothedIntensities, List<Scan> allScans) {
+  private IonTimeSeries<? extends Scan> createNewSeries(@NotNull final IntensitySeries dataAccess,
+      @NotNull final ModularFeature feature,
+      @NotNull final double[] smoothedIntensities, List<Scan> allScans) {
 
     final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
     double[] originalIntensities = new double[originalSeries.getNumberOfValues()];

@@ -28,8 +28,11 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Retention time type
+ */
 public class RTType extends FloatType implements ExpandableType {
 
   public RTType() {
@@ -51,19 +54,19 @@ public class RTType extends FloatType implements ExpandableType {
     return "RT";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.AVERAGE));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getExpandedTypeClass() {
     return RTRangeType.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return getClass();

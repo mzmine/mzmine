@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -21,8 +21,8 @@ package io.github.mzmine.datamodel.features.types.numbers.abstr;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -34,7 +34,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import org.checkerframework.checker.units.qual.min;
 
 public abstract class NumberRangeType<T extends Comparable<?>>
     extends NumberType<ObjectProperty<Range<T>>>
@@ -48,8 +47,8 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   public abstract NumberFormat getFormatter();
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ObjectProperty<Range<T>> value) {
+  @NotNull
+  public String getFormattedString(@NotNull ObjectProperty<Range<T>> value) {
     return value.getValue() == null ? ""
         : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
             + getFormatter().format(value.getValue().upperEndpoint());
@@ -57,11 +56,11 @@ public abstract class NumberRangeType<T extends Comparable<?>>
 
   /**
    * A formatted string representation of the value
-   * 
+   *
    * @return the formatted representation of the value (or an empty String)
    */
   @Override
-  @Nonnull
+  @NotNull
   public String getFormattedString(@Nullable Object value) {
     if (value instanceof Range) {
       Range r = (Range) value;
@@ -76,7 +75,7 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     return new SimpleObjectProperty<Range<T>>();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public int getNumberOfSubColumns() {
     return 2;
@@ -91,20 +90,21 @@ public abstract class NumberRangeType<T extends Comparable<?>>
       case 1:
         return "max";
     }
-    if(subcolumn<getNumberOfSubColumns())
-      throw new IllegalArgumentException("Sub column index is not handled: "+subcolumn);
+    if (subcolumn < getNumberOfSubColumns())
+      throw new IllegalArgumentException("Sub column index is not handled: " + subcolumn);
     else
-      throw new IndexOutOfBoundsException("Sub column index "+subcolumn+" is out of range "+getNumberOfSubColumns());
+      throw new IndexOutOfBoundsException(
+          "Sub column index " + subcolumn + " is out of range " + getNumberOfSubColumns());
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       @Nullable RawDataFile raw) {
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
     // create column per name
-    for(int index=0; index<getNumberOfSubColumns(); index++) {
+    for (int index = 0; index < getNumberOfSubColumns(); index++) {
       TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
       DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
       min.setCellValueFactory(cvFactoryMin);

@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -55,7 +56,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -345,7 +346,7 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    @Nonnull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
+    @NotNull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
@@ -384,6 +385,9 @@ public class FeatureResolverTask extends AbstractTask {
         f.set(DetectionType.class, originalFeature.get(DetectionType.class));
         if (originalFeature.getMobilityUnit() != null) {
           f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
+        }
+        if(originalFeature.get(ImageType.class) != null) {
+          f.set(ImageType.class, true);
         }
         FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
         newRow.addFeature(originalFeature.getRawDataFile(), f);

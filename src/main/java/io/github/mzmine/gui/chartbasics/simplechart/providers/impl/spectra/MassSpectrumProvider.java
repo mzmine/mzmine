@@ -13,8 +13,8 @@ import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MassSpectrumProvider implements PlotXYDataProvider {
 
@@ -22,10 +22,12 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   private final String seriesKey;
   private final MassSpectrum spectrum;
   private final Color color;
+  private final NumberFormat intensityFormat;
 
   public MassSpectrumProvider(MassSpectrum spectrum, String seriesKey, Color color) {
     this.spectrum = spectrum;
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     this.seriesKey = seriesKey;
     this.color = color;
   }
@@ -49,12 +51,12 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
       }
 
       @Override
-      public double[] getMzValues(@Nonnull double[] dst) {
+      public double[] getMzValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
       @Override
-      public double[] getIntensityValues(@Nonnull double[] dst) {
+      public double[] getIntensityValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
@@ -103,7 +105,7 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
         return null;
       }
 
-      @Nonnull
+      @NotNull
       @Override
       public Iterator<DataPoint> iterator() {
         return null;
@@ -111,16 +113,17 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
     };
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     this.seriesKey = seriesKey;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return color;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return FxColorUtil.awtColorToFX(color);
@@ -132,7 +135,7 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
     return mzFormat.format(spectrum.getMzValue(index));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -141,7 +144,9 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return null;
+    return "m/z: " + mzFormat
+        .format(spectrum.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat
+        .format(spectrum.getIntensityValue(itemIndex));
   }
 
   @Override

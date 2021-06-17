@@ -28,8 +28,8 @@ import io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportMo
 import io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportTask;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class points back to the scan to access data. (Useful if the scan is already centroided /
@@ -77,12 +77,12 @@ public class ScanPointerMassList implements MassList {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     return scan.getMzValues(dst);
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     return scan.getIntensityValues(dst);
   }
 
@@ -131,7 +131,7 @@ public class ScanPointerMassList implements MassList {
     return scan.stream();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     return scan.iterator();

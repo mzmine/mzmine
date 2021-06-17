@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -58,10 +58,12 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private DoubleBuffer mobilityScanIntensityBuffer;
   private DoubleBuffer mobilityScanMzBuffer;
 
-  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
+  protected int maxMobilityScanDataPoints = -1;
+
+  public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, @Nullable double[] mzValues,
       @Nullable double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      String scanDefinition, @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
          * fragmentScans,
@@ -88,13 +90,13 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public MobilityType getMobilityType() {
     return mobilityType;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getMobilityRange() {
     if (mobilityRange != null) {
       return mobilityRange;
@@ -102,7 +104,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return Range.singleton(0.0);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
     return Objects.requireNonNull(mobilitySubScans.get(num));
@@ -111,7 +113,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   /**
    * @return Collection of mobility sub scans sorted by increasing scan num.
    */
-  @Nonnull
+  @NotNull
   @Override
   public List<MobilityScan> getMobilityScans() {
     return ImmutableList.copyOf(mobilitySubScans);
@@ -128,14 +130,22 @@ public class SimpleFrame extends SimpleScan implements Frame {
       throw new IllegalStateException("Mobility scans can only be set to a frame once.");
     }
 
+    if(!originalMobilityScans.isEmpty() && originalMobilityScans.get(0).getMobilityScanNumber() != 0) {
+      throw new IllegalArgumentException("Mobility scan numbers for a frame must start with zero.");
+    }
+
     // determine offsets for each mobility scan
     final int[] offsets = new int[originalMobilityScans.size()];
 
     offsets[0] = 0;
     for (int i = 1; i < offsets.length; i++) {
-      int oldOffset = offsets[i - 1];
-      int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
+      final int oldOffset = offsets[i - 1];
+      final int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
       offsets[i] = oldOffset + numPoints;
+
+      if (numPoints > maxMobilityScanDataPoints) {
+        maxMobilityScanDataPoints = numPoints;
+      }
     }
 
     // now create a big array that contains all m/z and intensity values so we can store it in a single buffer
@@ -155,8 +165,9 @@ public class SimpleFrame extends SimpleScan implements Frame {
       }
     }
 
-    mobilityScanIntensityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
-    if(getDataFile().getMemoryMapStorage() == null) {
+    mobilityScanIntensityBuffer = StorageUtils
+        .storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
+    if (getDataFile().getMemoryMapStorage() == null) {
       data = new double[numDatapoints]; // cannot reuse the same array then
     }
     // same for mzs
@@ -188,8 +199,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
-    // correct the index with an offset in case there is one.
-    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
+    int index = mobilitySubScans.indexOf(scan);
     if (index >= 0) {
       return mobilityBuffer.get(index);
     }
@@ -201,7 +211,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityBuffer;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Set<ImsMsMsInfo> getImsMsMsInfos() {
     return precursorInfos;
@@ -255,6 +265,15 @@ public class SimpleFrame extends SimpleScan implements Frame {
   double getMobilityScanIntensityValue(SimpleMobilityScan scan, int index) {
     assert index < scan.getNumberOfDataPoints();
     return mobilityScanIntensityBuffer.get(scan.getStorageOffset() + index);
+  }
+
+  /**
+   * @return The maximum number of data points in a mobility scan in this frame. -1 If no mobility
+   * scans have been added.
+   */
+  @Override
+  public int getMaxMobilityScanDataPoints() {
+    return maxMobilityScanDataPoints;
   }
 
 }

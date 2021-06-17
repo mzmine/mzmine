@@ -17,11 +17,6 @@
 
 package io.github.mzmine.modules.io.import_all_data_files;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
@@ -32,17 +27,8 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.util.ExitCode;
-import java.util.Arrays;
-import java.util.Optional;
 import java.util.logging.Logger;
-import javafx.scene.control.ButtonType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -63,6 +49,7 @@ public class MassDetectionSubParameters extends SimpleParameterSet {
     super(new Parameter[]{massDetector});
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

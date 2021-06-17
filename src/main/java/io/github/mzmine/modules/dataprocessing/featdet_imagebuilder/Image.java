@@ -24,8 +24,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
-import java.util.LinkedHashSet;
-import java.util.LinkedHashSet;
+import java.util.List;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -38,8 +37,8 @@ public class Image implements IImage {
   private double maximumIntensity;
   private Range<Double> mzRange;
   private Range<Double> intensityRange;
-  private LinkedHashSet<ImageDataPoint> dataPoints;
-  private LinkedHashSet<Scan> scanNumbers;
+  private List<ImageDataPoint> dataPoints;
+  private List<Scan> scanNumbers;
   private String representativeString;
   private FeatureList featureList;
 
@@ -54,7 +53,7 @@ public class Image implements IImage {
 
   public Image(double mz, ImagingParameters imagingParameters, PaintScale paintScale,
       double maximumIntensity, Range<Double> mzRange, Range<Double> intensityRange,
-      LinkedHashSet<ImageDataPoint> dataPoints, LinkedHashSet<Scan> scanNumbers, String representativeString,
+      List<ImageDataPoint> dataPoints, List<Scan> scanNumbers, String representativeString,
       FeatureList featureList) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
@@ -116,19 +115,19 @@ public class Image implements IImage {
     this.intensityRange = intensityRange;
   }
 
-  public LinkedHashSet<ImageDataPoint> getDataPoints() {
+  public List<ImageDataPoint> getDataPoints() {
     return dataPoints;
   }
 
-  public void setDataPoints(LinkedHashSet<ImageDataPoint> dataPoints) {
+  public void setDataPoints(List<ImageDataPoint> dataPoints) {
     this.dataPoints = dataPoints;
   }
 
-  public LinkedHashSet<Scan> getScanNumbers() {
+  public List<Scan> getScanNumbers() {
     return scanNumbers;
   }
 
-  public void setScanNumbers(LinkedHashSet<Scan> scanNumbers) {
+  public void setScanNumbers(List<Scan> scanNumbers) {
     this.scanNumbers = scanNumbers;
   }
 

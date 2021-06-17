@@ -21,7 +21,7 @@ Please read our brief [tutorial](http://mzmine.github.io/development.html) on ho
 
 ### Java version
 
-MZmine development requires Java Development Kit (JDK) version 12 or newer (http://jdk.java.net).
+MZmine development requires Java Development Kit (JDK) version 16 or newer (http://jdk.java.net).
 
 ### Building
 
@@ -33,7 +33,7 @@ or
 
     gradlew.bat
 
-The final MZmine distribution will be placed in build/MZmine-version-platform.zip
+The final MZmine distribution will be placed in build/jpackage
 
 If you encounter any problems, please contact the developers:
 https://github.com/mzmine/mzmine3/issues

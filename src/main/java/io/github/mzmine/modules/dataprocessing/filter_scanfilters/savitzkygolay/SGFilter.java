@@ -28,7 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class SGFilter implements ScanFilter {
 
@@ -132,12 +132,12 @@ public class SGFilter implements ScanFilter {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Savitzky-Golay filter";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SGFilterParameters.class;
   }
 

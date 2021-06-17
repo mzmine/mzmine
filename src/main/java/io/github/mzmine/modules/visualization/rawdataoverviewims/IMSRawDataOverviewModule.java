@@ -39,8 +39,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewModule implements MZmineRunnableModule {
 
@@ -88,7 +88,7 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
     });
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "Ion mobility raw data overview";
@@ -100,16 +100,16 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
     return IMSRawDataOverviewParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Visualizes ion mobility raw data files.";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     RawDataFilesParameter param = parameters
         .getParameter(IMSRawDataOverviewParameters.rawDataFiles);
     RawDataFilesSelection selection = param.getValue();
@@ -129,7 +129,7 @@ public class IMSRawDataOverviewModule implements MZmineRunnableModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;

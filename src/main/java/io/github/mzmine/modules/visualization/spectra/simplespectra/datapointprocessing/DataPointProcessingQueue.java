@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Vector;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -57,7 +57,7 @@ public class DataPointProcessingQueue
   private static final String DATA_POINT_PROCESSING_STEP_ELEMENT = "processingstep";
   private static final String METHOD_ELEMENT = "method";
 
-  public static @Nonnull DataPointProcessingQueue loadfromXML(final @Nonnull Element xmlElement) {
+  public static @NotNull DataPointProcessingQueue loadfromXML(final @NotNull Element xmlElement) {
     DataPointProcessingQueue queue = new DataPointProcessingQueue();
 
     // Get the loaded modules.
@@ -97,7 +97,7 @@ public class DataPointProcessingQueue
     return queue;
   }
 
-  public static @Nonnull DataPointProcessingQueue loadFromFile(@Nonnull File file) {
+  public static @NotNull DataPointProcessingQueue loadFromFile(@NotNull File file) {
     try {
       Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
           .getDocumentElement();
@@ -108,7 +108,7 @@ public class DataPointProcessingQueue
     }
   }
 
-  public void saveToXML(final @Nonnull Element xmlElement) {
+  public void saveToXML(final @NotNull Element xmlElement) {
 
     final Document document = xmlElement.getOwnerDocument();
 
@@ -129,7 +129,7 @@ public class DataPointProcessingQueue
     }
   }
 
-  public void saveToFile(final @Nonnull File file) {
+  public void saveToFile(final @NotNull File file) {
     try {
       Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
       final Element element = document.createElement("DataPointProcessing");
@@ -191,7 +191,7 @@ public class DataPointProcessingQueue
    *         return is null. Use hasNextModule to check beforehand.
    */
   public @Nullable MZmineProcessingStep<DataPointProcessingModule> getNextStep(
-      @Nonnull MZmineProcessingStep<DataPointProcessingModule> current) {
+      @NotNull MZmineProcessingStep<DataPointProcessingModule> current) {
     if (hasNextStep(current))
       return this.get(this.indexOf(current) + 1);
     return null;

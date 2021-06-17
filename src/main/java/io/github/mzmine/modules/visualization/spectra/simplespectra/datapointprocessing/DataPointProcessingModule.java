@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -37,14 +37,14 @@ public interface DataPointProcessingModule extends MZmineModule {
   /**
    * @return The module sub category of this module.
    */
-  @Nonnull
+  @NotNull
   public ModuleSubCategory getModuleSubCategory();
 
-  @Nonnull
+  @NotNull
   public DataPointProcessingTask createTask(MassSpectrum spectrum, ParameterSet parameterSet,
       SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
 
-  @Nonnull
+  @NotNull
   public MSLevel getApplicableMSLevel();
 
 }

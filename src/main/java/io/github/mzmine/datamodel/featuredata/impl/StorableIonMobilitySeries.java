@@ -28,8 +28,8 @@ import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores data points of several {@link MobilityScan}s. Usually wrapped in a {@link
@@ -49,7 +49,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
 
   protected StorableIonMobilitySeries(final SimpleIonMobilogramTimeSeries ionTrace,
       final int offset,
-      final int numValues, @Nonnull List<MobilityScan> scans) {
+      final int numValues, @NotNull List<MobilityScan> scans) {
     if (numValues != scans.size()) {
       throw new IllegalArgumentException("numPoints and number of scans scans does not match.");
     }
@@ -87,7 +87,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
 
   @Override
   public IonMobilitySeries subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<MobilityScan> subset) {
+      @NotNull List<MobilityScan> subset) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -152,7 +152,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
 
   @Override
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
   }
 }

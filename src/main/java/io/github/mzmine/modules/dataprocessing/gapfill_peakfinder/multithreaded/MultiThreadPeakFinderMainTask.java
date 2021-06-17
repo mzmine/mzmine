@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub
@@ -74,7 +74,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("Running multithreaded gap filler on " + peakList);
 
     // Create new results feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
+    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(), false);
     progress = 0.5;
 
     // split raw data files into groups for each thread (task)

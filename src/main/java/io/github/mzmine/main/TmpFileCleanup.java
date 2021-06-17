@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 public class TmpFileCleanup implements Runnable {

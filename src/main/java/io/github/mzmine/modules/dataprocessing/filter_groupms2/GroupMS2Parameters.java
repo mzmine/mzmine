@@ -36,8 +36,13 @@ public class GroupMS2Parameters extends SimpleParameterSet {
   public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
       "Use the feature's edges (retention time) as a filter.", false);
 
+  public static final BooleanParameter combineTimsMsMs = new BooleanParameter(
+      "Combine MS/MS spectra (TIMS)",
+      "If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.",
+      false);
+
   public GroupMS2Parameters() {
-    super(new Parameter[] {PEAK_LISTS, rtTol, mzTol, limitRTByFeature});
+    super(new Parameter[] {PEAK_LISTS, rtTol, mzTol, limitRTByFeature, combineTimsMsMs});
   }
 
 }

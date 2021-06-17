@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import javafx.util.StringConverter;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.chromatogram;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -41,8 +42,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * TIC/XIC visualizer using JFreeChart library
@@ -125,6 +126,9 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     for (ModularFeatureListRow row : rows) {
       for (final Feature f : row.getFeatures()) {
         final ModularFeature feature = (ModularFeature) f;
+        if(feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
         if (mzRange == null) {
           mzRange = feature.getRawDataPointsMZRange();
           double upper = mzRange.upperEndpoint();
@@ -201,21 +205,21 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     final RawDataFile[] dataFiles = parameters.getParameter(TICVisualizerParameters.DATA_FILES)
         .getValue().getMatchingRawDataFiles();
     final Range<Double> mzRange =
@@ -251,13 +255,13 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return TICVisualizerParameters.class;
   }

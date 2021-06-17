@@ -30,8 +30,6 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRende
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
-import java.awt.Color;
-import java.awt.Paint;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,15 +38,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.beans.NamedArg;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -56,12 +56,12 @@ import org.jfree.chart.event.RendererChangeEvent;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
@@ -78,17 +78,21 @@ import org.jfree.data.xy.XYDataset;
 public class SimpleXYChart<T extends PlotXYDataProvider> extends
     EChartViewer implements SimpleChart<T> {
 
-  private static final double AXIS_MARGINS = 0.001;
+  private static final double AXIS_MARGINS = 0.01;
   private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
 
   protected final JFreeChart chart;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(true);
+  protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
 
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
-  private final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  private final List<DatasetsChangedListener> datasetListeners;
+  private final ObjectProperty<PlotCursorPosition> cursorPositionProperty = new SimpleObjectProperty<>(
+      new PlotCursorPosition(0, 0, -1, null));
+
+  private final List<DatasetChangeListener> datasetListeners;
   protected EStandardChartTheme theme;
   protected SimpleXYLabelGenerator defaultLabelGenerator;
   protected SimpleToolTipGenerator defaultToolTipGenerator;
@@ -96,7 +100,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   protected ColoredXYShapeRenderer defaultShapeRenderer;
 
   private int nextDataSetNum;
-  private int labelsVisible;
 
   public SimpleXYChart() {
     this("x", "y");
@@ -111,13 +114,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     this("", xLabel, yLabel);
   }
 
-  public SimpleXYChart(@NamedArg("title") @Nonnull String title,
+  public SimpleXYChart(@NamedArg("title") @NotNull String title,
       @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel) {
     this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
   }
 
-  public SimpleXYChart(@NamedArg("title") @Nonnull String title,
+  public SimpleXYChart(@NamedArg("title") @NotNull String title,
       @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {
@@ -133,23 +136,23 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
     setCursor(Cursor.DEFAULT);
 
+    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(this);
+
     nextDataSetNum = 0;
-    labelsVisible = 1;
 
     final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setUpperMargin(AXIS_MARGINS);
     xAxis.setLowerMargin(AXIS_MARGINS);
 
-    cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
+    initLabelListeners();
 
     ZoomHistory history = getZoomHistory();
     if (history != null) {
       history.clear();
     }
 
-    theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
     defaultLabelGenerator = new SimpleXYLabelGenerator(this);
     defaultToolTipGenerator = new SimpleToolTipGenerator();
     defaultShapeRenderer = new ColoredXYShapeRenderer();
@@ -170,12 +173,45 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     datasetListeners = new ArrayList<>();
   }
 
+  private void initLabelListeners() {
+    // automatically update label visibility
+    itemLabelsVisible.addListener((obs, old, newVal) -> {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if (renderer != null) {
+          renderer.setDefaultItemLabelsVisible(newVal, false);
+        }
+      }
+      getChart().fireChartChanged();
+    });
+
+    legendItemsVisible.addListener((obs, old, newVal) -> {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if (renderer != null) {
+          renderer.setDefaultSeriesVisibleInLegend(newVal, false);
+        }
+      }
+      final LegendTitle legend = getChart().getLegend();
+      if (legend != null) {
+        legend.setVisible(newVal);
+      }
+      getChart().fireChartChanged();
+    });
+  }
+
   public synchronized int addDataset(XYDataset dataset, XYItemRenderer renderer) {
-    assert Platform.isFxApplicationThread();
+    // jfreechart renderers dont check if the value actually changed and notify either way
+    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
+    }
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
     return nextDataSetNum - 1;
   }
 
@@ -193,19 +229,36 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return the dataset index
    */
   public synchronized int addDataset(XYDataset dataset) {
-    assert Platform.isFxApplicationThread();
     return addDataset(dataset, defaultRenderer.get());
   }
 
+  @Nullable
   public synchronized XYDataset removeDataSet(int index) {
-    assert Platform.isFxApplicationThread();
+    return removeDataSet(index, true);
+  }
+
+  /**
+   *
+   * @param index The dataset index
+   * @param notify If listeners shall be notified.
+   * @return The dataset or null
+   *
+   * @see XYPlot#indexOf(XYDataset)
+   */
+  @Nullable
+  public synchronized XYDataset removeDataSet(int index, boolean notify) {
     XYDataset ds = plot.getDataset(index);
     if (ds instanceof Task) { // stop calculation in case it's still running
       ((Task) ds).cancel();
     }
     plot.setDataset(index, null);
     plot.setRenderer(index, null);
-    notifyDatasetsChangedListeners();
+    if (ds != null) {
+      ds.removeChangeListener(getXYPlot());
+    }
+    if (notify && ds != null) {
+      notifyDatasetChangeListeners(new DatasetChangeEvent(this, ds));
+    }
     return ds;
   }
 
@@ -214,7 +267,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
    * @return Mapping of the dataset index and the provider values.
    */
   public Map<Integer, T> addDatasetProviders(Collection<T> datasetProviders) {
-    assert Platform.isFxApplicationThread();
     chart.setNotify(false);
     HashMap<Integer, T> map = new HashMap<>();
     for (T datasetProvider : datasetProviders) {
@@ -222,7 +274,8 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    // todo maybe notify for each dataset
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
     return map;
   }
 
@@ -239,13 +292,14 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     }
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    // todo maybe notify for each dataset
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
     return map;
   }
 
   public synchronized void removeAllDatasets() {
-    assert Platform.isFxApplicationThread();
     chart.setNotify(false);
+    plot.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof Task) {
@@ -253,16 +307,20 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
       }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
+      if(ds != null) {
+        ds.removeChangeListener(getXYPlot());
+      }
     }
+    plot.setNotify(true);
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
     nextDataSetNum = 0;
   }
 
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
 
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset dataset = plot.getDataset(i);
@@ -293,38 +351,17 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(format);
   }
 
-  @Override
-  public void switchLegendVisible() {
-    // Toggle legend visibility.
-    final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
+  public boolean isLegendItemsVisible() {
+    return legendItemsVisible.get();
   }
 
   @Override
-  public void switchItemLabelsVisible() {
-    labelsVisible = (labelsVisible == 1) ? 0 : 1;
-    final int dataSetCount = plot.getDatasetCount();
-    for (int i = 0; i < dataSetCount; i++) {
-      final XYItemRenderer renderer = plot.getRenderer(i);
-      renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
-    }
+  public void setLegendItemsVisible(boolean visible) {
+    legendItemsVisible.set(visible);
   }
 
-  @Override
-  public void switchBackground() {
-    // Toggle background color
-    final Paint color = getChart().getPlot().getBackgroundPaint();
-    Color bgColor, liColor;
-    if (color.equals(Color.darkGray)) {
-      bgColor = Color.white;
-      liColor = Color.darkGray;
-    } else {
-      bgColor = Color.darkGray;
-      liColor = Color.white;
-    }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+  public BooleanProperty legendItemsVisibleProperty() {
+    return legendItemsVisible;
   }
 
   @Override
@@ -334,11 +371,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   public XYPlot getXYPlot() {
-    return plot;
-  }
-
-  @Override
-  public Plot getPlot() {
     return plot;
   }
 
@@ -423,25 +455,35 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   @Override
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.add(listener);
   }
 
   @Override
-  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.remove(listener);
   }
 
   @Override
-  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+  public void clearDatasetChangeListeners() {
     datasetListeners.clear();
   }
 
-  private void notifyDatasetsChangedListeners() {
-    Map<Integer, XYDataset> datasets = getAllDatasets();
-
-    for (DatasetsChangedListener listener : datasetListeners) {
-      listener.datasetsChanged(datasets);
+  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
+    for (DatasetChangeListener listener : datasetListeners) {
+      listener.datasetChanged(event);
     }
+  }
+
+  public boolean isItemLabelsVisible() {
+    return itemLabelsVisible.get();
+  }
+
+  public void setItemLabelsVisible(boolean itemLabelsVisible) {
+    this.itemLabelsVisible.set(itemLabelsVisible);
+  }
+
+  public BooleanProperty itemLabelsVisibleProperty() {
+    return itemLabelsVisible;
   }
 }

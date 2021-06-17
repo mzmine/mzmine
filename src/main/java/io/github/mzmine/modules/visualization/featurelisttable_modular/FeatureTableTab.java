@@ -16,7 +16,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureTableTab extends MZmineTab {
   private final Image SELECTION_ICON =
@@ -71,13 +71,13 @@ public class FeatureTableTab extends MZmineTab {
     return controller.getFeatureList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return getFeatureList()==null? Collections.emptyList() : getFeatureList().getRawDataFiles();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return !getFeatureList().isAligned()
@@ -85,7 +85,7 @@ public class FeatureTableTab extends MZmineTab {
         : Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return getFeatureList().isAligned()

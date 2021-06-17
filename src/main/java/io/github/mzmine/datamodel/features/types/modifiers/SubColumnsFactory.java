@@ -18,8 +18,8 @@
 package io.github.mzmine.datamodel.features.types.modifiers;
 
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import javafx.scene.Node;
@@ -38,11 +38,11 @@ public interface SubColumnsFactory<T> {
    * 
    * @return
    */
-  @Nonnull
+  @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       final @Nullable RawDataFile raw);
 
-  @Nonnull
+  @NotNull
   public int getNumberOfSubColumns();
 
   @Nullable

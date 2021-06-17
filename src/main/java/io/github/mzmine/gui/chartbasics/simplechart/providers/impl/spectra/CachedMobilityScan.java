@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.DataPointUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a frame and it's subscans into ram.
@@ -86,15 +86,15 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+  public double[] getMzValues(@NotNull double[] dst) {
+    System.arraycopy(mzs, 0, dst, 0, mzs.length);
+    return dst;
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+  public double[] getIntensityValues(@NotNull double[] dst) {
+    System.arraycopy(intensities, 0, dst, 0, intensities.length);
+    return dst;
   }
 
   @Override
@@ -149,7 +149,7 @@ public class CachedMobilityScan implements MobilityScan {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return originalMobilityScan.getDataFile();
@@ -188,7 +188,7 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
@@ -199,7 +199,7 @@ public class CachedMobilityScan implements MobilityScan {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(

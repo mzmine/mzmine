@@ -31,7 +31,11 @@ import javafx.scene.control.TreeTableColumn;
 public interface GraphicalColumType<T> {
 
   public static final int DEFAULT_GRAPHICAL_CELL_HEIGHT = 100;
+  public static final int DEFAULT_IMAGE_CELL_HEIGHT = 150;
   public static final int DEFAULT_GRAPHICAL_CELL_WIDTH = 250;
+  public static final int LARGE_GRAPHICAL_CELL_WIDTH = 300;
+  public static final int MAXIMUM_GRAPHICAL_CELL_WIDTH = 800;
+
 
   /**
    *

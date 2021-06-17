@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.math3.special.Erf;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -65,7 +65,7 @@ import io.github.mzmine.util.scans.ScanUtils;
  */
 public class MsMsSpectraMergeModule implements MZmineModule {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "MS/MS Spectra Merge";

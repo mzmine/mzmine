@@ -38,8 +38,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
 
@@ -170,7 +170,7 @@ public class AnovaTask extends AbstractTask {
   }
 
   @Nullable
-  private Double oneWayAnova(@Nonnull double[][] intensityGroups) {
+  private Double oneWayAnova(@NotNull double[][] intensityGroups) {
 
     int numGroups = intensityGroups.length;
     long numIntensities = Arrays.stream(intensityGroups).flatMapToDouble(Arrays::stream).count();

@@ -35,7 +35,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class CropFilterTask extends AbstractTask {
 

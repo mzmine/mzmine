@@ -38,11 +38,12 @@ import io.github.mzmine.util.SortingProperty;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 class StreamFeatureListRowLearnerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger
+      .getLogger(StreamFeatureListRowLearnerTask.class.getName());
 
   private final MZmineProject project;
   private ModularFeatureList featureList;
@@ -90,8 +91,9 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return (double) processedFeatures / (double) totalRows;
   }
 
@@ -114,8 +116,9 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
      */
 
     // use streams to filter, sort and create list
-    List<ModularFeatureListRow> rowList = featureList.getRows().stream().filter(r -> r.getAverageHeight() > 5000)
-            .map(ModularFeatureListRow.class::cast)
+    List<ModularFeatureListRow> rowList = featureList.getRows().stream()
+        .filter(r -> r.getAverageHeight() > 5000)
+        .map(ModularFeatureListRow.class::cast)
         .sorted(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending))
         .collect(Collectors.toList());
     totalRows = rowList.size();
@@ -125,8 +128,9 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
     // either use stream to process all rows
     rowList.stream().map(ModularFeatureListRow.class::cast).forEachOrdered(row -> {
       // check for cancelled state and stop
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // access details
       double mz = row.getAverageMZ();
@@ -148,8 +152,9 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
     // OPTION 2: For loop
     for (ModularFeatureListRow row : rowList) {
       // check for cancelled state and stop
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // access details
       double mz = row.getAverageMZ();
@@ -189,11 +194,13 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class,parameters));
+        .addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
 
     // Remove the original feature list if requested
-    if (removeOriginal)
+    if (removeOriginal) {
       project.removeFeatureList(featureList);
+    }
   }
 
 }

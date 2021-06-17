@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -44,7 +44,7 @@ public class DataTypeCheckListParameter implements
   private static final String DATA_TYPE_NAME_ATTR = "name";
 
 
-  public DataTypeCheckListParameter(@Nonnull String name, @Nonnull String description) {
+  public DataTypeCheckListParameter(@NotNull String name, @NotNull String description) {
     assert name != null;
     assert description != null;
 

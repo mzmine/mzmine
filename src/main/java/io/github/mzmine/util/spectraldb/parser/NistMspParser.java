@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;

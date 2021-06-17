@@ -1,5 +1,6 @@
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -168,4 +169,33 @@ public class DataPointUtils {
     data[1] = Doubles.toArray(intensities);
     return data;
   }
+
+  /**
+   *
+   * @param rawMzs array of mz values
+   * @param rawIntensities array of intensity values
+   * @param mzRange the mz range
+   * @return double[2][n], [0][] being mz values, [1][] being intensity values
+   */
+  public static double[][] getDataPointsInMzRange(double[] rawMzs, double[] rawIntensities,
+      Range<Double> mzRange) {
+    assert rawMzs.length == rawIntensities.length;
+
+    List<Double> mzs = new ArrayList<>();
+    List<Double> intensities = new ArrayList<>();
+
+    for (int i = 0; i < rawMzs.length; i++) {
+      if (mzRange.contains(rawMzs[i])) {
+        mzs.add(rawMzs[i]);
+        intensities.add(rawIntensities[i]);
+      } else if(mzRange.upperEndpoint() < rawMzs[i] || rawMzs[i] == 0.0) {
+        break;
+      }
+    }
+    double[][] data = new double[2][];
+    data[0] = Doubles.toArray(mzs);
+    data[1] = Doubles.toArray(intensities);
+    return data;
+  }
+
 }

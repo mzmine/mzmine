@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
@@ -66,14 +66,14 @@ public class CentWaveResolver implements FeatureResolver {
   // Required minimum version of XCMS.
   private static final String XCMS_VERSION = "1.33.2";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
 
     return NAME;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
 

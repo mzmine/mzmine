@@ -26,7 +26,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class CsvImportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Import from csv file.";
@@ -35,35 +35,35 @@ public class CsvImportModule implements MZmineProcessingModule {
       "This method imports the feature list contents from a csv file.";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
 
   @Override
-  public @Nonnull
-  ExitCode runModule(@Nonnull MZmineProject project,
-      @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  public @NotNull
+  ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
     CsvImportTask task = new CsvImportTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(task);
     return ExitCode.OK;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTIMPORT;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return CsvImportParameters.class;
   }

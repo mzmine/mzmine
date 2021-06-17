@@ -38,7 +38,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 
 /**
  * Utilities for feature lists
@@ -212,7 +217,7 @@ public class FeatureUtils {
    *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
    *         it.
    */
-  public @Nonnull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
+  public @NotNull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
 
     if (row == null || row.getBestFeature() == null)
       return Range.closed(0.f, 0.f);

@@ -46,7 +46,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.XYPlot;
@@ -378,19 +378,19 @@ public class HistogramTab extends MZmineTab implements ActionListener {
     return processedScans;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return new ArrayList<>(Collections.singletonList(dataFile));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

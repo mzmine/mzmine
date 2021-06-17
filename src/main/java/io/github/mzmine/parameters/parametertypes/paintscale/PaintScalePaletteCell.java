@@ -35,8 +35,8 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of ListCell to display color palettes and select between them.
@@ -125,7 +125,7 @@ public class PaintScalePaletteCell extends ListCell<SimpleColorPalette> {
     }
   }
 
-  protected Rectangle makeRect(@Nonnull Color clr) {
+  protected Rectangle makeRect(@NotNull Color clr) {
     Rectangle rect = new Rectangle(height - STROKE_WIDTH * 2, height - STROKE_WIDTH * 2);
     rect.setFill(clr);
     rect.setStroke(STROKE_CLR);

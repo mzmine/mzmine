@@ -27,31 +27,31 @@ public class ImsVisualizerModule implements MZmineRunnableModule {
     private static final String MODULE_NAME = "IMS visualizer";
     private static final String MODULE_DESCRIPTION = "IMS visualizer";
 
-    @Nonnull
+    @NotNull
     @Override
     public String getDescription() {
         return MODULE_DESCRIPTION;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public String getName() {
         return MODULE_NAME;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public ExitCode runModule(
-            @Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters,
-            @Nonnull Collection<Task> tasks) {
+            @NotNull MZmineProject project,
+            @NotNull ParameterSet parameters,
+            @NotNull Collection<Task> tasks) {
 
         Task newTask = new ImsVisualizerTask(parameters);
         tasks.add(newTask);
         return ExitCode.OK;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public MZmineModuleCategory getModuleCategory() {
         return MZmineModuleCategory.VISUALIZATIONRAWDATA;

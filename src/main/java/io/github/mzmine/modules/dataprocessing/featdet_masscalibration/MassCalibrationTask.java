@@ -52,7 +52,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 

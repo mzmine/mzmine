@@ -8,7 +8,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
@@ -131,11 +131,11 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
       previewChart
-          .addDataset(new FastColoredXYDataset(new IonTimeSeriesToXYProvider(f.getFeatureData(),
+          .addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(f.getFeatureData(),
               FeatureUtils.featureToString(f), f.getRawDataFile().colorProperty())));
     } else {
       if (featureSeries instanceof IonMobilogramTimeSeries) {
-        previewChart.addDataset(new FastColoredXYDataset(new SummedMobilogramXYProvider(f)));
+        previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(f)));
       }
     }
 
@@ -164,11 +164,11 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
       previewChart.addDataset(
-          new FastColoredXYDataset(new IonTimeSeriesToXYProvider(smoothed, "smoothed",
+          new ColoredXYDataset(new IonTimeSeriesToXYProvider(smoothed, "smoothed",
               new SimpleObjectProperty<>(previewColor))), smoothedRenderer);
     } else {
       if (smoothed instanceof IonMobilogramTimeSeries) {
-        previewChart.addDataset(new FastColoredXYDataset(new SummedMobilogramXYProvider(
+        previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(
             ((IonMobilogramTimeSeries) smoothed).getSummedMobilogram(),
             new SimpleObjectProperty<>(previewColor),
             "smoothed")), smoothedRenderer);

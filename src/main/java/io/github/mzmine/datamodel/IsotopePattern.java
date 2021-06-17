@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface defines an isotope pattern which can be attached to a peak
@@ -42,13 +42,13 @@ public interface IsotopePattern extends MassSpectrum {
   /**
    * Returns the isotope pattern status.
    */
-  @Nonnull
+  @NotNull
   IsotopePatternStatus getStatus();
 
   /**
    * Returns a description of this isotope pattern (formula, etc.)
    */
-  @Nonnull
+  @NotNull
   String getDescription();
 
 }

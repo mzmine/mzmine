@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.util.RangeUtils;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import com.google.common.collect.Range;
 
@@ -40,7 +40,7 @@ public class XICManualPickerModule implements MZmineModule {
   /**
    * @see io.github.mzmine.modules.MZmineProcessingModule#getName()
    */
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "XIC Manual feature detector";
   }
 
@@ -109,7 +109,7 @@ public class XICManualPickerModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ManualPickerParameters.class;
   }
 

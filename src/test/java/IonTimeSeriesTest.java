@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class IonTimeSeriesTest {
@@ -84,10 +85,10 @@ class IonTimeSeriesTest {
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
     return IonMobilogramTimeSeriesFactory
-        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 0.001));
-
+        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 1));
   }
 
+  @Disabled
   @Test
   void testCasting() {
 

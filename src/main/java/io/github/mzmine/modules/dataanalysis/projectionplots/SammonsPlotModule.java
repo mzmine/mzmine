@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataanalysis.projectionplots;
 
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -35,31 +35,31 @@ public class SammonsPlotModule implements MZmineRunnableModule {
   private static final String MODULE_DESCRIPTION = "Sammon's projection"; // TODO
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     ProjectionPlotDataset dataset = new SammonsDataset(project, parameters);
     tasks.add(dataset);
     return ExitCode.OK;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.DATAANALYSIS;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ProjectionPlotParameters.class;
   }
 }

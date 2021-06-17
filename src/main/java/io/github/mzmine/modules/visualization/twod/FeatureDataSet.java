@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.twod;
 
+import java.util.Vector;
+import org.jfree.data.xy.AbstractXYDataset;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -27,8 +29,6 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.util.Vector;
-import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * Picked peaks data set
@@ -49,7 +49,8 @@ class FeatureDataSet extends AbstractXYDataset {
     this.featureList = featureList;
 
     Vector<Feature> processedFeatures = new Vector<Feature>(1024, 1024);
-    Vector<FeatureDataPoint[]> processedFeatureDataPoints = new Vector<FeatureDataPoint[]>(1024, 1024);
+    Vector<FeatureDataPoint[]> processedFeatureDataPoints =
+        new Vector<FeatureDataPoint[]>(1024, 1024);
     Vector<FeatureDataPoint> thisFeatureDataPoints = new Vector<FeatureDataPoint>();
 
     Feature allFeatures[] = featureList.getFeatures(dataFile).toArray(Feature[]::new);
@@ -100,7 +101,7 @@ class FeatureDataSet extends AbstractXYDataset {
 
   @Override
   public Comparable<?> getSeriesKey(int series) {
-    return new Integer(series);
+    return series;
   }
 
   @Override

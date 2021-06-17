@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -24,6 +23,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
@@ -43,8 +43,8 @@ import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}
@@ -64,7 +64,7 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return the formatted representation of the value (or an empty String)
    */
-  @Nonnull
+  @NotNull
   public String getFormattedString(T property) {
     return property == null ? "" : getFormattedString(property.getValue());
   }
@@ -74,7 +74,7 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return the formatted representation of the value (or an empty String)
    */
-  @Nonnull
+  @NotNull
   public String getFormattedString(@Nullable Object value) {
     if (value != null) {
       return value.toString();
@@ -88,7 +88,7 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public abstract String getHeaderString();
 
   /**
@@ -212,15 +212,19 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public List<RowBinding> createDefaultRowBindings() {
     return List.of();
   }
 
   @Nullable
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file) {
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> file) {
     return null;
   }
 
+  @Override
+  public String toString() {
+    return getHeaderString();
+  }
 }

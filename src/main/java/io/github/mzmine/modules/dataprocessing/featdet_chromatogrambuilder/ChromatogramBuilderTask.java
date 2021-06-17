@@ -40,7 +40,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramBuilderTask extends AbstractTask {
 

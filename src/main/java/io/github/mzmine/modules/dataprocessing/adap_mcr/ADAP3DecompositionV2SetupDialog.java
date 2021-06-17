@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
@@ -93,7 +93,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
    * Creates an instance of the class and saves the current values of all parameters
    */
   ADAP3DecompositionV2SetupDialog(boolean valueCheckRequired,
-      @Nonnull final ParameterSet parameters) {
+      @NotNull final ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     Parameter[] params = parameters.getParameters();

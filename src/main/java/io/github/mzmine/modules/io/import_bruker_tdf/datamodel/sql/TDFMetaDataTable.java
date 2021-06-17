@@ -33,29 +33,32 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   public static final String VALUE_COMLUMN = "Value";
   public static final String KEY_COMLUMN = "Key";
 
-  private static final List<String> allowedFileVersions = Arrays.asList("3.1");
+  private static final List<String> allowedFileVersions = Arrays.asList("3.1", "3.2");
 
-  // we only keep these keys from the metadata table. Add more, if we need anything else.
-  private enum Keys {
-    SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper,
-    OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName,
-    Description, SampleName, MethodName;
+  private final TDFDataColumn<String> valueCol;
+  private final TDFDataColumn<String> keyCol;
+
+  public TDFMetaDataTable() {
+    super(METADATA_TABLE, KEY_COMLUMN);
+
+    keyCol = (TDFDataColumn<String>) columns.get(0);
+    valueCol = new TDFDataColumn<>(VALUE_COMLUMN);
+
+    columns.add(valueCol);
   }
 
   private Range<Double> mzRange;
   private String instrumentType;
 
-  public TDFMetaDataTable() {
-    super(METADATA_TABLE, KEY_COMLUMN);
-
-//    for (Keys key : Keys.values()) {
-//      keyList.getEntries().add(key.name());
-//    }
-    columns.add(new TDFDataColumn<String>(VALUE_COMLUMN));
+  /**
+   * @return -1 if key does not exist, 0 if no line spectra exist, 1 if they do.
+   */
+  public boolean hasLineSpectra() {
+    int index = keyCol.indexOf(Keys.HasLineSpectra.name());
+    return index != -1 && Integer.parseInt(valueCol.get(index)) == 1;
   }
 
   public boolean isFileVersionValid() {
-    TDFDataColumn<String> valueCol = (TDFDataColumn<String>) getColumn(VALUE_COMLUMN);
     if (valueCol == null) {
       return false;
     }
@@ -112,10 +115,31 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   }
 
   public String getInstrumentType() {
-    if(instrumentType == null) {
+    if (instrumentType == null) {
       int row = keyList.indexOf(Keys.InstrumentName.name());
       instrumentType = (String) getColumn(VALUE_COMLUMN).get(row);
     }
     return instrumentType;
+  }
+
+  /**
+   * @return -1 if key does not exist, 0 if no profile spectra exist, 1 if they do.
+   */
+  public boolean hasProfileSpectra() {
+    int index = keyCol.indexOf(Keys.HasLineSpectra.name());
+    return index != -1 && Integer.parseInt(valueCol.get(index)) == 1;
+  }
+
+  // we only keep these keys from the metadata table. Add more, if we need anything else.
+  public enum Keys {
+    SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper,
+    OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName,
+    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos,
+    ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos;
+  }
+
+  public String getValueForKey(Keys key) {
+    int index = keyCol.indexOf(key.toString());
+    return index != -1 ? valueCol.get(index) : "";
   }
 }

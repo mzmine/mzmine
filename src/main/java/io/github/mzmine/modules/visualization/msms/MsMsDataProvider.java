@@ -42,8 +42,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.util.SortOrder;
 
@@ -146,13 +146,13 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public java.awt.Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -164,7 +164,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return "MS/MS dataset";

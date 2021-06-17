@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types.graphicalnodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
@@ -37,7 +37,7 @@ import javafx.scene.shape.Rectangle;
 
 public class AreaShareChart extends StackPane {
 
-  public AreaShareChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public AreaShareChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
     Float sum = row.streamFeatures().map(Feature::getArea).reduce(0f, Float::sum);
 
     List<Rectangle> all = new ArrayList<>();

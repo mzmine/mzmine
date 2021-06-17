@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.NotNull;
 
 public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
@@ -91,6 +92,7 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
         + "Do you wish to continue any way?";
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.RESTRICTED;

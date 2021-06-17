@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import java.net.URL;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
@@ -112,7 +112,7 @@ public class DBCompound extends SimpleFeatureIdentity {
   }
 
   @Override
-  public synchronized @Nonnull Object clone() {
+  public synchronized @NotNull Object clone() {
 
     final DBCompound dbCompound = new DBCompound(database, getPropertyValue(PROPERTY_ID), getName(),
         getPropertyValue(PROPERTY_FORMULA), compoundUrl, structure2dUrl, structure3dUrl);

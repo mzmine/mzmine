@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -44,6 +43,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
+import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -151,6 +151,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

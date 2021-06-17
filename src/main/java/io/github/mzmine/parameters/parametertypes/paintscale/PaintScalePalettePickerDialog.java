@@ -22,7 +22,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPalettePreviewField;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import java.util.logging.Logger;
+import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -35,8 +35,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Dialog to pick colors for a color palette.
@@ -45,13 +45,8 @@ import javax.annotation.Nullable;
  */
 public class PaintScalePalettePickerDialog extends Stage {
 
-  private static final Logger logger = Logger
-      .getLogger(PaintScalePalettePickerDialog.class.getName());
-
   protected ExitCode exitCode;
 
-  //  protected BorderPane pnSuper;
-  //  protected BorderPane pnPicker;
   protected BorderPane pnMain;
   protected ScrollPane pnWrapParam;
   protected GridPane pnParam;
@@ -79,8 +74,7 @@ public class PaintScalePalettePickerDialog extends Stage {
     if (palette == null) {
       palette = new SimpleColorPalette();
     }
-
-    setTitle("Editing of color palette " + palette.getName());
+    setTitle("Editing of color palette " + Objects.requireNonNullElse(palette.getName(), ""));
 
     Scene scene = new Scene(pnMain);
     setScene(scene);
@@ -129,10 +123,10 @@ public class PaintScalePalettePickerDialog extends Stage {
       }
     });
     colorPickerPalette.setValue(palette.get(pnPalette.getSelected()));
+    colorPickerPalette.getCustomColors()
+        .addAll(MZmineCore.getConfiguration().getDefaultColorPalette());
 
-    pnPalette.addListener((Color newColor, int newIndex) -> {
-      colorPickerPalette.setValue(newColor);
-    });
+    pnPalette.addListener((Color newColor, int newIndex) -> colorPickerPalette.setValue(newColor));
 
     // set button actions
     btnAddColor.setOnAction(e -> btnAddColorAction());
@@ -153,7 +147,7 @@ public class PaintScalePalettePickerDialog extends Stage {
   }
 
   private void btnAddColorAction() {
-    if (palette.size() == 0) {
+    if (palette.isEmpty()) {
       this.setHeight(this.getHeight() + 17);
     }
     palette.add(colorPickerPalette.getValue());
@@ -161,7 +155,7 @@ public class PaintScalePalettePickerDialog extends Stage {
   }
 
   private void btnRemoveColorAction() {
-    if (palette.size() > 0) {
+    if (!palette.isEmpty()) {
       palette.remove(pnPalette.getSelected());
     }
   }
@@ -180,7 +174,7 @@ public class PaintScalePalettePickerDialog extends Stage {
     }
 
     String name = txtName.getText();
-    if (name == null || name == "" || name.replaceAll("\\s+", "").equals("")) {
+    if (name == null || name.equals("") || name.replaceAll("\\s+", "").equals("")) {
       MZmineCore.getDesktop().displayErrorMessage("Please set a name for the color palette.");
       return;
     }
@@ -193,7 +187,7 @@ public class PaintScalePalettePickerDialog extends Stage {
     return exitCode;
   }
 
-  public @Nonnull
+  public @NotNull
   SimpleColorPalette getPalette() {
     return palette;
   }

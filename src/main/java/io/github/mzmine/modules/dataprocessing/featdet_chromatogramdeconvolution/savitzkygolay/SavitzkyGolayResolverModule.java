@@ -20,14 +20,14 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverModule;
 import io.github.mzmine.parameters.ParameterSet;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SavitzkyGolayResolverModule extends FeatureResolverModule {
 
   public static final String NAME = "Savitzky golay feature resolver";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;
@@ -39,7 +39,7 @@ public class SavitzkyGolayResolverModule extends FeatureResolverModule {
     return SavitzkyGolayFeatureResolverParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Resolves EICs to features using the Savitky-Golay algorithm.";
