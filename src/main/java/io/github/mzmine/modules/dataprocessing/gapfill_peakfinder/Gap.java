@@ -75,7 +75,7 @@ public class Gap {
       return;
 
     // Find top m/z peak in our range
-    DataPoint basePeak = findDataPoint(scan);
+    DataPoint basePeak =  ScanUtils.findBasePeak(scan, mzRange);
 
     GapDataPoint currentDataPoint;
     if (basePeak != null) {
@@ -109,10 +109,6 @@ public class Gap {
 
     }
 
-  }
-
-  protected DataPoint findDataPoint(Scan scan) {
-    return ScanUtils.findBasePeak(scan, mzRange);
   }
 
   /**

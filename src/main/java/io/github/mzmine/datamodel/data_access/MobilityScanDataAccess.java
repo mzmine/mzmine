@@ -54,7 +54,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     this(dataFile, type, (List<Frame>) selection.getMatchingScans(dataFile.getFrames()));
   }
 
-  protected MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
+  public MobilityScanDataAccess(@NotNull final IMSRawDataFile dataFile,
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames) {
     this.dataFile = dataFile;
     this.type = type;
@@ -164,6 +164,12 @@ public class MobilityScanDataAccess implements MobilityScan {
     return currentMobilityScan;
   }
 
+  public void resetMobilityScan() {
+    currentMobilityScanIndex = -1;
+    currentMobilityScan = null;
+    currentNumberOfDataPoints = 0;
+  }
+
   public boolean hasNextFrame() {
     return currentFrameIndex + 1 < totalFrames;
   }
@@ -186,8 +192,12 @@ public class MobilityScanDataAccess implements MobilityScan {
   /**
    * Resets the {@link MobilityScanDataAccess} to the initial state equal to the initialisation.
    */
-  public void reset() {
-
+  public void resetFrame() {
+    currentFrameIndex = -1;
+    currentFrame = null;
+    currentNumberOfMobilityScans = -1;
+    currentMobilityScanIndex = -1;
+    currentMobilityScan = null;
   }
 
   /**

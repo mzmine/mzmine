@@ -80,8 +80,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModularFeature implements Feature, ModularDataModel {
 
-  private final ObservableMap<DataType, Property<?>> map =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Property<?>> map = FXCollections
+      .observableMap(new HashMap<>());
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
   @NotNull
@@ -117,11 +117,10 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   @Deprecated
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      float height, float area,
-      Scan[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
-      Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
-      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
-      @NotNull Range<Float> intensityRange) {
+      float height, float area, Scan[] scanNumbers, DataPoint[] dataPointsPerScan,
+      FeatureStatus featureStatus, Scan representativeScan, Scan fragmentScanNumber,
+      Scan[] allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange,
+      @NotNull Range<Double> mzRange, @NotNull Range<Float> intensityRange) {
     this(flist, dataFile, mz, rt, height, area, Arrays.asList(scanNumbers),
         DataPointUtils.getMZsAsDoubleArray(dataPointsPerScan),
         DataPointUtils.getIntenstiesAsDoubleArray(dataPointsPerScan), featureStatus,
@@ -130,11 +129,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      float height, float area,
-      List<Scan> scans, double[] mzs, double[] intensities, FeatureStatus featureStatus,
-      Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
-      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
-      @NotNull Range<Float> intensityRange) {
+      float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
+      FeatureStatus featureStatus, Scan representativeScan, Scan fragmentScanNumber,
+      Scan[] allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange,
+      @NotNull Range<Double> mzRange, @NotNull Range<Float> intensityRange) {
     this(flist);
 
     assert dataFile != null;
@@ -197,13 +195,15 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
       IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus,
-      Scan representativeScan,
-      Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers) {
-
+      Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers) {
+    this(flist);
     assert dataFile != null;
+
+    set(RawFileType.class, dataFile);
     setFragmentScan(fragmentScanNumber);
     setRepresentativeScan(representativeScan);
-    set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
+    set(FragmentScanNumbersType.class,
+        allMS2FragmentScanNumbers != null ? List.of(allMS2FragmentScanNumbers) : null);
     set(BestScanNumberType.class, representativeScan);
     set(DetectionType.class, featureStatus);
 
@@ -212,7 +212,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(MZType.class, mz);
     set(FeatureDataType.class, featureData);
 
-    float fwhm = QualityParameters.calculateFWHM(this);
+    /*float fwhm = QualityParameters.calculateFWHM(this);
     if (!Float.isNaN(fwhm)) {
       set(FwhmType.class, fwhm);
     }
@@ -223,7 +223,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     float af = QualityParameters.calculateAsymmetryFactor(this);
     if (!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
-    }
+    }*/
   }
   /**
    * Copy constructor
@@ -377,8 +377,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   public ObservableList<Scan> getAllMS2FragmentScans() {
     ListProperty<Scan> v = get(FragmentScanNumbersType.class);
     return v == null || v.getValue() == null ? FXCollections
-        .unmodifiableObservableList(FXCollections.emptyObservableList())
-        : v.getValue();
+        .unmodifiableObservableList(FXCollections.emptyObservableList()) : v.getValue();
   }
 
   @Override
