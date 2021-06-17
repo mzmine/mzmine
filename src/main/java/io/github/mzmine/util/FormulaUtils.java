@@ -295,6 +295,9 @@ public class FormulaUtils {
     IMolecularFormula molFormula;
 
     molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+    if(molFormula == null) {
+      return false;
+    }
 
     boolean valid = true;
 

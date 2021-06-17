@@ -105,12 +105,9 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
           + " This will greatly increase computation time but help with unknown-compound-identification.",
       new AutoCarbonParameters());
 
-  public static final BooleanParameter showPreview = new BooleanParameter("Show pattern preview",
-      "If selected this will add a preview chart of the calculated isotope pattern with the current settings.");
-
   public IsotopePeakScannerParameters() {
     super(new Parameter[]{PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
-        charge, minPatternIntensity, mergeWidth, showPreview, minHeight, checkIntensity, minRating,
+        charge, minPatternIntensity, mergeWidth, minHeight, checkIntensity, minRating,
         ratingChoices, calculate_accurate_average, suffix});
   }
 
