@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -191,6 +192,25 @@ public class ModularFeature implements Feature, ModularDataModel {
     if (!Float.isNaN(af)) {
       set(AsymmetryFactorType.class, af);
     }
+  }
+
+  /**
+   *
+   * @param flist
+   * @param dataFile
+   * @param featureData
+   * @param featureStatus
+   */
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
+      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
+    this(flist);
+    assert dataFile != null;
+
+    set(RawFileType.class, dataFile);
+    set(DetectionType.class, featureStatus);
+    set(FeatureDataType.class, featureData);
+
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
   }
 
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,

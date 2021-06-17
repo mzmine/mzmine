@@ -1,8 +1,9 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.GapDataPoint;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -11,7 +12,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DataPointIonMobilitySeries extends SimpleIonMobilitySeries implements DataPoint {
+public class DataPointIonMobilitySeries extends SimpleIonMobilitySeries implements GapDataPoint {
 
   private final double mz;
   private final double intensity;
@@ -39,5 +40,15 @@ public class DataPointIonMobilitySeries extends SimpleIonMobilitySeries implemen
   @Override
   public double getIntensity() {
     return intensity;
+  }
+
+  @Override
+  public double getRT() {
+    return getSpectrum(0).getRetentionTime();
+  }
+
+  @Override
+  public Scan getScan() {
+    return getSpectrum(0).getFrame();
   }
 }

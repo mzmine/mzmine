@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
@@ -27,6 +28,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
@@ -52,4 +54,8 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
         mobilityTolerance, autoRemove});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }
