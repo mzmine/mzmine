@@ -195,11 +195,12 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   /**
+   * Creates a new feature. The properties are determined via {@link FeatureDataUtils#recalculateIonSeriesDependingTypes(ModularFeature)}.
    *
-   * @param flist
-   * @param dataFile
-   * @param featureData
-   * @param featureStatus
+   * @param flist         The feature list.
+   * @param dataFile      The raw data file of this feature.
+   * @param featureData   The {@link IonTimeSeries} of this feature.
+   * @param featureStatus The feature status.
    */
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile,
       IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus) {
@@ -213,38 +214,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
   }
 
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      IonTimeSeries<? extends Scan> featureData, FeatureStatus featureStatus,
-      Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers) {
-    this(flist);
-    assert dataFile != null;
-
-    set(RawFileType.class, dataFile);
-    setFragmentScan(fragmentScanNumber);
-    setRepresentativeScan(representativeScan);
-    set(FragmentScanNumbersType.class,
-        allMS2FragmentScanNumbers != null ? List.of(allMS2FragmentScanNumbers) : null);
-    set(BestScanNumberType.class, representativeScan);
-    set(DetectionType.class, featureStatus);
-
-    set(RTType.class, rt);
-    // todo calculate from featureData based on user preferences? median/avg/weighted avg...?
-    set(MZType.class, mz);
-    set(FeatureDataType.class, featureData);
-
-    /*float fwhm = QualityParameters.calculateFWHM(this);
-    if (!Float.isNaN(fwhm)) {
-      set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(this);
-    if (!Float.isNaN(tf)) {
-      set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(this);
-    if (!Float.isNaN(af)) {
-      set(AsymmetryFactorType.class, af);
-    }*/
-  }
   /**
    * Copy constructor
    */
