@@ -84,7 +84,7 @@ public class ImsGap extends Gap {
       return;
     }
 
-    DataPointIonMobilitySeries mobilogram = (DataPointIonMobilitySeries) findDataPoint(access);
+    DataPointIonMobilitySeries mobilogram = findDataPoint(access);
 
     if (mobilogram == null) {
       return;
@@ -101,13 +101,8 @@ public class ImsGap extends Gap {
       // Yes, continue this peak.
       currentPeakDataPoints.add(mobilogram);
     } else {
-
-      // No, new peak is starting
-      // Check peak formed so far
-      if (currentPeakDataPoints != null) {
-        checkCurrentPeak();
-        currentPeakDataPoints = null;
-      }
+      checkCurrentPeak();
+      currentPeakDataPoints = null;
     }
 
   }

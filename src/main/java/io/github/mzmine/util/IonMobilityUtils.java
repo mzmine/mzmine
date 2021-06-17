@@ -257,13 +257,11 @@ public class IonMobilityUtils {
     for (ModularFeature feature : row.getFilesFeatures().values()) {
       if(mobilityRange == null) {
         mobilityRange = feature.getMobilityRange();
-      } else if(mobilityRange != null) {
-
+      } else {
         var featureRange = feature.getMobilityRange();
         if(featureRange != null) {
           mobilityRange = mobilityRange.span(featureRange);
         }
-
       }
     }
     return mobilityRange;
