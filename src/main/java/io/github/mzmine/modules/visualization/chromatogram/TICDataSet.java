@@ -363,10 +363,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     final TICPlotType plotType = this.plotType;
 
     // fix for imZML files without a retention time in their scans -> crashes TIC Plot
-    boolean useFakeRt = Double
+    boolean useScanNumberAsRt = Double
         .compare(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime())
         == 0;
-    if(useFakeRt && window != null) {
+    if(useScanNumberAsRt && window != null) {
       final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
       MZmineCore.runLater(() -> axis.setLabel("Scan number"));
     }
@@ -400,7 +400,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       }
 
       intensityValues[index] = intensity;
-      rtValues[index] = useFakeRt ? index : scan.getRetentionTime();
+      rtValues[index] = useScanNumberAsRt ? scan.getScanNumber() : scan.getRetentionTime();
 
       // Update min and max.
       if (index == 0) {
