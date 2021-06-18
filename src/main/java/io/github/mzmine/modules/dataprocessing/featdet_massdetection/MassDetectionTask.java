@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -30,20 +29,13 @@ import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import org.openscience.cdk.Element;
-import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.interfaces.IIsotope;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
@@ -58,13 +50,10 @@ public class MassDetectionTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
-  private final OptionalModuleParameter isotopesParameters;
   // scan counter
   private int processedScans = 0, totalScans = 0;
   // Mass detector
   private MZmineProcessingStep<MassDetector> massDetector;
-  // Isotope masses differences
-  private final List<Double> isotopeMassDiffs = new ArrayList<>();
   // for outputting file
   private File outFilename;
   private boolean saveToCDF;
@@ -89,46 +78,8 @@ public class MassDetectionTask extends AbstractTask {
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
-    this.isotopesParameters = parameters.getParameter(MassDetectionParameters.detectIsotopes);
-
     this.parameters = parameters;
 
-    // TODO: add charge parameter
-
-    if (isotopesParameters.getValue()) {
-
-      double abundanceLowBound = isotopesParameters.getEmbeddedParameters()
-          .getParameter(MassDetectionParameters.isotopeAbundanceLowBound).getValue();
-
-      List<Element> elements = isotopesParameters.getEmbeddedParameters()
-          .getParameter(MassDetectionParameters.elements).getValue();
-
-      // Get the instance of Isotopes class
-      Isotopes isotopes = null;
-      try {
-        isotopes = Isotopes.getInstance();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      assert isotopes != null;
-
-      // Compute pairwise mass differences within isotopes of each element
-      for (Element element : elements) {
-
-        // Filter not abundant isotopes out (abundanceLowBound == 0 by default)
-        List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element.getSymbol()))
-            .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > abundanceLowBound)
-            .toList();
-
-        // Compute pairwise mass differences
-        for (int i = 0; i < abundantIsotopes.size(); i++) {
-          for (int j = i + 1; j < abundantIsotopes.size(); j++) {
-            this.isotopeMassDiffs.add(abundantIsotopes.get(j).getExactMass()
-                - abundantIsotopes.get(i).getExactMass());
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -196,18 +147,10 @@ public class MassDetectionTask extends AbstractTask {
         Scan scan = data.nextScan();
 
         MassDetector detector = massDetector.getModule();
+
         // run mass detection on data object
         // [mzs, intensities]
-        double[][] mzPeaks;
-        if (isotopesParameters.getValue()) {
-          MZTolerance mzTolerance = isotopesParameters.getEmbeddedParameters()
-              .getParameter(MassDetectionParameters.isotopeMzTolerance).getValue();
-
-          mzPeaks = detector.getMassValues(data, massDetector.getParameterSet(),
-              this.isotopeMassDiffs, mzTolerance);
-        } else {
-          mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
-        }
+        double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
         if (scan instanceof Frame) {
           // for ion mobility, detect subscans, too

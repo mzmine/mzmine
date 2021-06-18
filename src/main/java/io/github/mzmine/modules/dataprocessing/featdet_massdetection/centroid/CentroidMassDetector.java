@@ -19,8 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid;
 
 import gnu.trove.list.array.TDoubleArrayList;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -55,13 +53,6 @@ public class CentroidMassDetector implements MassDetector {
       }
     }
     return new double[][]{mzs.toArray(), intensities.toArray()};
-  }
-
-  @Override
-  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters,
-      List<Double> isotopeMassDiffs, MZTolerance isotopeMzTol) {
-    // TODO
-    return new double[0][];
   }
 
   @Override

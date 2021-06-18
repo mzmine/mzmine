@@ -19,10 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectorSetupDialog;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
@@ -31,8 +36,20 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
       "Intensities less than this value are interpreted as noise.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
+  public static final OptionalModuleParameter<DetectIsotopesParameter> detectIsotopes
+      = new OptionalModuleParameter<>("Detect isotope signals below noise level",
+      "Include peaks corresponding to isotope masses distribution of specified elements.",
+      new DetectIsotopesParameter());
+
+
+  public static final ElementsParameter elements = new ElementsParameter(
+      "Elements", "Chemical elements which isotopes will be considered", true,
+      MassDetectionUtils.DEFAULT_ELEMENTS_LIST);
+
+  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
+
   public ExactMassDetectorParameters() {
-    super(new UserParameter[] {noiseLevel});
+    super(new UserParameter[] {noiseLevel, detectIsotopes});
   }
 
   @Override

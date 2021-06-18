@@ -18,12 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import java.util.List;
 
 /**
  *
@@ -35,22 +32,7 @@ public interface MassDetector extends MZmineModule {
    * Returns mass and intensity values detected in given spectrum
    *
    * @param spectrum
-   * @param parameters
    * @return [mzs, intensities][data]
    */
   double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters);
-
-  /**
-   * Returns mass and intensity values detected in given spectrum including isotopes given by
-   * possible isotope mass differences
-   *
-   * @param spectrum
-   * @param parameters
-   * @param isotopeMassDiffs - List containing possible isotope mass differences
-   * @param isotopeMzTol - Mz tolerance determining the variance of mz values to be considered equal
-   *                     to isotope masses
-   * @return [mzs, intensities][data]
-   */
-  double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters,
-      List<Double> isotopeMassDiffs, MZTolerance isotopeMzTol);
 }

@@ -50,7 +50,8 @@ public class ElementsComponent extends HBox {
         .map(Object::toString)
         .collect(Collectors.joining(", "))));
 
-    super.getChildren().addAll(elementsText, new Text("   "), setupBtn);
+    super.getChildren().addAll(elementsText, setupBtn);
+    super.setSpacing(10d);
     super.setAlignment(Pos.CENTER_LEFT);
 
     setupBtn.setOnAction(e -> periodicTableDialog.showAndWait());

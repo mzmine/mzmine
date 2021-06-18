@@ -87,14 +87,6 @@ public class LocalMaxMassDetector implements MassDetector {
   }
 
   @Override
-  public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters,
-      List<Double> isotopeMassDiffs,
-      MZTolerance isotopeMzTol) {
-    // TODO
-    return new double[0][];
-  }
-
-  @Override
   public @Nonnull String getName() {
     return "Local maxima";
   }
