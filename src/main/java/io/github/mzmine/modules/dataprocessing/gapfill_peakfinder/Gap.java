@@ -174,7 +174,7 @@ public class Gap {
         double intensityEnd = bestPeakDataPoints.get(i + 1).getIntensity();
 
         // calculate area of the interval
-        area += (rtDifference * (intensityStart + intensityEnd) / 2);
+        area += (float)(rtDifference * (intensityStart + intensityEnd) / 2);
 
       }
 

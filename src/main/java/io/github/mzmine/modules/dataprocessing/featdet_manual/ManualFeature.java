@@ -22,6 +22,8 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -73,7 +75,7 @@ public class ManualFeature {
    */
   public ManualFeature(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    dataPointMap = new TreeMap<Scan, DataPoint>();
+    dataPointMap = new TreeMap<>();
   }
 
   /**
@@ -121,7 +123,7 @@ public class ManualFeature {
   /**
    * This method returns a representative datapoint of this feature in a given scan
    */
-  public DataPoint getDataPoint(int scanNumber) {
+  public DataPoint getDataPoint(Scan scanNumber) {
     return dataPointMap.get(scanNumber);
   }
 

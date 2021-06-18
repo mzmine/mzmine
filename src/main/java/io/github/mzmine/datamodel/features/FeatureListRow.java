@@ -105,7 +105,8 @@ public interface FeatureListRow {
   /**
    * Returns average mobility for features on this row
    */
-  float getAverageMobility();
+  @Nullable
+  Float getAverageMobility();
 
   Float getAverageCCS();
 

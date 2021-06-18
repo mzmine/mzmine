@@ -229,7 +229,7 @@ public class JoinAlignerTask extends AbstractTask {
         Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
         Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
-        Range<Float> mobilityRange = compareMobility && !Float.isNaN(row.getAverageMobility()) ?
+        Range<Float> mobilityRange = compareMobility && row.getAverageMobility() != null ?
             mobilityTolerance.getToleranceRange(row.getAverageMobility()) : Range.singleton(0f);
 
         // Calculate scores and store them
@@ -390,7 +390,7 @@ public class JoinAlignerTask extends AbstractTask {
   }
 
   private boolean checkMobility(FeatureListRow candidate, Range<Float> mobilityRange) {
-    return !compareMobility || mobilityWeight <= 0 || Float.isNaN(candidate.getAverageMobility())
+    return !compareMobility || mobilityWeight <= 0 || candidate.getAverageMobility() == null
            || mobilityRange.contains(candidate.getAverageMobility());
   }
 

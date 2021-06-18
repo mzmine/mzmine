@@ -358,6 +358,7 @@ public class MassCalibrationTask extends AbstractTask {
             StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
       }
       standardsList = standardsListExtractor.extractStandardsList();
+      standardsListExtractor.closeInputStreams();
 
       if (standardsList.getStandardMolecules().size() == 0) {
         throw new RuntimeException(

@@ -56,10 +56,10 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
     double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
 
-    double mobilityDiff;
-    float row1Mobility = peakListRow.getAverageMobility();
-    float row2Mobility = alignedRow.getAverageMobility();
-    if (!Float.isNaN(peakListRow.getAverageMobility()) && !Float.isNaN(alignedRow.getAverageMobility())) {
+    float mobilityDiff;
+    Float row1Mobility = peakListRow.getAverageMobility();
+    Float row2Mobility = alignedRow.getAverageMobility();
+    if (row1Mobility != null && row2Mobility != null) {
       mobilityDiff = Math.abs(row1Mobility - row2Mobility);
       score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight)
           + ((1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);

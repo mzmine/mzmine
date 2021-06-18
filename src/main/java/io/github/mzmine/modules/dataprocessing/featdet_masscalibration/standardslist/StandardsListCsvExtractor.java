@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standard
 
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.LabeledCSVParser;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -100,5 +99,14 @@ public class StandardsListCsvExtractor implements StandardsListExtractor {
     }
 
     return new StandardsList(extractedData);
+  }
+
+  @Override
+  public void closeInputStreams() {
+    try {
+      csvReader.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
