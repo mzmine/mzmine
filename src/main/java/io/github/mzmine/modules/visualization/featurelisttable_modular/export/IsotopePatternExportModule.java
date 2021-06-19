@@ -54,6 +54,7 @@ public class IsotopePatternExportModule implements MZmineModule {
 
     if (pattern == null) {
       MZmineCore.getDesktop().displayMessage("Feature does not possess an isotope pattern.");
+      return;
     }
 
     try {

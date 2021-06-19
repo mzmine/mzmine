@@ -125,13 +125,14 @@ public class Gap {
       currentPeakDataPoints = null;
     }
 
-    double[][] mzIntensities = DataPointUtils.getDataPointsAsDoubleArray(bestPeakDataPoints);
+    final double[][] mzIntensities = DataPointUtils.getDataPointsAsDoubleArray(bestPeakDataPoints);
     final IonTimeSeries<?> series = new SimpleIonTimeSeries(
         ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(), mzIntensities[0],
         mzIntensities[1], bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
 
-    Feature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
+    final Feature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
         rawDataFile, series, FeatureStatus.MANUAL);
+
 
     // Fill the gap
     peakListRow.addFeature(rawDataFile, newPeak);

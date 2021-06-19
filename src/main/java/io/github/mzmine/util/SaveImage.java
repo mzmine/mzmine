@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.main.MZmineCore;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.io.IOException;
@@ -25,7 +26,6 @@ import java.io.OutputStream;
 import org.apache.xmlgraphics.java2d.ps.EPSDocumentGraphics2D;
 import org.freehep.graphicsio.emf.EMFGraphics2D;
 import org.jfree.chart.JFreeChart;
-import io.github.mzmine.main.MZmineCore;
 
 public class SaveImage implements Runnable {
 
@@ -59,6 +59,8 @@ public class SaveImage implements Runnable {
         chart.draw(g2d2, new Rectangle(width, height));
         g2d2.endExport();
         g2d2.closeStream();
+        out2.flush();
+        out2.close();
       }
 
       if (fileType.equals(FileType.EPS)) {

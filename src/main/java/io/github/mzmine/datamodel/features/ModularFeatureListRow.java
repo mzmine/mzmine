@@ -344,9 +344,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public float getAverageMobility() {
+  public Float getAverageMobility() {
     Property<Float> v = get(MobilityType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null || v.getValue() == null ? null : v.getValue();
   }
 
   @Override
