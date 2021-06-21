@@ -22,17 +22,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import java.util.Arrays;
-import org.openscience.cdk.Element;
 
 public class DetectIsotopesParameter extends SimpleParameterSet {
 
   public static final ElementsParameter elements = new ElementsParameter(
       "Elements", "Chemical elements which isotopes will be considered", true,
-      Arrays.asList(new Element("H"), new Element("C"), new Element("N"),
-          new Element("O"), new Element("P"), new Element("S")));
+      MassDetectionUtils.DEFAULT_ELEMENTS_LIST);
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
 
@@ -42,8 +40,11 @@ public class DetectIsotopesParameter extends SimpleParameterSet {
       + "of 0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
       MZmineCore.getConfiguration().getMZFormat(), 0d);
 
+  public static final IntegerParameter charge = new IntegerParameter("Charge",
+      "Ion charge", 1, true, 1, null);
+
   public DetectIsotopesParameter() {
-    super(new UserParameter[] {elements, isotopeMzTolerance, isotopeAbundanceLowBound});
+    super(new UserParameter[] {elements, isotopeAbundanceLowBound, isotopeMzTolerance, charge});
   }
 
 }
