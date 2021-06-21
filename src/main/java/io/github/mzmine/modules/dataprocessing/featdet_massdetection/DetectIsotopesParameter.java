@@ -40,8 +40,11 @@ public class DetectIsotopesParameter extends SimpleParameterSet {
       + "of 0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
       MZmineCore.getConfiguration().getMZFormat(), 0d);
 
-  public static final IntegerParameter charge = new IntegerParameter("Charge",
-      "Ion charge", 1, true, 1, null);
+  public static final IntegerParameter charge = new IntegerParameter("Charge (z in m/z)",
+      "Charge parameter standing for 'z' in the 'm/z' - isotope distribution masses will be "
+          + "divided with this value. Default value is 1, but insert an integer greater than 1 "
+          + "if there was another charge applied to the molecules during the MS experiment.",
+      1, true, 1, null);
 
   public DetectIsotopesParameter() {
     super(new UserParameter[] {elements, isotopeAbundanceLowBound, isotopeMzTolerance, charge});
