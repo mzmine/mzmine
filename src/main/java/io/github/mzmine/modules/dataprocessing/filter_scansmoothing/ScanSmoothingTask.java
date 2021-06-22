@@ -37,7 +37,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ScanSmoothingTask extends AbstractTask {
 

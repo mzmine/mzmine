@@ -30,11 +30,6 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class MassDetectionUtils {
 
-  // Most abundance elements in biomolecules
-  public static List<Element> DEFAULT_ELEMENTS_LIST = Arrays.asList(new Element("H"),
-      new Element("C"), new Element("N"), new Element("O"), new Element("P"),
-      new Element("S"));
-
   // Memoization variables for this::getIsotopesMassDiffs
   private static List<Element> memElements;
   private static double memAbundanceLowBound;

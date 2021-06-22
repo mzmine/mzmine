@@ -40,8 +40,8 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains no data - listens to changes in all {@link ModularFeature} in a {@link
@@ -52,7 +52,7 @@ import javax.annotation.Nullable;
 public class FeatureShapeType extends LinkedDataType
     implements GraphicalColumType<Boolean> {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Shapes";
@@ -91,8 +91,8 @@ public class FeatureShapeType extends LinkedDataType
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> rawDataFiles) {
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> rawDataFiles) {
 
     List<Feature> features = new ArrayList<>();
     rawDataFiles.forEach(rawDataFile -> features.add(row.getFeature(rawDataFile)));

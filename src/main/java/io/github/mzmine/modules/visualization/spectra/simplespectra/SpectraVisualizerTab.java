@@ -68,7 +68,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
@@ -78,7 +78,7 @@ import org.jfree.data.xy.XYDataset;
  */
 public class SpectraVisualizerTab extends MZmineTab {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final Image centroidIcon =
       FxIconUtil.loadImageFromResources("icons/centroidicon.png");
@@ -586,6 +586,14 @@ public class SpectraVisualizerTab extends MZmineTab {
     spectrumDataSet.addAnnotation(annotation);
   }
 
+  /**
+   * Add annotations for m/z values
+   * @param annotation m/z value and annotation map
+   */
+  public void addMzAnnotation(Map<Double, String> annotation) {
+    spectrumDataSet.addMzAnnotation(annotation);
+  }
+
   public SpectraPlot getSpectrumPlot() {
     return spectrumPlot;
   }
@@ -598,19 +606,19 @@ public class SpectraVisualizerTab extends MZmineTab {
     spectrumPlot.addDataSet(dataset, color, true);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return new ArrayList<>(Collections.singletonList(dataFile));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

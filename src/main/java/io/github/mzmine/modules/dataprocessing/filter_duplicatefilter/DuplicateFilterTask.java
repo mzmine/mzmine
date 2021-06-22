@@ -43,7 +43,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A task to filter out duplicate feature list rows.
@@ -174,7 +174,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
       if (mainRow != null) {
         // copy first row
-        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow, true);
+        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow.getID(), mainRow, true);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {

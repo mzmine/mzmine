@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -38,19 +38,19 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
       "Linear normalizer divides the height (or area) of each feature in the feature list by a normalization factor, determined according to the given normalization type.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     FeatureList featureLists[] = parameters.getParameter(LinearNormalizerParameters.featureLists).getValue()
         .getMatchingFeatureLists();
@@ -66,12 +66,12 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.NORMALIZATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return LinearNormalizerParameters.class;
   }
 

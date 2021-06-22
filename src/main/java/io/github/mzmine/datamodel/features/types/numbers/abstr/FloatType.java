@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types.numbers.abstr;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
@@ -39,8 +39,8 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
   }
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull Property<Float> value) {
+  @NotNull
+  public String getFormattedString(@NotNull Property<Float> value) {
     if (value.getValue() == null)
       return "";
     return getFormatter().format(value.getValue().floatValue());

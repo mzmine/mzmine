@@ -11,7 +11,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class SmoothingParameters extends SimpleParameterSet {
 
@@ -60,7 +60,7 @@ public class SmoothingParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

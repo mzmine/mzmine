@@ -52,7 +52,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -334,7 +334,7 @@ public class ImageBuilderTask extends AbstractTask {
       image.setFeatureList(featureList);
       ModularFeature modular = FeatureConvertors.ImageToModularFeature(image, rawDataFile);
       ModularFeatureListRow newRow =
-          new ModularFeatureListRow(featureList, featureId, rawDataFile, modular);
+          new ModularFeatureListRow(featureList, featureId, modular);
       featureList.addRow(newRow);
       featureId++;
     }

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +39,13 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
     this.description = description;
     this.valueRequired = valueRequired;
     this.value = defaultValue;
+  }
+
+  public ElementsParameter(String name, String description) {
+    // Most abundance elements in biomolecules as a default value for elements
+    this(name, description, true, Arrays.asList(new Element("H"),
+        new Element("C"), new Element("N"), new Element("O"), new Element("P"),
+        new Element("S")));
   }
 
   @Override

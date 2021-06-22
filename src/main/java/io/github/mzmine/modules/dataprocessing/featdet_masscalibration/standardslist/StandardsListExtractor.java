@@ -33,4 +33,6 @@ public interface StandardsListExtractor {
    * @throws IOException
    */
   StandardsList extractStandardsList() throws IOException;
+
+  void closeInputStreams();
 }

@@ -70,8 +70,8 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Feature with modular DataTypes
@@ -84,10 +84,10 @@ public class ModularFeature implements Feature, ModularDataModel {
       FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
-  @Nonnull
+  @NotNull
   private ModularFeatureList flist;
 
-  public ModularFeature(@Nonnull ModularFeatureList flist) {
+  public ModularFeature(@NotNull ModularFeatureList flist) {
     this.flist = flist;
 
     // add type property columns to maps
@@ -120,8 +120,8 @@ public class ModularFeature implements Feature, ModularDataModel {
       float height, float area,
       Scan[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus featureStatus,
       Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
-      @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
-      @Nonnull Range<Float> intensityRange) {
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @NotNull Range<Float> intensityRange) {
     this(flist, dataFile, mz, rt, height, area, Arrays.asList(scanNumbers),
         DataPointUtils.getMZsAsDoubleArray(dataPointsPerScan),
         DataPointUtils.getIntenstiesAsDoubleArray(dataPointsPerScan), featureStatus,
@@ -133,8 +133,8 @@ public class ModularFeature implements Feature, ModularDataModel {
       float height, float area,
       List<Scan> scans, double[] mzs, double[] intensities, FeatureStatus featureStatus,
       Scan representativeScan, Scan fragmentScanNumber, Scan[] allMS2FragmentScanNumbers,
-      @Nonnull Range<Float> rtRange, @Nonnull Range<Double> mzRange,
-      @Nonnull Range<Float> intensityRange) {
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @NotNull Range<Float> intensityRange) {
     this(flist);
 
     assert dataFile != null;
@@ -228,14 +228,14 @@ public class ModularFeature implements Feature, ModularDataModel {
   /**
    * Copy constructor
    */
-//  public ModularFeature(@Nonnull Feature f) {
+//  public ModularFeature(@NotNull Feature f) {
 //    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
 //  }
 
   /**
    * Copy constructor with custom feature list
    */
-  public ModularFeature(@Nonnull ModularFeatureList flist, Feature f) {
+  public ModularFeature(@NotNull ModularFeatureList flist, Feature f) {
     this(flist);
     if (f instanceof ModularFeature) {
       ((ModularFeature) f).stream().forEach(entry -> this.set(entry.getKey(), entry.getValue()));
@@ -341,21 +341,21 @@ public class ModularFeature implements Feature, ModularDataModel {
     return new SimpleDataPoint(getFeatureData().getMZ(index), getFeatureData().getIntensity(index));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Float> getRawDataPointsRTRange() {
     ObjectProperty<Range<Float>> v = get(RTRangeType.class);
     return v == null || v.getValue() == null ? Range.singleton(0f) : v.getValue();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getRawDataPointsMZRange() {
     ObjectProperty<Range<Double>> v = get(MZRangeType.class);
     return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Float> getRawDataPointsIntensityRange() {
     ObjectProperty<Range<Float>> v = get(IntensityRangeType.class);
@@ -394,7 +394,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     set(IsotopePatternType.class, isotopePattern);
   }
 
@@ -465,7 +465,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public void setFeatureList(@Nonnull FeatureList flist) {
+  public void setFeatureList(@NotNull FeatureList flist) {
     this.flist = (ModularFeatureList) flist;
   }
 
@@ -505,7 +505,7 @@ public class ModularFeature implements Feature, ModularDataModel {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   @Override
   public List<Scan> getScanNumbers() {
     IonTimeSeries<? extends Scan> data = getFeatureData();
@@ -555,7 +555,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTType.class, rt);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public FeatureStatus getFeatureStatus() {
     ObjectProperty<FeatureStatus> v = get(DetectionType.class);

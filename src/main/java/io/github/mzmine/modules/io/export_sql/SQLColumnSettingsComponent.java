@@ -32,11 +32,11 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class SQLColumnSettingsComponent extends BorderPane {
 
-    @Nonnull
+    @NotNull
     private SQLColumnSettings value;
     private  TableView<SQLRowObject> columnsTable =new TableView<SQLRowObject>();
     private final Button addColumnButton,removeColumnButton;
@@ -136,7 +136,7 @@ public class SQLColumnSettingsComponent extends BorderPane {
 
     }
 
-    void setValue(@Nonnull SQLColumnSettings newValue) {
+    void setValue(@NotNull SQLColumnSettings newValue) {
 
         // Clear the table
         this.value = newValue;
@@ -144,7 +144,7 @@ public class SQLColumnSettingsComponent extends BorderPane {
         columnsTable.refresh();
     }
 
-    @Nonnull
+    @NotNull
     synchronized SQLColumnSettings getValue() {
         return value;
     }

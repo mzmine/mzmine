@@ -18,30 +18,6 @@
 
 package io.github.mzmine.modules.tools.kovats;
 
-import io.github.mzmine.util.RangeUtils;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Stroke;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import org.apache.commons.lang3.ArrayUtils;
-import org.controlsfx.control.CheckListView;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
 import io.github.mzmine.datamodel.IonizationType;
@@ -71,9 +47,28 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Stroke;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -88,6 +83,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.lang3.ArrayUtils;
+import org.controlsfx.control.CheckListView;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.xy.XYDataset;
 
 public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
@@ -319,7 +319,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles();
 
-    if (dataFiles != null && dataFiles.size() <= 0)
+    if (dataFiles == null || dataFiles.isEmpty())
       return;
 
     RawDataFilesSelection select =

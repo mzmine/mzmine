@@ -28,7 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ScanSmoothingModule implements MZmineProcessingModule {
 
@@ -37,21 +37,21 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
       "This module averages intensity values within a time-scan frame.";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     // one storage for all files in the same module call
     MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
@@ -68,13 +68,13 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATAFILTERING;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return ScanSmoothingParameters.class;
   }

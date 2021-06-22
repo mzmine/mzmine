@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutil
 
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.util.Map;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.util.FormulaUtils;
@@ -73,7 +73,7 @@ public class LipidIdentity extends SimpleFeatureIdentity {
   }
 
   @Override
-  public @Nonnull Object clone() {
+  public @NotNull Object clone() {
     return new LipidIdentity(getName(), getPropertyValue(PROPERTY_FORMULA));
   }
 }

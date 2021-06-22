@@ -26,6 +26,9 @@ import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 
+/**
+ * The ion adduct is used in different {@link AnnotationType}s to represent the ion species.
+ */
 public class IonAdductType extends DataType<StringProperty>
     implements EditableColumnType, StringParser<String>, AnnotationType {
 

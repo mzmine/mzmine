@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -37,19 +37,19 @@ public class RTCalibrationModule implements MZmineProcessingModule {
       "The retention time calibration attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as calibration standards.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     RTCalibrationTask newTask = new RTCalibrationTask(project, parameters,
         MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
@@ -58,12 +58,12 @@ public class RTCalibrationModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.NORMALIZATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return RTCalibrationParameters.class;
   }
 

@@ -33,7 +33,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -94,7 +94,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     pointsLists.forEach(list -> regions.add(getShape(list)));
 
     ModularFeatureList newFeatureList = originalFeatureList
-        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage());
+        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), false);
 
     final double numberOfRows = newFeatureList.getNumberOfRows();
     int processedFeatures = 0;

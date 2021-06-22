@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -93,7 +93,7 @@ public class CCSCalcTask extends AbstractTask {
     for (ModularFeatureList featureList : featureLists) {
       if (createNewFeatureList) {
         workingFeatureList = featureList.createCopy(featureList.getName() + " CCS",
-            getMemoryMapStorage());
+            getMemoryMapStorage(), false);
       } else {
         workingFeatureList = featureList;
       }

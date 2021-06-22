@@ -37,10 +37,11 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 class MultiRawDataLearnerTask extends AbstractTask {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private static final Logger logger = Logger.getLogger(MultiRawDataLearnerTask.class.getName());
 
   private final MZmineProject project;
   private FeatureList featureList;
@@ -59,9 +60,6 @@ class MultiRawDataLearnerTask extends AbstractTask {
 
   /**
    * Constructor to set all parameters and the project
-   *
-   * @param rawDataFile
-   * @param parameters
    */
   public MultiRawDataLearnerTask(MZmineProject project, FeatureList featureList,
       ParameterSet parameters, @Nullable MemoryMapStorage storage) {
@@ -89,8 +87,9 @@ class MultiRawDataLearnerTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return (double) processedRows / (double) totalRows;
   }
 
@@ -106,7 +105,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
     resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(),
         featureList.getRawDataFiles());
 
-    /**
+    /*
      * - A FeatureList is a list of Features (feature in retention time dimension with accurate m/z)<br>
      * ---- contains one or multiple RawDataFiles <br>
      * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
@@ -128,8 +127,9 @@ class MultiRawDataLearnerTask extends AbstractTask {
       // loop through all raw data files
       for (RawDataFile raw : rawFiles) {
         // check for cancelled state and stop
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // current feature
         Feature feature = row.getFeature(raw);
@@ -169,11 +169,13 @@ class MultiRawDataLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
+        .addDescriptionOfAppliedTask(
+            new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
 
     // Remove the original feature list if requested
-    if (removeOriginal)
+    if (removeOriginal) {
       project.removeFeatureList(featureList);
+    }
   }
 
 }

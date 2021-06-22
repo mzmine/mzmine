@@ -20,8 +20,8 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represent one mass spectrum. Typically the implementation will store the m/z and
@@ -29,17 +29,16 @@ import javax.annotation.Nullable;
  * Iterable, but there is an important point - to avoid consuming memory for each DataPoint
  * instance, we will iterate over the stored data points with a single DataPoint instance that is
  * incrementing an internal cursor. That means this code will work:
- *
+ * <p>
  * {@code for (DataPoint d : spectrum) System.out.println(d.getMz() + ":" + d.getIntensity();} but
- * this code will NOT work:
- * {@code ArrayList<DataPoint> list = new ArrayList<>(); list.addAll(spectrum);}
- *
+ * this code will NOT work: {@code ArrayList<DataPoint> list = new ArrayList<>();
+ * list.addAll(spectrum);}
  */
 public interface MassSpectrum extends Iterable<DataPoint> {
 
   /**
    * @return Number of m/z and intensity data points. This corresponds to the capacity of the
-   *         DoubleBuffers returned by getMzValues() and getIntensityValues()
+   * DoubleBuffers returned by getMzValues() and getIntensityValues()
    */
   int getNumberOfDataPoints();
 
@@ -51,43 +50,47 @@ public interface MassSpectrum extends Iterable<DataPoint> {
   MassSpectrumType getSpectrumType();
 
   /**
-   * @return The m/z values of this spectrum sorted in m/z order. The capacity of the returned
-   *         buffer is equivalent to the number of data points in this spectrum.
+   * @param dst A buffer the m/z values will be written into. The buffer should ideally have the
+   *            size {@link #getNumberOfDataPoints()}. Some implementations of mass spectrum
+   *            reallocate a new buffer, if the current buffer is not big enough.
+   * @return The buffer the m/z values were written into. Usually the same as the supplied buffer.
+   * However, a new buffer will be allocated if the original buffer is not big enough.
    */
-//  @Nonnull
-//  DoubleBuffer getMzValues();
+  double[] getMzValues(@NotNull double[] dst);
 
   /**
-   * @return The intensity values corresponding to the m/z values returned by getMzValues(). The
-   * capacity of the returned buffer is equivalent to the number of data points in this spectrum.
+   * @param dst A buffer the intensity values will be written into. The buffer should ideally have
+   *            the size {@link #getNumberOfDataPoints()}. Some implementations of mass spectrum
+   *            reallocate a new buffer, if the current buffer is not big enough.
+   * @return The buffer the intensity values were written into. Usually the same as the supplied
+   * buffer. However, a new buffer will be allocated if the original buffer is not big enough.
    */
-//  @Nonnull
-//  DoubleBuffer getIntensityValues();
-
-  double[] getMzValues(@Nonnull double[] dst);
-
-  double[] getIntensityValues(@Nonnull double[] dst);
+  double[] getIntensityValues(@NotNull double[] dst);
 
   /**
-   * A shortcut method for {@code getMzValues().get(index)}
+   *
+   * @param index The data point index.
+   * @return The m/z at the given index.
    */
   double getMzValue(int index);
 
   /**
-   * A shortcut method for {@code getIntensityValues().get(index)}
+   *
+   * @param index The data point index.
+   * @return The intensity at the given index.
    */
   double getIntensityValue(int index);
 
   /**
    * @return The m/z value of the highest data point of this spectrum or null if the spectrum has 0
-   *         data points.
+   * data points.
    */
   @Nullable
   Double getBasePeakMz();
 
   /**
    * @return The intensity value of the highest data point of this spectrum or null if the spectrum
-   *         has 0 data points.
+   * has 0 data points.
    */
   @Nullable
   Double getBasePeakIntensity();
@@ -115,11 +118,11 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * Creates a stream of DataPoints to iterate over this array. To avoid consuming memory for each
    * DataPoint instance, we will iterate over the stored data points with a single DataPoint
    * instance that is incrementing an internal cursor. That means this code will NOT work:
-   *
+   * <p>
    * {@code ArrayList<DataPoint> list = spectrum.stream().collect();}
    *
    * @return A stream of DataPoint represented by a single DataPoint instance that is iterating over
-   *         the spectrum.
+   * the spectrum.
    */
   Stream<DataPoint> stream();
 

@@ -21,24 +21,24 @@ package io.github.mzmine.util.components;
 import java.util.function.BooleanSupplier;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ConditionalMenuItem extends MenuItem {
 
   private final BooleanSupplier enableCondition;
 
-  public ConditionalMenuItem(@Nonnull BooleanSupplier enableCondition) {
+  public ConditionalMenuItem(@NotNull BooleanSupplier enableCondition) {
     super();
     this.enableCondition = enableCondition;
 //    setDisable(!enableCondition.getAsBoolean());
   }
 
-  public ConditionalMenuItem(String text, @Nonnull BooleanSupplier enableCondition) {
+  public ConditionalMenuItem(String text, @NotNull BooleanSupplier enableCondition) {
     this(enableCondition);
     setText(text);
   }
 
-  public ConditionalMenuItem(String text, Node graphic, @Nonnull BooleanSupplier enableCondition) {
+  public ConditionalMenuItem(String text, Node graphic, @NotNull BooleanSupplier enableCondition) {
     this(text, enableCondition);
     setGraphic(graphic);
   }

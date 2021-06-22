@@ -24,8 +24,8 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.util.function.IntFunction;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AnyXYProvider implements PlotXYDataProvider {
 
@@ -46,13 +46,13 @@ public class AnyXYProvider implements PlotXYDataProvider {
   }
 
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return awtColor;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return FxColorUtil.awtColorToFX(awtColor);
@@ -64,7 +64,7 @@ public class AnyXYProvider implements PlotXYDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

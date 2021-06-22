@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMSImagingRawDataFile {
 

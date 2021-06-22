@@ -39,8 +39,8 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
@@ -80,14 +80,13 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
       ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
-      @Nonnull final RunOption runOption) {
+      @NotNull final RunOption runOption) {
 
     // Task stuff
     this.computed = false;
     this.valuesComputed = false;
     status = new SimpleObjectProperty<>(TaskStatus.WAITING);
     errorMessage = "";
-    this.runOption = runOption;
 
     // dataset stuff
     this.xyValueProvider = xyValueProvider;
@@ -104,6 +103,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.computedItemCount = 0;
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
+    this.runOption = checkRunOption(runOption);
     handleRunOption(runOption);
   }
 
@@ -114,12 +114,12 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    * Note: Computation task has to be started by the respective extending class.
    */
   public ColoredXYDataset(PlotXYDataProvider datasetProvider,
-      @Nonnull final RunOption runOption) {
+      @NotNull final RunOption runOption) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider, runOption);
   }
 
-  public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
+  public ColoredXYDataset(@NotNull PlotXYDataProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
         datasetProvider, RunOption.NEW_THREAD);
   }
@@ -127,21 +127,28 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   /**
    *
    */
-  protected void handleRunOption(@Nonnull final RunOption runOption) {
+  protected void handleRunOption(@NotNull final RunOption runOption) {
     switch (runOption) {
-      case THIS_THREAD -> {
-        if (Platform.isFxApplicationThread()) {
-          logger.severe(() -> "Calculation of data set values was started on the JavaFX thread."
-              + " Creating a new thread instead.\nProvider: " + xyValueProvider.getClass()
-              .getName());
-          MZmineCore.getTaskController().addTask(this);
-        } else {
-          run();
-        }
-      }
+      case THIS_THREAD -> run();
       case NEW_THREAD -> MZmineCore.getTaskController().addTask(this);
       case DO_NOT_RUN -> {
       }
+    }
+  }
+
+  /**
+   * Checks if the thread and given run option are valid. Running on the FX thread is not allowed.
+   *
+   * @param runOption The requested run option.
+   * @return a valid run option.
+   */
+  protected final RunOption checkRunOption(final RunOption runOption) {
+    if (runOption == RunOption.THIS_THREAD && Platform.isFxApplicationThread()) {
+      logger.warning(() -> "Calculation of data set values was started on the JavaFX thread."
+          + " Creating a new thread instead. Provider: " + xyValueProvider.getClass().getName());
+      return RunOption.NEW_THREAD;
+    } else {
+      return runOption;
     }
   }
 

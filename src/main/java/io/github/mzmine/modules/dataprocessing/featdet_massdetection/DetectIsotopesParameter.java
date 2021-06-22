@@ -28,9 +28,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class DetectIsotopesParameter extends SimpleParameterSet {
 
-  public static final ElementsParameter elements = new ElementsParameter(
-      "Elements", "Chemical elements which isotopes will be considered", true,
-      MassDetectionUtils.DEFAULT_ELEMENTS_LIST);
+  public static final ElementsParameter elements = new ElementsParameter("Elements",
+      "Chemical elements which isotopes will be considered");
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
 

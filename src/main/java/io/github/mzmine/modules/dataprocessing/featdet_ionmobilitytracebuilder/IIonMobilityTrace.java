@@ -23,8 +23,8 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -71,17 +71,17 @@ public interface IIonMobilityTrace {
 
   void setIntensityRange(Range<Double> intensityRange);
 
-  @Nonnull
+  @NotNull
   Set<RetentionTimeMobilityDataPoint> getDataPoints();
 
   void setDataPoints(Set<RetentionTimeMobilityDataPoint> dataPoints);
 
-  @Nonnull
+  @NotNull
   Set<Integer> getFrameNumbers();
 
   void setFrameNumbers(Set<Integer> frameNumbers);
 
-  @Nonnull
+  @NotNull
   Set<MobilityScan> getScanNumbers();
 
   void setScanNumbers(Set<MobilityScan> scanNumbers);

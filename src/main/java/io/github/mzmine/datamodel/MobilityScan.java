@@ -19,9 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.impl.masslist.MobilityScanMassList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
@@ -33,7 +32,7 @@ public interface MobilityScan extends MassSpectrum, Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
-  @Nonnull
+  @NotNull
   RawDataFile getDataFile();
 
   /**
@@ -70,10 +69,8 @@ public interface MobilityScan extends MassSpectrum, Scan {
   @Nullable
   MassList getMassList();
 
-  void setMassList(final @Nonnull MassList massList);
-
   @Override
-  default int compareTo(@Nonnull Scan s) {
+  default int compareTo(@NotNull Scan s) {
     int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
     if (result != 0) {
       return result;
@@ -91,13 +88,13 @@ public interface MobilityScan extends MassSpectrum, Scan {
     return getFrame().getFrameId();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   default String getScanDefinition() {
     return getFrame().getScanDefinition() + " - Mobility scan #" + getMobilityScanNumber();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   default Range<Double> getScanningMZRange() {
     return getFrame().getScanningMZRange();
@@ -108,7 +105,7 @@ public interface MobilityScan extends MassSpectrum, Scan {
     return getMsMsInfo() != null ? getMsMsInfo().getLargestPeakMz() : 0d;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   default PolarityType getPolarity() {
     return getFrame().getPolarity();
@@ -117,15 +114,6 @@ public interface MobilityScan extends MassSpectrum, Scan {
   @Override
   default int getPrecursorCharge() {
     return getMsMsInfo() != null ? getMsMsInfo().getPrecursorCharge() : 0;
-  }
-
-  @Override
-  default void addMassList(@Nonnull MassList massList) {
-    if (!(massList instanceof MobilityScanMassList)) {
-      throw new IllegalArgumentException(
-          "Cannot mass lists of type " + massList.getClass().getName() + " to MobilityScan");
-    }
-    setMassList(massList);
   }
 
   @Override

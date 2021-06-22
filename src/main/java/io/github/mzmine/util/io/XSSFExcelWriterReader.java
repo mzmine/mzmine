@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.io;
 
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,7 +33,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import io.github.mzmine.util.files.FileAndPathUtil;
 
 public class XSSFExcelWriterReader {
 
@@ -122,12 +122,12 @@ public class XSSFExcelWriterReader {
       cell.setCellValue((String) data);
     else if ((data instanceof Double))
       cell.setCellValue((Double) data);
-    else if ((data instanceof Number))
-      cell.setCellValue(((Number) data).doubleValue());
     else if ((data instanceof Integer))
       cell.setCellValue(((Integer) data).doubleValue());
     else if ((data instanceof Float))
       cell.setCellValue(((Float) data).doubleValue());
+    else if ((data instanceof Number))
+      cell.setCellValue(((Number) data).doubleValue());
     return cell;
   }
 
@@ -274,7 +274,7 @@ public class XSSFExcelWriterReader {
     for (int r = 0; r < data.length; r++) {
       // all columns
       for (int c = 0; c < data[r].length; c++) {
-        if (data[r][c] != Double.NaN) {
+        if (!Double.isNaN(data[r][c])) {
           if (rowsFirst)
             writeToCell(sheet, c + ic, r + ir, data[r][c]);
           else
@@ -323,7 +323,7 @@ public class XSSFExcelWriterReader {
       boolean inColumn) {
     // write to wb
     for (int r = 0; r < data.length; r++) {
-      if (data[r] != Double.NaN) {
+      if (!Double.isNaN(data[r])) {
         if (inColumn)
           writeToCell(sheet, ic, r + ir, data[r]);
         else

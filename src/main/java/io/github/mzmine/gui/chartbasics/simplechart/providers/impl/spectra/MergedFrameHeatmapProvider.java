@@ -30,16 +30,16 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import java.awt.Color;
 import java.util.Collection;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
 
 
-  @Nonnull
+  @NotNull
   private final Collection<Frame> frames;
-  @Nonnull
+  @NotNull
   private final MZTolerance tolerance;
   private final int mobilityScanBin;
   private final AtomicDouble progress;
@@ -48,21 +48,21 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
   private double boxWidth;
   private int numValues = 0;
 
-  public MergedFrameHeatmapProvider(@Nonnull final Collection<Frame> frames,
-      @Nonnull final MZTolerance tolerance, final int mobilityScanBin) {
+  public MergedFrameHeatmapProvider(@NotNull final Collection<Frame> frames,
+      @NotNull final MZTolerance tolerance, final int mobilityScanBin) {
     this.frames = frames;
     this.tolerance = tolerance;
     this.mobilityScanBin = mobilityScanBin;
     progress = new AtomicDouble(0d);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -80,7 +80,7 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return merged != null ? merged.getScanDefinition() : "Merged frame";

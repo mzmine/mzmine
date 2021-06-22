@@ -28,8 +28,8 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.List;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface defines the properties of a detected feature
@@ -39,7 +39,7 @@ public interface Feature {
   /**
    * This method returns the status of the feature
    */
-  @Nonnull
+  @NotNull
   FeatureStatus getFeatureStatus();
 
   /**
@@ -91,7 +91,7 @@ public interface Feature {
   /**
    * This method returns numbers of scans that contain this feature
    */
-  @Nonnull
+  @NotNull
   List<Scan> getScanNumbers();
 
   /**
@@ -164,19 +164,19 @@ public interface Feature {
   /**
    * Returns the retention time range of all raw data points used to detect this feature
    */
-  @Nonnull
+  @NotNull
   Range<Float> getRawDataPointsRTRange();
 
   /**
    * Returns the range of m/z values of all raw data points used to detect this feature
    */
-  @Nonnull
+  @NotNull
   Range<Double> getRawDataPointsMZRange();
 
   /**
    * Returns the range of intensity values of all raw data points used to detect this feature
    */
-  @Nonnull
+  @NotNull
   Range<Float> getRawDataPointsIntensityRange();
 
   /**
@@ -198,7 +198,7 @@ public interface Feature {
   void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
 
   /**
-   * @return The mobility if no mobility was set. Note that mobility can have different units.
+   * @return The mobility or null if no mobility was set. Note that mobility can have different units.
    * @see Feature#getMobilityUnit()
    */
   @Nullable
@@ -265,7 +265,7 @@ public interface Feature {
   /**
    * Sets the isotope pattern of this feature
    */
-  void setIsotopePattern(@Nonnull IsotopePattern isotopePattern);
+  void setIsotopePattern(@NotNull IsotopePattern isotopePattern);
 
   /**
    * Returns the charge of this ion. If the charge is unknown, returns 0.
@@ -323,7 +323,7 @@ public interface Feature {
   @Nullable
   FeatureList getFeatureList();
 
-  void setFeatureList(@Nonnull FeatureList featureList);
+  void setFeatureList(@NotNull FeatureList featureList);
 
   default int getNumberOfDataPoints() {
     List<DataPoint> dp = getDataPoints();

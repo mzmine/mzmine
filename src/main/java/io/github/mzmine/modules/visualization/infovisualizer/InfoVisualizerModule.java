@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.infovisualizer;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 
@@ -28,7 +28,7 @@ public class InfoVisualizerModule implements MZmineModule {
   private static final String MODULE_NAME = "Feature list info window";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
@@ -38,7 +38,7 @@ public class InfoVisualizerModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return InfoVisualizerParameters.class;
   }
 

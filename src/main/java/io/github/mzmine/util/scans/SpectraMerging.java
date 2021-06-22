@@ -61,8 +61,8 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods to merge multiple spectra. Data points are sorted by intensity and grouped,
@@ -100,8 +100,8 @@ public class SpectraMerging {
    * if the source collection is empty.
    */
   public static <T extends MassSpectrum> double[][] calculatedMergedMzsAndIntensities(
-      @Nonnull final Collection<T> source, @Nonnull final MZTolerance tolerance,
-      @Nonnull final MergingType mergingType, @Nonnull final CenterFunction mzCenterFunction,
+      @NotNull final Collection<T> source, @NotNull final MZTolerance tolerance,
+      @NotNull final MergingType mergingType, @NotNull final CenterFunction mzCenterFunction,
       @Nullable final Double noiseLevel) {
 
     if (source.isEmpty()) {
@@ -261,8 +261,8 @@ public class SpectraMerging {
    *
    * @return A {@link MergedMsMsSpectrum}.
    */
-  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@Nonnull final ImsMsMsInfo info,
-      @Nonnull final MZTolerance tolerance, @Nonnull final MergingType mergingType,
+  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@NotNull final ImsMsMsInfo info,
+      @NotNull final MZTolerance tolerance, @NotNull final MergingType mergingType,
       @Nullable final MemoryMapStorage storage) {
 
     if (info == null) {
@@ -314,8 +314,8 @@ public class SpectraMerging {
    * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
    */
   public static List<MergedMsMsSpectrum> mergeMsMsSpectra(
-      @Nonnull final Collection<MergedMsMsSpectrum> spectra,
-      @Nonnull final MZTolerance tolerance, @Nonnull final MergingType mergingType,
+      @NotNull final Collection<MergedMsMsSpectrum> spectra,
+      @NotNull final MZTolerance tolerance, @NotNull final MergingType mergingType,
       @Nullable final MemoryMapStorage storage) {
 
     final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
@@ -342,8 +342,8 @@ public class SpectraMerging {
     return mergedSpectra;
   }
 
-  public static MergedMassSpectrum extractSummedMobilityScan(@Nonnull final ModularFeature f,
-      @Nonnull final MZTolerance tolerance, @Nonnull final Range<Float> mobilityRange,
+  public static MergedMassSpectrum extractSummedMobilityScan(@NotNull final ModularFeature f,
+      @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
       @Nullable final MemoryMapStorage storage) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return null;
@@ -368,10 +368,10 @@ public class SpectraMerging {
     return scan;
   }
 
-  public static Frame getMergedFrame(@Nonnull final Collection<Frame> frames,
-      @Nonnull final MZTolerance tolerance,
+  public static Frame getMergedFrame(@NotNull final Collection<Frame> frames,
+      @NotNull final MZTolerance tolerance,
       @Nullable final MemoryMapStorage storage, final int mobilityScanBin,
-      @Nonnull final AtomicDouble progress) {
+      @NotNull final AtomicDouble progress) {
     if (frames.isEmpty()) {
       throw new IllegalStateException("No frames in collection to be merged.");
     }

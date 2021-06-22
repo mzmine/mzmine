@@ -36,12 +36,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureShapeChart extends StackPane {
 
 
-  public FeatureShapeChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public FeatureShapeChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
 
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 

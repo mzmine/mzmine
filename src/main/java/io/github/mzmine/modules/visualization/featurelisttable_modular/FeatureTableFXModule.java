@@ -23,8 +23,8 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FeatureTableFXUtil;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureTableFXModule implements MZmineModule {
 
@@ -37,7 +37,7 @@ public class FeatureTableFXModule implements MZmineModule {
     Platform.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "FeatureOld list table";

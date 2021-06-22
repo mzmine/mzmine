@@ -28,7 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ADAP3DModule implements MZmineProcessingModule {
 
@@ -37,19 +37,19 @@ public class ADAP3DModule implements MZmineProcessingModule {
       "This module detect peaks from profile spectra using the ADAP3D algorithm developed by the Xiuxia Du lab. The module requires no parameter settings. Note that it will not work with centroid spectra.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     RawDataFile[] dataFiles =
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
@@ -65,12 +65,12 @@ public class ADAP3DModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ADAP3DParameters.class;
   }
 

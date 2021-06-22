@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
  *
  */
 public interface MassDetector extends MZmineModule {
-  public static final double[][] EMPTY_DATA = new double[0][0];
+  public static final double[][] EMPTY_DATA = new double[2][0];
 
   /**
    * Returns mass and intensity values detected in given spectrum
@@ -35,4 +35,8 @@ public interface MassDetector extends MZmineModule {
    * @return [mzs, intensities][data]
    */
   double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters);
+
+  default double[][] getMassValues(double[] mzs, double[] intensities, ParameterSet parameters) {
+    throw new UnsupportedOperationException("Method not implemented. Please implement me.");
+  }
 }

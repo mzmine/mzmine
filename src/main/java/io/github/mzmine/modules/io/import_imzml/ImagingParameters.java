@@ -166,6 +166,13 @@ public class ImagingParameters {
           scanDirection = ScanDirection.HORIZONTAL;
         }
       }
+
+      if(Double.compare(lateralHeight, 0d) == 0) {
+        lateralHeight = maxNumberOfPixelY * pixelHeight;
+      }
+      if(Double.compare(lateralWidth, 0d) == 0) {
+        lateralWidth = maxNumberOfPixelX * pixelWidth;
+      }
     }
   }
 

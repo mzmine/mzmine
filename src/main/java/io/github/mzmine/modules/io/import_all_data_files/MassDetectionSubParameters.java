@@ -28,7 +28,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -49,7 +49,7 @@ public class MassDetectionSubParameters extends SimpleParameterSet {
     super(new Parameter[]{massDetector});
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

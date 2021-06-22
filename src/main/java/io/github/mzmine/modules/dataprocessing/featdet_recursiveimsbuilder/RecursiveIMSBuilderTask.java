@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -64,8 +65,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 public class RecursiveIMSBuilderTask extends AbstractTask {
@@ -83,14 +84,14 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
   private final boolean enableRecursive = true;
   private final int numConsecutiveFrames;
   private final int numDataPoints;
-  private final double binWidth;
+  private final int binWidth;
   private AtomicInteger stepProcessed = new AtomicInteger(0);
   private int stepTotal = 0;
   private int currentStep = 0;
 
   public RecursiveIMSBuilderTask(@Nullable MemoryMapStorage storage,
-      @Nonnull final IMSRawDataFile file,
-      @Nonnull final ParameterSet parameters, MZmineProject project) {
+      @NotNull final IMSRawDataFile file,
+      @NotNull final ParameterSet parameters, MZmineProject project) {
     super(storage);
 
     this.file = file;
@@ -110,20 +111,20 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TIMS_BIN_WIDTH;
+              : MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
       case DRIFT_TUBE ->
           advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_DTIMS_BIN_WIDTH;
+              : MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
       case TRAVELING_WAVE ->
           advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : RecursiveIMSBuilderAdvancedParameters.DEFAULT_TWIMS_BIN_WIDTH;
-      default -> 0.0008;
+              : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
+      default -> 1;
     };
 
     this.project = project;
@@ -427,7 +428,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
     return sortedMobilograms;
   }
 
-  @Nonnull
+  @NotNull
   private Set<TempMobilogram> calcMobilograms(Collection<RetentionTimeMobilityDataPoint> dps,
       final MZTolerance tolerance) {
     final RangeMap<Double, TempMobilogram> map = TreeRangeMap.create();

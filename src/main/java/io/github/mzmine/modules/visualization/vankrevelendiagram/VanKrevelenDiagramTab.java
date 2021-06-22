@@ -31,7 +31,7 @@ import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class VanKrevelenDiagramTab extends MZmineTab {
   private FeatureList featureList;
@@ -61,20 +61,20 @@ public class VanKrevelenDiagramTab extends MZmineTab {
     setContent(root);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return featureList.getRawDataFiles();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return
         new ArrayList<>(Collections.singletonList((ModularFeatureList)featureList));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

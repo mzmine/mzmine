@@ -47,7 +47,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -290,7 +290,7 @@ public class ADAPChromatogram {
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull
+  public @NotNull
   FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
@@ -299,17 +299,17 @@ public class ADAPChromatogram {
     return rt;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
@@ -318,12 +318,12 @@ public class ADAPChromatogram {
     return representativeScan;
   }
 
-  public @Nonnull
+  public @NotNull
   Scan[] getScanNumbers() {
     return dataPointsMap.keySet().toArray(Scan[]::new);
   }
 
-  public @Nonnull
+  public @NotNull
   RawDataFile getDataFile() {
     return dataFile;
   }
@@ -332,7 +332,7 @@ public class ADAPChromatogram {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 

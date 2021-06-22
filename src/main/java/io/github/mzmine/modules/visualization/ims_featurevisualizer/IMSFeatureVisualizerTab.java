@@ -24,8 +24,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.Collection;
 import java.util.Collections;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSFeatureVisualizerTab extends MZmineTab {
 
@@ -36,19 +36,19 @@ public class IMSFeatureVisualizerTab extends MZmineTab {
     setContent(pane);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

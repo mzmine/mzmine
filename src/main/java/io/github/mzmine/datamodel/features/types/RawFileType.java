@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import javafx.beans.property.ObjectProperty;
@@ -27,7 +27,7 @@ import javafx.beans.property.SimpleObjectProperty;
 public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implements NullColumnType {
 
   @Override
-  @Nonnull
+  @NotNull
   public String getHeaderString() {
     return "Raw";
   }

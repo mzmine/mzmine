@@ -26,7 +26,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecti
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
@@ -252,12 +252,12 @@ public class ExactMassDetector implements MassDetector {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Exact mass";
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ExactMassDetectorParameters.class;
   }
 

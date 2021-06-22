@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.controlsfx.dialog.FontSelectorDialog;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
@@ -33,7 +33,7 @@ public class FontSpecsComponent extends FlowPane {
   private final Button fontSelectButton;
   private final ColorPicker colorPicker;
 
-  private @Nonnull Font currentFont = Font.font("Arial");
+  private @NotNull Font currentFont = Font.font("Arial");
 
   public FontSpecsComponent() {
 
@@ -52,7 +52,7 @@ public class FontSpecsComponent extends FlowPane {
     getChildren().addAll(fontLabel, fontSelectButton, colorPicker);
   }
 
-  public void setFont(@Nonnull Font font) {
+  public void setFont(@NotNull Font font) {
     assert font != null;
     this.currentFont = font;
     updateLabel();
@@ -63,7 +63,7 @@ public class FontSpecsComponent extends FlowPane {
   }
 
 
-  public void setColor(@Nonnull Color color) {
+  public void setColor(@NotNull Color color) {
     colorPicker.setValue(color);
     updateLabel();
   }

@@ -57,7 +57,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Larger view of feature shape, mobilogram and ims trace. includes m/z distribution chart.
@@ -159,7 +159,7 @@ public class IMSFeatureVisualizerPane extends SplitPane {
       return;
     }
     if(binWidth == 0d) {
-      binWidth = Double.MIN_VALUE;
+      binWidth = 0.00001;
     }
 
     final MobilogramDataAccess access = EfficientDataAccess

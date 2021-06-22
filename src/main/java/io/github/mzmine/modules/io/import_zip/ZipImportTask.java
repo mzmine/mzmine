@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.apache.commons.io.FilenameUtils;
 
 public class ZipImportTask extends AbstractTask {
@@ -47,14 +47,14 @@ public class ZipImportTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final File fileToOpen;
-  private final @Nonnull MZmineProject project;
+  private final @NotNull MZmineProject project;
   private final RawDataFileType fileType;
 
   private File tmpDir, tmpFile;
   private StreamCopy copy = null;
   private Task decompressedOpeningTask = null;
 
-  public ZipImportTask(@Nonnull MZmineProject project, File fileToOpen, RawDataFileType fileType) {
+  public ZipImportTask(@NotNull MZmineProject project, File fileToOpen, RawDataFileType fileType) {
     super(null); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;

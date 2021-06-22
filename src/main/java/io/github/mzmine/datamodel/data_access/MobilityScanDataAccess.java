@@ -18,8 +18,8 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MobilityScanDataAccess implements MobilityScan {
 
@@ -87,7 +87,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     return currentMobilityScan;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return dataFile;
@@ -128,7 +128,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException("Cannot set a mass list for a MobilityScanDataAccess.");
   }
 
@@ -313,13 +313,13 @@ public class MobilityScanDataAccess implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
@@ -330,7 +330,7 @@ public class MobilityScanDataAccess implements MobilityScan {
         "The intended use of this class is to loop over all scans and data points");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(

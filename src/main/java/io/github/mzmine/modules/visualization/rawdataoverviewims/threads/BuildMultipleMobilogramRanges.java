@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildMultipleMobilogramRanges extends AbstractTask {
 
@@ -51,9 +51,9 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
   private final BinningMobilogramDataAccess binning;
   private double finishedPercentage;
 
-  public BuildMultipleMobilogramRanges(@Nonnull List<Range<Double>> mzRanges,
-      @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
-      @Nonnull IMSRawDataOverviewPane pane, @Nonnull BinningMobilogramDataAccess binning) {
+  public BuildMultipleMobilogramRanges(@NotNull List<Range<Double>> mzRanges,
+      @NotNull Set<Frame> frames, @NotNull IMSRawDataFile file,
+      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning) {
     super(null); // no new data stored -> null
     this.binning = binning;
     finishedPercentage = 0d;

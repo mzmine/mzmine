@@ -36,7 +36,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class CsvImportTask extends AbstractTask {
 
@@ -150,6 +150,7 @@ public class CsvImportTask extends AbstractTask {
       if (isCanceled())
         return;
 
+      fileReader.close();
       project.addFeatureList(newFeatureList);
     } catch (Exception e) {
       e.printStackTrace();

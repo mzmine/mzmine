@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -146,12 +146,12 @@ public class PaintScalePaletteParameter
     component.setValue(newValue);
   }
 
-  protected @Nonnull
+  protected @NotNull
   List<SimpleColorPalette> getPalettes() {
     return palettes;
   }
 
-  protected void setPalettes(@Nonnull List<SimpleColorPalette> palettes) {
+  protected void setPalettes(@NotNull List<SimpleColorPalette> palettes) {
 
     int index = 0;
     for (SimpleColorPalette def : SimpleColorPalette.DEFAULT.values()) {

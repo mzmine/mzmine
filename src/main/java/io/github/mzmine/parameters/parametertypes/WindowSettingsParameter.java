@@ -20,8 +20,8 @@ package io.github.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -147,7 +147,7 @@ public class WindowSettingsParameter implements Parameter<Object> {
   /**
    * Set window size and position according to the values in this instance
    */
-  public void applySettingsToWindow(@Nonnull final Stage stage) {
+  public void applySettingsToWindow(@NotNull final Stage stage) {
 
     logger.finest("Setting window " + stage.getTitle() + " position " + posX + ":" + posY
         + " and size " + width + "x" + height);

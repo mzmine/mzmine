@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class Fx3DVisualizerTab extends MZmineTab {
   private final Fx3DBorderPaneController controller;
@@ -64,19 +64,19 @@ public class Fx3DVisualizerTab extends MZmineTab {
     setContent(borderPane);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return (List<RawDataFile>)(List<?>)(controller.getVisualizedFiles());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

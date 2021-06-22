@@ -35,7 +35,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class AlignScansTask extends AbstractTask {
 

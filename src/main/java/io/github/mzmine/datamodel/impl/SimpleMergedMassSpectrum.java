@@ -33,8 +33,8 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a spectrum based on multiple individual mass spectra. Compatible with the {@link Scan}
@@ -69,10 +69,10 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
    * @param mergingType     The merging type this spectrum was created with.
    * @param centerFunction  The center function this spectrum was created with.
    */
-  public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, int msLevel,
-      @Nonnull List<? extends MassSpectrum> sourceSpectra,
-      @Nonnull MergingType mergingType, @Nonnull CenterFunction centerFunction) {
+  public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, int msLevel,
+      @NotNull List<? extends MassSpectrum> sourceSpectra,
+      @NotNull MergingType mergingType, @NotNull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues);
 
     assert !sourceSpectra.isEmpty();
@@ -122,13 +122,13 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     return centerFunction;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return rawDataFile;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getScanDefinition() {
     return scanDefinition;
@@ -144,7 +144,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     return retentionTime;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getScanningMZRange() {
     return scanningMzRange;
@@ -155,7 +155,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     return 0;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public PolarityType getPolarity() {
     return polarity;
@@ -173,7 +173,7 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   }
 
   @Override
-  public synchronized void addMassList(final @Nonnull MassList massList) {
+  public synchronized void addMassList(final @NotNull MassList massList) {
     // we are not going into any details if this.massList equals massList
     // do not call listeners if the same object is passed multiple times
     if (this.massList == massList) {

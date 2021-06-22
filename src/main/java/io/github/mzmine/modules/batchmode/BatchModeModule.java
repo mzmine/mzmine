@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -47,19 +47,19 @@ public class BatchModeModule implements MZmineProcessingModule {
       "This module allows execution of multiple processing tasks in a batch.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     BatchTask newTask = new BatchTask(project, parameters);
 
     /*
@@ -74,11 +74,11 @@ public class BatchModeModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.PROJECT;
   }
 
-  public static ExitCode runBatch(@Nonnull MZmineProject project, File batchFile) {
+  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile) {
 
     logger.info("Running batch from file " + batchFile);
 
@@ -102,7 +102,7 @@ public class BatchModeModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return BatchModeParameters.class;
   }
 

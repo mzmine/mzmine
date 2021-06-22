@@ -32,8 +32,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowToCCSMzHeatmapProvider implements
     PieXYZDataProvider<IMSRawDataFile> {
@@ -55,7 +55,7 @@ public class RowToCCSMzHeatmapProvider implements
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
 
-  public RowToCCSMzHeatmapProvider(@Nonnull final Collection<ModularFeatureListRow> f) {
+  public RowToCCSMzHeatmapProvider(@NotNull final Collection<ModularFeatureListRow> f) {
     // copy the list, so we don't run into problems in case the flist is modified
     rows = new ArrayList<>(f);
     seriesKey = (f.isEmpty()) ? "No features found" : rows.get(0).getFeatureList().getName();
@@ -70,13 +70,13 @@ public class RowToCCSMzHeatmapProvider implements
         .filter(file -> file instanceof IMSRawDataFile).distinct().toArray(IMSRawDataFile[]::new);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -95,7 +95,7 @@ public class RowToCCSMzHeatmapProvider implements
     return sb.toString();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -185,7 +185,7 @@ public class RowToCCSMzHeatmapProvider implements
     return 0d;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getSliceColor(int series) {
     return files[series].getColorAWT();
