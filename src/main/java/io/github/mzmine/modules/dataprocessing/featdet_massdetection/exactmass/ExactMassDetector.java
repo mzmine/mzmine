@@ -57,7 +57,7 @@ public class ExactMassDetector implements MassDetector {
       this.isotopeMzDiffs = MassDetectionUtils.getIsotopesMzDiffs(
           isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue(),
           isotopesParameters.getParameter(DetectIsotopesParameter.isotopeAbundanceLowBound).getValue(),
-          isotopesParameters.getParameter(DetectIsotopesParameter.charge).getValue());
+          isotopesParameters.getParameter(DetectIsotopesParameter.maxCharge).getValue());
     }
 
     // lists of primitive doubles

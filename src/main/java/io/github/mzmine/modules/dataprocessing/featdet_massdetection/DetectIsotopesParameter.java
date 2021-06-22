@@ -28,25 +28,25 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 
 public class DetectIsotopesParameter extends SimpleParameterSet {
 
-  public static final ElementsParameter elements = new ElementsParameter("Elements",
+  public static final ElementsParameter elements = new ElementsParameter("Chemical elements",
       "Chemical elements which isotopes will be considered");
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
 
   public static final DoubleParameter isotopeAbundanceLowBound
-      = new DoubleParameter("Isotope abundance strict lower bound", "Isotope "
-      + "abundance strict lower bound given as the value from [0, 1] interval. For example, a value "
-      + "of 0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
+      = new DoubleParameter("Isotope abundance strict lower bound", "Isotope abundance "
+      + "strict lower bound given as the value from [0, 1] interval. For example, a default value of "
+      + "0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
       MZmineCore.getConfiguration().getMZFormat(), 0d);
 
-  public static final IntegerParameter charge = new IntegerParameter("Charge (z in m/z)",
-      "Charge parameter standing for 'z' in the 'm/z' - isotope distribution masses will be "
-          + "divided with this value. Default value is 1, but insert an integer greater than 1 "
-          + "if there was another charge applied to the molecules during the MS experiment.",
+  public static final IntegerParameter maxCharge = new IntegerParameter("Maximum charge of isotope m/z",
+      "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
+      + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
+      + "but insert an integer greater than 1 if there were another charges applied to molecules during the MS experiment.",
       1, true, 1, null);
 
   public DetectIsotopesParameter() {
-    super(new UserParameter[] {elements, isotopeAbundanceLowBound, isotopeMzTolerance, charge});
+    super(new UserParameter[] {elements, isotopeAbundanceLowBound, isotopeMzTolerance, maxCharge});
   }
 
 }

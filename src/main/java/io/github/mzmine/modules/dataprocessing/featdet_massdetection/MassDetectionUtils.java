@@ -33,7 +33,7 @@ public class MassDetectionUtils {
   // Memoization variables for this::getIsotopesMassDiffs
   private static List<Element> memElements;
   private static double memAbundanceLowBound;
-  private static int memCharge;
+  private static int memMaxCharge;
   private static List<Double> memRes;
   private static Isotopes isotopes;
   static {
@@ -45,22 +45,23 @@ public class MassDetectionUtils {
   }
 
   /**
-   * Returns pairwise m/z differences of isotopes corresponding to given chemical elements.
-   * Only isotopes with natural abundance higher than abundanceLowBound are considered.
+   * Returns pairwise m/z differences of isotopes within given chemical elements. Only
+   * isotopes with natural abundance higher than abundanceLowBound are considered. Final differences
+   * are obtained by dividing isotope mass differences with 1, 2, ..., maxCharge values.
    *
    * @param elements List of chemical elements
    * @param abundanceLowBound Natural abundance strict lower bound
-   * @param charge Charge standing for 'z' in the 'm/z' (final masses are divided with this value)
+   * @param maxCharge Maximum possible charge
    * @return List of pairwise mass differences
    */
   public static List<Double> getIsotopesMzDiffs(List<Element> elements, double abundanceLowBound,
-      int charge) {
+      int maxCharge) {
 
     // Test whether input parameters equal the ones in a previous function call. If yes then return
     // them and do not compute it one more time
     if (Objects.equals(elements, memElements)
         && Objects.equals(abundanceLowBound, memAbundanceLowBound)
-        && Objects.equals(charge, memCharge)) {
+        && Objects.equals(maxCharge, memMaxCharge)) {
       return memRes;
     }
 
@@ -74,11 +75,13 @@ public class MassDetectionUtils {
           .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > abundanceLowBound)
           .toList();
 
-      // Compute pairwise mass differences and divide them with charge
+      // Compute pairwise mass differences and divide them with maxCharge
       for (int i = 0; i < abundantIsotopes.size(); i++) {
         for (int j = i + 1; j < abundantIsotopes.size(); j++) {
-          isotopeMzDiffs.add((abundantIsotopes.get(j).getExactMass()
-              - abundantIsotopes.get(i).getExactMass()) / charge);
+          for (int charge = 1; charge <= maxCharge; charge++) {
+            isotopeMzDiffs.add((abundantIsotopes.get(j).getExactMass()
+                - abundantIsotopes.get(i).getExactMass()) / charge);
+          }
         }
       }
     }
@@ -86,7 +89,7 @@ public class MassDetectionUtils {
     // Store the inputs and the computed output
     memElements = elements;
     memAbundanceLowBound = abundanceLowBound;
-    memCharge = charge;
+    memMaxCharge = maxCharge;
     memRes = isotopeMzDiffs;
 
     return isotopeMzDiffs;
