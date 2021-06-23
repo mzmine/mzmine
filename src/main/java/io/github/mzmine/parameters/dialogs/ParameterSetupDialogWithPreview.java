@@ -60,10 +60,14 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
     previewWrapperPane = new BorderPane();
     cbShowPreview = new CheckBox();
 
-    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 2, 2, 1);
+    Separator separator = new Separator();
+    separator.setMinHeight(15d);
+    paramsPane.add(separator, 0, getNumberOfParameters() + 2, 2, 1);
     paramsPane.add(new Label("Show preview"), 0, getNumberOfParameters() + 3);
     paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 3);
+    paramsPane.setHgap(7d);
 
+    cbShowPreview.setDisable(true);
     cbShowPreview.selectedProperty()
         .addListener(((observable, oldValue, newValue) -> showPreview(newValue)));
 
@@ -102,5 +106,6 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   public void setOnPreviewShown(Runnable onPreviewShown) {
     this.onPreviewShown = onPreviewShown;
+    cbShowPreview.setDisable(false);
   }
 }

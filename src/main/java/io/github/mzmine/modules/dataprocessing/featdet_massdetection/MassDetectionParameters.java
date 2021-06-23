@@ -62,8 +62,6 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new ModuleComboParameter<MassDetector>("Mass detector",
           "Algorithm to use for mass detection and its parameters.", massDetectors);
 
-
-
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",
           "If selected, centroided spectra will be written to this file netCDF file. "

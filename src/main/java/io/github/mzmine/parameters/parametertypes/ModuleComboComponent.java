@@ -26,9 +26,9 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 
-public class ModuleComboComponent extends BorderPane {
+public class ModuleComboComponent extends FlowPane {
 
   private ComboBox<MZmineProcessingStep<?>> comboBox;
   private Button setButton;
@@ -53,7 +53,6 @@ public class ModuleComboComponent extends BorderPane {
       int numOfParameters = parameterSet.getParameters().length;
       setButton.setDisable(numOfParameters == 0);
     });
-    setCenter(comboBox);
 
     setButton = new Button("...");
     setButton.setOnAction(e -> {
@@ -68,8 +67,9 @@ public class ModuleComboComponent extends BorderPane {
     });
     boolean buttonEnabled = (modules[0].getParameterSet() != null);
     setButton.setDisable(!buttonEnabled);
-    setRight(setButton);
 
+    super.setHgap(7d);
+    super.getChildren().addAll(comboBox, setButton);
   }
 
   public int getSelectedIndex() {

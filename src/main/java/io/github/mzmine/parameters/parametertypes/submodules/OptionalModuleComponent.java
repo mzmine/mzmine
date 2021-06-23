@@ -39,12 +39,14 @@ public class OptionalModuleComponent extends FlowPane {
       setButton.setDisable(!checkBoxSelected);
     });
 
-    setButton = new Button("Setup..");
+    setButton = new Button("Setup");
     setButton.setOnAction(e -> {
       embeddedParameters.showSetupDialog(false);
     });
     setButton.setDisable(true);
-    getChildren().addAll(checkBox, setButton);
+
+    super.setHgap(7d);
+    super.getChildren().addAll(checkBox, setButton);
 
   }
 
