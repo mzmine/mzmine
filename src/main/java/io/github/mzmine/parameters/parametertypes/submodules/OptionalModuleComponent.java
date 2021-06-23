@@ -41,7 +41,7 @@ public class OptionalModuleComponent extends FlowPane {
 
     setButton = new Button("Setup");
     setButton.setOnAction(e -> {
-      embeddedParameters.showSetupDialog(false);
+      embeddedParameters.showSetupDialog(true);
     });
     setButton.setDisable(true);
 
