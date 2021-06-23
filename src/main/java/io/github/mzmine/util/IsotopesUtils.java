@@ -16,19 +16,23 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
+package io.github.mzmine.util;
 
 import com.google.common.primitives.Doubles;
+import gnu.trove.list.array.TDoubleArrayList;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class MassDetectionUtils {
+public class IsotopesUtils {
 
   // Memoization variables for this::getIsotopesMassDiffs
   private static List<Element> memElements;
@@ -87,6 +91,56 @@ public class MassDetectionUtils {
     memRes = isotopeMzDiffs;
 
     return isotopeMzDiffs;
+  }
+
+  /**
+   * Returns true if given m/z value newMz can be considered as an m/z value of some isotope corresponding
+   * to given m/z values in knownMzs. Chemical elements which isotopes are considered and maximum
+   * possible charge are passed in isotopesParameters argument (see {@link #getIsotopesMzDiffs(List, int)}).
+   *
+   * @param newMz M/z value of interest
+   * @param knownMzs List of known m/z values
+   * @param isotopesParameters DetectIsotopesParameter parameters
+   * @return True if new m/z corresponds to an isotope of known m/z's, false otherwise.
+   */
+  public static boolean isIsotopeMz(double newMz, TDoubleArrayList knownMzs,
+      @NotNull DetectIsotopesParameter isotopesParameters) {
+
+    // List of possible isotope m/z differences
+    List<Double> isotopeMzDiffs = getIsotopesMzDiffs(
+        isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue(),
+        isotopesParameters.getParameter(DetectIsotopesParameter.maxCharge).getValue());
+
+    // Isotope m/z tolerance
+    MZTolerance mzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance)
+        .getValue();
+
+    // Iterate over possible isotope m/z differences
+    for (double isotopeMzDiff : isotopeMzDiffs) {
+
+      // Go left over m/z's of previously detected peaks and check whether current peak is an
+      // isotope of one of them
+      // TODO: contains in a new set of added mzs instead of for loop over list (if slow),
+      //  O(n^2 / 2) -> O(n) for O(n) memory
+      for (int mzIndex = knownMzs.size() - 1; mzIndex >= 0; mzIndex--) {
+
+        // Compute m/z difference between current peak and previously detected one
+        double mzDiff = newMz - knownMzs.get(mzIndex);
+
+        // Do not go left further if m/z difference is higher than isotope difference
+        if (Doubles.compare(mzDiff, isotopeMzDiff) > 0) {
+          break;
+        }
+
+        // If m/z difference equals isotope difference up to tolerance, then m/z of the peak
+        // corresponds to the mass of the isotope
+        if (mzTolerance.getToleranceRange(mzDiff).contains(isotopeMzDiff)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
 }

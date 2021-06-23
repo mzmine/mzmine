@@ -20,6 +20,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid;
 
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
+import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +37,12 @@ public class CentroidMassDetector implements MassDetector {
     final double noiseLevel =
         parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
 
+    boolean detectIsotopes = parameters.getParameter(CentroidMassDetectorParameters.detectIsotopes).getValue();
+
+    DetectIsotopesParameter isotopesParameters = detectIsotopes
+        ? parameters.getParameter(CentroidMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+        : null;
+
     // use number of centroid signals as base array list capacity
     final int points = spectrum.getNumberOfDataPoints();
     // lists of primitive doubles
@@ -43,9 +51,11 @@ public class CentroidMassDetector implements MassDetector {
 
     // Find possible mzPeaks
     for (int i = 0; i < points; i++) {
-      // Is intensity above the noise level?
+      // Is intensity above the noise level or m/z value corresponds to isotope mass?
       double intensity = spectrum.getIntensityValue(i);
-      if (intensity >= noiseLevel) {
+      if (intensity >= noiseLevel
+          || (detectIsotopes && IsotopesUtils
+          .isIsotopeMz(spectrum.getMzValue(i), mzs, isotopesParameters))) {
         // Yes, then mark this index as mzPeak
         mzs.add(spectrum.getMzValue(i));
         intensities.add(intensity);

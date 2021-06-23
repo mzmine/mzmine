@@ -18,7 +18,6 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionUtils;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;

@@ -18,11 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
-import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionUtils;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.IsotopesUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -31,11 +29,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.parameters.ParameterSet;
 
 public class ExactMassDetector implements MassDetector {
-
-  // List of possible isotope m/z differences
-  private List<Double> isotopeMzDiffs = new ArrayList<>();
-  // Zero m/z tolerance range
-  private MZTolerance mzTolerance;
 
   @Override
   public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
@@ -46,17 +39,9 @@ public class ExactMassDetector implements MassDetector {
     double noiseLevel = parameters.getParameter(ExactMassDetectorParameters.noiseLevel).getValue();
     boolean detectIsotopes = parameters.getParameter(ExactMassDetectorParameters.detectIsotopes).getValue();
 
-    if (detectIsotopes) {
-      ParameterSet isotopesParameters = parameters.getParameter(ExactMassDetectorParameters.detectIsotopes)
-          .getEmbeddedParameters();
-
-      this.mzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance)
-          .getValue();
-
-      this.isotopeMzDiffs = MassDetectionUtils.getIsotopesMzDiffs(
-          isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue(),
-          isotopesParameters.getParameter(DetectIsotopesParameter.maxCharge).getValue());
-    }
+    DetectIsotopesParameter isotopesParameters = detectIsotopes
+        ? parameters.getParameter(ExactMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+        : null;
 
     // lists of primitive doubles
     TDoubleArrayList mzs = new TDoubleArrayList(100);
@@ -94,45 +79,17 @@ public class ExactMassDetector implements MassDetector {
 
       // Check for the end of the peak
       if ((!ascending) && (nextIsBigger || nextIsZero)) {
-        // Add the m/z peak if it is above the noise level
-        if (spectrum.getIntensityValue(localMaximumIndex) > noiseLevel) {
-          // Calculate the exact mass
-          double exactMz = calculateExactMass(spectrum, localMaximumIndex, rangeDataPoints);
 
-          // add data point to lists
+        // Calculate the exact mass
+        double exactMz = calculateExactMass(spectrum, localMaximumIndex, rangeDataPoints);
+
+        // Add the m/z peak if it is above the noise level or m/z value corresponds to isotope mass
+        if (spectrum.getIntensityValue(localMaximumIndex) > noiseLevel
+            || (detectIsotopes && IsotopesUtils.isIsotopeMz(exactMz, mzs, isotopesParameters))) {
+
+          // Add data point to lists
           mzs.add(exactMz);
           intensities.add(spectrum.getIntensityValue(localMaximumIndex));
-        } else if (detectIsotopes) {
-
-          // Calculate the exact mass
-          double exactMz = calculateExactMass(spectrum, localMaximumIndex, rangeDataPoints);
-
-          // Iterate over possible isotope m/z differences
-          isotopeDiffsLoop: for (double isotopeMzDiff : isotopeMzDiffs) {
-
-            // Go left over m/z's of previously detected peaks and check whether current peak is an
-            // isotope of one of them
-            // TODO: contains in a new set of added mzs instead of for loop over list (if slow),
-            //  O(n^2 / 2) -> O(n) for O(n) memory
-            for (int mzIndex = mzs.size() - 1; mzIndex >= 0; mzIndex--) {
-
-              // Compute mz difference between current peak and previously detected one
-              double mzDiff = exactMz - mzs.get(mzIndex);
-
-              // Do not go left further if mz difference is higher that isotope difference
-              if (Doubles.compare(mzDiff, isotopeMzDiff) > 0) {
-                break;
-              }
-
-              // If mz difference equals to isotope difference up to tolerance, then add peak to the
-              // output lists
-              if (mzTolerance.getToleranceRange(mzDiff).contains(isotopeMzDiff)) {
-                mzs.add(exactMz);
-                intensities.add(spectrum.getIntensityValue(localMaximumIndex));
-                break isotopeDiffsLoop;
-              }
-            }
-          }
         }
 
         // Reset and start with new peak
