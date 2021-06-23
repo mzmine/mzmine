@@ -200,8 +200,7 @@ public class RawDataFileUtils {
       commonPrefix = textField.getText();
     }
 
-    return commonPrefix;
-
+    return null;
   }
 
   public static @NotNull Range<Float> findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
