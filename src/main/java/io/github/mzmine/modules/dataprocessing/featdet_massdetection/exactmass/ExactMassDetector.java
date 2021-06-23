@@ -18,12 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
-import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionUtils;
-import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +35,7 @@ public class ExactMassDetector implements MassDetector {
   // List of possible isotope m/z differences
   private List<Double> isotopeMzDiffs = new ArrayList<>();
   // Zero m/z tolerance range
-  private Range<Double> zeroMzTolerance = RangeUtils.DOUBLE_NAN_RANGE;
+  private MZTolerance mzTolerance;
 
   @Override
   public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
@@ -51,8 +50,8 @@ public class ExactMassDetector implements MassDetector {
       ParameterSet isotopesParameters = parameters.getParameter(ExactMassDetectorParameters.detectIsotopes)
           .getEmbeddedParameters();
 
-      this.zeroMzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance)
-          .getValue().getToleranceRange(0d);
+      this.mzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance)
+          .getValue();
 
       this.isotopeMzDiffs = MassDetectionUtils.getIsotopesMzDiffs(
           isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue(),
@@ -128,7 +127,7 @@ public class ExactMassDetector implements MassDetector {
 
               // If mz difference equals to isotope difference up to tolerance, then add peak to the
               // output lists
-              if (zeroMzTolerance.contains(mzDiff - isotopeMzDiff)) {
+              if (mzTolerance.getToleranceRange(mzDiff).contains(isotopeMzDiff)) {
                 mzs.add(exactMz);
                 intensities.add(spectrum.getIntensityValue(localMaximumIndex));
                 break isotopeDiffsLoop;
