@@ -33,12 +33,6 @@ public class DetectIsotopesParameter extends SimpleParameterSet {
 
   public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter isotopeAbundanceLowBound
-      = new DoubleParameter("Isotope abundance strict lower bound", "Isotope abundance "
-      + "strict lower bound given as the value from [0, 1] interval. For example, a default value of "
-      + "0 means that only isotopes with natural abundance strictly higher than 0 will be considered.",
-      MZmineCore.getConfiguration().getMZFormat(), 0d);
-
   public static final IntegerParameter maxCharge = new IntegerParameter("Maximum charge of isotope m/z",
       "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
       + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
@@ -46,7 +40,7 @@ public class DetectIsotopesParameter extends SimpleParameterSet {
       1, true, 1, null);
 
   public DetectIsotopesParameter() {
-    super(new UserParameter[] {elements, isotopeAbundanceLowBound, isotopeMzTolerance, maxCharge});
+    super(new UserParameter[] {elements, isotopeMzTolerance, maxCharge});
   }
 
 }
