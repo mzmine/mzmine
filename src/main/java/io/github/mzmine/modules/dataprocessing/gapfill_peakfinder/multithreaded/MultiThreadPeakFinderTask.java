@@ -38,7 +38,6 @@ import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
@@ -51,7 +50,6 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final MobilityTolerance mobilityTolerance;
   private ModularFeatureList peakList, processedPeakList;
   private double intTolerance;
   private MZTolerance mzTolerance;
@@ -82,8 +80,6 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     intTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.intTolerance).getValue();
     mzTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.RTTolerance).getValue();
-    mobilityTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.mobilityTolerance)
-        .getValue();
 
     this.start = start;
     this.endexcl = endexcl;

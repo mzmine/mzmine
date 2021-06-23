@@ -27,7 +27,6 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
@@ -44,14 +43,12 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final MobilityToleranceParameter mobilityTolerance = new MobilityToleranceParameter();
-
   public static final BooleanParameter autoRemove = new BooleanParameter(
       "Remove original feature list", "If checked, the original feature list will be removed");
 
   public MultiThreadPeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance,
-        mobilityTolerance, autoRemove});
+        autoRemove});
   }
 
   @Override
