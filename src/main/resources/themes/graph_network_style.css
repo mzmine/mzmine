@@ -1,0 +1,7 @@
+edge {text-visibility-mode: under-zoom; text-visibility: 0.3; fill-color: rgb(100,160,100); stroke-color: rgb(50,100,50); stroke-width: 1px; text-alignment: along;}  
+edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 2.5px;}
+node {text-visibility-mode: under-zoom; text-visibility: 0.3; text-alignment: at-right; text-offset: 2; text-size: 12; fill-color: black; 
+size: 11px; stroke-mode: plain; stroke-color: rgb(50,100,50); stroke-width: 1px;}
+node.important{fill-color: red;} node.big{size: 15px;} 
+node.MOL{text-visibility-mode: under-zoom; text-visibility: 0.99; fill-color: cyan; size: 15px;}  
+node.NEUTRAL{fill-color: violet;}

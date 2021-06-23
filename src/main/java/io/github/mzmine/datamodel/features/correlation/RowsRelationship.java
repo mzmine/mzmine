@@ -92,6 +92,10 @@ public interface RowsRelationship {
      */
     MS1_FEATURE_CORR,
     /**
+     * Member of the same ion identity network
+     */
+    ION_IDENTITY_NET,
+    /**
      * MS2 spectral similarity, see {@link MS2SimilarityTask}
      */
     MS2_COSINE_SIM,
@@ -108,6 +112,7 @@ public interface RowsRelationship {
     public String toString() {
       return switch (this) {
         case MS1_FEATURE_CORR -> "MS1 feature correlation";
+        case ION_IDENTITY_NET -> "Ion identity network";
         case MS2_COSINE_SIM -> "MS2 cosine similarity";
         case MS2_NEUTRAL_LOSS_SIM -> "MS2 neutral loss cosine similarity";
         case MS2_GNPS_COSINE_SIM -> "MS2 modified cosine similarity (GNPS)";
