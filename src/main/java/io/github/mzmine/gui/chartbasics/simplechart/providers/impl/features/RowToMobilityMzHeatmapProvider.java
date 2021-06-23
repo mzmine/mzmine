@@ -128,7 +128,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
       final ModularFeatureListRow row = rows.get(i);
       for (final IMSRawDataFile file : files) {
         final ModularFeature feature = row.getFeature(file);
-        if (feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+        if (feature != null && feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
         minValue = Math.min(summedValues[i], minValue);
@@ -177,7 +177,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   public double getZValue(int series, int item) {
     final ModularFeatureListRow row = rows.get(item);
     final ModularFeature f = row.getFeature(files[series]);
-    if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+    if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
       return f.getHeight();
     }
     return 0d;
