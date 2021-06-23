@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -79,7 +78,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> implements ListChangeListener<FeatureListRow> {
+public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> implements
+    ListChangeListener<FeatureListRow> {
 
   private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
@@ -124,8 +124,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // fields
 
     // enable copy on selection
-    final KeyCodeCombination keyCodeCopy =
-        new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
+        KeyCombination.CONTROL_ANY);
 
     this.setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
@@ -150,8 +150,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
   @SuppressWarnings("unchecked")
   private void editFocusedCell() {
-    TreeTablePosition<ModularFeatureListRow, ?> focusedCell =
-        this.focusModelProperty().get().focusedCellProperty().get();
+    TreeTablePosition<ModularFeatureListRow, ?> focusedCell = this.focusModelProperty().get()
+        .focusedCellProperty().get();
     this.edit(focusedCell.getRow(), focusedCell.getTableColumn());
   }
 
@@ -175,8 +175,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       }
       if (c.wasRemoved()) {
         List<TreeItem<io.github.mzmine.datamodel.features.ModularFeatureListRow>> removedItems = TreeViewUtils
-            .getTreeItemsByValue((Collection<ModularFeatureListRow>) c.getRemoved(),
-                rowItems);
+            .getTreeItemsByValue((Collection<ModularFeatureListRow>) c.getRemoved(), rowItems);
         if (removedItems.contains(getSelectionModel().getSelectedItem())) {
           getSelectionModel().clearSelection();
         }
@@ -199,8 +198,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
     ModularFeatureList featureList = (ModularFeatureList) flist;
     // add row types
-    featureList.getRowTypes().values().stream()
-        .filter(t -> !(t instanceof FeaturesType)).forEach(this::addColumn);
+    featureList.getRowTypes().values().stream().filter(t -> !(t instanceof FeaturesType))
+        .forEach(this::addColumn);
     // add features
     if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
       addColumn(featureList.getRowTypes().get(FeaturesType.class));
@@ -247,8 +246,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   private void setupExpandableColumn(DataType<?> dataType,
-      TreeTableColumn<ModularFeatureListRow, ?> col,
-      ColumnType colType, RawDataFile dataFile) {
+      TreeTableColumn<ModularFeatureListRow, ?> col, ColumnType colType, RawDataFile dataFile) {
     // Initialize buddy(expanded/hidden for hidden/expanded respectively) column and it's data type
     TreeTableColumn<ModularFeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
@@ -256,9 +254,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap
         .entrySet()) {
       if (Objects.equals(entry.getValue().getDataType().getClass(),
-          ((ExpandableType) dataType).getBuddyTypeClass())
-          && Objects.equals(entry.getValue().getType(), colType)
-          && Objects.equals(entry.getValue().getRaw(), dataFile)) {
+          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects
+          .equals(entry.getValue().getType(), colType) && Objects
+          .equals(entry.getValue().getRaw(), dataFile)) {
         buddyCol = entry.getKey();
         buddyDataType = entry.getValue().getDataType();
       }
@@ -407,8 +405,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     // Add feature columns for each raw file
     for (RawDataFile dataFile : getFeatureList().getRawDataFiles()) {
-      TreeTableColumn<ModularFeatureListRow, String> sampleCol =
-          new TreeTableColumn<>();
+      TreeTableColumn<ModularFeatureListRow, String> sampleCol = new TreeTableColumn<>();
 
       // Add raw data file label
       Label headerLabel = new Label(dataFile.getName());
@@ -448,7 +445,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
         TreeTablePosition<ModularFeatureListRow, ?> focusedCell = getFocusModel().getFocusedCell();
         TreeTableColumn<ModularFeatureListRow, ?> tableColumn = focusedCell.getTableColumn();
-        if(tableColumn == null) {
+        if (tableColumn == null) {
           // double click on header (happens when sorting)
           return;
         }
@@ -469,8 +466,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             }
           }
 
-          ModularFeatureListRow row = getSelectionModel().getSelectedItem()
-              .getValue();
+          ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
           Runnable runnable = ((DataType<?>) userData).getDoubleClickAction(row, files);
           if (runnable != null) {
             runnable.run();
@@ -483,6 +479,12 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   public List<ModularFeatureListRow> getSelectedRows() {
     return getSelectionModel().getSelectedItems().stream().map(TreeItem::getValue)
         .collect(Collectors.toList());
+  }
+
+  @Nullable
+  public ModularFeatureListRow getSelectedRow() {
+    return getSelectionModel().getSelectedItem() != null ? getSelectionModel().getSelectedItem()
+        .getValue() : null;
   }
 
   /**
