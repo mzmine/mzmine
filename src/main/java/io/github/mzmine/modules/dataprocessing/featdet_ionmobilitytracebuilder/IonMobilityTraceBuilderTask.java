@@ -103,7 +103,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         parameters.getParameter(IonMobilityTraceBuilderParameters.minTotalSignals).getValue();
     this.scanSelection =
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
-    this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
+    this.frames = (List<Frame>) scanSelection.getMatchingScans((frames));
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
 
     final ParameterSet advancedParam = parameters
@@ -186,7 +186,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
               "Scan #" + scan.getMobilityScanNumber()
-              + " does not have a mass list. Run mass detection ");
+                  + " does not have a mass list. Run mass detection ");
         } else {
           MassList ml = scan.getMassList();
           mzBuffer = ml.getMzValues(mzBuffer);

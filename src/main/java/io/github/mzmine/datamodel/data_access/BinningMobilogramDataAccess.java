@@ -150,6 +150,24 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
             + rawDataFile.getMobilityType().getUnit() + ")");
   }
 
+  @NotNull
+  public static int getRecommendedBinWidth(IMSRawDataFile file) {
+    final Frame frame = file.getFrame(0);
+    switch (frame.getMobilityType()) {
+      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS -> {
+        return 1;
+      }
+      case TIMS -> {
+        int index = frame.getNumberOfMobilityScans() / 2;
+        final double mob1 = frame.getMobilityScan(index).getMobility();
+        final double mob2 = frame.getMobilityScan(index + 1).getMobility();
+        final double delta = Math.abs(mob1 - mob2);
+        return (int) Math.max(1d, 0.0008 / delta);
+      }
+    }
+    return 1;
+  }
+
   @Nullable
   public static Integer getPreviousBinningWith(@NotNull final ModularFeatureList flist,
       MobilityType mt) {
