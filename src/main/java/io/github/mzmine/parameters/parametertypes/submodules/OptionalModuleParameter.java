@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import javafx.beans.property.BooleanProperty;
 import org.w3c.dom.Element;
 
 import io.github.mzmine.parameters.Parameter;
@@ -149,5 +150,12 @@ public class OptionalModuleParameter<T extends ParameterSet>
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     // delegate skipSensitiveParameters to embedded ParameterSet
     embeddedParameters.setSkipSensitiveParameters(skipSensitiveParameters);
+  }
+
+  /**
+   * Returns BooleanProperty signalizing a change of any embedded parameter.
+   */
+  public BooleanProperty embeddedParametersChangeProperty() {
+    return embeddedParameters.parametersChangeProperty();
   }
 }

@@ -19,7 +19,9 @@
 package io.github.mzmine.parameters.dialogs;
 
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -54,6 +56,15 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired,
       ParameterSet parameters, String message) {
     super(valueCheckRequired, parameters, message);
+
+    // Iterate over all OptionalModuleParameter's and add listeners to detect changes in their
+    // embedded parameters. In case of any change call this.parametersChanged()
+    for (Parameter<?> parameter : parameters.getParameters()) {
+      if (parameter instanceof OptionalModuleParameter) {
+        ((OptionalModuleParameter<?>) parameter).embeddedParametersChangeProperty()
+            .addListener((observable, oldValue, newValue) -> parametersChanged());
+      }
+    }
 
     paramPreviewSplit = new SplitPane();
     paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
