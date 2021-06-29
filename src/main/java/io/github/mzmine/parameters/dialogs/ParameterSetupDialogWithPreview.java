@@ -74,12 +74,12 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
     previewWrapperPane = new BorderPane();
     cbShowPreview = new CheckBox();
 
-    Separator separator = new Separator();
-    separator.setMinHeight(15d);
-    paramsPane.add(separator, 0, getNumberOfParameters() + 2, 2, 1);
-    paramsPane.add(new Label("Show preview"), 0, getNumberOfParameters() + 3);
-    paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 3);
+    Label previewLabel = new Label("Show preview");
+    previewLabel.setStyle("-fx-font-style: italic");
+    paramsPane.add(previewLabel, 0, getNumberOfParameters() + 2);
+    paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 2);
     paramsPane.setHgap(7d);
+    paramsPane.setVgap(1d);
 
     cbShowPreview.setDisable(true);
     cbShowPreview.selectedProperty()
