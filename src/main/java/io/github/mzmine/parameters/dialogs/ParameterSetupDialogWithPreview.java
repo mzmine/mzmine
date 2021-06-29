@@ -67,7 +67,10 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
     }
 
     paramPreviewSplit = new SplitPane();
+    paramPreviewSplit.getItems().add(mainScrollPane);
     paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
+    mainPane.setCenter(paramPreviewSplit);
+
     previewWrapperPane = new BorderPane();
     cbShowPreview = new CheckBox();
 
@@ -86,10 +89,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   protected void showPreview(boolean show) {
     if (show) {
-      mainPane.setCenter(null);
-      paramPreviewSplit.getItems().addAll(mainScrollPane, previewWrapperPane);
-      previewWrapperPane.setVisible(true);
-      mainPane.setCenter(paramPreviewSplit);
+      paramPreviewSplit.getItems().add(previewWrapperPane);
       mainPane.getScene().getWindow().sizeToScene();
       if (onPreviewShown != null) {
         try {
@@ -98,12 +98,9 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
           e.printStackTrace();
         }
       }
+      paramPreviewSplit.setDividerPosition(0, 0.5);
     } else {
-      mainPane.setCenter(null);
-      paramPreviewSplit.getItems().clear();
-      previewWrapperPane.setVisible(false);
-      mainPane.setCenter(mainScrollPane);
-      mainPane.getScene().getWindow().sizeToScene();
+      paramPreviewSplit.getItems().remove(previewWrapperPane);
     }
   }
 
