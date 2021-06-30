@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -27,7 +29,9 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
@@ -415,6 +419,15 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
       // Add sub columns of feature
       for (DataType ftype : getFeatureList().getFeatureTypes().values()) {
+        if (ftype instanceof ImageType && !(dataFile instanceof ImagingRawDataFile)) {
+          // non-imaging files don't need a image column
+          continue;
+        } else if (ftype instanceof FeatureShapeIonMobilityRetentionTimeHeatMapType && (
+            !(dataFile instanceof IMSRawDataFile) || dataFile instanceof ImagingRawDataFile)) {
+          // non ims files or ims-imaging files don't need a ims trace column
+          continue;
+        }
+
         TreeTableColumn<ModularFeatureListRow, ?> subCol = ftype.createColumn(dataFile, null);
         if (subCol != null) {
           if (ftype instanceof ExpandableType) {
