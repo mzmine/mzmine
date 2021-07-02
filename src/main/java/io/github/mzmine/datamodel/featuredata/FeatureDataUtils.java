@@ -273,7 +273,7 @@ public class FeatureDataUtils {
       }
     }
 
-    if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
+    if (Double.compare(intensity, Double.NEGATIVE_INFINITY) == 0) {
       logger.info(() -> "Mobility cannot be specified for: " + series);
       return Float.NaN;
     } else {
