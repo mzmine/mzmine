@@ -71,7 +71,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -284,15 +283,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInMobilityMzVisualizerItem = new ConditionalMenuItem(
         "Plot mobility/CCS vs. m/z", () -> !selectedRows.isEmpty());
     showInMobilityMzVisualizerItem.setOnAction(e -> {
-      boolean useMobilograms = true;
-      if (selectedFeatures.size() > 1000) {
-        useMobilograms = MZmineCore.getDesktop().displayConfirmation(
-            "You selected " + selectedFeatures.size()
-                + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
-                + "visualize points instead of mobilograms for features?", ButtonType.YES,
-            ButtonType.NO) == ButtonType.NO;
-      }
-      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, useMobilograms);
+      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, false);
     });
 
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
