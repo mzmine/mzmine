@@ -82,14 +82,15 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     }
     dataFile = rawDataFile;
 
+    final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
+    // multiple mobility ranges are possible in tims
     final int maxMobilityScans = rawDataFile.getFrames().stream()
-        .mapToInt(Frame::getNumberOfMobilityScans).max().orElseThrow();
+        .mapToInt(Frame::getNumberOfMobilityScans).max().orElseThrow() * ranges.size();
 
     tempIntensities = new double[maxMobilityScans];
     tempMobilities = new double[maxMobilityScans];
     this.binWidth = binWidth;
 
-    final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
     var entries = ranges.entrySet().stream().toList();
     List<Double> distinctMobilities = new ArrayList<>();
     final MobilityType mt = rawDataFile.getMobilityType();
