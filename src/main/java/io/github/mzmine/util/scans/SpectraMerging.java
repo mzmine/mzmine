@@ -259,15 +259,12 @@ public class SpectraMerging {
   /**
    * Creates a merged MS/MS spectrum for a PASEF {@link ImsMsMsInfo}.
    *
-   * @return A {@link MergedMsMsSpectrum}.
+   * @return A {@link MergedMsMsSpectrum} or null the spectrum would not have any data points.
    */
+  @Nullable
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@NotNull final ImsMsMsInfo info,
       @NotNull final MZTolerance tolerance, @NotNull final MergingType mergingType,
       @Nullable final MemoryMapStorage storage) {
-
-    if (info == null) {
-      return null;
-    }
 
     final Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
     final Frame frame = info.getFrameNumber();
@@ -294,14 +291,16 @@ public class SpectraMerging {
       return null;
     }
 
-    double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
+    final double[][] merged = calculatedMergedMzsAndIntensities(massLists, tolerance,
         mergingType, cf, null);
 
-    MergedMsMsSpectrum mergedSpectrum = new SimpleMergedMsMsSpectrum(storage, merged[0],
+    if(merged[0].length == 0) {
+      return null;
+    }
+
+    return new SimpleMergedMsMsSpectrum(storage, merged[0],
         merged[1], precursorMz, info.getPrecursorCharge(), collisionEnergy, frame.getMSLevel(),
         mobilityScans, mergingType, cf);
-
-    return mergedSpectrum;
   }
 
   /**
@@ -329,6 +328,11 @@ public class SpectraMerging {
       final MergedMsMsSpectrum spectrum = entry.getValue().get(0);
       final double[][] mzIntensities = calculatedMergedMzsAndIntensities(entry.getValue(),
           tolerance, mergingType, cf, null);
+
+      if(mzIntensities[0].length == 0) {
+        continue;
+      }
+
       final List<MassSpectrum> sourceSpectra = entry.getValue().stream()
           .flatMap(s -> s.getSourceSpectra().stream()).collect(Collectors.toList());
 
