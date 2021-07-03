@@ -44,7 +44,7 @@ public class AnnotateIsomersTask extends AbstractTask {
   private final boolean requireSingleRaw = true;
   private String description;
   private int processed = 0;
-  private int totalRows = 1;
+  private int totalRows;
 
   public AnnotateIsomersTask(MemoryMapStorage storage, @NotNull MZmineProject project,
       @NotNull ParameterSet parameters, ModularFeatureList flist) {
@@ -60,6 +60,9 @@ public class AnnotateIsomersTask extends AbstractTask {
     mzTolerance = parameters
         .getParameter(parameters.getParameter(AnnotateIsomersParameters.mzTolerance)).getValue();
     rtTolerance = parameters.getParameter(AnnotateIsomersParameters.rtTolerance).getValue();
+
+    // todo maximum mobility difference
+    // todo check if it's a fragmented multimer
   }
 
   @Override
@@ -69,7 +72,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return processed / totalRows;
+    return processed / (double)totalRows;
   }
 
   @Override
@@ -89,6 +92,8 @@ public class AnnotateIsomersTask extends AbstractTask {
           .getRows(rowsByMz, rtTolerance.getToleranceRange(row.getAverageRT()),
               mzTolerance.getToleranceRange(row.getAverageMZ()), true);
 
+      processed++;
+      possibleRows.remove(row);
       if (possibleRows.isEmpty()) {
         continue;
       }
