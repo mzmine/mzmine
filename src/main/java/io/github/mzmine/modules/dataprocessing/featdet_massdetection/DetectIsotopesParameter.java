@@ -36,7 +36,7 @@ public class DetectIsotopesParameter extends SimpleParameterSet {
   public static final IntegerParameter maxCharge = new IntegerParameter("Maximum charge of isotope m/z",
       "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
       + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
-      + "but insert an integer greater than 1 if there were another charges applied to molecules during the MS experiment.",
+      + "but insert an integer greater than 1 if you want to consider ions of higher charge states.",
       1, true, 1, null);
 
   public DetectIsotopesParameter() {
