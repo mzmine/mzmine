@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder;
+package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.visualization;
 
 public class AnnotateIsomersResultWindow {
 
