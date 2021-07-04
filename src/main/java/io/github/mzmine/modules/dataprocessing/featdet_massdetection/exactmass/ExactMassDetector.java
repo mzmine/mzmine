@@ -18,17 +18,30 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass;
 
+import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IsotopesUtils;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import org.openscience.cdk.Element;
 
 public class ExactMassDetector implements MassDetector {
+
+  // Variables for the detection of isotopes below the noise level
+  private List<Element> isotopeElements;
+  private int isotopeMaxCharge;
+  // Possible m/z differences between isotopes
+  private List<Double> isotopesMzDiffs;
+  // Used to optimize getMassValues
+  private double maxIsotopeMzDiff;
 
   @Override
   public double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters) {
@@ -39,9 +52,27 @@ public class ExactMassDetector implements MassDetector {
     double noiseLevel = parameters.getParameter(ExactMassDetectorParameters.noiseLevel).getValue();
     boolean detectIsotopes = parameters.getParameter(ExactMassDetectorParameters.detectIsotopes).getValue();
 
-    DetectIsotopesParameter isotopesParameters = detectIsotopes
-        ? parameters.getParameter(ExactMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
-        : null;
+    // If isotopes are going to be detected get all the required parameters
+    MZTolerance isotopesMzTolerance = null;
+    if (detectIsotopes) {
+      ParameterSet isotopesParameters = parameters.getParameter(ExactMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
+      List<Element> isotopeElements = isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue();
+      int isotopeMaxCharge = isotopesParameters.getParameter(DetectIsotopesParameter.maxCharge).getValue();
+      isotopesMzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance).getValue();
+
+      // Update isotopesMzDiffs only if isotopeElements and isotopeMaxCharge differ from the last call
+      if (!Objects.equals(this.isotopeElements, isotopeElements)
+          || !Objects.equals(this.isotopeMaxCharge, isotopeMaxCharge)) {
+
+        // Update isotopesMzDiffs
+        this.isotopesMzDiffs = IsotopesUtils.getIsotopesMzDiffs(isotopeElements, isotopeMaxCharge);
+        this.maxIsotopeMzDiff = Collections.max(isotopesMzDiffs);
+
+        // Store last called parameters
+        this.isotopeElements = isotopeElements;
+        this.isotopeMaxCharge = isotopeMaxCharge;
+      }
+    }
 
     // lists of primitive doubles
     TDoubleArrayList mzs = new TDoubleArrayList(100);
@@ -85,7 +116,11 @@ public class ExactMassDetector implements MassDetector {
 
         // Add the m/z peak if it is above the noise level or m/z value corresponds to isotope mass
         if (spectrum.getIntensityValue(localMaximumIndex) > noiseLevel
-            || (detectIsotopes && IsotopesUtils.isIsotopeMz(exactMz, mzs, isotopesParameters))) {
+            || (detectIsotopes
+              // If the difference between current m/z and last detected m/z is greater than maximum
+              // possible isotope m/z difference do not call isPossibleIsotopeMz
+              && (mzs.isEmpty() || Doubles.compare(exactMz - mzs.get(mzs.size() - 1), maxIsotopeMzDiff) <= 0)
+              && IsotopesUtils.isPossibleIsotopeMz(exactMz, mzs, isotopesMzDiffs, isotopesMzTolerance))) {
 
           // Add data point to lists
           mzs.add(exactMz);

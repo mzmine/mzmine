@@ -20,13 +20,11 @@ package io.github.mzmine.util;
 
 import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Isotopes;
@@ -34,10 +32,6 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class IsotopesUtils {
 
-  // Memoization variables for this::getIsotopesMassDiffs
-  private static List<Element> memElements;
-  private static int memMaxCharge;
-  private static List<Double> memRes;
   private static Isotopes isotopes;
   static {
     try {
@@ -50,19 +44,14 @@ public class IsotopesUtils {
   /**
    * Returns pairwise m/z differences between stable isotopes within given chemical elements. Final
    * differences are obtained by dividing isotope mass differences with 1, 2, ..., maxCharge values.
+   * For example, for elements == [H, C] and maxCharge == 2 this method returns [C14 - C13,
+   * (C14 - C13) / 2, H2 - H1, (H2 - H1) / 2], where C14, C13, H2, H1 are corresponding isotopic masses.
    *
    * @param elements List of chemical elements
    * @param maxCharge Maximum possible charge
    * @return List of pairwise mass differences
    */
   public static List<Double> getIsotopesMzDiffs(List<Element> elements, int maxCharge) {
-
-    // Test whether input parameters equal the ones in a previous function call. If yes then return
-    // them and do not compute it one more time
-    if (Objects.equals(elements, memElements)
-        && Objects.equals(maxCharge, memMaxCharge)) {
-      return memRes;
-    }
 
     List<Double> isotopeMzDiffs = new ArrayList<>();
 
@@ -74,7 +63,7 @@ public class IsotopesUtils {
           .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > 0d)
           .toList();
 
-      // Compute pairwise mass differences and divide them with maxCharge
+      // Compute pairwise mass differences and divide each one with charges up to maxCharge
       for (int i = 0; i < abundantIsotopes.size(); i++) {
         for (int j = i + 1; j < abundantIsotopes.size(); j++) {
           for (int charge = 1; charge <= maxCharge; charge++) {
@@ -85,42 +74,34 @@ public class IsotopesUtils {
       }
     }
 
-    // Store the inputs and the computed output
-    memElements = elements;
-    memMaxCharge = maxCharge;
-    memRes = isotopeMzDiffs;
-
     return isotopeMzDiffs;
   }
 
   /**
    * Returns true if given m/z value newMz can be considered as an m/z value of some isotope corresponding
-   * to given m/z values in knownMzs. Chemical elements which isotopes are considered and maximum
-   * possible charge are passed in isotopesParameters argument (see {@link #getIsotopesMzDiffs(List, int)}).
+   * to given m/z values in knownMzs. Only isotope m/z differences given in the isotopesMzDiffs are
+   * considered.
    *
    * @param newMz M/z value of interest
    * @param knownMzs List of known m/z values
-   * @param isotopesParameters DetectIsotopesParameter parameters
+   * @param isotopesMzDiffs Pairwise m/z differences between isotopes (supposed to be obtained with
+   *                        {@link #getIsotopesMzDiffs(List, int)})
+   * @param mzTolerance Maximum allowed m/z difference to consider any m/z value and isotope m/z
+   *                    value equal
    * @return True if new m/z corresponds to an isotope of known m/z's, false otherwise.
    */
-  public static boolean isIsotopeMz(double newMz, TDoubleArrayList knownMzs,
-      @NotNull DetectIsotopesParameter isotopesParameters) {
-
-    // List of possible isotope m/z differences
-    List<Double> isotopeMzDiffs = getIsotopesMzDiffs(
-        isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue(),
-        isotopesParameters.getParameter(DetectIsotopesParameter.maxCharge).getValue());
-
-    // Isotope m/z tolerance
-    MZTolerance mzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance)
-        .getValue();
+  public static boolean isPossibleIsotopeMz(double newMz, @NotNull TDoubleArrayList knownMzs,
+      @NotNull List<Double> isotopesMzDiffs,
+      @NotNull MZTolerance mzTolerance) {
 
     // Iterate over possible isotope m/z differences
-    for (double isotopeMzDiff : isotopeMzDiffs) {
+    for (double isotopeMzDiff : isotopesMzDiffs) {
 
       // Go left over m/z's of previously detected peaks and check whether current peak is an
       // isotope of one of them
-      // TODO: contains in a new set of added mzs instead of for loop over list (if slow),
+      // TODO: If in future the method will be slow for some data files it is possible to improve
+      //  the speed by implementing a HashSet for doubles with given precision and use it to store
+      //  all knownMzs values and check for their presence instead of the following for loop.
       //  O(n^2 / 2) -> O(n) for O(n) memory
       for (int mzIndex = knownMzs.size() - 1; mzIndex >= 0; mzIndex--) {
 
