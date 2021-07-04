@@ -20,26 +20,31 @@ package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -97,7 +102,8 @@ public class MultiImsTraceVisualiser extends BorderPane {
     traceLegendCanvas = new Canvas();
 
     featuresProperty = new SimpleListProperty<>();
-    featuresProperty.addListener((ListChangeListener<? super ModularFeature>) c -> onFeaturesChanged(c));
+    featuresProperty
+        .addListener((ListChangeListener<? super ModularFeature>) c -> onFeaturesChanged(c));
     rawFileProperty = new SimpleObjectProperty<>();
     rawFileProperty
         .addListener(((observable, oldValue, newValue) -> onRawFileChanged(oldValue, newValue)));
@@ -108,12 +114,15 @@ public class MultiImsTraceVisualiser extends BorderPane {
 
   public MultiImsTraceVisualiser(@Nullable final Collection<ModularFeature> features) {
     this();
-    if(features != null) {
-      features.forEach(this::addFeature);
+    featuresProperty.clear();
+    if (features != null) {
+      featuresProperty.addAll(features);
     }
   }
 
   private void onRawFileChanged(RawDataFile oldValue, RawDataFile newFile) {
+    assert  Platform.isFxApplicationThread();
+
     if (oldValue != newFile) {
       ticChart.removeDataSet(ticDatasetIndex, false);
     }
@@ -123,13 +132,15 @@ public class MultiImsTraceVisualiser extends BorderPane {
     renderer.setSeriesPaint(0,
         MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
     renderer.setDefaultShapesVisible(false);
-    dataSet.setCustomSeriesKey(
-        "EIC " + mzFormat.format(getFeature().getRawDataPointsMZRange().lowerEndpoint()) + " - "
-            + mzFormat.format(getFeature().getRawDataPointsMZRange().upperEndpoint()));
+//    dataSet.setCustomSeriesKey(
+//        "BPC " + mzFormat.format(getFeature().getRawDataPointsMZRange().lowerEndpoint()) + " - "
+//            + mzFormat.format(getFeature().getRawDataPointsMZRange().upperEndpoint()));
     ticDatasetIndex = ticChart.addDataset(dataSet, renderer);
   }
 
   private void onFeaturesChanged(Change<? extends ModularFeature> change) {
+    assert Platform.isFxApplicationThread();
+
     clearFeatureFromCharts();
     final ObservableList<? extends ModularFeature> features = change.getList();
     if (features.isEmpty()) {
@@ -140,17 +151,26 @@ public class MultiImsTraceVisualiser extends BorderPane {
     rawFileProperty.set(features.get(0).getRawDataFile());
     updateAxisLabels();
 
-    final ColoredXYZDataset ionTrace = new ColoredXYZDataset(
-        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature), RunOption.THIS_THREAD);
-    traceChart.setDataset(ionTrace);
+    for (ModularFeature feature : features) {
+      var clr = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
 
-    final ColoredXYDataset mobilogram = new ColoredXYDataset(
-        new SummedMobilogramXYProvider(feature, true), RunOption.THIS_THREAD);
-    mobilogramChart.addDataset(mobilogram, mobilogramChart.getDefaultRenderer());
+      final var ionTrace = new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(
+          (IonMobilogramTimeSeries) feature.getFeatureData(), FeatureUtils.featureToString(feature),
+          clr, true);
+      traceChart.addDataset(ionTrace);
 
-    final ColoredXYDataset dataSet = new ColoredXYDataset(new IonTimeSeriesToXYProvider(feature),
-        RunOption.THIS_THREAD);
-    ticFeatureDatasetIndex = ticChart.addDataset(dataSet);
+      final ColoredXYDataset mobilogram = new ColoredXYDataset(
+          new SummedMobilogramXYProvider(feature, true), RunOption.THIS_THREAD);
+      mobilogram.setColor(FxColorUtil.fxColorToAWT(clr));
+      mobilogramChart.addDataset(mobilogram, new ColoredXYShapeRenderer());
+
+      final ColoredXYDataset dataSet = new ColoredXYDataset(new IonTimeSeriesToXYProvider(feature),
+          RunOption.THIS_THREAD);
+      dataSet.setColor(FxColorUtil.fxColorToAWT(clr));
+      ticFeatureDatasetIndex = ticChart.addDataset(dataSet, new ColoredXYShapeRenderer());
+    }
+    traceChart.getXYPlot().getRangeAxis().setAutoRange(true);
+    traceChart.getXYPlot().getDomainAxis().setAutoRange(true);
   }
 
   private void clearFeatureFromCharts() {
@@ -162,8 +182,7 @@ public class MultiImsTraceVisualiser extends BorderPane {
   private void updateAxisLabels() {
     final String intensityLabel = unitFormat.format("Intensity", "a.u.");
     String mobilityLabel = "Mobility";
-    if (featuresProperty.get() != null && featuresProperty.get()
-        .getRawDataFile() instanceof IMSRawDataFile file) {
+    if (rawFileProperty.get() instanceof IMSRawDataFile file) {
       mobilityLabel = file.getMobilityType().getAxisLabel();
     }
     mobilogramChart.setRangeAxisLabel(mobilityLabel);
@@ -237,15 +256,11 @@ public class MultiImsTraceVisualiser extends BorderPane {
     setBottom(traceLegendCanvas);
   }
 
-  public ModularFeature getFeature() {
+  public List<ModularFeature>  getFeatures() {
     return featuresProperty.get();
   }
 
-  public void addFeature(ModularFeature feature) {
-    this.featuresProperty.set(feature);
-  }
-
-  public ObjectProperty<ModularFeature> featureProperty() {
+  public ListProperty<ModularFeature> featureProperty() {
     return featuresProperty;
   }
 

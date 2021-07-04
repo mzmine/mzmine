@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -72,7 +73,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return processed / (double)totalRows;
+    return processed / (double) totalRows;
   }
 
   @Override
@@ -105,5 +106,16 @@ public class AnnotateIsomersTask extends AbstractTask {
     flist.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(AnnotateIsomersModule.class, parameters));
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void refineResultsByIIN(@NotNull final ModularFeatureListRow row,
+      @NotNull List<ModularFeatureListRow> possibleIsomery) {
+    if(!row.hasIonIdentity()) {
+      return;
+    }
+
+    final IonIdentity ionIdentity = row.getBestIonIdentity();
+    ionIdentity.getIonType().
+
   }
 }

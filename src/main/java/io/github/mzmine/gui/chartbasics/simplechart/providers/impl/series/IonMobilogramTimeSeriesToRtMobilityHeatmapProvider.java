@@ -53,7 +53,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   private final boolean isUseSingleColorPaintScale;
   int numValues = 0;
   private double progress;
-  private PaintScale paintScale;
+  private PaintScale paintScale = null;
 
   public IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(final ModularFeature f) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
@@ -102,7 +102,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   @Nullable
   @Override
   public PaintScale getPaintScale() {
-    return null;
+    return paintScale;
   }
 
   @Override
