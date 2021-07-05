@@ -130,7 +130,7 @@ public class FeatureConvertors {
         Arrays.asList(chromatogram.getScanNumbers()));
     modularFeature.set(FeatureDataType.class, timeSeries);
 
-    // recalculate data dependet types
+    // recalculate data dependent types
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     ObservableList<Scan> allMS2 = Arrays
@@ -138,20 +138,6 @@ public class FeatureConvertors {
             modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     modularFeature.setAllMS2FragmentScans(allMS2);
-
-    // Quality parameters
-    /*float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }*/
 
     return modularFeature;
   }
@@ -173,7 +159,6 @@ public class FeatureConvertors {
         new ModularFeature((ModularFeatureList) ionTrace.getFeatureList());
 
     // Add values to feature
-//    modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
