@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -32,7 +33,12 @@ public class AnnotateIsomersParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
+  public static final PercentParameter maxMobilityChange = new PercentParameter(
+      "Maximum mobility change",
+      "Specifies the maximum change of mobility for a possible isomer.\nUsed to rule out fragmented multimers.",
+      0.2);
+
   public AnnotateIsomersParameters() {
-    super(new Parameter[]{featureLists, mzTolerance, rtTolerance});
+    super(new Parameter[]{featureLists, mzTolerance, rtTolerance, maxMobilityChange});
   }
 }

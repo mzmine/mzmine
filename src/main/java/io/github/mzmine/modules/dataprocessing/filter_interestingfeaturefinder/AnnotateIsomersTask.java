@@ -32,6 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +43,7 @@ public class AnnotateIsomersTask extends AbstractTask {
   private final ModularFeatureList flist;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final double maxChangePercentage;
   private final boolean requireSingleRaw = true;
   private String description;
   private int processed = 0;
@@ -61,6 +63,8 @@ public class AnnotateIsomersTask extends AbstractTask {
     mzTolerance = parameters
         .getParameter(parameters.getParameter(AnnotateIsomersParameters.mzTolerance)).getValue();
     rtTolerance = parameters.getParameter(AnnotateIsomersParameters.rtTolerance).getValue();
+    maxChangePercentage = parameters.getParameter(AnnotateIsomersParameters.maxMobilityChange)
+        .getValue();
 
     // todo maximum mobility difference
     // todo check if it's a fragmented multimer
@@ -95,6 +99,26 @@ public class AnnotateIsomersTask extends AbstractTask {
 
       processed++;
       possibleRows.remove(row);
+
+      if (possibleRows.isEmpty()) {
+        continue;
+      }
+
+      final float refMobility = row.getAverageMobility();
+      final Iterator<ModularFeatureListRow> rowIterator = possibleRows.iterator();
+
+      while (rowIterator.hasNext()) {
+        ModularFeatureListRow possibleRow = rowIterator.next();
+        final float mobility = possibleRow.getAverageMobility();
+
+        final double percChange = Math.min(mobility, refMobility) / Math.max(mobility, refMobility);
+        if (percChange > maxChangePercentage) {
+          rowIterator.remove();
+        }
+
+        // todo check IIN
+      }
+
       if (possibleRows.isEmpty()) {
         continue;
       }
@@ -110,12 +134,12 @@ public class AnnotateIsomersTask extends AbstractTask {
 
   private void refineResultsByIIN(@NotNull final ModularFeatureListRow row,
       @NotNull List<ModularFeatureListRow> possibleIsomery) {
-    if(!row.hasIonIdentity()) {
+    if (!row.hasIonIdentity()) {
       return;
     }
 
     final IonIdentity ionIdentity = row.getBestIonIdentity();
-    ionIdentity.getIonType().
+//    ionIdentity.getIonType().getModification().getType()
 
   }
 }
