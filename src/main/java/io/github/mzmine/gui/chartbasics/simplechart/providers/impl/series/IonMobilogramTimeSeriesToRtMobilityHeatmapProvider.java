@@ -122,7 +122,7 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
     for (int i = 0; i < data.getMobilograms().size(); i++) {
       numValues += data.getMobilogram(i).getNumberOfValues();
       for (int j = 0; j < data.getMobilogram(i).getNumberOfValues(); j++) {
-        max = Math.max(data.getMobilogram(i).getIntensity(i), max);
+        max = Math.max(data.getMobilogram(i).getIntensity(j), max);
       }
     }
     if (isUseSingleColorPaintScale) {
