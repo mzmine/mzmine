@@ -24,9 +24,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -254,7 +258,19 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
     }
-    // todo recalc quality parameters
+
+    float fwhm = QualityParameters.calculateFWHM(feature);
+    if (!Float.isNaN(fwhm)) {
+      feature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(feature);
+    if (!Float.isNaN(tf)) {
+      feature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(feature);
+    if (!Float.isNaN(af)) {
+      feature.set(AsymmetryFactorType.class, af);
+    }
   }
 
   /**

@@ -50,7 +50,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,6 +67,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
   public static final int DEFAULT_ALLOWED_MISSING_MOBILITY_SCANS = 0;
   public static final int DEFAULT_ALLOWED_MISSING_FRAMES = 0;
+  private static final double STEPS = 4d;
 
   private static Logger logger = Logger.getLogger(IonMobilityTraceBuilderTask.class.getName());
   private final MZmineProject project;
@@ -86,6 +86,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private HashMap<Range<Double>, IIonMobilityTrace> rangeToIonTraceMap = new HashMap<>();
   private double progress = 0.0;
   private String taskDescription = "";
+  private final String descriptionPrefix;
   private int allowedMissingFrames = DEFAULT_ALLOWED_MISSING_FRAMES;
   private int allowedMissingMobilityScans = DEFAULT_ALLOWED_MISSING_MOBILITY_SCANS;
 
@@ -128,6 +129,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
             : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
 
     this.parameters = parameters;
+    descriptionPrefix = "Ion mobility trace builder on " + rawDataFile.getName() + ": ";
     setStatus(TaskStatus.WAITING);
   }
 
@@ -159,7 +161,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   // Extract all retention time and mobility resolved data point sorted by intensity
   private Set<RetentionTimeMobilityDataPoint> extractAllDataPointsFromFrames() {
     logger.info("Start data point extraction");
-    taskDescription = "Get data points from frames";
+    taskDescription = descriptionPrefix + " Getting data points from frames";
     int processedFrame = 1;
     SortedSet<RetentionTimeMobilityDataPoint> allDataPoints =
         new TreeSet<>(new Comparator<RetentionTimeMobilityDataPoint>() {
@@ -198,7 +200,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           }
         }
       }
-      progress = (processedFrame / (double) frames.size()) / 4;
+      progress = (processedFrame / (double) frames.size()) / STEPS;
       processedFrame++;
     }
     logger.info("Extracted " + allDataPoints.size() + " ims data points");
@@ -208,8 +210,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private void createIonMobilityTraceTargetSet(
       Set<RetentionTimeMobilityDataPoint> rtMobilityDataPoints) {
     logger.info("Start m/z ranges calculation");
-    taskDescription = "Calculate m/z ranges";
-    int processedDataPoint = 1;
+    taskDescription = descriptionPrefix + "Calculating m/z ranges.";
+
+    final double progressStep = (1 / (double)rtMobilityDataPoints.size()) / STEPS;
     for (RetentionTimeMobilityDataPoint rtMobilityDataPoint : rtMobilityDataPoints) {
       if (isCanceled()) {
         return;
@@ -277,7 +280,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         // update the entry in the map
         rangeToIonTraceMap.put(containsDataPointRange, currentIonMobilityIonTrace);
       }
-      double progressStep = (processedDataPoint / rtMobilityDataPoints.size()) / 4;
+
       progress += progressStep;
     }
   }
@@ -296,7 +299,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
             }
           }
         });
-    double progressStep = (!ranges.isEmpty()) ? 0.75 / ranges.size() : 0.0;
+
+    final double progressStep = (!ranges.isEmpty()) ? 1.0d / ranges.size() / STEPS : 0.0;
     while (rangeIterator.hasNext()) {
       if (isCanceled()) {
         break;
@@ -315,19 +319,18 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   }
 
   private IIonMobilityTrace finishIonTrace(IIonMobilityTrace ionTrace) {
-    Range<Double> rawDataPointsIntensityRange = null;
-    Range<Double> rawDataPointsMZRange = null;
-    Range<Double> rawDataPointsMobilityRange = null;
-    Range<Float> rawDataPointsRtRange = null;
-    LinkedHashSet<MobilityScan> scanNumbers = new LinkedHashSet<>();
+//    Range<Double> rawDataPointsIntensityRange = null;
+//    Range<Double> rawDataPointsMZRange = null;
+//    Range<Double> rawDataPointsMobilityRange = null;
+//    Range<Float> rawDataPointsRtRange = null;
+//    LinkedHashSet<MobilityScan> scanNumbers = new LinkedHashSet<>();
 
-    Float rt = 0.0f;
-    double mobility = 0.0f;
+//    Float rt = 0.0f;
+//    double mobility = 0.0f;
     // sortedRetentionTimeMobilityDataPoints.addAll(ionTrace.getDataPoints());
     // Update raw data point ranges, height, rt and representative scan
     SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> groupedDps = FeatureConvertorIonMobility
         .groupDataPointsByFrameId(ionTrace.getDataPoints());
-    double maximumIntensity = Double.MIN_VALUE;
 
     if (!checkConsecutiveFrames(groupedDps, frames)) {
       return null;
@@ -346,84 +349,10 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           addZerosForMobilityScans(sortedRetentionTimeMobilityDataPoints.getKey(),
               sortedRetentionTimeMobilityDataPoints.getValue(),
               ionTrace.getMz(), allowedMissingMobilityScans, 1));
-      for (var retentionTimeMobilityDataPoint : sortedRetentionTimeMobilityDataPoints.getValue()) {
-        scanNumbers.add(retentionTimeMobilityDataPoint.getMobilityScan());
-        // set ranges
-        if (rawDataPointsIntensityRange == null && rawDataPointsMZRange == null
-            && rawDataPointsMobilityRange == null && rawDataPointsRtRange == null) {
-          rawDataPointsIntensityRange =
-              Range.singleton(retentionTimeMobilityDataPoint.getIntensity());
-          rawDataPointsMZRange = Range.singleton(retentionTimeMobilityDataPoint.getMZ());
-          rawDataPointsMobilityRange = Range
-              .singleton(retentionTimeMobilityDataPoint.getMobility());
-          rawDataPointsRtRange = Range.singleton(retentionTimeMobilityDataPoint.getRetentionTime());
-        } else {
-          rawDataPointsIntensityRange = rawDataPointsIntensityRange
-              .span(Range.singleton(retentionTimeMobilityDataPoint.getIntensity()));
-          rawDataPointsMZRange =
-              rawDataPointsMZRange.span(Range.singleton(retentionTimeMobilityDataPoint.getMZ()));
-          rawDataPointsMobilityRange = rawDataPointsMobilityRange
-              .span(Range.singleton(retentionTimeMobilityDataPoint.getMobility()));
-          rawDataPointsRtRange = rawDataPointsRtRange
-              .span(Range.singleton(retentionTimeMobilityDataPoint.getRetentionTime()));
-        }
-
-        // set maxima
-        if (maximumIntensity < retentionTimeMobilityDataPoint.getIntensity()) {
-          maximumIntensity = retentionTimeMobilityDataPoint.getIntensity();
-          rt = retentionTimeMobilityDataPoint.getRetentionTime();
-          mobility = retentionTimeMobilityDataPoint.getMobility();
-        }
-      }
     }
 
     ionTrace.getDataPoints().addAll(frameFillers);
     ionTrace.getDataPoints().addAll(mobilityScanFillers);
-
-    // TODO think about representative scan
-    ionTrace.setScanNumbers(scanNumbers);
-    ionTrace.setMobilityRange(rawDataPointsMobilityRange);
-    ionTrace.setMzRange(rawDataPointsMZRange);
-    ionTrace.setRetentionTimeRange(rawDataPointsRtRange);
-    ionTrace.setIntensityRange(rawDataPointsIntensityRange);
-    ionTrace.setMaximumIntensity(maximumIntensity);
-    ionTrace.setRetentionTime(rt);
-    ionTrace.setMobility(mobility);
-    // logger.info("Ion Trace results:\n" + "Scan numbers: " + ionTrace.getScanNumbers() + "\n" + //
-    // "Mobility range: " + ionTrace.getMobilityRange() + "\n" + //
-    // "m/z range: " + ionTrace.getMzRange() + "\n" + //
-    // "rt range: " + ionTrace.getRetentionTimeRange() + "\n" + //
-    // "intensity range: " + ionTrace.getIntensityRange() + "\n" + //
-    // "Max intensity : " + ionTrace.getMaximumIntensity() + "\n" + //
-    // "Retention time : " + ionTrace.getRetentionTime() + "\n" + //
-    // "Mobility : " + ionTrace.getMobility()//
-    // );
-    // TODO calc area
-    // Update area
-    // double area = 0;
-    // for (int i = 1; i < allScanNumbers.length; i++) {
-    // // For area calculation, we use retention time in seconds
-    // double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime() * 60d;
-    // double currentRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime() * 60d;
-    // double previousHeight = dataPointsMap.get(allScanNumbers[i - 1]).getIntensity();
-    // double currentHeight = dataPointsMap.get(allScanNumbers[i]).getIntensity();
-    // area += (currentRT - previousRT) * (currentHeight + previousHeight) / 2;
-    // }
-
-    // TODO
-    // Update fragment scan
-    // fragmentScan =
-    // ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
-
-    // allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile,
-    // dataFile.getDataRTRange(1), rawDataPointsMZRange);
-
-    // if (fragmentScan > 0) {
-    // Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-    // int precursorCharge = fragmentScanObject.getPrecursorCharge();
-    // if (precursorCharge > 0)
-    // this.charge = precursorCharge;
-    // }
 
     return ionTrace;
   }
@@ -606,7 +535,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   }
 
   private void buildModularFeatureList(SortedSet<IIonMobilityTrace> ionMobilityTraces) {
-    taskDescription = "Build feature list";
+    taskDescription = descriptionPrefix + "Building feature list.";
     ModularFeatureList featureList =
         new ModularFeatureList(rawDataFile + " " + suffix, getMemoryMapStorage(), rawDataFile);
     // ensure that the default columns are available
@@ -624,6 +553,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     final BinningMobilogramDataAccess mobilogramBinner = EfficientDataAccess.of(
         (IMSRawDataFile) rawDataFile, binWidth);
 
+    final double progressStep = 1.0d / ionMobilityTraces.size() / STEPS;
+
     int featureId = 1;
     for (IIonMobilityTrace ionTrace : ionMobilityTraces) {
       ionTrace.setFeatureList(featureList);
@@ -634,6 +565,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 //      newRow.set(MobilityType.class, ionTrace.getMobility());
       featureList.addRow(newRow);
       featureId++;
+      progress += progressStep;
     }
 
     rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
