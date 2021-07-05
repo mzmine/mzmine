@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -127,21 +128,18 @@ public class TDFImportTask extends AbstractTask {
 
     if (advancedParam != null && advancedParam
         .getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      ms1Detector = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-          .getValue().getModule();
-      ms1DetectorParam = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-          .getValue().getParameterSet();
+      ms1Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue().getModule();
+      ms1DetectorParam = advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection)
+          .getEmbeddedParameter().getValue().getParameterSet();
     } else {
       ms1Detector = null;
       ms1DetectorParam = null;
     }
     if (advancedParam != null && advancedParam
         .getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-      ms2Detector = advancedParam
-          .getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
-          .getValue().getModule();
+      ms2Detector = advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection)
+          .getEmbeddedParameter().getValue().getModule();
       ms2DetectorParam = advancedParam
           .getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getEmbeddedParameter()
           .getValue().getParameterSet();
@@ -180,7 +178,7 @@ public class TDFImportTask extends AbstractTask {
     } else {
       files = getDataFilesFromDir(fileNameToOpen.getParentFile());
     }
-    if(files == null || files[0] == null || files [1] == null) {
+    if (files == null || files[0] == null || files[1] == null) {
       setErrorMessage("Cannot find or open file " + fileNameToOpen.toString());
       setStatus(TaskStatus.ERROR);
       return;
@@ -216,9 +214,8 @@ public class TDFImportTask extends AbstractTask {
       try {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
             newMZmineFile.getMemoryMapStorage());
-        ((IMSImagingRawDataFile) newMZmineFile)
-            .setImagingParam(new ImagingParameters(metaDataTable, maldiFrameInfoTable,
-                maldiFrameLaserInfoTable));
+        ((IMSImagingRawDataFile) newMZmineFile).setImagingParam(
+            new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
       } catch (IOException e) {
         e.printStackTrace();
         return;
@@ -259,9 +256,9 @@ public class TDFImportTask extends AbstractTask {
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = TDFUtils
-            .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId,
-                metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector,
-                ms1DetectorParam, ms2Detector, ms2DetectorParam);
+            .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId, metaDataTable,
+                frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
+                ms2Detector, ms2DetectorParam);
 
         if (frame.getMSLevel() == 1 && ms1Detector != null && ms1DetectorParam != null) {
           frame.addMassList(new ScanPointerMassList(frame));
@@ -295,8 +292,9 @@ public class TDFImportTask extends AbstractTask {
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
     setFinishedPercentage(1.0);
-    logger.info("Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans()
-        + " scans and " + newMZmineFile.getNumberOfFrames() + " frames.");
+    logger.info(
+        "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "
+            + newMZmineFile.getNumberOfFrames() + " frames.");
     project.addFile(newMZmineFile);
     // compareMobilities(newMZmineFile);
 
@@ -389,8 +387,9 @@ public class TDFImportTask extends AbstractTask {
     final long numFrames = tdfFrameTable.lastFrameId();
 
     for (SimpleFrame frame : frames) {
-      setDescription("Loading mobility scans of " + rawDataFileName + ": Frame "
-          + frame.getFrameId() + "/" + numFrames);
+      setDescription(
+          "Loading mobility scans of " + rawDataFileName + ": Frame " + frame.getFrameId() + "/"
+              + numFrames);
       setFinishedPercentage(0.1 + (0.9 * ((double) loadedFrames / numFrames)));
 
       final int msLevel = frame.getMSLevel();
@@ -450,8 +449,8 @@ public class TDFImportTask extends AbstractTask {
     }
 
     File[] files = dir.listFiles(pathname -> {
-      if (pathname.getAbsolutePath().endsWith(".tdf")
-          || pathname.getAbsolutePath().endsWith(".tdf_bin")) {
+      if (pathname.getAbsolutePath().endsWith(".tdf") || pathname.getAbsolutePath()
+          .endsWith(".tdf_bin")) {
         return true;
       }
       return false;
@@ -479,12 +478,17 @@ public class TDFImportTask extends AbstractTask {
     Date start = new Date();
     int constructed = 0;
     for (Frame frame : file.getFrames()) {
-      if (frame.getMSLevel() == 1) {
+      if (frame.getMSLevel() == 1 || (frame.getDataFile() instanceof ImagingRawDataFile
+          && frame.getMSLevel() == 2)) {
         continue;
       }
 
-      Set<BuildingPASEFMsMsInfo> buildingInfo =
-          precursorTable.getMsMsInfoForFrame(frame.getFrameId());
+      Set<BuildingPASEFMsMsInfo> buildingInfo = precursorTable
+          .getMsMsInfoForFrame(frame.getFrameId());
+
+      if(buildingInfo == null) {
+        continue;
+      }
 
       for (BuildingPASEFMsMsInfo building : buildingInfo) {
         int parentFrameNumber = building.getParentFrameNumber();
@@ -493,11 +497,10 @@ public class TDFImportTask extends AbstractTask {
             .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
-        ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(),
-            Range.closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+        ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(), Range
+            .closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
                 building.getSpectrumNumberRange().upperEndpoint() - 1),
-            building.getCollisionEnergy(),
-            building.getPrecursorCharge(), parentFrame, frame);
+            building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame);
 
         frame.getImsMsMsInfos().add(info);
         constructed++;
