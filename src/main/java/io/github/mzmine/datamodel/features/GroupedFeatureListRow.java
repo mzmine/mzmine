@@ -84,6 +84,7 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
     return mainRow.getFeatures();
   }
 
+  @Nullable
   @Override
   public Feature getFeature(RawDataFile rawData) {
     return mainRow.getFeature(rawData);
