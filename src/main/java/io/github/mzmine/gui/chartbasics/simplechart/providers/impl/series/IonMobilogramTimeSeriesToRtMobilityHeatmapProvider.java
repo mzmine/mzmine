@@ -27,7 +27,6 @@ import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransfo
 import io.github.mzmine.gui.chartbasics.simplechart.providers.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
@@ -126,9 +125,9 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
       }
     }
     if (isUseSingleColorPaintScale) {
-      javafx.scene.paint.Color base =
-          MZmineCore.getConfiguration().isDarkMode() ? javafx.scene.paint.Color.BLACK
-              : javafx.scene.paint.Color.WHITE;
+      javafx.scene.paint.Color base = javafx.scene.paint.Color.BLACK;
+//          MZmineCore.getConfiguration().isDarkMode() ? javafx.scene.paint.Color.BLACK
+//              : javafx.scene.paint.Color.WHITE;
       paintScale = new SimpleColorPalette(new javafx.scene.paint.Color[]{base, color}).toPaintScale(
           PaintScaleTransform.LINEAR, Range.closed(0d, max));
     }

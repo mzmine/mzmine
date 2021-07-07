@@ -56,6 +56,10 @@ public class QualityParameters {
         return;
       }
 
+      if(dps.getNumberOfValues() < 3) {
+        return;
+      }
+
       Range<Float> rtRange = peak.get(RTRangeType.class).getValue();
       if (rtRange == null) {
         rtRange = Range.singleton(rt.getValue());
@@ -119,6 +123,10 @@ public class QualityParameters {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
+    if(intensities.length < 3) {
+      return Float.NaN;
+    }
+
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
     if (rtRange == null) {
       rtRange = Range.singleton(rt);
@@ -155,6 +163,10 @@ public class QualityParameters {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
+    if(intensities.length < 3) {
+      return Float.NaN;
+    }
+
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
     if (rtRange == null) {
       rtRange = Range.singleton(rt);
@@ -188,6 +200,10 @@ public class QualityParameters {
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
+    }
+
+    if(intensities.length < 3) {
+      return Float.NaN;
     }
 
     Range<Float> rtRange = feature.getRawDataPointsRTRange();

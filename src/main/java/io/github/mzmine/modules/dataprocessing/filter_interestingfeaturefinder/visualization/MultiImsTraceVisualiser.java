@@ -31,7 +31,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
-import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYShapeRenderer;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
@@ -49,6 +49,7 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -101,7 +102,7 @@ public class MultiImsTraceVisualiser extends BorderPane {
     mobilogramChart = new SimpleXYChart<>("Summed mobilogram");
     traceLegendCanvas = new Canvas();
 
-    featuresProperty = new SimpleListProperty<>();
+    featuresProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
     featuresProperty
         .addListener((ListChangeListener<? super ModularFeature>) c -> onFeaturesChanged(c));
     rawFileProperty = new SimpleObjectProperty<>();
@@ -121,7 +122,7 @@ public class MultiImsTraceVisualiser extends BorderPane {
   }
 
   private void onRawFileChanged(RawDataFile oldValue, RawDataFile newFile) {
-    assert  Platform.isFxApplicationThread();
+    assert Platform.isFxApplicationThread();
 
     if (oldValue != newFile) {
       ticChart.removeDataSet(ticDatasetIndex, false);
@@ -162,12 +163,12 @@ public class MultiImsTraceVisualiser extends BorderPane {
       final ColoredXYDataset mobilogram = new ColoredXYDataset(
           new SummedMobilogramXYProvider(feature, true), RunOption.THIS_THREAD);
       mobilogram.setColor(FxColorUtil.fxColorToAWT(clr));
-      mobilogramChart.addDataset(mobilogram, new ColoredXYShapeRenderer());
+      mobilogramChart.addDataset(mobilogram, new ColoredXYLineRenderer());
 
       final ColoredXYDataset dataSet = new ColoredXYDataset(new IonTimeSeriesToXYProvider(feature),
           RunOption.THIS_THREAD);
       dataSet.setColor(FxColorUtil.fxColorToAWT(clr));
-      ticFeatureDatasetIndex = ticChart.addDataset(dataSet, new ColoredXYShapeRenderer());
+      ticFeatureDatasetIndex = ticChart.addDataset(dataSet, new ColoredXYLineRenderer());
     }
     traceChart.getXYPlot().getRangeAxis().setAutoRange(true);
     traceChart.getXYPlot().getDomainAxis().setAutoRange(true);
@@ -256,12 +257,17 @@ public class MultiImsTraceVisualiser extends BorderPane {
     setBottom(traceLegendCanvas);
   }
 
-  public List<ModularFeature>  getFeatures() {
+  public List<ModularFeature> getFeatures() {
     return featuresProperty.get();
   }
 
   public ListProperty<ModularFeature> featureProperty() {
     return featuresProperty;
+  }
+
+  public void setFeatures(List<ModularFeature> features) {
+    featuresProperty.clear();
+    featuresProperty.addAll(features);
   }
 
 }

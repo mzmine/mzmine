@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class MultiImsTraceVisualizerTab extends MZmineTab {
@@ -63,5 +64,9 @@ public class MultiImsTraceVisualizerTab extends MZmineTab {
   @Override
   public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
     // do nothing
+  }
+
+  public void setFeatures(List<ModularFeature> features) {
+    visualiser.setFeatures(features);
   }
 }

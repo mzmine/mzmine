@@ -24,6 +24,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -111,7 +113,7 @@ public class AnnotateIsomersTask extends AbstractTask {
         ModularFeatureListRow possibleRow = rowIterator.next();
         final float mobility = possibleRow.getAverageMobility();
 
-        final double percChange = Math.min(mobility, refMobility) / Math.max(mobility, refMobility);
+        final double percChange = 1 - Math.min(mobility, refMobility) / Math.max(mobility, refMobility);
         if (percChange > maxChangePercentage) {
           rowIterator.remove();
         }
@@ -138,8 +140,21 @@ public class AnnotateIsomersTask extends AbstractTask {
       return;
     }
 
+    // Identität in einem IIN
     final IonIdentity ionIdentity = row.getBestIonIdentity();
-//    ionIdentity.getIonType().getModification().getType()
+
+    // [2M+ACN+Na]+
+    ionIdentity.getAdduct(); // -> "[2M+ACN+Na]+"
+    ionIdentity.getIonType(); // Kombiniert modification mit adduct / [2M+ACN+Na]+
+    ionIdentity.getIonType().getModification(); // -> ACN
+    ionIdentity.getIonType().getAdduct(); // -> Na+ / Adduct bringt Ladung auf Molekül
+    ionIdentity.getIonType().getMolecules(); // 2 <- Anzahl von M
+
+    // [2M-H+2Na]+
+    ionIdentity.getIonType().getAdduct(); // -> 2Na-H
+    ionIdentity.getIonType().getAdduct().contains(IonModification.NA); // -> 2Na-H
+
+    IonNetwork network = ionIdentity.getNetwork();
 
   }
 }
