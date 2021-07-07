@@ -26,6 +26,7 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -44,8 +45,8 @@ public class FormulaPredictionIonNetworkParameters extends SimpleParameterSet {
       new OptionalModuleParameter<FormulaSortParameters>("Sorting",
           "Apply sorting to all resulting lists", new FormulaSortParameters(true));
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+  public static final ElementsCompositionRangeParameter elements =
+      new ElementsCompositionRangeParameter("Elements", "Elements and ranges");
 
   public static final OptionalModuleParameter elementalRatios =
       new OptionalModuleParameter("Element count heuristics",

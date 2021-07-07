@@ -60,7 +60,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<MassDetector> massDetector =
       new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+          "Algorithm to use for mass detection and its parameters.", massDetectors);
 
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",

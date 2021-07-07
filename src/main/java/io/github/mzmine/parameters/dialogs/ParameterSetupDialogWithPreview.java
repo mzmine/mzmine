@@ -19,7 +19,9 @@
 package io.github.mzmine.parameters.dialogs;
 
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -55,15 +57,31 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
       ParameterSet parameters, String message) {
     super(valueCheckRequired, parameters, message);
 
+    // Iterate over all OptionalModuleParameter's and add listeners to detect changes in their
+    // embedded parameters. In case of any change call this.parametersChanged()
+    for (Parameter<?> parameter : parameters.getParameters()) {
+      if (parameter instanceof OptionalModuleParameter) {
+        ((OptionalModuleParameter<?>) parameter).embeddedParametersChangeProperty()
+            .addListener((observable, oldValue, newValue) -> parametersChanged());
+      }
+    }
+
     paramPreviewSplit = new SplitPane();
+    paramPreviewSplit.getItems().add(mainScrollPane);
     paramPreviewSplit.setOrientation(Orientation.HORIZONTAL);
+    mainPane.setCenter(paramPreviewSplit);
+
     previewWrapperPane = new BorderPane();
     cbShowPreview = new CheckBox();
 
-    paramsPane.add(new Separator(), 0, getNumberOfParameters() + 2, 2, 1);
-    paramsPane.add(new Label("Show preview"), 0, getNumberOfParameters() + 3);
-    paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 3);
+    Label previewLabel = new Label("Show preview");
+    previewLabel.setStyle("-fx-font-style: italic");
+    paramsPane.add(previewLabel, 0, getNumberOfParameters() + 2);
+    paramsPane.add(cbShowPreview, 1, getNumberOfParameters() + 2);
+    paramsPane.setHgap(7d);
+    paramsPane.setVgap(1d);
 
+    cbShowPreview.setDisable(true);
     cbShowPreview.selectedProperty()
         .addListener(((observable, oldValue, newValue) -> showPreview(newValue)));
 
@@ -71,10 +89,7 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   protected void showPreview(boolean show) {
     if (show) {
-      mainPane.setCenter(null);
-      paramPreviewSplit.getItems().addAll(mainScrollPane, previewWrapperPane);
-      previewWrapperPane.setVisible(true);
-      mainPane.setCenter(paramPreviewSplit);
+      paramPreviewSplit.getItems().add(previewWrapperPane);
       mainPane.getScene().getWindow().sizeToScene();
       if (onPreviewShown != null) {
         try {
@@ -83,12 +98,9 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
           e.printStackTrace();
         }
       }
+      paramPreviewSplit.setDividerPosition(0, 0.5);
     } else {
-      mainPane.setCenter(null);
-      paramPreviewSplit.getItems().clear();
-      previewWrapperPane.setVisible(false);
-      mainPane.setCenter(mainScrollPane);
-      mainPane.getScene().getWindow().sizeToScene();
+      paramPreviewSplit.getItems().remove(previewWrapperPane);
     }
   }
 
@@ -102,5 +114,6 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   public void setOnPreviewShown(Runnable onPreviewShown) {
     this.onPreviewShown = onPreviewShown;
+    cbShowPreview.setDisable(false);
   }
 }
