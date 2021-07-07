@@ -49,8 +49,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class FeatureShapeType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeType extends LinkedDataType implements GraphicalColumType<Boolean> {
 
   @NotNull
   @Override
@@ -60,8 +59,7 @@ public class FeatureShapeType extends LinkedDataType
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null) {
       return null;
@@ -94,18 +92,19 @@ public class FeatureShapeType extends LinkedDataType
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> rawDataFiles) {
 
-    List<Feature> features = new ArrayList<>();
-    rawDataFiles.forEach(rawDataFile -> features.add(row.getFeature(rawDataFile)));
-    if (features.isEmpty()) {
-      return null;
-    }
     return () -> {
+      List<Feature> features = new ArrayList<>();
+      rawDataFiles.forEach(rawDataFile -> features.add(row.getFeature(rawDataFile)));
+      if (features.isEmpty()) {
+        return;
+      }
+
       ScanSelection selection = new ScanSelection(1);
       Map<Feature, String> labels = new HashMap<>();
       features.forEach(f -> labels.put(f, FeatureUtils.featureToString(f)));
-      ChromatogramVisualizerModule
+      MZmineCore.runLater(() -> ChromatogramVisualizerModule
           .showNewTICVisualizerWindow(rawDataFiles.toArray(new RawDataFile[0]), features, labels,
-              selection, TICPlotType.BASEPEAK, rawDataFiles.get(0).getDataMZRange(1));
+              selection, TICPlotType.BASEPEAK, rawDataFiles.get(0).getDataMZRange(1)));
     };
   }
 

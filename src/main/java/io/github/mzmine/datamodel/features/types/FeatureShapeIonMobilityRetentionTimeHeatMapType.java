@@ -39,8 +39,8 @@ import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType implements
+    GraphicalColumType<Boolean> {
 
   @NotNull
   @Override
@@ -71,8 +71,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
     StackPane pane = new StackPane();
 
     // TODO stop task if new task is started
-    Task task = new FeatureGraphicalNodeTask(
-        FeatureShapeIonMobilityRetentionTimeHeatMapChart.class, pane, feature, coll.getText());
+    Task task = new FeatureGraphicalNodeTask(FeatureShapeIonMobilityRetentionTimeHeatMapChart.class,
+        pane, feature, coll.getText());
     MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
 
     return pane;
@@ -87,7 +87,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
   @Override
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file) {
-    return () -> MZmineCore.getDesktop()
-        .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0))));
+    return () -> MZmineCore.runLater(() -> MZmineCore.getDesktop()
+        .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
   }
 }
