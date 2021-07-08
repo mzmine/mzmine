@@ -57,7 +57,7 @@ public class FeatureNetworkTab extends MZmineTab {
     mainPane.setMinHeight(300.0);
 
     MenuBar menuBar = new MenuBar();
-    Menu menu = new Menu("Options");
+    Menu menu = new Menu("");
 
     toggleCollapseIons = new CheckMenuItem("Collapse ions");
     toggleCollapseIons.selectedProperty().addListener(

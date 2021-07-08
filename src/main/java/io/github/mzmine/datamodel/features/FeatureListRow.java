@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -27,6 +28,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
+import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.annotation.Nonnull;
@@ -364,5 +366,15 @@ public interface FeatureListRow {
   default boolean hasMs2Fragmentation() {
     // should be faster. Best fragmentation loops through all spectra to find best
     return getAllMS2Fragmentations() != null && !getAllMS2Fragmentations().isEmpty();
+  }
+
+  /**
+   * The intensity summed over all features
+   * @return sum of all feature heights
+   */
+  default double getSumIntensity() {
+    return this.getFeatures().stream().filter(Objects::nonNull)
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(
+        Feature::getHeight).sum();
   }
 }

@@ -19,17 +19,20 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 
+/**
+ * Edge types for the network visualizer and export to graphml
+ */
 public enum EdgeType {
 
-  ION_IDENTITY, NETWORK_RELATIONS, MS2_SIMILARITY, MS2_SIMILARITY_NEUTRAL_M,
+  FEATURE_CORRELATION, ION_IDENTITY, NETWORK_RELATIONS, MS2_SIMILARITY, MS2_SIMILARITY_NEUTRAL_M,
   MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE, MS2_GNPS_COSINE_SIM;
 
   public static EdgeType of(Type type) {
     return switch (type) {
-      case MS1_FEATURE_CORR -> NETWORK_RELATIONS;
+      case MS1_FEATURE_CORR -> FEATURE_CORRELATION;
       case ION_IDENTITY_NET -> ION_IDENTITY;
       case MS2_COSINE_SIM -> MS2_SIMILARITY;
-      case MS2_NEUTRAL_LOSS_SIM -> MS2_SIMILARITY_NEUTRAL_M;
+      case MS2_NEUTRAL_LOSS_SIM -> NETWORK_RELATIONS;
       case MS2_GNPS_COSINE_SIM -> MS2_GNPS_COSINE_SIM;
     };
   }

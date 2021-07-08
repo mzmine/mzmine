@@ -18,9 +18,12 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -30,6 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,28 +46,32 @@ public class FeatureNetworkGenerator {
 
   private static final Logger logger = Logger.getLogger(FeatureNetworkGenerator.class.getName());
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-
   private Graph graph;
-  private R2RMap<RowsRelationship> ms2SimMap;
+  private Map<Type, R2RMap<RowsRelationship>> relationsMaps;
+  private Node neutralNode;
+
 
   public void createNewGraph(FeatureListRow[] rows, Graph graph, boolean onlyBestNetworks,
-      R2RMap<RowsRelationship> ms2SimMap) {
-    this.ms2SimMap = ms2SimMap;
+      Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
+    this.relationsMaps = relationsMaps;
     this.graph = graph;
     logger.info("Adding all annotations to a network");
     if (rows != null) {
+      // ion identity networks are currently not covered in the relations maps
+      // add all IIN
       IonNetwork[] nets = IonNetworkLogic.getAllNetworks(Arrays.asList(rows), onlyBestNetworks);
 
       AtomicInteger added = new AtomicInteger(0);
       for (IonNetwork net : nets) {
-        addNetworkToGraph(rows, net, added);
+        addIonNetwork(net, added);
       }
 
       // add relations
       addNetworkRelationsEdges(nets);
 
-      // add ms2 similarity edges
-      addMS2SimEdges(rows);
+      // add all types of row 2 row relation ships:
+      // cosine similarity etc
+      addRelationshipEdges(relationsMaps);
 
       // add gnps library matches to nodes
       addGNPSLibraryMatchesToNodes(rows);
@@ -85,6 +93,7 @@ public class FeatureNetworkGenerator {
       logger.info("Added " + added.get() + " connections");
     }
   }
+
 
   /**
    * Delete all ion feature nodes that are represented by a neutral M node
@@ -121,16 +130,21 @@ public class FeatureNetworkGenerator {
     logger.info("Added " + n + " GNPS library matches to their respective nodes");
   }
 
-  private void addMS2SimEdges(FeatureListRow[] rows) {
-    if (ms2SimMap != null) {
-      for (int i = 0; i < rows.length - 1; i++) {
-        for (int j = i + 1; j < rows.length; j++) {
-          FeatureListRow a = rows[i];
-          FeatureListRow b = rows[j];
-          RowsRelationship sim = ms2SimMap.get(a, b);
-
-          if (sim != null) {
-            addMS2SimEdges(a, b, sim);
+  /**
+   * Add all row-2-row relationship edges. (e.g., MS2 cosine similarity edges)
+   *
+   * @param relationsMaps
+   */
+  private void addRelationshipEdges(Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
+    if (relationsMaps == null || relationsMaps.isEmpty()) {
+      return;
+    }
+    for (Entry<Type, R2RMap<RowsRelationship>> entry : relationsMaps.entrySet()) {
+      R2RMap<RowsRelationship> r2rMap = entry.getValue();
+      if (r2rMap != null) {
+        for (RowsRelationship rel : r2rMap.values()) {
+          if (rel != null) {
+            addMS2SimEdges(rel.getRowA(), rel.getRowB(), rel);
           }
         }
       }
@@ -140,16 +154,37 @@ public class FeatureNetworkGenerator {
   private void addMS2SimEdges(FeatureListRow ra, FeatureListRow rb, RowsRelationship sim) {
     Node a = getRowNode(ra, true);
     Node b = getRowNode(rb, true);
-    addMS2SimEdges(a, b, sim);
+    addMS2SimEdges(a, b, sim, deltaMZ(ra, rb));
   }
 
-  private void addMS2SimEdges(Node a, Node b, RowsRelationship sim) {
+  private void addMS2SimEdges(Node a, Node b, RowsRelationship sim, double dmz) {
     EdgeType type = EdgeType.of(sim.getType());
-    String edgeName = addNewEdge(a, b, type.toString(), sim.getAnnotation(), false);
-    Edge edge = graph.getEdge(edgeName);
-    edge.setAttribute(EdgeAtt.TYPE.toString(), type);
+    double score = sim.getScore();
+    Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
-    edge.setAttribute(EdgeAtt.SCORE.toString(), sim.getScore());
+    edge.setAttribute(EdgeAtt.SCORE.toString(), score);
+    switch (type) {
+      case MS2_SIMILARITY, MS2_GNPS_COSINE_SIM -> edge
+          .setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
+      case FEATURE_CORRELATION -> edge
+          .setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
+    }
+  }
+
+  private double deltaMZ(FeatureListRow a, FeatureListRow b) {
+    return Math.abs(a.getAverageMZ() - b.getAverageMZ());
+  }
+
+  private String getUIClass(EdgeType type) {
+    return switch (type) {
+      case ION_IDENTITY -> "IIN";
+      case MS2_SIMILARITY,
+          MS2_SIMILARITY_NEUTRAL_M,
+          MS2_SIMILARITY_NEUTRAL_M_TO_FEATURE -> "COSINE";
+      case MS2_GNPS_COSINE_SIM -> "GNPS";
+      case FEATURE_CORRELATION -> "FEATURECORR";
+      case NETWORK_RELATIONS -> "IINREL";
+    };
   }
 
   /**
@@ -188,20 +223,26 @@ public class FeatureNetworkGenerator {
             a = b;
             b = tmp;
           }
+          double dmz = Math.abs(netA.getNeutralMass() - netB.getNeutralMass());
           String edgeLabel = rel.getDescription();
-          String edgeName = addNewEdge(a, b, "relations", edgeLabel, true);
-          Edge edge = graph.getEdge(edgeName);
-          edge.setAttribute("ui.class", "medium");
-          edge.setAttribute(EdgeAtt.TYPE.toString(), EdgeType.NETWORK_RELATIONS);
-          edge.setAttribute(EdgeAtt.LABEL.toString(), edgeLabel);
+          addNewEdge(a, b, EdgeType.NETWORK_RELATIONS, edgeLabel, true, dmz);
         }
       }
     }
   }
 
-  private void addNetworkToGraph(FeatureListRow[] rows, IonNetwork net, AtomicInteger added) {
+  /**
+   * Add ion identity networks. Creates a neutral molecule node as the center and connects all ions
+   * with it.
+   *
+   * @param net   the ion identity network
+   * @param added counts the added nodes
+   */
+  private void addIonNetwork(IonNetwork net, AtomicInteger added) {
+    // create a neutral molecule node if the neutral mass is known
     Node mnode = !net.isUndefined() ? getNeutralMolNode(net, true) : null;
-    // bundle all neutral losses together
+    // bundle all neutral losses together (ion identities where the exact adduct is unknown,e.g.,
+    // if delta mz=18 between two nodes annotates one as [M-H2O+?] and the other as [M+?]
     Node neutralNode = getNeutralLossNode();
 
     // add center neutral M
@@ -210,9 +251,10 @@ public class FeatureNetworkGenerator {
 
       if (e.getValue().getIonType().isModifiedUndefinedAdduct()) {
         // neutral
-        addNewEdge(neutralNode, node, "ions", "", false);
+        addNewEdge(neutralNode, node, EdgeType.ION_IDENTITY, "", false, 0);
       } else if (!e.getValue().getIonType().isUndefinedAdduct() && mnode != null) {
-        addNewDeltaMZEdge(node, mnode, Math.abs(net.getNeutralMass() - e.getKey().getAverageMZ()));
+        addNewDeltaMZEdge(node, mnode, EdgeType.ION_IDENTITY,
+            Math.abs(net.getNeutralMass() - e.getKey().getAverageMZ()));
       }
       added.incrementAndGet();
     });
@@ -235,7 +277,7 @@ public class FeatureNetworkGenerator {
             node2 = tmp;
           }
           // add directed edge
-          addNewDeltaMZEdge(node1, node2,
+          addNewDeltaMZEdge(node1, node2, EdgeType.ION_IDENTITY,
               Math.abs(e.getKey().getAverageMZ() - prow.getAverageMZ()));
           added.incrementAndGet();
         }
@@ -245,7 +287,6 @@ public class FeatureNetworkGenerator {
   }
 
   private Node getNeutralLossNode() {
-    Node neutralNode = graph.getNode("NEUTRAL LOSSES");
     if (neutralNode == null) {
       neutralNode = graph.addNode("NEUTRAL LOSSES");
       neutralNode.setAttribute("ui.class", "NEUTRAL");
@@ -277,7 +318,7 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.NET_ID.toString(), net.getID());
       node.setAttribute(NodeAtt.RT.toString(), net.getAvgRT());
       node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), net.getNeutralMass());
-      node.setAttribute(NodeAtt.INTENSITY.toString(), net.getHeightSum());
+      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), net.getHeightSum());
 
       // all intensitites of all iontypes
       for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
@@ -338,9 +379,13 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.ID.toString(), row.getID());
       node.setAttribute(NodeAtt.RT.toString(), row.getAverageRT());
       node.setAttribute(NodeAtt.MZ.toString(), row.getAverageMZ());
-      node.setAttribute(NodeAtt.INTENSITY.toString(), row.getBestFeature().getHeight());
+      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), row.getBestFeature().getHeight());
+      final double sumIntensity = row.getSumIntensity();
+      node.setAttribute(NodeAtt.SUM_INTENSITY.toString(), sumIntensity);
+      node.setAttribute(NodeAtt.LOG10_SUM_INTENSITY.toString(), Math.log10(sumIntensity));
       node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
       node.setAttribute(NodeAtt.GROUP_ID.toString(), row.getGroupID());
+
       if (esi != null) {
         // undefined is not represented by a neutral M node
         if (esi.getIonType().isUndefinedAdduct()) {
@@ -368,20 +413,31 @@ public class FeatureNetworkGenerator {
     return node;
   }
 
-  private void addNewDeltaMZEdge(Node node1, Node node2, double dmz) {
-    String edgeName = addNewEdge(node1, node2, "ions", "\u0394 " + mzForm.format(dmz), true);
-    graph.getEdge(edgeName).setAttribute(EdgeAtt.TYPE.toString(), EdgeType.ION_IDENTITY);
+  private Edge addNewDeltaMZEdge(Node node1, Node node2, EdgeType type, double dmz) {
+    return addNewEdge(node1, node2, type, "\u0394 " + mzForm.format(dmz), true, dmz);
   }
 
-  public String addNewEdge(Node node1, Node node2, String edgeNameSuffix, Object edgeLabel,
-      boolean directed) {
+  public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label, boolean directed,
+      double dmz) {
+    String uiClass = getUIClass(type);
+    Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
+    e.setAttribute(EdgeAtt.TYPE.toString(), type);
+    e.setAttribute(EdgeAtt.DELTA_MZ.toString(), dmz);
+    return e;
+  }
+
+  public Edge addNewEdge(Node node1, Node node2, String edgeNameSuffix, Object label,
+      boolean directed, String uiClass) {
     String edge = node1.getId() + node2.getId() + edgeNameSuffix;
     Edge e = graph.getEdge(edge);
     if (e == null) {
       e = graph.addEdge(edge, node1, node2, directed);
     }
-    e.setAttribute("ui.label", edgeLabel);
-    e.setAttribute("LABEL", edgeLabel);
-    return edge;
+    e.setAttribute("ui.label", label);
+    e.setAttribute(EdgeAtt.LABEL.toString(), label);
+    if (uiClass != null && !uiClass.isEmpty()) {
+      e.setAttribute("ui.class", uiClass);
+    }
+    return e;
   }
 }

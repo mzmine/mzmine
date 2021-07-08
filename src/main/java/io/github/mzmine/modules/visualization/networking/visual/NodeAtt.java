@@ -17,11 +17,103 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import java.util.List;
+
+/**
+ * Graphstream node attributes
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
 public enum NodeAtt {
 
-  TYPE, RT, MZ, ID, INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID;
+  NONE, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID;
+
   @Override
   public String toString() {
     return super.toString().replaceAll("_", " ");
+  }
+
+  public boolean isNumber() {
+    return switch (this) {
+      case NONE, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION -> false;
+      case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID -> true;
+    };
+  }
+
+  /**
+   * Extract value from row by attribute
+   *
+   * @param row the target row
+   * @return the value from row (if defined and available) or null
+   */
+  public Object getValue(FeatureListRow row) {
+    return switch (this) {
+      case NONE, TYPE, LABEL, MS2_VERIFICATION -> null;
+      case FORMULA -> {
+        List<ResultFormula> formulas = row.getFormulas();
+        yield formulas == null || formulas.isEmpty() ? null : formulas.get(0);
+      }
+      case ION_TYPE -> row.getBestIonIdentity();
+      case RT -> row.getAverageRT();
+      case MZ -> row.getAverageMZ();
+      case ID -> row.getID();
+      case MAX_INTENSITY -> row.getBestFeature().getHeight();
+      case SUM_INTENSITY -> row.getSumIntensity();
+      case LOG10_SUM_INTENSITY -> Math.log10(row.getSumIntensity());
+      case NEUTRAL_MASS -> {
+        IonIdentity ion = row.getBestIonIdentity();
+        yield ion == null ? null : ion.getNetwork().getNeutralMass();
+      }
+      case CHARGE -> row.getRowCharge();
+      case NET_ID -> {
+        IonIdentity ion = row.getBestIonIdentity();
+        yield ion == null ? null : ion.getNetID();
+      }
+      case GROUP_ID -> row.getGroupID();
+    };
+  }
+
+  /**
+   * Formatted string
+   *
+   * @param row the row to extract the data from
+   * @return the formatted string or null
+   */
+  public String getValueString(FeatureListRow row) {
+    return switch (this) {
+      case NONE, TYPE, LABEL, MS2_VERIFICATION -> "";
+      case FORMULA -> {
+        List<ResultFormula> formulas = row.getFormulas();
+        yield formulas == null || formulas.isEmpty() ? "" : formulas.get(0).toString();
+      }
+      case ION_TYPE -> {
+        IonIdentity ion = row.getBestIonIdentity();
+        yield ion == null ? "" : ion.toString();
+      }
+      case RT -> MZmineCore.getConfiguration().getRTFormat().format(row.getAverageRT());
+      case MZ -> MZmineCore.getConfiguration().getMZFormat().format(getValue(row));
+      case ID -> String.valueOf(row.getID());
+      case MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY -> MZmineCore.getConfiguration()
+          .getIntensityFormat().format(getValue(row));
+      case NEUTRAL_MASS -> {
+        IonIdentity ion = row.getBestIonIdentity();
+        yield ion == null ? ""
+            : MZmineCore.getConfiguration().getMZFormat().format(ion.getNetwork().getNeutralMass());
+      }
+      case CHARGE -> String.valueOf(row.getRowCharge());
+      case NET_ID -> {
+        IonIdentity ion = row.getBestIonIdentity();
+        yield ion == null ? "" : String.valueOf(ion.getNetID());
+      }
+      case GROUP_ID -> {
+        int i = row.getGroupID();
+        yield i > -1 ? String.valueOf(i) : "";
+      }
+    };
+
   }
 }

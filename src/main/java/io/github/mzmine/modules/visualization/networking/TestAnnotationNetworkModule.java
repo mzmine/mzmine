@@ -17,6 +17,7 @@
 
 package io.github.mzmine.modules.visualization.networking;
 
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -25,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RSpectralSimilarity;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
+import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -69,6 +71,7 @@ public class TestAnnotationNetworkModule implements MZmineRunnableModule {
     flist.addFeatureType(new RTType());
     flist.addFeatureType(new HeightType());
     flist.addFeatureType(new AreaType());
+    flist.addFeatureType(new DetectionType());
 
     FeatureListRow row = createRow(flist, 1);
     FeatureListRow row2 = createRow(flist, 2);
@@ -90,10 +93,11 @@ public class TestAnnotationNetworkModule implements MZmineRunnableModule {
   private ModularFeatureListRow createRow(ModularFeatureList flist, int i) {
     ModularFeatureListRow row = new ModularFeatureListRow(flist, i);
     ModularFeature f = new ModularFeature(flist);
-    f.setMZ(200d);
-    f.setRT(12.f);
-    f.setHeight(1000);
-    f.setArea(3000);
+    f.setMZ(200d*i);
+    f.setRT(2.5f*i);
+    f.setHeight(1000*(i+1));
+    f.setArea(3000*(i+1));
+    f.set(DetectionType.class, FeatureStatus.DETECTED);
     row.addFeature(flist.getRawDataFile(0), f);
     return row;
   }

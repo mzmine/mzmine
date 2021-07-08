@@ -18,37 +18,50 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
 
+  /**
+   * Max width in graph units. 1 is the distance between nodes
+   */
+  public static final float MAX_NODE_WIDTH_GU = 0.2f;
+  public static final float MIN_NODE_WIDTH_GU = 0.01f;
   private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
-
+  private final EnumMap<GraphStyleAttribute, NodeAtt> dynamicNodeStyle = new EnumMap<>(
+      GraphStyleAttribute.class);
+  // style values need to be set as float - double crashes in the javafx thread for graphstream
+  private final Map<NodeAtt, Range<Float>> attributeRanges = new HashMap<>();
+  // for non numeric values: store all objects and provide indexes
+  private final Map<NodeAtt, Map<String, Integer>> attributeCategoryValuesMap = new HashMap<>();
   private FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
-
   // data
   private FeatureList featureList;
   private FeatureListRow[] rows;
-
   private boolean onlyBest;
   private boolean showNetRelationsEdges;
   private boolean collapse = true;
   private boolean showIonEdges = true;
   private boolean showMs2SimEdges;
-
-  private R2RMap<RowsRelationship> ms2SimMap;
   private Map<Type, R2RMap<RowsRelationship>> relationMaps;
 
 
@@ -67,11 +80,49 @@ public class FeatureNetworkPane extends NetworkPane {
   private void addMenu() {
     Pane menu = getPnSettings();
     menu.setVisible(true);
-    menu.getChildren().add(new Label("Menu"));
 
     showEdgeLabels = false;
     showNodeLabels = true;
     collapse = true;
+
+    // defaults
+    dynamicNodeStyle.put(GraphStyleAttribute.COLOR, NodeAtt.RT);
+    dynamicNodeStyle.put(GraphStyleAttribute.SIZE, NodeAtt.LOG10_SUM_INTENSITY);
+    dynamicNodeStyle.put(GraphStyleAttribute.LABEL, NodeAtt.LABEL);
+    dynamicNodeStyle.put(GraphStyleAttribute.CLASS, null);
+
+    menu.getChildren().add(new Label("Color:"));
+    ComboBox<NodeAtt> comboNodeColor = new ComboBox<>(
+        FXCollections.observableArrayList(NodeAtt.values()));
+    comboNodeColor.setTooltip(new Tooltip("Node color"));
+    comboNodeColor.getSelectionModel().select(NodeAtt.RT);
+    menu.getChildren().add(comboNodeColor);
+    comboNodeColor.setOnAction(e -> {
+      NodeAtt selectedItem = comboNodeColor.getSelectionModel().getSelectedItem();
+      setAttributeForAllNodes(GraphStyleAttribute.COLOR, selectedItem);
+    });
+
+    menu.getChildren().add(new Label("Size:"));
+    ComboBox<NodeAtt> comboNodeSize = new ComboBox<>(
+        FXCollections.observableArrayList(NodeAtt.values()));
+    comboNodeSize.setTooltip(new Tooltip("Node size"));
+    comboNodeSize.getSelectionModel().select(NodeAtt.LOG10_SUM_INTENSITY);
+    menu.getChildren().add(comboNodeSize);
+    comboNodeSize.setOnAction(e -> {
+      NodeAtt selectedItem = comboNodeSize.getSelectionModel().getSelectedItem();
+      setAttributeForAllNodes(GraphStyleAttribute.SIZE, selectedItem);
+    });
+
+    menu.getChildren().add(new Label("Label:"));
+    ComboBox<NodeAtt> comboNodeLabel = new ComboBox<>(
+        FXCollections.observableArrayList(NodeAtt.values()));
+    comboNodeLabel.setTooltip(new Tooltip("Node label"));
+    comboNodeLabel.getSelectionModel().select(NodeAtt.LABEL);
+    menu.getChildren().add(comboNodeLabel);
+    comboNodeLabel.setOnAction(e -> {
+      NodeAtt selectedItem = comboNodeLabel.getSelectionModel().getSelectedItem();
+      setAttributeForAllNodes(GraphStyleAttribute.LABEL, selectedItem);
+    });
 
     ToggleButton toggleCollapseIons = new ToggleButton("Collapse ions");
     toggleCollapseIons.setSelected(collapse);
@@ -112,6 +163,11 @@ public class FeatureNetworkPane extends NetworkPane {
     Button showGNPSMatches = new Button("GNPS matches");
     menu.getChildren().add(showGNPSMatches);
     showGNPSMatches.onMouseClickedProperty().addListener((o, old, value) -> showGNPSMatches());
+  }
+
+  private void setAttributeForAllNodes(GraphStyleAttribute attribute, NodeAtt featureProperty) {
+    dynamicNodeStyle.put(attribute, featureProperty);
+    applyDynamicStyles();
   }
 
   /**
@@ -181,30 +237,13 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
   /**
-   * All the peaklist
-   *
-   * @param featureList
-   */
-  public void setFeatureList(FeatureList featureList) {
-    this.featureList = featureList;
-    if (featureList != null) {
-      relationMaps = featureList.getRowMaps();
-      this.ms2SimMap = featureList.getMs2SimilarityMap();
-      createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new));
-    } else {
-      clear();
-    }
-  }
-
-  /**
    * Array of rows
    *
-   * @param rows
+   * @param rows the new network rows
    */
   public void setFeatureListRows(FeatureListRow[] rows, R2RMap<RowsRelationship> ms2SimMap) {
     featureList = null;
     this.rows = rows;
-    this.ms2SimMap = ms2SimMap;
     if (rows != null) {
       createNewGraph(rows);
     } else {
@@ -212,17 +251,182 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
+  @Override
+  public void clear() {
+    super.clear();
+  }
+
   public void createNewGraph(FeatureListRow[] rows) {
+    this.rows = rows;
+    attributeRanges.clear();
+    attributeCategoryValuesMap.clear();
+
     clear();
-    generator.createNewGraph(rows, graph, onlyBest, ms2SimMap);
+    generator.createNewGraph(rows, graph, onlyBest, relationMaps);
     clearSelections();
     showEdgeLabels(showEdgeLabels);
     showNodeLabels(showNodeLabels);
 
     // last state
     collapseIonNodes(collapse);
+
+    // apply dynamic style
+    applyDynamicStyles();
   }
 
+  private void applyDynamicStyles() {
+    NodeAtt nodeAttSize = dynamicNodeStyle.get(GraphStyleAttribute.SIZE);
+    NodeAtt nodeAttColor = dynamicNodeStyle.get(GraphStyleAttribute.COLOR);
+    NodeAtt nodeAttLabel = dynamicNodeStyle.get(GraphStyleAttribute.LABEL);
+
+    // min / max values of the specific attributes
+    final Range<Float> sizeValueRange = nodeAttSize.isNumber() ? attributeRanges
+        .computeIfAbsent(nodeAttSize, nodeAtt -> computeValueRange(rows, nodeAttSize)) : null;
+    final Range<Float> colorValueRange = nodeAttColor.isNumber() ? attributeRanges
+        .computeIfAbsent(nodeAttColor, nodeAtt -> computeValueRange(rows, nodeAttColor)) : null;
+
+    // for non numeric values - give each Object an index
+    final Map<String, Integer> sizeValueMap = nodeAttSize.isNumber() ? null
+        : attributeCategoryValuesMap
+            .computeIfAbsent(nodeAttSize, att -> indexAllValues(rows, nodeAttSize));
+    final int numSizeValues = sizeValueMap == null ? 0 : sizeValueMap.size();
+
+    final Map<String, Integer> colorValueMap =
+        nodeAttColor.isNumber() ? null : attributeCategoryValuesMap
+            .computeIfAbsent(nodeAttColor, att -> indexAllValues(rows, nodeAttColor));
+    final int numColorValues = colorValueMap == null ? 0 : colorValueMap.size();
+
+    for (Node node : graph) {
+      // label
+      try {
+        // make colors a gradient
+        Object value = node.getAttribute(nodeAttLabel.toString());
+        String label = value == null ? "" : value.toString();
+        node.setAttribute("ui.label", label);
+      } catch (Exception ex) {
+        logger.log(Level.SEVERE, "Error while setting label attribute. " + ex.getMessage(), ex);
+      }
+
+      // color
+      try {
+        if (nodeAttColor == NodeAtt.NONE) {
+          node.removeAttribute("ui.class");
+        } else {
+          // make colors a gradient
+          Object colorValue = node.getAttribute(nodeAttColor.toString());
+          if (colorValue != null) {
+            node.setAttribute("ui.class", "GRADIENT");
+            // differentiate between numeric values and a list of discrete values
+            if (colorValueRange != null) {
+              final float interpolated = interpolateIntensity(Float.valueOf(colorValue.toString()),
+                  colorValueRange.lowerEndpoint(), colorValueRange.upperEndpoint());
+              node.setAttribute("ui.color", interpolated);
+            } else if (colorValueMap != null) {
+              // non numeric values - use index
+              int index = colorValueMap.getOrDefault(colorValue, 0);
+              node.setAttribute("ui.color", index / (float) numColorValues);
+            }
+          }
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Error while setting color attribute. " + ex.getMessage(), ex);
+        logger.log(Level.SEVERE, ex.getMessage(), ex);
+      }
+
+      // set size
+      try {
+        // make colors a gradient
+        Object sizeValue = node.getAttribute(nodeAttSize.toString());
+        if (sizeValue != null) {
+          // differentiate between numeric values and a list of discrete values
+          float size = 0;
+          if (sizeValueRange != null) {
+            size = interpolateIntensity(Float.valueOf(sizeValue.toString()),
+                sizeValueRange.lowerEndpoint(),
+                sizeValueRange.upperEndpoint());
+          } else if (sizeValueMap != null) {
+            // non numeric values - use index
+            int index = sizeValueMap.getOrDefault(sizeValue, 0);
+            size = index / (float) numSizeValues;
+          }
+          size = Math.max(MIN_NODE_WIDTH_GU * 5, size * MAX_NODE_WIDTH_GU * 5);
+          // set as graphical units for zoom effect
+          // otherwise use fixed number of pixels
+          node.setAttribute("ui.size", size + "gu");
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Error while setting size attribute. " + ex.getMessage(), ex);
+      }
+    }
+  }
+
+  /**
+   * Index all objects found in all rows for an attribute
+   *
+   * @param rows      all rows in the network
+   * @param attribute the node attribute for this row
+   * @return map of all objects found and their idexes in their original order
+   */
+  private Map<String, Integer> indexAllValues(FeatureListRow[] rows, NodeAtt attribute) {
+    Map<String, Integer> map = new HashMap<>();
+    int currentIndex = 0;
+    for (FeatureListRow row : rows) {
+      try {
+        String object = attribute.getValueString(row);
+        if (object == null) {
+          continue;
+        }
+        if (!map.containsKey(object)) {
+          map.put(object, currentIndex);
+          currentIndex++;
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, ex.getMessage(), ex);
+      }
+    }
+    return map;
+  }
+
+  private Range<Float> computeValueRange(FeatureListRow[] rows, NodeAtt attribute) {
+    float min = Float.POSITIVE_INFINITY;
+    float max = Float.NEGATIVE_INFINITY;
+
+    for (FeatureListRow row : rows) {
+      try {
+        Object object = attribute.getValue(row);
+        if (object == null) {
+          continue;
+        }
+        float value = Float.valueOf(object.toString());
+        if (value < min) {
+          min = value;
+        }
+        if (value > max) {
+          max = value;
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, ex.getMessage(), ex);
+      }
+    }
+
+    if (Float.compare(Float.POSITIVE_INFINITY, min) == 0) {
+      min = 0;
+    }
+    if (Float.compare(Float.NEGATIVE_INFINITY, max) == 0) {
+      max = 1;
+    }
+    return Range.closed(min, max);
+  }
+
+  /**
+   * ratio (0-1) between min and maxIntensity
+   *
+   * @param value the intensity value
+   * @return a value between 0-1 (including)
+   */
+  protected float interpolateIntensity(float value, float min, float max) {
+    return (float) Math.min(1.0, Math.max(0.0, (value - min) / (max - min)));
+  }
 
   public void setSelectedRow(FeatureListRow row) {
     String node = generator.toNodeName(row);
@@ -245,7 +449,6 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
-
   public void setConnectByNetRelations(boolean connectByNetRelations) {
     this.showNetRelationsEdges = connectByNetRelations;
     collapseIonNodes(collapse);
@@ -267,4 +470,20 @@ public class FeatureNetworkPane extends NetworkPane {
   public FeatureList getFeatureList() {
     return featureList;
   }
+
+  /**
+   * All the peaklist
+   *
+   * @param featureList
+   */
+  public void setFeatureList(FeatureList featureList) {
+    this.featureList = featureList;
+    if (featureList != null) {
+      relationMaps = featureList.getRowMaps();
+      createNewGraph(featureList.getRows().toArray(FeatureListRow[]::new));
+    } else {
+      clear();
+    }
+  }
+
 }

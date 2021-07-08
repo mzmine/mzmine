@@ -17,18 +17,23 @@
 
 package io.github.mzmine.modules.visualization.networking.visual;
 
-public enum EdgeAtt {
+/**
+ * Graphstream style attributes
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum GraphStyleAttribute {
+  COLOR, SIZE, LABEL, CLASS;
 
-  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ;
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
-  }
-
-  public boolean isNumber() {
+  /**
+   * UI attribute String to access or set the attribute in graph stream
+   * @return
+   */
+  public String getUIString(){
     return switch (this) {
-      case TYPE, LABEL -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ -> true;
+      case COLOR -> "ui.color";
+      case SIZE -> "ui.size";
+      case LABEL -> "ui.label";
+      case CLASS -> "ui.class";
     };
   }
 }
