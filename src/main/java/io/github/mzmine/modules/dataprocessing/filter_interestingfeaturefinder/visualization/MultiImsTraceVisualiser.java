@@ -154,6 +154,9 @@ public class MultiImsTraceVisualiser extends BorderPane {
 
     for (ModularFeature feature : features) {
       var clr = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+      if(clr.equals(javafx.scene.paint.Color.BLACK)) {
+        clr = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
+      }
 
       final var ionTrace = new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(
           (IonMobilogramTimeSeries) feature.getFeatureData(), FeatureUtils.featureToString(feature),

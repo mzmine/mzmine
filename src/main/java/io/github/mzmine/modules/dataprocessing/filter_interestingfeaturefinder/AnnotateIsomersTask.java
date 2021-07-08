@@ -19,26 +19,33 @@
 package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class AnnotateIsomersTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(AnnotateIsomersTask.class.getName());
 
   private final MZmineProject project;
   private final ParameterSet parameters;
@@ -50,6 +57,9 @@ public class AnnotateIsomersTask extends AbstractTask {
   private String description;
   private int processed = 0;
   private int totalRows;
+  private final MobilityTolerance multimerRecognitionTolerance;
+  private final boolean refineByIIN;
+
 
   public AnnotateIsomersTask(MemoryMapStorage storage, @NotNull MZmineProject project,
       @NotNull ParameterSet parameters, ModularFeatureList flist) {
@@ -66,6 +76,11 @@ public class AnnotateIsomersTask extends AbstractTask {
         .getParameter(parameters.getParameter(AnnotateIsomersParameters.mzTolerance)).getValue();
     rtTolerance = parameters.getParameter(AnnotateIsomersParameters.rtTolerance).getValue();
     maxChangePercentage = parameters.getParameter(AnnotateIsomersParameters.maxMobilityChange)
+        .getValue();
+    refineByIIN = parameters.getParameter(AnnotateIsomersParameters.multimerRecognitionTolerance)
+        .getValue();
+    multimerRecognitionTolerance = parameters
+        .getParameter(AnnotateIsomersParameters.multimerRecognitionTolerance).getEmbeddedParameter()
         .getValue();
 
     // todo maximum mobility difference
@@ -113,12 +128,16 @@ public class AnnotateIsomersTask extends AbstractTask {
         ModularFeatureListRow possibleRow = rowIterator.next();
         final float mobility = possibleRow.getAverageMobility();
 
-        final double percChange = 1 - Math.min(mobility, refMobility) / Math.max(mobility, refMobility);
+        final double percChange =
+            1 - Math.min(mobility, refMobility) / Math.max(mobility, refMobility);
         if (percChange > maxChangePercentage) {
           rowIterator.remove();
         }
 
-        // todo check IIN
+      }
+
+      if (refineByIIN) {
+        refineResultsByIIN(row, possibleRows);
       }
 
       if (possibleRows.isEmpty()) {
@@ -127,6 +146,10 @@ public class AnnotateIsomersTask extends AbstractTask {
 
       row.set(PossibleIsomerType.class,
           possibleRows.stream().map(ModularFeatureListRow::getID).toList());
+
+      if(isCanceled()) {
+        return;
+      }
     }
 
     flist.getAppliedMethods()
@@ -139,7 +162,7 @@ public class AnnotateIsomersTask extends AbstractTask {
     if (!row.hasIonIdentity()) {
       return;
     }
-
+/*
     // Identität in einem IIN
     final IonIdentity ionIdentity = row.getBestIonIdentity();
 
@@ -152,9 +175,49 @@ public class AnnotateIsomersTask extends AbstractTask {
 
     // [2M-H+2Na]+
     ionIdentity.getIonType().getAdduct(); // -> 2Na-H
-    ionIdentity.getIonType().getAdduct().contains(IonModification.NA); // -> 2Na-H
+    ionIdentity.getIonType().getAdduct().contains(IonModification.NA); // -> 2Na-H*/
 
-    IonNetwork network = ionIdentity.getNetwork();
+    final Float rowMobility = row.getAverageMobility();
+    final IonIdentity rowIdentity = row.getBestIonIdentity();
+    final int rowMoleculeCount = rowIdentity.getIonType().getMolecules();
 
+    if (rowIdentity == null) {
+      return;
+    }
+
+    if(("" + row.getAverageMZ()).contains("344.11")) {
+      logger.finest("test");
+    }
+    // todo this checks the wrong thing.
+    final IonNetwork network = rowIdentity.getNetwork();
+    for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
+      final ModularFeatureListRow networkRow = (ModularFeatureListRow) entry.getKey();
+
+      final IonIdentity networkIndentity = entry.getValue();
+
+      final IonType networkIonType = networkIndentity.getIonType();
+      if (networkIonType.getMolecules() > rowMoleculeCount && multimerRecognitionTolerance
+          .checkWithinTolerance(rowMobility, networkRow.getAverageMobility())) {
+        if(networkIndentity.getIonType().getAdduct()
+            .contains(rowIdentity.getIonType().getAdduct())) {
+          /*logger.finest(String.format("Adduct 1: %s\tAdduct 2: %s\t",
+              rowIdentity.getIonType().getAdduct().getParsedName(),
+              networkIndentity.getIonType().getAdduct().getParsedName()));*/
+          /*logger.finest(() -> String
+              .format("m/z %.4f (%s) is a monomer of m/z %.4f (%s)", row.getAverageMZ(),
+                  rowIdentity.toString(), networkRow.getAverageMZ(), networkIndentity.toString()));*/
+          logger.finest("Contains: " + networkIndentity.getIonType().getAdduct()
+              .contains(rowIdentity.getIonType().getAdduct()));
+//          logger.finest();
+
+          if(possibleIsomery.remove(networkRow)) {
+            logger.finest("Removed");
+          }
+        }
+
+        var pars1 = FormulaUtils.parseFormula(rowIdentity.toString());
+        var pars2 = FormulaUtils.parseFormula(networkIndentity.toString());
+      }
+    }
   }
 }

@@ -19,11 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class AnnotateIsomersParameters extends SimpleParameterSet {
 
@@ -38,7 +42,20 @@ public class AnnotateIsomersParameters extends SimpleParameterSet {
       "Specifies the maximum change of mobility for a possible isomer.\nUsed to rule out fragmented multimers.",
       0.2);
 
+  public static final OptionalParameter<MobilityToleranceParameter> multimerRecognitionTolerance = new OptionalParameter<>(
+      new MobilityToleranceParameter("Skip multimer fragments",
+          "If checked, the results will be refined to not falsely annotate fragments of\n"
+              + "multimers as isomeric compounds. Requires prior use of the Ion identity networking\n"
+              + "module. The given tolerance will be applied between a possible multimer and the\n"
+              + "multimer fragment."));
+
   public AnnotateIsomersParameters() {
-    super(new Parameter[]{featureLists, mzTolerance, rtTolerance, maxMobilityChange});
+    super(new Parameter[]{featureLists, mzTolerance, rtTolerance, maxMobilityChange,
+        multimerRecognitionTolerance});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.ONLY;
   }
 }

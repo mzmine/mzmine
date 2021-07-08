@@ -91,8 +91,10 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
         }
       }
 
-      tab.setFeatures(features);
-      MZmineCore.getDesktop().addTab(tab);
+      MZmineCore.runLater(() -> {
+        tab.setFeatures(features);
+        MZmineCore.getDesktop().addTab(tab);
+      });
     };
   }
 }
