@@ -77,6 +77,7 @@ public class ParameterSetupDialog extends Stage {
   protected final ButtonBar pnlButtons;
   // Footer message
   protected final String footerMessage;
+
   /**
    * This single panel contains a grid of all the components of this dialog. Row number 100 contains
    * all the buttons of the dialog. Derived classes may add their own components such as previews to
@@ -428,5 +429,9 @@ public class ParameterSetupDialog extends Stage {
    */
   public BooleanProperty parametersChangeProperty() {
     return parametersChangeProperty;
+  }
+
+  public GridPane getParamsPane() {
+    return paramsPane;
   }
 }
