@@ -18,7 +18,9 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
+import com.google.common.primitives.Doubles;
 import java.text.NumberFormat;
+import java.util.List;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
@@ -41,8 +43,11 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
   protected NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
+  private final List<Double> xCoords;
+
   public SpectraItemLabelGenerator(SpectraPlot plot) {
     this.plot = plot;
+    this.xCoords = plot.getLabelsXCoords();
   }
 
   /**
@@ -87,6 +92,14 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
         return null;
 
     }
+
+    // If the label having near x coordinate was already generated, do not generate a new overlapping one
+    for (double xCoord : xCoords) {
+      if (Doubles.compare(originalX, xCoord) != 0 && Math.abs(originalX - xCoord) / xLength < 0.05) {
+        return null;
+      }
+    }
+    xCoords.add(originalX);
 
     // Create label
     String label = null;

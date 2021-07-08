@@ -22,6 +22,8 @@ import io.github.mzmine.gui.chartbasics.ChartLogics;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -34,7 +36,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -102,6 +103,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private boolean processingAllowed;
 
   protected EStandardChartTheme theme;
+
+  /**
+   * List containing x coordinates of item labels for all datasets. The list is supposed to be
+   * updated by {@link SpectraItemLabelGenerator}.
+   */
+  private final List<Double> labelsXCoords = new ArrayList<>();
 
   public SpectraPlot() {
     this(false);
@@ -231,6 +238,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
+
+    // If the plot is changed then clear the list containing label coordinates. New values will be
+    // added by the SpectraItemLabelGenerator
+    getChart().getXYPlot().addChangeListener(event -> labelsXCoords.clear());
   }
 
 
@@ -584,5 +595,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public void setCursorPosition(SpectrumCursorPosition cursorPosition) {
     this.cursorPosition.set(cursorPosition);
+  }
+
+  public List<Double> getLabelsXCoords() {
+    return labelsXCoords;
   }
 }
