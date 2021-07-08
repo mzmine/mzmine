@@ -31,7 +31,7 @@ public class DetectIsotopesParameter extends SimpleParameterSet {
   public static final ElementsParameter elements = new ElementsParameter("Chemical elements",
       "Chemical elements which isotopes will be considered");
 
-  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter isotopeMzTolerance = new MZToleranceParameter(0.0005, 10);
 
   public static final IntegerParameter maxCharge = new IntegerParameter("Maximum charge of isotope m/z",
       "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
