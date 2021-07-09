@@ -69,6 +69,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private boolean collapse = true;
   private boolean showIonEdges = true;
   private boolean showMs2SimEdges;
+  private boolean ms1FeatureShapeEdges = false;
 
 
   /**
@@ -268,7 +269,7 @@ public class FeatureNetworkPane extends NetworkPane {
     attributeCategoryValuesMap.clear();
 
     clear();
-    generator.createNewGraph(rows, graph, onlyBest, relationMaps);
+    generator.createNewGraph(rows, graph, onlyBest, relationMaps, ms1FeatureShapeEdges);
     clearSelections();
     showEdgeLabels(showEdgeLabels);
     showNodeLabels(showNodeLabels);
@@ -494,4 +495,7 @@ public class FeatureNetworkPane extends NetworkPane {
     }
   }
 
+  public void setUseMs1FeatureShapeEdges(boolean ms1FeatureShapeEdges) {
+    this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
+  }
 }

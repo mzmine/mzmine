@@ -85,13 +85,14 @@ public class FeatureNetworkTab extends MZmineTab {
   }
 
   public FeatureNetworkTab(FeatureList featureList, boolean collapseNodes, boolean connectByNetRelations,
-      boolean onlyBest, boolean ms2SimEdges) {
+      boolean onlyBest, boolean ms2SimEdges, boolean ms1FeatureShapeEdges) {
     this();
     toggleCollapseIons.setSelected(collapseNodes);
     contentPane.collapseIonNodes(collapseNodes);
     contentPane.setConnectByNetRelations(connectByNetRelations);
     contentPane.setOnlyBest(onlyBest);
     contentPane.setShowMs2SimEdges(ms2SimEdges);
+    contentPane.setUseMs1FeatureShapeEdges(ms1FeatureShapeEdges);
     // last, as it recreates the graph
     contentPane.setFeatureList(featureList);
   }

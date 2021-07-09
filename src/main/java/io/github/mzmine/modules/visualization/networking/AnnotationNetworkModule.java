@@ -62,9 +62,11 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
         parameters.getParameter(AnnotationNetworkParameters.COLLAPSE_NODES).getValue();
     boolean ms2SimEdges =
         parameters.getParameter(AnnotationNetworkParameters.MS2_SIMILARITY_EDGES).getValue();
+    boolean ms1FeatureShapeEdges =
+        parameters.getParameter(AnnotationNetworkParameters.MS1_SIMILARITY_EDGES).getValue();
     if (pkls != null && pkls.length > 0) {
       FeatureNetworkTab f = new FeatureNetworkTab(pkls[0], collapseNodes,
-          connectByNetRelations, onlyBest, ms2SimEdges);
+          connectByNetRelations, onlyBest, ms2SimEdges, ms1FeatureShapeEdges);
       MZmineCore.getDesktop().addTab(f);
       return ExitCode.OK;
     }

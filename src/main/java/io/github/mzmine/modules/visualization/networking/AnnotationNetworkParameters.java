@@ -32,6 +32,10 @@ public class AnnotationNetworkParameters extends SimpleParameterSet {
   public static final BooleanParameter COLLAPSE_NODES = new BooleanParameter("Collapse nodes",
       "Collapse all nodes into neutral molecule nodes", true);
 
+  public static final BooleanParameter MS1_SIMILARITY_EDGES =
+      new BooleanParameter("MS1 feature edges", "Include feature correlation edges", false);
+
+
   public static final BooleanParameter MS2_SIMILARITY_EDGES =
       new BooleanParameter("MS2 similarity edges", "Show MS2 similarity edges", true);
 
@@ -46,7 +50,7 @@ public class AnnotationNetworkParameters extends SimpleParameterSet {
    * Create the parameter set.
    */
   public AnnotationNetworkParameters() {
-    super(new Parameter[] {PEAK_LISTS, ONLY_BEST_NETWORKS, COLLAPSE_NODES, CONNECT_BY_NET_RELATIONS,
-        MS2_SIMILARITY_EDGES});
+    super(new Parameter[]{PEAK_LISTS, ONLY_BEST_NETWORKS, COLLAPSE_NODES, CONNECT_BY_NET_RELATIONS,
+        MS1_SIMILARITY_EDGES, MS2_SIMILARITY_EDGES});
   }
 }

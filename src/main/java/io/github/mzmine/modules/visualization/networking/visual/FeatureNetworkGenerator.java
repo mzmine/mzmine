@@ -51,12 +51,14 @@ public class FeatureNetworkGenerator {
   private Graph graph;
   private Map<Type, R2RMap<RowsRelationship>> relationsMaps;
   private Node neutralNode;
+  private boolean ms1FeatureShapeEdges;
 
 
   public void createNewGraph(FeatureListRow[] rows, Graph graph, boolean onlyBestNetworks,
-      Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
+      Map<Type, R2RMap<RowsRelationship>> relationsMaps, boolean ms1FeatureShapeEdges) {
     this.relationsMaps = relationsMaps;
     this.graph = graph;
+    this.ms1FeatureShapeEdges = ms1FeatureShapeEdges;
     logger.info("Adding all annotations to a network");
     if (rows != null) {
       // ion identity networks are currently not covered in the relations maps
@@ -252,7 +254,8 @@ public class FeatureNetworkGenerator {
     }
     for (Entry<Type, R2RMap<RowsRelationship>> entry : relationsMaps.entrySet()) {
       R2RMap<RowsRelationship> r2rMap = entry.getValue();
-      if (r2rMap != null) {
+      // do not add MS1 correlation
+      if (r2rMap != null && (ms1FeatureShapeEdges || !entry.getKey().equals(Type.MS1_FEATURE_CORR))) {
         for (RowsRelationship rel : r2rMap.values()) {
           if (rel != null) {
             addMS2SimEdges(rel.getRowA(), rel.getRowB(), rel);

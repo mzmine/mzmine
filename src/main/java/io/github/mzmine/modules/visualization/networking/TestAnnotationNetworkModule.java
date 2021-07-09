@@ -84,7 +84,7 @@ public class TestAnnotationNetworkModule implements MZmineRunnableModule {
     flist.addRowsRelationship(row2, row3, new R2RSpectralSimilarity(row2, row3, Type.MS2_COSINE_SIM, new SpectralSimilarity(0.8, 2)));
 
       FeatureNetworkTab f = new FeatureNetworkTab(flist, false,
-          true, true, true);
+          true, true, true, false);
       MZmineCore.getDesktop().addTab(f);
       return ExitCode.OK;
   }
