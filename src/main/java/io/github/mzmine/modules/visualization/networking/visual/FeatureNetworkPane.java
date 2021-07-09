@@ -44,8 +44,8 @@ public class FeatureNetworkPane extends NetworkPane {
   /**
    * Max width in graph units. 1 is the distance between nodes
    */
-  public static final float MAX_NODE_WIDTH_GU = 0.2f;
-  public static final float MIN_NODE_WIDTH_GU = 0.01f;
+  public static final float MAX_NODE_WIDTH_GU = 0.3f;
+  public static final float MIN_NODE_WIDTH_GU = 0.02f;
   private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
 
   // currently set dynamic node styles like color, size, label
@@ -359,7 +359,7 @@ public class FeatureNetworkPane extends NetworkPane {
               int index = sizeValueMap.getOrDefault(sizeValue, 0);
               size = index / (float) numSizeValues;
             }
-            size = Math.max(MIN_NODE_WIDTH_GU * 5, size * MAX_NODE_WIDTH_GU * 5);
+            size = Math.max(MIN_NODE_WIDTH_GU, size * MAX_NODE_WIDTH_GU);
             // set as graphical units for zoom effect
             // otherwise use fixed number of pixels
             node.setAttribute("ui.size", size + "gu");

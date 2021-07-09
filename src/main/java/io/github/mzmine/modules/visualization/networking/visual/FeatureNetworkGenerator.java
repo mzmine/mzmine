@@ -18,8 +18,6 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
@@ -32,13 +30,17 @@ import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation
 import io.github.mzmine.main.MZmineCore;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.graphstream.graph.Edge;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 
@@ -73,6 +75,9 @@ public class FeatureNetworkGenerator {
       // cosine similarity etc
       addRelationshipEdges(relationsMaps);
 
+      // connect representative edges to neutral molecule nodes from IINs
+      addConsensusEdgesToMoleculeNodes(relationsMaps);
+
       // add gnps library matches to nodes
       addGNPSLibraryMatchesToNodes(rows);
 
@@ -94,6 +99,112 @@ public class FeatureNetworkGenerator {
     }
   }
 
+  /**
+   * Last step to add consensus edges for each EdgeType to the neutral molecule node of each IIN.
+   *
+   * @param relationsMaps
+   */
+  private void addConsensusEdgesToMoleculeNodes(Map<Type, R2RMap<RowsRelationship>> relationsMaps) {
+    HashSet<IonNetwork> finalizedNetworks = new HashSet<>();
+    List<ConsensusEdge> consensusEdges = new ArrayList<>();
+
+    for (Node node : graph) {
+      IonNetwork net = getIonNetwork(node);
+      if (net == null || finalizedNetworks.contains(net)) {
+        // never do ion networks twice
+        continue;
+      } else {
+        Node mnode = getNeutralMolNode(net, false);
+        if(mnode == null) {
+          continue;
+        }
+        consensusEdges.clear();
+        //
+        for (FeatureListRow row : net.keySet()) {
+          Node rowNode = getRowNode(row, false);
+          rowNode.edges().forEach(edge -> {
+            EdgeType edgeType = edge.getAttribute(EdgeAtt.TYPE.toString(), EdgeType.class);
+            if (edgeType != null && edgeType != EdgeType.ION_IDENTITY) {
+              // find the second node
+              final Node secondNode = findSecondNodeConnectedTo(net, edge);
+              if (secondNode != null) {
+                // compare to best edge of this type
+                boolean added = false;
+                for (ConsensusEdge consensusEdge : consensusEdges) {
+                  if (consensusEdge.matches(mnode, secondNode, edge)) {
+                    consensusEdge.add(edge);
+                    added = true;
+                    break;
+                  }
+                }
+                if (!added) {
+                  consensusEdges.add(new ConsensusEdge(mnode, secondNode, edge));
+                }
+              }
+            }
+          });
+        }
+        // Add consensus edges
+        for (ConsensusEdge e : consensusEdges) {
+          Edge edge = addNewEdge(e.getA(), e.getB(), e.getType(), e.getAnnotation(), false);
+          edge.setAttribute(EdgeAtt.SCORE.toString(), e.getScore());
+          edge.setAttribute(EdgeAtt.NUMBER_OF_COLLAPSED_EDGES.toString(), e.getNumberOfEdges());
+        }
+        // set network as finalized
+        finalizedNetworks.add(net);
+      }
+    }
+  }
+
+  /**
+   * Finds the representative node connected to this IonNetwork
+   *
+   * @param net  the base ion network
+   * @param edge the edge of an ion identity (feature) of net to another node
+   * @return A node or null
+   */
+  private Node findSecondNodeConnectedTo(IonNetwork net, Edge edge) {
+    IonNetwork netA = getIonNetwork(edge.getNode0());
+    if (netA == null) {
+      // found a node without IIN
+      return edge.getNode0();
+    } else if (!net.equals(netA)) {
+      // found another IIN: only add if net has smallest ID to avoid duplicate edges
+      return net.getID() < netA.getID() ? getNeutralMolNode(netA, false) : null;
+    }
+
+    netA = getIonNetwork(edge.getNode1());
+    if (netA == null) {
+      // found a node without IIN
+      return edge.getNode1();
+    } else if (!net.equals(netA)) {
+      // found another IIN: only add if net has smallest ID to avoid duplicate edges
+      return net.getID() < netA.getID() ? getNeutralMolNode(netA, false) : null;
+    }
+    return null;
+  }
+
+  private IonNetwork getIonNetwork(Node node) {
+    FeatureListRow row = node.getAttribute(NodeAtt.ROW.toString(), FeatureListRow.class);
+    if (row != null) {
+      IonIdentity ion = row.getBestIonIdentity();
+      return ion != null ? ion.getNetwork() : null;
+    }
+    return null;
+  }
+
+  /**
+   * Get the attribute value or null
+   *
+   * @param element      node, edge, or sprite element
+   * @param attribute    the attribute
+   * @param defaultValue the default value in case of null
+   * @return the value or default value in case of null
+   */
+  <T> T get(Element element, EdgeAtt attribute, T defaultValue) {
+    T value = (T) element.getAttribute(attribute.toString(), defaultValue.getClass());
+    return value == null ? defaultValue : value;
+  }
 
   /**
    * Delete all ion feature nodes that are represented by a neutral M node
@@ -373,6 +484,7 @@ public class FeatureNetworkGenerator {
 
       node = graph.addNode(toNodeName(row));
       node.setAttribute(NodeAtt.LABEL.toString(), label);
+      node.setAttribute(NodeAtt.ROW.toString(), row);
       node.setAttribute("ui.label", label);
       node.setAttribute(NodeAtt.TYPE.toString(),
           esi != null ? NodeType.ION_FEATURE : NodeType.SINGLE_FEATURE);
@@ -423,6 +535,14 @@ public class FeatureNetworkGenerator {
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
     e.setAttribute(EdgeAtt.DELTA_MZ.toString(), dmz);
+    return e;
+  }
+
+  public Edge addNewEdge(Node node1, Node node2, EdgeType type, Object label,
+      boolean directed) {
+    String uiClass = getUIClass(type);
+    Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
+    e.setAttribute(EdgeAtt.TYPE.toString(), type);
     return e;
   }
 

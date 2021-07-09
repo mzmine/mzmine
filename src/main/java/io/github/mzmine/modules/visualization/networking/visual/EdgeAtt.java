@@ -19,7 +19,8 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 public enum EdgeAtt {
 
-  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ;
+  SCORE, SIM_N, TYPE, LABEL, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES;
+
   @Override
   public String toString() {
     return super.toString().replaceAll("_", " ");
@@ -28,7 +29,7 @@ public enum EdgeAtt {
   public boolean isNumber() {
     return switch (this) {
       case TYPE, LABEL -> false;
-      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ -> true;
+      case SCORE, SIM_N, GNPS_SCORE, DIFF_SCORE, SIM_SCORE, DIFF_N, DELTA_MZ, NUMBER_OF_COLLAPSED_EDGES -> true;
     };
   }
 }

@@ -30,7 +30,8 @@ import java.util.List;
  */
 public enum NodeAtt {
 
-  NONE, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA, NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID;
+  NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA,
+  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID;
 
   @Override
   public String toString() {
@@ -39,7 +40,7 @@ public enum NodeAtt {
 
   public boolean isNumber() {
     return switch (this) {
-      case NONE, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION -> false;
+      case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION -> false;
       case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID -> true;
     };
   }
@@ -52,6 +53,7 @@ public enum NodeAtt {
    */
   public Object getValue(FeatureListRow row) {
     return switch (this) {
+      case ROW -> row;
       case NONE, TYPE, LABEL, MS2_VERIFICATION -> null;
       case FORMULA -> {
         List<ResultFormula> formulas = row.getFormulas();
@@ -85,7 +87,7 @@ public enum NodeAtt {
    */
   public String getValueString(FeatureListRow row) {
     return switch (this) {
-      case NONE, TYPE, LABEL, MS2_VERIFICATION -> "";
+      case NONE, ROW, TYPE, LABEL, MS2_VERIFICATION -> "";
       case FORMULA -> {
         List<ResultFormula> formulas = row.getFormulas();
         yield formulas == null || formulas.isEmpty() ? "" : formulas.get(0).toString();
