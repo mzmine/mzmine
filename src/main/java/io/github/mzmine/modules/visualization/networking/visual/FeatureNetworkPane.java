@@ -288,74 +288,79 @@ public class FeatureNetworkPane extends NetworkPane {
     // for non numeric values - give each Object an index
     final Map<String, Integer> sizeValueMap = nodeAttSize.isNumber() ? null
         : attributeCategoryValuesMap
-            .computeIfAbsent(nodeAttSize, att -> indexAllValues(rows, nodeAttSize));
+            .computeIfAbsent(nodeAttSize, att -> indexAllValues(nodeAttSize));
     final int numSizeValues = sizeValueMap == null ? 0 : sizeValueMap.size();
 
     final Map<String, Integer> colorValueMap =
         nodeAttColor.isNumber() ? null : attributeCategoryValuesMap
-            .computeIfAbsent(nodeAttColor, att -> indexAllValues(rows, nodeAttColor));
+            .computeIfAbsent(nodeAttColor, att -> indexAllValues(nodeAttColor));
     final int numColorValues = colorValueMap == null ? 0 : colorValueMap.size();
 
     for (Node node : graph) {
-      // label
-      try {
-        // make colors a gradient
-        Object value = node.getAttribute(nodeAttLabel.toString());
-        String label = value == null ? "" : value.toString();
-        node.setAttribute("ui.label", label);
-      } catch (Exception ex) {
-        logger.log(Level.SEVERE, "Error while setting label attribute. " + ex.getMessage(), ex);
-      }
+      NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
 
-      // color
-      try {
-        if (nodeAttColor == NodeAtt.NONE) {
-          node.removeAttribute("ui.class");
-        } else {
+      if (type == NodeType.ION_FEATURE || type == NodeType.SINGLE_FEATURE) {
+        // label
+        try {
           // make colors a gradient
-          Object colorValue = node.getAttribute(nodeAttColor.toString());
-          if (colorValue != null) {
-            node.setAttribute("ui.class", "GRADIENT");
-            // differentiate between numeric values and a list of discrete values
-            if (colorValueRange != null) {
-              final float interpolated = interpolateIntensity(Float.valueOf(colorValue.toString()),
-                  colorValueRange.lowerEndpoint(), colorValueRange.upperEndpoint());
-              node.setAttribute("ui.color", interpolated);
-            } else if (colorValueMap != null) {
-              // non numeric values - use index
-              int index = colorValueMap.getOrDefault(colorValue, 0);
-              node.setAttribute("ui.color", index / (float) numColorValues);
+          Object value = node.getAttribute(nodeAttLabel.toString());
+          String label = value == null ? "" : value.toString();
+          node.setAttribute("ui.label", label);
+        } catch (Exception ex) {
+          logger.log(Level.SEVERE, "Error while setting label attribute. " + ex.getMessage(), ex);
+        }
+
+        // color
+        try {
+          if (nodeAttColor == NodeAtt.NONE) {
+            node.removeAttribute("ui.class");
+          } else {
+            // make colors a gradient
+            Object colorValue = node.getAttribute(nodeAttColor.toString());
+            if (colorValue != null) {
+              node.setAttribute("ui.class", "GRADIENT");
+              // differentiate between numeric values and a list of discrete values
+              if (colorValueRange != null) {
+                final float interpolated = interpolateIntensity(
+                    Float.parseFloat(colorValue.toString()),
+                    colorValueRange.lowerEndpoint(), colorValueRange.upperEndpoint());
+                node.setAttribute("ui.color", interpolated);
+              } else if (colorValueMap != null) {
+                // non numeric values - use index
+                int index = colorValueMap.getOrDefault(colorValue, 0);
+                node.setAttribute("ui.color", index / (float) numColorValues);
+              }
             }
           }
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Error while setting color attribute. " + ex.getMessage(), ex);
+          logger.log(Level.SEVERE, ex.getMessage(), ex);
         }
-      } catch (Exception ex) {
-        logger.log(Level.WARNING, "Error while setting color attribute. " + ex.getMessage(), ex);
-        logger.log(Level.SEVERE, ex.getMessage(), ex);
-      }
 
-      // set size
-      try {
-        // make colors a gradient
-        Object sizeValue = node.getAttribute(nodeAttSize.toString());
-        if (sizeValue != null) {
-          // differentiate between numeric values and a list of discrete values
-          float size = 0;
-          if (sizeValueRange != null) {
-            size = interpolateIntensity(Float.valueOf(sizeValue.toString()),
-                sizeValueRange.lowerEndpoint(),
-                sizeValueRange.upperEndpoint());
-          } else if (sizeValueMap != null) {
-            // non numeric values - use index
-            int index = sizeValueMap.getOrDefault(sizeValue, 0);
-            size = index / (float) numSizeValues;
+        // set size
+        try {
+          // make colors a gradient
+          Object sizeValue = node.getAttribute(nodeAttSize.toString());
+          if (sizeValue != null) {
+            // differentiate between numeric values and a list of discrete values
+            float size = 0;
+            if (sizeValueRange != null) {
+              size = interpolateIntensity(Float.parseFloat(sizeValue.toString()),
+                  sizeValueRange.lowerEndpoint(),
+                  sizeValueRange.upperEndpoint());
+            } else if (sizeValueMap != null) {
+              // non numeric values - use index
+              int index = sizeValueMap.getOrDefault(sizeValue, 0);
+              size = index / (float) numSizeValues;
+            }
+            size = Math.max(MIN_NODE_WIDTH_GU * 5, size * MAX_NODE_WIDTH_GU * 5);
+            // set as graphical units for zoom effect
+            // otherwise use fixed number of pixels
+            node.setAttribute("ui.size", size + "gu");
           }
-          size = Math.max(MIN_NODE_WIDTH_GU * 5, size * MAX_NODE_WIDTH_GU * 5);
-          // set as graphical units for zoom effect
-          // otherwise use fixed number of pixels
-          node.setAttribute("ui.size", size + "gu");
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Error while setting size attribute. " + ex.getMessage(), ex);
         }
-      } catch (Exception ex) {
-        logger.log(Level.WARNING, "Error while setting size attribute. " + ex.getMessage(), ex);
       }
     }
   }
@@ -363,16 +368,15 @@ public class FeatureNetworkPane extends NetworkPane {
   /**
    * Index all objects found in all rows for an attribute
    *
-   * @param rows      all rows in the network
    * @param attribute the node attribute for this row
    * @return map of all objects found and their idexes in their original order
    */
-  private Map<String, Integer> indexAllValues(FeatureListRow[] rows, NodeAtt attribute) {
+  private Map<String, Integer> indexAllValues(NodeAtt attribute) {
     Map<String, Integer> map = new HashMap<>();
     int currentIndex = 0;
-    for (FeatureListRow row : rows) {
+    for (Node node : graph) {
       try {
-        String object = attribute.getValueString(row);
+        String object = node.getAttribute(attribute.toString()).toString();
         if (object == null) {
           continue;
         }
@@ -397,7 +401,7 @@ public class FeatureNetworkPane extends NetworkPane {
         if (object == null) {
           continue;
         }
-        float value = Float.valueOf(object.toString());
+        float value = Float.parseFloat(object.toString());
         if (value < min) {
           min = value;
         }
