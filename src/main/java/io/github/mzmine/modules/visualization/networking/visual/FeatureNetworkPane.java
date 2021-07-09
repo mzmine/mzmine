@@ -47,22 +47,28 @@ public class FeatureNetworkPane extends NetworkPane {
   public static final float MAX_NODE_WIDTH_GU = 0.2f;
   public static final float MIN_NODE_WIDTH_GU = 0.01f;
   private static final Logger logger = Logger.getLogger(FeatureNetworkPane.class.getName());
+
+  // currently set dynamic node styles like color, size, label
   private final EnumMap<GraphStyleAttribute, NodeAtt> dynamicNodeStyle = new EnumMap<>(
       GraphStyleAttribute.class);
   // style values need to be set as float - double crashes in the javafx thread for graphstream
   private final Map<NodeAtt, Range<Float>> attributeRanges = new HashMap<>();
   // for non numeric values: store all objects and provide indexes
   private final Map<NodeAtt, Map<String, Integer>> attributeCategoryValuesMap = new HashMap<>();
-  private FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
+
+  // the network generator
+  private final FeatureNetworkGenerator generator = new FeatureNetworkGenerator();
   // data
   private FeatureList featureList;
   private FeatureListRow[] rows;
+  private Map<Type, R2RMap<RowsRelationship>> relationMaps;
+
+  // currently set values
   private boolean onlyBest;
   private boolean showNetRelationsEdges;
   private boolean collapse = true;
   private boolean showIonEdges = true;
   private boolean showMs2SimEdges;
-  private Map<Type, R2RMap<RowsRelationship>> relationMaps;
 
 
   /**
@@ -477,8 +483,6 @@ public class FeatureNetworkPane extends NetworkPane {
 
   /**
    * All the peaklist
-   *
-   * @param featureList
    */
   public void setFeatureList(FeatureList featureList) {
     this.featureList = featureList;
