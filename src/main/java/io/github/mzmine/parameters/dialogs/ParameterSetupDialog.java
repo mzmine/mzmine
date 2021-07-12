@@ -390,12 +390,10 @@ public class ParameterSetupDialog extends Stage {
   }
 
   /**
-   * This method is called whenever user changes the parameters. It can be overridden in extending
-   * classes to update the preview components, for example.
+   * This method does nothing, but it is called whenever user changes the parameters. It can be
+   * overridden in extending classes to update the preview components, for example.
    */
   protected void parametersChanged() {
-    updateParameterSetFromComponents();
-    parametersChangeProperty.setValue(!parametersChangeProperty.getValue());
   }
 
 
@@ -412,7 +410,7 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof ChoiceBox) {
-      ChoiceBox<?> choiceBox = (ChoiceBox<?>) node;
+      ChoiceBox<?> choiceBox = (ChoiceBox) node;
       choiceBox.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
