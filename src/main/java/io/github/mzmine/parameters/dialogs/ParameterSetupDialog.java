@@ -105,6 +105,7 @@ public class ParameterSetupDialog extends Stage {
    */
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
+  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty(false);
 
   private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
 
@@ -312,7 +313,7 @@ public class ParameterSetupDialog extends Stage {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  protected void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
@@ -330,6 +331,28 @@ public class ParameterSetupDialog extends Stage {
       // component
       if (component != null) {
         up.setValueFromComponent(component);
+      }
+    }
+  }
+
+  public void setParameterValuesToComponents() {
+    for (Parameter<?> p : parameterSet.getParameters()) {
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
+        continue;
+      }
+      UserParameter up;
+      if (p instanceof UserParameter) {
+        up = (UserParameter) p;
+      } else {
+        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+      }
+
+      Node component = parametersAndComponents.get(p.getName());
+
+      // if a parameter is a HiddenParameter it does not necessarily have
+      // component
+      if (component != null) {
+        up.setValueToComponent(component, up.getValue());
       }
     }
   }
