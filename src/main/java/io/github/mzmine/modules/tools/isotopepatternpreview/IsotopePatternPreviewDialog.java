@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.tools.isotopepatternpreview;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.logging.Logger;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -46,20 +38,37 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 /**
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
@@ -141,6 +150,14 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     pnlParameters = new HBox();
     pnlControl = new VBox();
     newMainPanel.setPadding(new Insets(5));
+
+    table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+    table.setOnKeyPressed(event -> {
+      if (keyCodeCopy.match(event)) {
+        copySelectionToClipboard(table);
+      }
+    });
 
     tableData = FXCollections.observableArrayList();
     TableColumn<IsotopePatternTableData, String> mzColumn = new TableColumn<>("m/z");
@@ -320,5 +337,38 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
       MZmineCore.getTaskController().addTask(task);
     }
+  }
+
+  /**
+   * https://stackoverflow.com/a/48126059
+   *
+   * @param table
+   */
+  @SuppressWarnings("rawtypes")
+  public void copySelectionToClipboard(final TableView<?> table) {
+    final Set<Integer> rows = new TreeSet<>();
+    for (final TablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
+      rows.add(tablePosition.getRow());
+    }
+    final StringBuilder strb = new StringBuilder();
+    boolean firstRow = true;
+    for (final Integer row : rows) {
+      if (!firstRow) {
+        strb.append('\n');
+      }
+      firstRow = false;
+      boolean firstCol = true;
+      for (final TableColumn<?, ?> column : table.getColumns()) {
+        if (!firstCol) {
+          strb.append('\t');
+        }
+        firstCol = false;
+        final Object cellData = column.getCellData(row);
+        strb.append(cellData == null ? "" : cellData.toString());
+      }
+    }
+    final ClipboardContent clipboardContent = new ClipboardContent();
+    clipboardContent.putString(strb.toString());
+    Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 }
