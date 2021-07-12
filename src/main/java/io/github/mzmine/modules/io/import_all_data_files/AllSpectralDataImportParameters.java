@@ -17,23 +17,16 @@
 
 package io.github.mzmine.modules.io.import_all_data_files;
 
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import io.github.mzmine.util.ExitCode;
-import java.io.File;
 import java.util.List;
-import javafx.application.Platform;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> extensions = List.of( //
+  public static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("MS data", "*.mzML", "*.mzml", "*.mzXML", "*.mzxml",
           "*.imzML", "*.imzml", "*.d", "*.raw", "*.RAW", "*.mzData", "*.mzdata"), //
       new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
@@ -47,7 +40,7 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
   );
 
 
-  private static final List<ExtensionFilter> extensionsFolders = List.of( //
+  public static final List<ExtensionFilter> extensionsFolders = List.of( //
       new ExtensionFilter("Bruker tdf files", "*.d"), //
       new ExtensionFilter("Waters RAW folders", "*.raw"), //
       new ExtensionFilter("All files", "*.*") //

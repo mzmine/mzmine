@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -37,7 +38,7 @@ public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
       "Minimum feature height",
       "Intensity threshold at one retention time to be recognised as a feature.");
 
-  public static final MZToleranceParameter scanToScanTolerance = new MZToleranceParameter(
+  public static final MZToleranceParameter scanToScanMzTolerance = new MZToleranceParameter(
       "Scan to scan m/z tolerance",
       "Describes the m/z fluctuations of peaks from one scan to another within the same"
           + " sample.\nUsed for chromatogram building.");
@@ -52,4 +53,8 @@ public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
       "Sample to sample m/z tolerace",
       "Describes the m/z fluctuations between different samples. Used for alignment.");
 
+  public BatchWizardMassSpectrometerParameters() {
+    super(new Parameter[]{ms1NoiseLevel, ms2NoiseLevel, minimumFeatureHeight, scanToScanMzTolerance,
+        featureToFeatureMzTolerance, sampleToSampleMzTolerance});
+  }
 }
