@@ -107,7 +107,6 @@ public class ParameterSetupDialog extends Stage {
   private ExitCode exitCode = ExitCode.UNKNOWN;
   private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty(false);
 
-  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
 
   /**
    * Constructor
