@@ -2,6 +2,8 @@ package io.github.mzmine.modules.dataprocessing.featdet_imsexpander;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -33,10 +35,16 @@ public class ImsExpanderModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
 
+    final Integer numThreads = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.numOfThreads).getValue();
+    final ModularFeatureList[] featureLists = parameters
+        .getParameter(ImsExpanderParameters.featureLists).getValue().getMatchingFeatureLists();
+
+    final int threadsPerFlist = Math.max(2, numThreads / featureLists.length);
+
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
-    for (ModularFeatureList featureList : parameters
-        .getParameter(ImsExpanderParameters.featureLists).getValue().getMatchingFeatureLists()) {
-      tasks.add(new ImsExpanderTask(storage, parameters, featureList, project));
+    for (ModularFeatureList featureList : featureLists) {
+      tasks.add(new ImsExpanderTask(storage, parameters, featureList, project, threadsPerFlist));
     }
 
     return ExitCode.OK;

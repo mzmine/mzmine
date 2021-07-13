@@ -42,7 +42,7 @@ public class ExpandingTrace {
    * @param index
    * @return true if the data points is added to this trace.
    */
-  public boolean offerDataPoint(@NotNull MobilityScanDataAccess access, int index) {
+  public synchronized boolean offerDataPoint(@NotNull MobilityScanDataAccess access, int index) {
     if (!rtRange.contains(access.getRetentionTime()) || !mzRange
         .contains(access.getMzValue(index))) {
       return false;
