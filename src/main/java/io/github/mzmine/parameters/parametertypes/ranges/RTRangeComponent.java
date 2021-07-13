@@ -24,6 +24,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
@@ -74,6 +75,7 @@ public class RTRangeComponent extends DoubleRangeComponent {
     setAutoButton.setDisable(currentFiles.length == 0);
 
     getChildren().addAll(new Label("min."), setAutoButton);
+    super.setAlignment(Pos.BASELINE_LEFT);
   }
 
 }

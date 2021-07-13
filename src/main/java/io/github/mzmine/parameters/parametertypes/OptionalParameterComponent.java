@@ -21,10 +21,12 @@ package io.github.mzmine.parameters.parametertypes;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import io.github.mzmine.parameters.UserParameter;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 
 public class OptionalParameterComponent<EmbeddedComponent extends Node> extends FlowPane
     implements ActionListener {
@@ -43,7 +45,10 @@ public class OptionalParameterComponent<EmbeddedComponent extends Node> extends 
     embeddedComponent = embeddedParameter.createEditingComponent();
     embeddedComponent.setDisable(true);
 
-    getChildren().addAll(checkBox, embeddedComponent);
+    HBox hBox = new HBox(checkBox, embeddedComponent);
+    hBox.setSpacing(7d);
+    hBox.setAlignment(Pos.CENTER_LEFT);
+    super.getChildren().add(hBox);
   }
 
   public EmbeddedComponent getEmbeddedComponent() {

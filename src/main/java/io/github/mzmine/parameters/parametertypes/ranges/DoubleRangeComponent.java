@@ -41,7 +41,7 @@ public class DoubleRangeComponent extends HBox {
 
   public DoubleRangeComponent(NumberFormat format) {
 
-    setSpacing(8.0);
+    super.setSpacing(3.0);
 
     minTxtField = new TextField();
     minTxtField.setPrefColumnCount(8);

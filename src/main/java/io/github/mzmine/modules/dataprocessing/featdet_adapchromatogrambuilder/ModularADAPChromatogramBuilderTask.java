@@ -211,8 +211,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         scan = scanData.nextScan();
       } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-                        + " does not have a mass list");
+        setErrorMessage("Scan #" + scanData.getCurrentScan().getScanNumber() + " from " + dataFile.getName()
+                        + " does not have a mass list. Pleas run \"Raw data methods\" -> \"Mass detection\".");
         e.printStackTrace();
         return;
       }

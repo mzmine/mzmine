@@ -79,6 +79,7 @@ public class MassDetectionTask extends AbstractTask {
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
     this.parameters = parameters;
+
   }
 
   /**
@@ -115,7 +116,7 @@ public class MassDetectionTask extends AbstractTask {
     ArrayList<Integer> pointsInScans = new ArrayList<>();
     ArrayList<Double> allMZ = new ArrayList<>();
     ArrayList<Double> allIntensities = new ArrayList<>();
-    // idecies of full mass list where scan starts?
+    // indices of full mass list where scan starts?
     ArrayList<Integer> startIndex = new ArrayList<>();
     ArrayList<Float> scanAcquisitionTime = new ArrayList<>();
     // XCMS needs this one
@@ -146,6 +147,7 @@ public class MassDetectionTask extends AbstractTask {
         Scan scan = data.nextScan();
 
         MassDetector detector = massDetector.getModule();
+
         // run mass detection on data object
         // [mzs, intensities]
         double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());

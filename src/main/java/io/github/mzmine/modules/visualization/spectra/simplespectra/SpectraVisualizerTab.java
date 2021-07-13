@@ -362,7 +362,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     Integer basePeak = scan.getBasePeakIndex();
 
-    if (basePeak != 0) {
+    if (basePeak != null) {
       spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz()) + " m/z ("
           + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
     }

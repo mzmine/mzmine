@@ -34,8 +34,10 @@ public class ComboFieldComponent<E extends Enum<?>> extends HBox {
     inputField = new TextField();
     comboBox = new ComboBox<>(FXCollections.observableArrayList(options.getEnumConstants()));
     comboBox.getSelectionModel().select(0);
-    getChildren().addAll(inputField, comboBox);
-    setAlignment(Pos.CENTER_LEFT);
+
+    super.getChildren().addAll(inputField, comboBox);
+    super.setSpacing(5d);
+    super.setAlignment(Pos.CENTER_LEFT);
   }
 
   public ComboFieldComponent(Class<E> options, ComboFieldValue<E> defaultValue) {

@@ -25,7 +25,7 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.NeutralMassParameter;
-import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -36,8 +36,8 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+  public static final ElementsCompositionRangeParameter elements =
+      new ElementsCompositionRangeParameter("Elements", "Elements and ranges");
 
   public static final OptionalModuleParameter elementalRatios =
       new OptionalModuleParameter("Element count heuristics",
