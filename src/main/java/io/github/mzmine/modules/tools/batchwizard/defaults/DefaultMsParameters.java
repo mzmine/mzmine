@@ -13,11 +13,11 @@ public class DefaultMsParameters {
       1E2, 1E3, new MZTolerance(0.005, 10), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
 
   public static final DefaultMsParameters defaultOrbitrapPositiveParameters = new DefaultMsParameters(
-      1E5, 1E4, 5E5, new MZTolerance(0.005, 5), new MZTolerance(0.005, 3),
+      1E4, 5E3, 5E4, new MZTolerance(0.005, 5), new MZTolerance(0.005, 3),
       new MZTolerance(0.005, 5));
 
   public static final DefaultMsParameters defaultOrbitrapNegativeParameters = new DefaultMsParameters(
-      5E4, 5E3, 1E5, new MZTolerance(0.005, 5), new MZTolerance(0.005, 3),
+      1E4, 5E3, 5E4, new MZTolerance(0.005, 5), new MZTolerance(0.005, 3),
       new MZTolerance(0.005, 5));
 
   private final double ms1NoiseLevel;
