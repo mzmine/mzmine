@@ -257,4 +257,10 @@ public interface TDFLibrary extends Library {
    */
   long tims_extract_profile_for_frame(long handle, long frame_id, long scan_begin, long scan_end,
       ProfileCallback callback, Pointer userData);
+
+  /**
+   *
+   * @param numThreads The number of threads used to read one file. >= 1.
+   */
+  void tims_set_num_threads(int numThreads);
 };

@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 public class CCSUtils {
 
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
+  private static final TDFUtils tdfUtils = new TDFUtils();
 
   /**
    * @return
@@ -54,7 +55,7 @@ public class CCSUtils {
    * @author https://github.com/SteffenHeu
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
-    return TDFUtils.calculateCCS(mobility, (long) charge, mz).floatValue();
+    return tdfUtils.calculateCCS(mobility, (long) charge, mz).floatValue();
   }
 
   public static Float logUnsupportedMobilityUnit() {
