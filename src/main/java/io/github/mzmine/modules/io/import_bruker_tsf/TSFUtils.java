@@ -41,7 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility class to load Bruker TSF spectra (Maldi acquired on timsTOF FleX, but without tims
@@ -163,8 +163,8 @@ public class TSFUtils {
    * @param spectrumType  The spectrum type to load.
    * @return
    */
-  public ImagingScan loadMaldiScan(RawDataFile file, final long handle, final long frameId, @Nonnull
-      TDFMetaDataTable metaDataTable, @Nonnull TSFFrameTable frameTable, @Nonnull
+  public ImagingScan loadMaldiScan(RawDataFile file, final long handle, final long frameId, @NotNull
+      TDFMetaDataTable metaDataTable, @NotNull TSFFrameTable frameTable, @NotNull
       TDFMaldiFrameInfoTable maldiTable, MassSpectrumType spectrumType) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
@@ -291,9 +291,9 @@ public class TSFUtils {
     }
   }
 
-  public double[][] deleteZeroIntensities(@Nonnull final double[] mzs,
-      @Nonnull final long[] intensities,
-      @Nonnull AtomicInteger outNumValues) {
+  public double[][] deleteZeroIntensities(@NotNull final double[] mzs,
+      @NotNull final long[] intensities,
+      @NotNull AtomicInteger outNumValues) {
     // if they are assigned after the first spectrum has been loaded, we should have enough space since the scan range should not change
     if (profileDeletedZeroMzs == null || profileDeletedZeroIntensities == null) {
       profileDeletedZeroMzs = new double[mzs.length];

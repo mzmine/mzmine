@@ -21,8 +21,8 @@ package io.github.mzmine.datamodel.features.types.numbers.abstr;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -47,8 +47,8 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   public abstract NumberFormat getFormatter();
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ObjectProperty<Range<T>> value) {
+  @NotNull
+  public String getFormattedString(@NotNull ObjectProperty<Range<T>> value) {
     return value.getValue() == null ? ""
         : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
             + getFormatter().format(value.getValue().upperEndpoint());
@@ -60,7 +60,7 @@ public abstract class NumberRangeType<T extends Comparable<?>>
    * @return the formatted representation of the value (or an empty String)
    */
   @Override
-  @Nonnull
+  @NotNull
   public String getFormattedString(@Nullable Object value) {
     if (value instanceof Range) {
       Range r = (Range) value;
@@ -75,7 +75,7 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     return new SimpleObjectProperty<Range<T>>();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public int getNumberOfSubColumns() {
     return 2;
@@ -98,7 +98,7 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       @Nullable RawDataFile raw) {
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();

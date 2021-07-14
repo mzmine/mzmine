@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
+import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRangeParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -50,8 +50,8 @@ public class SpectraIdentificationSumFormulaParameters extends SimpleParameterSe
       "Intensities less than this value are interpreted as noise",
       MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
-  public static final ElementsParameter elements =
-      new ElementsParameter("Elements", "Elements and ranges");
+  public static final ElementsCompositionRangeParameter elements =
+      new ElementsCompositionRangeParameter("Elements", "Elements and ranges");
 
   public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios =
       new OptionalModuleParameter<ElementalHeuristicParameters>("Element count heuristics",

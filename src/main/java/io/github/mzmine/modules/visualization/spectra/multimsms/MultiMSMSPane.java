@@ -390,8 +390,8 @@ public class MultiMSMSPane extends BorderPane {
       if (best != null) {
         scan = best.getRepresentativeScan();
         EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, showTitle, showLegend);
-        cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
         if (cp != null) {
+          cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
           msone = new ChartViewWrapper(cp);
         }
       }
@@ -416,8 +416,8 @@ public class MultiMSMSPane extends BorderPane {
     for (FeatureListRow row : rows) {
       EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, raw, showTitle, showLegend,
           alwaysShowBest, useBestForMissingRaw);
-      c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
       if (c != null) {
+        c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
         group.add(new ChartViewWrapper(c));
       }
     }

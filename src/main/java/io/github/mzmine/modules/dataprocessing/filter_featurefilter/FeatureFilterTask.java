@@ -37,7 +37,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Filters out peaks from feature list.
@@ -134,7 +134,7 @@ public class FeatureFilterTask extends AbstractTask {
     // Make a copy of the peakList
     final ModularFeatureList newPeakList = peakList.createCopy(
         peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        getMemoryMapStorage());
+        getMemoryMapStorage(), false);
 
     // Get parameters - which filters are active
     final boolean filterByDuration =

@@ -22,24 +22,24 @@ import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.List;
 import javafx.beans.property.ListProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "ImsMsMsInfo";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public String getFormattedString(@Nonnull ListProperty<ImsMsMsInfo> property) {
+  public String getFormattedString(@NotNull ListProperty<ImsMsMsInfo> property) {
     return property.get() != null ? String.valueOf(property.get().size()) : "0";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getFormattedString(@Nullable Object value) {
     if (value instanceof ListProperty) {

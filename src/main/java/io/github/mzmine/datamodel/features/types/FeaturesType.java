@@ -19,30 +19,11 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaBarChart;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.AreaShareChart;
-import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import javafx.application.Platform;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.SimpleMapProperty;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
-import javafx.scene.layout.StackPane;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This FeaturesType contains features for each RawDataFile. Sub columns for samples and charts are
@@ -54,6 +35,7 @@ import javafx.scene.layout.StackPane;
 public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
     implements NoTextColumn {
 
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Features";
@@ -61,7 +43,7 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
 
   @Override
   public MapProperty<RawDataFile, ModularFeature> createProperty() {
-    return new SimpleMapProperty<RawDataFile, ModularFeature>();
+    return new SimpleMapProperty<>();
   }
 
 }

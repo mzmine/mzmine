@@ -39,6 +39,7 @@ import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
@@ -49,15 +50,14 @@ import javafx.util.StringConverter;
  */
 public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPreview {
 
+  protected final Label lbkApproxBinSize = new Label();
   private final SimpleXYChart<SummedMobilogramXYProvider> previewChart;
   private final ColoredXYShapeRenderer processedRenderer;
-
   private final NumberFormat intensityFormat;
-
+  private final NumberFormat mobilityFormat;
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
-
   protected BinningMobilogramDataAccess summedMobilogramAccess;
 
   public MobilogramBinningSetupDialog(boolean valueCheckRequired,
@@ -65,6 +65,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     super(valueCheckRequired, parameters);
 
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
 
     previewChart = new SimpleXYChart<>("Preview");
     previewChart.setRangeAxisLabel("Intensity");
@@ -112,10 +113,15 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
 
     GridPane pnControls = new GridPane();
+    pnControls.setHgap(5);
+    pnControls.setVgap(5);
+    pnControls.setPadding(new Insets(5));
     pnControls.add(new Label("Feature list"), 0, 0);
     pnControls.add(flistBox, 1, 0);
     pnControls.add(new Label("Feature"), 0, 1);
     pnControls.add(fBox, 1, 1);
+    pnControls.add(new Label("Approximate bin size"), 0, 2);
+    pnControls.add(lbkApproxBinSize, 1, 2);
     previewWrapperPane.setBottom(pnControls);
     previewWrapperPane.setCenter(previewChart);
     shapeRenderer.setDefaultItemLabelPaint(
@@ -136,7 +142,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
             new SimpleObjectProperty<>(f.getRawDataFile().getColor()),
             FeatureUtils.featureToString(f))));
 
-    final Double binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {
+    final Integer binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {
       case TIMS -> parameterSet
           .getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
       case TRAVELING_WAVE -> parameterSet
@@ -147,7 +153,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
           "Summing of the mobility type in raw data file " + f.getRawDataFile().getName()
               + " is unsupported.");
     };
-    if (binWidth == null || binWidth.isNaN() || Double.compare(binWidth, 0) == 0) {
+    if (binWidth == null || binWidth == 0) {
       return;
     }
 
@@ -157,6 +163,9 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
         || Double.compare(binWidth, summedMobilogramAccess.getBinWidth()) != 0) {
       summedMobilogramAccess = new BinningMobilogramDataAccess((IMSRawDataFile) f.getRawDataFile(),
           binWidth);
+      lbkApproxBinSize.setText(
+          mobilityFormat.format(summedMobilogramAccess.getApproximateBinSize()) + " "
+              + summedMobilogramAccess.getDataFile().getMobilityType().getUnit());
     }
 
     summedMobilogramAccess.setMobilogram(series.getSummedMobilogram());

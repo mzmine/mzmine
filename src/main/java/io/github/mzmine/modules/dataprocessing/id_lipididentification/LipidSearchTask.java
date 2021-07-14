@@ -30,6 +30,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -63,7 +64,7 @@ public class LipidSearchTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedSteps;
   private double totalSteps;
-  private ModularFeatureList featureList;
+  private FeatureList featureList;
   private Object[] selectedObjects;
   private LipidClasses[] selectedLipids;
   private Boolean searchForCustomLipidClasses;
@@ -84,7 +85,7 @@ public class LipidSearchTask extends AbstractTask {
    * @param parameters
    * @param featureList
    */
-  public LipidSearchTask(ParameterSet parameters, ModularFeatureList featureList) {
+  public LipidSearchTask(ParameterSet parameters, FeatureList featureList) {
     super(null);
     this.featureList = featureList;
     this.parameters = parameters;
@@ -153,8 +154,9 @@ public class LipidSearchTask extends AbstractTask {
     logger.info("Starting lipid annotation in " + featureList);
 
     List<FeatureListRow> rows = featureList.getRows();
-    featureList.addRowType(new LipidAnnotationType());
-
+    if (featureList instanceof ModularFeatureList) {
+      ((ModularFeatureList) featureList).addRowType(new LipidAnnotationType());
+    }
     totalSteps = rows.size();
 
     // build lipid species database

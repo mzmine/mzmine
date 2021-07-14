@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
@@ -71,7 +71,7 @@ public class SiriusCompound extends SimpleFeatureIdentity {
    *
    * @param annotation
    */
-  public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
+  public SiriusCompound(@NotNull final SiriusIonAnnotation annotation) {
     super(loadProps(annotation));
     this.annotation = annotation;
     container = getChemicalStructure();

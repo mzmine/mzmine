@@ -9,14 +9,14 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SmoothingModule implements MZmineProcessingModule {
 
   private static final String name = "Smoothing";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return name;
@@ -28,16 +28,16 @@ public class SmoothingModule implements MZmineProcessingModule {
     return SmoothingParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Smooths intensity along the retention time and/or mobility dimension.";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     final ModularFeatureList[] flists = parameters.getParameter(SmoothingParameters.featureLists)
         .getValue().getMatchingFeatureLists();
@@ -50,7 +50,7 @@ public class SmoothingModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURE_RESOLVING;

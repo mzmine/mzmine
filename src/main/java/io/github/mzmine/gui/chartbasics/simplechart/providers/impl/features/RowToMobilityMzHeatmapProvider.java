@@ -32,8 +32,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRawDataFile> {
 
@@ -53,7 +53,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   private double deltaDiameter = 1d;
   private double deltaValue = 1d;
 
-  public RowToMobilityMzHeatmapProvider(@Nonnull final Collection<ModularFeatureListRow> f) {
+  public RowToMobilityMzHeatmapProvider(@NotNull final Collection<ModularFeatureListRow> f) {
     // copy the list, so we don't run into problems in case the flist is modified
     rows = new ArrayList<>(f);
     seriesKey = (f.isEmpty()) ? "No features found" : rows.get(0).getFeatureList().getName();
@@ -68,13 +68,13 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
         .filter(file -> file instanceof IMSRawDataFile).distinct().toArray(IMSRawDataFile[]::new);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -93,7 +93,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
     return sb.toString();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
@@ -128,7 +128,7 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
       final ModularFeatureListRow row = rows.get(i);
       for (final IMSRawDataFile file : files) {
         final ModularFeature feature = row.getFeature(file);
-        if (feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+        if (feature != null && feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
         minValue = Math.min(summedValues[i], minValue);
@@ -177,13 +177,13 @@ public class RowToMobilityMzHeatmapProvider implements PieXYZDataProvider<IMSRaw
   public double getZValue(int series, int item) {
     final ModularFeatureListRow row = rows.get(item);
     final ModularFeature f = row.getFeature(files[series]);
-    if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+    if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
       return f.getHeight();
     }
     return 0d;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getSliceColor(int series) {
     return files[series].getColorAWT();

@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -62,14 +62,10 @@ public interface IImage {
 
   void setDataPoints(List<ImageDataPoint> dataPoints);
 
-  @Nonnull
+  @NotNull
   List<Scan> getScanNumbers();
 
   void setScanNumbers(List<Scan> scanNumbers);
-
-  Scan getRepresentativeScan();
-
-  void setRepresentativeScan(Scan scan);
 
   String getRepresentativeString();
 

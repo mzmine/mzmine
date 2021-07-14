@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import java.text.NumberFormat;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.property.Property;
 
@@ -39,7 +39,7 @@ public abstract class NumberType<T extends Property<?>> extends DataType<T> {
    * @return the formatted representation of the value (or an empty String)
    */
   @Override
-  @Nonnull
+  @NotNull
   public String getFormattedString(@Nullable Object value) {
     if (value != null) {
       if (value instanceof Double || value instanceof Float)

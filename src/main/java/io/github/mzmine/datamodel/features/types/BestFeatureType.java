@@ -22,12 +22,12 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BestFeatureType extends DataType<ObjectProperty<ModularFeature>> implements
     NullColumnType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Best feature";

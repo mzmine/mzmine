@@ -38,6 +38,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ButtonType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -54,6 +56,8 @@ public class SimpleParameterSet implements ParameterSet {
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
   protected Parameter<?> parameters[];
   private boolean skipSensitiveParameters = false;
+
+  private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
 
   public SimpleParameterSet() {
     this.parameters = new Parameter<?>[0];
@@ -184,13 +188,13 @@ public class SimpleParameterSet implements ParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
     assert Platform.isFxApplicationThread();
 
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    parametersChangeProperty.bind(dialog.parametersChangeProperty());
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -288,5 +292,16 @@ public class SimpleParameterSet implements ParameterSet {
   public String getRestrictedIonMobilitySupportMessage() {
     return "This module has certain restrictions when processing ion mobility data files. This "
         + "could lead to unexpected results. Do you want to continue anyway?";
+  }
+
+  /**
+   * Returns BooleanProperty which value is changed when some parameter of this ParameterSet is changed.
+   * It is useful to perform operations directly dependant on the components corresponding to this
+   * ParameterSet (e.g. TextField of a parameter is changed -> preview plot is updated).
+   *
+   * @return BooleanProperty signalizing a change of any parameter of this ParameterSet
+   */
+  public BooleanProperty parametersChangeProperty() {
+    return parametersChangeProperty;
   }
 }

@@ -37,7 +37,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -48,7 +48,7 @@ public class NoiseAmplitudeFeatureResolver implements FeatureResolver {
   private static final double MAX_NOISE_LEVEL = 0.3;
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Noise amplitude";
   }
 
@@ -195,7 +195,7 @@ public class NoiseAmplitudeFeatureResolver implements FeatureResolver {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return NoiseAmplitudeFeatureResolverParameters.class;
   }
 

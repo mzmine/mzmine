@@ -28,7 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class AlignScansModule implements MZmineProcessingModule {
 
@@ -39,21 +39,21 @@ public class AlignScansModule implements MZmineProcessingModule {
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     RawDataFile[] dataFiles =
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
@@ -71,13 +71,13 @@ public class AlignScansModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATAFILTERING;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return AlignScansParameters.class;
   }

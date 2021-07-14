@@ -24,15 +24,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
@@ -76,7 +78,6 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -102,6 +103,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   private List<ModularFeatureListRow> selectedRows;
   @Nullable
   private ModularFeature selectedFeature;
+  @Nullable
+  ModularFeatureListRow selectedRow;
 
   private List<FeatureIdentity> copiedIDs;
 
@@ -176,7 +179,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0])));
 
     final MenuItem exportMS1Library =
-        new ConditionalMenuItem("Export to MS1 library (Swing)", () -> !selectedRows.isEmpty());
+        new ConditionalMenuItem("Export to MS1 library", () -> !selectedRows.isEmpty());
     exportMS1Library.setOnAction(e -> MZmineCore.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
@@ -185,7 +188,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }));
 
     final MenuItem exportMSMSLibrary =
-        new ConditionalMenuItem("Export to MS/MS library (Swing)", () -> !selectedRows.isEmpty());
+        new ConditionalMenuItem("Export to MS/MS library", () -> !selectedRows.isEmpty());
     exportMSMSLibrary.setOnAction(e -> MZmineCore.runLater(() -> {
       MSMSLibrarySubmissionWindow window = new MSMSLibrarySubmissionWindow();
       window.setData(selectedRows.toArray(new ModularFeatureListRow[0]), SortingProperty.MZ,
@@ -285,15 +288,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInMobilityMzVisualizerItem =
         new ConditionalMenuItem("Plot mobility/CCS vs. m/z", () -> !selectedRows.isEmpty());
     showInMobilityMzVisualizerItem.setOnAction(e -> {
-      boolean useMobilograms = true;
-      if (selectedFeatures.size() > 1000) {
-        useMobilograms = MZmineCore.getDesktop()
-            .displayConfirmation("You selected " + selectedFeatures.size()
-                + " to visualize. This might take a long time or crash MZmine.\nWould you like to "
-                + "visualize points instead of mobilograms for features?", ButtonType.YES,
-                ButtonType.NO) == ButtonType.NO;
-      }
-      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, useMobilograms);
+      IMSMobilityMzPlotModule.visualizeFeaturesInNewTab(selectedRows, false);
     });
 
     final MenuItem showSpectrumItem = new ConditionalMenuItem("Mass spectrum",
@@ -325,14 +320,18 @@ public class FeatureTableContextMenu extends ContextMenu {
     // TODO this should display selected features instead of rows. MultiMSMSWindow does not support
     // that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
-        () -> getNumberOfRowsWithFragmentScans(selectedRows) >= 1 && selectedFeature != null);
+        () -> (selectedRow != null && getNumberOfFeaturesWithFragmentScans(selectedRow) >= 1)
+            || (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null)
+            || (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
     showMSMSItem.setOnAction(e -> {
-      if (getNumberOfRowsWithFragmentScans(selectedRows) > 1) {
+      if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
+        SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
+      } else if (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1) {
         MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
             table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
         MZmineCore.getDesktop().addTab(multi);
-      } else {
-        SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
+      } else if (selectedRow != null && selectedRow.getBestFragmentation() != null) {
+        SpectraVisualizerModule.addNewSpectrumTab(selectedRow.getBestFragmentation());
       }
     });
 
@@ -345,7 +344,7 @@ public class FeatureTableContextMenu extends ContextMenu {
       mirrorScanTab.show();
     });
 
-    final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS (still Swing)",
+    final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
         () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllMS2Fragmentations().isEmpty());
     showAllMSMSItem.setOnAction(
         e -> MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0)));
@@ -372,8 +371,6 @@ public class FeatureTableContextMenu extends ContextMenu {
       MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
     });
 
-
-
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
     /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
@@ -393,6 +390,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     selectedFeatures = table.getSelectedFeatures();
     selectedRows = table.getSelectedRows();
     selectedFeature = table.getSelectedFeature();
+    selectedRow = table.getSelectedRow();
 
     // for single-raw-file-feature-lists it's intuitive to be able to click on the row columns, too
     if (selectedFeature == null && selectedRows.size() == 1
@@ -428,6 +426,21 @@ public class FeatureTableContextMenu extends ContextMenu {
     return numFragmentScans;
   }
 
+  private int getNumberOfFeaturesWithFragmentScans(@Nullable ModularFeatureListRow row) {
+    if (row == null) {
+      return 0;
+    }
+
+    int num = 0;
+    for (Feature feature : row.getFeatures()) {
+      if (feature != null && feature.getFeatureStatus() != FeatureStatus.UNKNOWN
+          && feature.getMostIntenseFragmentScan() != null) {
+        num++;
+      }
+    }
+    return num;
+  }
+
   private boolean rowHasSpectralDBMatchResults(ModularFeatureListRow row) {
     return row.getPeakIdentities().stream().filter(pi -> pi instanceof SpectralDBFeatureIdentity)
         .map(pi -> ((SpectralDBFeatureIdentity) pi)).count() > 0;
@@ -438,7 +451,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         && row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class) != null);
   }
 
-  @Nonnull
+  @NotNull
   private List<ModularFeature> getFeaturesFromSelectedRaw(Collection<ModularFeature> features) {
     if (selectedFeature == null || selectedFeature.getRawDataFile() == null) {
       return Collections.emptyList();

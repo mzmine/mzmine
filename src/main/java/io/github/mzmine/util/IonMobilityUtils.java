@@ -38,13 +38,13 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityUtils {
 
@@ -66,41 +66,47 @@ public class IonMobilityUtils {
     return minDelta;
   }
 
-  public static Map<Range<Double>, Frame> getUniqueMobilityRanges(
-      @Nonnull final IMSRawDataFile file) {
-    Map<Range<Double>, Frame> ranges = new HashMap<>();
+  /**
+   * @param file The raw data file
+   * @return A map of frame -> mobility range, sorted with ascending frame id.
+   */
+  public static Map<Frame, Range<Double>> getUniqueMobilityRanges(
+      @NotNull final IMSRawDataFile file) {
+    Map<Frame, Range<Double>> ranges = new LinkedHashMap<>();
     for (Frame frame : file.getFrames()) {
-      ranges.putIfAbsent(frame.getMobilityRange(), frame);
+      if (!ranges.containsValue(frame.getMobilityRange())) {
+        ranges.put(frame, frame.getMobilityRange());
+      }
     }
     return ranges;
   }
 
-  public static boolean isRowWithinMzMobilityRegion(@Nonnull ModularFeatureListRow row,
-      @Nonnull final Collection<Path2D> regions) {
-      Property<Float> mobility = row.get(MobilityType.class);
-      if (mobility != null) {
-        Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.getValue().doubleValue());
-        for (Path2D region : regions) {
-          if (region.contains(point)) {
-            return true;
-          }
+  public static boolean isRowWithinMzMobilityRegion(@NotNull ModularFeatureListRow row,
+      @NotNull final Collection<Path2D> regions) {
+    Property<Float> mobility = row.get(MobilityType.class);
+    if (mobility != null) {
+      Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.getValue().doubleValue());
+      for (Path2D region : regions) {
+        if (region.contains(point)) {
+          return true;
         }
       }
+    }
     return false;
   }
 
-  public static boolean isRowWithinMzCCSRegion(@Nonnull ModularFeatureListRow feature,
-      @Nonnull final Collection<Path2D> regions) {
-      Float ccs = feature.getAverageCCS();
-      if (ccs != null) {
-        Point2D point = new Point2D.Double(feature.getAverageMZ() * feature.getRowCharge(),
-            ccs.doubleValue());
-        for (Path2D region : regions) {
-          if (region.contains(point)) {
-            return true;
-          }
+  public static boolean isRowWithinMzCCSRegion(@NotNull ModularFeatureListRow feature,
+      @NotNull final Collection<Path2D> regions) {
+    Float ccs = feature.getAverageCCS();
+    if (ccs != null) {
+      Point2D point = new Point2D.Double(feature.getAverageMZ() * feature.getRowCharge(),
+          ccs.doubleValue());
+      for (Path2D region : regions) {
+        if (region.contains(point)) {
+          return true;
         }
       }
+    }
     return false;
   }
 
@@ -108,14 +114,14 @@ public class IonMobilityUtils {
    * Builds a mobilogram for the given mz range in the frame. Should only be used for previews and
    * visualisations, less perfomant than a ims feature detector.
    *
-   * @param frame The frame
+   * @param frame   The frame
    * @param mzRange The mz/Range of the mobilogram
-   * @param type basepeak or tic (summed)
+   * @param type    basepeak or tic (summed)
    * @param storage The storage to use
    * @return The built mobilogram.
    */
-  public static IonMobilitySeries buildMobilogramForMzRange(@Nonnull final Frame frame,
-      @Nonnull final Range<Double> mzRange, @Nonnull final MobilogramType type,
+  public static IonMobilitySeries buildMobilogramForMzRange(@NotNull final Frame frame,
+      @NotNull final Range<Double> mzRange, @NotNull final MobilogramType type,
       @Nullable final MemoryMapStorage storage) {
 
     final int numScans = frame.getNumberOfMobilityScans();
@@ -164,7 +170,7 @@ public class IonMobilityUtils {
    * @return The mobility scan. Null if this feature does not possess a mobility dimension.
    */
   @Nullable
-  public static MobilityScan getBestMobilityScan(@Nonnull final ModularFeature f) {
+  public static MobilityScan getBestMobilityScan(@NotNull final ModularFeature f) {
     Scan bestScan = f.getRepresentativeScan();
     if (!(bestScan instanceof Frame bestFrame)) {
       return null;
@@ -228,15 +234,37 @@ public class IonMobilityUtils {
     final double startMobility = MathUtils
         .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
             series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
-            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
+            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
+            halfIntensity);
 
     final double endMobility = MathUtils
         .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
-            series.getIntensity(Math.max(after - 1, 0)),
-            series.getMobility(after), series.getIntensity(after), halfIntensity);
+            series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
+            series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
     return Range.closed((float) startMobility, (float) endMobility);
+  }
+
+  /**
+   * @param row The row.
+   * @return The spanned mobility range for all features in this row. Null if there is no mobility
+   * dimension.
+   */
+  public static Range<Float> getRowMobilityrange(ModularFeatureListRow row) {
+
+    Range<Float> mobilityRange = null;
+    for (ModularFeature feature : row.getFilesFeatures().values()) {
+      if(mobilityRange == null) {
+        mobilityRange = feature.getMobilityRange();
+      } else {
+        var featureRange = feature.getMobilityRange();
+        if(featureRange != null) {
+          mobilityRange = mobilityRange.span(featureRange);
+        }
+      }
+    }
+    return mobilityRange;
   }
 
   public enum MobilogramType {

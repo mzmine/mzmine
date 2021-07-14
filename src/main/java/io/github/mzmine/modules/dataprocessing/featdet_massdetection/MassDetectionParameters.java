@@ -43,7 +43,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -60,7 +60,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<MassDetector> massDetector =
       new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+          "Algorithm to use for mass detection and its parameters.", massDetectors);
 
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",
@@ -151,7 +151,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

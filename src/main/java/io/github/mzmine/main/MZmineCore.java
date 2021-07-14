@@ -58,15 +58,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * MZmine main class
  */
 public final class MZmineCore {
 
-  private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+  private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private static TaskControllerImpl taskController;
   private static MZmineConfiguration configuration;
@@ -75,8 +75,8 @@ public final class MZmineCore {
   private static final List<MemoryMapStorage> storageList = Collections
       .synchronizedList(new ArrayList<>());
 
-  private static Map<Class<?>, MZmineModule> initializedModules =
-      new Hashtable<Class<?>, MZmineModule>();
+  private static final Map<Class<?>, MZmineModule> initializedModules =
+      new Hashtable<>();
   private static boolean headLessMode = false;
   // batch exit code is only set if run in headless mode with batch file
   private static ExitCode batchExitCode = null;
@@ -84,7 +84,7 @@ public final class MZmineCore {
   /**
    * Main method
    */
-  public static void main(final String args[]) {
+  public static void main(final String[] args) {
     // In the beginning, set the default locale to English, to avoid
     // problems with conversion of numbers etc. (e.g. decimal separator may
     // be . or , depending on the locale)
@@ -221,7 +221,7 @@ public final class MZmineCore {
   }
 
 
-  @Nonnull
+  @NotNull
   public static TaskController getTaskController() {
     return taskController;
   }
@@ -234,19 +234,18 @@ public final class MZmineCore {
     return desktop;
   }
 
-  @Nonnull
   public static void setDesktop(Desktop desktop) {
     assert desktop != null;
     MZmineCore.desktop = desktop;
   }
 
-  @Nonnull
+  @NotNull
   public static ProjectManager getProjectManager() {
     assert projectManager != null;
     return projectManager;
   }
 
-  @Nonnull
+  @NotNull
   public static MZmineConfiguration getConfiguration() {
     assert configuration != null;
     return configuration;
@@ -302,7 +301,7 @@ public final class MZmineCore {
     return new ImagingRawDataFileImpl(name, storage);
   }
 
-  @Nonnull
+  @NotNull
   public static String getMZmineVersion() {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
@@ -331,8 +330,8 @@ public final class MZmineCore {
    * @return a list of created tasks that were added to the controller
    */
   public static List<Task> runMZmineModule(
-      @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
-      @Nonnull ParameterSet parameters) {
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
+      @NotNull ParameterSet parameters) {
 
     MZmineRunnableModule module = getModuleInstance(moduleClass);
 

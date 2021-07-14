@@ -29,9 +29,9 @@ import java.util.Map;
 public class MSMSScore {
 
   private double score;
-  private Map<Integer, String> annotation;
+  private Map<Double, String> annotation;
 
-  public MSMSScore(double score, Map<Integer, String> annotation) {
+  public MSMSScore(double score, Map<Double, String> annotation) {
     this.score = score;
     this.annotation = annotation;
   }
@@ -40,7 +40,7 @@ public class MSMSScore {
     return score;
   }
 
-  public Map<Integer, String> getAnnotation() {
+  public Map<Double, String> getAnnotation() {
     return annotation;
   }
 

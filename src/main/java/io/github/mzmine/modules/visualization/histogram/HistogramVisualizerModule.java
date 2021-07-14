@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.histogram;
 
 import io.github.mzmine.main.MZmineCore;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -34,19 +34,19 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
   private static final String MODULE_DESCRIPTION = "Histogram plot"; // TODO
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     HistogramTab newTab = new HistogramTab(parameters);
     //newTab.show();
     MZmineCore.getDesktop().addTab(newTab);
@@ -54,12 +54,12 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return HistogramParameters.class;
   }
 

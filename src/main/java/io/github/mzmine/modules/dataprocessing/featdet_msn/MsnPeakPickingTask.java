@@ -1,27 +1,22 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
 package io.github.mzmine.modules.dataprocessing.featdet_msn;
 
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.logging.Logger;
-import javax.annotation.Nullable;
-import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -29,6 +24,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -36,14 +32,15 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
+import org.apache.commons.lang3.ArrayUtils;
 
 
 public class MsnPeakPickingTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private int processedScans, totalScans;
-
   private final MZmineProject project;
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
@@ -52,11 +49,12 @@ public class MsnPeakPickingTask extends AbstractTask {
   private final RTTolerance rtTolerance;
   private final ParameterSet parameterSet;
   private final Scan[] scans;
-
   private final ModularFeatureList newFeatureList;
+  private int processedScans, totalScans;
 
-  public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
+  public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
+      @Nullable
+          MemoryMapStorage storage) {
     super(storage);
 
     this.project = project;
@@ -166,7 +164,7 @@ public class MsnPeakPickingTask extends AbstractTask {
         if (newFeature != null) {
 
           ModularFeatureListRow newFeatureListRow =
-              new ModularFeatureListRow(newFeatureList, scan.getScanNumber(), dataFile, newFeature);
+              new ModularFeatureListRow(newFeatureList, scan.getScanNumber(), newFeature);
 
           newFeatureList.addRow(newFeatureListRow);
         }
@@ -199,7 +197,7 @@ public class MsnPeakPickingTask extends AbstractTask {
 
   /**
    * Get scan numbers for input MS level.
-   * 
+   *
    * @param scan
    * @return
    */

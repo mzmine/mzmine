@@ -18,10 +18,9 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
-import java.util.Collection;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a raw data file, that offers the additional mobility dimension within the scans.
@@ -40,23 +39,23 @@ public interface IMSRawDataFile extends RawDataFile {
   /**
    * @return Set of all frames in this raw data file. List may be empty if no frames exist.
    */
-  @Nonnull
-  Collection<? extends Frame> getFrames();
+  @NotNull
+  List<? extends Frame> getFrames();
 
   /**
    * @param msLevel The ms level
    * @return List of frames with the given msLevel. May be empty.
    */
-  @Nonnull
-  Collection<? extends Frame> getFrames(int msLevel);
+  @NotNull
+  List<? extends Frame> getFrames(int msLevel);
 
   /**
    * @param msLevel
    * @param rtRange
    * @return List of frames with given ms mlevel in the specified rt window. May be empty.
    */
-  @Nonnull
-  Collection<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
+  @NotNull
+  List<? extends Frame> getFrames(int msLevel, Range<Float> rtRange);
 
   /**
    * @return The number of frames in this raw data file. equivalent to
@@ -68,28 +67,28 @@ public interface IMSRawDataFile extends RawDataFile {
    * @param msLevel The ms level of the given frames.
    * @return The frame numbers in the specified ms level. Might be empty.
    */
-  @Nonnull
-  Set<Scan> getFrameNumbers(int msLevel);
+  @NotNull
+  List<Scan> getFrameNumbers(int msLevel);
 
   /**
    * @param msLevel
    * @param rtRange
    * @return The frame numbers in the specified ms level and rt range. Might be empty.
    */
-  @Nonnull
-  Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  @NotNull
+  List<Scan> getFrameNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
    * @return The mobility range of this raw data file. Might be empty.
    */
-  @Nonnull
+  @NotNull
   Range<Double> getDataMobilityRange();
 
   /**
    * @param msLevel
    * @return The mobility range for the given ms level. Might be empty.
    */
-  @Nonnull
+  @NotNull
   Range<Double> getDataMobilityRange(int msLevel);
 
   /**
@@ -113,7 +112,7 @@ public interface IMSRawDataFile extends RawDataFile {
    * @return The {@link MobilityType} of this data file. {@link MobilityType#NONE} if no mobility
    *         dimension was recorded.
    */
-  @Nonnull
+  @NotNull
   MobilityType getMobilityType();
 
 //  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);

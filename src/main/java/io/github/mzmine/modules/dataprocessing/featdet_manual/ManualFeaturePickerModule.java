@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_manual;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import com.google.common.collect.Range;
 
@@ -37,7 +37,7 @@ public class ManualFeaturePickerModule implements MZmineModule {
   /**
    * @see io.github.mzmine.modules.MZmineProcessingModule#getName()
    */
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Manual feature detector";
   }
 
@@ -104,7 +104,7 @@ public class ManualFeaturePickerModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ManualPickerParameters.class;
   }
 

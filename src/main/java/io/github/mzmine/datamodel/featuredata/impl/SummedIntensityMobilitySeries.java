@@ -32,8 +32,8 @@ import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores a summed mobilogram based on the intesities of the frame-specific mobilograms in the
@@ -53,7 +53,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
    * @param mobilograms
    */
   public SummedIntensityMobilitySeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<IonMobilitySeries> mobilograms) {
+      @NotNull List<IonMobilitySeries> mobilograms) {
 
     Frame exampleFrame = mobilograms.get(0).getSpectra().get(0).getFrame();
     final double smallestDelta = IonMobilityUtils.getSmallestMobilityDelta(exampleFrame);

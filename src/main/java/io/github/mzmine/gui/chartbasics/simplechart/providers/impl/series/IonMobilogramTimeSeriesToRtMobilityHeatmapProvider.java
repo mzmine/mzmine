@@ -29,7 +29,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 /**

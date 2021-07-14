@@ -24,8 +24,8 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSMobilityMzPlotModule implements MZmineModule {
 
@@ -41,7 +41,7 @@ public class IMSMobilityMzPlotModule implements MZmineModule {
     }
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;

@@ -18,13 +18,6 @@
 
 package io.github.mzmine.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.SortedSet;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
@@ -69,27 +62,34 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.A
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
-import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.SortedSet;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureConvertors {
 
   /**
-   * Creates a ModularFeature on the basis of chromatogram results with the
-   * {@link DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
+   * Creates a ModularFeature on the basis of chromatogram results with the {@link
+   * DataTypeUtils#addDefaultChromatographicTypeColumns(ModularFeatureList)} columns
    *
    * @param chromatogram input ADAP chromatogram
    * @return output modular feature
    */
   static public ModularFeature ADAPChromatogramToModularFeature(
-      @Nonnull ADAPChromatogram chromatogram) {
+      @NotNull ADAPChromatogram chromatogram) {
 
     if (chromatogram.getFeatureList() == null) {
       throw new NullPointerException("Feature list of the ADAP chromatogram is null.");
@@ -103,12 +103,12 @@ public class FeatureConvertors {
     ModularFeature modularFeature =
         new ModularFeature((ModularFeatureList) chromatogram.getFeatureList());
 
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(chromatogram.getAllMS2FragmentScanNumbers()));
-    // modularFeature.set(ScanNumbersType.class, List.of(chromatogram.getScanNumbers()));
+    modularFeature
+        .set(FragmentScanNumbersType.class, List.of(chromatogram.getAllMS2FragmentScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(chromatogram.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        chromatogram.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, chromatogram.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
     if (chromatogram.getIsotopePattern() != null) {
       modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
@@ -119,7 +119,7 @@ public class FeatureConvertors {
     modularFeature.set(DetectionType.class, chromatogram.getFeatureStatus());
 
     // Data points of feature
-    // modularFeature.set(DataPointsType.class, new ArrayList<>(chromatogram.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(chromatogram.getDataPoints()));
     if (chromatogram.getDataPoints().size() != chromatogram.getScanNumbers().length) {
       throw new IllegalArgumentException(
           "Number of data points does not match number of scan numbers");
@@ -141,20 +141,24 @@ public class FeatureConvertors {
     modularFeature.setAllMS2FragmentScans(allMS2);
 
     // Quality parameters
-    /*
-     * float fwhm = QualityParameters.calculateFWHM(modularFeature); if (!Float.isNaN(fwhm)) {
-     * modularFeature.set(FwhmType.class, fwhm); } float tf =
-     * QualityParameters.calculateTailingFactor(modularFeature); if (!Float.isNaN(tf)) {
-     * modularFeature.set(TailingFactorType.class, tf); } float af =
-     * QualityParameters.calculateAsymmetryFactor(modularFeature); if (!Float.isNaN(af)) {
-     * modularFeature.set(AsymmetryFactorType.class, af); }
-     */
+    /*float fwhm = QualityParameters.calculateFWHM(modularFeature);
+    if (!Float.isNaN(fwhm)) {
+      modularFeature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(modularFeature);
+    if (!Float.isNaN(tf)) {
+      modularFeature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
+    if (!Float.isNaN(af)) {
+      modularFeature.set(AsymmetryFactorType.class, af);
+    }*/
 
     return modularFeature;
   }
 
   public static ModularFeature IonMobilityIonTraceToModularFeature(
-      @Nonnull IIonMobilityTrace ionTrace, RawDataFile rawDataFile,
+      @NotNull IIonMobilityTrace ionTrace, RawDataFile rawDataFile,
       BinningMobilogramDataAccess mobilogramBinner) {
 
     if (ionTrace.getFeatureList() == null) {
@@ -173,7 +177,7 @@ public class FeatureConvertors {
     modularFeature.setFragmentScan(null);
     modularFeature.setRepresentativeScan(null);
     // Add values to feature
-    // modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.set(MZType.class, ionTrace.getMz());
@@ -188,22 +192,22 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, null);
 
     // Data points of feature
-    // List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
-    // modularFeature.set(DataPointsType.class, dps);
+//    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
+//    modularFeature.set(DataPointsType.class, dps);
 
-    MemoryMapStorage storage =
-        ((ModularFeatureList) ionTrace.getFeatureList()).getMemoryMapStorage();
+    MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
+        .getMemoryMapStorage();
     List<IonMobilitySeries> mobilograms = new ArrayList<>();
     var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
     for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(entry.getValue());
-      SimpleIonMobilitySeries mobilogram =
-          new SimpleIonMobilitySeries(storage, data[0], data[1], entry.getValue().stream()
-              .map(RetentionTimeMobilityDataPoint::getMobilityScan).collect(Collectors.toList()));
+      SimpleIonMobilitySeries mobilogram = new SimpleIonMobilitySeries(storage, data[0], data[1],
+          entry.getValue().stream().map(RetentionTimeMobilityDataPoint::getMobilityScan).collect(
+              Collectors.toList()));
       mobilograms.add(mobilogram);
     }
-    IonMobilogramTimeSeries imTimeSeries =
-        IonMobilogramTimeSeriesFactory.of(storage, mobilograms, mobilogramBinner);
+    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
+        .of(storage, mobilograms, mobilogramBinner);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
 
     // Ranges
@@ -214,8 +218,8 @@ public class FeatureConvertors {
     Range<Float> intensityRange =
         Range.closed(ionTrace.getIntensityRange().lowerEndpoint().floatValue(),
             ionTrace.getIntensityRange().upperEndpoint().floatValue());
-    Range<Float> mobilityRange =
-        Range.closed(ionTrace.getMobilityRange().lowerEndpoint().floatValue(),
+    Range<Float> mobilityRange = Range
+        .closed(ionTrace.getMobilityRange().lowerEndpoint().floatValue(),
             ionTrace.getMobilityRange().upperEndpoint().floatValue());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
@@ -241,9 +245,9 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static ModularFeature tempIMTraceToModularFeature(@Nonnull TempIMTrace ionTrace,
-      RawDataFile rawDataFile, BinningMobilogramDataAccess mobilogramBinner,
-      ModularFeatureList flist) {
+  public static ModularFeature tempIMTraceToModularFeature(
+      @NotNull TempIMTrace ionTrace, RawDataFile rawDataFile,
+      BinningMobilogramDataAccess mobilogramBinner, ModularFeatureList flist) {
 
     ModularFeature modularFeature = new ModularFeature(flist);
 
@@ -254,8 +258,8 @@ public class FeatureConvertors {
     modularFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, false);
 
     MemoryMapStorage storage = flist.getMemoryMapStorage();
-    IonMobilogramTimeSeries imTimeSeries =
-        IonMobilogramTimeSeriesFactory.of(storage, ionTrace.getMobilograms(), mobilogramBinner);
+    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
+        .of(storage, ionTrace.getMobilograms(), mobilogramBinner);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
@@ -278,7 +282,7 @@ public class FeatureConvertors {
     return modularFeature;
   }
 
-  public static ModularFeature ImageToModularFeature(@Nonnull IImage image,
+  public static ModularFeature ImageToModularFeature(@NotNull IImage image,
       RawDataFile rawDataFile) {
 
     if (image.getFeatureList() == null) {
@@ -309,9 +313,9 @@ public class FeatureConvertors {
 
     // Data points of feature
     double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(image.getDataPoints());
-    SimpleIonTimeSeries data =
-        new SimpleIonTimeSeries(((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(),
-            dp[0], dp[1], image.getScanNumbers().stream().collect(Collectors.toList()));
+    SimpleIonTimeSeries data = new SimpleIonTimeSeries(
+        ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],
+        image.getScanNumbers().stream().collect(Collectors.toList()));
     modularFeature.set(FeatureDataType.class, data);
 
     // Ranges
@@ -324,7 +328,6 @@ public class FeatureConvertors {
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
-    modularFeature.setRepresentativeScan(image.getRepresentativeScan());
     // modularFeature.setAllMS2FragmentScanNumbers(IntStream
     // .of(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
     // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
@@ -343,19 +346,21 @@ public class FeatureConvertors {
     modularFeature.set(AsymmetryFactorType.class, -1f);
     // }
 
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
+
     return modularFeature;
   }
 
 
   /**
-   * Creates a ModularFeature on the basis of manually picked feature
-   * {@link ManualFeatureUtils#pickFeatureManually(RawDataFile, Range, Range)}
+   * Creates a ModularFeature on the basis of manually picked feature {@link
+   * ManualFeatureUtils#pickFeatureManually(RawDataFile, Range, Range)}
    *
    * @param manualFeature input manual feature
    * @return output modular feature
    */
   static public ModularFeature ManualFeatureToModularFeature(ModularFeatureList featureList,
-      @Nonnull ManualFeature manualFeature) {
+      @NotNull ManualFeature manualFeature) {
 
     if (manualFeature.getFeatureList() == null) {
       throw new NullPointerException("Feature list of the manual feature is null.");
@@ -377,9 +382,9 @@ public class FeatureConvertors {
     modularFeature.setRepresentativeScan(manualFeature.getRepresentativeScanNumber());
     // Add values to feature
 
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(manualFeature.getAllMS2FragmentScanNumbers()));
-    // modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
+    modularFeature
+        .set(FragmentScanNumbersType.class, List.of(manualFeature.getAllMS2FragmentScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
 
     modularFeature.set(RawFileType.class, manualFeature.getRawDataFile());
     modularFeature.set(DetectionType.class, manualFeature.getFeatureStatus());
@@ -390,7 +395,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, manualFeature.getRepresentativeScanNumber());
 
     // Data points of feature
-    // modularFeature.set(DataPointsType.class, new ArrayList<>(manualFeature.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(manualFeature.getDataPoints()));
     SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) manualFeature.getFeatureList()).getMemoryMapStorage(),
         manualFeature.getDataPoints().stream().collect(Collectors.toList()),
@@ -409,11 +414,10 @@ public class FeatureConvertors {
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
-    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2
-    // this way
+    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2 this way
     // modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-    // .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
-    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+    //    .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
+    //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
     float fwhm = QualityParameters.calculateFWHM(modularFeature);
@@ -439,7 +443,8 @@ public class FeatureConvertors {
   }
 
   public static io.github.mzmine.datamodel.features.Feature SameRangePeakToModularFeature(
-      ModularFeatureList featureList, SameRangePeak sameRangePeak) {
+      ModularFeatureList featureList,
+      SameRangePeak sameRangePeak) {
 
     if (sameRangePeak.getPeakList() == null) {
       throw new NullPointerException("Feature list of the sameRangePeak is null.");
@@ -452,12 +457,12 @@ public class FeatureConvertors {
 
     ModularFeature modularFeature = new ModularFeature(featureList);
 
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
-    // modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
+    modularFeature
+        .set(FragmentScanNumbersType.class, List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        sameRangePeak.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -472,7 +477,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    // modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
     SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
         sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
@@ -491,11 +496,10 @@ public class FeatureConvertors {
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
-    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2
-    // this way
+    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2 this way
     // modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-    // .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
-    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+    //    .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
+    //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
     float fwhm = QualityParameters.calculateFWHM(modularFeature);
@@ -526,14 +530,15 @@ public class FeatureConvertors {
           "Can not create modular feature from sameRangePeak of non-modular feature list.");
     }
 
-    ModularFeature modularFeature = new ModularFeature(featureList);
+    ModularFeature modularFeature =
+        new ModularFeature(featureList);
 
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
-    // modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
+    modularFeature
+        .set(FragmentScanNumbersType.class, List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        sameRangePeak.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -548,7 +553,7 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    // modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
+//    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
     SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
         ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
         sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
@@ -567,11 +572,10 @@ public class FeatureConvertors {
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
-    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2
-    // this way
+    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2 this way
     // modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-    // .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
-    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+    //    .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
+    //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
     float fwhm = QualityParameters.calculateFWHM(modularFeature);
@@ -605,12 +609,12 @@ public class FeatureConvertors {
     ModularFeature modularFeature = new ModularFeature(featureList);
 
     // Add values to feature
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
-    // modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
+    modularFeature
+        .set(FragmentScanNumbersType.class, List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
+//    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        resolvedPeak.getMostIntenseFragmentScanNumber());
+    modularFeature
+        .set(BestFragmentScanNumberType.class, resolvedPeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, resolvedPeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, resolvedPeak.getPeakInformation());
@@ -625,23 +629,24 @@ public class FeatureConvertors {
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
 
     // Data points of feature
-    // modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
-    // SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
-    // ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
-    // resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
-    // Arrays.asList(resolvedPeak.getScanNumbers()));
+//    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
+//    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
+//        ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
+//        resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
+//        Arrays.asList(resolvedPeak.getScanNumbers()));
     IonTimeSeries<? extends Scan> resolvedData = null;
     if (originalData instanceof SimpleIonTimeSeries) {
       resolvedData = ((SimpleIonTimeSeries) originalData).subSeries(
-          featureList.getMemoryMapStorage(), Arrays.asList(resolvedPeak.getScanNumbers()));
+          featureList.getMemoryMapStorage(),
+          Arrays.asList(resolvedPeak.getScanNumbers()));
     } else if (originalData instanceof IonMobilogramTimeSeries) {
       List<? extends Scan> scans = Arrays.asList(resolvedPeak.getScanNumbers());
       List<Frame> frames = (List<Frame>) scans;
-      resolvedData = ((SimpleIonMobilogramTimeSeries) originalData)
-          .subSeries(featureList.getMemoryMapStorage(), frames);
+      resolvedData = ((SimpleIonMobilogramTimeSeries) originalData).subSeries(
+          featureList.getMemoryMapStorage(), frames);
     } else {
-      throw new IllegalArgumentException("Smoothing is not yet supported for this kind of data. "
-          + originalData.getClass().getName());
+      throw new IllegalArgumentException("Smoothing is not yet supported for this kind of data. " +
+          originalData.getClass().getName());
     }
     modularFeature.set(FeatureDataType.class, resolvedData);
 
@@ -657,11 +662,10 @@ public class FeatureConvertors {
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
 
-    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2
-    // this way
+    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2 this way
     // modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-    // .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
-    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+    //    .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
+    //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
 
     // Quality parameters
     float fwhm = QualityParameters.calculateFWHM(modularFeature);
@@ -694,7 +698,8 @@ public class FeatureConvertors {
       i++;
     }
 
-    SimpleIonTimeSeries timeSeries = new SimpleIonTimeSeries(storage, mzs, intensities, scansList);
+    SimpleIonTimeSeries timeSeries = new SimpleIonTimeSeries(storage, mzs,
+        intensities, scansList);
 
     return timeSeries;
   }

@@ -21,7 +21,7 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class SimpleXYChartWithDatasetView<T extends PlotXYDataProvider> extends SplitPane {
 
@@ -29,7 +29,7 @@ public class SimpleXYChartWithDatasetView<T extends PlotXYDataProvider> extends 
 
   private final DatasetControlPane<T> datasetPane;
 
-  public SimpleXYChartWithDatasetView(@Nonnull SimpleXYChart<T> chart) {
+  public SimpleXYChartWithDatasetView(@NotNull SimpleXYChart<T> chart) {
     super();
     setOrientation(Orientation.VERTICAL);
     this.chart = chart;

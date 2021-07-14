@@ -130,6 +130,7 @@ public class QualityParameters {
     // FWHM
     double[] rtValues =
         peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile, rtRange);
+    if (rtValues.length < 2) return Float.NaN;
     double fwhm = rtValues[1] - rtValues[0];
     if (fwhm <= 0 || Double.isInfinite(fwhm)) {
       return Float.NaN;
@@ -304,6 +305,10 @@ public class QualityParameters {
     double lastDiff2 = intensity;
     double currentDiff;
     float currentRT;
+
+    if (intensities.length < 2) {
+      return new double[] { featureRT };
+    }
 
     // Find the data points closet to input intensity on both side of the
     // peak apex

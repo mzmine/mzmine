@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.rawdataoverviewims;
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.DoubleComponent;
+import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
@@ -44,7 +45,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
 
@@ -77,7 +78,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
   private MZTolerance mzTolerance;
   private ScanSelection scanSelection;
   private Float rtWidth;
-  private Double binWidth;
+  private Integer binWidth;
   private ListView<Range<Double>> mobilogramRangesList;
 
   private double frameNoiseLevel;
@@ -85,7 +86,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
       double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
-      Float rtWidth, Double binWidth) {
+      Float rtWidth, Integer binWidth) {
     this.pane = pane;
     this.frameNoiseLevel = frameNoiseLevel;
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
@@ -113,7 +114,8 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         2d);
     ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
     scanSelectionComponent.setValue(scanSelection);
-    DoubleComponent binWidthComponent = new DoubleComponent(100, 0d, 10d, mobilityFormat, 0.0008d);
+    IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
+    binWidthComponent.setText(binWidth.toString());
 
     setPadding(new Insets(5));
     setVgap(5);
@@ -194,7 +196,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
         rtWidthComponent.setText(rtFormat.format(rtWidth));
         scanSelection = scanSelectionComponent.getValue();
         mzTolerance = mzToleranceComponent.getValue();
-        binWidth = Double.parseDouble(binWidthComponent.getText());
+        binWidth = Integer.parseInt(binWidthComponent.getText());
 
         pane.setMzTolerance(mzTolerance);
         pane.setScanSelection(scanSelection);

@@ -47,8 +47,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseButton;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -114,13 +114,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     this("", xLabel, yLabel);
   }
 
-  public SimpleXYChart(@NamedArg("title") @Nonnull String title,
+  public SimpleXYChart(@NamedArg("title") @NotNull String title,
       @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel) {
     this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
   }
 
-  public SimpleXYChart(@NamedArg("title") @Nonnull String title,
+  public SimpleXYChart(@NamedArg("title") @NotNull String title,
       @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {

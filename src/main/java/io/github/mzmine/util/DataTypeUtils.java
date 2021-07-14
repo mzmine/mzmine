@@ -49,12 +49,12 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("null")
 public class DataTypeUtils {
 
-  public static final @Nonnull
+  public static final @NotNull
   List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
       new RTType(), new RTRangeType(),
       // needed next to each other for switching between RTType and RTRangeType
@@ -62,19 +62,19 @@ public class DataTypeUtils {
       new HeightType(), new AreaType(), new ManualAnnotationType(),
       new FeatureShapeType(), new FeaturesType());
 
-  public static final @Nonnull
+  public static final @NotNull
   List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
           new BestScanNumberType(), new FeatureDataType(), new IntensityRangeType(), new FwhmType(),
           new TailingFactorType(), new AsymmetryFactorType());
 
-  @Nonnull
+  @NotNull
   public static final List<DataType<?>> DEFAULT_ION_MOBILITY_COLUMNS_ROW = List
       .of(new MobilityType(), new MobilityRangeType(),
           new FeatureShapeMobilogramType());
 
-  @Nonnull
+  @NotNull
   public static final List<DataType<?>> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE = List
       .of(new MobilityType(), new MobilityRangeType());
 

@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_cropfilter;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -38,19 +38,19 @@ public class CropFilterModule implements MZmineProcessingModule {
       "This module performs cropping of raw data files.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     // one storage for all files in the same module call
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
@@ -63,12 +63,12 @@ public class CropFilterModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.RAWDATAFILTERING;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return CropFilterParameters.class;
   }
 }

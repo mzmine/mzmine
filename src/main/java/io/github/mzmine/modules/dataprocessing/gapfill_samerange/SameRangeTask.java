@@ -44,13 +44,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 class SameRangeTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private final MZmineProject project;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList peakList, processedPeakList;
 
   private String suffix;
@@ -58,7 +57,8 @@ class SameRangeTask extends AbstractTask {
   private boolean removeOriginal;
 
   private int processedRows, totalRows;
-  private AtomicInteger processedRowsAtomic;;
+  private AtomicInteger processedRowsAtomic;
+  ;
 
   private ParameterSet parameters;
 
@@ -101,18 +101,21 @@ class SameRangeTask extends AbstractTask {
 
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
-    peakList.parallelStream().map(r -> (ModularFeatureListRow)r).forEach(sourceRow -> {
+    peakList.parallelStream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
       // Canceled?
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
-      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow, true);
+      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow.getID(),
+          sourceRow, true);
 
       // Copy each peaks and fill gaps
       for (RawDataFile column : columns) {
         // Canceled?
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Get current peak
         Feature currentPeak = sourceRow.getFeature(column);
@@ -136,8 +139,9 @@ class SameRangeTask extends AbstractTask {
     /*******************************************************************************/
 
     // Canceled?
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
     // Append processed feature list to the project
     project.addFeatureList(processedPeakList);
 
@@ -150,8 +154,9 @@ class SameRangeTask extends AbstractTask {
             SameRangeGapFillerModule.class, parameters));
 
     // Remove the original peaklist if requested
-    if (removeOriginal)
+    if (removeOriginal) {
       project.removeFeatureList(peakList);
+    }
 
     setStatus(TaskStatus.FINISHED);
 
@@ -169,8 +174,9 @@ class SameRangeTask extends AbstractTask {
     // Check the peaks for selected data files
     for (RawDataFile dataFile : row.getRawDataFiles()) {
       Feature peak = row.getFeature(dataFile);
-      if (peak == null)
+      if (peak == null) {
         continue;
+      }
       if ((mzRange == null) || (rtRange == null)) {
         mzRange = peak.getRawDataPointsMZRange();
         rtRange = peak.getRawDataPointsRTRange();
@@ -192,15 +198,17 @@ class SameRangeTask extends AbstractTask {
 
     for (Scan scan : scanNumbers) {
 
-      if (isCanceled())
+      if (isCanceled()) {
         return null;
+      }
 
       // Find most intense m/z peak
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRangeWithTol);
 
       if (basePeak != null) {
-        if (basePeak.getIntensity() > 0)
+        if (basePeak.getIntensity() > 0) {
           dataPointFound = true;
+        }
         newPeak.addDatapoint(scan, basePeak);
       } else {
         DataPoint fakeDataPoint = new SimpleDataPoint(RangeUtils.rangeCenter(mzRangeWithTol), 0);
@@ -211,8 +219,9 @@ class SameRangeTask extends AbstractTask {
 
     if (dataPointFound) {
       newPeak.finalizePeak();
-      if (newPeak.getArea() == 0)
+      if (newPeak.getArea() == 0) {
         return null;
+      }
       return FeatureConvertors.SameRangePeakToModularFeature(processedPeakList, newPeak);
     }
 
@@ -221,8 +230,9 @@ class SameRangeTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return (double) processedRowsAtomic.get() / (double) totalRows;
 
   }

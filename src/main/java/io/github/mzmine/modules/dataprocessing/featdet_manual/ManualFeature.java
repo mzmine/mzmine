@@ -22,11 +22,13 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -73,13 +75,13 @@ public class ManualFeature {
    */
   public ManualFeature(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    dataPointMap = new TreeMap<Scan, DataPoint>();
+    dataPointMap = new TreeMap<>();
   }
 
   /**
    * This feature is always a result of manual feature detection, therefore MANUAL
    */
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public @NotNull FeatureStatus getFeatureStatus() {
     return FeatureStatus.MANUAL;
   }
 
@@ -114,33 +116,33 @@ public class ManualFeature {
   /**
    * This method returns numbers of scans that contain this feature
    */
-  public @Nonnull Scan[] getScanNumbers() {
+  public @NotNull Scan[] getScanNumbers() {
     return dataPointMap.keySet().toArray(Scan[]::new);
   }
 
   /**
    * This method returns a representative datapoint of this feature in a given scan
    */
-  public DataPoint getDataPoint(int scanNumber) {
+  public DataPoint getDataPoint(Scan scanNumber) {
     return dataPointMap.get(scanNumber);
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @NotNull Range<Float> getRawDataPointsIntensityRange() {
     return intensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @NotNull Range<Double> getRawDataPointsMZRange() {
     return mzRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @NotNull Range<Float> getRawDataPointsRTRange() {
     return rtRange;
   }
 
   /**
    * @see Feature#getRawDataFile()
    */
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @NotNull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -160,7 +162,7 @@ public class ManualFeature {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 

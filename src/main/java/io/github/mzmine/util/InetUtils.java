@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 
 /**
@@ -53,7 +54,7 @@ public class InetUtils {
       case HttpURLConnection.HTTP_MOVED_PERM:
       case HttpURLConnection.HTTP_MOVED_TEMP:
         String location = connection.getHeaderField("Location");
-        location = URLDecoder.decode(location, "UTF-8");
+        location = URLDecoder.decode(location, StandardCharsets.UTF_8);
         URL next = new URL(url, location); // Deal with relative URLs
         connection.disconnect();
         connection = (HttpURLConnection) next.openConnection();
@@ -69,7 +70,7 @@ public class InetUtils {
     StringBuffer buffer = new StringBuffer();
 
     try {
-      InputStreamReader reader = new InputStreamReader(is, "UTF-8");
+      InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
 
       char[] cb = new char[1024];
 
@@ -78,7 +79,7 @@ public class InetUtils {
         buffer.append(cb, 0, amtRead);
         amtRead = reader.read(cb);
       }
-
+      reader.close();
     } catch (UnsupportedEncodingException e) {
       // This should never happen, because UTF-8 is supported
       e.printStackTrace();

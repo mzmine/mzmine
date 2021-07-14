@@ -32,8 +32,8 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
@@ -49,7 +49,7 @@ public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
   private double boxWidth;
   private double boxHeight;
 
-  public FeaturesToCCSMzHeatmapProvider(@Nonnull final List<ModularFeature> f) {
+  public FeaturesToCCSMzHeatmapProvider(@NotNull final List<ModularFeature> f) {
     features = f.stream().filter(feature -> feature.getCCS() != null).collect(Collectors.toList());
     seriesKey = (features.isEmpty()) ? "No features found" : f.get(0).getFeatureList().getName();
 
@@ -61,13 +61,13 @@ public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return Color.BLACK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return javafx.scene.paint.Color.BLACK;
@@ -85,7 +85,7 @@ public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

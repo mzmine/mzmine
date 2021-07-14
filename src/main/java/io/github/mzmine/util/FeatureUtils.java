@@ -18,26 +18,29 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
-
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -214,7 +217,7 @@ public class FeatureUtils {
    *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
    *         it.
    */
-  public @Nonnull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
+  public @NotNull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
 
     if (row == null || row.getBestFeature() == null)
       return Range.closed(0.f, 0.f);
@@ -237,8 +240,8 @@ public class FeatureUtils {
 
     float avgL = 0, avgU = 0;
     for (int i = 0; i < size; i++) {
-      avgL += lower[i];
-      avgU += upper[i];
+      avgL += (float) lower[i];
+      avgU += (float) upper[i];
     }
     avgL /= size;
     avgU /= size;
@@ -388,7 +391,7 @@ public class FeatureUtils {
       // Naive area under the curve calculation.
       double rtDifference = nextScan.getRetentionTime() - scan.getRetentionTime();
       rtDifference *= 60;
-      targetArea += (rtDifference * (intensity + nextIntensity) / 2);
+      targetArea += (float)(rtDifference * (intensity + nextIntensity) / 2);
     }
 
     if (targetHeight != 0) {

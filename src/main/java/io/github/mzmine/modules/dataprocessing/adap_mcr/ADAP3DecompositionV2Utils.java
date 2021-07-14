@@ -12,7 +12,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Du-Lab Team <dulab.binf@gmail.com>
@@ -30,8 +30,8 @@ public class ADAP3DecompositionV2Utils {
    * @param peakList MZmine PeakList object
    * @return list of ADAP Peaks
    */
-  @Nonnull
-  public List<BetterPeak> getPeaks(@Nonnull final FeatureList peakList) {
+  @NotNull
+  public List<BetterPeak> getPeaks(@NotNull final FeatureList peakList) {
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
     List<BetterPeak> peaks = new ArrayList<>();

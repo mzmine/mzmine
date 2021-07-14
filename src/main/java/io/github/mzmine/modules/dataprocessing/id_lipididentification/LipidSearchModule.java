@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,29 +35,30 @@ import io.github.mzmine.util.ExitCode;
  */
 public class LipidSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Lipid Annotation";
-  private static final String MODULE_DESCRIPTION = "This method annotates features as lipids.";
+  private static final String MODULE_NAME = "Lipid search";
+  private static final String MODULE_DESCRIPTION =
+      "This method searches and annotates peaks whose m/z value matches a predicted mass of selected lipids.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
-    ModularFeatureList[] featurelists = parameters.getParameter(LipidSearchParameters.featureLists)
+    FeatureList[] featureLists = parameters.getParameter(LipidSearchParameters.featureLists)
         .getValue().getMatchingFeatureLists();
 
-    for (ModularFeatureList featurelist : featurelists) {
-      Task newTask = new LipidSearchTask(parameters, featurelist);
+    for (FeatureList featureList : featureLists) {
+      Task newTask = new LipidSearchTask(parameters, featureList);
       tasks.add(newTask);
     }
 
@@ -65,12 +66,12 @@ public class LipidSearchModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return LipidSearchParameters.class;
   }
 

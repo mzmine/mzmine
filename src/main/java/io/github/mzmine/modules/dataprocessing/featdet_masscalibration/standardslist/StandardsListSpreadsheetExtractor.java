@@ -18,12 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
-import org.apache.poi.ss.usermodel.*;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 
 /**
@@ -80,7 +83,7 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
       logger.fine("Using cached list");
       return new StandardsList(this.extractedData);
     }
-    this.extractedData = new ArrayList<StandardsListItem>();
+    this.extractedData = new ArrayList<>();
 
     Sheet sheet = spreadsheet.getSheetAt(sheetIndex);
 
@@ -122,5 +125,14 @@ public class StandardsListSpreadsheetExtractor implements StandardsListExtractor
     }
 
     return new StandardsList(extractedData);
+  }
+
+  @Override
+  public void closeInputStreams() {
+    try {
+      spreadsheet.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

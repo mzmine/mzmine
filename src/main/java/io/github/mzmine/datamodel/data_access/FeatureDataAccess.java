@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
@@ -232,14 +232,14 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   // Unsupported methods due to different intended use
   @Override
   public IonTimeSeries<Scan> subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Scan> subset) {
+      @NotNull List<Scan> subset) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
   @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }

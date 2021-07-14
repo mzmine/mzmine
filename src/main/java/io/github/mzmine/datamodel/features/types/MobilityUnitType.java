@@ -20,12 +20,12 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.MobilityType;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType>> {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Mobility unit";
@@ -36,7 +36,7 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
     return new SimpleObjectProperty<>(MobilityType.NONE);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getFormattedString(@Nullable Object value) {
     if (value instanceof MobilityType mt) {

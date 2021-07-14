@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.mzhistogram;
 
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -37,19 +37,19 @@ public class MZDistributionHistoModule implements MZmineRunnableModule {
       "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MZDistributionHistoParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
@@ -64,12 +64,12 @@ public class MZDistributionHistoModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MZDistributionHistoParameters.class;
   }
 

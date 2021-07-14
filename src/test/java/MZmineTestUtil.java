@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -48,8 +48,8 @@ public class MZmineTestUtil {
    * @throws InterruptedException if module does not finish in time
    */
   public static boolean callModuleWithTimeout(long timeoutSeconds,
-      @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
-      @Nonnull ParameterSet parameters) throws InterruptedException {
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
+      @NotNull ParameterSet parameters) throws InterruptedException {
     return callModuleWithTimeout(timeoutSeconds, TimeUnit.SECONDS, moduleClass, parameters);
   }
 
@@ -65,8 +65,8 @@ public class MZmineTestUtil {
    * @throws InterruptedException if module does not finish in time
    */
   public static boolean callModuleWithTimeout(long timeout, TimeUnit unit,
-      @Nonnull Class<? extends MZmineRunnableModule> moduleClass,
-      @Nonnull ParameterSet parameters) throws InterruptedException {
+      @NotNull Class<? extends MZmineRunnableModule> moduleClass,
+      @NotNull ParameterSet parameters) throws InterruptedException {
     List<Task> tasks = MZmineCore
         .runMZmineModule(moduleClass, parameters);
     List<AbstractTask> abstractTasks = new ArrayList<>(tasks.size());

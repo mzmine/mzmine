@@ -37,8 +37,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to store ion mobility-LC-MS data.
@@ -75,9 +75,9 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    *                         {@link BinningMobilogramDataAccess#getPreviousBinningWith(ModularFeatureList,
    *                         MobilityType)}
    */
-  public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzs,
-      @Nonnull double[] intensities, @Nonnull List<IonMobilitySeries> mobilograms,
-      @Nonnull List<Frame> frames, @Nonnull final SummedIntensityMobilitySeries summedMobilogram) {
+  public SimpleIonMobilogramTimeSeries(@Nullable MemoryMapStorage storage, @NotNull double[] mzs,
+      @NotNull double[] intensities, @NotNull List<IonMobilitySeries> mobilograms,
+      @NotNull List<Frame> frames, @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
 
     if (mzs.length != intensities.length || mobilograms.size() != intensities.length) {
       throw new IllegalArgumentException(
@@ -102,14 +102,14 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   @Override
   public IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Frame> subset) {
+      @NotNull List<Frame> subset) {
     throw new UnsupportedOperationException(
         "Unsupported operation. Requires BinningMobilogramDataAccess for IonMobilogramTimeSeries.");
   }
 
   @Override
   public IonMobilogramTimeSeries subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Frame> subset, @Nonnull final BinningMobilogramDataAccess mobilogramBinning) {
+      @NotNull List<Frame> subset, @NotNull final BinningMobilogramDataAccess mobilogramBinning) {
     double[] mzs = new double[subset.size()];
     double[] intensities = new double[subset.size()];
 
@@ -212,7 +212,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return IonMobilogramTimeSeriesFactory
         .of(storage, newMzValues, newIntensityValues, mobilograms, frames,
             summedMobilogram.copy(storage));
@@ -228,7 +228,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
    */
   @Override
   public IonMobilogramTimeSeries copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull SummedIntensityMobilitySeries summedMobilogram) {
+      @NotNull SummedIntensityMobilitySeries summedMobilogram) {
 
     return new SimpleIonMobilogramTimeSeries(storage,
         DataPointUtils.getDoubleBufferAsArray(mzValues),
@@ -269,7 +269,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     return summedIntensities;
   }
 
-  private boolean checkRawFileIntegrity(@Nonnull List<IonMobilitySeries> mobilograms) {
+  private boolean checkRawFileIntegrity(@NotNull List<IonMobilitySeries> mobilograms) {
     RawDataFile file = null;
     for (IonMobilitySeries mobilogram : mobilograms) {
       if (file == null) {

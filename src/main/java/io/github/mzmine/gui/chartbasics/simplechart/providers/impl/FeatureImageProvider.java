@@ -28,8 +28,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import java.awt.Color;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 public class FeatureImageProvider implements PlotXYZDataProvider {
@@ -45,13 +45,13 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
   }
 
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return feature.getRawDataFile().getColorAWT();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return feature.getRawDataFile().getColor();
@@ -69,7 +69,7 @@ public class FeatureImageProvider implements PlotXYZDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return FeatureUtils.featureToString(feature);

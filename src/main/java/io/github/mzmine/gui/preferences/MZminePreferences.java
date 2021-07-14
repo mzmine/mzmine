@@ -69,6 +69,10 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumberFormatParameter ppmFormat = new NumberFormatParameter("PPM format",
       "Format used for PPM values such as mass errors", true, new DecimalFormat("0.0000"));
 
+  public static final NumberFormatParameter scoreFormat = new NumberFormatParameter("Score format",
+      "Format used for scores, e.g., Pearson correlation, cosine similarity etc.", false,
+      new DecimalFormat("0.000"));
+
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>(
       "Unit format", "The default unit format to format e.g. axis labels in MZmine.",
       FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
@@ -102,7 +106,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final ParameterSetParameter chartParam =
       new ParameterSetParameter("Chart parameters",
-          "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
+          "The default chart parameters to be used throughout MZmine", new ChartThemeParameters());
 
   public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
       "Enables dark mode");
@@ -110,17 +114,21 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings =
       new HiddenParameter<>(new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-              + "used to process ion mobility data."));
+          + "used to process ion mobility data."));
 
   public static final DirectoryParameter tempDirectory =
       new DirectoryParameter("Temporary file directory", "Directory where temporary files"
-          + " will be stored. Requires a restart of MZmine to take effect",
+                                                         + " will be stored. Requires a restart of MZmine to take effect",
           System.getProperty("java.io.tmpdir"));
 
   public MZminePreferences() {
     super(
-        new Parameter[]{mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat,
+        new Parameter[]{
+            // number formats
+            mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
+            // how to format unit strings
             unitFormat,
+            // other preferences
             numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
             defaultColorPalette, defaultPaintScale, chartParam, darkMode, imsModuleWarnings,
             tempDirectory});

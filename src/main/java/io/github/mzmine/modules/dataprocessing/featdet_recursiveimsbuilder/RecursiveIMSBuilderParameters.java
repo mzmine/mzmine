@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
 
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -28,7 +27,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
 
@@ -52,14 +51,14 @@ public class RecursiveIMSBuilderParameters extends SimpleParameterSet {
   public static final ParameterSetParameter advancedParameters =
       new ParameterSetParameter("Advanced parameters",
           "Allows adjustment of internal binning parameters for mobilograms",
-          new AdvancedImsTraceBuilderParameters());
+          new RecursiveIMSBuilderAdvancedParameters());
 
   public RecursiveIMSBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minNumConsecutive,
         minNumDatapoints, advancedParameters});
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

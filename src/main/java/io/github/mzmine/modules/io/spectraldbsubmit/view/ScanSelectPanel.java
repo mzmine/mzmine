@@ -57,8 +57,8 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ScanSelectPanel extends BorderPane {
 
@@ -663,7 +663,7 @@ public class ScanSelectPanel extends BorderPane {
    *
    * @return The adduct or an empty String for wrong input
    */
-  @Nonnull
+  @NotNull
   public String getAdduct() {
     String adduct = txtAdduct.getText();
 

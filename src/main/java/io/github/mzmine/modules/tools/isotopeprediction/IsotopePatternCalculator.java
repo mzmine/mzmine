@@ -31,7 +31,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Window;
 import java.util.ArrayList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -50,7 +50,7 @@ public class IsotopePatternCalculator implements MZmineModule {
   private static final String MODULE_NAME = "Isotope pattern prediction.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
@@ -291,7 +291,7 @@ public class IsotopePatternCalculator implements MZmineModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return IsotopePatternCalculatorParameters.class;
   }
 

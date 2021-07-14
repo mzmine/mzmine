@@ -18,10 +18,17 @@
 
 package io.github.mzmine.util.dialogs;
 
+import java.util.List;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.openscience.cdk.Element;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -32,18 +39,35 @@ public class PeriodicTableDialog extends Stage /*implements ICDKChangeListener*/
   private IIsotope selectedIsotope;
 
   public PeriodicTableDialog() {
+    this(false);
+  }
+
+  public PeriodicTableDialog(boolean multipleSelection) {
+    BorderPane borderPane = new BorderPane();
+    borderPane.setPadding(new Insets(10, 10, 10, 10));
+
+    Scene scene = new Scene(borderPane);
+    super.setScene(scene);
+    super.setTitle("Periodic table");
+    super.setResizable(false);
+
+    // Add periodic table
     try {
       FXMLLoader loader = new FXMLLoader(getClass().getResource("PeriodicTableDialog.fxml"));
       Parent root = loader.load();
-      Scene scene = new Scene(root, 700, 400);
-      super.setScene(scene);
-      super.setTitle("Choose an element...");
+      borderPane.setCenter(root);
       periodicTable = loader.getController();
-    }
-
-    catch (Exception e) {
+      periodicTable.setMultipleSelection(multipleSelection);
+    } catch (Exception e) {
       e.printStackTrace();
     }
+
+    // Add OK button
+    Button btnClose = new Button("OK");
+    btnClose.setOnAction(e -> super.hide());
+    ButtonBar btnBar = new ButtonBar();
+    btnBar.getButtons().addAll(btnClose);
+    borderPane.setBottom(btnBar);
   }
 
 /*  @Override
@@ -62,9 +86,14 @@ public class PeriodicTableDialog extends Stage /*implements ICDKChangeListener*/
 
   public IIsotope getSelectedIsotope() {
 
+    String symbol = periodicTable.getElementSymbol();
+    if (symbol == null) {
+      return null;
+    }
+
     try {
       IsotopeFactory isoFac = Isotopes.getInstance();
-      selectedIsotope = isoFac.getMajorIsotope(periodicTable.getElementSymbol());
+      selectedIsotope = isoFac.getMajorIsotope(symbol);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -72,5 +101,12 @@ public class PeriodicTableDialog extends Stage /*implements ICDKChangeListener*/
     return selectedIsotope;
   }
 
+  public ObservableList<Element> getSelectedElements() {
+    return periodicTable.getSelectedElements();
+  }
+
+  public void setSelectedElements(List<Element> elements) {
+    periodicTable.setSelectedElements(elements);
+  }
 }
 

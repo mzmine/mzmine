@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -79,6 +79,7 @@ public class MassDetectionTask extends AbstractTask {
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
     this.parameters = parameters;
+
   }
 
   /**
@@ -115,7 +116,7 @@ public class MassDetectionTask extends AbstractTask {
     ArrayList<Integer> pointsInScans = new ArrayList<>();
     ArrayList<Double> allMZ = new ArrayList<>();
     ArrayList<Double> allIntensities = new ArrayList<>();
-    // idecies of full mass list where scan starts?
+    // indices of full mass list where scan starts?
     ArrayList<Integer> startIndex = new ArrayList<>();
     ArrayList<Float> scanAcquisitionTime = new ArrayList<>();
     // XCMS needs this one
@@ -138,7 +139,7 @@ public class MassDetectionTask extends AbstractTask {
       totalScans = data.getNumberOfScans();
 
       // all scans
-      while(data.hasNextScan()) {
+      while (data.hasNextScan()) {
         if (isCanceled()) {
           return;
         }
@@ -146,19 +147,22 @@ public class MassDetectionTask extends AbstractTask {
         Scan scan = data.nextScan();
 
         MassDetector detector = massDetector.getModule();
+
         // run mass detection on data object
         // [mzs, intensities]
         double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
         if (scan instanceof Frame) {
           // for ion mobility, detect subscans, too
-          FrameMassList frameMassList = new FrameMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]);
+          FrameMassList frameMassList = new FrameMassList(getMemoryMapStorage(), mzPeaks[0],
+              mzPeaks[1]);
           Frame frame = (Frame) scan;
           frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
               getMemoryMapStorage(), detector, massDetector.getParameterSet());
           frame.addMassList(frameMassList);
         } else {
-          SimpleMassList newMassList = new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]);
+          SimpleMassList newMassList = new SimpleMassList(getMemoryMapStorage(), mzPeaks[0],
+              mzPeaks[1]);
           scan.addMassList(newMassList);
         }
 

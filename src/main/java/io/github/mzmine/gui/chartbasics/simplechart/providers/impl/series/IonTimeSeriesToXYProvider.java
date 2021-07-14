@@ -30,8 +30,8 @@ import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Can be used to plot {@link IonTimeSeries<Scan>} and extending classes as a chromatogram.
@@ -44,9 +44,9 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
   private final String seriesKey;
   private final ObjectProperty<javafx.scene.paint.Color> color;
 
-  public IonTimeSeriesToXYProvider(@Nonnull IonTimeSeries<? extends Scan> series,
-      @Nonnull String seriesKey,
-      @Nonnull ObjectProperty<javafx.scene.paint.Color> color) {
+  public IonTimeSeriesToXYProvider(@NotNull IonTimeSeries<? extends Scan> series,
+      @NotNull String seriesKey,
+      @NotNull ObjectProperty<javafx.scene.paint.Color> color) {
     this.series = series;
     this.seriesKey = seriesKey;
     this.color = color;
@@ -58,13 +58,13 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
     color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color.get());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color.get();
@@ -76,7 +76,7 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

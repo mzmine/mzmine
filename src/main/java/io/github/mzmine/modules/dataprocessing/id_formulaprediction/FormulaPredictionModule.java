@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -79,12 +79,12 @@ public class FormulaPredictionModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return FormulaPredictionParameters.class;
   }
 

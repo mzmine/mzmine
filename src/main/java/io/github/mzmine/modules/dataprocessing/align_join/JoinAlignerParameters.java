@@ -32,7 +32,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
@@ -82,7 +82,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
         compareSpectraSimilarity});
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

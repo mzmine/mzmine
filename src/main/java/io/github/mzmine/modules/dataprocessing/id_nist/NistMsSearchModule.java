@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -40,32 +40,32 @@ public class NistMsSearchModule implements MZmineProcessingModule {
       "This method searches spectra against the NIST library.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
 
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
 
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
 
     return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return NistMsSearchParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -58,11 +58,11 @@ public class RowsFilterTask extends AbstractTask {
   // Feature lists.
   private final MZmineProject project;
   private final FeatureList origFeatureList;
+  // Parameters.
+  private final ParameterSet parameters;
   private FeatureList filteredFeatureList;
   // Processed rows counter
   private int processedRows, totalRows;
-  // Parameters.
-  private final ParameterSet parameters;
 
   /**
    * Create the task.
@@ -188,17 +188,19 @@ public class RowsFilterTask extends AbstractTask {
     int rowsCount = 0;
     boolean removeRow = false;
 
-    if (removeRowString.equals(RowsFilterParameters.removeRowChoices[0]))
+    if (removeRowString.equals(RowsFilterParameters.removeRowChoices[0])) {
       removeRow = false;
-    else
+    } else {
       removeRow = true;
+    }
 
     // Keep rows that don't match any criteria. Keep by default.
     boolean filterRowCriteriaFailed = false;
 
     // Handle < 1 values for minFeatureCount
-    if ((minCount == null) || (minCount < 1))
+    if ((minCount == null) || (minCount < 1)) {
       minCount = 1.0;
+    }
     // Round value down to nearest hole number
     int intMinCount = minCount.intValue();
 
@@ -216,8 +218,9 @@ public class RowsFilterTask extends AbstractTask {
 
       // Check number of features.
       if (filterByMinFeatureCount) {
-        if (featureCount < intMinCount)
+        if (featureCount < intMinCount) {
           filterRowCriteriaFailed = true;
+        }
       }
 
       // Check identities.
@@ -246,8 +249,9 @@ public class RowsFilterTask extends AbstractTask {
       if (filterByMzRange) {
         final Range<Double> mzRange = parameters.getParameter(RowsFilterParameters.MZ_RANGE)
             .getEmbeddedParameter().getValue();
-        if (!mzRange.contains(row.getAverageMZ()))
+        if (!mzRange.contains(row.getAverageMZ())) {
           filterRowCriteriaFailed = true;
+        }
 
       }
 
@@ -257,8 +261,9 @@ public class RowsFilterTask extends AbstractTask {
         final Range<Float> rtRange = RangeUtils.toFloatRange(parameters
             .getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue());
 
-        if (!rtRange.contains(row.getAverageRT()))
+        if (!rtRange.contains(row.getAverageRT())) {
           filterRowCriteriaFailed = true;
+        }
 
       }
 
@@ -299,14 +304,16 @@ public class RowsFilterTask extends AbstractTask {
       // Search feature comment text.
       if (filterByCommentText) {
 
-        if (row.getComment() == null)
+        if (row.getComment() == null) {
           filterRowCriteriaFailed = true;
+        }
         if (row.getComment() != null) {
           final String searchText = parameters.getParameter(RowsFilterParameters.COMMENT_TEXT)
               .getEmbeddedParameter().getValue().toLowerCase().trim();
           final String rowText = row.getComment().toLowerCase().trim();
-          if (!rowText.contains(searchText))
+          if (!rowText.contains(searchText)) {
             filterRowCriteriaFailed = true;
+          }
 
         }
       }
@@ -332,8 +339,9 @@ public class RowsFilterTask extends AbstractTask {
         final int minIsotopePatternSize =
             parameters.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT)
                 .getEmbeddedParameter().getValue();
-        if (maxIsotopePatternSizeOnRow < minIsotopePatternSize)
+        if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
           filterRowCriteriaFailed = true;
+        }
       }
 
       // Check average duration.
@@ -342,8 +350,9 @@ public class RowsFilterTask extends AbstractTask {
 
         final Range<Double> durationRange = parameters
             .getParameter(RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter().getValue();
-        if (!durationRange.contains(avgDuration))
+        if (!durationRange.contains(avgDuration)) {
           filterRowCriteriaFailed = true;
+        }
 
       }
 
@@ -355,8 +364,9 @@ public class RowsFilterTask extends AbstractTask {
         // If any of the features fail the FWHM criteria,
         Float FWHM_value = row.getBestFeature().getFWHM();
 
-        if (FWHM_value != null && !FWHMRange.contains(FWHM_value))
+        if (FWHM_value != null && !FWHMRange.contains(FWHM_value)) {
           filterRowCriteriaFailed = true;
+        }
       }
 
       // Filter by charge range
@@ -365,8 +375,9 @@ public class RowsFilterTask extends AbstractTask {
         final Range<Integer> chargeRange =
             parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter().getValue();
         int charge = row.getBestFeature().getCharge();
-        if (charge == 0 || !chargeRange.contains(charge))
+        if (charge == 0 || !chargeRange.contains(charge)) {
           filterRowCriteriaFailed = true;
+        }
       }
 
       // Filter by KMD or RKM range
@@ -426,8 +437,9 @@ public class RowsFilterTask extends AbstractTask {
 
         // check if shifted Kendrick mass defect or remainder of
         // Kendrick mass is in range
-        if (!rangeKMD.contains(kendrickMassDefectShifted))
+        if (!rangeKMD.contains(kendrickMassDefectShifted)) {
           filterRowCriteriaFailed = true;
+        }
       }
 
       // Check ms2 filter .
@@ -449,10 +461,8 @@ public class RowsFilterTask extends AbstractTask {
       if (!filterRowCriteriaFailed && !removeRow) {
         // Only add the row if none of the criteria have failed.
         rowsCount++;
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList, row, true);
-        if (renumber) {
-          resetRow.setID(rowsCount);
-        }
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
+            renumber ? rowsCount : row.getID(), row, true);
         newFeatureList.addRow(resetRow);
       }
 
@@ -460,10 +470,8 @@ public class RowsFilterTask extends AbstractTask {
         // Only remove rows that match *all* of the criteria, so add
         // rows that fail any of the criteria.
         rowsCount++;
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList, row, true);
-        if (renumber) {
-          resetRow.setID(rowsCount);
-        }
+        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
+            renumber ? rowsCount : row.getID(), row, true);
         newFeatureList.addRow(resetRow);
       }
 
@@ -474,7 +482,7 @@ public class RowsFilterTask extends AbstractTask {
 
   private int getFeatureCount(FeatureListRow row, String groupingParameter) {
     if (groupingParameter.contains("Filtering by ")) {
-      HashMap<String, Integer> groups = new HashMap<String, Integer>();
+      HashMap<String, Integer> groups = new HashMap<>();
       for (RawDataFile file : project.getDataFiles()) {
         UserParameter<?, ?> params[] = project.getParameters();
         for (UserParameter<?, ?> p : params) {

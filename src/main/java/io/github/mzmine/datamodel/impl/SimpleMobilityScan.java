@@ -28,11 +28,13 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.masslist.MobilityScanMassList;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -73,7 +75,7 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
@@ -82,7 +84,7 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
@@ -136,7 +138,7 @@ public class SimpleMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Intentionally unimplemented to safe RAM.");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return getFrame().getDataFile();
@@ -182,7 +184,11 @@ public class SimpleMobilityScan implements MobilityScan {
   }
 
   @Override
-  public synchronized void setMassList(final @Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
+    if (!(massList instanceof MobilityScanMassList) && !(massList instanceof ScanPointerMassList)) {
+      throw new IllegalArgumentException(
+          "Cannot mass lists of type " + massList.getClass().getName() + " to MobilityScan");
+    }
     this.massList = massList;
   }
 

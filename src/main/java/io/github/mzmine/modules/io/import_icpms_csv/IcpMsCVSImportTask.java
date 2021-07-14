@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IcpMsCVSImportTask extends AbstractTask {
 
@@ -167,7 +167,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
     this.setStatus(TaskStatus.FINISHED);
   }
 
-  private @Nullable String getFileName(@Nonnull Scanner scanner) {
+  private @Nullable String getFileName(@NotNull Scanner scanner) {
     String path = null;
     while (scanner.hasNextLine()) {
       String line = scanner.nextLine();
@@ -179,7 +179,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
     return path;
   }
 
-  private @Nullable String getAcqusitionDate(@Nonnull Scanner scanner) {
+  private @Nullable String getAcqusitionDate(@NotNull Scanner scanner) {
     String acquisitionDate = null;
 
     while (scanner.hasNextLine()) {

@@ -30,8 +30,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RangeUtils {
 
@@ -173,8 +173,8 @@ public class RangeUtils {
    * @return The connected range. Null if there is no connected range.
    */
   public static @Nullable
-  <N extends Number & Comparable<N>> Range<N> getConnected(@Nonnull Range<N> r1,
-      @Nonnull Range<N> r2) {
+  <N extends Number & Comparable<N>> Range<N> getConnected(@NotNull Range<N> r1,
+      @NotNull Range<N> r2) {
 
     if (!r1.isConnected(r2)) {
       return null;
@@ -196,13 +196,16 @@ public class RangeUtils {
    * @param range Range
    * @return True if the range equals to [NaN, NaN], false otherwise
    */
-  public static <N extends Number & Comparable<N>> boolean isNaNRange(@Nonnull Range<N> range) {
+  public static <N extends Number & Comparable<N>> boolean isNaNRange(@NotNull Range<N> range) {
     return Double.isNaN(range.lowerEndpoint().doubleValue())
         && Double.isNaN(range.upperEndpoint().doubleValue());
   }
 
   public static boolean isJFreeRangeConnectedToGuavaRange(org.jfree.data.Range jfreeRange,
       Range<? extends Number> guavaRange) {
+    if (jfreeRange == null || guavaRange == null) {
+      return false;
+    }
     return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange
         .contains(guavaRange.upperEndpoint().doubleValue());
   }

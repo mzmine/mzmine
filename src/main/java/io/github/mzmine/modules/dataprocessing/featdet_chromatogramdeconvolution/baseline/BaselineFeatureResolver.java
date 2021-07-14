@@ -36,7 +36,7 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class implements a simple peak deconvolution algorithm. Continuous peaks above a given
@@ -45,7 +45,7 @@ import javax.annotation.Nonnull;
 public class BaselineFeatureResolver implements FeatureResolver {
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Baseline cut-off";
   }
 
@@ -129,7 +129,7 @@ public class BaselineFeatureResolver implements FeatureResolver {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return BaselineFeatureResolverParameters.class;
   }
 

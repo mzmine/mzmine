@@ -20,6 +20,8 @@ package io.github.mzmine.modules.tools.msmsscore;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -31,8 +33,11 @@ public class MSMSScoreParameters extends SimpleParameterSet {
   public static final PercentParameter msmsMinScore = new PercentParameter("MS/MS score threshold",
       "If the score for MS/MS is lower, discard this match");
 
+  public static final OptionalParameter<IntegerParameter> useTopNSignals = new OptionalParameter<>( new IntegerParameter("Use only top N signals",
+      "Use only the most abundant N signals for scoring (speeds up the process)", 20), true);
+
   public MSMSScoreParameters() {
-    super(new Parameter[] {msmsTolerance, msmsMinScore});
+    super(new Parameter[] {msmsTolerance, msmsMinScore, useTopNSignals});
   }
 
 }

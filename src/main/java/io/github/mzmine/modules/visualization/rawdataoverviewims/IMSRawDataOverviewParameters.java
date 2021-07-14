@@ -23,12 +23,12 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import javax.annotation.Nonnull;
-import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class IMSRawDataOverviewParameters extends SimpleParameterSet {
 
@@ -52,15 +52,15 @@ public class IMSRawDataOverviewParameters extends SimpleParameterSet {
       IMSRawDataOverviewControlPanel.TOOLTIP_RTRANGE, MZmineCore.getConfiguration().getRTFormat()
       , 2d);
 
-  public static final DoubleParameter binWidth = new DoubleParameter("Mobilogram bin width (abs)",
-      IMSRawDataOverviewControlPanel.TOOLTIP_BINWIDTH, new DecimalFormat("0.0000"), 0.0008d);
+  public static final IntegerParameter binWidth = new IntegerParameter("Mobilogram bin width (scans)",
+      IMSRawDataOverviewControlPanel.TOOLTIP_BINWIDTH, 1);
 
   public IMSRawDataOverviewParameters() {
     super(new Parameter[]{rawDataFiles, summedFrameNoiseLevel, mobilityScanNoiseLevel,
         mzTolerance, scanSelection, rtWidth, binWidth});
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

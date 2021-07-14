@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.UserParameter;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *

@@ -39,6 +39,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   private final String label;
   private final Scan scan;
   private final Map<Integer, String> annotation = new Hashtable<>();
+  private final Map<Double, String> mzAnnotationMap = new Hashtable<>();
 
   /*
    * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
@@ -160,11 +161,29 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     this.annotation.putAll(annotation);
   }
 
-  public String getAnnotation(int item) {
-    return annotation.get(item);
+  /**
+   * Add annotations for m/z values
+   *
+   * @param annotation m/z value and annotation map
+   */
+  public void addMzAnnotation(Map<Double, String> annotation) {
+    this.mzAnnotationMap.putAll(annotation);
   }
 
-  /*
-   * public DataPoint[] getDataPoints() { return dataPoints; }
-   */
+
+  public String getAnnotation(int item) {
+    String ann = mzAnnotationMap.get(getXValue(0, item));
+    String ann2 = annotation.get(item);
+    if (ann != null && ann2 != null) {
+      return ann + " " + ann2;
+    }
+    if (ann2 != null) {
+      return ann2;
+    }
+    if (ann != null) {
+      return ann;
+    }
+    return null;
+  }
+
 }

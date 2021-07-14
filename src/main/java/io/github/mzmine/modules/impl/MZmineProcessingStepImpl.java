@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.impl;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -38,11 +38,11 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule>
     this.parameters = parameters;
   }
 
-  public @Nonnull ModuleType getModule() {
+  public @NotNull ModuleType getModule() {
     return module;
   }
 
-  public @Nonnull ParameterSet getParameterSet() {
+  public @NotNull ParameterSet getParameterSet() {
     return parameters;
   }
 

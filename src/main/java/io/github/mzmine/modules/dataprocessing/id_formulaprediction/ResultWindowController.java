@@ -52,7 +52,7 @@ import javafx.stage.FileChooser;
 
 
 public class ResultWindowController {
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
@@ -257,11 +257,11 @@ public class ResultWindowController {
 
     if (msmsPlot == null)
       return;
-    Map<Integer, String> annotation = formula.getMSMSannotation();
+    Map<Double, String> annotation = formula.getMSMSannotation();
 
     if (annotation == null)
       return;
-    msmsPlot.addAnnotation(annotation);
+    msmsPlot.addMzAnnotation(annotation);
   }
 
   public void addNewListItem(final ResultFormula formula) {
