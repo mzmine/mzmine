@@ -40,7 +40,7 @@ public class ImsExpanderModule implements MZmineProcessingModule {
     final ModularFeatureList[] featureLists = parameters
         .getParameter(ImsExpanderParameters.featureLists).getValue().getMatchingFeatureLists();
 
-    final int threadsPerFlist = Math.max(2, numThreads / featureLists.length);
+    final int threadsPerFlist = Math.max(2, numThreads / Math.max(featureLists.length, 1));
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList featureList : featureLists) {
