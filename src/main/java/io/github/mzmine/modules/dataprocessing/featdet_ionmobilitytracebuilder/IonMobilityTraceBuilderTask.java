@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -112,17 +111,18 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     timsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth).getValue()
             ? advancedParam.getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
-            .getEmbeddedParameter().getValue() : MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
+            .getEmbeddedParameter().getValue()
+            : BinningMobilogramDataAccess.getRecommendedBinWidth((IMSRawDataFile) rawDataFile);
     dtimsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth).getValue()
             ? advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
+            : BinningMobilogramDataAccess.getRecommendedBinWidth((IMSRawDataFile) rawDataFile);
     twimsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth).getValue()
             ? advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
+            : BinningMobilogramDataAccess.getRecommendedBinWidth((IMSRawDataFile) rawDataFile);
 
     this.parameters = parameters;
     descriptionPrefix = "Ion mobility trace builder on " + rawDataFile.getName() + ": ";
