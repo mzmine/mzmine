@@ -19,6 +19,7 @@ package io.github.mzmine.modules.visualization.networking.visual;
 
 /**
  * Graphstream style attributes
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public enum GraphStyleAttribute {
@@ -26,9 +27,10 @@ public enum GraphStyleAttribute {
 
   /**
    * UI attribute String to access or set the attribute in graph stream
+   *
    * @return
    */
-  public String getUIString(){
+  public String getUIString() {
     return switch (this) {
       case COLOR -> "ui.color";
       case SIZE -> "ui.size";

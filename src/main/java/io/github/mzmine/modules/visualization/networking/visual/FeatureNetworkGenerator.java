@@ -47,7 +47,7 @@ import org.graphstream.graph.Node;
 public class FeatureNetworkGenerator {
 
   private static final Logger logger = Logger.getLogger(FeatureNetworkGenerator.class.getName());
-  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
   private Graph graph;
   private Map<Type, R2RMap<RowsRelationship>> relationsMaps;
   private Node neutralNode;
@@ -117,7 +117,7 @@ public class FeatureNetworkGenerator {
         continue;
       } else {
         Node mnode = getNeutralMolNode(net, false);
-        if(mnode == null) {
+        if (mnode == null) {
           continue;
         }
         consensusEdges.clear();
@@ -255,7 +255,8 @@ public class FeatureNetworkGenerator {
     for (Entry<Type, R2RMap<RowsRelationship>> entry : relationsMaps.entrySet()) {
       R2RMap<RowsRelationship> r2rMap = entry.getValue();
       // do not add MS1 correlation
-      if (r2rMap != null && (ms1FeatureShapeEdges || !entry.getKey().equals(Type.MS1_FEATURE_CORR))) {
+      if (r2rMap != null && (ms1FeatureShapeEdges || !entry.getKey()
+          .equals(Type.MS1_FEATURE_CORR))) {
         for (RowsRelationship rel : r2rMap.values()) {
           if (rel != null) {
             addMS2SimEdges(rel.getRowA(), rel.getRowB(), rel);

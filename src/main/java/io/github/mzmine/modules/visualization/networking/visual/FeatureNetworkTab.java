@@ -34,9 +34,9 @@ import javax.annotation.Nonnull;
 public class FeatureNetworkTab extends MZmineTab {
 
   private FeatureNetworkPane contentPane;
-  private CheckMenuItem toggleCollapseIons;
-  private Desktop desktop;
-  private BorderPane mainPane;
+  private final CheckMenuItem toggleCollapseIons;
+  private final Desktop desktop;
+  private final BorderPane mainPane;
 
   /**
    * Create the frame.
@@ -84,7 +84,8 @@ public class FeatureNetworkTab extends MZmineTab {
     contentPane.setFeatureList(featureList);
   }
 
-  public FeatureNetworkTab(FeatureList featureList, boolean collapseNodes, boolean connectByNetRelations,
+  public FeatureNetworkTab(FeatureList featureList, boolean collapseNodes,
+      boolean connectByNetRelations,
       boolean onlyBest, boolean ms2SimEdges, boolean ms1FeatureShapeEdges) {
     this();
     toggleCollapseIons.setSelected(collapseNodes);

@@ -172,18 +172,18 @@ public class NetworkPane extends BorderPane {
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
   // selected node
-  private List<Node> selectedNodes;
-  private Label lbTitle;
+  private final List<Node> selectedNodes;
+  private final Label lbTitle;
 
-  private FileChooser saveDialog;
-  private ExtensionFilter graphmlExt = new ExtensionFilter("Export network to graphml (*.graphml)",
+  private final FileChooser saveDialog;
+  private final ExtensionFilter graphmlExt = new ExtensionFilter("Export network to graphml (*.graphml)",
       "*.graphml");
-  private ExtensionFilter pngExt = new ExtensionFilter("PNG pixel graphics file (*.png)", "*.png");
-  private ExtensionFilter svgExt = new ExtensionFilter("SVG vector graphics file (*.svg)", "*.svg");
+  private final ExtensionFilter pngExt = new ExtensionFilter("PNG pixel graphics file (*.png)", "*.png");
+  private final ExtensionFilter svgExt = new ExtensionFilter("SVG vector graphics file (*.svg)", "*.svg");
   private Point2D last;
 
   // needs more resources
-  private boolean enableMouseOnEdges = false;
+  private final boolean enableMouseOnEdges = false;
 
 
   /**

@@ -18,5 +18,5 @@
 package io.github.mzmine.modules.visualization.networking.visual;
 
 public enum NodeType {
-  NEUTRAL_M, ION_FEATURE, SINGLE_FEATURE, NEUTRAL_LOSS_CENTER;
+  NEUTRAL_M, ION_FEATURE, SINGLE_FEATURE, NEUTRAL_LOSS_CENTER
 }

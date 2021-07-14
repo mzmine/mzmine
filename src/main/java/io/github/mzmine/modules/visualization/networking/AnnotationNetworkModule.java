@@ -45,7 +45,8 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @Nonnull
+  String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -53,7 +54,8 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    ModularFeatureList[] pkls = parameters.getParameter(AnnotationNetworkParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
+    ModularFeatureList[] pkls = parameters.getParameter(AnnotationNetworkParameters.PEAK_LISTS)
+        .getValue().getMatchingFeatureLists();
     boolean connectByNetRelations =
         parameters.getParameter(AnnotationNetworkParameters.CONNECT_BY_NET_RELATIONS).getValue();
     boolean onlyBest =
@@ -80,7 +82,8 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @Nonnull
+  Class<? extends ParameterSet> getParameterSetClass() {
     return AnnotationNetworkParameters.class;
   }
 }
