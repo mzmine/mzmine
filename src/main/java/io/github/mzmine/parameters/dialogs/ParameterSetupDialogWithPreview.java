@@ -81,7 +81,6 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
     paramsPane.setHgap(7d);
     paramsPane.setVgap(1d);
 
-    cbShowPreview.setDisable(true);
     cbShowPreview.selectedProperty()
         .addListener(((observable, oldValue, newValue) -> showPreview(newValue)));
 
@@ -114,6 +113,5 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
 
   public void setOnPreviewShown(Runnable onPreviewShown) {
     this.onPreviewShown = onPreviewShown;
-    cbShowPreview.setDisable(false);
   }
 }
