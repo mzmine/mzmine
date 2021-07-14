@@ -45,6 +45,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraident
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -284,13 +285,14 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   private void loadColorSettings() {
-    SimpleColorPalette p = MZmineCore.getConfiguration().getDefaultColorPalette();
-    scanColor = FxColorUtil.fxColorToAWT(p.get(0));
-    massListColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    peaksColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    singlePeakColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    detectedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    predictedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    scanColor = FxColorUtil.fxColorToAWT(palette.get(0));
+    massListColor = FxColorUtil.fxColorToAWT(
+        ColorUtils.getContrastPaletteColor(FxColorUtil.awtColorToFX(dataFileColor), palette));
+    peaksColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    singlePeakColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    detectedIsotopesColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    predictedIsotopesColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
   }
 
   public void loadRawData(Scan scan) {
