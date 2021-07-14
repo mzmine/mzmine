@@ -18,13 +18,13 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 import org.openscience.cdk.interfaces.IIsotope;
-public final class ElementsValue {
+public final class ElementsCompositionRangeValue {
 
     IIsotope chosenIsotope;
     String max;
     String min;
 
-    ElementsValue(IIsotope iisotope, String max, String min)
+    ElementsCompositionRangeValue(IIsotope iisotope, String max, String min)
     {
 
         this.chosenIsotope = iisotope;

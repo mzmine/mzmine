@@ -16,23 +16,44 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
+package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import java.io.IOException;
+import io.github.mzmine.datamodel.Scan;
 
 /**
- * Interface for extracting a list of standard molecules
- * given a file with specific format,
- * extract data on molecules and return StandardsList object
+ * DataPoint implementation extended with retention time and scan number.
+ * <p></p>
+ * Used during gap filling of regular LC-MS files.
  */
-public interface StandardsListExtractor {
-  /**
-   * Extract standards list, should cache the list
-   *
-   * @return extracted and cached standards list
-   * @throws IOException
-   */
-  StandardsList extractStandardsList() throws IOException;
+class GapDataPointImpl implements GapDataPoint {
 
-  void closeInputStreams();
+  private Scan scanNumber;
+  private double mz, rt, intensity;
+
+  /**
+   *
+   */
+  GapDataPointImpl(Scan scanNumber, double mz, double rt, double intensity) {
+    this.scanNumber = scanNumber;
+    this.mz = mz;
+    this.rt = rt;
+    this.intensity = intensity;
+  }
+
+  public Scan getScan() {
+    return scanNumber;
+  }
+
+  public double getIntensity() {
+    return intensity;
+  }
+
+  public double getMZ() {
+    return mz;
+  }
+
+  public double getRT() {
+    return rt;
+  }
+
 }

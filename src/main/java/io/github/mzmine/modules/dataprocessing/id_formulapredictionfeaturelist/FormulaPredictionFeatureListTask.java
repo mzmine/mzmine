@@ -18,20 +18,14 @@
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FormulaAnnotationType;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -92,13 +86,13 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     this.featureList = featureList;
     charge = parameters.getParameter(FormulaPredictionFeatureListParameters.charge).getValue();
     ionType = parameters.getParameter(FormulaPredictionFeatureListParameters.ionization).getValue();
-    mzTolerance =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.mzTolerance).getValue();
-    elementCounts =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.elements).getValue();
+    mzTolerance = parameters.getParameter(FormulaPredictionFeatureListParameters.mzTolerance)
+        .getValue();
+    elementCounts = parameters.getParameter(FormulaPredictionFeatureListParameters.elements)
+        .getValue();
 
-    checkIsotopes =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.isotopeFilter).getValue();
+    checkIsotopes = parameters.getParameter(FormulaPredictionFeatureListParameters.isotopeFilter)
+        .getValue();
     isotopeParameters = parameters
         .getParameter(FormulaPredictionFeatureListParameters.isotopeFilter).getEmbeddedParameters();
     if (checkIsotopes) {
@@ -109,8 +103,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       minScore = 0d;
     }
 
-    checkMSMS =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.msmsFilter).getValue();
+    checkMSMS = parameters.getParameter(FormulaPredictionFeatureListParameters.msmsFilter)
+        .getValue();
     msmsParameters = parameters.getParameter(FormulaPredictionFeatureListParameters.msmsFilter)
         .getEmbeddedParameters();
     if (checkMSMS) {
@@ -120,17 +114,17 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       minMSMSScore = 0d;
     }
 
-    checkRDBE =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions).getValue();
-    rdbeParameters =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions)
-            .getEmbeddedParameters();
+    checkRDBE = parameters.getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions)
+        .getValue();
+    rdbeParameters = parameters
+        .getParameter(FormulaPredictionFeatureListParameters.rdbeRestrictions)
+        .getEmbeddedParameters();
 
-    checkRatios =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.elementalRatios).getValue();
-    ratiosParameters =
-        parameters.getParameter(FormulaPredictionFeatureListParameters.elementalRatios)
-            .getEmbeddedParameters();
+    checkRatios = parameters.getParameter(FormulaPredictionFeatureListParameters.elementalRatios)
+        .getValue();
+    ratiosParameters = parameters
+        .getParameter(FormulaPredictionFeatureListParameters.elementalRatios)
+        .getEmbeddedParameters();
 
     maxBestFormulasPerFeature = parameters
         .getParameter(FormulaPredictionFeatureListParameters.maxBestFormulasPerFeature).getValue();
@@ -142,8 +136,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
           .getParameter(FormulaPredictionFeatureListParameters.sorting).getEmbeddedParameters();
       sortPPMFactor = sortParam.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
       sortMSMSFactor = sortParam.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
-      sortIsotopeFactor =
-          sortParam.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
+      sortIsotopeFactor = sortParam.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT)
+          .getValue();
     }
     message = "Formula Prediction";
     this.parameters = parameters;
@@ -180,8 +174,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
       double searchedMass = (row.getAverageMZ() - ionType.getAddedMass()) * charge;
 
-      message = "Formula prediction for "
-                + MZmineCore.getConfiguration().getMZFormat().format(searchedMass);
+      message = "Formula prediction for " + MZmineCore.getConfiguration().getMZFormat()
+          .format(searchedMass);
 
       massRange = mzTolerance.getToleranceRange(searchedMass);
 
@@ -211,7 +205,10 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       }
 
       // Add the new formula entry top results
-      row.setFormulas(resultingFormulas.subList(0, maxBestFormulasPerFeature));
+      if (!resultingFormulas.isEmpty()) {
+        row.setFormulas(resultingFormulas
+            .subList(0, Math.min(resultingFormulas.size() - 1, maxBestFormulasPerFeature)));
+      }
 
       if (isCanceled()) {
         return;
@@ -223,8 +220,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       return;
     }
 
-    featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        FormulaPredictionFeatureListModule.class, parameters));
+    featureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(FormulaPredictionFeatureListModule.class, parameters));
 
     logger.finest("Finished formula search for all the features");
 
@@ -233,11 +230,11 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
   }
 
   /**
-   *
    * @param cdkFormula
    * @return null if molecular formula does not match requirements
    */
-  private ResultFormula checkConstraints(IMolecularFormula cdkFormula, FeatureListRow peakListRow, double searchedMass) {
+  private ResultFormula checkConstraints(IMolecularFormula cdkFormula, FeatureListRow peakListRow,
+      double searchedMass) {
 
     // Check elemental ratios
     if (checkRatios) {
@@ -274,11 +271,12 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
-      predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(adjustedFormula,
-          minPredictedAbundance, charge, ionType.getPolarity());
+      predictedIsotopePattern = IsotopePatternCalculator
+          .calculateIsotopePattern(adjustedFormula, minPredictedAbundance, charge,
+              ionType.getPolarity());
 
-      isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
-          predictedIsotopePattern, isotopeParameters);
+      isotopeScore = IsotopePatternScoreCalculator
+          .getSimilarityScore(detectedPattern, predictedIsotopePattern, isotopeParameters);
 
       final double minScore = isotopeParameters
           .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
@@ -295,22 +293,20 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
     if (checkMSMS) {
       Scan msmsScan = peakListRow.getBestFragmentation();
-      if(msmsScan != null) {
+      if (msmsScan != null) {
         MassList ms2MassList = msmsScan.getMassList();
         if (ms2MassList == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
               "The MS/MS scan #" + msmsScan.getScanNumber() + " in file " + msmsScan.getDataFile()
-                  .getName()
-              + " does not have a mass list");
+                  .getName() + " does not have a mass list");
           return null;
         }
 
-        MSMSScore score =
-            MSMSScoreCalculator.evaluateMSMS(cdkFormula, msmsScan, msmsParameters);
+        MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormula, msmsScan, msmsParameters);
 
-        double minMSMSScore =
-            msmsParameters.getParameter(MSMSScoreParameters.msmsMinScore).getValue();
+        double minMSMSScore = msmsParameters.getParameter(MSMSScoreParameters.msmsMinScore)
+            .getValue();
 
         if (score != null) {
           msmsScore = score.getScore();
@@ -326,8 +322,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     }
 
     // Create a new formula entry
-   return new ResultFormula(cdkFormula, predictedIsotopePattern,
-        isotopeScore, msmsScore, msmsAnnotations, searchedMass);
+    return new ResultFormula(cdkFormula, predictedIsotopePattern, isotopeScore, msmsScore,
+        msmsAnnotations, searchedMass);
   }
 
   @Override

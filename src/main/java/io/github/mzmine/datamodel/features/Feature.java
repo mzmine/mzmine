@@ -198,7 +198,7 @@ public interface Feature {
   void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
 
   /**
-   * @return The mobility if no mobility was set. Note that mobility can have different units.
+   * @return The mobility or null if no mobility was set. Note that mobility can have different units.
    * @see Feature#getMobilityUnit()
    */
   @Nullable

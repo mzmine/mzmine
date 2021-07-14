@@ -299,6 +299,16 @@ public class MainWindowController {
           setGraphic(new ImageView(featureListSingleIcon));
         }
       }
+
+      @Override
+      public void commitEdit(GroupableListViewEntity item) {
+        super.commitEdit(item);
+        if (item instanceof GroupEntity) {
+          return;
+        }
+
+        ((ValueEntity<FeatureList>) item).getValue().setName(getText());
+      }
     });
 
     // Add mouse clicked event handler

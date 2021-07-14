@@ -18,25 +18,23 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import io.github.mzmine.main.MZmineCore;
-import java.text.Format;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.text.Format;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class represents a manually picked chromatographic peak.
@@ -73,7 +71,7 @@ public class SameRangePeak{
    */
   SameRangePeak(RawDataFile dataFile) {
     this.dataFile = dataFile;
-    mzPeakMap = new TreeMap<Scan, DataPoint>();
+    mzPeakMap = new TreeMap<>();
   }
 
   /**
@@ -235,7 +233,7 @@ public class SameRangePeak{
     // Calculate median MZ
     double mzArray[] = new double[allScanNumbers.length];
     for (int i = 0; i < allScanNumbers.length; i++) {
-      mzArray[i] = mzPeakMap.get(allScanNumbers[i]).getMZ();
+      mzArray[i] = allScanNumbers[i].getValue().getMZ();
     }
     this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 

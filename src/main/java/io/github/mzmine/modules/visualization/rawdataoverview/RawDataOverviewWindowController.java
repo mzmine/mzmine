@@ -190,11 +190,11 @@ public class RawDataOverviewWindowController {
 
     visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
-      if (selectedRawDataFile instanceof ImagingRawDataFileImpl) {
+      if (selectedRawDataFile == null || selectedRawDataFile instanceof ImagingRawDataFileImpl) {
         return;
       }
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
-      if (con == null || selectedRawDataFile == null) {
+      if (con == null) {
         logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
         return;
       }

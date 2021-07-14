@@ -23,6 +23,7 @@ import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
@@ -82,8 +83,8 @@ public class IonNetworkingTask extends AbstractTask {
     minHeight = parameterSet.getParameter(IonNetworkingParameters.MIN_HEIGHT).getValue();
     checkMode = parameterSet.getParameter(IonNetworkingParameters.CHECK_MODE).getValue();
 
-    performAnnotationRefinement =
-        parameterSet.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
+    performAnnotationRefinement = parameterSet
+        .getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS).getValue();
     refineParam = parameterSet.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS)
         .getEmbeddedParameters();
   }
@@ -101,7 +102,7 @@ public class IonNetworkingTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Identification of adducts, in-source fragments and clusters in " + featureList.getName()
-           + " ";
+        + " ";
   }
 
   @Override
@@ -113,10 +114,12 @@ public class IonNetworkingTask extends AbstractTask {
       // add types
       featureList.addRowType(new IonIdentityModularType());
 
-      IonLibraryParameterSet p =
-          parameters.getParameter(IonNetworkingParameters.LIBRARY).getEmbeddedParameters();
+      IonLibraryParameterSet p = parameters.getParameter(IonNetworkingParameters.LIBRARY)
+          .getEmbeddedParameters();
       library = new IonNetworkLibrary(p, mzTolerance);
       annotateGroups(library);
+      featureList.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters));
       setStatus(TaskStatus.FINISHED);
     } catch (Exception t) {
       LOG.log(Level.SEVERE, "Adduct search error", t);
@@ -145,8 +148,8 @@ public class IonNetworkingTask extends AbstractTask {
         stageProgress.addAndGet(1d / groups.size());
       }
     });
-    LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with "
-             + annotPairs.get() + " annotation pairs");
+    LOG.info("Corr: A total of " + compared.get() + " row2row adduct comparisons with " + annotPairs
+        .get() + " annotation pairs");
 
     refineAndFinishNetworks();
   }
@@ -166,8 +169,8 @@ public class IonNetworkingTask extends AbstractTask {
         if (g.isCorrelated(i, k)) {
           compared.incrementAndGet();
           // check for adducts in library
-          List<IonIdentity[]> id =
-              library.findAdducts(featureList, g.get(i), g.get(k), adductCheckMode, minHeight);
+          List<IonIdentity[]> id = library
+              .findAdducts(featureList, g.get(i), g.get(k), adductCheckMode, minHeight);
           if (!id.isEmpty()) {
             annotPairs.incrementAndGet();
           }

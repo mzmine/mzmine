@@ -18,9 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.Arrays;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
@@ -28,9 +25,12 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.Arrays;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 
 /**
@@ -244,7 +244,7 @@ public class Candidates {
       return -1.0;
     }
 
-    if (index > candidate.length) {
+    if (index >= candidate.length) {
       return 0.0;
     }
 

@@ -33,23 +33,23 @@ import javafx.scene.layout.VBox;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class ElementsTableComponent extends FlowPane {
+public class ElementsCompositionRangeComponent extends FlowPane {
 
-  private final ObservableList<ElementsValue> elementsValues = FXCollections.observableArrayList();
-  private final TableView<ElementsValue> elementsValueTable = new TableView<>();
+  private final ObservableList<ElementsCompositionRangeValue> elementsValues = FXCollections.observableArrayList();
+  private final TableView<ElementsCompositionRangeValue> elementsValueTable = new TableView<>();
 
-  public ElementsTableComponent() {
+  public ElementsCompositionRangeComponent() {
 
     elementsValueTable.setEditable(true);
     this.setMaxHeight(200);
     elementsValueTable.setMaxHeight(200);
     elementsValueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-// allows the individual cells to be selected
+    // Allows the individual cells to be selected
     elementsValueTable.getSelectionModel().cellSelectionEnabledProperty().set(true);
-    TableColumn<ElementsValue, String> elementCol = new TableColumn<>("Element");
-    TableColumn<ElementsValue, String> maxCol = new TableColumn<>("Max");
-    TableColumn<ElementsValue, String> minCol = new TableColumn<>("Min");
+    TableColumn<ElementsCompositionRangeValue, String> elementCol = new TableColumn<>("Element");
+    TableColumn<ElementsCompositionRangeValue, String> maxCol = new TableColumn<>("Max");
+    TableColumn<ElementsCompositionRangeValue, String> minCol = new TableColumn<>("Min");
 
     // Make Column editable
     maxCol.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -85,14 +85,14 @@ public class ElementsTableComponent extends FlowPane {
             if (chosenIsotope == null) {
               return;
             }
-            ElementsValue elementsValue = new ElementsValue(chosenIsotope, "100", "0");
+            ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(chosenIsotope, "100", "0");
             elementsValues.add(elementsValue);
           });
         });
 
     // Remove event
     removeButton.setOnAction(t -> {
-      ElementsValue element = elementsValueTable.getSelectionModel().getSelectedItem();
+      ElementsCompositionRangeValue element = elementsValueTable.getSelectionModel().getSelectedItem();
       elementsValues.remove(element);
 
     });
@@ -115,7 +115,7 @@ public class ElementsTableComponent extends FlowPane {
 
     for (int row = 0; row < elementsValueTable.getItems().size(); row++) {
 
-      ElementsValue elementsValue = elementsValueTable.getItems().get(row);
+      ElementsCompositionRangeValue elementsValue = elementsValueTable.getItems().get(row);
 
       IIsotope isotope = elementsValue.getIsotope();
       String minCount = elementsValue.getMin();
@@ -134,7 +134,7 @@ public class ElementsTableComponent extends FlowPane {
     for (IIsotope isotope : elements.isotopes()) {
       int minCount = elements.getIsotopeCountMin(isotope);
       int maxCount = elements.getIsotopeCountMax(isotope);
-      ElementsValue elementsValue = new ElementsValue(isotope, String.valueOf(maxCount),
+      ElementsCompositionRangeValue elementsValue = new ElementsCompositionRangeValue(isotope, String.valueOf(maxCount),
           String.valueOf(minCount));
       elementsValues.add(elementsValue);
 

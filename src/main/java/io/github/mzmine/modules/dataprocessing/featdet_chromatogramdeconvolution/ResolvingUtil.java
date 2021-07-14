@@ -59,6 +59,9 @@ public class ResolvingUtil {
       List<? extends Scan> selectedScans,
       @Nullable BinningMobilogramDataAccess mobilogramBinning) {
 
+    assert (dimension == ResolvingDimension.MOBILITY && mobilogramBinning != null)
+        || dimension == ResolvingDimension.RETENTION_TIME;
+
     final double[][] extractedData = extractData(data, dimension);
     final int totalScans = getTotalNumberOfScansInDimension(data, dimension, selectedScans);
 

@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import javafx.beans.property.SimpleListProperty;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 
 public class MZRangeComponent extends DoubleRangeComponent {
@@ -104,7 +105,7 @@ public class MZRangeComponent extends DoubleRangeComponent {
 
     // fromFormulaButton.setMinWidth(fromFormulaButton.getPrefWidth());
     getChildren().addAll(setAutoButton, fromMassButton, fromFormulaButton);
-
+    super.setAlignment(Pos.BASELINE_LEFT);
   }
 
 }

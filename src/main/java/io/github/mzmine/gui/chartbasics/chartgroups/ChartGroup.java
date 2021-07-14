@@ -17,28 +17,27 @@
  */
 package io.github.mzmine.gui.chartbasics.chartgroups;
 
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
+import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 import java.awt.BasicStroke;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-
 import javafx.scene.Node;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
-
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
-import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Key;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
-import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
-import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
 
 /**
  * Combine the zoom of multiple charts. Adds crosshair to all
@@ -301,11 +300,15 @@ public class ChartGroup extends Node {
 
   public void remove(JFreeChart chart) {
     if (list != null) {
-      int i = list.indexOf(chart);
-      if (i >= 0) {
-        list.remove(i);
-        rangeListener.remove(i);
-        domainListener.remove(i);
+      Optional<ChartViewWrapper> wrapper = list.stream()
+          .filter(wrap -> wrap.getChart() == chart).findFirst();
+      if(wrapper.isPresent()) {
+        int i = list.indexOf(wrapper.get());
+        if(i != 0) {
+          list.remove(i);
+          rangeListener.remove(i);
+          domainListener.remove(i);
+        }
       }
     }
   }

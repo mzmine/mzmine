@@ -82,14 +82,15 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     }
     dataFile = rawDataFile;
 
+    final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
+    // multiple mobility ranges are possible in tims
     final int maxMobilityScans = rawDataFile.getFrames().stream()
-        .mapToInt(Frame::getNumberOfMobilityScans).max().orElseThrow();
+        .mapToInt(Frame::getNumberOfMobilityScans).max().orElseThrow() * ranges.size();
 
     tempIntensities = new double[maxMobilityScans];
     tempMobilities = new double[maxMobilityScans];
     this.binWidth = binWidth;
 
-    final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
     var entries = ranges.entrySet().stream().toList();
     List<Double> distinctMobilities = new ArrayList<>();
     final MobilityType mt = rawDataFile.getMobilityType();
@@ -148,6 +149,24 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     logger.finest(
         () -> "Bin width set to " + binWidth + " scans. (approximately " + approximateBinSize + " "
             + rawDataFile.getMobilityType().getUnit() + ")");
+  }
+
+  @NotNull
+  public static int getRecommendedBinWidth(IMSRawDataFile file) {
+    final Frame frame = file.getFrame(0);
+    switch (frame.getMobilityType()) {
+      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS -> {
+        return 1;
+      }
+      case TIMS -> {
+        int index = frame.getNumberOfMobilityScans() / 2;
+        final double mob1 = frame.getMobilityScan(index).getMobility();
+        final double mob2 = frame.getMobilityScan(index + 1).getMobility();
+        final double delta = Math.abs(mob1 - mob2);
+        return (int) Math.max(1d, 0.0008 / delta);
+      }
+    }
+    return 1;
   }
 
   @Nullable

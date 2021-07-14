@@ -195,7 +195,7 @@ public class FeatureDataUtils {
     for (int i = 1; i < series.getNumberOfValues(); i++) {
       final double thisIntensity = intensities.get(i);
       final float thisRT = scans.get(i).getRetentionTime();
-      area += (thisRT - lastRT) * (thisIntensity + lastIntensity) / 2.0 /* 60d*/;
+      area += (thisRT - lastRT) * ((float)(thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
       lastRT = thisRT;
     }
@@ -273,7 +273,7 @@ public class FeatureDataUtils {
       }
     }
 
-    if (Double.compare(intensity, Double.MIN_VALUE) == 0) {
+    if (Double.compare(intensity, Double.NEGATIVE_INFINITY) == 0) {
       logger.info(() -> "Mobility cannot be specified for: " + series);
       return Float.NaN;
     } else {
