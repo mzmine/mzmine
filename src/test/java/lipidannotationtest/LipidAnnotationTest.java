@@ -2,7 +2,6 @@ package lipidannotationtest;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.jupiter.api.Test;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -110,12 +109,12 @@ public class LipidAnnotationTest {
   // checkLipidAnnotation(testSpectrum);
   // }
 
-  @Test
-  public void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
-    LipidAnnotationMsMsTestResource testSpectrum =
-        MSMS_TEST_SPECTRA.getCL_16_0_18_1_18_2_18_2MMinusH();
-    checkLipidAnnotation(testSpectrum);
-  }
+  // @Test
+  // public void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
+  // LipidAnnotationMsMsTestResource testSpectrum =
+  // MSMS_TEST_SPECTRA.getCL_16_0_18_1_18_2_18_2MMinusH();
+  // checkLipidAnnotation(testSpectrum);
+  // }
 
   private void checkLipidAnnotation(LipidAnnotationMsMsTestResource testSpectrum) {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
