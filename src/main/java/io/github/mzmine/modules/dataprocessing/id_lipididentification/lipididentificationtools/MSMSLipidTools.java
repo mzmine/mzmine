@@ -577,24 +577,27 @@ public class MSMSLipidTools {
                       minMsMsScore, mzTolRangeMSMS, ionizationType));
                 }
               }
-            }
-            if (chainsInLipid >= 4) {
-              for (int k = 0; k < chains.size(); k++) {
-                int carbonThree = chains.get(k).getNumberOfCarbons();
-                int dbeThree = chains.get(k).getNumberOfDBEs();
-                if (chainsInLipid == 3 && carbonOne + carbonTwo + carbonThree == totalNumberOfCAtoms
-                    && dbeOne + dbeTwo + dbeThree == totalNumberOfDBEs) {
-                  List<ILipidChain> predictedChains = new ArrayList<>();
-                  predictedChains.add(chains.get(i));
-                  predictedChains.add(chains.get(j));
-                  predictedChains.add(chains.get(k));
-                  if (checkChainTypesFitLipidClass(predictedChains,
-                      lipidAnnotation.getLipidClass())) {
-                    Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
-                        predictedChains, detectedFragmentsWithChainInformation);
-                    matchedMolecularSpeciesLevelAnnotations.add(buildNewMolecularSpeciesLevelMatch(
-                        fittingFragments, lipidAnnotation, accurateMz, massList, predictedChains,
-                        minMsMsScore, mzTolRangeMSMS, ionizationType));
+              if (chainsInLipid >= 4) {
+                for (int l = 0; l < chains.size(); l++) {
+                  int carbonFour = chains.get(l).getNumberOfCarbons();
+                  int dbeFour = chains.get(l).getNumberOfDBEs();
+                  if (chainsInLipid == 4
+                      && carbonOne + carbonTwo + carbonThree + carbonFour == totalNumberOfCAtoms
+                      && dbeOne + dbeTwo + dbeThree + dbeFour == totalNumberOfDBEs) {
+                    List<ILipidChain> predictedChains = new ArrayList<>();
+                    predictedChains.add(chains.get(i));
+                    predictedChains.add(chains.get(j));
+                    predictedChains.add(chains.get(k));
+                    predictedChains.add(chains.get(l));
+                    if (checkChainTypesFitLipidClass(predictedChains,
+                        lipidAnnotation.getLipidClass())) {
+                      Set<LipidFragment> fittingFragments = extractFragmentsForFittingChains(
+                          predictedChains, detectedFragmentsWithChainInformation);
+                      matchedMolecularSpeciesLevelAnnotations
+                          .add(buildNewMolecularSpeciesLevelMatch(fittingFragments, lipidAnnotation,
+                              accurateMz, massList, predictedChains, minMsMsScore, mzTolRangeMSMS,
+                              ionizationType));
+                    }
                   }
                 }
               }
