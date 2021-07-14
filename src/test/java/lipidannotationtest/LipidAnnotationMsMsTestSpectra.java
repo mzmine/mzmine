@@ -140,6 +140,26 @@ public class LipidAnnotationMsMsTestSpectra {
     return PI_38_4MPlusNH4;
   }
 
+  private LipidAnnotationMsMsTestResource CL_70_4_MPlusNH4 =
+      new LipidAnnotationMsMsTestResource(new double[] {1430.011, 601.519, 577.519}, //
+          IonizationType.AMMONIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(
+              LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS, 70, 4));
+
+  public LipidAnnotationMsMsTestResource getCL_70_4_MPlusNH4() {
+    return CL_70_4_MPlusNH4;
+  }
+
+  private LipidAnnotationMsMsTestResource CL_70_5_MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {1425.964, 695.466, 673.481, 415.226, 281.249, 279.233, 255.233, 152.996}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(
+          LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROPHOSPHODIRADYLGLYCEROLS, 70, 5));
+
+  public LipidAnnotationMsMsTestResource getCL_70_5_MMinusH() {
+    return CL_70_5_MMinusH;
+  }
+
   private LipidAnnotationMsMsTestResource CL_16_0_18_1_18_2_18_2MMinusH =
       new LipidAnnotationMsMsTestResource(
           new double[] {1425.964, 695.466, 673.481, 415.226, 281.249, 279.233, 255.233, 152.996}, //

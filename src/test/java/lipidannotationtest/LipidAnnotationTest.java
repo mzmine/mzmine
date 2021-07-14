@@ -2,6 +2,7 @@ package lipidannotationtest;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.junit.jupiter.api.Test;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -94,8 +95,8 @@ public class LipidAnnotationTest {
   // checkLipidAnnotation(testSpectrum);
   // }
   //
-  // // Glycerophospholipids
-  // ########################################################################
+  // // // Glycerophospholipids
+  // // ########################################################################
   //
   // @Test
   // public void msMsRuleTestPC_18_0_20_4MPlusH() {
@@ -109,6 +110,18 @@ public class LipidAnnotationTest {
   // checkLipidAnnotation(testSpectrum);
   // }
 
+  @Test
+  public void msMsRuleTestCL_70_4_MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_4_MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  // @Test
+  // public void msMsRuleTestCL_70_5_MMinusH() {
+  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_5_MMinusH();
+  // checkLipidAnnotation(testSpectrum);
+  // }
+  //
   // @Test
   // public void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
   // LipidAnnotationMsMsTestResource testSpectrum =

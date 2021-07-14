@@ -1192,18 +1192,18 @@ public enum LipidClasses implements ILipidClass {
       new LipidChainType[] {LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN,
           LipidChainType.ACYL_CHAIN, LipidChainType.ACYL_CHAIN},
       new LipidFragmentationRule[] { //
+          new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
+              LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
+              LipidAnnotationLevel.SPECIES_LEVEL, "C3H5"), //
+          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
+              LipidFragmentationRuleType.HEADGROUP_FRAGMENT, LipidAnnotationLevel.SPECIES_LEVEL,
+              "C3H6O5P-"), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT,
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.ACYLCHAIN_FRAGMENT_NL,
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL), //
-          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-              LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT,
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H6O5P"), //
-          new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
-              LipidFragmentationRuleType.ACYLCHAIN_MINUS_FORMULA_FRAGMENT,
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H8O5P"), //
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,
               LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
               LipidAnnotationLevel.SPECIES_LEVEL, "C6H11P2O8"), //
