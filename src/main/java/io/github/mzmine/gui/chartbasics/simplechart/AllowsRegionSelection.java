@@ -24,7 +24,7 @@ public interface AllowsRegionSelection {
 
   /**
    * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
-   * added to a region. Region selection can be finished by {@link MultiDatasetXYZScatterPlot#finishPath()}.
+   * added to a region. Region selection can be finished by {@link SimpleXYZScatterPlot#finishPath()}.
    */
   public void startRegion();
 

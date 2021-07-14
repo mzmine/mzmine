@@ -19,10 +19,12 @@
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class GroupMS2SubParameters extends SimpleParameterSet {
 
@@ -42,4 +44,8 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
     super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

@@ -26,6 +26,9 @@ import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 
+/**
+ * Simple column to display formulas
+ */
 public class FormulaType extends DataType<StringProperty>
     implements EditableColumnType, StringParser<String>, AnnotationType {
 

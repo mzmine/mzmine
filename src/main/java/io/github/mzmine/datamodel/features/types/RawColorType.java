@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
@@ -42,7 +42,7 @@ public class RawColorType extends DataType<ObjectProperty<Color>>
     implements GraphicalColumType<ObjectProperty<Color>> {
 
   @Override
-  @Nonnull
+  @NotNull
   public String getHeaderString() {
     return "Color";
   }

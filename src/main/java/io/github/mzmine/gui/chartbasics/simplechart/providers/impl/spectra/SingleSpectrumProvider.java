@@ -28,8 +28,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SingleSpectrumProvider implements PlotXYDataProvider {
 
@@ -50,13 +50,13 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
     this(scan, ScanUtils.scanToString(scan, false), scan.getDataFile().getColor());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public java.awt.Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -68,7 +68,7 @@ public class SingleSpectrumProvider implements PlotXYDataProvider {
     return mzFormat.format(spectrum.getMzValue(index));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;

@@ -51,8 +51,8 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author aleksandrsmirnov
@@ -258,7 +258,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
    * @return list of ADAP Peaks
    */
 
-  @Nonnull
+  @NotNull
   public static List<Peak> getPeaks(final FeatureList peakList, final double edgeToHeightThreshold,
       final double deltaToHeightThreshold) {
     RawDataFile dataFile = peakList.getRawDataFile(0);

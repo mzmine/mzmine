@@ -18,26 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.fx.interaction.MouseHandlerFX;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.CombinedRangeXYPlot;
-import org.jfree.chart.plot.Plot;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.Range;
-import org.jfree.data.RangeType;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gestures.interf.GestureHandlerFactory;
 import io.github.mzmine.gui.chartbasics.graphicsexport.GraphicsExportModule;
@@ -52,10 +32,13 @@ import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.SaveImage;
 import io.github.mzmine.util.SaveImage.FileType;
-/*
-import io.github.mzmine.util.dialogs.AxesSetupDialog;
- */
 import io.github.mzmine.util.io.XSSFExcelWriterReader;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -69,7 +52,21 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.fx.interaction.MouseHandlerFX;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.Range;
+import org.jfree.data.RangeType;
+import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
 
 /**
  * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
@@ -77,7 +74,7 @@ import javafx.stage.Stage;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class EChartViewer extends ChartViewer {
+public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -540,5 +537,10 @@ public class EChartViewer extends ChartViewer {
 
   public void setGestureAdapter(ChartGestureMouseAdapterFX mouseAdapter) {
     this.mouseAdapter = mouseAdapter;
+  }
+
+  @Override
+  public void datasetChanged(DatasetChangeEvent event) {
+    // may be overridden by extending classes
   }
 }

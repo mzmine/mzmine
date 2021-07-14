@@ -38,6 +38,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
@@ -55,7 +56,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -345,21 +346,22 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    @Nonnull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
+    @NotNull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
         .getXYResolver(parameters);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
-    final BinningMobilogramDataAccess mobilogramBinning =
-        dataFile instanceof IMSRawDataFile ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
+
+    final ResolvingDimension dimension = parameters
+        .getParameter(GeneralResolverParameters.dimension).getValue();
+    final BinningMobilogramDataAccess mobilogramBinning = dataFile instanceof IMSRawDataFile
+            && originalFeatureList.getFeatureTypes().containsKey(MobilityType.class)
+            ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
             BinningMobilogramDataAccess.getPreviousBinningWith(originalFeatureList,
                 ((IMSRawDataFile) dataFile).getMobilityType())) : null;
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
-
-    ResolvingDimension dimension = parameters.getParameter(GeneralResolverParameters.dimension)
-        .getValue();
 
     final List<? extends Scan> seletedScans = originalFeatureList.getSeletedScans(dataFile);
 

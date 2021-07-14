@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -36,11 +36,11 @@ public class ExportScansModule implements MZmineModule {
   private static final String MODULE_DESCRIPTION = "Export spectra to different formats";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
@@ -63,7 +63,7 @@ public class ExportScansModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ExportScansParameters.class;
   }
 

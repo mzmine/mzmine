@@ -14,12 +14,12 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class ImageType extends LinkedDataType
     implements GraphicalColumType<Boolean> {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Images";
@@ -33,8 +33,13 @@ public class ImageType extends LinkedDataType
     if (row == null || row.getFeature(raw) == null || !(raw instanceof ImagingRawDataFile)) {
       return null;
     }
+
     ModularFeature feature = row.getFeature(raw);
-    if(feature == null || feature.getRawDataFile() == null || feature.getFeatureData() == null) {
+    ImagingRawDataFile imagingFile = (ImagingRawDataFile) feature.getRawDataFile();
+    if (Double.compare(imagingFile.getImagingParam().getLateralHeight(), 0d) == 0
+        || Double.compare(imagingFile.getImagingParam().getLateralWidth(), 0d) == 0
+        || feature == null || feature.getRawDataFile() == null
+        || feature.getFeatureData() == null) {
       return null;
     }
 

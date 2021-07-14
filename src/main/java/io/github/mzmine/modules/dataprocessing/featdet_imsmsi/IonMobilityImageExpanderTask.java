@@ -40,7 +40,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityImageExpanderTask extends AbstractTask {
 
@@ -91,7 +91,7 @@ public class IonMobilityImageExpanderTask extends AbstractTask {
 //    List<List<ModularFeature>> partionedLists = Lists.partition(sortedFeatures, featuresPerStep);
 
     final IMSImagingRawDataFile file = (IMSImagingRawDataFile) flist.getRawDataFile(0);
-    access = new BinningMobilogramDataAccess(file, 0.0008);
+    access = new BinningMobilogramDataAccess(file, 1);
 
     description = "Sorting frames";
     List<ImagingFrame> frames = new ArrayList<>((Collection<ImagingFrame>) file.getFrames(1));

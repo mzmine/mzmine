@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -107,7 +107,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param controller Controller to add.
    */
-  public void addController(@Nonnull DataPointProcessingController controller) {
+  public void addController(@NotNull DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
         // logger.fine("Warning: Controller was already added to waiting
@@ -144,7 +144,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param controller
    */
-  private void addRunningController(@Nonnull DataPointProcessingController controller) {
+  private void addRunningController(@NotNull DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
         // logger.fine("Warning: Controller was already added to waiting
@@ -370,7 +370,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * @param mslevel the ms level of the queue
    * @return
    */
-  public @Nonnull DataPointProcessingQueue getProcessingQueue(MSLevel mslevel) {
+  public @NotNull DataPointProcessingQueue getProcessingQueue(MSLevel mslevel) {
     getParameters();
     return processingParameters.getQueue(mslevel);
   }
@@ -381,7 +381,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * @param mslevel the ms level of the queue
    * @param list New processing list.
    */
-  public void setProcessingQueue(MSLevel mslevel, @Nonnull DataPointProcessingQueue list) {
+  public void setProcessingQueue(MSLevel mslevel, @NotNull DataPointProcessingQueue list) {
     if (list != null)
       processingParameters.setQueue(mslevel, list);
     else
@@ -389,7 +389,7 @@ public class DataPointProcessingManager implements MZmineModule {
           "The processing list for " + mslevel.toString() + " was about to be set to null.");
   }
 
-  // public void setProcessingParameters(@Nonnull DPPParameterValueWrapper
+  // public void setProcessingParameters(@NotNull DPPParameterValueWrapper
   // value) {
   // this.processingParameters = value;
   // }

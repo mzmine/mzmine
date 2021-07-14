@@ -25,8 +25,9 @@ import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonMobilogramTimeSeriesToRtMobilityHeatmapProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
@@ -44,7 +45,7 @@ import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.shape.Rectangle;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.ui.RectangleEdge;
 
@@ -106,7 +107,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
 
   private void onRawFileChanged(RawDataFile oldValue, RawDataFile newFile) {
     if (oldValue != newFile) {
-      ticChart.removeDataSet(ticDatasetIndex);
+      ticChart.removeDataSet(ticDatasetIndex, false);
     }
     final TICDataSet dataSet = new TICDataSet(newFile,
         newFile.getScanNumbers(1), newFile.getDataMZRange(), null,
@@ -130,23 +131,23 @@ public class IMSTraceVisualizerPane extends BorderPane {
     rawFileProperty.set(feature.getRawDataFile());
     updateAxisLabels();
 
-    final FastColoredXYZDataset ionTrace = new FastColoredXYZDataset(
-        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature));
+    final ColoredXYZDataset ionTrace = new ColoredXYZDataset(
+        new IonMobilogramTimeSeriesToRtMobilityHeatmapProvider(feature), RunOption.THIS_THREAD);
     traceChart.setDataset(ionTrace);
 
-    final FastColoredXYDataset mobilogram = new FastColoredXYDataset(
-        new SummedMobilogramXYProvider(feature, true));
+    final ColoredXYDataset mobilogram = new ColoredXYDataset(
+        new SummedMobilogramXYProvider(feature, true), RunOption.THIS_THREAD);
     mobilogramChart.addDataset(mobilogram, mobilogramChart.getDefaultRenderer());
 
-    final FastColoredXYDataset dataSet = new FastColoredXYDataset(
-        new IonTimeSeriesToXYProvider(feature));
+    final ColoredXYDataset dataSet = new ColoredXYDataset(
+        new IonTimeSeriesToXYProvider(feature), RunOption.THIS_THREAD);
     ticFeatureDatasetIndex = ticChart.addDataset(dataSet);
   }
 
   private void clearFeatureFromCharts() {
     traceChart.removeAllDatasets();
     mobilogramChart.removeAllDatasets();
-    ticChart.removeDataSet(ticFeatureDatasetIndex);
+    ticChart.removeDataSet(ticFeatureDatasetIndex, false);
   }
 
   private void updateAxisLabels() {
@@ -182,7 +183,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     mobilogramChart.setMinHeight(300);
     mobilogramChart.setMinWidth(MIN_MOBILOGRAM_WIDTH);
 
-    mobilogramChart.addDatasetsChangedListener(e -> {
+    mobilogramChart.addDatasetChangeListener(e -> {
       mobilogramChart.getXYPlot().getRangeAxis().setAutoRange(true);
       mobilogramChart.getXYPlot().getDomainAxis().setAutoRange(true);
     });
@@ -196,7 +197,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     traceLegendCanvas.setWidth(500);
     traceChart.setLegendCanvas(traceLegendCanvas);
     BorderPane.setAlignment(traceLegendCanvas, Pos.TOP_RIGHT);
-    traceChart.addDatasetsChangedListener(e -> {
+    traceChart.addDatasetChangeListener(e -> {
       traceChart.getXYPlot().getRangeAxis().setAutoRange(true);
       traceChart.getXYPlot().getDomainAxis().setAutoRange(true);
     });
@@ -205,7 +206,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     ticChart.getXYPlot().setRangeCrosshairVisible(false);
     ticChart.setMinHeight(200);
 
-    ticChart.addDatasetsChangedListener(e -> {
+    ticChart.addDatasetChangeListener(e -> {
       ticChart.getXYPlot().getRangeAxis().setAutoRange(true);
       ticChart.getXYPlot().getDomainAxis().setAutoRange(true);
     });

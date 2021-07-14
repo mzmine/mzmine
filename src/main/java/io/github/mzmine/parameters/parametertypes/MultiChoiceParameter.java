@@ -68,7 +68,6 @@ public class MultiChoiceParameter<ValueType>
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -84,7 +83,6 @@ public class MultiChoiceParameter<ValueType>
   }
 
   /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {

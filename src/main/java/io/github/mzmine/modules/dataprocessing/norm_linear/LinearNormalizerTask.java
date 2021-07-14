@@ -35,9 +35,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 class LinearNormalizerTask extends AbstractTask {
 
@@ -180,7 +181,7 @@ class LinearNormalizerTask extends AbstractTask {
       if (normalizationType == NormalizationType.TotalRawSignal) {
         normalizationFactor = 0;
         for (Scan scan : file.getScanNumbers(1)) {
-          normalizationFactor += scan.getTIC();
+          normalizationFactor += Objects.requireNonNullElse(scan.getTIC(), 0f).floatValue();
         }
       }
 
@@ -215,7 +216,7 @@ class LinearNormalizerTask extends AbstractTask {
 
           if (normalizedRow == null) {
 
-            normalizedRow = new ModularFeatureListRow((ModularFeatureList) originalFeatureListRow.getFeatureList(),
+            normalizedRow = new ModularFeatureListRow(originalFeatureListRow.getFeatureList(),
                     originalFeatureListRow, false);
 
             rowMap.put(originalFeatureListRow, normalizedRow);

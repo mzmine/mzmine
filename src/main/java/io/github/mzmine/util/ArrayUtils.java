@@ -18,6 +18,8 @@
 
 package io.github.mzmine.util;
 
+import java.util.Arrays;
+
 public class ArrayUtils {
 
   public static <T> int indexOf(T needle, T[] haystack) {
@@ -76,5 +78,25 @@ public class ArrayUtils {
     }
 
     return smallestDelta;
+  }
+
+  public static void fill2D(double[][] array, double value) {
+    for (double[] doubles : array) {
+      Arrays.fill(doubles, value);
+    }
+  }
+
+  /**
+   * Reverses the given array.
+   * @param input The array.
+   */
+  public static void reverse(int[] input) {
+    int last = input.length - 1;
+    int middle = input.length / 2;
+    for (int i = 0; i <= middle; i++) {
+      int temp = input[i];
+      input[i] = input[last - i];
+      input[last - i] = temp;
+    }
   }
 }

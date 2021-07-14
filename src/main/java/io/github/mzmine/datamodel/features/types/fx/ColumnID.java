@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.Objects;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Helper class to keep track of columns in a {@link io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX}.
@@ -36,10 +36,10 @@ public class ColumnID {
 
 //  private static final Logger logger = Logger.getLogger(ColumnID.class.getName());
 
-  @Nonnull
+  @NotNull
   private final ColumnType type;
 
-  @Nonnull
+  @NotNull
   private final DataType dt;
 
   @Nullable
@@ -51,7 +51,7 @@ public class ColumnID {
    * @param raw  The {@link RawDataFile} this column belongs to or null if not a features type
    *             column.
    */
-  public ColumnID(@Nonnull DataType dt, @Nonnull ColumnType type, @Nullable RawDataFile raw) {
+  public ColumnID(@NotNull DataType dt, @NotNull ColumnType type, @Nullable RawDataFile raw) {
     assert dt != null;
     assert type != null;
 
@@ -81,12 +81,12 @@ public class ColumnID {
     return Objects.hash(type, dt, raw);
   }
 
-  @Nonnull
+  @NotNull
   public ColumnType getType() {
     return type;
   }
 
-  @Nonnull
+  @NotNull
   public DataType getDataType() {
     return dt;
   }

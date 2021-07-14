@@ -9,12 +9,12 @@ import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureDataType extends
     DataType<ObjectProperty<IonTimeSeries<? extends Scan>>> implements NoTextColumn, NullColumnType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Feature data";
@@ -25,7 +25,7 @@ public class FeatureDataType extends
     return new SimpleObjectProperty<>();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     // listen to changes in DataPointsType for all ModularFeatures

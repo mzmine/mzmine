@@ -20,7 +20,7 @@ package io.github.mzmine.util.scans.similarity;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.util.DataPointSorter;

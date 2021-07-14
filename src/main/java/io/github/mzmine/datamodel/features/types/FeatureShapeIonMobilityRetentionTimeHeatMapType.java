@@ -36,13 +36,13 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType
     implements GraphicalColumType<Boolean> {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Ion mobility trace";
@@ -85,8 +85,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file) {
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> file) {
     return () -> MZmineCore.getDesktop()
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0))));
   }

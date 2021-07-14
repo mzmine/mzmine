@@ -21,7 +21,6 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,7 +29,7 @@ import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface ModularDataModel {
 

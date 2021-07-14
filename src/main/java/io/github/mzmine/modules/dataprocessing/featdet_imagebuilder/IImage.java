@@ -24,8 +24,8 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -62,7 +62,7 @@ public interface IImage {
 
   void setDataPoints(List<ImageDataPoint> dataPoints);
 
-  @Nonnull
+  @NotNull
   List<Scan> getScanNumbers();
 
   void setScanNumbers(List<Scan> scanNumbers);

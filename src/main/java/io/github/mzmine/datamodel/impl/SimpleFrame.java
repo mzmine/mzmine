@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -60,10 +60,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   protected int maxMobilityScanDataPoints = -1;
 
-  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
+  public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, @Nullable double[] mzValues,
       @Nullable double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      String scanDefinition, @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
          * fragmentScans,
@@ -90,13 +90,13 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public MobilityType getMobilityType() {
     return mobilityType;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getMobilityRange() {
     if (mobilityRange != null) {
       return mobilityRange;
@@ -104,7 +104,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return Range.singleton(0.0);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
     return Objects.requireNonNull(mobilitySubScans.get(num));
@@ -113,7 +113,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   /**
    * @return Collection of mobility sub scans sorted by increasing scan num.
    */
-  @Nonnull
+  @NotNull
   @Override
   public List<MobilityScan> getMobilityScans() {
     return ImmutableList.copyOf(mobilitySubScans);
@@ -128,6 +128,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
   public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans) {
     if (mobilityScanIntensityBuffer != null || mobilityScanMzBuffer != null) {
       throw new IllegalStateException("Mobility scans can only be set to a frame once.");
+    }
+
+    if(!originalMobilityScans.isEmpty() && originalMobilityScans.get(0).getMobilityScanNumber() != 0) {
+      throw new IllegalArgumentException("Mobility scan numbers for a frame must start with zero.");
     }
 
     // determine offsets for each mobility scan
@@ -195,8 +199,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScan(MobilityScan scan) {
-    // correct the index with an offset in case there is one.
-    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
+    int index = mobilitySubScans.indexOf(scan);
     if (index >= 0) {
       return mobilityBuffer.get(index);
     }
@@ -208,7 +211,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityBuffer;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Set<ImsMsMsInfo> getImsMsMsInfos() {
     return precursorInfos;

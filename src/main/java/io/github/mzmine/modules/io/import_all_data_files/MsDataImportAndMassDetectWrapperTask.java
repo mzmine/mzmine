@@ -28,7 +28,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This import task wraps other data import tasks that do not support application of mass detection
@@ -59,7 +59,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    * @param advancedParam    advanced parameters to apply mass detection
    */
   public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists, RawDataFile newMZmineFile,
-      AbstractTask importTask, @Nonnull AdvancedSpectraImportParameters advancedParam) {
+      AbstractTask importTask, @NotNull AdvancedSpectraImportParameters advancedParam) {
     super(storageMassLists);
     this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;

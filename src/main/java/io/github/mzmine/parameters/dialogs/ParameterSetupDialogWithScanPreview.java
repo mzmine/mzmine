@@ -134,6 +134,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlScanNumber.getChildren().add(pnlScanArrows);
     pnlScanNumber.setAlignment(Pos.TOP_CENTER);
     pnlScanArrows.setAlignment(Pos.TOP_CENTER);
+    pnlScanArrows.setHgap(2d);
 
     spectrumPlot = new SpectraPlot();
     spectrumPlot.setMinSize(400, 300);

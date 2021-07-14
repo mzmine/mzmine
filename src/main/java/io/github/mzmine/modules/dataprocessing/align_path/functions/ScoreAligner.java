@@ -37,7 +37,7 @@ import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CyclicBarrier;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ScoreAligner implements Aligner {
 

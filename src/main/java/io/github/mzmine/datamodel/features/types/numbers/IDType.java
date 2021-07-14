@@ -18,10 +18,13 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 
+/**
+ * Describes the {@link FeatureListRow#getID()}
+ */
 public class IDType extends IntegerType {
-
 
   @Override
   public String getHeaderString() {

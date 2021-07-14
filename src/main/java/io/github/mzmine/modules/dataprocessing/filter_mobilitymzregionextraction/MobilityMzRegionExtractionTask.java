@@ -19,9 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -35,7 +33,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -96,25 +94,19 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     pointsLists.forEach(list -> regions.add(getShape(list)));
 
     ModularFeatureList newFeatureList = originalFeatureList
-        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage());
+        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), false);
 
     final double numberOfRows = newFeatureList.getNumberOfRows();
     int processedFeatures = 0;
 
+    final List<FeatureListRow> rowsToRemove = new ArrayList<>();
     for (FeatureListRow r : newFeatureList.getRows()) {
       ModularFeatureListRow row = (ModularFeatureListRow) r;
-      List<RawDataFile> rawDataFiles = row.getRawDataFiles();
-      for (RawDataFile file : rawDataFiles) {
-
-        ModularFeature feature = (ModularFeature) row.getFeature(file);
-        boolean contained = (ccsOrMobility == PlotType.MOBILITY) ? IonMobilityUtils
-            .isFeatureWithinMzMobilityRegion(feature, regions)
-            : IonMobilityUtils.isFeatureWithinMzCCSRegion(feature, regions);
-        if (!contained) {
-          // it's okay to remove the feature from the row, but not the row. otherwise we would get
-          // concurrent modification exceptions
-          row.removeFeature(file);
-        }
+      boolean contained = (ccsOrMobility == PlotType.MOBILITY) ? IonMobilityUtils
+          .isRowWithinMzMobilityRegion(row, regions)
+          : IonMobilityUtils.isRowWithinMzCCSRegion(row, regions);
+      if (!contained) {
+        rowsToRemove.add(row);
       }
       processedFeatures++;
       progress = processedFeatures / numberOfRows;
@@ -124,7 +116,6 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
       }
     }
 
-    List<FeatureListRow> rowsToRemove = new ArrayList<>();
     for (FeatureListRow r : newFeatureList.getRows()) {
       if (r.getNumberOfFeatures() == 0) {
         rowsToRemove.add(r);

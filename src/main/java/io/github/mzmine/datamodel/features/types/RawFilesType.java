@@ -21,14 +21,14 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Used to store a list of {@link RawDataFile}s in a {@link io.github.mzmine.datamodel.features.ModularFeatureListRow}
  */
 public class RawFilesType extends ListDataType<RawDataFile> implements NullColumnType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Raw data files";

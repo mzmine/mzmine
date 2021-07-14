@@ -21,7 +21,7 @@ package io.github.mzmine.util.swing;
 import java.awt.Image;
 import java.net.URL;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
@@ -32,7 +32,7 @@ import javax.swing.ImageIcon;
  */
 public class IconUtil {
 
-  public static @Nonnull ImageIcon loadIconFromResources(final @Nonnull String resourcePath) {
+  public static @NotNull ImageIcon loadIconFromResources(final @NotNull String resourcePath) {
     final URL iconResourcePath = IconUtil.class.getClassLoader().getResource(resourcePath);
     if (iconResourcePath == null)
       throw new IllegalArgumentException("Could not find an icon file at path " + resourcePath);
@@ -40,14 +40,14 @@ public class IconUtil {
     return icon;
   }
 
-  public static @Nonnull Icon loadIconFromResources(final @Nonnull String resourcePath,
+  public static @NotNull Icon loadIconFromResources(final @NotNull String resourcePath,
       final int width) {
     final ImageIcon icon = loadIconFromResources(resourcePath);
     final ImageIcon scaledIcon = scaled(icon, width);
     return scaledIcon;
   }
 
-  public static @Nonnull ImageIcon scaled(final ImageIcon icon, final int width) {
+  public static @NotNull ImageIcon scaled(final ImageIcon icon, final int width) {
     int height = Math.round(icon.getIconHeight() / (float) icon.getIconWidth() * width);
     Image image = icon.getImage();
     Image newimg = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);

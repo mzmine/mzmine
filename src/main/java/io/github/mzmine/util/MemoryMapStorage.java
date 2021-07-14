@@ -33,8 +33,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 /**
@@ -100,7 +100,7 @@ public class MemoryMapStorage {
     return storeMassListsInRam ? null : new MemoryMapStorage();
   }
 
-  @Nonnull
+  @NotNull
   public static MemoryMapStorage create() {
     return new MemoryMapStorage();
   }
@@ -157,8 +157,8 @@ public class MemoryMapStorage {
    * @return a read-only DoubleBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized DoubleBuffer storeData(@Nonnull final double data[])
+  @NotNull
+  public synchronized DoubleBuffer storeData(@NotNull final double data[])
       throws IOException {
     return storeData(data, 0, data.length);
   }
@@ -173,8 +173,8 @@ public class MemoryMapStorage {
    * @return a read-only DoubleBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized DoubleBuffer storeData(@Nonnull final double data[], int offset,
+  @NotNull
+  public synchronized DoubleBuffer storeData(@NotNull final double data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
@@ -214,8 +214,8 @@ public class MemoryMapStorage {
    * @return a read-only FloatBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized FloatBuffer storeData(@Nonnull final float data[])
+  @NotNull
+  public synchronized FloatBuffer storeData(@NotNull final float data[])
       throws IOException {
     return storeData(data, 0, data.length);
   }
@@ -230,8 +230,8 @@ public class MemoryMapStorage {
    * @return a read-only FloatBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized FloatBuffer storeData(@Nonnull final float data[], int offset,
+  @NotNull
+  public synchronized FloatBuffer storeData(@NotNull final float data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one
@@ -271,8 +271,8 @@ public class MemoryMapStorage {
    * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized IntBuffer storeData(@Nonnull final int data[]) throws IOException {
+  @NotNull
+  public synchronized IntBuffer storeData(@NotNull final int data[]) throws IOException {
     return storeData(data, 0, data.length);
   }
 
@@ -286,8 +286,8 @@ public class MemoryMapStorage {
    * @return a read-only IntBuffer that is directly mapped to the stored data on the disk
    * @throws IOException
    */
-  @Nonnull
-  public synchronized IntBuffer storeData(@Nonnull final int data[], int offset,
+  @NotNull
+  public synchronized IntBuffer storeData(@NotNull final int data[], int offset,
       int length) throws IOException {
 
     // If we have no storage file or if the current file is full, create a new one

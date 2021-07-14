@@ -135,7 +135,7 @@ public class BrukerTdfTest {
       throws IOException, InterruptedException, MissingMassListException {
     IMSRawDataFile file = importTestFile();
     ScanSelection selection = new ScanSelection(1);
-    List<Frame> frames = (List<Frame>) selection.getMachtingScans(file.getFrames());
+    List<Frame> frames = (List<Frame>) selection.getMatchingScans(file.getFrames());
     MobilityScanDataAccess access = EfficientDataAccess
         .of(file, MobilityScanDataType.RAW, selection);
     for(int i = 0; i < 5; i++) {

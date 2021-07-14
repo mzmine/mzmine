@@ -26,6 +26,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.xy.XYDataset;
 
@@ -76,10 +77,11 @@ public interface SimpleChart<T extends PlotXYDataProvider> {
 
   public void addContextMenuItem(String title, EventHandler<ActionEvent> ai);
 
-  public void addDatasetsChangedListener(DatasetsChangedListener listener);
+  public void addDatasetChangeListener(DatasetChangeListener listener);
 
-  public void removeDatasetsChangedListener(DatasetsChangedListener listener);
+  public void removeDatasetChangeListener(DatasetChangeListener listener);
 
-  public void clearDatasetsChangedListeners(DatasetChangeListener listener);
+  public void clearDatasetChangeListeners();
 
+  public void notifyDatasetChangeListeners(DatasetChangeEvent event);
 }

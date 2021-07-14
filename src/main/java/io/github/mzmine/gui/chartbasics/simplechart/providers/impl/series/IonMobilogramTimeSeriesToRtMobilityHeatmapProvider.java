@@ -29,7 +29,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.awt.Color;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 
 /**
@@ -100,23 +100,8 @@ public class IonMobilogramTimeSeriesToRtMobilityHeatmapProvider implements PlotX
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     numValues = 0;
     for (int i = 0; i < data.getMobilograms().size(); i++) {
-      for (int j = 0; j < data.getMobilogram(i).getNumberOfValues(); j++) {
-        numValues++;
-      }
+      numValues+= data.getMobilogram(i).getNumberOfValues();
     }
-
-/*
-
-    for(int i = 0; i < data.getMobilograms().size(); i++) {
-      SimpleIonMobilitySeries mobilogram = data.getMobilogram(i);
-      for(int j = 0; j < mobilogram.getNumberOfDataPoints(); j++) {
-        rts.add((double) data.getRetentionTime(i));
-        mobilities.add(mobilogram.getMobility(j));
-        intensities.add(mobilogram.getIntensityValue(j));
-      }
-      progress = i / (double) data.getMobilograms().size();
-    }
-*/
   }
 
   @Override

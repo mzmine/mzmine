@@ -44,14 +44,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
  */
 class IsotopeGrouperTask extends AbstractTask {
-
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   /**
    * The isotopeDistance constant defines expected distance between isotopes. Actual weight of 1
@@ -61,13 +59,9 @@ class IsotopeGrouperTask extends AbstractTask {
    * tolerance.
    */
   private static final double isotopeDistance = 1.0033;
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject project;
   private final ModularFeatureList featureList;
-
-  // peaks counter
-  private int processedRows, totalRows;
-
   // parameter values
   private final String suffix;
   private final MZTolerance mzTolerance;
@@ -79,6 +73,8 @@ class IsotopeGrouperTask extends AbstractTask {
   private final boolean chooseMostIntense;
   private final int maximumCharge;
   private final ParameterSet parameters;
+  // peaks counter
+  private int processedRows, totalRows;
 
   /**
    *
@@ -201,7 +197,8 @@ class IsotopeGrouperTask extends AbstractTask {
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the feature list.
       if (bestFitRows.size() == 1) {
-        deisotopedFeatureList.addRow(new ModularFeatureListRow(deisotopedFeatureList, row, true));
+        deisotopedFeatureList
+            .addRow(new ModularFeatureListRow(deisotopedFeatureList, row.getID(), row, true));
         sortedRows.remove(bestFitRows.get(0));
         processedRows++;
         continue;
@@ -232,7 +229,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // copy row
       FeatureListRow newRow = new ModularFeatureListRow(deisotopedFeatureList,
-          (ModularFeatureListRow) originalRows[0], true);
+          originalRows[0].getID(), (ModularFeatureListRow) originalRows[0], true);
       deisotopedFeatureList.addRow(newRow);
       // set isotope pattern
       Feature feature = newRow.getFeatures().get(0);

@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class JoinAlignerTask extends AbstractTask {
 
@@ -200,13 +200,10 @@ public class JoinAlignerTask extends AbstractTask {
       }
     }
 
-    // Create a new aligned feature list based on the baseList
-    alignedFeatureList = baseList.createCopy(featureListName, getMemoryMapStorage(), allDataFiles);
-    // recount ids
-    for (FeatureListRow row : alignedFeatureList.getRows()) {
-      row.setID(newRowID);
-      newRowID++;
-    }
+    // Create a new aligned feature list based on the baseList and renumber IDs
+    alignedFeatureList = baseList.createCopy(featureListName, getMemoryMapStorage(), allDataFiles, true);
+
+    int newRowID = alignedFeatureList.getNumberOfRows() + 1;
 
     // Iterate source feature lists
     for (ModularFeatureList featureList : featureLists) {
@@ -232,7 +229,7 @@ public class JoinAlignerTask extends AbstractTask {
         Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
         Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
-        Range<Float> mobilityRange = compareMobility && !Float.isNaN(row.getAverageMobility()) ?
+        Range<Float> mobilityRange = compareMobility && row.getAverageMobility() != null ?
             mobilityTolerance.getToleranceRange(row.getAverageMobility()) : Range.singleton(0f);
 
         // Calculate scores and store them
@@ -244,7 +241,7 @@ public class JoinAlignerTask extends AbstractTask {
               checkIsotopePattern(isotopePatternMap, row, candidate) &&
               checkSpectralSimilarity(row, candidate)) {
 
-            RowVsRowScore score = null;
+            final RowVsRowScore score;
             if (!compareMobility) {
               score = new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0,
                   mzWeight,
@@ -393,7 +390,7 @@ public class JoinAlignerTask extends AbstractTask {
   }
 
   private boolean checkMobility(FeatureListRow candidate, Range<Float> mobilityRange) {
-    return !compareMobility || mobilityWeight <= 0 || Float.isNaN(candidate.getAverageMobility())
+    return !compareMobility || mobilityWeight <= 0 || candidate.getAverageMobility() == null
            || mobilityRange.contains(candidate.getAverageMobility());
   }
 

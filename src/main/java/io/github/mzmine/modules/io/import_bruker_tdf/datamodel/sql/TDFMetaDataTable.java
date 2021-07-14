@@ -63,8 +63,8 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
       return false;
     }
     String version =
-        valueCol.get(keyList.indexOf(Keys.SchemaVersionMajor)) + "."
-            + valueCol.get(keyList.indexOf(Keys.SchemaVersionMinor));
+        valueCol.get(keyList.indexOf(Keys.SchemaVersionMajor.name())) + "."
+            + valueCol.get(keyList.indexOf(Keys.SchemaVersionMinor.name()));
 
     if (!allowedFileVersions.contains(version)) {
       MZmineCore.getDesktop().displayMessage(
@@ -78,7 +78,7 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   @Override
   public boolean executeQuery(Connection connection) {
     boolean b = super.executeQuery(connection);
-    if (b == false) {
+    if (!b) {
       return false;
     }
 
@@ -131,10 +131,15 @@ public class TDFMetaDataTable extends TDFDataTable<String> {
   }
 
   // we only keep these keys from the metadata table. Add more, if we need anything else.
-  private enum Keys {
+  public enum Keys {
     SchemaType, SchemaVersionMajor, SchemaVersionMinor, MzAcqRangeLower, MzAcqRangeUpper,
     OneOverK0AcqRangeLower, OneOverK0AcqRangeUpper, AcquisitionSoftwareVersion, InstrumentName,
-    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra;
+    Description, SampleName, MethodName, HasProfileSpectra, HasLineSpectra, ImagingAreaMinXIndexPos,
+    ImagingAreaMaxXIndexPos, ImagingAreaMinYIndexPos, ImagingAreaMaxYIndexPos;
   }
 
+  public String getValueForKey(Keys key) {
+    int index = keyCol.indexOf(key.toString());
+    return index != -1 ? valueCol.get(index) : "";
+  }
 }

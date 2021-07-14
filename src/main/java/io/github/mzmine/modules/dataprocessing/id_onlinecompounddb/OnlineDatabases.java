@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.ChemSpiderGateway;
@@ -46,20 +46,20 @@ public enum OnlineDatabases implements MZmineModule {
   CHEMSPIDER("ChemSpider", ChemSpiderGateway.class, ChemSpiderParameters.class), //
   METACYC("MetaCyc", MetaCycGateway.class);
 
-  private final @Nonnull String dbName;
-  private final @Nonnull Class<? extends DBGateway> gatewayClass;
-  private final @Nonnull Class<? extends ParameterSet> parametersClass;
+  private final @NotNull String dbName;
+  private final @NotNull Class<? extends DBGateway> gatewayClass;
+  private final @NotNull Class<? extends ParameterSet> parametersClass;
 
-  OnlineDatabases(final @Nonnull String dbName,
-      final @Nonnull Class<? extends DBGateway> gatewayClass,
-      final @Nonnull Class<? extends ParameterSet> parametersClass) {
+  OnlineDatabases(final @NotNull String dbName,
+      final @NotNull Class<? extends DBGateway> gatewayClass,
+      final @NotNull Class<? extends ParameterSet> parametersClass) {
     this.dbName = dbName;
     this.gatewayClass = gatewayClass;
     this.parametersClass = parametersClass;
   }
 
-  OnlineDatabases(final @Nonnull String name,
-      final @Nonnull Class<? extends DBGateway> gatewayClass) {
+  OnlineDatabases(final @NotNull String name,
+      final @NotNull Class<? extends DBGateway> gatewayClass) {
     this(name, gatewayClass, SimpleParameterSet.class);
   }
 
@@ -67,12 +67,12 @@ public enum OnlineDatabases implements MZmineModule {
     return gatewayClass;
   }
 
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return dbName;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return parametersClass;
   }
 }

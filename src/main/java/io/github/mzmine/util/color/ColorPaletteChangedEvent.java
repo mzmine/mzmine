@@ -22,7 +22,7 @@ import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ColorPaletteChangedEvent extends ListChangeListener.Change<Color> {
 

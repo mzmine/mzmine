@@ -18,30 +18,25 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
-import java.awt.Dimension;
-import java.io.File;
-import java.text.DecimalFormat;
-import org.jfree.chart.JFreeChart;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.ColorParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import io.github.mzmine.parameters.parametertypes.colorpalette.ColorPaletteParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.DimensionUnitUtil;
-import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.DimensionUnitUtil.DimUnit;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.awt.Dimension;
+import java.io.File;
+import java.text.DecimalFormat;
 import javafx.application.Platform;
-import javafx.scene.paint.Color;
+import org.jfree.chart.JFreeChart;
 
 public class GraphicsExportParameters extends SimpleParameterSet {
 
@@ -79,7 +74,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
       "Unit for width and height dimensions", DimUnit.values(), DimUnit.CM);
 
   public static final ParameterSetParameter chartParameters = new ParameterSetParameter(
-      "Chart parameters", "Manually set the chart parameters", new ChartThemeParameters());
+      "Chart parameters", "Manually set the chart parameters", (new ChartThemeParameters().cloneParameterSet()));
 
   public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter("Color palette", "The color palette used for export.");
 
@@ -88,7 +83,6 @@ public class GraphicsExportParameters extends SimpleParameterSet {
         chartParameters, colorPalette});
     height.setValue(true);
   }
-
 
   public ExitCode showSetupDialog(boolean valueCheckRequired, JFreeChart chart) {
 

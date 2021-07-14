@@ -27,8 +27,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of IsotopePattern interface
@@ -92,7 +92,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @Nonnull IsotopePatternStatus getStatus() {
+  public @NotNull IsotopePatternStatus getStatus() {
     return status;
   }
 
@@ -102,7 +102,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return description;
   }
 
@@ -112,13 +112,13 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getDataPointMZRange() {
     return mzRange;
   }
 
   @Override
-  public @Nonnull Double getTIC() {
+  public @NotNull Double getTIC() {
     return 0.0;
   }
 
@@ -128,7 +128,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     if (dst.length < mzValues.length) {
       return mzValues;
     }
@@ -140,7 +140,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     if (dst.length < intensityValues.length) {
       return intensityValues;
     }

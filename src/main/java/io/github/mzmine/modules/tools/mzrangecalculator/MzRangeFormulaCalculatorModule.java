@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.tools.mzrangecalculator;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.datamodel.IonizationType;
@@ -39,12 +39,12 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
   private static final String MODULE_NAME = "m/z range calculator from formula";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MzRangeFormulaCalculatorParameters.class;
   }
 

@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
@@ -39,11 +39,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureShapeMobilogramChart extends StackPane {
 
-  public FeatureShapeMobilogramChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public FeatureShapeMobilogramChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
 
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
@@ -59,7 +59,8 @@ public class FeatureShapeMobilogramChart extends StackPane {
     for (Feature f : row.getFeatures()) {
       IonTimeSeries<? extends Scan> series = ((ModularFeature) f).getFeatureData();
       if (series instanceof IonMobilogramTimeSeries) {
-        datasets.add(new FastColoredXYDataset(new SummedMobilogramXYProvider((ModularFeature) f)));
+        datasets.add(new ColoredXYDataset(new SummedMobilogramXYProvider((ModularFeature) f),
+            RunOption.THIS_THREAD));
       }
 
       if (progress != null) {

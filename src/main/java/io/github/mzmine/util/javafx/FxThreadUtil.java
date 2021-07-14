@@ -20,7 +20,7 @@ package io.github.mzmine.util.javafx;
 
 import io.github.mzmine.main.MZmineCore;
 import java.util.concurrent.CountDownLatch;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import com.google.common.base.Preconditions;
 import javafx.application.Platform;
 
@@ -30,7 +30,7 @@ public class FxThreadUtil {
    * Simulates Swing's invokeAndWait(). Based on
    * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
-  public static void runOnFxThreadAndWait(@Nonnull Runnable action) {
+  public static void runOnFxThreadAndWait(@NotNull Runnable action) {
 
     Preconditions.checkNotNull(action);
 

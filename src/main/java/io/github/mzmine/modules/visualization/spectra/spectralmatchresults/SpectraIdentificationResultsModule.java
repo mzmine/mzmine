@@ -25,8 +25,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SpectraIdentificationResultsModule implements MZmineModule {
 
@@ -45,7 +45,7 @@ public class SpectraIdentificationResultsModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }

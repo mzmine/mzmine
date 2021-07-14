@@ -25,7 +25,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableTab;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureTableFXUtil {
 

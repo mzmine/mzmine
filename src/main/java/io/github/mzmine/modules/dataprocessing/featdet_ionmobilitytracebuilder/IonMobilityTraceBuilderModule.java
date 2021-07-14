@@ -29,21 +29,21 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityTraceBuilderModule implements MZmineProcessingModule {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Builds ion mobility traces for a raw data file";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     RawDataFile[] files = parameters.getParameter(IonMobilityTraceBuilderParameters.rawDataFiles)
         .getValue().getMatchingRawDataFiles();
@@ -62,13 +62,13 @@ public class IonMobilityTraceBuilderModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "Ion mobility trace builder";

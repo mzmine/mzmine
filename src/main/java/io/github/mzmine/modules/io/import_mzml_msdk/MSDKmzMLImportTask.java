@@ -54,15 +54,14 @@ import java.util.logging.Logger;
 public class MSDKmzMLImportTask extends AbstractTask {
 
   private final File file;
+  // advanced processing will apply mass detection directly to the scans
+  private final boolean applyMassDetection;
   private MzMLFileImportMethod msdkTask = null;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private MZmineProject project;
   private RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;
   private String description;
-
-  // advanced processing will apply mass detection directly to the scans
-  private final boolean applyMassDetection;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
 
@@ -78,7 +77,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     this.newMZmineFile = newMZmineFile;
     description = "Importing raw data file: " + fileToOpen.getName();
 
-    if(advancedParam != null) {
+    if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
         this.ms1Detector = advancedParam
             .getParameter(AdvancedSpectraImportParameters.msMassDetection)
@@ -175,7 +174,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
           mzIntensities = applyMassDetection(ms2Detector, wrapper);
         }
 
-        if(mzIntensities != null) {
+        if (mzIntensities != null) {
           // create mass list and scan. Override data points and spectrum type
           newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
               mzIntensities[1], MassSpectrumType.CENTROIDED);
@@ -206,11 +205,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
     Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
     final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
+    Integer lastScanId = null;
+
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       if (buildingFrame == null || Float.compare((scan.getRetentionTime() / 60f),
           buildingFrame.getRetentionTime()) != 0) {
-        mobilityScanNumberCounter = 0;
+        mobilityScanNumberCounter = 0; // mobility scan numbers start with 0!
+        // waters uses different numbering for ms1 and ms2, so we need to reset if we start a new frame.
+        lastScanId = null;
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
@@ -218,6 +221,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
+
           mobilityScans.clear();
           mobilities.clear();
           if (!buildingImsMsMsInfos.isEmpty()) {
@@ -241,6 +245,34 @@ public class MSDKmzMLImportTask extends AbstractTask {
             "Importing " + file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
       }
 
+      // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
+      // empty scans. however, we need that info for proper processing ~SteffenHeu
+      if (lastScanId == null) {
+        lastScanId = mzMLScan.getScanNumber();
+      } else {
+        Integer newScanId = mzMLScan.getScanNumber();
+        final int missingScans = newScanId - lastScanId;
+        if (missingScans > 1) {
+          final Double lastMobility = mobilities.get(mobilities.size() - 1);
+          final double nextMobility = mzMLScan.getMobility().mobility();
+          final double deltaMobility = nextMobility - lastMobility;
+          final double stepSize = deltaMobility / (missingScans + 1);
+
+          for (int i = 0; i < missingScans; i++) {
+            // make up for data saving options leaving out empty scans.
+            // todo check if this works properly
+            mobilityScans
+                .add(new BuildingMobilityScan(mobilityScanNumberCounter, new double[0],
+                    new double[0]));
+
+            final Double calculatedMobility = lastMobility + (i + 1) * stepSize;
+            mobilities.add(calculatedMobility);
+            mobilityScanNumberCounter++;
+          }
+        }
+        lastScanId = mzMLScan.getScanNumber();
+      }
+
       mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, scan));
       mobilities.add(mzMLScan.getMobility().mobility());
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
@@ -260,8 +292,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    final double msdkProgress =
-        msdkTask == null ? 0.0 : msdkTask.getFinishedPercentage().doubleValue();
+    if (msdkTask == null || msdkTask.getFinishedPercentage() == null) return 0.0;
+    final double msdkProgress = msdkTask.getFinishedPercentage().doubleValue();
     final double parsingProgress = totalScans == 0 ? 0.0 : (double) parsedScans / totalScans;
     return (msdkProgress * 0.25) + (parsingProgress * 0.75);
   }

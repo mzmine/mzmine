@@ -37,14 +37,14 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TSFImportModule implements MZmineProcessingModule {
 
   private static Logger logger = Logger.getLogger(TSFImportModule.class.getName());
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "TSF import module";
@@ -56,16 +56,16 @@ public class TSFImportModule implements MZmineProcessingModule {
     return TSFImportParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Imports Bruker .d directories with tsf data files.";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
 
     if (Arrays.asList(fileNames).contains(null)) {
@@ -110,7 +110,7 @@ public class TSFImportModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return null;

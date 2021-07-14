@@ -20,8 +20,8 @@ package io.github.mzmine.util.scans.similarity.impl.cosine;
 
 import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.ParameterSet;
@@ -75,7 +75,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
     return "Weighted dot-product cosine";
   }

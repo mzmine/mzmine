@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -103,6 +105,7 @@ public class ParameterSetupDialog extends Stage {
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
+  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
 
   /**
    * Constructor
@@ -363,10 +366,12 @@ public class ParameterSetupDialog extends Stage {
   }
 
   /**
-   * This method does nothing, but it is called whenever user changes the parameters. It can be
-   * overridden in extending classes to update the preview components, for example.
+   * This method is called whenever user changes the parameters. It can be overridden in extending
+   * classes to update the preview components, for example.
    */
   protected void parametersChanged() {
+    updateParameterSetFromComponents();
+    parametersChangeProperty.setValue(!parametersChangeProperty.getValue());
   }
 
 
@@ -383,7 +388,7 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof ChoiceBox) {
-      ChoiceBox<?> choiceBox = (ChoiceBox) node;
+      ChoiceBox<?> choiceBox = (ChoiceBox<?>) node;
       choiceBox.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
@@ -416,5 +421,12 @@ public class ParameterSetupDialog extends Stage {
         addToolTipToControls(child, toolTipText);
       }
     }
+  }
+
+  /**
+   * @see ParameterSet#parametersChangeProperty()
+   */
+  public BooleanProperty parametersChangeProperty() {
+    return parametersChangeProperty;
   }
 }

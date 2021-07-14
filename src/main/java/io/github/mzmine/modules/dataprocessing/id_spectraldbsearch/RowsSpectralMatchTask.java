@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class RowsSpectralMatchTask extends AbstractTask {
 
@@ -101,12 +101,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private boolean needsIsotopePattern;
   private int minMatchedIsoSignals;
 
-  public RowsSpectralMatchTask(String description, @Nonnull FeatureListRow[] rows,
+  public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list) {
     this(description, rows, parameters, startEntry, list, null);
   }
 
-  public RowsSpectralMatchTask(String description, @Nonnull FeatureListRow[] rows,
+  public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       Consumer<SpectralDBFeatureIdentity> matchListener) {
     super(null); // no new data stored -> null

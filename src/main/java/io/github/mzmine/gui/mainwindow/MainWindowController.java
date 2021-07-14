@@ -32,8 +32,11 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
+import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
+import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -296,6 +299,16 @@ public class MainWindowController {
           setGraphic(new ImageView(featureListSingleIcon));
         }
       }
+
+      @Override
+      public void commitEdit(GroupableListViewEntity item) {
+        super.commitEdit(item);
+        if (item instanceof GroupEntity) {
+          return;
+        }
+
+        ((ValueEntity<FeatureList>) item).getValue().setName(getText());
+      }
     });
 
     // Add mouse clicked event handler
@@ -524,6 +537,37 @@ public class MainWindowController {
       MZmineCore.runMZmineModule(ChromatogramVisualizerModule.class, parameters);
     }
   }
+
+  public void handleShowRawDataOverview(Event event) {
+    logger.finest("Activated Show raw data overview menu item");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(RawDataOverviewModule.class);
+    parameters.getParameter(RawDataOverviewParameters.rawDataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    MZmineCore.runMZmineModule(RawDataOverviewModule.class, parameters);
+  }
+
+  public void handleShowIMSDataOverview(Event event) {
+    logger.finest("Activated Show ion mobility raw data overview");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(IMSRawDataOverviewModule.class);
+    parameters.getParameter(RawDataOverviewParameters.rawDataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    MZmineCore.runMZmineModule(IMSRawDataOverviewModule.class, parameters);
+  }
+
+  public void handleShowImageViewer(Event event) {
+    logger.finest("Activated Show image viewer");
+    var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
+    ParameterSet parameters =
+        MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class);
+    parameters.getParameter(RawDataOverviewParameters.rawDataFiles).setValue(
+        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
+  }
+
 
   public void handleShowMsSpectrum(Event event) {
     logger.finest("Activated Show MS spectrum menu item");

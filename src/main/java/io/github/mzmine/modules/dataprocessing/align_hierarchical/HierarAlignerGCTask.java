@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.gnf.clustering.DataSource;
 import org.gnf.clustering.DistanceMatrix;
 import org.gnf.clustering.FloatSource1D;

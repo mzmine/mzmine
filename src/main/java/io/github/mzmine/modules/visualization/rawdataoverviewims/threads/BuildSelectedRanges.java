@@ -24,7 +24,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
@@ -38,9 +39,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildSelectedRanges implements Runnable {
 
@@ -52,9 +52,9 @@ public class BuildSelectedRanges implements Runnable {
   private final Float rtWidth;
   private final BinningMobilogramDataAccess binning;
 
-  public BuildSelectedRanges(@Nonnull Range<Double> mzRange, @Nonnull Set<Frame> frames,
-      @Nonnull IMSRawDataFile file, @Nonnull ScanSelection scanSelection,
-      @Nonnull IMSRawDataOverviewPane pane, Float rtWidth,
+  public BuildSelectedRanges(@NotNull Range<Double> mzRange, @NotNull Set<Frame> frames,
+      @NotNull IMSRawDataFile file, @NotNull ScanSelection scanSelection,
+      @NotNull IMSRawDataOverviewPane pane, Float rtWidth,
       final BinningMobilogramDataAccess binning) {
     this.mzRange = mzRange;
     this.frames = frames;
@@ -77,7 +77,7 @@ public class BuildSelectedRanges implements Runnable {
     final String seriesKey =
         "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
             .format(mzRange.upperEndpoint());
-    FastColoredXYDataset dataset = null;
+    ColoredXYDataset dataset = null;
 
     List<IonMobilitySeries> mobilograms = new ArrayList<>();
     for (Frame f : frames) {
@@ -90,7 +90,7 @@ public class BuildSelectedRanges implements Runnable {
     final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
     SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
         new SimpleObjectProperty<>(FxColorUtil.awtColorToFX(color)), seriesKey, true);
-    dataset = new FastColoredXYDataset(provider);
+    dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
 
     ScanSelection scanSel = new ScanSelection(scanSelection.getScanNumberRange(),
         scanSelection.getBaseFilteringInteger(),
@@ -101,7 +101,7 @@ public class BuildSelectedRanges implements Runnable {
     TICDataSet ticDataSet = new TICDataSet(file, scanSel.getMatchingScans(file),
         mzRange, null);
     ticDataSet.setCustomSeriesKey(seriesKey);
-    final FastColoredXYDataset finalDataset = dataset;
-    Platform.runLater(() -> pane.setSelectedRangesToChart(finalDataset, ticDataSet, color));
+    final ColoredXYDataset finalDataset = dataset;
+    MZmineCore.runLater(() -> pane.setSelectedRangesToChart(finalDataset, ticDataSet, color));
   }
 }

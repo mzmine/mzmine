@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import java.util.Map;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface represents an identification result.
@@ -43,7 +43,7 @@ public interface FeatureIdentity extends Cloneable {
    *
    * @return Name
    */
-  @Nonnull
+  @NotNull
   String getName();
 
   /**
@@ -51,7 +51,7 @@ public interface FeatureIdentity extends Cloneable {
    *
    * @return Description
    */
-  @Nonnull
+  @NotNull
   String getDescription();
 
   /**
@@ -60,7 +60,7 @@ public interface FeatureIdentity extends Cloneable {
    * @param property
    * @return Description
    */
-  @Nonnull
+  @NotNull
   String getPropertyValue(String property);
 
   /**
@@ -68,9 +68,9 @@ public interface FeatureIdentity extends Cloneable {
    *
    * @return Description
    */
-  @Nonnull
+  @NotNull
   Map<String, String> getAllProperties();
 
-  @Nonnull
+  @NotNull
   public Object clone();
 }

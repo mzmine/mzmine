@@ -18,15 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.controlsfx.control.CheckListView;
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.CSVPrinter;
 import io.github.mzmine.main.MZmineCore;
@@ -35,6 +26,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -44,6 +43,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.controlsfx.control.CheckListView;
 
 public class LipidModificationChoiceComponent extends BorderPane {
 
@@ -149,7 +149,7 @@ public class LipidModificationChoiceComponent extends BorderPane {
           writer.writeln(new String[] {modification.getLipidModificatio(),
               modification.getLipidModificationLabel()});
         }
-
+        writer.close();
       } catch (IOException ex) {
         final String msg = "There was a problem writing the lipid modifications file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');

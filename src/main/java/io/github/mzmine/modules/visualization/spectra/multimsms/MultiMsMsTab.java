@@ -10,7 +10,7 @@ import io.github.mzmine.util.SortingProperty;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MultiMsMsTab extends MZmineTab {
 
@@ -24,19 +24,19 @@ public class MultiMsMsTab extends MZmineTab {
     setContent(content);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return Collections.EMPTY_LIST;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.EMPTY_LIST;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.EMPTY_LIST;

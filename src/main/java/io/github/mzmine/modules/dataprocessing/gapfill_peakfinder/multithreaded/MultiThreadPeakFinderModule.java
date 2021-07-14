@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -37,19 +37,19 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
       "This method fills the missing peaks (gaps) in the feature list by searching for a peak in the raw data.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     FeatureList[] peakLists = parameters.getParameter(MultiThreadPeakFinderParameters.peakLists)
         .getValue().getMatchingFeatureLists();
@@ -64,12 +64,12 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.GAPFILLING;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MultiThreadPeakFinderParameters.class;
   }
 

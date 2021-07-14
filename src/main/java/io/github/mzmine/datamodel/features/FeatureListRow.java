@@ -23,11 +23,12 @@ import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.util.List;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface representing feature list row
@@ -85,14 +86,27 @@ public interface FeatureListRow {
   public double getAverageMZ();
 
   /**
+   * Sets average mz for this row
+   */
+  public void setAverageMZ(double averageMZ);
+
+  /**
    * Returns average RT for features on this row
    */
   public float getAverageRT();
 
   /**
+   * Sets average rt for this row
+   */
+  public void setAverageRT(float averageRT);
+
+  /**
    * Returns average mobility for features on this row
    */
-  float getAverageMobility();
+  @Nullable
+  Float getAverageMobility();
+
+  Float getAverageCCS();
 
   /**
    * Returns average height for features on this row
@@ -118,16 +132,6 @@ public interface FeatureListRow {
    * Sets comment for this row
    */
   public void setComment(String comment);
-
-  /**
-   * Sets average mz for this row
-   */
-  public void setAverageMZ(double averageMZ);
-
-  /**
-   * Sets average rt for this row
-   */
-  public void setAverageRT(float averageRT);
 
   /**
    * Add a new identity candidate (result of identification method)
@@ -166,6 +170,14 @@ public interface FeatureListRow {
   public void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
+   * Returns FeatureInformation
+   *
+   * @return
+   */
+
+  public FeatureInformation getFeatureInformation();
+
+  /**
    * Adds a new FeatureInformation object.
    * <p>
    * FeatureInformation is used to keep extra information about features in the form of a map
@@ -175,14 +187,6 @@ public interface FeatureListRow {
    */
 
   public void setFeatureInformation(FeatureInformation featureInformation);
-
-  /**
-   * Returns FeatureInformation
-   *
-   * @return
-   */
-
-  public FeatureInformation getFeatureInformation();
 
   /**
    * Returns maximum raw data point intensity among all features in this row
@@ -204,7 +208,7 @@ public interface FeatureListRow {
   /**
    * Returns all fragmentation scans of this row
    */
-  @Nonnull
+  @NotNull
   public ObservableList<Scan> getAllMS2Fragmentations();
 
   /**
@@ -213,15 +217,10 @@ public interface FeatureListRow {
    */
   public IsotopePattern getBestIsotopePattern();
 
-  /**
-   * reset the rowID
-   */
-  public void setID(int id);
-
   @Nullable
   FeatureList getFeatureList();
 
-  void setFeatureList(@Nonnull FeatureList flist);
+  void setFeatureList(@NotNull FeatureList flist);
 
   default void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     addFeatureIdentity(id, false);
@@ -232,7 +231,7 @@ public interface FeatureListRow {
    *
    * @return list of library matches or an empty list
    */
-  @Nonnull
+  @NotNull
   List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
 
 }

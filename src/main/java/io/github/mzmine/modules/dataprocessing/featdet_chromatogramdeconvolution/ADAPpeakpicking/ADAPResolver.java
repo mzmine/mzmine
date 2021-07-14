@@ -52,7 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
@@ -73,14 +73,14 @@ public class ADAPResolver implements FeatureResolver {
   // Minutes <-> seconds.
   private static final double SECONDS_PER_MINUTE = 60.0;
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
 
     return NAME;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
 

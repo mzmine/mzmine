@@ -24,7 +24,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewPane;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildMultipleMobilogramRanges extends AbstractTask {
 
@@ -50,9 +51,9 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
   private final BinningMobilogramDataAccess binning;
   private double finishedPercentage;
 
-  public BuildMultipleMobilogramRanges(@Nonnull List<Range<Double>> mzRanges,
-      @Nonnull Set<Frame> frames, @Nonnull IMSRawDataFile file,
-      @Nonnull IMSRawDataOverviewPane pane, @Nonnull BinningMobilogramDataAccess binning) {
+  public BuildMultipleMobilogramRanges(@NotNull List<Range<Double>> mzRanges,
+      @NotNull Set<Frame> frames, @NotNull IMSRawDataFile file,
+      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning) {
     super(null); // no new data stored -> null
     this.binning = binning;
     finishedPercentage = 0d;
@@ -69,7 +70,7 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
       return;
     }
 
-    List<FastColoredXYDataset> mobilogramDataSets = new ArrayList<>();
+    List<ColoredXYDataset> mobilogramDataSets = new ArrayList<>();
     SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette().clone();
     colors.remove(file.getColor());
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -87,10 +88,12 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
       if (!mobilograms.isEmpty()) {
         binning.setMobilogram(mobilograms);
         final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
-        SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
-            new SimpleObjectProperty<>(colors.get(mzRanges.indexOf(mzRange))), seriesKey, true);
-        FastColoredXYDataset dataset = new FastColoredXYDataset(provider);
-        mobilogramDataSets.add(dataset);
+        if(summed.getNumberOfDataPoints() > 0) {
+          SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
+              new SimpleObjectProperty<>(colors.get(mzRanges.indexOf(mzRange))), seriesKey, true);
+          ColoredXYDataset dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
+          mobilogramDataSets.add(dataset);
+        }
       }
       finishedPercentage = mzRanges.indexOf(mzRange) / (double) mzRanges.size();
     }

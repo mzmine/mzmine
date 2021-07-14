@@ -41,8 +41,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ResolvedPeak
@@ -294,7 +294,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     setFragmentScanNumber(best);
   }
 
-  public @Nonnull
+  public @NotNull
   FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
@@ -303,17 +303,17 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return rt;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
@@ -322,12 +322,12 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return representativeScan;
   }
 
-  public @Nonnull
+  public @NotNull
   Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull
+  public @NotNull
   RawDataFile getRawDataFile() {
     return dataFile;
   }
@@ -336,7 +336,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
@@ -416,13 +416,13 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return dp;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -434,7 +434,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return String.format("%f - %f min", getRawDataPointsIntensityRange().lowerEndpoint(), getRawDataPointsRTRange().upperEndpoint());

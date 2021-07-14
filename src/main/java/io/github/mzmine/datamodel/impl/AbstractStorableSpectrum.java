@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An implementation of MassSpectrum that stores the data points in a MemoryMapStorage.
@@ -95,7 +95,10 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
+    if (mzValues == null) {
+      return new double[0];
+    }
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
@@ -104,7 +107,11 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
+    if (intensityValues == null) {
+      return new double[0];
+    }
+
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }

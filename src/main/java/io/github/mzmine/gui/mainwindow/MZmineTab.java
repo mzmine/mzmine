@@ -33,7 +33,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.Tooltip;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -79,13 +79,13 @@ public abstract class MZmineTab extends Tab {
     this(title, false, false);
   }
 
-  @Nonnull
+  @NotNull
   public abstract Collection<? extends RawDataFile> getRawDataFiles();
 
-  @Nonnull
+  @NotNull
   public abstract Collection<? extends FeatureList> getFeatureLists();
 
-  @Nonnull
+  @NotNull
   public abstract Collection<? extends FeatureList> getAlignedFeatureLists();
 
   public abstract void onRawDataFileSelectionChanged(

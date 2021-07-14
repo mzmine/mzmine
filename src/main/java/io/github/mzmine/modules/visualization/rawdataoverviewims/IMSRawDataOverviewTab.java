@@ -24,7 +24,7 @@ import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Collection;
 import java.util.Collections;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class IMSRawDataOverviewTab extends MZmineTab {
 
@@ -46,23 +46,23 @@ public class IMSRawDataOverviewTab extends MZmineTab {
         parameterSet.getParameter(IMSRawDataOverviewParameters.mzTolerance).getValue(),
         parameterSet.getParameter(IMSRawDataOverviewParameters.scanSelection).getValue(),
         parameterSet.getParameter(IMSRawDataOverviewParameters.rtWidth).getValue().floatValue(),
-        parameterSet.getParameter(IMSRawDataOverviewParameters.binWidth).getValue().doubleValue());
+        parameterSet.getParameter(IMSRawDataOverviewParameters.binWidth).getValue());
     setContent(pane);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return Collections.emptySet();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptySet();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptySet();

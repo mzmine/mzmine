@@ -13,16 +13,6 @@
 
 package io.github.mzmine.modules.io.import_mzml_msdk.msdk.data;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -37,6 +27,16 @@ import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgo
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -46,16 +46,16 @@ import io.github.mzmine.datamodel.MobilityType;
  */
 public class MzMLMsScan implements MsScan {
 
-  private final @Nonnull MzMLRawDataFile dataFile;
+  private final @NotNull MzMLRawDataFile dataFile;
   private final MzMLCVGroup cvParams;
   private final MzMLPrecursorList precursorList;
   private final MzMLProductList productList;
   private final MzMLScanList scanList;
   private MzMLBinaryDataInfo mzBinaryDataInfo;
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
-  private @Nonnull InputStream inputStream;
-  private final @Nonnull String id;
-  private final @Nonnull Integer scanNumber;
+  private @NotNull InputStream inputStream;
+  private final @NotNull String id;
+  private final @NotNull Integer scanNumber;
   private final int numOfDataPoints;
 
   private MsSpectrumType spectrumType;
@@ -694,6 +694,8 @@ public class MzMLMsScan implements MsScan {
       Integer scanNumber = Integer.parseInt(matcher.group(1));
       return Optional.ofNullable(scanNumber);
     }
+
+
 
     return Optional.ofNullable(null);
   }
