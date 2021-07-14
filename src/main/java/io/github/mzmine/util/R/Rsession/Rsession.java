@@ -39,7 +39,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -222,10 +221,10 @@ public class Rsession implements Logger {
       return cat((int[]) o);
     } else if (o instanceof int[][]) {
       return cat((int[][]) o);
-    } else if (o instanceof Object[]) {
-      return cat((Object[]) o);
     } else if (o instanceof Object[][]) {
       return cat((Object[][]) o);
+    } else if (o instanceof Object[]) {
+      return cat((Object[]) o);
     } else if (o instanceof RList) {
       return cat((RList) o);
     } else {
@@ -2380,7 +2379,7 @@ public class Rsession implements Logger {
         try {
           REXP testEval = eval(testExpression);
           double testOut = (Double) Rsession.cast(testEval);
-          if (testOut == Double.NaN || Math.abs(testOut - testResult) > 0.1) {
+          if (Double.isNaN(testOut) || Math.abs(testOut - testResult) > 0.1) {
             restartR = true;
           }
         } catch (Exception e) {

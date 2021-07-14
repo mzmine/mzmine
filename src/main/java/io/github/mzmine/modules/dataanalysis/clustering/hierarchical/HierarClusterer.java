@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataanalysis.clustering.hierarchical;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.modules.dataanalysis.clustering.ClusteringAlgorithm;
 import io.github.mzmine.modules.dataanalysis.clustering.ClusteringResult;
@@ -36,7 +36,7 @@ public class HierarClusterer implements ClusteringAlgorithm {
   private static final String MODULE_NAME = "Hierarchical clusterer";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
@@ -86,7 +86,7 @@ public class HierarClusterer implements ClusteringAlgorithm {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return HierarClustererParameters.class;
   }
 

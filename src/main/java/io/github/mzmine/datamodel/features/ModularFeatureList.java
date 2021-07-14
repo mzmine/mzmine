@@ -32,8 +32,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ModularFeatureList implements FeatureList {
@@ -63,7 +63,7 @@ public class ModularFeatureList implements FeatureList {
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
-  @Nonnull
+  @NotNull
   private final StringProperty nameProperty;
 
   // grouping
@@ -74,12 +74,12 @@ public class ModularFeatureList implements FeatureList {
 
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
-      @Nonnull RawDataFile... dataFiles) {
+      @NotNull RawDataFile... dataFiles) {
     this(name, storage, List.of(dataFiles));
   }
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
-      @Nonnull List<RawDataFile> dataFiles) {
+      @NotNull List<RawDataFile> dataFiles) {
     this.nameProperty = new SimpleStringProperty(name);
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
@@ -94,7 +94,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getNameProperty() {
     return nameProperty.get();
   }
@@ -121,7 +121,7 @@ public class ModularFeatureList implements FeatureList {
    * @param scans all filtered scans that were used to build the chromatogram in the first place.
    *              For ion mobility data, the Frames are returned
    */
-  public void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans) {
+  public void setSelectedScans(@NotNull RawDataFile file, @Nullable List<? extends Scan> scans) {
     selectedScans.put(file, scans);
   }
 
@@ -131,7 +131,7 @@ public class ModularFeatureList implements FeatureList {
    * returned.
    */
   @Nullable
-  public List<? extends Scan> getSeletedScans(@Nonnull RawDataFile file) {
+  public List<? extends Scan> getSeletedScans(@NotNull RawDataFile file) {
     return selectedScans.get(file);
   }
 
@@ -140,7 +140,7 @@ public class ModularFeatureList implements FeatureList {
    *
    * @param bindings list of bindings
    */
-  public void addRowBinding(@Nonnull List<RowBinding> bindings) {
+  public void addRowBinding(@NotNull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
       rowBindings.add(b);
       // add missing row types, that are based on RowBindings
@@ -150,7 +150,7 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
-  public void addRowBinding(@Nonnull RowBinding... bindings) {
+  public void addRowBinding(@NotNull RowBinding... bindings) {
     addRowBinding(Arrays.asList(bindings));
   }
 
@@ -172,7 +172,7 @@ public class ModularFeatureList implements FeatureList {
     return featureTypes;
   }
 
-  public void addFeatureType(@Nonnull List<DataType<?>> types) {
+  public void addFeatureType(@NotNull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!featureTypes.containsKey(type.getClass())) {
         // all {@link ModularFeature} will automatically add a default property to their data map
@@ -183,11 +183,11 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
-  public void addFeatureType(@Nonnull DataType<?>... types) {
+  public void addFeatureType(@NotNull DataType<?>... types) {
     addFeatureType(Arrays.asList(types));
   }
 
-  public void addRowType(@Nonnull List<DataType<?>> types) {
+  public void addRowType(@NotNull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!rowTypes.containsKey(type.getClass())) {
         // add row type - all rows will automatically generate a default property for this type in
@@ -197,7 +197,7 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
-  public void addRowType(@Nonnull DataType<?>... types) {
+  public void addRowType(@NotNull DataType<?>... types) {
     addRowType(Arrays.asList(types));
   }
 
@@ -549,7 +549,7 @@ public class ModularFeatureList implements FeatureList {
     CorrelationGroupingUtils.setGroupsToAllRows(groups);
   }
 
-  @Nonnull
+  @NotNull
   public Map<Type, R2RMap<RowsRelationship>> getRowMaps() {
     return r2rMaps;
   }

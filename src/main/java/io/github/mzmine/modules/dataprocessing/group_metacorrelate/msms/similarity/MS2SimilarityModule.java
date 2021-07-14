@@ -25,7 +25,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MS2SimilarityModule implements MZmineProcessingModule {
 
@@ -35,33 +35,33 @@ public class MS2SimilarityModule implements MZmineProcessingModule {
       "Checks MS2 similarity of all rows within the groups or on all networks and between networks";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return DESCRIPTION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return MS2SimilarityParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-      @Nonnull final Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Collection<Task> tasks) {
 
     ModularFeatureList[] featureLists = parameters.getParameter(MS2SimilarityParameters.PEAK_LISTS)
         .getValue()

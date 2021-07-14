@@ -27,24 +27,24 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class QualityParametersModule implements MZmineRunnableModule {
 
   public static final String DESCRIPTION = "Calculates quality parameters such as FWHM, asymmetry factor, tailing factor, S/N ratio.";
   public static final String NAME = "Quality parameters";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return DESCRIPTION;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     for (FeatureList featureList : parameters.getParameter(QualityParametersParameters.peakLists)
         .getValue().getMatchingFeatureLists()) {
       runModule(featureList, parameters);
@@ -64,13 +64,13 @@ public class QualityParametersModule implements MZmineRunnableModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.TOOLS;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;

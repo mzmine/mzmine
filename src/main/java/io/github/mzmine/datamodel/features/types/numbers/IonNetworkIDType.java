@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.features.types.numbers;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The ID from Ion Identity Networking (IIN), which searches for different ions describing the same
@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
  */
 public class IonNetworkIDType extends IntegerType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "IIN ID";

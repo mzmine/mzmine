@@ -34,8 +34,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -73,7 +73,7 @@ public class MobilityMzRegionExtractionModule implements MZmineProcessingModule 
     MZmineCore.getTaskController().addTask(task);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;
@@ -85,16 +85,16 @@ public class MobilityMzRegionExtractionModule implements MZmineProcessingModule 
     return MobilityMzRegionExtractionParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Extracts regions of m/z-mobility regions ";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     ModularFeatureList[] featureLists = parameters
         .getParameter(MobilityMzRegionExtractionParameters.featureLists).getValue()
         .getMatchingFeatureLists();
@@ -108,7 +108,7 @@ public class MobilityMzRegionExtractionModule implements MZmineProcessingModule 
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTFILTERING;

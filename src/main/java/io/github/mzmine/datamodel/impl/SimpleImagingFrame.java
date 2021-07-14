@@ -27,19 +27,19 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.import_imzml.Coordinates;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SimpleImagingFrame extends SimpleFrame implements ImagingFrame {
 
   private Coordinates coordinates;
 
-  public SimpleImagingFrame(@Nonnull RawDataFile dataFile,
+  public SimpleImagingFrame(@NotNull RawDataFile dataFile,
       int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
       double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
-      @Nonnull Range<Double> scanMZRange,
+      @NotNull Range<Double> scanMZRange,
       MobilityType mobilityType,
       @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, mzValues,

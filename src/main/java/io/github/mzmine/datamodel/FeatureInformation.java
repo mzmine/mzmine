@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import java.util.Map;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface is used to keep extra information about peaks
@@ -35,10 +35,10 @@ public interface FeatureInformation {
    * @return
    */
 
-  @Nonnull
+  @NotNull
   String getPropertyValue(String property);
 
-  @Nonnull
+  @NotNull
   String getPropertyValue(String property, String defaultValue);
 
   /**
@@ -47,7 +47,7 @@ public interface FeatureInformation {
    * @return
    */
 
-  @Nonnull
+  @NotNull
   Map<String, String> getAllProperties();
 
 }

@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkingModule implements MZmineProcessingModule {
 
@@ -36,34 +36,34 @@ public class IonNetworkingModule implements MZmineProcessingModule {
   private static final String DESCRIPTION =
       "This method searches for adducts, in-source fragments, and clusters";
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return NAME;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return DESCRIPTION;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
     return IonNetworkingParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-      @Nonnull final Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
+      @NotNull final Collection<Task> tasks) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkingParameters.PEAK_LISTS)
         .getValue()

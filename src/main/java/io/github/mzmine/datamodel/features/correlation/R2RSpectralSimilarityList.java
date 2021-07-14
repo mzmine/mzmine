@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Spectral similarity computed in MZmine.
@@ -81,13 +81,13 @@ public class R2RSpectralSimilarityList extends AbstractRowsRelationship {
     return getMaxCosineSim();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getAnnotation() {
     return "cos=" + getScoreFormatted();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Type getType() {
     return type;

@@ -18,9 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
-import java.util.Arrays;
-import javax.annotation.concurrent.Immutable;
 import io.github.mzmine.main.MZmineCore;
+import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class AdductType {
@@ -83,6 +84,11 @@ public class AdductType {
     }
 
     return eq;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getMassDifference());
   }
 
   @Override

@@ -24,7 +24,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public class ExportCorrAnnotationModule implements MZmineProcessingModule {
@@ -34,32 +34,32 @@ public class ExportCorrAnnotationModule implements MZmineProcessingModule {
   private static final String DESCRIPTION = "Export resutls from correlation/MS annotation as networks to csv";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return DESCRIPTION;
   }
 
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.FEATURELISTEXPORT;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ExportCorrAnnotationParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull final ParameterSet parameters,
-                            @Nonnull final Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
+                            @NotNull final Collection<Task> tasks) {
     tasks.add(new ExportCorrAnnotationTask(parameters,
         parameters.getParameter(ExportCorrAnnotationParameters.featureLists).getValue()
             .getMatchingFeatureLists()));

@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.controlsfx.glyphfont.Glyph;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -317,7 +317,7 @@ public class Fx3DBorderPaneController {
     });
   }
 
-  @Nonnull
+  @NotNull
   public List<Object> getVisualizedFiles() {
     return visualizedFiles;
   }

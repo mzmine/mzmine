@@ -38,4 +38,26 @@ public class ColorUtils {
     );
   }
 
+  /**
+   * Returns an absolute distance of rgb values between two colors. Can be treated as a metric on colors.
+   */
+  public static double getColorDistance(Color color1, Color color2) {
+    return Math.abs(color1.getRed() - color2.getRed())
+        + Math.abs(color1.getGreen() - color2.getGreen())
+        + Math.abs(color1.getBlue() - color2.getBlue());
+  }
+
+  /**
+   * Returns either positive or negative color from the given palette depending on which one is
+   * more contrast to the given color.
+   */
+  public static Color getContrastPaletteColor(Color color, SimpleColorPalette palette) {
+    Color positiveColor = palette.getPositiveColor();
+    Color negativeColor = palette.getNegativeColor();
+
+    return getColorDistance(color, positiveColor) > getColorDistance(color, negativeColor)
+        ? positiveColor
+        : negativeColor;
+  }
+
 }

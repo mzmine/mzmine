@@ -30,7 +30,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This type has multiple sub columns. The first is a list of complex objects ({@link
@@ -47,13 +47,13 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
       new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
       new MatchingSignalsType());
 
-  @Nonnull
+  @NotNull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Spectral library match";

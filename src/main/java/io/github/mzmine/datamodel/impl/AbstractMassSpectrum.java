@@ -28,8 +28,8 @@ import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A basic implementation of the MassSpectrum interface.
@@ -110,7 +110,7 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
   }
 
   @Override
-  public @Nonnull Double getTIC() {
+  public @NotNull Double getTIC() {
     return totalIonCurrent;
   }
 

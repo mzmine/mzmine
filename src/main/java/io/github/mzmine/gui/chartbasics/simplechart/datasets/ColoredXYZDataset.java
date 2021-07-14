@@ -32,8 +32,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.data.xy.XYZDataset;
@@ -46,6 +47,8 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
+  private static Logger logger = Logger.getLogger(ColoredXYZDataset.class.getName());
+
   private final XYZValueProvider xyzValueProvider;
   private final RunOption runOption;
   protected PaintScale paintScale;
@@ -55,25 +58,24 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   protected boolean useAlphaInPaintscale;
   protected Range<Double> zRange;
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider) {
     this(dataProvider, true);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      @Nonnull final RunOption runOption) {
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      @NotNull final RunOption runOption) {
     this(dataProvider, true, runOption);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale) {
     this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
   }
 
-  ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, @Nonnull final RunOption runOption) {
+  ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale, @NotNull final RunOption runOption) {
     // do not run from super constructor! we need to do some other stuff first
     super(dataProvider, RunOption.DO_NOT_RUN);
-    this.runOption = runOption;
 
     if (dataProvider instanceof PieXYZDataProvider) {
       throw new IllegalArgumentException(
@@ -84,6 +86,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this.useAlphaInPaintscale = useAlphaInPaintscale;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
+
+    this.runOption = checkRunOption(runOption);
     handleRunOption(runOption);
   }
 

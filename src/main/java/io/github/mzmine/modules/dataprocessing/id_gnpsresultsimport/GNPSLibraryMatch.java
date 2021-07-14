@@ -19,8 +19,8 @@ package io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Identity of GNPS library matching results imported from a graphml network
@@ -30,14 +30,14 @@ public class GNPSLibraryMatch {
   private final String identity;
   private final HashMap<String, Object> results;
 
-  public GNPSLibraryMatch(@Nonnull HashMap<String, Object> results, String compound) {
+  public GNPSLibraryMatch(@NotNull HashMap<String, Object> results, String compound) {
     this.results = results;
     String adduct = getResultOr(ATT.ADDUCT, "").toString();
     String score = getResultOr(ATT.LIBRARY_MATCH_SCORE, "NO_SCORE").toString();
     identity = MessageFormat.format("{0}; {1}; cos={2}", compound, adduct, score);
   }
 
-  @Nonnull
+  @NotNull
   public HashMap<String, Object> getResults() {
     return results;
   }
@@ -60,8 +60,8 @@ public class GNPSLibraryMatch {
    * @param defaultValue the value to replace null
    * @return if result is null return default
    */
-  @Nonnull
-  public Object getResultOr(ATT att, @Nonnull Object defaultValue) {
+  @NotNull
+  public Object getResultOr(ATT att, @NotNull Object defaultValue) {
     Object result = getResult(att);
     return result == null ? defaultValue : result;
   }

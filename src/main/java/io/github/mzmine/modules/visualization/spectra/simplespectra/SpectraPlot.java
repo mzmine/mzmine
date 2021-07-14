@@ -22,6 +22,10 @@ import io.github.mzmine.gui.chartbasics.ChartLogics;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javafx.util.Pair;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -31,10 +35,10 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -102,6 +106,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   private boolean processingAllowed;
 
   protected EStandardChartTheme theme;
+
+  /**
+   * Contains coordinated of labels for each dataset. It is supposed to be updated
+   * by {@link SpectraItemLabelGenerator}.
+   */
+  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
 
   public SpectraPlot() {
     this(false);
@@ -231,6 +241,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
+
+    // If the plot is changed then clear the map containing coordinates of labels. New values will be
+    // added by the SpectraItemLabelGenerator
+    getChart().getXYPlot().addChangeListener(event -> datasetToLabelsCoords.clear());
   }
 
 
@@ -423,6 +437,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
     }
 
+    ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
+
     plot.setDataset(numOfDataSets, dataSet);
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
@@ -584,5 +600,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public void setCursorPosition(SpectrumCursorPosition cursorPosition) {
     this.cursorPosition.set(cursorPosition);
+  }
+
+  public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {
+    return datasetToLabelsCoords;
   }
 }

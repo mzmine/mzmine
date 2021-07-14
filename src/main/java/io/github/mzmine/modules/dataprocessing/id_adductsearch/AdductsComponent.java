@@ -24,6 +24,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
+import com.Ostermiller.util.CSVParser;
+import com.Ostermiller.util.CSVPrinter;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -33,12 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.controlsfx.control.CheckListView;
-import com.Ostermiller.util.CSVParser;
-import com.Ostermiller.util.CSVPrinter;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -47,6 +46,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.controlsfx.control.CheckListView;
 
 /**
  * A component for selecting adducts.
@@ -122,7 +122,9 @@ public class AdductsComponent extends BorderPane {
       // Read the CSV file into a string array.
       String[][] csvLines = null;
       try {
-        csvLines = CSVParser.parse(new FileReader(file));
+        FileReader reader = new FileReader(file);
+        csvLines = CSVParser.parse(reader);
+        reader.close();
       } catch (IOException ex) {
         final String msg = "There was a problem reading the adducts file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
@@ -238,5 +240,6 @@ public class AdductsComponent extends BorderPane {
           String.valueOf(adduct.getMassDifference()) //
       });
     }
+    writer.close();
   }
 }

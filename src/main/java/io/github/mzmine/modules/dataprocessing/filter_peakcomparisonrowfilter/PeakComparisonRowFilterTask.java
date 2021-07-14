@@ -33,7 +33,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -178,12 +178,12 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     // Error handling. User tried to select a column from the peaklist that
     // doesn't exist.
-    if (columnIndex1 > rawDataFiles.length) {
+    if (columnIndex1 >= rawDataFiles.length) {
       setErrorMessage("Column 1 set too large.");
       setStatus(TaskStatus.ERROR);
       return null;
     }
-    if (columnIndex2 > rawDataFiles.length) {
+    if (columnIndex2 >= rawDataFiles.length) {
       setErrorMessage("Column 2 set too large.");
       setStatus(TaskStatus.ERROR);
       return null;

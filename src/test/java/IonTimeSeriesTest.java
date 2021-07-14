@@ -85,8 +85,7 @@ class IonTimeSeriesTest {
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
     return IonMobilogramTimeSeriesFactory
-        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 0.001));
-
+        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 1));
   }
 
   @Disabled

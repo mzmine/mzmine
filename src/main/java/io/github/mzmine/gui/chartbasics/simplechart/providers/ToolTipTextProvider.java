@@ -18,7 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface is used to generate tool-tips based on the index of a value. A tooltip is only

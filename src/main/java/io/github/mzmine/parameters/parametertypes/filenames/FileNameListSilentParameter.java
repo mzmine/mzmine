@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -38,7 +38,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
 
   private static final String FILE_ELEMENT = "file";
   private String name;
-  private @Nonnull List<File> value;
+  private @NotNull List<File> value;
 
   private List<FileNameListChangedListener> listener;
 
@@ -56,7 +56,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<File> getValue() {
     return value;
   }

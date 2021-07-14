@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class AnnotationType extends ListDataType<FeatureIdentity> {
 
@@ -33,8 +33,8 @@ public class AnnotationType extends ListDataType<FeatureIdentity> {
   }
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ListProperty<FeatureIdentity> value) {
+  @NotNull
+  public String getFormattedString(@NotNull ListProperty<FeatureIdentity> value) {
     ObservableList<FeatureIdentity> list = value.getValue();
     return list == null || list.isEmpty() ? "" : list.get(0).toString();
   }

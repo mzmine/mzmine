@@ -56,8 +56,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 public class ExportCorrAnnotationTask extends AbstractTask {
@@ -298,7 +298,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    *
    * @return adds the header and new line to a new String Builder
    */
-  @Nonnull
+  @NotNull
   private StringBuilder createHeader() {
     StringBuilder ann = new StringBuilder();
     // only write header if not all in one file

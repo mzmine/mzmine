@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -60,10 +60,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   protected int maxMobilityScanDataPoints = -1;
 
-  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
+  public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, double precursorMZ, int precursorCharge, @Nullable double[] mzValues,
       @Nullable double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
+      String scanDefinition, @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<ImsMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
          * fragmentScans,
@@ -90,13 +90,13 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public MobilityType getMobilityType() {
     return mobilityType;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getMobilityRange() {
     if (mobilityRange != null) {
       return mobilityRange;
@@ -104,7 +104,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return Range.singleton(0.0);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
     return Objects.requireNonNull(mobilitySubScans.get(num));
@@ -113,7 +113,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   /**
    * @return Collection of mobility sub scans sorted by increasing scan num.
    */
-  @Nonnull
+  @NotNull
   @Override
   public List<MobilityScan> getMobilityScans() {
     return ImmutableList.copyOf(mobilitySubScans);
@@ -211,7 +211,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return mobilityBuffer;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Set<ImsMsMsInfo> getImsMsMsInfos() {
     return precursorInfos;

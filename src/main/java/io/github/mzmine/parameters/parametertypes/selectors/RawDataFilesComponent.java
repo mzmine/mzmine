@@ -47,19 +47,19 @@ public class RawDataFilesComponent extends GridPane {
     add(numFilesLabel, 0, 0);
 
     detailsButton = new Button("...");
-    detailsButton.setDisable(true);
     add(detailsButton, 2, 0);
 
     typeCombo =
         new ComboBox<>(FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
-    typeCombo.setOnAction(e -> {
-      RawDataFilesSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
-      currentValue.setSelectionType(type);
-      detailsButton.setDisable((type != RawDataFilesSelectionType.NAME_PATTERN)
-          && (type != RawDataFilesSelectionType.SPECIFIC_FILES));
+    typeCombo.getSelectionModel().selectFirst();
+
+    typeCombo.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+      currentValue.setSelectionType(newValue);
+      detailsButton.setDisable(newValue != RawDataFilesSelectionType.NAME_PATTERN
+          && newValue != RawDataFilesSelectionType.SPECIFIC_FILES);
       updateNumFiles();
     });
-    typeCombo.getSelectionModel().selectFirst();
+
     add(typeCombo, 1, 0);
 
 

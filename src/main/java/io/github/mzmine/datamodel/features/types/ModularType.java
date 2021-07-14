@@ -29,8 +29,8 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,14 +54,14 @@ public abstract class ModularType extends DataType<ModularTypeProperty>
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public abstract List<DataType> getSubDataTypes();
 
   /**
    * The unmodifiable map as a reference for the ModularTypeProperty
    * @return
    */
-  @Nonnull
+  @NotNull
   public ObservableMap<Class<? extends DataType>, DataType> getSubDataTypesMap() {
     if(subTypeMap==null) {
       LinkedHashMap<Class<? extends DataType>, DataType> map = new LinkedHashMap<>();
@@ -80,15 +80,15 @@ public abstract class ModularType extends DataType<ModularTypeProperty>
   }
 
   @Override
-  @Nonnull
-  public String getFormattedString(@Nonnull ModularTypeProperty value) {
+  @NotNull
+  public String getFormattedString(@NotNull ModularTypeProperty value) {
     ObservableMap<DataType, Property<?>> map = value.getValue();
     return map == null || map.isEmpty() ? "" : map.entrySet().stream()
             .map(e -> e.getKey().getFormattedString(e.getValue())).collect(Collectors.joining(";"));
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(@Nullable RawDataFile raw) {
     final ModularType thisType = this;
     // add column for each sub data type
@@ -113,7 +113,7 @@ public abstract class ModularType extends DataType<ModularTypeProperty>
   }
 
 
-  @Nonnull
+  @NotNull
   @Override
   public int getNumberOfSubColumns() {
     return getSubDataTypes().size();

@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -71,7 +71,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   private final MZminePreferences preferences;
 
   // list of last used projects
-  private final @Nonnull
+  private final @NotNull
   FileNameListSilentParameter lastProjects;
 
   private final EncryptionKeyParameter globalEncrypter;
@@ -358,13 +358,13 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<File> getLastProjects() {
     return lastProjects.getValue();
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public FileNameListSilentParameter getLastProjectsParameter() {
     return lastProjects;
   }

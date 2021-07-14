@@ -20,8 +20,8 @@ package io.github.mzmine.datamodel.identities;
 
 import io.github.mzmine.util.FormulaUtils;
 import java.util.Objects;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class NeutralMolecule {
@@ -31,14 +31,14 @@ public class NeutralMolecule {
   @Nullable
   protected final String molFormula;
   protected final double mass;
-  @Nonnull
+  @NotNull
   protected String name;
 
-  public NeutralMolecule(@Nonnull String name, double mass) {
+  public NeutralMolecule(@NotNull String name, double mass) {
     this(name, null, mass);
   }
 
-  public NeutralMolecule(@Nonnull String name, @Nullable String molFormula, double mass) {
+  public NeutralMolecule(@NotNull String name, @Nullable String molFormula, double mass) {
     this.name = name;
     this.molFormula = molFormula;
     if (molFormula != null && molFormula.length() > 0) {
@@ -60,7 +60,7 @@ public class NeutralMolecule {
   /**
    * the raw name
    */
-  @Nonnull
+  @NotNull
   public String getName() {
     return name;
   }

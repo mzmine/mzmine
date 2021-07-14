@@ -27,7 +27,7 @@ import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Collections;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MultiSpectraVisualizerTab extends MZmineTab {
 
@@ -54,19 +54,19 @@ public class MultiSpectraVisualizerTab extends MZmineTab {
     }
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();

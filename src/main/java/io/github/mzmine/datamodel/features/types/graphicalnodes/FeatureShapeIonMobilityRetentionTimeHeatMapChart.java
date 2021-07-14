@@ -36,7 +36,7 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 
 /*
@@ -44,7 +44,7 @@ import org.jfree.chart.axis.NumberAxis;
  */
 public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane {
 
-  public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@Nonnull ModularFeature f,
+  public FeatureShapeIonMobilityRetentionTimeHeatMapChart(@NotNull ModularFeature f,
       AtomicDouble progress) {
 
     SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> chart = new SimpleXYZScatterPlot<>();

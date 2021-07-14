@@ -84,8 +84,8 @@
 
       <MenuItem onAction="#runModule" text="mzML"
         userData="io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportModule"/>
-      <MenuItem onAction="#runModule" text="mzML via jmzml"
-        userData="io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule"/>
+      <!-- *Obsolete* MenuItem onAction="#runModule" text="mzML via jmzml"
+        userData="io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule"/ -->
       <MenuItem onAction="#runModule" text="imzML"
         userData="io.github.mzmine.modules.io.import_imzml.ImzMLImportModule"/>
       <MenuItem onAction="#runModule" text="netCDF"
@@ -133,8 +133,6 @@
         onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_scans.ExportScansModule"/>
     </Menu>
-    <MenuItem text="Merge raw data files" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
     <Menu text="Raw data filtering">
       <MenuItem text="Scan by scan filtering"
         onAction="#runModule"
@@ -160,9 +158,12 @@
         userData="io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule"/>
     </Menu>
 
-    <MenuItem onAction="#runModule"
-      text="Mobility scan merging"
-      userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
+    <Menu text="File merging">
+      <MenuItem text="Raw data file merging" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule"/>
+      <MenuItem text="Mobility scan merging" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule"/>
+    </Menu>
 
   </Menu>
 
@@ -449,16 +450,26 @@
 
   <!-- VISUALIZATION -->
   <Menu text="Visualization">
+    <MenuItem text="Raw data overview" onAction="#runModule"
+      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
+    <MenuItem onAction="#runModule" text="Ion mobility raw data overview"
+      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
+    <MenuItem onAction="#runModule" text="Image viewer"
+      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
+
+    <SeparatorMenuItem/>
+
     <MenuItem text="MS spectrum" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule"/>
     <MenuItem text="Chromatogram plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule"/>
-    <MenuItem text="Raw data overview" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule"/>
     <MenuItem text="2D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
+
+    <SeparatorMenuItem/>
+
     <MenuItem onAction="#runModule" text="MS/MS plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
     <MenuItem onAction="#runModule" text="Feature networking"
@@ -466,19 +477,11 @@
 
     <SeparatorMenuItem/>
 
-    <MenuItem onAction="#runModule" text="Image viewer"
-      userData="io.github.mzmine.modules.visualization.image.ImageVisualizerModule"/>
-
-    <SeparatorMenuItem/>
-
-    <MenuItem onAction="#runModule" text="Ion mobility raw data overview"
-      userData="io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule"/>
-
-    <SeparatorMenuItem/>
-
     <MenuItem text="m/z scan histogram" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule"/>
+
     <SeparatorMenuItem/>
+
     <MenuItem text="Scatter plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule"/>
     <MenuItem text="Histogram plot" onAction="#runModule"
@@ -489,6 +492,7 @@
       userData="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule"/>
     <MenuItem text="Van Krevelen diagram" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule"/>
+
   </Menu>
 
   <!-- TOOLS -->

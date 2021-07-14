@@ -8,8 +8,8 @@ import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Used to store lists of arrays into a single DoubleBuffer to safe memory.
@@ -124,9 +124,9 @@ public class StorageUtils {
    *                DoubleBuffer.
    * @return The double buffer the values were stored in.
    */
-  @Nonnull
+  @NotNull
   public static DoubleBuffer storeValuesToDoubleBuffer(@Nullable final MemoryMapStorage storage,
-      @Nonnull final double[] values) {
+      @NotNull final double[] values) {
 
     DoubleBuffer buffer;
     if (storage != null) {

@@ -34,8 +34,8 @@ import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * During raw data import, we need to cache the m/z and intensity values of mobility scans, so we
@@ -49,6 +49,15 @@ public class BuildingMobilityScan implements MobilityScan {
   final double[] intensityValues;
   final double[] mzValues;
   int basePeakIndex;
+
+  /**
+   *
+   * @param scanNumber The scan number beginning with 0
+   * @param mzIntensities The m/z values [0][n] and intensity values [1][n]
+   */
+  public BuildingMobilityScan(int scanNumber, double[][] mzIntensities) {
+    this(scanNumber, mzIntensities[0], mzIntensities[1]);
+  }
 
   /**
    *
@@ -126,13 +135,13 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     System.arraycopy(mzValues, 0, dst, 0, mzValues.length);
     return dst;
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     System.arraycopy(intensityValues, 0, dst, 0, intensityValues.length);
     return dst;
   }
@@ -182,7 +191,7 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
@@ -220,7 +229,7 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
@@ -229,7 +238,7 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());

@@ -28,8 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Group of row. Rows can be grouped by different criteria: Retention time, feature shape (intensity
@@ -329,7 +329,7 @@ public class RowGroup implements Comparable<RowGroup> {
   }
 
   @Override
-  public int compareTo(@Nonnull RowGroup g) {
+  public int compareTo(@NotNull RowGroup g) {
     return Integer.compare(this.getGroupID(), g.getGroupID());
   }
 }

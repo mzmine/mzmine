@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -76,9 +77,9 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final int minDataPointsRt;
   private final int minTotalSignals;
-  private final double timsBindWidth;
-  private final double twimsBindWidth;
-  private final double dtimsBindWidth;
+  private final int timsBindWidth;
+  private final int twimsBindWidth;
+  private final int dtimsBindWidth;
   private final ScanSelection scanSelection;
   private final ParameterSet parameters;
   private RangeSet<Double> rangeSet = TreeRangeSet.create();
@@ -102,7 +103,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
         parameters.getParameter(IonMobilityTraceBuilderParameters.minTotalSignals).getValue();
     this.scanSelection =
         parameters.getParameter(IonMobilityTraceBuilderParameters.scanSelection).getValue();
-    this.frames = (List<Frame>) scanSelection.getMachtingScans((frames));
+    this.frames = (List<Frame>) scanSelection.getMatchingScans((frames));
     this.suffix = parameters.getParameter(IonMobilityTraceBuilderParameters.suffix).getValue();
 
     final ParameterSet advancedParam = parameters
@@ -112,19 +113,19 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
             .getValue() ? advancedParam
             .getParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : AdvancedImsTraceBuilderParameters.DEFAULT_TIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
     dtimsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getValue() ? advancedParam
             .getParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : AdvancedImsTraceBuilderParameters.DEFAULT_DTIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
     twimsBindWidth =
         advancedParam.getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getValue() ? advancedParam
             .getParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth)
             .getEmbeddedParameter().getValue()
-            : AdvancedImsTraceBuilderParameters.DEFAULT_TWIMS_BIN_WIDTH;
+            : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
 
     this.parameters = parameters;
     setStatus(TaskStatus.WAITING);
@@ -185,7 +186,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
           setStatus(TaskStatus.ERROR);
           setErrorMessage(
               "Scan #" + scan.getMobilityScanNumber()
-              + " does not have a mass list. Run mass detection ");
+                  + " does not have a mass list. Run mass detection ");
         } else {
           MassList ml = scan.getMassList();
           mzBuffer = ml.getMzValues(mzBuffer);
@@ -613,11 +614,11 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     DataTypeUtils.addDefaultIonMobilityTypeColumns(featureList);
     featureList.setSelectedScans(rawDataFile, frames);
 
-    final double binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
+    final int binWidth = switch (((IMSRawDataFile) rawDataFile).getMobilityType()) {
       case DRIFT_TUBE -> dtimsBindWidth;
       case TIMS -> timsBindWidth;
       case TRAVELING_WAVE -> twimsBindWidth;
-      default -> 0d;
+      default -> 1;
     };
 
     final BinningMobilogramDataAccess mobilogramBinner = EfficientDataAccess.of(

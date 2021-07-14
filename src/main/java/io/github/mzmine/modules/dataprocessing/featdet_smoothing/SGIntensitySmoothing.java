@@ -1,7 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class SGIntensitySmoothing {
 
@@ -14,8 +14,8 @@ public class SGIntensitySmoothing {
    *                         ZeroHandlingType#OVERRIDE}.
    * @param normWeights      The normalized weights for smoothing.
    */
-  public SGIntensitySmoothing(@Nonnull final ZeroHandlingType zeroHandlingType,
-      @Nonnull final double[] normWeights) {
+  public SGIntensitySmoothing(@NotNull final ZeroHandlingType zeroHandlingType,
+      @NotNull final double[] normWeights) {
     this.zht = zeroHandlingType;
     this.normWeights = normWeights;
   }
@@ -26,7 +26,7 @@ public class SGIntensitySmoothing {
    *                   performance.
    * @return
    */
-  public double[] smooth(@Nonnull final IntensitySeries access) {
+  public double[] smooth(@NotNull final IntensitySeries access) {
     // Initialise.
     final int numPoints = access.getNumberOfValues();
     final int fullWidth = normWeights.length;

@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class FragmentScanNumbersType extends ScanNumbersType {
 
@@ -31,7 +31,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
     return "Fragment scans";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));

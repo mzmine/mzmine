@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MZmine configuration interface
@@ -51,7 +51,7 @@ public interface MZmineConfiguration {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public List<File> getLastProjects();
 
   /**
@@ -59,7 +59,7 @@ public interface MZmineConfiguration {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public FileNameListSilentParameter getLastProjectsParameter();
 
   public NumberFormat getMZFormat();

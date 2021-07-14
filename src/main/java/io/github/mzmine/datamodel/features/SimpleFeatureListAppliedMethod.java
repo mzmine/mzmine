@@ -4,7 +4,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO: Move to io.github.mzmine.datamodel and rename to SimpleAppliedMethod
@@ -43,7 +43,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     this.module = MZmineCore.getModuleInstance(moduleClass);
   }
 
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return description;
   }
@@ -52,7 +52,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return description;
   }
 
-  public @Nonnull
+  public @NotNull
   ParameterSet getParameters() {
     // don't return the saved parameters, return a clone so parameters cannot be altered by accident.
     return parameters.cloneParameterSet();

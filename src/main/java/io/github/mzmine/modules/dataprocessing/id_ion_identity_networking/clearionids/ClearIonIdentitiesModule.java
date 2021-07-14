@@ -28,7 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public class ClearIonIdentitiesModule implements MZmineProcessingModule {
@@ -38,33 +38,33 @@ public class ClearIonIdentitiesModule implements MZmineProcessingModule {
   private static final String DESCRIPTION = "Deletes all ion identities and networks of all rows";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
 
     return NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
 
     return DESCRIPTION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return ClearIonIdentitiesParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-                            @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+                            @NotNull Collection<Task> tasks) {
 
     ModularFeatureList[] pkl = parameters.getParameter(ClearIonIdentitiesParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
     for (ModularFeatureList p : pkl)

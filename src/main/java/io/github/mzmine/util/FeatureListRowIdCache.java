@@ -20,8 +20,8 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This cache reduces the number of indexOf queries in feature lists when accessing {@link
@@ -33,11 +33,11 @@ import javax.annotation.Nullable;
  */
 public class FeatureListRowIdCache {
 
-  @Nonnull
+  @NotNull
   private final FeatureList featureList;
   private final Int2ObjectOpenHashMap<FeatureListRow> idRowCache = new Int2ObjectOpenHashMap<>();
 
-  public FeatureListRowIdCache(@Nonnull FeatureList featureList) {
+  public FeatureListRowIdCache(@NotNull FeatureList featureList) {
     this.featureList = featureList;
   }
 
@@ -65,7 +65,7 @@ public class FeatureListRowIdCache {
   /**
    * @return the underlying feature list
    */
-  @Nonnull
+  @NotNull
   public FeatureList getFeatureList() {
     return featureList;
   }

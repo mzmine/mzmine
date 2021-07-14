@@ -55,7 +55,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ModularADAPChromatogramBuilderTask extends AbstractTask {
@@ -70,8 +70,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private MZmineProject project;
   private RawDataFile dataFile;
 
-  // scan counter
-  // private int processedPoints = 0, totalPoints;
   private double progress = 0.0;
   private ScanSelection scanSelection;
   private int newFeatureID = 1;
@@ -148,10 +146,17 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    logger.info("Started chromatogram builder on " + dataFile);
+    logger.info(() -> "Started chromatogram builder on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
-    List<Float> rtListForChromCDF = new ArrayList<Float>();
+    if (scans.length == 0) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
+          + "with \"Set filters\" in the \"Scans\" parameter.");
+      return;
+    }
+
+    List<Float> rtListForChromCDF = new ArrayList<>();
 
     // Check if the scans are properly ordered by RT
     double prevRT = Double.NEGATIVE_INFINITY;
@@ -213,8 +218,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         scan = scanData.nextScan();
       } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-                        + " does not have a mass list");
+        setErrorMessage("Scan #" + scanData.getCurrentScan().getScanNumber() + " from " + dataFile.getName()
+                        + " does not have a mass list. Pleas run \"Raw data methods\" -> \"Mass detection\".");
         e.printStackTrace();
         return;
       }
@@ -224,12 +229,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i),
             scanData.getIntensityValue(i), scan);
         allMzValues.add(curDatP);
-        // corespondingScanNum.add(scan.getScanNumber());
       }
     }
-
-    // Integer[] simpleCorespondingScanNums = new Integer[corespondingScanNum.size()];
-    // corespondingScanNum.toArray(simpleCorespondingScanNums );
 
     // sort data points by intensity
     allMzValues.sort(new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
@@ -409,7 +410,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
-    logger.info("Finished chromatogram builder on " + dataFile);
+    logger.info(() -> "Finished chromatogram builder on " + dataFile);
   }
 
 }
+

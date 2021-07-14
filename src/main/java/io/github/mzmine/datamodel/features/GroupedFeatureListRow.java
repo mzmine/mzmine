@@ -25,8 +25,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType.GroupType;
 import java.util.List;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * GroupedFeatureListRows always have a main (representative) row and sub rows to build a tree
@@ -204,7 +204,7 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
     return mainRow.getBestFragmentation();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public ObservableList<Scan> getAllMS2Fragmentations() {
     return mainRow.getAllMS2Fragmentations();
@@ -222,7 +222,7 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void setFeatureList(@Nonnull FeatureList flist) {
+  public void setFeatureList(@NotNull FeatureList flist) {
     mainRow.setFeatureList(flist);
   }
 

@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.features.correlation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * row to row correlation (2 rows) Intensity profile and peak shape correlation
@@ -67,7 +67,7 @@ public abstract class R2RCorrelationData implements RowsRelationship {
         : MZmineCore.getConfiguration().getScoreFormat().format(score);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Type getType() {
     return Type.MS1_FEATURE_CORR;

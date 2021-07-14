@@ -559,6 +559,15 @@ public class MzMLParser {
       return Optional.ofNullable(scanNumber);
     }
 
+    // agilent
+    final Pattern agilentPattern = Pattern.compile("scan[iI]d=([0-9]+)");
+    final Matcher agilentMatcher = agilentPattern.matcher(spectrumId);
+    boolean agilentScanNumberFound = agilentMatcher.find();
+    if (agilentScanNumberFound) {
+      Integer scanNumber = Integer.parseInt(agilentMatcher.group(1));
+      return Optional.ofNullable(scanNumber);
+    }
+
     return Optional.ofNullable(null);
   }
 

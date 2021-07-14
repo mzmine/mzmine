@@ -26,8 +26,8 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
 
@@ -36,7 +36,7 @@ public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
     return new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getFormattedString(@Nullable Object value) {
     if(value==null)
@@ -48,9 +48,9 @@ public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
     return value.toString();
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public String getFormattedString(@Nonnull ListProperty<T> property) {
+  public String getFormattedString(@NotNull ListProperty<T> property) {
     return property.stream().map(Object::toString).findFirst().orElse("");
   }
 }

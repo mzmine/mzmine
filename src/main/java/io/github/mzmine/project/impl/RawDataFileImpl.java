@@ -40,7 +40,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -94,7 +94,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MemoryMapStorage getMemoryMapStorage() {
     return storageMemoryMap;
   }
@@ -187,7 +187,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int)
    */
   @Override
-  @Nonnull
+  @NotNull
   public List<Scan> getScanNumbers(int msLevel) {
     return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
@@ -196,8 +196,8 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
-  public @Nonnull
-  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public @NotNull
+  Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     assert rtRange != null;
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
@@ -208,7 +208,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getMSLevels()
    */
   @Override
-  @Nonnull
+  @NotNull
   public int[] getMSLevels() {
     return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
@@ -307,13 +307,13 @@ public class RawDataFileImpl implements RawDataFile {
 
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getDataMZRange() {
     return getDataMZRange(0);
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getDataMZRange(int msLevel) {
 
     // check if we have this value already cached
@@ -353,12 +353,12 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Float> getDataRTRange() {
     return getDataRTRange(0);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Float> getDataRTRange(Integer msLevel) {
     if (msLevel == null) {
@@ -411,7 +411,7 @@ public class RawDataFileImpl implements RawDataFile {
     return getScanNumbers(msLevel).size();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<PolarityType> getDataPolarity() {
     Set<PolarityType> polarities =
@@ -445,13 +445,13 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
     return dataFileName;
   }
 
   @Override
-  public void setName(@Nonnull String name) {
+  public void setName(@NotNull String name) {
     this.dataFileName = name;
   }
 
@@ -466,7 +466,7 @@ public class RawDataFileImpl implements RawDataFile {
     return scans;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;

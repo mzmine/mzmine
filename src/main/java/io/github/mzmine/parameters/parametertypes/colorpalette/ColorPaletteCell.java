@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
@@ -151,7 +151,7 @@ public class ColorPaletteCell extends ListCell<SimpleColorPalette> {
     }
   }
 
-  protected Rectangle makeRect(@Nonnull Color clr) {
+  protected Rectangle makeRect(@NotNull Color clr) {
     Rectangle rect = new Rectangle(height - STROKE_WIDTH * 2, height - STROKE_WIDTH * 2);
     rect.setFill(clr);
     rect.setStroke(STROKE_CLR);

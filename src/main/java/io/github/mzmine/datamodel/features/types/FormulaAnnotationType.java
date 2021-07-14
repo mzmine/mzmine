@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A collection of annotation types related to a list of molecular formulas stored in the {@link
@@ -80,13 +80,13 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
     }
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Formula";

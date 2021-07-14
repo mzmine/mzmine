@@ -34,8 +34,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Dialog to pick colors for a color palette.
@@ -77,6 +77,10 @@ public class ColorPalettePickerDialog extends Stage {
 
     pnWrapParam.setPadding(new Insets(10.0));
 
+    if (palette == null) {
+      palette = new SimpleColorPalette();
+    }
+
     setTitle("Editing of color palette " + palette.getName());
 
     Scene scene = new Scene(pnMain);
@@ -86,9 +90,6 @@ public class ColorPalettePickerDialog extends Stage {
 
     exitCode = ExitCode.CANCEL;
 
-    if (palette == null) {
-      palette = new SimpleColorPalette();
-    }
     this.palette = palette;
     selected = 0;
 
@@ -230,7 +231,7 @@ public class ColorPalettePickerDialog extends Stage {
     return exitCode;
   }
 
-  public @Nonnull
+  public @NotNull
   SimpleColorPalette getPalette() {
     return palette;
   }

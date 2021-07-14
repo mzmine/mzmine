@@ -33,7 +33,7 @@ package io.github.mzmine.modules.io.export_gnps.gc;
 
 import java.util.Collection;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -62,7 +62,7 @@ public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public ExitCode runModule(MZmineProject project, ParameterSet parameters,
       Collection<Task> tasks) {
     // add gnps export task

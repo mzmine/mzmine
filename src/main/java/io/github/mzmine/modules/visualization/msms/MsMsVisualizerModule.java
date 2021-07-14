@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MsMsVisualizerModule implements MZmineRunnableModule {
 
@@ -35,21 +35,21 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
       + "axes types supported: retention time, precursor m/z, product m/z, neutral loss";
 
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     assert MZmineCore.getDesktop() != null;
 
     MsMsVisualizerTab newTab = new MsMsVisualizerTab(parameters);
@@ -58,13 +58,13 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return MsMsParameters.class;
   }

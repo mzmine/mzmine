@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildSelectedRanges implements Runnable {
 
@@ -52,9 +52,9 @@ public class BuildSelectedRanges implements Runnable {
   private final Float rtWidth;
   private final BinningMobilogramDataAccess binning;
 
-  public BuildSelectedRanges(@Nonnull Range<Double> mzRange, @Nonnull Set<Frame> frames,
-      @Nonnull IMSRawDataFile file, @Nonnull ScanSelection scanSelection,
-      @Nonnull IMSRawDataOverviewPane pane, Float rtWidth,
+  public BuildSelectedRanges(@NotNull Range<Double> mzRange, @NotNull Set<Frame> frames,
+      @NotNull IMSRawDataFile file, @NotNull ScanSelection scanSelection,
+      @NotNull IMSRawDataOverviewPane pane, Float rtWidth,
       final BinningMobilogramDataAccess binning) {
     this.mzRange = mzRange;
     this.frames = frames;

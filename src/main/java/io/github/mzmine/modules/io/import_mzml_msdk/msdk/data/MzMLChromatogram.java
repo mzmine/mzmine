@@ -21,8 +21,8 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -39,11 +39,11 @@ import io.github.msdk.datamodel.SimpleIsolationInfo;
 
 class MzMLChromatogram implements Chromatogram {
 
-  private final @Nonnull MzMLRawDataFile dataFile;
-  private @Nonnull InputStream inputStream;
-  private final @Nonnull String chromatogramId;
-  private final @Nonnull Integer chromatogramNumber;
-  private final @Nonnull Integer numOfDataPoints;
+  private final @NotNull MzMLRawDataFile dataFile;
+  private @NotNull InputStream inputStream;
+  private final @NotNull String chromatogramId;
+  private final @NotNull Integer chromatogramNumber;
+  private final @NotNull Integer numOfDataPoints;
 
   private MzMLCVGroup cvParams;
   private MzMLPrecursorElement precursor;
@@ -70,7 +70,7 @@ class MzMLChromatogram implements Chromatogram {
    * @param chromatogramNumber the Chromatogram number
    * @param numOfDataPoints the number of data points in the retention time and intensity arrays
    */
-  MzMLChromatogram(@Nonnull MzMLRawDataFile dataFile, InputStream is, String chromatogramId,
+  MzMLChromatogram(@NotNull MzMLRawDataFile dataFile, InputStream is, String chromatogramId,
       Integer chromatogramNumber, Integer numOfDataPoints) {
     this.cvParams = new MzMLCVGroup();
     this.dataFile = dataFile;
@@ -98,7 +98,7 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public Integer getChromatogramNumber() {
     return chromatogramNumber;
   }
@@ -237,7 +237,7 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public ChromatogramType getChromatogramType() {
     if (chromatogramType != ChromatogramType.UNKNOWN)
       return chromatogramType;
@@ -291,7 +291,7 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public List<IsolationInfo> getIsolations() {
     if (getChromatogramType() == ChromatogramType.MRM_SRM) {
 
@@ -357,7 +357,7 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public SeparationType getSeparationType() {
     return separationType;
   }
@@ -370,14 +370,14 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public Integer getNumberOfDataPoints() {
     return numOfDataPoints;
   }
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public float[] getRetentionTimes(@Nullable float array[]) {
     if (rtValues == null) {
       if (getRtBinaryDataInfo().getArrayLength() != numOfDataPoints) {
@@ -404,7 +404,7 @@ class MzMLChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public float[] getIntensityValues(@Nullable float[] array) {
     if (intensityValues == null) {
       if (getIntensityBinaryDataInfo().getArrayLength() != numOfDataPoints) {

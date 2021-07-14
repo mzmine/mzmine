@@ -46,7 +46,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
@@ -165,7 +165,7 @@ class RansacAlignerTask extends AbstractTask {
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
           targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
-          //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
+          //(@NotNull ModularFeatureList flist, int id, RawDataFile raw,
           //    ModularFeature p)
           newRowID++;
           alignedFeatureList.addRow(targetRow);

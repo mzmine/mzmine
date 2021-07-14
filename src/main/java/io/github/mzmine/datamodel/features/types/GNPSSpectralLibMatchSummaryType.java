@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A list of spectral library matches imported from GNPS results (see {@link
@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 public class GNPSSpectralLibMatchSummaryType extends ListDataType<GNPSLibraryMatch>
     implements AnnotationType, EditableColumnType {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getHeaderString() {
     return "GNPS";

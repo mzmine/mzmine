@@ -77,8 +77,8 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Map of all feature related data.
@@ -96,12 +96,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
    */
-  private final ObservableMap<DataType, Property<?>> map =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Property<?>> map = FXCollections
+      .observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
-  @Nonnull
+  @NotNull
   private ModularFeatureList flist;
 
   /**
@@ -110,7 +110,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param flist the feature list
    * @param id    the row id
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id) {
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
     this.flist = flist;
 
     // add type property columns to maps
@@ -158,7 +158,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param id      the row id
    * @param feature a feature to add to the row
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, Feature feature) {
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, Feature feature) {
     this(flist, id);
     addFeature(feature.getRawDataFile(), feature);
   }
@@ -170,7 +170,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param row          a row to copy (uses the row.getID() as the new ID)
    * @param copyFeatures true also copy features, false leave features empty
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, ModularFeatureListRow row,
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, ModularFeatureListRow row,
       boolean copyFeatures) {
     this(flist, row.getID(), row, copyFeatures);
   }
@@ -183,7 +183,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param row          a row to copy
    * @param copyFeatures true also copy features, false leave features empty
    */
-  public ModularFeatureListRow(@Nonnull ModularFeatureList flist, int id, ModularFeatureListRow row,
+  public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, ModularFeatureListRow row,
       boolean copyFeatures) {
     this(flist, id);
 
@@ -220,8 +220,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = getFeatureList();
         flist.addRowType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException
-          | InvocationTargetException | IllegalAccessException e) {
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return;
       }
@@ -231,8 +230,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
     //
     if (tclass.equals(FeaturesType.class)) {
-      get(FeaturesType.class).addListener(
-          (MapChangeListener<RawDataFile, ModularFeature>) change -> {
+      get(FeaturesType.class)
+          .addListener((MapChangeListener<RawDataFile, ModularFeature>) change -> {
             flist.getRowBindings().forEach(b -> b.apply(this));
           });
     }
@@ -281,14 +280,14 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param feature
    */
   @Override
-  public void addFeature(RawDataFile raw, Feature feature) {
+  public synchronized void addFeature(RawDataFile raw, Feature feature) {
     if (!(feature instanceof ModularFeature)) {
       throw new IllegalArgumentException(
           "Cannot add non-modular feature to modular feature list row.");
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -345,9 +344,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public float getAverageMobility() {
+  public Float getAverageMobility() {
     Property<Float> v = get(MobilityType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return v == null || v.getValue() == null ? null : v.getValue();
   }
 
   @Override
@@ -423,7 +422,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public void setFeatureList(@Nonnull FeatureList flist) {
+  public void setFeatureList(@NotNull FeatureList flist) {
     if (!(flist instanceof ModularFeatureList)) {
       throw new IllegalArgumentException(
           "Cannot set non-modular feature list to modular feature list row.");
@@ -527,8 +526,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       return manual.get(IdentityType.class).getValue();
     } else {
       ListProperty<FeatureIdentity> prop = get(IdentityType.class);
-      return prop == null || prop.getValue() == null ? null :
-          FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
+      return prop == null || prop.getValue() == null ? null
+          : FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
     }
   }
 
@@ -605,8 +604,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   @Override
   public double getMaxDataPointIntensity() {
     ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
-    return rangeObjectProperty != null && rangeObjectProperty.getValue() != null ?
-        rangeObjectProperty.getValue().upperEndpoint() : Double.NaN;
+    return rangeObjectProperty != null && rangeObjectProperty.getValue() != null
+        ? rangeObjectProperty.getValue().upperEndpoint() : Double.NaN;
   }
 
   @Nullable
@@ -641,7 +640,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return bestScan;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public ObservableList<Scan> getAllMS2Fragmentations() {
     ObservableList<Scan> allMS2ScansList = FXCollections.observableArrayList();

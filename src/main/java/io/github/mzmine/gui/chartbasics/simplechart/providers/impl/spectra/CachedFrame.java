@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a frame and it's subscans into ram.
@@ -90,13 +90,13 @@ public class CachedFrame implements Frame {
     return mobilityScans.size();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MobilityType getMobilityType() {
     return originalFrame.getMobilityType();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getMobilityRange() {
     return originalFrame.getMobilityRange();
@@ -108,13 +108,13 @@ public class CachedFrame implements Frame {
     return mobilityScans.get(num);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<MobilityScan> getMobilityScans() {
     return mobilityScans;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<MobilityScan> getSortedMobilityScans() {
     return sortedMobilityScans;
@@ -136,7 +136,7 @@ public class CachedFrame implements Frame {
     return originalFrame.getMobilities();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Set<ImsMsMsInfo> getImsMsMsInfos() {
     return originalFrame.getImsMsMsInfos();
@@ -159,13 +159,13 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
@@ -219,7 +219,7 @@ public class CachedFrame implements Frame {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return originalFrame.getDataFile();
@@ -230,7 +230,7 @@ public class CachedFrame implements Frame {
     return originalFrame.getScanNumber();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getScanDefinition() {
     return originalFrame.getScanDefinition();
@@ -246,13 +246,13 @@ public class CachedFrame implements Frame {
     return originalFrame.getRetentionTime();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getScanningMZRange() {
     return originalFrame.getScanningMZRange();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public PolarityType getPolarity() {
     return originalFrame.getPolarity();
@@ -266,12 +266,12 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public void addMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(

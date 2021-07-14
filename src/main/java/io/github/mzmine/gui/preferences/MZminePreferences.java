@@ -106,7 +106,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final ParameterSetParameter chartParam =
       new ParameterSetParameter("Chart parameters",
-          "The default chart parameters to be used trhoughout MZmine", new ChartThemeParameters());
+          "The default chart parameters to be used throughout MZmine", new ChartThemeParameters());
 
   public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
       "Enables dark mode");

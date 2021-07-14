@@ -12,7 +12,7 @@ import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRela
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.HashMap;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 
 public class MinimumFeatureFilter {

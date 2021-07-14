@@ -79,7 +79,7 @@ public class MoblityScanMergerTask extends AbstractTask {
     final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, weighting);
 
     Collection<Frame> frames = (Collection<Frame>) scanSelection
-        .getMachtingScans(rawDataFile.getFrames());
+        .getMatchingScans(rawDataFile.getFrames());
     totalFrames = frames.size();
     for (Frame f : frames) {
       SimpleFrame frame = (SimpleFrame) f;

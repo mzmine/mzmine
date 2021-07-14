@@ -33,8 +33,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ListProperty;
 import javafx.collections.FXCollections;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ScanNumbersType extends ListDataType<Scan> implements BindingsFactoryType {
 
@@ -44,13 +44,13 @@ public class ScanNumbersType extends ListDataType<Scan> implements BindingsFacto
   }
 
 
-  @Nonnull
+  @NotNull
   @Override
-  public String getFormattedString(@Nonnull ListProperty<Scan> property) {
+  public String getFormattedString(@NotNull ListProperty<Scan> property) {
     return property.getValue() != null ? String.valueOf(property.getValue().size()) : "";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getFormattedString(@Nullable Object value) {
     if (value == null || !(value instanceof List)) {

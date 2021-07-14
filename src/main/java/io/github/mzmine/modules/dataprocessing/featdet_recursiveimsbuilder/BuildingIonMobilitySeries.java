@@ -27,8 +27,8 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
 
@@ -42,9 +42,9 @@ public class BuildingIonMobilitySeries extends SimpleIonMobilitySeries {
    * @param intensityValues
    * @param scans
    */
-  public BuildingIonMobilitySeries(@Nullable MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues,
-      @Nonnull List<MobilityScan> scans) {
+  public BuildingIonMobilitySeries(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues,
+      @NotNull List<MobilityScan> scans) {
     super(storage, mzValues, intensityValues, scans);
 
     frame = scans.get(0).getFrame();

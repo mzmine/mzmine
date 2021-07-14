@@ -80,7 +80,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
 
@@ -182,7 +182,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  @Nonnull
+  @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
 
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
@@ -190,7 +190,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  @Nonnull
+  @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
 
     final GroupableListView<FeatureList> featureListView =
@@ -199,7 +199,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   }
 
-  @Nonnull
+  @NotNull
   public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
       Class<ModuleType> moduleClass) {
 
@@ -559,7 +559,7 @@ public class MZmineGUI extends Application implements Desktop {
     return tabs;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<MZmineTab> getTabsInMainWindow() {
     List<MZmineTab> tabs = new ArrayList<>();

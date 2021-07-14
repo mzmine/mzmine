@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
 
@@ -37,34 +37,34 @@ public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
       "Checks ion identities (in-source fragments and multimers) by MS/MS";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
 
     return DESCRIPTION;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.ION_IDENTITY_NETWORKS;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return IonNetworkMSMSCheckParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkMSMSCheckParameters.PEAK_LISTS)
         .getValue()

@@ -27,15 +27,15 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Steffen https://github.com/SteffenHeu
  */
 public class MobilogramBinningModule implements MZmineProcessingModule {
 
-  @Nonnull
+  @NotNull
   @Override
   public String getName() {
     return "Mobilogram summing";
@@ -47,16 +47,16 @@ public class MobilogramBinningModule implements MZmineProcessingModule {
     return MobilogramBinningParameters.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getDescription() {
     return "Bins intensities within given mobility ranges to correct for noise in mobilograms.";
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
 
     final ModularFeatureList[] flists = parameters
         .getParameter(MobilogramBinningParameters.featureLists).getValue()
@@ -70,7 +70,7 @@ public class MobilogramBinningModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.EIC_DETECTION;

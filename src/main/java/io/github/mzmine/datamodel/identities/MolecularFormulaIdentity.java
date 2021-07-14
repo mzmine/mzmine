@@ -20,13 +20,13 @@ package io.github.mzmine.datamodel.identities;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MolecularFormulaIdentity {
 
-  @Nonnull
+  @NotNull
   protected final IMolecularFormula cdkFormula;
   protected Double rdbe;
   protected double searchedNeutralMass;
