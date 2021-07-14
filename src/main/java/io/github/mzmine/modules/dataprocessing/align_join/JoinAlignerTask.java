@@ -295,7 +295,9 @@ public class JoinAlignerTask extends AbstractTask {
         // TODO: test aligned feature list correctness, seems like rows are not aligned correctly
         //  while aligning previously aligned feature lists
         for (RawDataFile file : row.getRawDataFiles()) {
-          targetRow.addFeature(file, new ModularFeature(alignedFeatureList, row.getFeature(file)));
+          if(row.getFeature(file) != null) {
+            targetRow.addFeature(file, new ModularFeature(alignedFeatureList, row.getFeature(file)));
+          }
         }
 
         processedRows++;
