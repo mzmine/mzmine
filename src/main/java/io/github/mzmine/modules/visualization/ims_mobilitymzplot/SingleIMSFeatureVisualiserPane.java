@@ -36,11 +36,12 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.Singl
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
@@ -124,14 +125,25 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
       if (newValue.getDataset() instanceof ColoredXYDataset) {
         ColoredXYDataset dataset = (ColoredXYDataset) newValue.getDataset();
         if (dataset.getValueProvider() instanceof MassSpectrumProvider) {
-          MassSpectrumProvider spectrumProvider = (MassSpectrumProvider) dataset
-              .getValueProvider();
+          MassSpectrumProvider spectrumProvider = (MassSpectrumProvider) dataset.getValueProvider();
           MassSpectrum spectrum = spectrumProvider.getSpectrum(newValue.getValueIndex());
           if (spectrum instanceof MobilityScan) {
             selectedMobilityScan.set((MobilityScan) spectrum);
           }
         }
       }
+    });
+    heatmapChart.addDatasetChangeListener(e -> {
+      if (!(e.getDataset() instanceof ColoredXYDataset ds) || (ds.getStatus()
+          != TaskStatus.FINISHED)) {
+        return;
+      }
+      heatmapChart.getXYPlot().getDomainAxis().setRange(
+          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getDomainValueRange()), false,
+          true);
+      heatmapChart.getXYPlot().getRangeAxis().setRange(
+          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getRangeValueRange()), false,
+          true);
     });
     NumberAxis axis = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
     axis.setAutoRange(true);
@@ -155,7 +167,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
     mobilogramChart.setShowCrosshair(false);
     mobilogramChart.setLegendItemsVisible(false);
     mobilogramChart.addDatasetChangeListener(l -> {
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         NumberAxis a = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
         a.setAutoRangeIncludesZero(false);
         a.setAutoRangeStickyZero(false);
@@ -166,7 +178,6 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
           renderer.setDefaultSeriesVisibleInLegend(false);
         }
       });
-
     });
 
     ChartGroup mobilityGroup = new ChartGroup(false, false, false, true);
