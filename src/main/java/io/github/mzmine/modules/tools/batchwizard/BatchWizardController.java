@@ -352,6 +352,9 @@ public class BatchWizardController {
         .getEmbeddedParameters().setParameter(GroupMS2SubParameters.limitRTByFeature, true);
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters()
+        .setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, false);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters()
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
@@ -393,6 +396,9 @@ public class BatchWizardController {
         .getEmbeddedParameters().setParameter(GroupMS2SubParameters.combineTimsMsMs, false);
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters().setParameter(GroupMS2SubParameters.limitRTByFeature, true);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters()
+        .setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, false);
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters()
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
