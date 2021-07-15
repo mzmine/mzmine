@@ -170,13 +170,14 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // set the X axis (retention time) properties
     NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setNumberFormatOverride(mzFormat);
-    xAxis.setUpperMargin(0.001);
-    xAxis.setLowerMargin(0.001);
+    xAxis.setUpperMargin(0.01); // have some margin so m/z labels are not cut off
+    xAxis.setLowerMargin(0.01);
     xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
 
     // set the Y axis (intensity) properties
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
     yAxis.setNumberFormatOverride(intensityFormat);
+    yAxis.setUpperMargin(0.1); // some margin for m/z labels
 
     // only allow positive values for the axes
     ChartLogics.setAxesTypesPositive(chart);
