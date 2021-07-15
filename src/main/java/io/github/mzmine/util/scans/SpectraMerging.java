@@ -259,21 +259,27 @@ public class SpectraMerging {
   /**
    * Creates a merged MS/MS spectrum for a PASEF {@link ImsMsMsInfo}.
    *
+   * @param info          The MS/MS info to create a merged spectrum for
+   * @param tolerance     The m/z tolerence to merge peaks from separate mobility scans with.
+   * @param mergingType   The merging type. Usually {@link MergingType#SUMMED}.
+   * @param storage       The storage to use or null.
+   * @param mobilityRange If the MS/MS shall only be created for a specific mobility range, e.g., in
+   *                      the case of isomeric features that have been resolved.
    * @return A {@link MergedMsMsSpectrum} or null the spectrum would not have any data points.
    */
   @Nullable
   public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@NotNull final ImsMsMsInfo info,
       @NotNull final MZTolerance tolerance, @NotNull final MergingType mergingType,
-      @Nullable final MemoryMapStorage storage) {
+      @Nullable final MemoryMapStorage storage, @Nullable Range<Float> mobilityRange) {
 
     final Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
     final Frame frame = info.getFrameNumber();
     final float collisionEnergy = info.getCollisionEnergy();
     final double precursorMz = info.getLargestPeakMz();
 
-    List<MobilityScan> mobilityScans = frame.getMobilityScans().stream()
-        .filter(ms -> spectraNumbers.contains(ms.getMobilityScanNumber()))
-        .collect(Collectors.toList());
+    List<MobilityScan> mobilityScans = frame.getMobilityScans().stream().filter(
+        ms -> spectraNumbers.contains(ms.getMobilityScanNumber()) && (mobilityRange == null
+            || mobilityRange.contains((float) ms.getMobility()))).collect(Collectors.toList());
 
     if (mobilityScans.isEmpty()) {
       return null;
@@ -375,6 +381,9 @@ public class SpectraMerging {
    */
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(final @NotNull List<T> source,
       @NotNull final MZTolerance tolerance, @Nullable final MemoryMapStorage storage) {
+    var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
+        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+    scan.addMassList(new ScanPointerMassList(scan));
 
     final List<? extends MassSpectrum> spectra;
     if(source.stream().allMatch(s -> s instanceof Scan)) {

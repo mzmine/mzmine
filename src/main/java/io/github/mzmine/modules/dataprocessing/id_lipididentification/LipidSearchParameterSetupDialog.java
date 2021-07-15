@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -37,7 +37,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 /**
- * Parameter setup dialog for lipid search module
+ * Parameter setup dialog for lipid annotation module
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */

@@ -31,8 +31,8 @@ public class CCSTest {
   @Disabled("Needs test file?")
   @Test
   void testTims() {
-
-    logger.info("CCS: " + TDFUtils.calculateCCS(1 / 1.376e-4, 1L, 322) + "");
+    final TDFUtils tdfUtils = new TDFUtils();
+    logger.info("CCS: " + tdfUtils.calculateCCS(1 / 1.376e-4, 1L, 322) + "");
     logger.info("CCS: " + CCSUtils.calcCCSFromTimsMobility(0.882, 2, 601.97) + "");
 
   }

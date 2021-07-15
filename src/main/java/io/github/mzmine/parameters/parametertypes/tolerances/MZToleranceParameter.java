@@ -60,6 +60,11 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
     this.zeroAllowed = zeroAllowed;
   }
 
+  public MZToleranceParameter(double deltaMZ, double ppm) {
+    this();
+    value = new MZTolerance(deltaMZ, ppm);
+  }
+
   @Override
   public String getName() {
     return name;

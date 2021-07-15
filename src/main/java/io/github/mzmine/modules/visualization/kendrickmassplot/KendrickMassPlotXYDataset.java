@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
+import java.awt.Color;
+import org.jfree.data.xy.AbstractXYDataset;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import org.jfree.data.xy.AbstractXYDataset;
-
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FormulaUtils;
 
@@ -30,30 +30,51 @@ import io.github.mzmine.util.FormulaUtils;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-class KendrickMassPlotXYDataset extends AbstractXYDataset {
+public class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private FeatureListRow selectedRows[];
+  private FeatureListRow[] selectedRows;
   private String xAxisKMBase;
   private String customYAxisKMBase;
   private String customXAxisKMBase;
+  private String bubbleSizeLabel;
   private double[] xValues;
   private double[] yValues;
+  private double[] bubbleSizeValues;
   private ParameterSet parameters;
+  private String seriesKey;
+  private int itemCount;
+  private Color color;
+
+  public KendrickMassPlotXYDataset(double[] xValues, double[] yValues, double[] bubbleSizeValues,
+      String seriesKey, Color color) {
+    this.xValues = xValues;
+    this.yValues = yValues;
+    this.bubbleSizeValues = bubbleSizeValues;
+    this.seriesKey = seriesKey;
+    this.color = color;
+    itemCount = xValues.length;
+  }
+
 
   public KendrickMassPlotXYDataset(ParameterSet parameters) {
 
-    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
-        .getMatchingFeatureLists()[0];
+    FeatureList featureList = parameters.getParameter(KendrickMassPlotParameters.featureList)
+        .getValue().getMatchingFeatureLists()[0];
+
+    this.seriesKey = "Kendrick plot";
 
     this.parameters = parameters;
 
-    this.selectedRows =
-        parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(featureList);
+    this.selectedRows = parameters.getParameter(KendrickMassPlotParameters.selectedRows)
+        .getMatchingRows(featureList);
 
     this.customYAxisKMBase =
         parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue();
+
+    this.bubbleSizeLabel =
+        parameters.getParameter(KendrickMassPlotParameters.bubbleSize).getValue();
 
     if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
         .getValue() == true) {
@@ -63,6 +84,8 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
     } else {
       this.xAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
     }
+
+    itemCount = selectedRows.length;
 
     // Calc xValues
     xValues = new double[selectedRows.length];
@@ -95,6 +118,28 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
           Math.ceil((selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customYAxisKMBase))
               - (selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customYAxisKMBase);
     }
+
+    // Calc bubble size
+    bubbleSizeValues = new double[selectedRows.length];
+    for (int i = 0; i < selectedRows.length; i++) {
+      if (bubbleSizeLabel.equals("Retention time")) {
+        bubbleSizeValues[i] = selectedRows[i].getAverageRT();
+      } else if (bubbleSizeLabel.equals("Intensity")) {
+        bubbleSizeValues[i] = selectedRows[i].getAverageHeight();
+      } else if (bubbleSizeLabel.equals("Area")) {
+        bubbleSizeValues[i] = selectedRows[i].getAverageArea();
+      } else if (bubbleSizeLabel.equals("Tailing factor")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getTailingFactor();
+      } else if (bubbleSizeLabel.equals("Asymmetry factor")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getAsymmetryFactor();
+      } else if (bubbleSizeLabel.equals("FWHM")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getFWHM();
+      } else if (bubbleSizeLabel.equals("m/z")) {
+        bubbleSizeValues[i] = selectedRows[i].getBestFeature().getMZ();
+      } else {
+        bubbleSizeValues[i] = 5;
+      }
+    }
   }
 
   public ParameterSet getParameters() {
@@ -107,7 +152,7 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
   @Override
   public int getItemCount(int series) {
-    return selectedRows.length;
+    return itemCount;
   }
 
   @Override
@@ -120,18 +165,18 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
     return yValues[item];
   }
 
+  public double getBubbleSize(int series, int item) {
+    return bubbleSizeValues[item];
+  }
+
   @Override
   public int getSeriesCount() {
     return 1;
   }
 
-  public Comparable<?> getRowKey(int row) {
-    return selectedRows[row].toString();
-  }
-
   @Override
   public Comparable<?> getSeriesKey(int series) {
-    return getRowKey(series);
+    return seriesKey;
   }
 
   public double[] getxValues() {
@@ -142,12 +187,28 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
     return yValues;
   }
 
+  public double[] getBubbleSizeValues() {
+    return bubbleSizeValues;
+  }
+
+  public void setBubbleSize(double[] bubbleSize) {
+    this.bubbleSizeValues = bubbleSize;
+  }
+
   public void setxValues(double[] values) {
     xValues = values;
   }
 
   public void setyValues(double[] values) {
     yValues = values;
+  }
+
+  public Color getColor() {
+    return color;
+  }
+
+  public void setColor(Color color) {
+    this.color = color;
   }
 
   private double getKendrickMassFactor(String formula) {
