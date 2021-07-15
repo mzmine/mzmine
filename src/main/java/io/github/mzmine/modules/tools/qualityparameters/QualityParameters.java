@@ -119,6 +119,10 @@ public class QualityParameters {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
+    if(intensities.length < 3) {
+      return Float.NaN;
+    }
+
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
     if (rtRange == null) {
       rtRange = Range.singleton(rt);
@@ -150,6 +154,10 @@ public class QualityParameters {
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
         .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValues());
+    if(intensities.length < 3) {
+      return Float.NaN;
+    }
+
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
@@ -188,6 +196,9 @@ public class QualityParameters {
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
+    }
+    if(intensities.length < 3) {
+      return Float.NaN;
     }
 
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
