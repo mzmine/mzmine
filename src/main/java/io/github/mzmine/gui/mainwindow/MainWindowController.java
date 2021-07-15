@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -35,7 +36,6 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
@@ -503,8 +503,7 @@ public class MainWindowController {
         }
     );
 
-    RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
-    addTab(rop);
+    addTab(new MZmineIntroductionTab());
   }
 
   public GroupableListView<RawDataFile> getRawDataList() {
