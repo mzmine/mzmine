@@ -62,6 +62,7 @@ import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
+import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
 import java.util.Collections;

@@ -26,6 +26,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.List;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -227,11 +229,150 @@ public interface FeatureListRow {
   }
 
   /**
+   * Correlated features grouped
+   *
+   * @return
+   */
+  public RowGroup getGroup();
+
+  /**
+   * Correlated features grouped
+   *
+   * @param group
+   */
+  public void setGroup(RowGroup group);
+
+  /**
+   * The list of ion identities
+   *
+   * @return null or the current list. First element is the "preferred" element
+   */
+  @Nullable
+  List<IonIdentity> getIonIdentities();
+
+  /**
+   * Set the list of ion identities with the first element being the preferred
+   *
+   * @param ions list of ion identities
+   */
+  void setIonIdentities(@Nullable List<IonIdentity> ions);
+
+  /**
+   * Adds the ion identity as the preferred (first element) of the list
+   *
+   * @param ion the preferred ion identity
+   */
+  default void addIonIdentity(IonIdentity ion) {
+    this.addIonIdentity(ion, true);
+  }
+
+  /**
+   * Adds the ion as first or last element of the list.
+   *
+   * @param ion        the ion identity
+   * @param markAsBest true: add as first element; false add as last element
+   */
+  default void addIonIdentity(IonIdentity ion, boolean markAsBest) {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+
+    if (ionIdentities == null) {
+      ionIdentities = FXCollections.observableArrayList();
+      setIonIdentities(ionIdentities);
+    }
+
+    // remove first
+    if (!ionIdentities.isEmpty()) {
+      ionIdentities.remove(ion);
+    }
+
+    if (markAsBest) {
+      ionIdentities.add(0, ion);
+    } else {
+      ionIdentities.add(ion);
+    }
+  }
+
+  /**
+   * Clear all ion identities
+   */
+  default void clearIonIdentites() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    if (ionIdentities != null) {
+      ionIdentities.clear();
+    }
+  }
+
+  /**
+   * The first element of {@link #getIonIdentities()}
+   *
+   * @return the preferred (first) element of all ion identities
+   */
+  @Nullable
+  default IonIdentity getBestIonIdentity() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    return ionIdentities != null && !ionIdentities.isEmpty() ? ionIdentities.get(0) : null;
+  }
+
+  /**
+   * Set the best ion identity (the first element of the list)
+   *
+   * @param ion the preferred ion
+   */
+  default void setBestIonIdentity(@NotNull IonIdentity ion) {
+    addIonIdentity(ion, true);
+  }
+
+  /**
+   * Has at least one ion identity
+   */
+  default boolean hasIonIdentity() {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    return ionIdentities != null && !ionIdentities.isEmpty();
+  }
+
+  /**
+   * Remove ion identity if available
+   *
+   * @param ion the ion to remove
+   */
+  default boolean removeIonIdentity(IonIdentity ion) {
+    List<IonIdentity> ionIdentities = getIonIdentities();
+    if (ionIdentities != null) {
+      return ionIdentities.remove(ion);
+    }
+    return false;
+  }
+
+  /**
+   * Returns the group ID
+   *
+   * @return return the group ID or -1 if not part of a group {@link #getGroup()}
+   */
+  default int getGroupID() {
+    RowGroup g = getGroup();
+    return g == null ? -1 : g.groupID;
+  }
+
+  List<ResultFormula> getFormulas();
+
+  void setFormulas(List<ResultFormula> formulas);
+
+  /**
+   * Checks if MS2 fragmentation data is available
+   *
+   * @return true if this row has at least 1 MS2 spectrum
+   */
+  default boolean hasMs2Fragmentation() {
+    // should be faster. Best fragmentation loops through all spectra to find best
+    return getAllMS2Fragmentations() != null && !getAllMS2Fragmentations().isEmpty();
+  }
+
+
+  /**
    * List of library matches sorted from best (index 0) to last match
    *
    * @return list of library matches or an empty list
    */
   @NotNull
   List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
-
 }
