@@ -19,6 +19,8 @@
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -43,7 +45,6 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -64,7 +65,6 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -248,11 +248,13 @@ public class MainWindowController {
     // Add mouse clicked event handler
     rawDataList.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        List<RawDataFile> selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-        if (selectedFiles.stream().anyMatch(f -> f instanceof ImagingRawDataFileImpl)) {
+        RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
+        if (clickedFile instanceof IMSRawDataFile) {
+          handleShowIMSDataOverview(event);
+        } else if (clickedFile instanceof ImagingRawDataFile) {
           handleShowImage(event);
         } else {
-          handleShowChromatogram(event);
+          handleShowRawDataOverview(event);
         }
       }
     });
