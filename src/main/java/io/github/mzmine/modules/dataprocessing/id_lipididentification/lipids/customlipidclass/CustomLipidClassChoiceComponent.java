@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -217,7 +217,7 @@ public class CustomLipidClassChoiceComponent extends BorderPane {
             new LipidChainType[0]);
 
     public static final OptionalParameter<CustomLipidClassFragmentationRulesChoiceParameters> customLipidClassFragmentationRules =
-        new OptionalParameter<CustomLipidClassFragmentationRulesChoiceParameters>(
+        new OptionalParameter<>(
             new CustomLipidClassFragmentationRulesChoiceParameters("Add fragmentation rules",
                 "Add custom lipid class fragmentation rules", new LipidFragmentationRule[0]));
 

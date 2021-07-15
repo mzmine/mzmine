@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -49,10 +49,6 @@ import io.github.mzmine.util.FormulaUtils;
  * This class contains methods for MS/MS lipid identifications
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
- */
-/**
- * @author aiden
- *
  */
 public class MSMSLipidTools {
 

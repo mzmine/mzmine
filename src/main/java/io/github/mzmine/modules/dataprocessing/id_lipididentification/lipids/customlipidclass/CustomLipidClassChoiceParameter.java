@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -21,20 +21,18 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.cu
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import io.github.mzmine.parameters.UserParameter;
 
 public class CustomLipidClassChoiceParameter
-		implements UserParameter<CustomLipidClass[], CustomLipidClassChoiceComponent> {
+    implements UserParameter<CustomLipidClass[], CustomLipidClassChoiceComponent> {
 
-	private final String name;
-	private final String description;
-	private CustomLipidClass[] choices;
-	private CustomLipidClass[] values;
+  private final String name;
+  private final String description;
+  private CustomLipidClass[] choices;
+  private CustomLipidClass[] values;
 
   /**
    * Create the parameter.
@@ -43,7 +41,7 @@ public class CustomLipidClassChoiceParameter
    * @param description description of the parameter.
    */
   public CustomLipidClassChoiceParameter(String name, String description,
-			CustomLipidClass[] choices) {
+      CustomLipidClass[] choices) {
     this.name = name;
     this.description = description;
     this.choices = choices;
@@ -57,14 +55,14 @@ public class CustomLipidClassChoiceParameter
 
   @Override
   public void setValueFromComponent(final CustomLipidClassChoiceComponent component) {
-		values = component.getValue().toArray(new CustomLipidClass[component.getValue().size()]);
-		choices = component.getChoices().toArray(new CustomLipidClass[component.getChoices().size()]);
+    values = component.getValue().toArray(new CustomLipidClass[component.getValue().size()]);
+    choices = component.getChoices().toArray(new CustomLipidClass[component.getChoices().size()]);
   }
 
   @Override
   public void setValueToComponent(CustomLipidClassChoiceComponent component,
-			CustomLipidClass[] newValue) {
-		component.setValue(Arrays.asList(newValue));
+      CustomLipidClass[] newValue) {
+    component.setValue(Arrays.asList(newValue));
   }
 
   @Override
@@ -87,16 +85,16 @@ public class CustomLipidClassChoiceParameter
   }
 
   @Override
-	public CustomLipidClass[] getValue() {
+  public CustomLipidClass[] getValue() {
     return values;
   }
 
-	public CustomLipidClass[] getChoices() {
+  public CustomLipidClass[] getChoices() {
     return choices;
   }
 
   @Override
-	public void setValue(CustomLipidClass[] newValue) {
+  public void setValue(CustomLipidClass[] newValue) {
     this.values = newValue;
   }
 
@@ -108,16 +106,16 @@ public class CustomLipidClassChoiceParameter
   @Override
   public void loadValueFromXML(Element xmlElement) {
     NodeList items = xmlElement.getElementsByTagName("item");
-	ArrayList<CustomLipidClass> newValues = new ArrayList<>();
+    ArrayList<CustomLipidClass> newValues = new ArrayList<>();
     for (int i = 0; i < items.getLength(); i++) {
       String itemString = items.item(i).getTextContent();
-		for (int j = 0; j < choices.length; j++) {
-			if (choices[j].toString().equals(itemString)) {
-				newValues.add(choices[j]);
+      for (int j = 0; j < choices.length; j++) {
+        if (choices[j].toString().equals(itemString)) {
+          newValues.add(choices[j]);
         }
       }
     }
-	this.values = newValues.toArray(new CustomLipidClass[0]);
+    this.values = newValues.toArray(new CustomLipidClass[0]);
   }
 
   @Override
@@ -125,7 +123,7 @@ public class CustomLipidClassChoiceParameter
     if (values == null)
       return;
     Document parentDocument = xmlElement.getOwnerDocument();
-	for (CustomLipidClass item : values) {
+    for (CustomLipidClass item : values) {
       Element newElement = parentDocument.createElement("item");
       newElement.setTextContent(item.toString());
       xmlElement.appendChild(newElement);

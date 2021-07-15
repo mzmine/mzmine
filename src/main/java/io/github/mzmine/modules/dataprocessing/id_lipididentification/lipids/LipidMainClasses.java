@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -26,19 +26,6 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
  */
 public enum LipidMainClasses {
 
-  // Fattyacyls
-  FATTYACIDS("Fatty acids", LipidCategories.FATTYACYLS), //
-  FATTYALCOHOLS("Fatty alcohols", LipidCategories.FATTYACYLS), //
-  FATTYALDEHYDES("Fatty aldehydes", LipidCategories.FATTYACYLS), //
-  FATTYESTERS("Fatty esters", LipidCategories.FATTYACYLS), //
-  FATTYAMIDS("Fatty amids", LipidCategories.FATTYACYLS), //
-  FATTYNITRILES("Fatty esters", LipidCategories.FATTYACYLS), //
-  FATTYETHERS("Fatty ehters", LipidCategories.FATTYACYLS), //
-  HYDROCARBONS("Hydrocarbons", LipidCategories.FATTYACYLS), //
-  RHAMNOLIPIDS("Rhamnolipids", LipidCategories.FATTYACYLS), //
-  SOPHOROLIPIDS("Sophorolipds", LipidCategories.FATTYACYLS), //
-  MANNOSYLERYTHRITOL("Mannosylerythritol", LipidCategories.FATTYACYLS), //
-
   // Glycerolipids
   MONORADYLGLYCEROLS("Monoradylglycerols", LipidCategories.GLYCEROLIPIDS), //
   DIRADYLGLYCEROLS("Diradylglycerols", LipidCategories.GLYCEROLIPIDS), //
@@ -59,11 +46,7 @@ public enum LipidMainClasses {
       LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHATES("Glycerophosphates", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   CARDIOLIPIN("Cardiolipin", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
-  CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
-
-  // Sphingolipids
-  CERAMIDES("Ceramides", LipidCategories.SPHINGOLIPIDS), //
-  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCategories.SPHINGOLIPIDS);//
+  CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS); //
 
   private String name;
   private LipidCategories coreClass;

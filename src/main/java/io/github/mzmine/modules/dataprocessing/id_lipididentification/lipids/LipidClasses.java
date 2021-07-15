@@ -27,7 +27,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 /**
  * This enum contains all lipid classes. Each enum has information on: name, abbreviation,
  * LipidCoreClass, LipidMainClass, lipid backbone sum formula, number of acyl chains, number of
- * alkychains, class specific positive fragments and class specific negative fragments
+ * alkychains and class specific fragmentation rules
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */

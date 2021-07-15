@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -50,8 +50,6 @@ public class LipidClassComponent extends BorderPane {
    * @param theChoices the choices available to the user.
    */
   public LipidClassComponent(final Object[] theChoices) {
-
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
     // Don't show the root item
     lipidChoices.setShowRoot(false);

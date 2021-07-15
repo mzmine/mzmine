@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2021 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
 import java.io.File;
@@ -176,20 +194,19 @@ public class CustomLipidClassFragmentationRulesChoiceComponent extends BorderPan
    */
   private static class AddLipidFragmentationRuleParameters extends SimpleParameterSet {
 
-    private static final ComboParameter<PolarityType> polarity =
-        new ComboParameter<PolarityType>("Polarity", "Select polarity type",
-            new PolarityType[] {PolarityType.POSITIVE, PolarityType.NEGATIVE});
+    private static final ComboParameter<PolarityType> polarity = new ComboParameter<>("Polarity",
+        "Select polarity type", new PolarityType[] {PolarityType.POSITIVE, PolarityType.NEGATIVE});
 
     public static final ComboParameter<IonizationType> ionizationMethod =
-        new ComboParameter<IonizationType>("Ionization method",
-            "Type of ion used to calculate the ionized mass", IonizationType.values());
+        new ComboParameter<>("Ionization method", "Type of ion used to calculate the ionized mass",
+            IonizationType.values());
 
     public static final ComboParameter<LipidFragmentationRuleType> lipidFragmentationRuleType =
-        new ComboParameter<LipidFragmentationRuleType>("Lipid fragmentation rule type",
+        new ComboParameter<>("Lipid fragmentation rule type",
             "Choose the type of the lipid fragmentation rule", LipidFragmentationRuleType.values());
 
     public static final ComboParameter<LipidAnnotationLevel> lipidFragmentationRuleInformationLevel =
-        new ComboParameter<LipidAnnotationLevel>("Lipid fragment information level",
+        new ComboParameter<>("Lipid fragment information level",
             "Choose the information value of the lipid fragment, molecular formula level, or chain composition level",
             LipidAnnotationLevel.values());
 
