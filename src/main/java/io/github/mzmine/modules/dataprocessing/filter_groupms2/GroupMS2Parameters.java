@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -43,8 +43,15 @@ public class GroupMS2Parameters extends SimpleParameterSet {
       "If checked, all assigned MS/MS spectra with the same collision energy will be merged into a single MS/MS spectrum.",
       false);
 
+  public static final BooleanParameter lockMS2ToFeatureMobilityRange = new BooleanParameter(
+      "Lock to feature mobility range",
+      "If checked, only mobility scans from the mobility range of the feature will be merged.\n"
+          + "This is usually not needed. However, if isomeres/isobares elute at the same retention time and are close in mobility, "
+          + "the MS/MS window might be larger than the peak in mobility dimension and thus cause chimeric MS/MS spectra.\n"
+          + "This can be investigated in hte \"All MS MS\" window", false);
+
   public GroupMS2Parameters() {
-    super(new Parameter[] {PEAK_LISTS, rtTol, mzTol, limitRTByFeature, combineTimsMsMs});
+    super(new Parameter[]{PEAK_LISTS, rtTol, mzTol, limitRTByFeature, combineTimsMsMs, lockMS2ToFeatureMobilityRange});
   }
 
   @Override
