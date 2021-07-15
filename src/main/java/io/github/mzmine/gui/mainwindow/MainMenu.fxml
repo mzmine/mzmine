@@ -186,6 +186,9 @@
       <MenuItem onAction="#runModule"
         text="Recursive IMS builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.RecursiveIMSBuilderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Ims expander"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
     </Menu>
     <Menu text="Imaging">
       <MenuItem onAction="#runModule"
