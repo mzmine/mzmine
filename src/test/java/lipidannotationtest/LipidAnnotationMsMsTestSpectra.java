@@ -28,6 +28,15 @@ public class LipidAnnotationMsMsTestSpectra {
     return DG_18_O_20_4MPlusNH4;
   }
 
+  private LipidAnnotationMsMsTestResource DG_O_34_1MPlusNH4 =
+      new LipidAnnotationMsMsTestResource(new double[] {563.540, 339.291}, //
+          IonizationType.AMMONIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROLS, 34, 1));
+
+  public LipidAnnotationMsMsTestResource getDG_O_34_1MPlusNH4() {
+    return DG_O_34_1MPlusNH4;
+  }
+
   private LipidAnnotationMsMsTestResource TG_16_O_18_2_22_6MPlusNH4 =
       new LipidAnnotationMsMsTestResource(
           new double[] {920.770, 903.744, 647.504, 623.504, 575.504}, //
@@ -131,6 +140,206 @@ public class LipidAnnotationMsMsTestSpectra {
     return PC_18_0_20_4MPlusH;
   }
 
+  private LipidAnnotationMsMsTestResource PC_O_38_4MPlusH = new LipidAnnotationMsMsTestResource(
+      new double[] {796.622, 613.555, 184.074}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROPHOSPHOCHOLINES, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPC_O_38_4MPlusH() {
+    return PC_O_38_4MPlusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPC_18_1MPlusH =
+      new LipidAnnotationMsMsTestResource(new double[] {522.355, 184.074, 104.107}, //
+          IonizationType.POSITIVE_HYDROGEN, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOACYLGLYCEROPHOSPHOCHOLINES, 18, 1));
+
+  public LipidAnnotationMsMsTestResource getLPC_18_1MPlusH() {
+    return LPC_18_1MPlusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PE_38_4MPlusH = new LipidAnnotationMsMsTestResource(
+      new double[] {768.554, 627.535, 287.237, 267.269}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOETHANOLAMINES, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPE_38_4MPlusH() {
+    return PE_38_4MPlusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PE_38_4MPlusNa = new LipidAnnotationMsMsTestResource(
+      new double[] {790.536, 747.494, 649.517, 627.535}, //
+      IonizationType.SODIUM, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOETHANOLAMINES, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPE_38_4MPlusNa() {
+    return PE_38_4MPlusNa;
+  }
+
+  private LipidAnnotationMsMsTestResource PE_18_0_20_4MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {766.539, 303.232, 283.264, 196.038}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOETHANOLAMINES, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPE_18_0_20_4MMinusH() {
+    return PE_18_0_20_4MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PE_O_34_1MPlusH =
+      new LipidAnnotationMsMsTestResource(new double[] {704.549, 563.540, 265.253}, //
+          IonizationType.POSITIVE_HYDROGEN, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROPHOSPHOETHANOLAMINES,
+              34, 1));
+
+  public LipidAnnotationMsMsTestResource getPE_O_34_1MPlusH() {
+    return PE_O_34_1MPlusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PE_O_34_1MMinusH =
+      new LipidAnnotationMsMsTestResource(new double[] {702.544, 438.299, 281.248}, //
+          IonizationType.NEGATIVE_HYDROGEN, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROPHOSPHOETHANOLAMINES,
+              34, 1));
+
+  public LipidAnnotationMsMsTestResource getPE_O_34_1MMinusH() {
+    return PE_O_34_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPE_18_1MPlusH = new LipidAnnotationMsMsTestResource(
+      new double[] {480.308485, 339.289375, 216.06318, 265.252605, 142.02639}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOACYLGLYCEROPHOSPHOETHANOLAMINES, 18,
+          1));
+
+  public LipidAnnotationMsMsTestResource getLPE_18_1MPlusH() {
+    return LPE_18_1MPlusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPE_18_1MMinusH =
+      new LipidAnnotationMsMsTestResource(new double[] {478.294, 281.248, 196.038, 78.955}, //
+          IonizationType.NEGATIVE_HYDROGEN, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOACYLGLYCEROPHOSPHOETHANOLAMINES, 18,
+              1));
+
+  public LipidAnnotationMsMsTestResource getLPE_18_1MMinusH() {
+    return LPE_18_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PS_18_0_20_4MPlusH = new LipidAnnotationMsMsTestResource(
+      new double[] {812.544, 627.535, 546.283, 528.272, 526.315, 508.304}, //
+      IonizationType.POSITIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOSERINES,
+          new int[] {18, 20}, new int[] {0, 4}));
+
+  public LipidAnnotationMsMsTestResource getPS_18_0_20_4MPlusH() {
+    return PS_18_0_20_4MPlusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PS_18_0_20_4MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {810.530, 723.497, 419.257, 303.232, 283.264, 152.994, 78.964}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOSERINES,
+          new int[] {18, 20}, new int[] {0, 4}));
+
+  public LipidAnnotationMsMsTestResource getPS_18_0_20_4MMinusH() {
+    return PS_18_0_20_4MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PS_38_4MPlusNa =
+      new LipidAnnotationMsMsTestResource(new double[] {834.526, 747.494, 649.517, 207.988}, //
+          IonizationType.SODIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOSERINES, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPS_38_4MPlusNa() {
+    return PS_38_4MPlusNa;
+  }
+
+  private LipidAnnotationMsMsTestResource PS_O_38_6MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {792.519, 705.487, 395.257, 377.246, 327.232, 78.956}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROPHOSPHOSERINES, 38, 6));
+
+  public LipidAnnotationMsMsTestResource getPS_O_38_6MMinusH() {
+    return PS_O_38_6MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PG_38_4MPlusNH4 =
+      new LipidAnnotationMsMsTestResource(new double[] {816.575, 627.536, 361.274, 641.305}, //
+          IonizationType.AMMONIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROLS, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPG_38_4MPlusNH4() {
+    return PG_38_4MPlusNH4;
+  }
+
+  private LipidAnnotationMsMsTestResource PG_18_0_20_4MMinusH =
+      new LipidAnnotationMsMsTestResource(new double[] {797.534, 303.232, 283.264, 152.996}, //
+          IonizationType.NEGATIVE_HYDROGEN, //
+          LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOGLYCEROLS,
+              new int[] {18, 20}, new int[] {0, 4}));
+
+  public LipidAnnotationMsMsTestResource getPG_18_0_20_4MMinusH() {
+    return PG_18_0_20_4MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PG_O_34_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {733.539, 283.264, 255.232, 152.996}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROPHOSPHOGLYCEROLS, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPG_O_34_1MMinusH() {
+    return PG_O_34_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPG_18_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {509.289, 281.249, 245.040, 227.033, 152.996}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOACYLGLYCEROPHOSPHOGLYCEROLS, 18, 1));
+
+  public LipidAnnotationMsMsTestResource getLPG_18_1MMinusH() {
+    return LPG_18_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPG_O_18_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {495.309, 403.264, 331.260, 267.269, 152.996, 78.959}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOALKYLGLYCEROPHOSPHOGLYCEROLS, 18, 1));
+
+  public LipidAnnotationMsMsTestResource getLPG_O_18_1MMinusH() {
+    return LPG_O_18_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource BMP_18_1_22_4MPlusNH4 =
+      new LipidAnnotationMsMsTestResource(new double[] {842.591, 653.552, 389.305, 339.289}, //
+          IonizationType.AMMONIUM, //
+          LIPID_FACTORY.buildMolecularSpeciesLevelLipid(
+              LipidClasses.MONOACYLGLYCEROPHOSPHOMONORADYLGLYCEROLS, new int[] {18, 22},
+              new int[] {1, 4}));
+
+  public LipidAnnotationMsMsTestResource getBMP_18_1_22_4MPlusNH4() {
+    return BMP_18_1_22_4MPlusNH4;
+  }
+
+  private LipidAnnotationMsMsTestResource BMP_40_5MPlusNH4 =
+      new LipidAnnotationMsMsTestResource(new double[] {842.591, 653.552, 389.305, 339.289}, //
+          IonizationType.AMMONIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(
+              LipidClasses.MONOACYLGLYCEROPHOSPHOMONORADYLGLYCEROLS, 40, 5));
+
+  public LipidAnnotationMsMsTestResource getBMP_40_5MPlusNH4() {
+    return BMP_40_5MPlusNH4;
+  }
+
+  private LipidAnnotationMsMsTestResource PI_18_0_20_4MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {885.550, 581.309, 303.232, 283.264, 241.012}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS,
+          new int[] {18, 20}, new int[] {0, 4}));
+
+  public LipidAnnotationMsMsTestResource getPI_18_0_20_4MMinusH() {
+    return PI_18_0_20_4MMinusH;
+  }
+
   private LipidAnnotationMsMsTestResource PI_38_4MPlusNH4 =
       new LipidAnnotationMsMsTestResource(new double[] {627.535}, //
           IonizationType.AMMONIUM, //
@@ -138,6 +347,53 @@ public class LipidAnnotationMsMsTestSpectra {
 
   public LipidAnnotationMsMsTestResource getPI_38_4MPlusNH4() {
     return PI_38_4MPlusNH4;
+  }
+
+  private LipidAnnotationMsMsTestResource PI_38_4MPlusNa =
+      new LipidAnnotationMsMsTestResource(new double[] {909.546, 627.535, 283.019}, //
+          IonizationType.SODIUM, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHOINOSITOLS, 38, 4));
+
+  public LipidAnnotationMsMsTestResource getPI_38_4MPlusNa() {
+    return PI_38_4MPlusNa;
+  }
+
+  private LipidAnnotationMsMsTestResource PI_36_4MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {843.539, 539.299, 377.246, 303.232, 241.012}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.ALKYLACYLGLYCEROPHOSPHOINOSITOLS, 36, 5));
+
+  public LipidAnnotationMsMsTestResource getPI_36_4MMinusH() {
+    return PI_36_4MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPI_18_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {597.307, 417.229, 315.049, 281.249, 241.012, 152.99, 78.962}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOACYLGLYCEROPHOSPHOINOSITOLS, 18, 1));
+
+  public LipidAnnotationMsMsTestResource getLPI_18_1MMinusH() {
+    return LPI_18_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource PA_16_0_18_1MMinusH = new LipidAnnotationMsMsTestResource(
+      new double[] {673.48146, 435.25179, 409.23609, 417.24123, 391.22553, 224.06881, 255.23295,
+          281.24865, 171.00644, 152.99586, 96.96964, 78.95852}, //
+      IonizationType.NEGATIVE_HYDROGEN, //
+      LIPID_FACTORY.buildMolecularSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHATES,
+          new int[] {16, 18}, new int[] {0, 1}));
+
+  public LipidAnnotationMsMsTestResource getPA_16_0_18_1MMinusH() {
+    return PA_16_0_18_1MMinusH;
+  }
+
+  private LipidAnnotationMsMsTestResource LPA_16_0MMinusH =
+      new LipidAnnotationMsMsTestResource(new double[] {409.236, 152.996, 78.959}, //
+          IonizationType.NEGATIVE_HYDROGEN, //
+          LIPID_FACTORY.buildSpeciesLevelLipid(LipidClasses.MONOACYLGLYCEROPHOSPHATES, 16, 0));
+
+  public LipidAnnotationMsMsTestResource getLPA_16_0MMinusH() {
+    return LPA_16_0MMinusH;
   }
 
   private LipidAnnotationMsMsTestResource CL_70_4_MPlusNH4 =

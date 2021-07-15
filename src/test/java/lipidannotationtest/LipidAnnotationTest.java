@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2021 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package lipidannotationtest;
 
 import java.util.HashSet;
@@ -18,112 +36,273 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import junit.framework.Assert;
 
-public class LipidAnnotationTest {
+class LipidAnnotationTest {
 
   private static final LipidAnnotationMsMsTestSpectra MSMS_TEST_SPECTRA =
       new LipidAnnotationMsMsTestSpectra();
   private static final MSMSLipidTools MSMS_LIPID_TOOLS = new MSMSLipidTools();
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  // // Glycerlipids##############################################################################
-  // @Test
-  // public void msMsRuleTestMG_NH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getMG_18_OMPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestDG_NH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDG_18_O_20_4MPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // // TODO DG O- test
-  // @Test
-  // public void msMsRuleTestTG_NH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum =
-  // MSMS_TEST_SPECTRA.getTG_16_O_18_2_22_6MPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestTG_Na() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getTG_16_O_18_2_22_6MPlusNa();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestDGTS_MPlusH() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDGTS_16_0_18_1MPlusH();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestLDGTS_MPlusH() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLDGTS_18_1MPlusH();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestMGDG_MPlusNH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getMGDG_16_O_18_1MPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestMGDG_MPlusAcetate() {
-  // LipidAnnotationMsMsTestResource testSpectrum =
-  // MSMS_TEST_SPECTRA.getMGDG_16_O_18_1MPlusAcetate();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestDGDG_MPlusNH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDGDG_16_O_18_1MPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestSQDG_16_O_18_1MPlusNH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getSQDG_16_O_18_1MPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestSQDG_16_O_16_0MPlusNH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getSQDG_16_O_16_0MMinusH();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // // // Glycerophospholipids
-  // // ########################################################################
-  //
-  // @Test
-  // public void msMsRuleTestPC_18_0_20_4MPlusH() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPC_18_0_20_4MPlusH();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-  //
-  // @Test
-  // public void msMsRuleTestPI_38_4MPlusNH4() {
-  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPI_38_4MPlusNH4();
-  // checkLipidAnnotation(testSpectrum);
-  // }
-
+  // Glycerlipids##############################################################################
   @Test
-  public void msMsRuleTestCL_70_4_MPlusNH4() {
-    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_4_MPlusNH4();
+  void msMsRuleTestMG_NH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getMG_18_OMPlusNH4();
     checkLipidAnnotation(testSpectrum);
   }
 
+  @Test
+  void msMsRuleTestDG_NH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDG_18_O_20_4MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestDG_O_NH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDG_O_34_1MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestTG_NH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getTG_16_O_18_2_22_6MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestTG_Na() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getTG_16_O_18_2_22_6MPlusNa();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestDGTS_MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDGTS_16_0_18_1MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLDGTS_MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLDGTS_18_1MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestMGDG_MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getMGDG_16_O_18_1MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestMGDG_MPlusAcetate() {
+    LipidAnnotationMsMsTestResource testSpectrum =
+        MSMS_TEST_SPECTRA.getMGDG_16_O_18_1MPlusAcetate();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestDGDG_MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getDGDG_16_O_18_1MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestSQDG_16_O_18_1MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getSQDG_16_O_18_1MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestSQDG_16_O_16_0MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getSQDG_16_O_16_0MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  // // Glycerophospholipids
+  // ########################################################################
+
+  @Test
+  void msMsRuleTestPC_18_0_20_4MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPC_18_0_20_4MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPC_O_18_0_20_4MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPC_O_38_4MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLPC_O_18_1MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPC_18_1MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPE_38_4MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPE_38_4MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPE_38_4MPlusNa() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPE_38_4MPlusNa();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPE_18_0_20_4MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPE_18_0_20_4MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPE_O_34_1MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPE_O_34_1MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPE_O_34_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPE_O_34_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+
+  @Test
+  void msMsRuleTestLPE_18_1MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPE_18_1MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLPE_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPE_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPS_18_0_20_4MPlusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPS_18_0_20_4MPlusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPS_18_0_20_4MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPS_18_0_20_4MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPS_38_4MPlusNa() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPS_38_4MPlusNa();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPS_O_16_0_22_6MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPS_O_38_6MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPG_38_4MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPG_38_4MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPG_18_0_20_4MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPG_18_0_20_4MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPG_34_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPG_O_34_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLPG_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPG_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLPG_O_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPG_O_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestBMP_40_5MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getBMP_40_5MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestBMP_18_1_22_4MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getBMP_18_1_22_4MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPI_18_0_20_4MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPI_18_0_20_4MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPI_38_4MPlusNH4() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPI_38_4MPlusNH4();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPI_38_4MPlusNa() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPI_38_4MPlusNa();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPI_O_16_0_20_4MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPI_36_4MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLPI_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPI_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestPA_16_0_18_1MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getPA_16_0_18_1MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+
+  @Test
+  void msMsRuleTestLPA_16_0MMinusH() {
+    LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getLPA_16_0MMinusH();
+    checkLipidAnnotation(testSpectrum);
+  }
+  //
   // @Test
-  // public void msMsRuleTestCL_70_5_MMinusH() {
+  // void msMsRuleTestCL_70_4_MPlusNH4() {
+  // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_4_MPlusNH4();
+  // checkLipidAnnotation(testSpectrum);
+  // }
+  //
+  // @Test
+  // void msMsRuleTestCL_70_5_MMinusH() {
   // LipidAnnotationMsMsTestResource testSpectrum = MSMS_TEST_SPECTRA.getCL_70_5_MMinusH();
   // checkLipidAnnotation(testSpectrum);
   // }
   //
   // @Test
-  // public void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
+  // void msMsRuleTestCL_16_0_18_1_18_2_18_2MMinusH() {
   // LipidAnnotationMsMsTestResource testSpectrum =
   // MSMS_TEST_SPECTRA.getCL_16_0_18_1_18_2_18_2MMinusH();
   // checkLipidAnnotation(testSpectrum);
