@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -59,6 +58,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -230,8 +230,9 @@ public class TDFImportTask extends AbstractTask {
       return;
     }
 
+    final TDFUtils tdfUtils = new TDFUtils();
     logger.finest(() -> "Opening tdf file " + tdfBin.getAbsolutePath());
-    final long handle = TDFUtils.openFile(tdfBin);
+    final long handle = tdfUtils.openFile(tdfBin);
     newMZmineFile.setName(rawDataFileName);
     if (handle == 0L) {
       setStatus(TaskStatus.ERROR);
@@ -255,7 +256,7 @@ public class TDFImportTask extends AbstractTask {
         setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        SimpleFrame frame = TDFUtils
+        SimpleFrame frame = tdfUtils
             .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId, metaDataTable,
                 frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
                 ms2Detector, ms2DetectorParam);
@@ -270,7 +271,7 @@ public class TDFImportTask extends AbstractTask {
         frames.add(frame);
         loadedFrames++;
         if (isCanceled()) {
-          TDFUtils.close(handle);
+          tdfUtils.close(handle);
           return;
         }
       }
@@ -279,12 +280,12 @@ public class TDFImportTask extends AbstractTask {
     }
 
     // extract mobility scans
-    appendScansFromTimsSegment(handle, frameTable, frames);
+    appendScansFromTimsSegment(tdfUtils, handle, frameTable, frames);
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
 
-    TDFUtils.close(handle);
+    tdfUtils.close(handle);
 
     if (isCanceled()) {
       return;
@@ -305,6 +306,7 @@ public class TDFImportTask extends AbstractTask {
   private void readMetadata() {
     setDescription("Initializing SQL...");
 
+    logger.finest(() -> "Initialising SQL...");
     try {
       Class.forName("org.sqlite.JDBC");
     } catch (ClassNotFoundException e) {
@@ -313,56 +315,62 @@ public class TDFImportTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
+    logger.finest(() -> "SQl initialised.");
 
     setDescription("Establishing SQL connection to " + tdf.getName());
-    Connection connection;
-    try {
-      connection = DriverManager.getConnection("jdbc:sqlite:" + tdf.getAbsolutePath());
+    logger.finest(() -> "Establishing SQL connection to " + tdf.getName());
 
-      setDescription("Reading metadata for " + tdf.getName());
-      metaDataTable.executeQuery(connection);
-      // metaDataTable.print();
+    synchronized (org.sqlite.JDBC.class) {
+      Connection connection;
+      try {
+        connection = DriverManager.getConnection("jdbc:sqlite:" + tdf.getAbsolutePath());
+        logger.finest(() -> "Connection established. " + connection.toString());
 
-      setDescription("Reading frame data for " + tdf.getName());
-      frameTable.executeQuery(connection);
-      // frameTable.print();
+        setDescription("Reading metadata for " + tdf.getName());
+        metaDataTable.executeQuery(connection);
+        // metaDataTable.print();
 
-      isMaldi = frameTable.getScanModeColumn()
-          .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
+        setDescription("Reading frame data for " + tdf.getName());
+        frameTable.executeQuery(connection);
+        // frameTable.print();
 
-      if (!isMaldi) {
-        if (frameTable.getScanModeColumn()
-            .contains(Integer.toUnsignedLong(BrukerScanMode.PASEF.getNum()))) {
-          setDescription("Reading precursor info for " + tdf.getName());
-          precursorTable.executeQuery(connection);
-          // precursorTable.print();
+        isMaldi = frameTable.getScanModeColumn()
+            .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
 
-          setDescription("Reading PASEF info for " + tdf.getName());
-          pasefFrameMsMsInfoTable.executeQuery(connection);
-          // pasefFrameMsMsInfoTable.print();
+        if (!isMaldi) {
+          if (frameTable.getScanModeColumn()
+              .contains(Integer.toUnsignedLong(BrukerScanMode.PASEF.getNum()))) {
+            setDescription("Reading precursor info for " + tdf.getName());
+            precursorTable.executeQuery(connection);
+            // precursorTable.print();
 
-          setDescription("Reading Frame MS/MS info for " + tdf.getName());
-          frameMsMsInfoTable.executeQuery(connection);
-          // frameMsMsInfoTable.print();
+            setDescription("Reading PASEF info for " + tdf.getName());
+            pasefFrameMsMsInfoTable.executeQuery(connection);
+            // pasefFrameMsMsInfoTable.print();
 
-          setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
-          framePrecursorTable.executeQuery(connection);
-          // framePrecursorTable.print();
+            setDescription("Reading Frame MS/MS info for " + tdf.getName());
+            frameMsMsInfoTable.executeQuery(connection);
+            // frameMsMsInfoTable.print();
+
+            setDescription("Reading MS/MS-Precursor info for " + tdf.getName());
+            framePrecursorTable.executeQuery(connection);
+            // framePrecursorTable.print();
+          }
+        } else {
+          setDescription("MALDI info for " + tdf.getName());
+          maldiFrameInfoTable.executeQuery(connection);
+          maldiFrameInfoTable.process();
+          maldiFrameLaserInfoTable.executeQuery(connection);
+          // maldiFrameInfoTable.print();
         }
-      } else {
-        setDescription("MALDI info for " + tdf.getName());
-        maldiFrameInfoTable.executeQuery(connection);
-        maldiFrameInfoTable.process();
-        maldiFrameLaserInfoTable.executeQuery(connection);
-        // maldiFrameInfoTable.print();
-      }
 
-      connection.close();
-    } catch (Throwable t) {
-      t.printStackTrace();
-      logger.info("If stack trace contains \"out of memory\" the file was not found.");
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.toString());
+        connection.close();
+      } catch (Throwable t) {
+        t.printStackTrace();
+        logger.info("If stack trace contains \"out of memory\" the file was not found.");
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(t.toString());
+      }
     }
 
     logger.info("Metadata read successfully for " + rawDataFileName);
@@ -380,7 +388,7 @@ public class TDFImportTask extends AbstractTask {
    * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
    * @param frames        the frames to load mobility spectra for
    */
-  private void appendScansFromTimsSegment(final long handle,
+  private void appendScansFromTimsSegment(@Nonnull final TDFUtils tdfUtils, final long handle,
       @NotNull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
 
     loadedFrames = 0;
@@ -395,7 +403,7 @@ public class TDFImportTask extends AbstractTask {
       final int msLevel = frame.getMSLevel();
       final MassDetector detector = msLevel == 1 ? ms1Detector : ms2Detector;
       final ParameterSet param = msLevel == 1 ? ms1DetectorParam : ms2DetectorParam;
-      final List<BuildingMobilityScan> spectra = TDFUtils
+      final List<BuildingMobilityScan> spectra = tdfUtils
           .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frameTable, detector, param);
 
       frame.setMobilityScans(spectra);
@@ -478,17 +486,12 @@ public class TDFImportTask extends AbstractTask {
     Date start = new Date();
     int constructed = 0;
     for (Frame frame : file.getFrames()) {
-      if (frame.getMSLevel() == 1 || (frame.getDataFile() instanceof ImagingRawDataFile
-          && frame.getMSLevel() == 2)) {
+      if (frame.getMSLevel() == 1) {
         continue;
       }
 
       Set<BuildingPASEFMsMsInfo> buildingInfo = precursorTable
           .getMsMsInfoForFrame(frame.getFrameId());
-
-      if(buildingInfo == null) {
-        continue;
-      }
 
       for (BuildingPASEFMsMsInfo building : buildingInfo) {
         int parentFrameNumber = building.getParentFrameNumber();

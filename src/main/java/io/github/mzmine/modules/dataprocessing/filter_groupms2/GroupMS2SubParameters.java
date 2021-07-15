@@ -19,10 +19,12 @@
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class GroupMS2SubParameters extends SimpleParameterSet {
 
@@ -38,8 +40,19 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
       "If checked, all MS/MS spectra assigned to a feature will be merged into a single spectrum.",
       false);
 
+  public static final BooleanParameter lockMS2ToFeatureMobilityRange = new BooleanParameter(
+      "Lock to feature mobility range",
+      "If checked, only mobility scans from the mobility range of the feature will be merged.\n"
+          + "This is usually not needed. However, if isomeres/isobares elute at the same retention time and are close in mobility, "
+          + "the MS/MS window might be larger than the peak in mobility dimension and thus cause chimeric MS/MS spectra.\n"
+          + "This can be investigated in hte \"All MS MS\" window", false);
+
   public GroupMS2SubParameters() {
-    super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs});
+    super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs, lockMS2ToFeatureMobilityRange});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }
