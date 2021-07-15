@@ -54,7 +54,6 @@ import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
@@ -62,10 +61,10 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.A
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
-import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
+import io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder.TempIMTrace;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangePeak;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -131,7 +130,7 @@ public class FeatureConvertors {
         Arrays.asList(chromatogram.getScanNumbers()));
     modularFeature.set(FeatureDataType.class, timeSeries);
 
-    // recalculate data dependet types
+    // recalculate data dependent types
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     ObservableList<Scan> allMS2 = Arrays
@@ -139,20 +138,6 @@ public class FeatureConvertors {
             modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     modularFeature.setAllMS2FragmentScans(allMS2);
-
-    // Quality parameters
-    /*float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }*/
 
     return modularFeature;
   }
@@ -170,75 +155,29 @@ public class FeatureConvertors {
           "Can not create modular feature from ion trace of non-modular feature list.");
     }
 
-    ModularFeature modularFeature =
+    final ModularFeature modularFeature =
         new ModularFeature((ModularFeatureList) ionTrace.getFeatureList());
 
-    // TODO
-    modularFeature.setFragmentScan(null);
-    modularFeature.setRepresentativeScan(null);
     // Add values to feature
-//    modularFeature.set(ScanNumbersType.class, new ArrayList<>(ionTrace.getScanNumbers()));
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
-    modularFeature.set(MZType.class, ionTrace.getMz());
-    modularFeature.set(RTType.class, (float) ionTrace.getRetentionTime());
-    modularFeature.setMobility((float) ionTrace.getMobility());
     modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
 
-    modularFeature.set(HeightType.class, (float) ionTrace.getMaximumIntensity());
-    // TODO
-    modularFeature.set(AreaType.class, (float) 0);
-    // TODO
-    modularFeature.set(BestScanNumberType.class, null);
-
-    // Data points of feature
-//    List<DataPoint> dps = new ArrayList<>(ionTrace.getDataPoints());
-//    modularFeature.set(DataPointsType.class, dps);
-
-    MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
+    final MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
         .getMemoryMapStorage();
-    List<IonMobilitySeries> mobilograms = new ArrayList<>();
+    final List<IonMobilitySeries> mobilograms = new ArrayList<>();
+
     var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
     for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDp.entrySet()) {
       double[][] data = DataPointUtils.getDataPointsAsDoubleArray(entry.getValue());
       SimpleIonMobilitySeries mobilogram = new SimpleIonMobilitySeries(storage, data[0], data[1],
-          entry.getValue().stream().map(RetentionTimeMobilityDataPoint::getMobilityScan).collect(
-              Collectors.toList()));
+          entry.getValue().stream().map(RetentionTimeMobilityDataPoint::getMobilityScan).toList());
       mobilograms.add(mobilogram);
     }
-    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
+
+    final IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
         .of(storage, mobilograms, mobilogramBinner);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
-
-    // Ranges
-    Range<Float> rtRange = Range.closed(ionTrace.getRetentionTimeRange().lowerEndpoint(),
-        ionTrace.getRetentionTimeRange().upperEndpoint());
-    Range<Double> mzRange =
-        Range.closed(ionTrace.getMzRange().lowerEndpoint(), ionTrace.getMzRange().upperEndpoint());
-    Range<Float> intensityRange =
-        Range.closed(ionTrace.getIntensityRange().lowerEndpoint().floatValue(),
-            ionTrace.getIntensityRange().upperEndpoint().floatValue());
-    Range<Float> mobilityRange = Range
-        .closed(ionTrace.getMobilityRange().lowerEndpoint().floatValue(),
-            ionTrace.getMobilityRange().upperEndpoint().floatValue());
-    modularFeature.set(MZRangeType.class, mzRange);
-    modularFeature.set(RTRangeType.class, rtRange);
-    modularFeature.set(IntensityRangeType.class, intensityRange);
-    modularFeature.set(MobilityRangeType.class, mobilityRange);
-
-    // Quality parameters
-    float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }
 
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 

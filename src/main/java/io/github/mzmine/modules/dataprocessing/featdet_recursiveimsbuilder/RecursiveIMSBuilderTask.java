@@ -36,7 +36,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureShapeMobilogramType;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing.MobilogramBinningParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -111,19 +110,19 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.timsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : MobilogramBinningParameters.DEFAULT_TIMS_BIN_WIDTH;
+              : BinningMobilogramDataAccess.getRecommendedBinWidth(file);
       case DRIFT_TUBE ->
           advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.dtimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : MobilogramBinningParameters.DEFAULT_DTIMS_BIN_WIDTH;
+              : BinningMobilogramDataAccess.getRecommendedBinWidth(file);
       case TRAVELING_WAVE ->
           advancedParam.getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getValue() ? advancedParam
               .getParameter(RecursiveIMSBuilderAdvancedParameters.twimsBinningWidth)
               .getEmbeddedParameter().getValue()
-              : MobilogramBinningParameters.DEFAULT_TWIMS_BIN_WIDTH;
+              : BinningMobilogramDataAccess.getRecommendedBinWidth(file);
       default -> 1;
     };
 
