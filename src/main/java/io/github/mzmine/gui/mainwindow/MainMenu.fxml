@@ -396,7 +396,7 @@
         <MenuItem text="Chemical formula prediction"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule"/>
-        <MenuItem text="Lipid search" onAction="#runModule"
+        <MenuItem text="Lipid annotation" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_lipididentification.LipidSearchModule"/>
         <MenuItem text="MS2 similarity search"
           onAction="#runModule"

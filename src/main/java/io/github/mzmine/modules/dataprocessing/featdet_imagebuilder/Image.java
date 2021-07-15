@@ -19,12 +19,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
+import java.util.List;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
-import java.util.List;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -39,6 +39,7 @@ public class Image implements IImage {
   private Range<Double> intensityRange;
   private List<ImageDataPoint> dataPoints;
   private List<Scan> scanNumbers;
+  private Scan representativeScan;
   private String representativeString;
   private FeatureList featureList;
 
@@ -53,8 +54,8 @@ public class Image implements IImage {
 
   public Image(double mz, ImagingParameters imagingParameters, PaintScale paintScale,
       double maximumIntensity, Range<Double> mzRange, Range<Double> intensityRange,
-      List<ImageDataPoint> dataPoints, List<Scan> scanNumbers, String representativeString,
-      FeatureList featureList) {
+      List<ImageDataPoint> dataPoints, Scan representativeScan, List<Scan> scanNumbers,
+      String representativeString, FeatureList featureList) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
     this.paintScale = paintScale;
@@ -63,6 +64,7 @@ public class Image implements IImage {
     this.intensityRange = intensityRange;
     this.dataPoints = dataPoints;
     this.scanNumbers = scanNumbers;
+    this.representativeScan = representativeScan;
     this.representativeString = representativeString;
     this.featureList = featureList;
   }
@@ -129,6 +131,14 @@ public class Image implements IImage {
 
   public void setScanNumbers(List<Scan> scanNumbers) {
     this.scanNumbers = scanNumbers;
+  }
+
+  public Scan getRepresentativeScan() {
+    return representativeScan;
+  }
+
+  public void setRepresentativeScan(Scan representativeScan) {
+    this.representativeScan = representativeScan;
   }
 
   public String getRepresentativeString() {
