@@ -154,13 +154,13 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 
     msmsSpectrumChart.setDomainAxisNumberFormatOverride(mzFormat);
     msmsSpectrumChart.setDomainAxisLabel("m/z");
-    msmsSpectrumChart.setRangeAxisLabel(unitFormat.format("Intensity", "counts"));
+    msmsSpectrumChart.setRangeAxisLabel(unitFormat.format("Intensity", "a.u."));
     msmsSpectrumChart.setRangeAxisNumberFormatOverride(intensityFormat);
     msmsSpectrumChart.setShowCrosshair(false);
     msmsSpectrumChart.setDefaultRenderer(new ColoredXYBarRenderer(false));
 
     mobilogramChart.setDomainAxisNumberFormatOverride(intensityFormat);
-    mobilogramChart.setDomainAxisLabel(unitFormat.format("Intensity", "counts"));
+    mobilogramChart.setDomainAxisLabel(unitFormat.format("Intensity", "a.u."));
     mobilogramChart.setRangeAxisLabel(mobilityType.getAxisLabel());
     mobilogramChart.setRangeAxisNumberFormatOverride(mobilityFormat);
     mobilogramChart.getXYPlot().getDomainAxis().setInverted(true);

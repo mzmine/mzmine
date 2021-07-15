@@ -47,7 +47,7 @@ public class FeatureShapeChart extends StackPane {
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
         uf.format("Retention time", "min"),
-        uf.format("Intensity", "cps"));
+        uf.format("Intensity", "a.u."));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
