@@ -381,10 +381,8 @@ public class SpectraMerging {
    */
   public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(final @NotNull List<T> source,
       @NotNull final MZTolerance tolerance, @Nullable final MemoryMapStorage storage) {
-    var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
-        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
-    scan.addMassList(new ScanPointerMassList(scan));
 
+    // if we have mass lists, use them to merge.
     final List<? extends MassSpectrum> spectra;
     if(source.stream().allMatch(s -> s instanceof Scan)) {
       spectra = source.stream().map(s -> ((Scan)s).getMassList()).toList();
