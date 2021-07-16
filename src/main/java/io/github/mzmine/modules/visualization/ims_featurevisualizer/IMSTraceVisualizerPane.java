@@ -36,6 +36,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotRenderer;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
@@ -198,18 +200,21 @@ public class IMSTraceVisualizerPane extends BorderPane {
     traceChart.setLegendCanvas(traceLegendCanvas);
     BorderPane.setAlignment(traceLegendCanvas, Pos.TOP_RIGHT);
     traceChart.addDatasetChangeListener(e -> {
-      traceChart.getXYPlot().getRangeAxis().setAutoRange(true);
-      traceChart.getXYPlot().getDomainAxis().setAutoRange(true);
+      if (!(e.getDataset() instanceof ColoredXYDataset ds) || (ds.getStatus()
+          != TaskStatus.FINISHED)) {
+        return;
+      }
+      traceChart.getXYPlot().getDomainAxis().setRange(
+          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getDomainValueRange()), false,
+          true);
+      traceChart.getXYPlot().getRangeAxis().setRange(
+          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getRangeValueRange()), false,
+          true);
     });
 
     ticChart.getXYPlot().setDomainCrosshairVisible(false);
     ticChart.getXYPlot().setRangeCrosshairVisible(false);
     ticChart.setMinHeight(200);
-
-    ticChart.addDatasetChangeListener(e -> {
-      ticChart.getXYPlot().getRangeAxis().setAutoRange(true);
-      ticChart.getXYPlot().getDomainAxis().setAutoRange(true);
-    });
 
     ChartGroup rtGroup = new ChartGroup(false, false, true, false);
     rtGroup.add(new ChartViewWrapper(ticChart));
