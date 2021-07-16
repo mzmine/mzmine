@@ -50,10 +50,24 @@ public class MainMenuController {
 
   @FXML
   private Menu recentProjectsMenu;
+  @FXML
+  private MenuItem openProject;
+  @FXML
+  private MenuItem saveProject;
+  @FXML
+  private MenuItem saveProjectAs;
+  @FXML
+  private MenuItem closeProject;
 
   @FXML
   public void initialize() {
     fillRecentProjects();
+    // disable project
+    recentProjectsMenu.setDisable(true);
+    openProject.setDisable(true);
+    saveProject.setDisable(true);
+    saveProjectAs.setDisable(true);
+    closeProject.setDisable(true);
   }
 
   public void closeProject(Event event) {
