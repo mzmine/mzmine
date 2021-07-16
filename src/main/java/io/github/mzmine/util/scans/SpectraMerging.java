@@ -33,13 +33,13 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
-import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -367,14 +367,36 @@ public class SpectraMerging {
           }
         }).toList();
 
+    // todo use mass lists over raw scans to merge (separate PR)
+
     final double merged[][] = calculatedMergedMzsAndIntensities(scans, tolerance,
         MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null);
 
-    var scan = new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
+    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
         MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
-    scan.addMassList(new ScanPointerMassList(scan));
+  }
 
-    return scan;
+  /**
+   * @return A summed spectrum with the given tolerances.
+   */
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(final @NotNull List<T> source,
+      @NotNull final MZTolerance tolerance, @Nullable final MemoryMapStorage storage) {
+
+    // if we have mass lists, use them to merge.
+    final List<? extends MassSpectrum> spectra;
+    if(source.stream().allMatch(s -> s instanceof Scan)) {
+      spectra = source.stream().map(s -> ((Scan)s).getMassList()).toList();
+    } else {
+      spectra = source;
+    }
+
+    final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
+        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null);
+    final int msLevel = source.stream().filter(s -> s instanceof Scan)
+        .mapToInt(s -> ((Scan) s).getScanNumber()).min().orElse(1);
+
+    return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
+        source, MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
   }
 
   public static Frame getMergedFrame(@NotNull final Collection<Frame> frames,

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -81,8 +82,7 @@ public class ScanUtils {
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @NotNull
-  String scanToString(@NotNull Scan scan) {
+  public static @NotNull String scanToString(@NotNull Scan scan) {
     return scanToString(scan, false);
   }
 
@@ -92,8 +92,7 @@ public class ScanUtils {
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @NotNull
-  String scanToString(@NotNull Scan scan, @NotNull Boolean includeFileName) {
+  public static @NotNull String scanToString(@NotNull Scan scan, @NotNull Boolean includeFileName) {
     StringBuffer buf = new StringBuffer();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -175,7 +174,7 @@ public class ScanUtils {
       double mz = scan.getMzValue(i);
       if (mz < lower) {
         continue;
-      } else if(mz > upper) {
+      } else if (mz > upper) {
         break;
       }
 
@@ -412,8 +411,8 @@ public class ScanUtils {
 
           // Find exisiting left neighbour
           double leftNeighbourValue = beforeY;
-          int leftNeighbourBinIndex =
-              (int) Math.floor((beforeX - binRange.lowerEndpoint()) / binWidth);
+          int leftNeighbourBinIndex = (int) Math
+              .floor((beforeX - binRange.lowerEndpoint()) / binWidth);
           for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
             if (binValues[anotherBinIndex] != null) {
               leftNeighbourValue = binValues[anotherBinIndex];
@@ -424,11 +423,10 @@ public class ScanUtils {
 
           // Find existing right neighbour
           double rightNeighbourValue = afterY;
-          int rightNeighbourBinIndex = (binValues.length - 1)
-              + (int) Math
+          int rightNeighbourBinIndex = (binValues.length - 1) + (int) Math
               .ceil((afterX - binRange.upperEndpoint()) / binWidth);
-          for (int anotherBinIndex =
-              binIndex + 1; anotherBinIndex < binValues.length; anotherBinIndex++) {
+          for (int anotherBinIndex = binIndex + 1; anotherBinIndex < binValues.length;
+              anotherBinIndex++) {
             if (binValues[anotherBinIndex] != null) {
               rightNeighbourValue = binValues[anotherBinIndex];
               rightNeighbourBinIndex = anotherBinIndex;
@@ -436,8 +434,8 @@ public class ScanUtils {
             }
           }
 
-          double slope = (rightNeighbourValue - leftNeighbourValue)
-              / (rightNeighbourBinIndex - leftNeighbourBinIndex);
+          double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -473,8 +471,8 @@ public class ScanUtils {
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findFirstFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint =
-        Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
+    final int insertionPoint = Arrays
+        .binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
             (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 1;
@@ -497,8 +495,8 @@ public class ScanUtils {
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findLastFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint =
-        Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
+    final int insertionPoint = Arrays
+        .binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
             (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 2;
@@ -655,9 +653,9 @@ public class ScanUtils {
     assert rtRange != null;
     assert mzRange != null;
 
-    return dataFile.getScanNumbers(2).stream()
-        .filter(s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime())
-            && mzRange.contains(s.getPrecursorMZ()))
+    return dataFile.getScanNumbers(2).stream().filter(
+        s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && mzRange
+            .contains(s.getPrecursorMZ()))
         .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
@@ -707,8 +705,7 @@ public class ScanUtils {
   /**
    * Find the highest data point in array
    */
-  public static @NotNull
-  DataPoint findTopDataPoint(@NotNull DataPoint dataPoints[]) {
+  public static @NotNull DataPoint findTopDataPoint(@NotNull DataPoint dataPoints[]) {
 
     DataPoint topDP = null;
 
@@ -740,8 +737,7 @@ public class ScanUtils {
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @NotNull
-  Range<Double> findMzRange(@NotNull DataPoint dataPoints[]) {
+  public static @NotNull Range<Double> findMzRange(@NotNull DataPoint dataPoints[]) {
 
     assert dataPoints.length > 0;
 
@@ -764,8 +760,7 @@ public class ScanUtils {
    * Find the m/z range of the data points in the array. We assume there is at least one data point,
    * and the data points are sorted by m/z.
    */
-  public static @NotNull
-  Range<Double> findMzRange(@NotNull double mzValues[]) {
+  public static @NotNull Range<Double> findMzRange(@NotNull double mzValues[]) {
 
     assert mzValues.length > 0;
 
@@ -787,8 +782,7 @@ public class ScanUtils {
   /**
    * Find the RT range of given scans. We assume there is at least one scan.
    */
-  public static @NotNull
-  Range<Float> findRtRange(@NotNull Scan scans[]) {
+  public static @NotNull Range<Float> findRtRange(@NotNull Scan scans[]) {
 
     assert scans.length > 0;
 
@@ -1079,8 +1073,7 @@ public class ScanUtils {
   /**
    * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
    */
-  public static @Nullable
-  Scan findPrecursorScan(@NotNull Scan scan) {
+  public static @Nullable Scan findPrecursorScan(@NotNull Scan scan) {
 
     assert scan != null;
     final RawDataFile dataFile = scan.getDataFile();
@@ -1097,6 +1090,44 @@ public class ScanUtils {
 
     // Didn't find any MS1 scan
     return null;
+  }
+
+  @Nullable
+  public static Scan findPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged, MZTolerance mzTolerance) {
+    final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
+    if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
+      // this was an IMS file, so scans have been merged
+
+      final List<MobilityScan> mobilityScans = sourceSpectra.stream()
+          .<MobilityScan>mapMulti((s, consumer) -> consumer.accept(((MobilityScan) s))).toList();
+      final double lowestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .min().orElse(0d);
+      final double highestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .max().orElse(mobilityScans.get(0).getFrame().getMobilityRange().upperEndpoint());
+      final Range<Double> mobilityRange = Range.closed(lowestMobility, highestMobility);
+
+      // get the MS2 frames - usually this should be one, but we also provide the option to merge
+      // all MS/MS scans for a precursor together
+      final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
+          .toList();
+      final List<Frame> ms1Frames = ms2Frames.stream()
+          .map(scan -> (Frame) ScanUtils.findPrecursorScan(scan)).filter(Objects::nonNull).toList();
+
+
+      final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
+          .<MobilityScan>mapMulti((f, c) -> {
+            for (var mobscan : f.getMobilityScans()) {
+              if (mobilityRange.contains(mobscan.getMobility())) {
+                c.accept(mobscan);
+              }
+            }
+          }).toList();
+
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+    } else {
+      logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
+      return null;
+    }
   }
 
   /**
@@ -1121,11 +1152,47 @@ public class ScanUtils {
     return null;
   }
 
+  @Nullable
+  public static Scan findSucceedingPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged, MZTolerance mzTolerance) {
+    final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
+    if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
+      // this was an IMS file, so scans have been merged
+
+      final List<MobilityScan> mobilityScans = sourceSpectra.stream()
+          .<MobilityScan>mapMulti((s, consumer) -> consumer.accept(((MobilityScan) s))).toList();
+      final double lowestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .min().orElse(0d);
+      final double highestMobility = mobilityScans.stream().mapToDouble(MobilityScan::getMobility)
+          .max().orElse(mobilityScans.get(0).getFrame().getMobilityRange().upperEndpoint());
+      final Range<Double> mobilityRange = Range.closed(lowestMobility, highestMobility);
+
+      // get the MS2 frames - usually this should be one, but we also provide the option to merge
+      // all MS/MS scans for a precursor together
+      final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
+          .toList();
+      final List<Frame> ms1Frames = ms2Frames.stream()
+          .map(scan -> (Frame) ScanUtils.findSucceedingPrecursorScan(scan)).filter(Objects::nonNull).toList();
+
+      final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
+          .<MobilityScan>mapMulti((f, c) -> {
+            for (var mobscan : f.getMobilityScans()) {
+              if (mobilityRange.contains(mobscan.getMobility())) {
+                c.accept(mobscan);
+              }
+            }
+          }).toList();
+
+      return SpectraMerging.mergeSpectra(ms1MobilityScans, mzTolerance, null);
+    } else {
+      logger.warning(() -> "Unknown merged spectrum type. Please contact the developers.");
+      return null;
+    }
+  }
+
   /**
    * Selects best N MS/MS scans from a feature list row
    */
-  public static @NotNull
-  Collection<Scan> selectBestMS2Scans(@NotNull FeatureListRow row,
+  public static @NotNull Collection<Scan> selectBestMS2Scans(@NotNull FeatureListRow row,
       @NotNull Integer topN) throws MissingMassListException {
     final @NotNull List<Scan> allMS2Scans = row.getAllMS2Fragmentations();
     return selectBestMS2Scans(allMS2Scans, topN);
@@ -1134,20 +1201,19 @@ public class ScanUtils {
   /**
    * Selects best N MS/MS scans from a collection of scans
    */
-  public static @NotNull
-  Collection<Scan> selectBestMS2Scans(@NotNull Collection<Scan> scans,
+  public static @NotNull Collection<Scan> selectBestMS2Scans(@NotNull Collection<Scan> scans,
       @NotNull Integer topN) throws MissingMassListException {
     assert scans != null;
     assert topN != null;
 
     // Keeps MS2 scans sorted by decreasing quality
-    TreeSet<Scan> sortedScans =
-        new TreeSet<>(Collections.reverseOrder(new ScanSorter(0, ScanSortMode.MAX_TIC)));
+    TreeSet<Scan> sortedScans = new TreeSet<>(
+        Collections.reverseOrder(new ScanSorter(0, ScanSortMode.MAX_TIC)));
     sortedScans.addAll(scans);
 
     // Filter top N scans into an immutable list
-    final List<Scan> topNScansList =
-        sortedScans.stream().limit(topN).collect(ImmutableList.toImmutableList());
+    final List<Scan> topNScansList = sortedScans.stream().limit(topN)
+        .collect(ImmutableList.toImmutableList());
 
     return topNScansList;
   }
@@ -1390,8 +1456,8 @@ public class ScanUtils {
     if (scan.length <= n) {
       return scan;
     } else {
-      Arrays.sort(scan,
-          new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+      Arrays
+          .sort(scan, new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
       return Arrays.copyOf(scan, n);
     }
   }
