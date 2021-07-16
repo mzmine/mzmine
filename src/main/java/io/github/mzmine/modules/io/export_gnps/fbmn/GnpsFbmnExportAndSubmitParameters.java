@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
@@ -61,12 +60,6 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   public static final ComboParameter<FeatureListRowsFilter> FILTER = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows (with ion identity)",
       FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
-
-  // public static final BooleanParameter OPEN_GNPS = new
-  // BooleanParameter("Open GNPS website",
-  // "Opens the super quick start of GNPS feature based networking in the
-  // standard browser.",
-  // false);
 
   public static final BooleanParameter OPEN_FOLDER =
       new BooleanParameter("Open folder", "Opens the export folder", false);

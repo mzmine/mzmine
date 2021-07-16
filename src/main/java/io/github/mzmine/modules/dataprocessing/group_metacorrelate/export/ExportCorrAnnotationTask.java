@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
@@ -65,11 +65,12 @@ public class ExportCorrAnnotationTask extends AbstractTask {
   // Logger.
   private static final Logger LOG = Logger.getLogger(ExportCorrAnnotationTask.class.getName());
   private final Double progress = 0d;
-  private final ModularFeatureList[] featureLists;
+  private final FeatureList[] featureLists;
   private final File filename;
-  private final RowFilter filter;
+  private final FeatureListRowsFilter filter;
   private final Type[] exportTypes;
   private final boolean allInOneFile;
+  private final double minR;
   private boolean exportAnnotationEdges = true;
   private boolean exportIinRelationships = false;
   private boolean mergeLists = false;
@@ -96,6 +97,25 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     exportTypes = parameterSet.getParameter(ExportCorrAnnotationParameters.exportTypes).getValue();
     allInOneFile = parameterSet.getParameter(ExportCorrAnnotationParameters.allInOneFile)
         .getValue();
+    minR = 0;
+  }
+
+  /**
+   * Create the task.
+   *
+   */
+  public ExportCorrAnnotationTask(FeatureList[] featureLists, File filename, double minR,
+      FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean exportIinRelationships, boolean mergeLists, boolean allInOneFile) {
+    super(null);
+    this.featureLists = featureLists;
+    this.filename = filename;
+    this.allInOneFile = allInOneFile;
+    this.minR = minR;
+    this.filter = filter;
+    this.exportAnnotationEdges = exportAnnotationEdges;
+    this.exportIinRelationships = exportIinRelationships;
+    this.mergeLists = mergeLists;
+    exportTypes = new Type[0];
   }
 
   public boolean exportAnnotationEdges(FeatureList featureList, File filename, Double progress,
@@ -431,7 +451,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
              + featureLists.length);
     // export edges of annotations
     if (exportAnnotationEdges) {
-      exportAnnotationEdgesMerged(featureLists, filename, filter.equals(RowFilter.ONLY_WITH_MS2),
+      exportAnnotationEdgesMerged(featureLists, filename, filter.equals(FeatureListRowsFilter.ONLY_WITH_MS2),
           progress, this);
     }
   }
