@@ -18,14 +18,20 @@
 
 package io.github.mzmine.modules.visualization.chromatogramandspectra;
 
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.color.ColorUtils;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.Collection;
 import java.util.HashMap;
 import javafx.application.Platform;
@@ -101,8 +107,26 @@ public class SpectraDataSetCalc extends AbstractTask {
       }
       spectrumPlot.getXYPlot().setNotify(false);
       spectrumPlot.removeAllDataSets();
-      filesAndDataSets.keySet().forEach(rawDataFile -> spectrumPlot
-          .addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), true));
+      SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+
+      filesAndDataSets.keySet().forEach(rawDataFile -> {
+        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), true);
+
+        // If the scan contains a mass list then add dataset for it
+        MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
+        if (massList != null) {
+          int massListSize = massList.getNumberOfDataPoints();
+          double[] mzs = new double[massListSize];
+          double[] intensities = new double[massListSize];
+
+          MzIntensityDataSet massListDataset = new MzIntensityDataSet("Mass list",
+              massList.getMzValues(mzs), massList.getIntensityValues(intensities));
+
+          spectrumPlot.addDataSet(massListDataset, FxColorUtil.fxColorToAWT(ColorUtils
+              .getContrastPaletteColor(rawDataFile.getColor(), palette)), false);
+        }
+      });
+
       spectrumPlot.getXYPlot().setNotify(true);
       spectrumPlot.getChart().fireChartChanged();
     });
