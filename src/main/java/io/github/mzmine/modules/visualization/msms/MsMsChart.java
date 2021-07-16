@@ -29,6 +29,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.input.MouseButton;
@@ -65,6 +66,8 @@ public class MsMsChart extends SimpleXYZScatterPlot<MsMsDataProvider> {
     getXYPlot().getDomainAxis().setLowerMargin(0);
     getXYPlot().getRangeAxis().setUpperMargin(0);
     getXYPlot().getRangeAxis().setLowerMargin(0);
+
+    getXYPlot().setBackgroundPaint(Color.WHITE);
 
     // Show spectrum of the clicked data point scan
     setOnMousePressed(event -> {
