@@ -32,6 +32,7 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
+import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
@@ -621,8 +622,17 @@ public class MainWindowController {
     }
   }
 
-
   public void handleShowMsMsPlot(Event event) {
+    MsMsVisualizerModule module = MZmineCore.getModuleInstance(MsMsVisualizerModule.class);
+    ParameterSet moduleParameters =
+        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
+    logger.info("Setting parameters for module " + module.getName());
+    ExitCode exitCode = moduleParameters.showSetupDialog(true);
+    if (exitCode != ExitCode.OK)
+      return;
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    MZmineCore.runMZmineModule(MsMsVisualizerModule.class, parametersCopy);
   }
 
   public void handleRawDataSort(Event event) {
