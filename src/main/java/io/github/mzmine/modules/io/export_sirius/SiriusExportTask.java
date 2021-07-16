@@ -12,6 +12,7 @@
 
 package io.github.mzmine.modules.io.export_sirius;
 
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -179,6 +180,9 @@ public class SiriusExportTask extends AbstractTask {
     // get row charge and polarity
     char polarity = 0;
     for (Feature f : row.getFeatures()) {
+      if(f.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+        continue;
+      }
       char pol = f.getRepresentativeScan().getPolarity().asSingleChar().charAt(0);
       if (pol != polarity && polarity != 0) {
         setErrorMessage(
@@ -199,7 +203,7 @@ public class SiriusExportTask extends AbstractTask {
           if (f.getFeatureStatus() == FeatureStatus.DETECTED
               && f.getMostIntenseFragmentScan() != null) {
             // write correlation spectrum
-            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null);
+            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null, row.getBestIonIdentity());
             writeCorrelationSpectrum(writer, f);
             if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
               // merge MS/MS
@@ -226,7 +230,7 @@ public class SiriusExportTask extends AbstractTask {
       } else {
         // write correlation spectrum
         writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED,
-            -1, null);
+            -1, null, row.getBestIonIdentity());
         writeCorrelationSpectrum(writer, row.getBestFeature());
         // merge everything into one
         MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
@@ -244,7 +248,7 @@ public class SiriusExportTask extends AbstractTask {
       MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList();
       if (ms1MassList != null) {
         writeHeader(writer, row, bestFeature.getRawDataFile(), polarity, MsType.MS,
-            bestFeature.getRepresentativeScan());
+            bestFeature.getRepresentativeScan().getScanNumber(), null, row.getBestIonIdentity());
         writeSpectrum(writer, ms1MassList.getDataPoints());
       }
 
@@ -276,7 +280,7 @@ public class SiriusExportTask extends AbstractTask {
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
       char polarity, MsType msType, MergedSpectrum mergedSpectrum) throws IOException {
     writeHeader(writer, row, raw, polarity, msType, row.getID(), Arrays
-        .stream(mergedSpectrum.origins).map(RawDataFile::getName).collect(Collectors.toList()));
+        .stream(mergedSpectrum.origins).map(RawDataFile::getName).collect(Collectors.toList()), null);
     // add additional fields
     writer.write("MERGED_SCANS=");
     writer.write(String.valueOf(mergedSpectrum.scanIds[0]));
@@ -292,11 +296,11 @@ public class SiriusExportTask extends AbstractTask {
 
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
       char polarity, MsType msType, Scan scanNumber) throws IOException {
-    writeHeader(writer, row, raw, polarity, msType, scanNumber.getScanNumber(), null);
+    writeHeader(writer, row, raw, polarity, msType, scanNumber.getScanNumber(), null, row.getBestIonIdentity());
   }
 
   private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
-      char polarity, MsType msType, Integer scanNumber, List<String> sources) throws IOException {
+      char polarity, MsType msType, Integer scanNumber, List<String> sources, IonIdentity ionIdentity) throws IOException {
     final Feature feature = row.getFeature(raw);
     writer.write("BEGIN IONS");
     writer.newLine();
@@ -311,6 +315,15 @@ public class SiriusExportTask extends AbstractTask {
       writer.write("-");
     writer.write(String.valueOf(Math.abs(row.getRowCharge())));
     writer.newLine();
+
+    // dodgy iin export
+    if(ionIdentity != null) {
+      writer.write("ADDUCT=");
+      writer.write(ionIdentity.getAdduct());
+      writer.newLine();
+    }
+    // end
+
     writer.write("RTINSECONDS=");
     writer.write(String.valueOf(feature.getRT() * 60d));
     writer.newLine();
