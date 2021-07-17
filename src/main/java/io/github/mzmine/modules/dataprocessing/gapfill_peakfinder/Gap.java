@@ -125,6 +125,11 @@ public class Gap {
       currentPeakDataPoints = null;
     }
 
+    // does not meet filters
+    if(bestPeakDataPoints==null) {
+      return;
+    }
+
     final double[][] mzIntensities = DataPointUtils.getDataPointsAsDoubleArray(bestPeakDataPoints);
     final IonTimeSeries<?> series = new SimpleIonTimeSeries(
         ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(), mzIntensities[0],

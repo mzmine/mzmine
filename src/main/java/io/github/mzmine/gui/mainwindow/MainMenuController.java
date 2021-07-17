@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -52,10 +53,24 @@ public class MainMenuController {
 
   @FXML
   private Menu recentProjectsMenu;
+  @FXML
+  private MenuItem openProject;
+  @FXML
+  private MenuItem saveProject;
+  @FXML
+  private MenuItem saveProjectAs;
+  @FXML
+  private MenuItem closeProject;
 
   @FXML
   public void initialize() {
     fillRecentProjects();
+    // disable project
+    recentProjectsMenu.setDisable(true);
+    openProject.setDisable(true);
+    saveProject.setDisable(true);
+    saveProjectAs.setDisable(true);
+    closeProject.setDisable(true);
   }
 
   public void closeProject(Event event) {
@@ -200,6 +215,11 @@ public class MainMenuController {
       });
       recentProjectsMenu.getItems().add(item);
     });
+  }
+
+  public void handleAddIntroductionTab(ActionEvent event) {
+    assert MZmineCore.getDesktop() != null;
+    MZmineCore.getDesktop().addTab(new MZmineIntroductionTab());
   }
 
   public void showWizardTab(ActionEvent actionEvent) {

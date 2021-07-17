@@ -67,9 +67,6 @@ public class MassCalibrationTask extends AbstractTask {
   private final ParameterSet parameters;
   private final RawDataFile dataFile;
 
-  // User parameters
-  private final String suffix;
-
   // scan counter
   protected int processedScans = 0, totalScans;
   protected ObservableList<Scan> scanNumbers;
@@ -114,7 +111,6 @@ public class MassCalibrationTask extends AbstractTask {
     this.storageMemoryMap = storageMemoryMap;
     this.previewRun = previewRun;
 
-    this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,

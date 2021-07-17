@@ -26,7 +26,12 @@ public enum LegacyExportRowCommonElement {
   ROW_IDENTITY_ALL("Export row identity (all IDs)"), //
   ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
   ROW_COMMENT("Export row comment"), //
-  ROW_FEATURE_NUMBER("Export row number of detected features");
+  ROW_FEATURE_NUMBER("Export row number of detected features"), //
+  ROW_CORR_GROUP_ID("Export correlation group ID"), //
+  ROW_MOL_NETWORK_ID("Export annotation network number"), //
+  ROW_BEST_ANNOTATION("Export best ion annotation"), //
+  ROW_BEST_ANNOTATION_AND_SUPPORT("Export best ion annotation (+support)"), //
+  ROW_NEUTRAL_MASS("Export neutral M mass");
 
   private final String name;
 

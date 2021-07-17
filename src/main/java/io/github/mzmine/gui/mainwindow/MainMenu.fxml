@@ -11,39 +11,39 @@
   fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
 
 
-  <!-- PROJECT -->
   <Menu text="Project">
-    <Menu fx:id="recentProjectsMenu" text="Open recent project..."
-      onShowing="#fillRecentProjects"/>
-    <MenuItem text="Open project" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
-      <accelerator>
-        <KeyCodeCombination alt="UP" code="O"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-      </accelerator>
-    </MenuItem>
-    <MenuItem text="Save project" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
-      <accelerator>
-        <KeyCodeCombination alt="UP" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-      </accelerator>
-    </MenuItem>
-    <MenuItem text="Save project as" onAction="#runModule"
-      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
-      <accelerator>
-        <KeyCodeCombination alt="DOWN" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-      </accelerator>
-    </MenuItem>
-    <MenuItem text="Close project" onAction="#closeProject">
-      <accelerator>
-        <KeyCodeCombination alt="UP" code="W"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-      </accelerator>
-    </MenuItem>
+      <Menu fx:id="recentProjectsMenu" text="Open recent project..."
+        onShowing="#fillRecentProjects"/>
+      <MenuItem fx:id="openProject" text="Open project" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="O"
+            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        </accelerator>
+      </MenuItem>
+      <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="S"
+            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        </accelerator>
+      </MenuItem>
+      <MenuItem fx:id="saveProjectAs" text="Save project as" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
+        <accelerator>
+          <KeyCodeCombination alt="DOWN" code="S"
+            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        </accelerator>
+      </MenuItem>
+      <MenuItem fx:id="closeProject" text="Close project" onAction="#closeProject">
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="W"
+            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        </accelerator>
+      </MenuItem>
 
-    <SeparatorMenuItem/>
+      <SeparatorMenuItem/>
+
     <MenuItem text="Batch mode" onAction="#runModule"
       userData="io.github.mzmine.modules.batchmode.BatchModeModule">
       <accelerator>
@@ -194,9 +194,6 @@
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
-      <MenuItem onAction="#runModule"
-        text="Ion mobility image expander"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_imsmsi.IonMobilityImageExpanderModule"/>
     </Menu>
     <Menu text="MSn">
       <MenuItem onAction="#runModule"
@@ -523,6 +520,7 @@
       userData="http://mzmine.github.io/documentation.html"/>
     <MenuItem text="Support" onAction="#openLink"
       userData="http://mzmine.github.io/support.html"/>
+    <MenuItem text="Open introduction tab" onAction="#handleAddIntroductionTab"/>
     <SeparatorMenuItem/>
     <MenuItem text="Check for updates" onAction="#versionCheck"/>
     <SeparatorMenuItem/>
