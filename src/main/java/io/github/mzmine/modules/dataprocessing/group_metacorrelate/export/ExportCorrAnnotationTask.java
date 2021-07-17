@@ -56,9 +56,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.apache.commons.lang3.StringUtils;
 
 public class ExportCorrAnnotationTask extends AbstractTask {
 
@@ -102,10 +102,10 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
   /**
    * Create the task.
-   *
    */
   public ExportCorrAnnotationTask(FeatureList[] featureLists, File filename, double minR,
-      FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean exportIinRelationships, boolean mergeLists, boolean allInOneFile) {
+      FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean exportIinRelationships,
+      boolean mergeLists, boolean allInOneFile) {
     super(null);
     this.featureLists = featureLists;
     this.filename = filename;
@@ -132,7 +132,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       AtomicInteger added = new AtomicInteger(0);
       // for all rows
       for (FeatureListRow r : rows) {
-        if (filter.filter(r)) {
+        if (!filter.filter(r)) {
           continue;
         }
 
@@ -352,7 +352,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
           .getRealFilePath(filename.getParentFile(), realFile.getName(), ".csv");
       boolean append = exportedFiles.size() > 0;
       TxtWriter.write(data, realFile, append);
-      LOG.log(Level.INFO, "File {1}: {0}", new Object[]{realFile.getAbsolutePath(), append? "created" : "appended"});
+      LOG.log(Level.INFO, "File {1}: {0}",
+          new Object[]{realFile.getAbsolutePath(), append ? "created" : "appended"});
     } else {
       realFile = FileAndPathUtil
           .getRealFilePath(filename.getParentFile(), realFile.getName() + suffix, ".csv");
@@ -408,10 +409,12 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       // exports all row-2-row relationship maps
       var rowMaps = featureList.getRowMaps();
-      if(exportTypes != null) {
+      if (exportTypes != null && rowMaps != null) {
         for (Type type : exportTypes) {
           R2RMap<RowsRelationship> map = rowMaps.get(type);
-          exportMap(type, map.values());
+          if (map != null) {
+            exportMap(type, map.values());
+          }
         }
       }
 
@@ -452,7 +455,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
              + featureLists.length);
     // export edges of annotations
     if (exportAnnotationEdges) {
-      exportAnnotationEdgesMerged(featureLists, filename, filter.equals(FeatureListRowsFilter.ONLY_WITH_MS2),
+      exportAnnotationEdgesMerged(featureLists, filename,
+          filter.equals(FeatureListRowsFilter.ONLY_WITH_MS2),
           progress, this);
     }
   }

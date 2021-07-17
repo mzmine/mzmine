@@ -284,7 +284,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
 
-    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, mergeLists, false);
+    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false);
 
     if (tasks != null)
       tasks.add(extraEdgeExport);
