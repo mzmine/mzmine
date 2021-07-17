@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
@@ -61,17 +60,12 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private int start;
   private int endexcl;
 
-  // takes care of adding the final result
-  private SubTaskFinishListener listener;
-
   private int taskIndex;
 
-  MultiThreadPeakFinderTask(MZmineProject project, ModularFeatureList peakList,
-      ModularFeatureList processedPeakList, ParameterSet parameters, int start, int endexcl,
-      SubTaskFinishListener listener, int taskIndex) {
+  MultiThreadPeakFinderTask(ModularFeatureList peakList, ModularFeatureList processedPeakList,
+      ParameterSet parameters, int start, int endexcl, int taskIndex) {
     super(null);
 
-    this.listener = listener;
     this.taskIndex = taskIndex;
 
     this.peakList = peakList;
@@ -90,7 +84,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info(
         "Running multithreaded gap filler " + taskIndex + " on raw files " + (start + 1) + "-"
-            + endexcl + " of pkl:" + peakList);
+        + endexcl + " of pkl:" + peakList);
 
     // Calculate total number of scans in all files
     for (int i = start; i < endexcl; i++) {
@@ -158,12 +152,9 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       }
     }
 
-    // first notify listener
-    listener.accept(processedPeakList);
-
     logger.info(
         "Finished sub task: Multithreaded gap filler " + taskIndex + " on raw files " + (start + 1)
-            + "-" + endexcl + " of pkl:" + peakList);
+        + "-" + endexcl + " of pkl:" + peakList);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -176,7 +167,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
   public String getTaskDescription() {
     return "Sub task " + taskIndex + ": Gap filling on raw files " + (start + 1) + "-" + endexcl
-        + " of pkl:" + peakList;
+           + " of pkl:" + peakList;
   }
 
   FeatureList getPeakList() {
@@ -187,7 +178,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     if (file instanceof IMSRawDataFile && peakList.hasFeatureType(MobilityType.class)) {
       final MobilityScanDataAccess access = new MobilityScanDataAccess((IMSRawDataFile) file,
           MobilityScanDataType.CENTROID, (List<Frame>) peakList.getSeletedScans(file));
-      List<ImsGap> imsGaps = (List<ImsGap>)(List<? extends Gap>) gaps;
+      List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
 
       while (access.hasNextFrame()) {
         final Frame frame = access.nextFrame();

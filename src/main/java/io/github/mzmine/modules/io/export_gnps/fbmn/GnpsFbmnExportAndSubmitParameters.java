@@ -37,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
@@ -59,14 +58,8 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
           "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
 
   public static final ComboParameter<FeatureListRowsFilter> FILTER = new ComboParameter<>(
-      "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
-      FeatureListRowsFilter.values(), FeatureListRowsFilter.ONLY_WITH_MS2);
-
-  // public static final BooleanParameter OPEN_GNPS = new
-  // BooleanParameter("Open GNPS website",
-  // "Opens the super quick start of GNPS feature based networking in the
-  // standard browser.",
-  // false);
+      "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows (with ion identity)",
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
 
   public static final BooleanParameter OPEN_FOLDER =
       new BooleanParameter("Open folder", "Opens the export folder", false);
@@ -89,10 +82,11 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = "<html><strong>About the GNPS Export/Submit Module:</strong>"
-        + "<p>The GNPS Export module was designed for the <strong>Feature-Based Molecular Networking</strong> (FBMN) workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
+        + "<p>The GNPS Export module was designed for the <strong>Feature-Based Molecular Networking</strong> (FBMN) and the advanced Ion Identity Molecular Networking workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
         + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/\"><strong>FBMN documentation here</strong></a> (or a youtube <a href=\"https://www.youtube.com/watch?v=vFcGG7T_44E&list=PL4L2Xw5k8ITzd9hx5XIP94vFPxj1sSafB&index=4&t=146s\">playlist here</a>) and <strong>please cite</strong>:<br>"
         + "<ul>"
-        + "<li>our preprint on <strong>FBMN</strong>: Nothias et al.: <a href=\"https://www.biorxiv.org/content/10.1101/812404v1\">bioRxiv 812404 (2019)</a>.</li>"
+        + "<li>the <strong>IIMN</strong> paper: Schmid, Petras, Nothias et al.: <a href=\"https://www.nature.com/articles/s41467-021-23953-9\">Nature Communications 12, 3832 (2021)</a></li>"
+        + "<li>the <strong>FBMN</strong> paper: Nothias, Petras, Schmid et al.: <a href=\"https://www.nature.com/articles/s41592-020-0933-6\">Nature Methods 17, 905–908 (2020)</a></li>"
         + "<li>the <strong>GNPS</strong> paper: Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Nature Biotechnology 34.8 (2016): 828-837</a></li>"
         + "<li>and the <strong>MZmine</strong> paper: Pluskal et al.: <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">BMC Bioinformatics, 11, 395 (2010)</a></li>"
         + "</ul></p>";
