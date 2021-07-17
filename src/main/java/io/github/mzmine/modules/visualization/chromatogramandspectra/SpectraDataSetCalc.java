@@ -29,12 +29,11 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.Collection;
 import java.util.HashMap;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 
 public class SpectraDataSetCalc extends AbstractTask {
 
@@ -44,11 +43,13 @@ public class SpectraDataSetCalc extends AbstractTask {
   private final ScanSelection scanSelection;
   private final boolean showSpectraOfEveryRawFile;
   private final SpectraPlot spectrumPlot;
+  private final BooleanProperty showMassListProperty;
   private int doneFiles;
 
   public SpectraDataSetCalc(final Collection<RawDataFile> rawDataFiles,
       final ChromatogramCursorPosition pos, final ScanSelection scanSelection,
-      boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot) {
+      boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot,
+      BooleanProperty showMassListProperty) {
     super(null);
     filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;
@@ -57,6 +58,7 @@ public class SpectraDataSetCalc extends AbstractTask {
     this.showSpectraOfEveryRawFile = showSpectraOfEveryRawFile;
     this.scanSelection = scanSelection;
     this.spectrumPlot = spectrumPlot;
+    this.showMassListProperty = showMassListProperty;
     setStatus(TaskStatus.WAITING);
   }
 
@@ -107,23 +109,24 @@ public class SpectraDataSetCalc extends AbstractTask {
       }
       spectrumPlot.getXYPlot().setNotify(false);
       spectrumPlot.removeAllDataSets();
-      SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
 
       filesAndDataSets.keySet().forEach(rawDataFile -> {
-        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), true);
+        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), false);
 
         // If the scan contains a mass list then add dataset for it
-        MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
-        if (massList != null) {
-          int massListSize = massList.getNumberOfDataPoints();
-          double[] mzs = new double[massListSize];
-          double[] intensities = new double[massListSize];
+        if (showMassListProperty.getValue()) {
+          MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
+          if (massList != null) {
+            int massListSize = massList.getNumberOfDataPoints();
+            double[] mzs = new double[massListSize];
+            double[] intensities = new double[massListSize];
 
-          MzIntensityDataSet massListDataset = new MzIntensityDataSet("Mass list",
-              massList.getMzValues(mzs), massList.getIntensityValues(intensities));
+            MzIntensityDataSet massListDataset = new MzIntensityDataSet("Mass list",
+                massList.getMzValues(mzs), massList.getIntensityValues(intensities));
 
-          spectrumPlot.addDataSet(massListDataset, FxColorUtil.fxColorToAWT(ColorUtils
-              .getContrastPaletteColor(rawDataFile.getColor(), palette)), false);
+            spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(),
+                false);
+          }
         }
       });
 
