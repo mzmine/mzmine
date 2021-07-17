@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
@@ -193,7 +192,6 @@ public class ImsGap extends Gap {
 
     ModularFeature f = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
         rawDataFile, trace, FeatureStatus.MANUAL);
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(f);
 
     peakListRow.addFeature(rawDataFile, f);
   }
