@@ -118,9 +118,9 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     exportTypes = new Type[0];
   }
 
-  public boolean exportAnnotationEdges(FeatureList featureList, File filename, Double progress,
+  public boolean exportIonIdentityEdges(FeatureList featureList, File filename, Double progress,
       AbstractTask task) {
-    LOG.info("Export annotation edge file");
+    LOG.info("Export ion identity networking edges file");
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat corrForm = new DecimalFormat("0.000");
     try {
@@ -408,15 +408,16 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       // exports all row-2-row relationship maps
       var rowMaps = featureList.getRowMaps();
-      for (var entry : rowMaps.entrySet()) {
-        Type type = entry.getKey();
-        R2RMap<RowsRelationship> map = entry.getValue();
-        exportMap(type, map.values());
+      if(exportTypes != null) {
+        for (Type type : exportTypes) {
+          R2RMap<RowsRelationship> map = rowMaps.get(type);
+          exportMap(type, map.values());
+        }
       }
 
       // export edges of annotations
       if (exportAnnotationEdges) {
-        exportAnnotationEdges(featureList, filename, progress, this);
+        exportIonIdentityEdges(featureList, filename, progress, this);
       }
 
       // relationships between ion identity networks (+O) ...

@@ -233,7 +233,13 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     // add old CSV export
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
-        LegacyExportRowCommonElement.ROW_RT};
+        LegacyExportRowCommonElement.ROW_RT,
+        // extra for ion identity networking
+        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID, LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
+        LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
+        LegacyExportRowCommonElement.ROW_NEUTRAL_MASS};
+
+    // per raw data file
     LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]
         {featureMeasure.equals(FeatureMeasurementType.AREA)
             ? LegacyExportRowDataFileElement.FEATURE_AREA
