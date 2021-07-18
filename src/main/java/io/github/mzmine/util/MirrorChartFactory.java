@@ -179,6 +179,15 @@ public class MirrorChartFactory {
     libraryPlot.getRangeAxis().setLabel("rel. intensity [%] (library)");
     domainPlot.getDomainAxis().setLabel("m/z");
 
+    queryPlot.setDomainGridlinesVisible(false);
+    queryPlot.setDomainMinorGridlinesVisible(false);
+    libraryPlot.setDomainGridlinesVisible(false);
+    libraryPlot.setDomainMinorGridlinesVisible(false);
+    queryPlot.setRangeGridlinesVisible(false);
+    queryPlot.setRangeMinorGridlinesVisible(false);
+    libraryPlot.setRangeGridlinesVisible(false);
+    libraryPlot.setRangeMinorGridlinesVisible(false);
+
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(mirrorSpecrumPlot.getChart());
 
