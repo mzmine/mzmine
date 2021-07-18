@@ -31,7 +31,7 @@ public class DefaultMsParameters {
       1E2, 1E3, new MZTolerance(0.005, 10), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
 
   public static final DefaultMsParameters defaultOrbitrapPositiveParameters = new DefaultMsParameters(
-      1E5, 3E3, 3E5, new MZTolerance(0.0015, 10), new MZTolerance(0.0015, 5),
+      1E4, 3E3, 5E4, new MZTolerance(0.0015, 10), new MZTolerance(0.0015, 5),
       new MZTolerance(0.0015, 10));
 
   public static final DefaultMsParameters defaultOrbitrapNegativeParameters = new DefaultMsParameters(
