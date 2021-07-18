@@ -213,7 +213,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         }
       }
     });
-    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
+    Label labelChromatogram = new Label("Chromatrogram view");
+    labelChromatogram.setStyle("-fx-font-weight: bold");
+    FlowPane pnChromHeader = new FlowPane(labelChromatogram);
+    pnChromHeader.setAlignment(Pos.CENTER_LEFT);
     StackPane pnChromStack = new StackPane();
     pnChromStack.setAlignment(Pos.TOP_RIGHT);
     pnChromStack.setPadding(new Insets(5));
@@ -228,7 +231,9 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     HBox hBoxSpectrum = new HBox();
     hBoxSpectrum.setAlignment(Pos.TOP_RIGHT);
     hBoxSpectrum.setPadding(new Insets(5));
-    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
+    Label labelSpectrum = new Label("Spectrum view");
+    labelSpectrum.setStyle("-fx-font-weight: bold");
+    FlowPane pnSpectrumHeader = new FlowPane(labelSpectrum);
     pnSpectrumHeader.setPadding(new Insets(5));
     CheckBox checkBoxShowMassList = new CheckBox("Show mass list");
     checkBoxShowMassList.setMinSize(ChoiceBox.USE_PREF_SIZE, CheckBox.USE_PREF_SIZE);

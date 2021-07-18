@@ -61,9 +61,6 @@ public class RawDataOverviewWindowController {
   private boolean scroll;
 
   @FXML
-  private Label rawDataLabel;
-
-  @FXML
   private ChromatogramAndSpectraVisualizer visualizer;
 
   @FXML
@@ -78,8 +75,6 @@ public class RawDataOverviewWindowController {
   public void initialize() {
 
     // this.rawDataFile = rawDataFile;
-    // add meta data
-    rawDataLabel.setText("Overview of raw data file(s): ");
 
     addChromatogramSelectedScanListener();
 
