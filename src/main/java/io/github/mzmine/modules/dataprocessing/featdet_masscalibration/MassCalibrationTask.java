@@ -214,7 +214,7 @@ public class MassCalibrationTask extends AbstractTask {
     scanNumbers = dataFile.getScans();
     totalScans = scanNumbers.size();
 
-    // Check if we have at least one scan with a mass list of given name
+    // Check if we have at least one scan with a mass list
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
       Scan scan = scanNumbers.get(i);
