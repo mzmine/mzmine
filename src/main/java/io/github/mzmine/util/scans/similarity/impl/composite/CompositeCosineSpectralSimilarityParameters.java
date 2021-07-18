@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.scans.similarity.impl.composite;
 
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import java.text.DecimalFormat;
 
 import io.github.mzmine.parameters.Parameter;
@@ -39,13 +40,14 @@ public class CompositeCosineSpectralSimilarityParameters extends SimpleParameter
           + "Considers only signals which were found in both the masslist and the library entry)",
       new DecimalFormat("0.000"), 0.7);
 
-  public static final BooleanParameter removeUnmatched = new BooleanParameter(
-      "Remove unmatched signals",
-      "CAUTION: Remove unmatched signals before cosine calculation. (Does only use signals which are present in both the query and library spectrum) Leeds to higher cosine similarity but also to a higher false positive rate. Especially good for noisy library or query spectra.",
-      false);
+  public static final ComboParameter<HandleUnmatchedSignalOptions> handleUnmatched =
+      new ComboParameter<>("Handle unmatched signals",
+          "Options to handle signals that only occur in one scan. (Usually - replace intensities of missing pairs to zero for a negative weight)",
+          HandleUnmatchedSignalOptions.values(),
+          HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
   public CompositeCosineSpectralSimilarityParameters() {
-    super(new Parameter[] {weight, minCosine, removeUnmatched});
+    super(new Parameter[] {weight, minCosine, handleUnmatched});
   }
 
 }

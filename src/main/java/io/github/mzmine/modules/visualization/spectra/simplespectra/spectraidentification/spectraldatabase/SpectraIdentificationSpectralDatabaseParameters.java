@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
-import java.awt.Window;
-import java.util.Collection;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
@@ -28,6 +26,7 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -39,6 +38,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponen
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import java.awt.Window;
+import java.util.Collection;
+import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 
 /**
  * Module to compare single spectra with spectral databases
@@ -63,6 +66,11 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
   public static final MZToleranceParameter mzTolerancePrecursor =
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
+
+
+  public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
+      "For MS2 scans, remove precursor signal prior to matching (+- precursor m/z tolerance)",
+      false);
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
@@ -92,8 +100,8 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
           SpectralSimilarityFunction.FUNCTIONS);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
-        deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance, minMatch,
+    super(new Parameter[]{dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, removePrecursor,
+        noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance, minMatch,
         similarityFunction});
   }
 
@@ -114,17 +122,23 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
-    // only enable precursor mz tolerance if precursor mz is used
-    OptionalParameterComponent usePreComp = dialog.getComponentForParameter(usePrecursorMZ);
+
+    CheckBox usePreComp = dialog.getComponentForParameter(usePrecursorMZ).getCheckBox();
+    CheckBox cRemovePrec = dialog.getComponentForParameter(removePrecursor);
     MZToleranceComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
 
+    // set initial
+//    mzTolPrecursor.setDisable(!usePreComp.isSelected());
+//    cRemovePrec.setDisable(!usePreComp.isSelected());
 
-    mzTolPrecursor.setDisable(!getParameter(usePrecursorMZ).getValue());
-    usePreComp.disableProperty().bind(usePreComp.getCheckBox().selectedProperty().not());
+    // bind
+    mzTolPrecursor.disableProperty().bind(usePreComp.selectedProperty().not());
+    cRemovePrec.disableProperty().bind(usePreComp.selectedProperty().not());
 
     dialog.showAndWait();
     return dialog.getExitCode();
@@ -133,10 +147,11 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
   public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
     // set precursor mz to parameter if MS2 scan
     // otherwise leave the value to the one specified before
-    if (scan.getPrecursorMZ() != 0)
+    if (scan.getPrecursorMZ() != 0) {
       this.getParameter(usePrecursorMZ).getEmbeddedParameter().setValue(scan.getPrecursorMZ());
-    else
+    } else {
       this.getParameter(usePrecursorMZ).setValue(false);
+    }
 
     return this.showSetupDialog(valueCheckRequired);
   }
