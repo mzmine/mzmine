@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.DraggableListCell;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -364,8 +365,10 @@ public class BatchSetupComponent extends BorderPane implements LastFilesComponen
    * @throws TransformerException if there is a transformation problem.
    * @throws FileNotFoundException if the file can't be found.
    */
-  private void saveBatchSteps(final File file)
+  private void saveBatchSteps(File file)
       throws ParserConfigurationException, TransformerException, FileNotFoundException {
+    // ensure xml format
+    file = FileAndPathUtil.getRealFilePath(file, "xml");
 
     // Create the document.
     final Document document =

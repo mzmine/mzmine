@@ -576,6 +576,17 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
+  @NotNull
+  public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
+    ModularTypeProperty matchProperty = get(SpectralLibraryMatchType.class);
+    if (matchProperty != null) {
+      return matchProperty.get(SpectralLibMatchSummaryType.class).getValue();
+    } else {
+      return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
+    }
+  }
+
+  @Override
   public void removeFeatureIdentity(FeatureIdentity identity) {
     ObservableList<FeatureIdentity> identities = getPeakIdentities();
     identities.remove(identity);

@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.ExitCode;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -161,7 +162,9 @@ public class FeatureListSummaryController {
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
-    batchModeParameters.showSetupDialog(true);
+    if(batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters);
+    }
   }
 
   private void setSelectionToLastBatchStep(ParameterSet parameters) {

@@ -26,7 +26,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
  *
  */
 public enum FeatureListRowsFilter {
-  ALL, ONLY_WITH_MS2;
+  ALL, ONLY_WITH_MS2, MS2_OR_ION_IDENTITY, MS2_AND_ION_IDENTITY;
 
   @Override
   public String toString() {
@@ -41,7 +41,9 @@ public enum FeatureListRowsFilter {
   public boolean filter(FeatureListRow row) {
     return switch (this) {
       case ALL -> true;
-      case ONLY_WITH_MS2 -> row.getBestFragmentation() != null;
+      case ONLY_WITH_MS2 -> row.hasMs2Fragmentation();
+      case MS2_OR_ION_IDENTITY -> row.hasMs2Fragmentation() || row.hasIonIdentity();
+      case MS2_AND_ION_IDENTITY -> row.hasMs2Fragmentation() && row.hasIonIdentity();
     };
   }
 }

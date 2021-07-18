@@ -212,14 +212,14 @@
       userData="io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule"/>
 
     <Menu text="Chromatogram resolving">
+      <MenuItem text="Local minimum resolver" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
       <MenuItem text="ADAP resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking.AdapResolverModule"/>
       <MenuItem text="Baseline resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline.BaselineFeatureResolverModule"/>
       <MenuItem text="CentWave resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.centwave.CentWaveResolverModule"/>
-      <MenuItem text="Local minimum resolver" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule"/>
       <MenuItem text="Noise amplitude resolver" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.noiseamplitude.NoiseAmplitudeResolverModule"/>
       <MenuItem text="Savitzky Golay resolver" onAction="#runModule"
@@ -504,6 +504,9 @@
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
+    <MenuItem text="Processing wizard"
+      onAction="#showWizardTab"
+      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule"/>
   </Menu>
 
 
@@ -517,6 +520,7 @@
       userData="http://mzmine.github.io/documentation.html"/>
     <MenuItem text="Support" onAction="#openLink"
       userData="http://mzmine.github.io/support.html"/>
+    <MenuItem text="Open introduction tab" onAction="#handleAddIntroductionTab"/>
     <SeparatorMenuItem/>
     <MenuItem text="Check for updates" onAction="#versionCheck"/>
     <SeparatorMenuItem/>

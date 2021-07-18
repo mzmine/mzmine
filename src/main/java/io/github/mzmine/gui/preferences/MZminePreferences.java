@@ -52,9 +52,9 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
 
-  public static final NumberFormatParameter rtFormat =
-      new NumberFormatParameter("Retention time value format", "Format of retention time values",
-          false, new DecimalFormat("0.00"));
+  public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
+      "Retention time value format", "Format of retention time values", false,
+      new DecimalFormat("0.00"));
 
   public static final NumberFormatParameter mobilityFormat = new NumberFormatParameter(
       "Mobility value format", "Format of mobility values", false, new DecimalFormat("0.000"));
@@ -73,8 +73,8 @@ public class MZminePreferences extends SimpleParameterSet {
       "Format used for scores, e.g., Pearson correlation, cosine similarity etc.", false,
       new DecimalFormat("0.000"));
 
-  public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>(
-      "Unit format", "The default unit format to format e.g. axis labels in MZmine.",
+  public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
+      "The default unit format to format e.g. axis labels in MZmine.",
       FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
 
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
@@ -86,52 +86,55 @@ public class MZminePreferences extends SimpleParameterSet {
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
       FileSelectionType.OPEN);
 
-  public static final BooleanParameter sendStatistics =
-      new BooleanParameter("Send anonymous statistics",
-          "Allow MZmine to send anonymous statistics on the module usage?", true);
+  public static final BooleanParameter sendStatistics = new BooleanParameter(
+      "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+      true);
 
-  public static final OptionalModuleParameter sendErrorEMail =
-      new OptionalModuleParameter("Send error e-Mail notifications",
-          "Send error e-Mail notifications", new ErrorMailSettings());
+  public static final OptionalModuleParameter sendErrorEMail = new OptionalModuleParameter(
+      "Send error e-Mail notifications", "Send error e-Mail notifications",
+      new ErrorMailSettings());
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
-  public static final ColorPaletteParameter defaultColorPalette =
-      new ColorPaletteParameter("Default color palette",
-          "Defines the default color palette used to create charts throughout MZmine");
+  public static final ColorPaletteParameter defaultColorPalette = new ColorPaletteParameter(
+      "Default color palette",
+      "Defines the default color palette used to create charts throughout MZmine");
 
-  public static final PaintScalePaletteParameter defaultPaintScale =
-      new PaintScalePaletteParameter("Default paint scale",
-          "Defines the default paint scale used to create charts throughout MZmine");
+  public static final PaintScalePaletteParameter defaultPaintScale = new PaintScalePaletteParameter(
+      "Default paint scale",
+      "Defines the default paint scale used to create charts throughout MZmine");
 
-  public static final ParameterSetParameter chartParam =
-      new ParameterSetParameter("Chart parameters",
-          "The default chart parameters to be used throughout MZmine", new ChartThemeParameters());
+  public static final ParameterSetParameter chartParam = new ParameterSetParameter(
+      "Chart parameters", "The default chart parameters to be used throughout MZmine",
+      new ChartThemeParameters());
 
   public static final BooleanParameter darkMode = new BooleanParameter("Dark mode",
-      "Enables dark mode");
+      "Enables dark mode", false);
 
-  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings =
-      new HiddenParameter<>(new OptOutParameter("Ion mobility compatibility warnings",
+  public static final BooleanParameter presentationMode = new BooleanParameter("Presentation mode",
+      "If checked, fonts in the MZmine gui will be enlarged. The chart fonts are still controlled by the chart theme.",
+      false);
+
+  public static final HiddenParameter<OptOutParameter, Map<String, Boolean>> imsModuleWarnings = new HiddenParameter<>(
+      new OptOutParameter("Ion mobility compatibility warnings",
           "Shows a warning message when a module without explicit ion mobility support is "
-          + "used to process ion mobility data."));
+              + "used to process ion mobility data."));
 
-  public static final DirectoryParameter tempDirectory =
-      new DirectoryParameter("Temporary file directory", "Directory where temporary files"
-                                                         + " will be stored. Requires a restart of MZmine to take effect",
-          System.getProperty("java.io.tmpdir"));
+  public static final DirectoryParameter tempDirectory = new DirectoryParameter(
+      "Temporary file directory", "Directory where temporary files"
+      + " will be stored. Requires a restart of MZmine to take effect",
+      System.getProperty("java.io.tmpdir"));
 
   public MZminePreferences() {
-    super(
-        new Parameter[]{
-            // number formats
-            mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
-            // how to format unit strings
-            unitFormat,
-            // other preferences
-            numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
-            defaultColorPalette, defaultPaintScale, chartParam, darkMode, imsModuleWarnings,
-            tempDirectory});
+    super(new Parameter[]{
+        // number formats
+        mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
+        // how to format unit strings
+        unitFormat,
+        // other preferences
+        numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail,
+        defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
+        imsModuleWarnings, tempDirectory});
   }
 
   @Override
@@ -155,12 +158,22 @@ public class MZminePreferences extends SimpleParameterSet {
           .getParameter(MZminePreferences.darkMode).getValue();
       if (darkMode) {
         MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource(
-                "/themes/MZmine_dark.css").toExternalForm());
+            .add(getClass().getResource("/themes/MZmine_dark.css").toExternalForm());
       } else {
         MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
-            .add(getClass().getResource(
-                "/themes/MZmine_light.css").toExternalForm());
+            .add(getClass().getResource("/themes/MZmine_light.css").toExternalForm());
+      }
+
+      MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+          .removeIf(e -> e.contains("MZmine_default"));
+      Boolean presentation = MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.presentationMode).getValue();
+      if (presentation) {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets().add(
+            getClass().getResource("/themes/MZmine_default_presentation.css").toExternalForm());
+      } else {
+        MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets()
+            .add(getClass().getResource("/themes/MZmine_default.css").toExternalForm());
       }
     }
 

@@ -346,8 +346,6 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures()) {
         m.addGestureHandler(f.createHandler());
       }
-
-      logger.log(Level.FINEST, "Added standard gestures: " + m.getGestureHandlers().size());
     }
   }
 

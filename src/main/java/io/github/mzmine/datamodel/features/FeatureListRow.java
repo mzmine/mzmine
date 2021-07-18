@@ -18,9 +18,6 @@
 
 package io.github.mzmine.datamodel.features;
 
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -30,8 +27,11 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface representing feature list row
@@ -139,7 +139,7 @@ public interface FeatureListRow {
   /**
    * Add a new identity candidate (result of identification method)
    *
-   * @param identity New feature identity
+   * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
    */
   public void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
@@ -270,7 +270,7 @@ public interface FeatureListRow {
   /**
    * Adds the ion as first or last element of the list.
    *
-   * @param ion the ion identity
+   * @param ion        the ion identity
    * @param markAsBest true: add as first element; false add as last element
    */
   default void addIonIdentity(IonIdentity ion, boolean markAsBest) {
@@ -368,5 +368,19 @@ public interface FeatureListRow {
     return getAllMS2Fragmentations() != null && !getAllMS2Fragmentations().isEmpty();
   }
 
+
+  /**
+   * List of library matches sorted from best (index 0) to last match
+   *
+   * @return list of library matches or an empty list
+   */
+  @NotNull
+  List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+
+  /**
+   * Add annotations from lipid search
+   *
+   * @param matchedLipid the matched lipid
+   */
   void addLipidAnnotation(MatchedLipid matchedLipid);
 }
