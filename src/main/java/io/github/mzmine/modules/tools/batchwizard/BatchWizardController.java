@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
@@ -78,6 +79,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.Element;
 
 public class BatchWizardController {
 
@@ -257,6 +259,15 @@ public class BatchWizardController {
             .getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
             : msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel)
                 .getValue());
+    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, true);
+    final DetectIsotopesParameter detectIsotopesParameter = detectorParam
+        .getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
+    detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements, List.of(new Element("H"),
+        new Element("C"), new Element("N"), new Element("O"), new Element("S")));
+    detectIsotopesParameter.setParameter(DetectIsotopesParameter.isotopeMzTolerance,
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance)
+            .getValue());
+    detectIsotopesParameter.setParameter(DetectIsotopesParameter.maxCharge, 2);
 
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MassDetectionModule.class).cloneParameterSet();

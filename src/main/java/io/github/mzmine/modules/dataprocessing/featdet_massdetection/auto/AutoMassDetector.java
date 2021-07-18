@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
@@ -66,7 +67,22 @@ public class AutoMassDetector implements MassDetector {
         .cloneParameterSet();
     exactMassDetectorParameters.getParameter(ExactMassDetectorParameters.noiseLevel)
         .setValue(autoParam.getParameter(AutoMassDetectorParameters.noiseLevel).getValue());
-    exactMassDetectorParameters.setParameter(ExactMassDetectorParameters.detectIsotopes, false);
+    exactMassDetectorParameters.setParameter(ExactMassDetectorParameters.detectIsotopes,
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getValue());
+
+    DetectIsotopesParameter detectIsotopesParameter = exactMassDetectorParameters
+        .getParameter(ExactMassDetectorParameters.detectIsotopes)
+        .getEmbeddedParameters();
+
+    detectIsotopesParameter.getParameter(DetectIsotopesParameter.elements).setValue(
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+            .getParameter(DetectIsotopesParameter.elements).getValue());
+    detectIsotopesParameter.getParameter(DetectIsotopesParameter.isotopeMzTolerance).setValue(
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+            .getParameter(DetectIsotopesParameter.isotopeMzTolerance).getValue());
+    detectIsotopesParameter.getParameter(DetectIsotopesParameter.maxCharge).setValue(
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+            .getParameter(DetectIsotopesParameter.maxCharge).getValue());
 
     return exactMassDetectorParameters;
   }
@@ -76,7 +92,22 @@ public class AutoMassDetector implements MassDetector {
     centroidMassDetectorParameters.getParameter(CentroidMassDetectorParameters.noiseLevel)
         .setValue(autoParam.getParameter(AutoMassDetectorParameters.noiseLevel).getValue());
     centroidMassDetectorParameters
-        .setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
+        .setParameter(CentroidMassDetectorParameters.detectIsotopes,
+            autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getValue());
+
+    DetectIsotopesParameter detectIsotopesParameter = centroidMassDetectorParameters
+        .getParameter(CentroidMassDetectorParameters.detectIsotopes)
+        .getEmbeddedParameters();
+    detectIsotopesParameter.getParameter(DetectIsotopesParameter.elements).setValue(
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+            .getParameter(DetectIsotopesParameter.elements).getValue());
+    detectIsotopesParameter.getParameter(DetectIsotopesParameter.isotopeMzTolerance).setValue(
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+            .getParameter(DetectIsotopesParameter.isotopeMzTolerance).getValue());
+    detectIsotopesParameter.getParameter(DetectIsotopesParameter.maxCharge).setValue(
+        autoParam.getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters()
+            .getParameter(DetectIsotopesParameter.maxCharge).getValue());
+
     return centroidMassDetectorParameters;
   }
 }
