@@ -66,7 +66,7 @@ public class AutoMassDetector implements MassDetector {
         .cloneParameterSet();
     exactMassDetectorParameters.getParameter(ExactMassDetectorParameters.noiseLevel)
         .setValue(autoParam.getParameter(AutoMassDetectorParameters.noiseLevel).getValue());
-    exactMassDetectorParameters.setParameter(ExactMassDetectorParameters.detectIsotopes, true);
+    exactMassDetectorParameters.setParameter(ExactMassDetectorParameters.detectIsotopes, false);
 
     return exactMassDetectorParameters;
   }
