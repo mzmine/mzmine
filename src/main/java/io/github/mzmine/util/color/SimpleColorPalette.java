@@ -48,6 +48,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
           new Color(0d, 1d, 0d, 1d), new Color(1d, 1d, 0d, 1d), new Color(1d, .5d, 0, 1d),
           new Color(1d, 0, 0, 1d)}, "Rainbow");
 
+  public static final SimpleColorPalette BLUE_RED_WHITE = new SimpleColorPalette(
+      new Color[]{new Color(0d, 0d, 1d, 1d),
+          new Color(1d, 0, 0, 1d), new Color(1d, 1d, 1d, 1d)}, "Default");
+
   protected static final SimpleColorPalette DEFAULT_NORMAL =
       new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
           ColorsFX.getPositiveColor(Vision.NORMAL_VISION), ColorsFX.getNeutralColor(),

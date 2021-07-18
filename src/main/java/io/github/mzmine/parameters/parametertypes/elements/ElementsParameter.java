@@ -43,7 +43,7 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
   public ElementsParameter(String name, String description) {
     // Most abundance elements in biomolecules as a default value for elements
     this(name, description, true, Arrays.asList(new Element("H"),
-        new Element("C"), new Element("N"), new Element("O"), new Element("P"),
+        new Element("C"), new Element("N"), new Element("O"),
         new Element("S")));
   }
 
