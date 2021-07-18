@@ -53,7 +53,7 @@ public class ColorPaletteParameter
     this.descr = descr;
     value = SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
     palettes = new ArrayList<>();
-    palettes.add(value);
+    palettes.addAll(SimpleColorPalette.DEFAULT.values());
   }
 
   @Override
