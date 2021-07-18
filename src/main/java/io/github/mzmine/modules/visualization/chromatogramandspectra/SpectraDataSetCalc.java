@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -121,8 +122,7 @@ public class SpectraDataSetCalc extends AbstractTask {
             double[] mzs = new double[massListSize];
             double[] intensities = new double[massListSize];
 
-            MzIntensityDataSet massListDataset = new MzIntensityDataSet("Mass list",
-                massList.getMzValues(mzs), massList.getIntensityValues(intensities));
+            MassListDataSet massListDataset = new MassListDataSet(massList);
 
             spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(),
                 false);

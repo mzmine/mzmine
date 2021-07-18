@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraMassListRenderer;
 import java.awt.Color;
 import java.awt.Paint;
@@ -109,8 +110,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   protected EStandardChartTheme theme;
 
   /**
-   * Contains coordinated of labels for each dataset. It is supposed to be updated
-   * by {@link SpectraItemLabelGenerator}.
+   * Contains coordinated of labels for each dataset. It is supposed to be updated by {@link
+   * SpectraItemLabelGenerator}.
    */
   private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
 
@@ -421,8 +422,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         newRenderer = new ContinuousRenderer(color, transparency);
         ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);
       }
-    } else {
+    } else if (dataSet instanceof MassListDataSet) {
       newRenderer = new SpectraMassListRenderer(color);
+    } else {
+      newRenderer = new PeakRenderer(color, transparency);
     }
 
     // Add label generator for the dataset
