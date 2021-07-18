@@ -474,6 +474,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     TICDataSet dataSet = new TICDataSet(rawDataFile, scanSelection.getMatchingScans(rawDataFile),
         rawDataFile.getDataMZRange(), null);
     ticChart.addTICDataSet(dataSet, rawDataFile.getColorAWT());
+    ticChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(rawDataFile.getDataRTRange()));
     ticChart.setTitle("BPC - " + rawDataFile.getName(), "");
     if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         ticChart.getXYPlot().getDomainAxis().getRange(), rawDataFile.getDataRTRange(1))) {

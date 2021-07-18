@@ -239,12 +239,9 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           + " for error size vs m/z value. Please see the help file for more details.",
       biasEstimationChoices, BiasEstimationChoice.ARITHMETIC_MEAN.toString(), true, 250);
 
-  public static final StringParameter suffix = new StringParameter("Suffix",
-      "This string is added to mass list name as a suffix", "calibrated");
-
   public MassCalibrationParameters() {
     super(new Parameter[] {dataFiles, intensityThreshold, duplicateErrorFilter,
-        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix});
+        referenceLibrary, rangeExtractionMethod, biasEstimationMethod });
   }
 
   @Override

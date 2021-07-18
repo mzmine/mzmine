@@ -19,10 +19,13 @@
 package io.github.mzmine.gui.mainwindow;
 
 import com.google.common.collect.ImmutableList;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -32,8 +35,8 @@ import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerParameters;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerModule;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
+import io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewModule;
-import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewPane;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewParameters;
 import io.github.mzmine.modules.visualization.rawdataoverview.RawDataOverviewWindowController;
 import io.github.mzmine.modules.visualization.rawdataoverviewims.IMSRawDataOverviewModule;
@@ -43,7 +46,6 @@ import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -64,7 +66,6 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -248,11 +249,13 @@ public class MainWindowController {
     // Add mouse clicked event handler
     rawDataList.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        List<RawDataFile> selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-        if (selectedFiles.stream().anyMatch(f -> f instanceof ImagingRawDataFileImpl)) {
+        RawDataFile clickedFile = MZmineGUI.getSelectedRawDataFiles().get(0);
+        if (clickedFile instanceof IMSRawDataFile) {
+          handleShowIMSDataOverview(event);
+        } else if (clickedFile instanceof ImagingRawDataFile) {
           handleShowImage(event);
         } else {
-          handleShowChromatogram(event);
+          handleShowRawDataOverview(event);
         }
       }
     });
@@ -501,8 +504,7 @@ public class MainWindowController {
         }
     );
 
-    RawDataOverviewPane rop = new RawDataOverviewPane(true, true);
-    addTab(rop);
+    addTab(new MZmineIntroductionTab());
   }
 
   public GroupableListView<RawDataFile> getRawDataList() {
@@ -621,8 +623,17 @@ public class MainWindowController {
     }
   }
 
-
   public void handleShowMsMsPlot(Event event) {
+    MsMsVisualizerModule module = MZmineCore.getModuleInstance(MsMsVisualizerModule.class);
+    ParameterSet moduleParameters =
+        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
+    logger.info("Setting parameters for module " + module.getName());
+    ExitCode exitCode = moduleParameters.showSetupDialog(true);
+    if (exitCode != ExitCode.OK)
+      return;
+    ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
+    logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
+    MZmineCore.runMZmineModule(MsMsVisualizerModule.class, parametersCopy);
   }
 
   public void handleRawDataSort(Event event) {

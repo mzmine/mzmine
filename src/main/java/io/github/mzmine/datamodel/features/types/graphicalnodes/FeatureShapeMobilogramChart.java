@@ -49,7 +49,7 @@ public class FeatureShapeMobilogramChart extends StackPane {
 
     final MobilityType mt = ((IMSRawDataFile) row.getRawDataFiles().get(0)).getMobilityType();
     SimpleXYChart<SummedMobilogramXYProvider> chart = new SimpleXYChart<>(
-        mt.getAxisLabel(), uf.format("Intensity", "cps"));
+        mt.getAxisLabel(), uf.format("Intensity", "a.u."));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
     chart.setLegendItemsVisible(false);

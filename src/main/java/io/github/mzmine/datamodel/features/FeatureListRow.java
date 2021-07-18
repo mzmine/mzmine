@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -375,4 +376,11 @@ public interface FeatureListRow {
    */
   @NotNull
   List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+
+  /**
+   * Add annotations from lipid search
+   *
+   * @param matchedLipid the matched lipid
+   */
+  void addLipidAnnotation(MatchedLipid matchedLipid);
 }

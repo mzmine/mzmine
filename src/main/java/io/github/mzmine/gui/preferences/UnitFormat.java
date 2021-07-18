@@ -28,8 +28,6 @@ public enum UnitFormat {
     this.representativeString = representativeString;
   }
 
-
-
   public String format(String label, String unit) {
     switch(this) {
       case SQUARE_BRACKET:

@@ -18,9 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
@@ -36,6 +34,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 
@@ -76,9 +75,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
       new IntRangeParameter("Charge", "Filter by charge, run isotopic features grouper first"));
 
-  public static final OptionalModuleParameter KENDRICK_MASS_DEFECT = new OptionalModuleParameter(
-      "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
-      new KendrickMassDefectFilterParameters());
+  public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT =
+      new OptionalModuleParameter<>("Kendrick mass defect",
+          "Permissible range of a Kendrick mass defect per row",
+          new KendrickMassDefectFilterParameters());
 
   public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
       "Parameter", "Paremeter defining the group of each sample.", new Object[0]);
@@ -104,12 +104,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final BooleanParameter MS2_Filter =
       new BooleanParameter("Keep only feature with MS2 scan (GNPS)",
           "If checked, the rows that don't contain MS2 scan will be removed.");
-  public static final BooleanParameter Reset_ID = new BooleanParameter("Reset the feature number ID",
-      "If checked, the row number of original feature list will be reset.");
+  public static final BooleanParameter Reset_ID =
+      new BooleanParameter("Reset the feature number ID",
+          "If checked, the row number of original feature list will be reset.");
 
   public RowsFilterParameters() {
-    super(new Parameter[] {FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE,
-        RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
+    super(new Parameter[] {FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
+        MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
         HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID,
         AUTO_REMOVE});
   }

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,6 +37,7 @@ import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
@@ -50,10 +53,24 @@ public class MainMenuController {
 
   @FXML
   private Menu recentProjectsMenu;
+  @FXML
+  private MenuItem openProject;
+  @FXML
+  private MenuItem saveProject;
+  @FXML
+  private MenuItem saveProjectAs;
+  @FXML
+  private MenuItem closeProject;
 
   @FXML
   public void initialize() {
     fillRecentProjects();
+    // disable project
+    recentProjectsMenu.setDisable(true);
+    openProject.setDisable(true);
+    saveProject.setDisable(true);
+    saveProjectAs.setDisable(true);
+    closeProject.setDisable(true);
   }
 
   public void closeProject(Event event) {
@@ -198,6 +215,18 @@ public class MainMenuController {
       });
       recentProjectsMenu.getItems().add(item);
     });
+  }
+
+  public void handleAddIntroductionTab(ActionEvent event) {
+    assert MZmineCore.getDesktop() != null;
+    MZmineCore.getDesktop().addTab(new MZmineIntroductionTab());
+  }
+
+  public void showWizardTab(ActionEvent actionEvent) {
+    BatchWizardModule inst = MZmineCore.getModuleInstance(BatchWizardModule.class);
+    if(inst != null) {
+      inst.showTab();
+    }
   }
 }
 

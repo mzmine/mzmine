@@ -12,6 +12,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -251,9 +252,12 @@ public class MobilityScanDataAccess implements MobilityScan {
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
       case RAW -> frames.stream().mapToInt(Frame::getMaxMobilityScanDataPoints).max().orElse(0);
-      case CENTROID -> frames.stream()
-          .mapToInt(frame -> ((FrameMassList) frame.getMassList()).getMaxMobilityScanDatapoints())
-          .max().orElse(0);
+      case CENTROID -> Math.max(
+          frames.stream().filter(f -> f.getMassList() instanceof FrameMassList).mapToInt(
+              frame -> ((FrameMassList) frame.getMassList()).getMaxMobilityScanDatapoints()).max()
+              .orElse(0),
+          frames.stream().filter(f -> f.getMassList() instanceof ScanPointerMassList)
+              .mapToInt(Frame::getMaxMobilityScanDataPoints).max().orElse(0));
     };
    /* int forloop = 0;
     if (type == MobilityScanDataType.CENTROID) {

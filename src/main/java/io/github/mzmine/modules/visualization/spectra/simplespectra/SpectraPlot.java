@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraMassListRenderer;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
@@ -170,13 +171,14 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // set the X axis (retention time) properties
     NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setNumberFormatOverride(mzFormat);
-    xAxis.setUpperMargin(0.001);
-    xAxis.setLowerMargin(0.001);
+    xAxis.setUpperMargin(0.01); // have some margin so m/z labels are not cut off
+    xAxis.setLowerMargin(0.01);
     xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
 
     // set the Y axis (intensity) properties
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
     yAxis.setNumberFormatOverride(intensityFormat);
+    yAxis.setUpperMargin(0.1); // some margin for m/z labels
 
     // only allow positive values for the axes
     ChartLogics.setAxesTypesPositive(chart);
@@ -419,24 +421,16 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         newRenderer = new ContinuousRenderer(color, transparency);
         ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);
       }
-
-      // Add label generator for the dataset
-      newRenderer.setDefaultItemLabelGenerator(labelGenerator);
-      newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      if (matchLabelColors.get()) {
-        newRenderer.setDefaultItemLabelPaint(color);
-      }
-
     } else {
-      newRenderer = new PeakRenderer(color, transparency);
-      // Add label generator for the dataset
-      newRenderer.setDefaultItemLabelGenerator(labelGenerator);
-      newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      if (matchLabelColors.get()) {
-        newRenderer.setDefaultItemLabelPaint(color);
-      }
+      newRenderer = new SpectraMassListRenderer(color);
     }
 
+    // Add label generator for the dataset
+    newRenderer.setDefaultItemLabelGenerator(labelGenerator);
+    newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
+    if (matchLabelColors.get()) {
+      newRenderer.setDefaultItemLabelPaint(color);
+    }
     ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
 
     plot.setDataset(numOfDataSets, dataSet);
