@@ -89,7 +89,10 @@ public class ChartGestureHandler {
 
   // static list of standard chartgestures as GestureHandlerFactories
   // initialise + getter
-  private static List<GestureHandlerFactory> standardGestures = null;
+  private static final List<GestureHandlerFactory> standardGestures = new ArrayList<>();
+  static {
+    initStandardGestures(true, true, true, true, true);
+  }
 
   // non static section
   private ChartGesture gesture;
@@ -378,8 +381,6 @@ public class ChartGestureHandler {
    * @return
    */
   public static List<GestureHandlerFactory> getStandardGestures() {
-    if (standardGestures == null)
-      initStandardGestures(true, true, true, true, true);
     return standardGestures;
   }
 
@@ -393,9 +394,9 @@ public class ChartGestureHandler {
    * @param axisAutoRange
    * @return
    */
-  public static List<GestureHandlerFactory> initStandardGestures(boolean axisDrag,
+  private static List<GestureHandlerFactory> initStandardGestures(boolean axisDrag,
       boolean axisWheel, boolean titleRemover, boolean zoomHistory, boolean axisAutoRange) {
-    standardGestures = new ArrayList<GestureHandlerFactory>();
+
     if (axisDrag) {
       // adds multiple gestures to one domain axis drag handler
       // Scroll axis: DRAG mouse over domain axis
