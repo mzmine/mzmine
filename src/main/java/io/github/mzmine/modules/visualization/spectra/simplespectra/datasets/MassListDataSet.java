@@ -33,8 +33,10 @@ public class MassListDataSet extends AbstractXYDataset {
   private static final long serialVersionUID = 1L;
 
   public MassListDataSet(MassList massList) {
-    this.mzValues = massList.getMzValues(null);
-    this.intensityValues = massList.getIntensityValues(null);
+    this.mzValues = new double[massList.getNumberOfDataPoints()];
+    this.intensityValues = new double[massList.getNumberOfDataPoints()];
+    massList.getMzValues(this.mzValues);
+    massList.getIntensityValues(this.intensityValues);
   }
 
   public MassListDataSet(double mzValues[], double intensityValues[]) {
