@@ -22,11 +22,10 @@ import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.IsotopesUtils;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.IsotopesUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,7 +56,7 @@ public class CentroidMassDetector implements MassDetector {
     // If isotopes are going to be detected get all the required parameters
     MZTolerance isotopesMzTolerance = null;
     if (detectIsotopes) {
-      ParameterSet isotopesParameters = parameters.getParameter(ExactMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
+      ParameterSet isotopesParameters = parameters.getParameter(CentroidMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
       List<Element> isotopeElements = isotopesParameters.getParameter(DetectIsotopesParameter.elements).getValue();
       int isotopeMaxCharge = isotopesParameters.getParameter(DetectIsotopesParameter.maxCharge).getValue();
       isotopesMzTolerance = isotopesParameters.getParameter(DetectIsotopesParameter.isotopeMzTolerance).getValue();

@@ -77,6 +77,7 @@ public class ParameterSetupDialog extends Stage {
   protected final ButtonBar pnlButtons;
   // Footer message
   protected final String footerMessage;
+
   /**
    * This single panel contains a grid of all the components of this dialog. Row number 100 contains
    * all the buttons of the dialog. Derived classes may add their own components such as previews to
@@ -104,8 +105,8 @@ public class ParameterSetupDialog extends Stage {
    */
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
+  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty(false);
 
-  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
 
   /**
    * Constructor
@@ -311,7 +312,7 @@ public class ParameterSetupDialog extends Stage {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  protected void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
@@ -329,6 +330,28 @@ public class ParameterSetupDialog extends Stage {
       // component
       if (component != null) {
         up.setValueFromComponent(component);
+      }
+    }
+  }
+
+  public void setParameterValuesToComponents() {
+    for (Parameter<?> p : parameterSet.getParameters()) {
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
+        continue;
+      }
+      UserParameter up;
+      if (p instanceof UserParameter) {
+        up = (UserParameter) p;
+      } else {
+        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+      }
+
+      Node component = parametersAndComponents.get(p.getName());
+
+      // if a parameter is a HiddenParameter it does not necessarily have
+      // component
+      if (component != null) {
+        up.setValueToComponent(component, up.getValue());
       }
     }
   }
@@ -366,12 +389,10 @@ public class ParameterSetupDialog extends Stage {
   }
 
   /**
-   * This method is called whenever user changes the parameters. It can be overridden in extending
-   * classes to update the preview components, for example.
+   * This method does nothing, but it is called whenever user changes the parameters. It can be
+   * overridden in extending classes to update the preview components, for example.
    */
   protected void parametersChanged() {
-    updateParameterSetFromComponents();
-    parametersChangeProperty.setValue(!parametersChangeProperty.getValue());
   }
 
 
@@ -388,7 +409,7 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof ChoiceBox) {
-      ChoiceBox<?> choiceBox = (ChoiceBox<?>) node;
+      ChoiceBox<?> choiceBox = (ChoiceBox) node;
       choiceBox.valueProperty()
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
@@ -428,5 +449,9 @@ public class ParameterSetupDialog extends Stage {
    */
   public BooleanProperty parametersChangeProperty() {
     return parametersChangeProperty;
+  }
+
+  public GridPane getParamsPane() {
+    return paramsPane;
   }
 }

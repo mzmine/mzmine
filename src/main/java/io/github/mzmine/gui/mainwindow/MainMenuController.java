@@ -19,6 +19,7 @@
 package io.github.mzmine.gui.mainwindow;
 
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -219,6 +220,13 @@ public class MainMenuController {
   public void handleAddIntroductionTab(ActionEvent event) {
     assert MZmineCore.getDesktop() != null;
     MZmineCore.getDesktop().addTab(new MZmineIntroductionTab());
+  }
+
+  public void showWizardTab(ActionEvent actionEvent) {
+    BatchWizardModule inst = MZmineCore.getModuleInstance(BatchWizardModule.class);
+    if(inst != null) {
+      inst.showTab();
+    }
   }
 }
 

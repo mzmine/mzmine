@@ -21,10 +21,10 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 
 /**
- * RTTolerance allows specifying retention time tolerance
- * it is either absolute (seconds or minutes) or relative (percent)
- * but as rest of MZmine codebase, it assumes that rt values (other than the tolerance given in constructor)
- * are in minutes in methods such as getToleranceRange or checkWithinTolerance
+ * RTTolerance allows specifying retention time tolerance it is either absolute (seconds or minutes)
+ * or relative (percent) but as rest of MZmine codebase, it assumes that rt values (other than the
+ * tolerance given in constructor) are in minutes in methods such as getToleranceRange or
+ * checkWithinTolerance
  */
 public class RTTolerance {
 
@@ -38,7 +38,7 @@ public class RTTolerance {
 
   // old constructor for compatibility with other mzmine branches and pull requests
   public RTTolerance(final boolean isAbsolute, final float rtTolerance) {
-      this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
+    this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
   }
 
   public boolean isAbsolute() {
@@ -46,8 +46,12 @@ public class RTTolerance {
 //    return unit == Unit.SECONDS || unit == Unit.MINUTES;
   }
 
-  public double getTolerance() {
-    return tolerance;
+  /**
+   * @return The retention time tolerance in minutes. If the tolerance is not absolute, the
+   * tolerance will be calculated for 5 minutes.
+   */
+  public float getTolerance() {
+    return getToleranceInMinutes();
   }
 
   public Unit getUnit() {
@@ -70,6 +74,15 @@ public class RTTolerance {
         break;
     }
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
+  }
+
+  private float getToleranceInMinutes() {
+    return switch (unit) {
+      case SECONDS -> tolerance / 60;
+      case PERCENT -> 5f * 60f * (tolerance
+          / 100); // having getToleranceMethod is inconsistent with the unit percent being there...
+      case MINUTES -> tolerance;
+    };
   }
 
   public boolean checkWithinTolerance(final float rt1, final float rt2) {
