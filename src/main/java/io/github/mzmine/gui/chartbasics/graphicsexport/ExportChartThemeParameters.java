@@ -16,9 +16,12 @@
  * USA
  */
 
-package io.github.mzmine.gui.chartbasics.chartthemes;
+package io.github.mzmine.gui.chartbasics.graphicsexport;
 
 
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
+import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParametersSetupDialog;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -39,18 +42,16 @@ import org.jfree.chart.JFreeChart;
 
 /**
  * JFreeChart theme settings for {@link EStandardChartTheme}s
- *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartThemeParameters extends SimpleParameterSet {
+public class ExportChartThemeParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", true);
+  public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", false);
   public static final OptionalParameter<StringParameter> changeTitle =
       new OptionalParameter<StringParameter>(new StringParameter("Change title", "", ""));
   public static final BooleanParameter showSubtitles = new BooleanParameter("Show subtitle", "",
-      true);
+      false);
   public static final BooleanParameter showLegends =
-      new BooleanParameter("Show legends", "", true);
+      new BooleanParameter("Show legends", "", false);
 
   public static final OptionalParameter<StringParameter> xlabel =
       new OptionalParameter<StringParameter>(new StringParameter("Change x", "", "x"));
@@ -80,7 +81,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
   public static final BooleanParameter showXAxis = new BooleanParameter("Show x axis", "", true);
   public static final BooleanParameter showYAxis = new BooleanParameter("Show y axis", "", true);
 
-  public ChartThemeParameters() {
+  public ExportChartThemeParameters() {
     super(new Parameter[]{showTitle, changeTitle, showSubtitles, showLegends, xlabel,
         ylabel, color, masterFont, titleFont, subTitleFont, labelFont, xGridPaint, yGridPaint,
         showXAxis, showYAxis});
