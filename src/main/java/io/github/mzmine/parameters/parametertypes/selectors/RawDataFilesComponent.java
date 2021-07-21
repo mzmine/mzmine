@@ -46,7 +46,7 @@ public class RawDataFilesComponent extends GridPane {
     numFilesLabel = new Label();
     add(numFilesLabel, 0, 0);
 
-    detailsButton = new Button("...");
+    detailsButton = new Button("Setup");
     add(detailsButton, 2, 0);
 
     typeCombo =

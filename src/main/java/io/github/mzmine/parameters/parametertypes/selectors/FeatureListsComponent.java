@@ -47,7 +47,7 @@ public class FeatureListsComponent extends BorderPane {
     numPeakListsLabel = new Label();
     setLeft(numPeakListsLabel);
 
-    detailsButton = new Button("...");
+    detailsButton = new Button("Setup");
     detailsButton.setDisable(true);
     setRight(detailsButton);
 
