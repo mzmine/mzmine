@@ -115,6 +115,16 @@ public class ParameterSetupDialog extends Stage {
     this(valueCheckRequired, parameters, null);
   }
 
+  @Override
+  public void showAndWait() {
+    if (MZmineCore.getDesktop() != null) {
+      // this should prevent the main stage tool tips from bringing the main stage to the front.
+      Stage mainStage = MZmineCore.getDesktop().getMainWindow();
+      this.initOwner(mainStage);
+    }
+    super.showAndWait();
+  }
+
   /**
    * Method to display setup dialog with a html-formatted footer message at the bottom.
    *
