@@ -103,6 +103,7 @@
             <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed" text="Run" />
           </children>
         </FlowPane>
+            <Label styleClass="bold-title-label" text="MS data files" GridPane.rowIndex="3" />
       </children>
       <opaqueInsets>
         <Insets />

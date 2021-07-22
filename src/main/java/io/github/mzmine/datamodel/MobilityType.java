@@ -30,18 +30,20 @@ import io.github.mzmine.main.MZmineCore;
  */
 public enum MobilityType {
 
-  NONE("none", "none"), //
-  TIMS("1/k0", "Vs/cm^2"), // trapped ion mobility spectrometry
-  DRIFT_TUBE("Drift time", "ms"), // drift tube
-  TRAVELING_WAVE("TODO", "TODO"), // traveling wave ion mobility spectrometry
-  FAIMS("TODO", "TODO"); // field asymmetric waveform ion mobility spectrometry
+  NONE("none", "none", "none"), //
+  TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
+  DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
+  TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
+  FAIMS("TODO", "TODO", "FAIMS"); // field asymmetric waveform ion mobility spectrometry
 
   private final String axisLabel;
   private final String unit;
+  private final String name;
 
-  MobilityType(String axisLabel, String unit) {
+  MobilityType(String axisLabel, String unit, String name) {
     this.axisLabel = axisLabel;
     this.unit = unit;
+    this.name = name;
   }
 
   public String getAxisLabel() {
@@ -54,5 +56,11 @@ public enum MobilityType {
 
   public String getUnit() {
     return unit;
+  }
+
+
+  @Override
+  public String toString() {
+    return name;
   }
 }
