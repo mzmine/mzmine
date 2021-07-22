@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -23,7 +23,6 @@ import java.util.Collection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.CollectionUtils;
 
@@ -34,8 +33,10 @@ import io.github.mzmine.util.CollectionUtils;
 public class LipidClassParameter<ValueType>
     implements UserParameter<ValueType[], LipidClassComponent> {
 
-  private String name, description;
-  private ValueType choices[], values[];
+  private String name;
+  private String description;
+  private ValueType[] choices;
+  private ValueType[] values;
   private int minNumber;
 
   /**
@@ -157,10 +158,6 @@ public class LipidClassParameter<ValueType>
   public boolean checkValue(Collection<String> errorMessages) {
     if (values == null) {
       errorMessages.add(name + " is not set properly");
-      return false;
-    }
-    if (values.length < minNumber) {
-      errorMessages.add("At least " + minNumber + " option(s) must be selected for " + name);
       return false;
     }
     return true;

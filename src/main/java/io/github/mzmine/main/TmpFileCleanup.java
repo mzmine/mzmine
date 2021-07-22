@@ -29,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +71,13 @@ public class TmpFileCleanup implements Runnable {
           // Try to obtain a lock on the file
           RandomAccessFile rac = new RandomAccessFile(remainingTmpFile, "rw");
 
-          FileLock lock = rac.getChannel().tryLock();
+          FileLock lock = null;
+          try {
+            lock = rac.getChannel().tryLock();
+          } catch (OverlappingFileLockException e) {
+            logger.finest("The lock for a temporary file " + remainingTmpFile.getAbsolutePath()
+                + " can not be acquired");
+          }
           rac.close();
 
           if (lock != null) {

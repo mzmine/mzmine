@@ -105,7 +105,7 @@ public class IonNetworkLibrary {
     addModification();
     // print them out
     for (IonType a : allAdducts) {
-      LOG.info(a.toString());
+      LOG.finest("Adding modification: " + a.toString());
     }
   }
 

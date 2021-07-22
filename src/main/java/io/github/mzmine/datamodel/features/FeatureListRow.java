@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -367,4 +368,20 @@ public interface FeatureListRow {
     // should be faster. Best fragmentation loops through all spectra to find best
     return getAllMS2Fragmentations() != null && !getAllMS2Fragmentations().isEmpty();
   }
+
+
+  /**
+   * List of library matches sorted from best (index 0) to last match
+   *
+   * @return list of library matches or an empty list
+   */
+  @NotNull
+  List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+
+  /**
+   * Add annotations from lipid search
+   *
+   * @param matchedLipid the matched lipid
+   */
+  void addLipidAnnotation(MatchedLipid matchedLipid);
 }

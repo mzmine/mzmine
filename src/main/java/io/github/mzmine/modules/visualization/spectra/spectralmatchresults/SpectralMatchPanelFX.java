@@ -82,9 +82,11 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanelFX extends GridPane {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final int ICON_WIDTH = 50;
+  public static final int META_WIDTH = 500;
+  public static final int ENTRY_HEIGHT = 500;
+  public static final int STRUCTURE_HEIGHT = 150;
+  public static final double MIN_COS_COLOR_VALUE = 0.5;
+  public static final double MAX_COS_COLOR_VALUE = 1.0;
   protected static final Image iconAll = FxIconUtil
       .loadImageFromResources("icons/exp_graph_all.png");
   protected static final Image iconPdf = FxIconUtil
@@ -95,44 +97,27 @@ public class SpectralMatchPanelFX extends GridPane {
       .loadImageFromResources("icons/exp_graph_emf.png");
   protected static final Image iconSvg = FxIconUtil
       .loadImageFromResources("icons/exp_graph_svg.png");
-
+  private static final int ICON_WIDTH = 50;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
-
-  private static Font font;
-
-  public static final int META_WIDTH = 500;
-  public static final int ENTRY_HEIGHT = 500;
-  public static final int STRUCTURE_HEIGHT = 150;
-
-  public static final double MIN_COS_COLOR_VALUE = 0.5;
-  public static final double MAX_COS_COLOR_VALUE = 1.0;
-
   // min color is a darker red
   // max color is a darker green
   public static Color MAX_COS_COLOR = Color.web("0x388E3C");
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
-
+  private static Font font;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
-
+  private final SpectralDBFeatureIdentity hit;
   private boolean setCoupleZoomY;
-
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
-
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
   private GridPane pnTitle;
   private GridPane pnExport;
-
   private BorderPane mirrorChartWrapper;
-
   private Label lblScore;
   private Label lblHit;
-
   private EStandardChartTheme theme;
-
-  private final SpectralDBFeatureIdentity hit;
-
   private SpectralMatchPanel swingPanel;
 
   public SpectralMatchPanelFX(SpectralDBFeatureIdentity hit) {
@@ -196,7 +181,7 @@ public class SpectralMatchPanelFX extends GridPane {
     lblScore.getStyleClass().add("white-score-label");
     lblScore
         .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
-            + COS_FORM.format(simScore)));
+                                + COS_FORM.format(simScore)));
 
     pnTitle.add(lblHit, 0, 0);
     pnTitle.add(lblScore, 1, 0);
@@ -424,15 +409,20 @@ public class SpectralMatchPanelFX extends GridPane {
   private void addExportButtons(ParameterSet param) {
     Button btnExport = null;
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
-      ImageView img = new ImageView(iconAll);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("all"));
-      pnExport.add(btnExport, 0, 0);
-    }
+    // TODO does not work - so remove
+//    if (true) {
+//      return;
+//    }
+
+//    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
+//      ImageView img = new ImageView(iconAll);
+//      img.setPreserveRatio(true);
+//      img.setFitWidth(ICON_WIDTH);
+//      btnExport = new Button(null, img);
+//      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+//      btnExport.setOnAction(e -> exportToGraphics("all"));
+//      pnExport.add(btnExport, 0, 0);
+//    }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
       ImageView img = new ImageView(iconPdf);
@@ -464,15 +454,16 @@ public class SpectralMatchPanelFX extends GridPane {
       pnExport.add(btnExport, 0, 3);
     }
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
-      ImageView img = new ImageView(iconSvg);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("svg"));
-      pnExport.add(btnExport, 0, 4);
-    }
+    //TODO SVG broken somehow
+//    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
+//      ImageView img = new ImageView(iconSvg);
+//      img.setPreserveRatio(true);
+//      img.setFitWidth(ICON_WIDTH);
+//      btnExport = new Button(null, img);
+//      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+//      btnExport.setOnAction(e -> exportToGraphics("svg"));
+//      pnExport.add(btnExport, 0, 4);
+//    }
   }
 
   /**

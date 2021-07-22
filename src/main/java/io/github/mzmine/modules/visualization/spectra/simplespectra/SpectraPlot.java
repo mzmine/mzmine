@@ -19,9 +19,15 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraMassListRenderer;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javafx.util.Pair;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -31,10 +37,10 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
@@ -103,6 +109,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   protected EStandardChartTheme theme;
 
+  /**
+   * Contains coordinated of labels for each dataset. It is supposed to be updated by {@link
+   * SpectraItemLabelGenerator}.
+   */
+  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
+
   public SpectraPlot() {
     this(false);
   }
@@ -160,13 +172,14 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // set the X axis (retention time) properties
     NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
     xAxis.setNumberFormatOverride(mzFormat);
-    xAxis.setUpperMargin(0.001);
-    xAxis.setLowerMargin(0.001);
+    xAxis.setUpperMargin(0.01); // have some margin so m/z labels are not cut off
+    xAxis.setLowerMargin(0.01);
     xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
 
     // set the Y axis (intensity) properties
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
     yAxis.setNumberFormatOverride(intensityFormat);
+    yAxis.setUpperMargin(0.1); // some margin for m/z labels
 
     // only allow positive values for the axes
     ChartLogics.setAxesTypesPositive(chart);
@@ -231,6 +244,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
+
+    // If the plot is changed then clear the map containing coordinates of labels. New values will be
+    // added by the SpectraItemLabelGenerator
+    getChart().getXYPlot().addChangeListener(event -> datasetToLabelsCoords.clear());
   }
 
 
@@ -405,23 +422,19 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         newRenderer = new ContinuousRenderer(color, transparency);
         ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);
       }
-
-      // Add label generator for the dataset
-      newRenderer.setDefaultItemLabelGenerator(labelGenerator);
-      newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      if (matchLabelColors.get()) {
-        newRenderer.setDefaultItemLabelPaint(color);
-      }
-
+    } else if (dataSet instanceof MassListDataSet) {
+      newRenderer = new SpectraMassListRenderer(color);
     } else {
       newRenderer = new PeakRenderer(color, transparency);
-      // Add label generator for the dataset
-      newRenderer.setDefaultItemLabelGenerator(labelGenerator);
-      newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-      if (matchLabelColors.get()) {
-        newRenderer.setDefaultItemLabelPaint(color);
-      }
     }
+
+    // Add label generator for the dataset
+    newRenderer.setDefaultItemLabelGenerator(labelGenerator);
+    newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
+    if (matchLabelColors.get()) {
+      newRenderer.setDefaultItemLabelPaint(color);
+    }
+    ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
 
     plot.setDataset(numOfDataSets, dataSet);
     plot.setRenderer(numOfDataSets, newRenderer);
@@ -584,5 +597,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public void setCursorPosition(SpectrumCursorPosition cursorPosition) {
     this.cursorPosition.set(cursorPosition);
+  }
+
+  public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {
+    return datasetToLabelsCoords;
   }
 }

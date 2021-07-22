@@ -18,14 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import java.util.ArrayList;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
@@ -71,13 +72,13 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();
     boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
-    if (!paramsOK)
+    if (!paramsOK) {
       return;
+    }
 
     double[][] mzValues = massDetector.getMassValues(previewScan, parameters);
 
-    MzIntensityDataSet peaksDataSet = new MzIntensityDataSet("Detected peaks",
-        mzValues[0], mzValues[1]);
+    MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 
     spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false);
   }

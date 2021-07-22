@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -76,6 +76,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final double noiseLevel;
   private final int minMatch;
   private List<SpectralDBEntry> list;
+  private final boolean removePrecursor;
 
   private int count = 0;
 
@@ -138,13 +139,18 @@ public class RowsSpectralMatchTask extends AbstractTask {
         parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
     deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
         .getEmbeddedParameters();
+
+    removePrecursor =
+        parameters.getParameter(LocalSpectralDBSearchParameters.removePrecursor).getValue();
+
     cropSpectraToOverlap =
         parameters.getParameter(LocalSpectralDBSearchParameters.cropSpectraToOverlap).getValue();
-    if (msLevel > 1)
+    if (msLevel > 1) {
       mzTolerancePrecursor =
           parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerancePrecursor).getValue();
-    else
+    } else {
       mzTolerancePrecursor = null;
+    }
 
     allMS2Scans = parameters.getParameter(LocalSpectralDBSearchParameters.allMS2Spectra).getValue();
 
@@ -156,8 +162,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return ((double) finishedRows) / totalRows;
   }
 
@@ -194,8 +201,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
         for (Scan scan : scans) {
           // get mass list and perform deisotoping if active
           DataPoint[] rowMassList = getDataPoints(scan, true);
-          if (removeIsotopes)
+          if (removeIsotopes) {
             rowMassList = removeIsotopes(rowMassList);
+          }
           rowMassLists.add(rowMassList);
         }
 
@@ -207,7 +215,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
             SpectralSimilarity sim = spectraDBMatch(row, rowMassLists.get(i), ident);
             if (sim != null
                 && (!needsIsotopePattern || SpectralMatchTask.checkForIsotopePattern(sim,
-                    mzToleranceSpectra, minMatchedIsoSignals))
+                mzToleranceSpectra, minMatchedIsoSignals))
                 && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
               best = new SpectralDBFeatureIdentity(scans.get(i), ident, sim, METHOD);
             }
@@ -235,8 +243,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
       // next row
       finishedRows++;
     }
-    if (count > 0)
+    if (count > 0) {
       logger.info("Added " + count + " spectral library matches");
+    }
 
     list = null;
 
@@ -246,15 +255,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private void addRowTypes() {
     // modular feature list?
     Arrays.stream(rows).filter(row -> row.getFeatureList() instanceof ModularFeatureList)
-            .map(row -> (ModularFeatureList) row.getFeatureList()).findFirst()
-            .ifPresent(featureList -> {
-              featureList.addRowType(new SpectralLibraryMatchType());
-            });
+        .map(row -> (ModularFeatureList) row.getFeatureList()).findFirst()
+        .ifPresent(featureList -> {
+          featureList.addRowType(new SpectralLibraryMatchType());
+        });
   }
 
   /**
    * Remove 13C isotopes from masslist
-   * 
+   *
    * @param a
    * @return
    */
@@ -263,7 +272,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   /**
-   * 
    * @param row
    * @param ident
    * @return spectral similarity or null if no match
@@ -274,8 +282,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
     // MS level 1 or check precursorMZ
     if (checkRT(row, ident) && (msLevel == 1 || checkPrecursorMZ(row, ident))) {
       DataPoint[] library = ident.getDataPoints();
-      if (removeIsotopes)
+      if (removeIsotopes) {
         library = removeIsotopes(library);
+      }
 
       // crop the spectra to their overlapping mz range
       // helpful when comparing spectra, acquired with different
@@ -287,6 +296,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
         query = cropped[1];
       }
 
+      // remove precursor signals
+      if (msLevel > 1 && removePrecursor && ident.getPrecursorMZ() != null) {
+        // precursor mz from library entry for signal filtering
+        double precursorMZ = ident.getPrecursorMZ();
+        // remove from both spectra
+        library = removePrecursor(library, precursorMZ);
+        query = removePrecursor(query, precursorMZ);
+      }
+
       // check spectra similarity
       SpectralSimilarity sim = createSimilarity(library, query);
       if (sim != null) {
@@ -296,9 +314,22 @@ public class RowsSpectralMatchTask extends AbstractTask {
     return null;
   }
 
+
+  private DataPoint[] removePrecursor(DataPoint[] masslist, double precursorMZ) {
+    List<DataPoint> filtered = new ArrayList<DataPoint>();
+    for (DataPoint dp : masslist) {
+      double mz = dp.getMZ();
+      // skip precursor mz
+      if (!mzTolerancePrecursor.checkWithinTolerance(mz, precursorMZ)) {
+        filtered.add(dp);
+      }
+    }
+    return filtered.toArray(new DataPoint[filtered.size()]);
+  }
+
   /**
    * Uses the similarity function and filter to create similarity.
-   * 
+   *
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
@@ -307,22 +338,24 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   private boolean checkPrecursorMZ(FeatureListRow row, SpectralDBEntry ident) {
-    if (ident.getPrecursorMZ() == null)
+    if (ident.getPrecursorMZ() == null) {
       return false;
-    else
+    } else {
       return mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
+    }
   }
 
   private boolean checkRT(FeatureListRow row, SpectralDBEntry ident) {
-    if(!useRT)
+    if (!useRT) {
       return true;
+    }
     Float rt = (Float) ident.getField(DBEntryField.RT).orElse(null);
     return (rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT()));
   }
 
   /**
    * Thresholded masslist
-   * 
+   *
    * @return
    * @throws MissingMassListException
    */
@@ -346,9 +379,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
       // first entry is the best scan
       List<Scan> scans = ScanUtils.listAllFragmentScans(row, noiseLevel, minMatch,
           ScanSortMode.MAX_TIC);
-      if (allMS2Scans)
+      if (allMS2Scans) {
         return scans;
-      else {
+      } else {
         // only keep first (with highest TIC)
         while (scans.size() > 1) {
           scans.remove(1);
@@ -362,8 +395,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
     // add new identity to the row
     row.addSpectralLibraryMatch(pid);
 
-    if (matchListener != null)
+    if (matchListener != null) {
       matchListener.accept(pid);
+    }
   }
 
   public int getCount() {

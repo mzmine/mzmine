@@ -19,9 +19,9 @@
 package io.github.mzmine.util;
 
 public enum FeatureMeasurementType {
-
-  HEIGHT("Feature height"), //
-  AREA("Feature area");
+  // needs to be named Peak for GNPS (for now)
+  HEIGHT("Peak height"), //
+  AREA("Peak area");
 
   private final String name;
 

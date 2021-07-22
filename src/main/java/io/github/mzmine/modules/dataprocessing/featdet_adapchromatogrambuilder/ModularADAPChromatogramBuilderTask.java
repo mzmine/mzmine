@@ -149,6 +149,13 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     logger.info(() -> "Started chromatogram builder on " + dataFile);
 
     scans = scanSelection.getMatchingScans(dataFile);
+    if (scans.length == 0) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
+          + "with \"Set filters\" in the \"Scans\" parameter.");
+      return;
+    }
+
     List<Float> rtListForChromCDF = new ArrayList<>();
 
     // Check if the scans are properly ordered by RT
@@ -211,8 +218,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         scan = scanData.nextScan();
       } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Scan " + dataFile + " #" + scan.getScanNumber()
-                        + " does not have a mass list");
+        setErrorMessage("Scan #" + scanData.getCurrentScan().getScanNumber() + " from " + dataFile.getName()
+                        + " does not have a mass list. Pleas run \"Raw data methods\" -> \"Mass detection\".");
         e.printStackTrace();
         return;
       }

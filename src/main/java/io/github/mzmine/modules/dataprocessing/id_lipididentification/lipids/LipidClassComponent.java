@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -51,13 +51,13 @@ public class LipidClassComponent extends BorderPane {
    */
   public LipidClassComponent(final Object[] theChoices) {
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
-
     // Don't show the root item
     lipidChoices.setShowRoot(false);
+    lipidChoices.setMinWidth(600);
+    lipidChoices.setMinHeight(200);
 
     // Load all lipid classes
-    LipidCoreClasses coreClass = null;
+    LipidCategories coreClass = null;
     LipidMainClasses mainClass = null;
     CheckBoxTreeItem<Object> coreClassItem = null;
     CheckBoxTreeItem<Object> mainClassItem = null;
@@ -71,7 +71,7 @@ public class LipidClassComponent extends BorderPane {
         rootItem.getChildren().add(coreClassItem);
       }
 
-      if (lipidClass.getMainClass() != mainClass) {
+      if (lipidClass.getMainClass() != mainClass && coreClassItem != null) {
         mainClassItem = new CheckBoxTreeItem<>(lipidClass.getMainClass());
         mainClassItem.setExpanded(true);
         mainClass = lipidClass.getMainClass();
@@ -80,7 +80,9 @@ public class LipidClassComponent extends BorderPane {
 
       classItem = new CheckBoxTreeItem<>(lipidClass);
       classToItemMap.put(lipidClass, classItem);
-      mainClassItem.getChildren().add(classItem);
+      if (mainClassItem != null) {
+        mainClassItem.getChildren().add(classItem);
+      }
 
     }
 
@@ -91,11 +93,11 @@ public class LipidClassComponent extends BorderPane {
     setCenter(buttonsPanel);
     selectAllButton.setTooltip(new Tooltip("Select all choices"));
     selectAllButton.setOnAction(e -> {
-      lipidChoices.getSelectionModel().selectAll();
+      lipidChoices.getCheckModel().checkAll();
     });
     selectNoneButton.setTooltip(new Tooltip("Clear all selections"));
     selectNoneButton.setOnAction(e -> {
-      lipidChoices.getSelectionModel().clearSelection();
+      lipidChoices.getCheckModel().clearChecks();
     });
 
   }
@@ -108,11 +110,9 @@ public class LipidClassComponent extends BorderPane {
   public Object[] getValue() {
 
     var checkedItems = lipidChoices.getCheckModel().getCheckedItems();
-    Object[] checkedLipidClasses =
-        checkedItems.stream().filter(item -> item.getValue() instanceof LipidClasses)
-            .map(item -> item.getValue()).collect(Collectors.toList()).toArray();
+    return checkedItems.stream().filter(item -> item.getValue() instanceof LipidClasses)
+        .map(item -> item.getValue()).collect(Collectors.toList()).toArray();
 
-    return checkedLipidClasses;
   }
 
   /**

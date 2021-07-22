@@ -253,6 +253,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     if (binWidth == null) {
       logger.info(
           () -> "Previous binning width not recognised. Has the mobility type been implemented?");
+      binWidth = getRecommendedBinWidth((IMSRawDataFile) flist.getRawDataFile(0));
     }
     return binWidth;
   }

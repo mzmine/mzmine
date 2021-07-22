@@ -30,6 +30,7 @@
 package io.github.mzmine.modules.io.export_gnps.fbmn;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
@@ -104,9 +105,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
 
     featureMeasure =
-        parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
 
-    List<AbstractTask> list = new ArrayList<>(3);
+    List<AbstractTask> list = new ArrayList<>(4);
     GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
     list.add(task);
 
@@ -114,6 +115,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     list.add(addLegacyQuantTableTask(parameters, null));
     // add new csv export for whole table
     list.add(addFullQuantTableTask(parameters, null));
+
+    // add csv extra edges
+    list.add(addExtraEdgesTask(parameters, null));
 
     // finish listener to submit
     final File fileName = file;
@@ -229,7 +233,13 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     // add old CSV export
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
-        LegacyExportRowCommonElement.ROW_RT};
+        LegacyExportRowCommonElement.ROW_RT,
+        // extra for ion identity networking
+        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID, LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
+        LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
+        LegacyExportRowCommonElement.ROW_NEUTRAL_MASS};
+
+    // per raw data file
     LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]
         {featureMeasure.equals(FeatureMeasurementType.AREA)
             ? LegacyExportRowDataFileElement.FEATURE_AREA
@@ -249,6 +259,36 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
       tasks.add(quanExport);
     }
     return quanExport;
+  }
+
+
+  /**
+   * Export extra edges (wont create files if empty)
+   *
+   * @param parameters
+   * @param tasks
+   */
+  private AbstractTask addExtraEdgesTask(ParameterSet parameters, Collection<Task> tasks) {
+    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
+    FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
+        .getValue();
+    boolean mergeLists =
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue();
+
+    boolean exAnn = true;
+    if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue()) {
+      exAnn = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters()
+          .getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
+    }
+    ModularFeatureList[] flist = parameters
+        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
+        .getMatchingFeatureLists();
+
+    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false);
+
+    if (tasks != null)
+      tasks.add(extraEdgeExport);
+    return extraEdgeExport;
   }
 
 }

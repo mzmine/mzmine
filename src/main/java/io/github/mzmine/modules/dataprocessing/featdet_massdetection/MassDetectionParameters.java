@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
@@ -51,7 +52,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   public static final MassDetector massDetectors[] =
       {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-          new RecursiveMassDetector(), new WaveletMassDetector()};
+          new RecursiveMassDetector(), new WaveletMassDetector(), new AutoMassDetector()};
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
@@ -60,7 +61,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<MassDetector> massDetector =
       new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+          "Algorithm to use for mass detection and its parameters.", massDetectors);
 
   public static final FileNameParameter outFilename =
       new FileNameParameter("Output netCDF filename (optional)",

@@ -32,7 +32,6 @@ public interface MassDetector extends MZmineModule {
    * Returns mass and intensity values detected in given spectrum
    *
    * @param spectrum
-   * @param parameters
    * @return [mzs, intensities][data]
    */
   double[][] getMassValues(MassSpectrum spectrum, ParameterSet parameters);

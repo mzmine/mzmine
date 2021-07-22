@@ -80,7 +80,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     heatmap.setDomainAxisNumberFormatOverride(mzFormat);
     heatmap.setRangeAxisLabel("Mobility");
     heatmap.setRangeAxisNumberFormatOverride(mobilityFormat);
-    heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "counts"));
+    heatmap.setLegendAxisLabel(unitFormat.format("Intensity", "a.u."));
     heatmap.setLegendNumberFormatOverride(intensityFormat);
     heatmap.getXYPlot().setBackgroundPaint(Color.BLACK);
     heatmap.getXYPlot().setDomainCrosshairPaint(Color.LIGHT_GRAY);

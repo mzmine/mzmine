@@ -67,9 +67,6 @@ public class MassCalibrationTask extends AbstractTask {
   private final ParameterSet parameters;
   private final RawDataFile dataFile;
 
-  // User parameters
-  private final String suffix;
-
   // scan counter
   protected int processedScans = 0, totalScans;
   protected ObservableList<Scan> scanNumbers;
@@ -114,7 +111,6 @@ public class MassCalibrationTask extends AbstractTask {
     this.storageMemoryMap = storageMemoryMap;
     this.previewRun = previewRun;
 
-    this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
@@ -218,7 +214,7 @@ public class MassCalibrationTask extends AbstractTask {
     scanNumbers = dataFile.getScans();
     totalScans = scanNumbers.size();
 
-    // Check if we have at least one scan with a mass list of given name
+    // Check if we have at least one scan with a mass list
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
       Scan scan = scanNumbers.get(i);

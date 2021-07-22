@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -75,6 +77,7 @@ public class ParameterSetupDialog extends Stage {
   protected final ButtonBar pnlButtons;
   // Footer message
   protected final String footerMessage;
+
   /**
    * This single panel contains a grid of all the components of this dialog. Row number 100 contains
    * all the buttons of the dialog. Derived classes may add their own components such as previews to
@@ -102,6 +105,7 @@ public class ParameterSetupDialog extends Stage {
    */
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
+  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty(false);
 
 
   /**
@@ -308,7 +312,7 @@ public class ParameterSetupDialog extends Stage {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  protected void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
@@ -326,6 +330,28 @@ public class ParameterSetupDialog extends Stage {
       // component
       if (component != null) {
         up.setValueFromComponent(component);
+      }
+    }
+  }
+
+  public void setParameterValuesToComponents() {
+    for (Parameter<?> p : parameterSet.getParameters()) {
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
+        continue;
+      }
+      UserParameter up;
+      if (p instanceof UserParameter) {
+        up = (UserParameter) p;
+      } else {
+        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+      }
+
+      Node component = parametersAndComponents.get(p.getName());
+
+      // if a parameter is a HiddenParameter it does not necessarily have
+      // component
+      if (component != null) {
+        up.setValueToComponent(component, up.getValue());
       }
     }
   }
@@ -416,5 +442,16 @@ public class ParameterSetupDialog extends Stage {
         addToolTipToControls(child, toolTipText);
       }
     }
+  }
+
+  /**
+   * @see ParameterSet#parametersChangeProperty()
+   */
+  public BooleanProperty parametersChangeProperty() {
+    return parametersChangeProperty;
+  }
+
+  public GridPane getParamsPane() {
+    return paramsPane;
   }
 }

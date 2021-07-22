@@ -45,6 +45,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,6 +76,7 @@ public class SpectralMatchTask extends AbstractTask {
   private final int minMatch;
   private List<SpectralDBEntry> list;
   private int totalSteps;
+  private final boolean removePrecursor;
 
   private List<SpectralDBFeatureIdentity> matches;
   private SpectraIdentificationResultsWindowFX resultWindow;
@@ -152,6 +154,9 @@ public class SpectralMatchTask extends AbstractTask {
     cropSpectraToOverlap = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.cropSpectraToOverlap)
         .getValue();
+
+    removePrecursor =
+        parameters.getParameter(LocalSpectralDBSearchParameters.removePrecursor).getValue();
   }
 
   /**
@@ -209,7 +214,8 @@ public class SpectralMatchTask extends AbstractTask {
 
         SpectralSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null && (!needsIsotopePattern
-            || checkForIsotopePattern(sim, mzToleranceSpectra, minMatchedIsoSignals))) {
+                            || checkForIsotopePattern(sim, mzToleranceSpectra,
+            minMatchedIsoSignals))) {
           count++;
           // use SpectralDBFeatureIdentity to store all results similar
           // to peaklist method
@@ -303,10 +309,24 @@ public class SpectralMatchTask extends AbstractTask {
         query = cropped[1];
       }
 
+      if (usePrecursorMZ && removePrecursor && ident.getPrecursorMZ() != null) {
+        // precursor mz from library entry for signal filtering
+        double precursorMZ = ident.getPrecursorMZ();
+        // remove from both spectra
+        library = removePrecursor(library, precursorMZ);
+        query = removePrecursor(query, precursorMZ);
+      }
+
       // check spectra similarity
       return createSimilarity(library, query);
     }
     return null;
+  }
+
+  private DataPoint[] removePrecursor(DataPoint[] masslist, double precursorMZ) {
+    return Arrays.stream(masslist)
+        .filter(dp -> !mzTolerancePrecursor.checkWithinTolerance(dp.getMZ(), precursorMZ))
+        .toArray(DataPoint[]::new);
   }
 
   /**
@@ -333,7 +353,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   private boolean checkPrecursorMZ(double precursorMZ, SpectralDBEntry ident) {
     return ident.getPrecursorMZ() != null
-        && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
+           && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
   }
 
   /**

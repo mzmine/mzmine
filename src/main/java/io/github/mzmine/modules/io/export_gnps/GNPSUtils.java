@@ -71,6 +71,7 @@ public class GNPSUtils {
     boolean useMeta = param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getValue();
     boolean openWebsite = param.getParameter(GnpsFbmnSubmitParameters.OPEN_WEBSITE).getValue();
     String presets = param.getParameter(GnpsFbmnSubmitParameters.PRESETS).getValue().toString();
+    boolean exportIIN = param.getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
     String title = param.getParameter(GnpsFbmnSubmitParameters.JOB_TITLE).getValue();
     String email = param.getParameter(GnpsFbmnSubmitParameters.EMAIL).getValue();
     String username = param.getParameter(GnpsFbmnSubmitParameters.USER).getValue();
@@ -84,14 +85,18 @@ public class GNPSUtils {
 
     // NEEDED files
     if (mgf.exists() && quan.exists()) {
+      File meta = !useMeta ? null
+          : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
+              .getValue();
+      File iinEdges = !exportIIN ? null
+          : FileAndPathUtil.getRealFilePath(folder, name + "_edges_msannotation", "csv");;
 
+      return submitFbmnJob(mgf, quan, meta, new File[]{iinEdges}, title, email, username, password, presets,
+          openWebsite);
     }
-    File meta = !useMeta ? null
-        : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
-            .getValue();
-
-    return submitFbmnJob(mgf, quan, meta, null, title, email, username, password, presets,
-        openWebsite);
+    else {
+      return "";
+    }
   }
 
   /**

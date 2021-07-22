@@ -26,6 +26,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.scene.control.CheckBox;
+import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.plot.ValueMarker;
@@ -90,6 +93,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   protected FlowPane pnSpectrumControls;
   protected ChromatogramPlotControlPane pnChromControls;
+  protected BooleanProperty showMassListProperty;
 
   protected final TICPlot chromPlot;
   protected final SpectraPlot spectrumPlot;
@@ -209,7 +213,10 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
         }
       }
     });
-    FlowPane pnChromHeader = new FlowPane(new Label("Chromatrogram view"));
+    Label labelChromatogram = new Label("Chromatrogram view");
+    labelChromatogram.setStyle("-fx-font-weight: bold");
+    FlowPane pnChromHeader = new FlowPane(labelChromatogram);
+    pnChromHeader.setAlignment(Pos.CENTER_LEFT);
     StackPane pnChromStack = new StackPane();
     pnChromStack.setAlignment(Pos.TOP_RIGHT);
     pnChromStack.setPadding(new Insets(5));
@@ -220,13 +227,29 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     ChoiceBox<SpectrumPlotType> cbSpectrumType =
         new ChoiceBox<>(FXCollections.observableArrayList(SpectrumPlotType.values()));
     cbSpectrumType.valueProperty().bindBidirectional(spectrumPlot.plotModeProperty());
-    StackPane pnSpectrumStack = new StackPane();
-    pnSpectrumStack.setAlignment(Pos.TOP_RIGHT);
-    pnSpectrumStack.setPadding(new Insets(5));
-    FlowPane pnSpectrumHeader = new FlowPane(new Label("Spectrum view"));
+    cbSpectrumType.setMinSize(ChoiceBox.USE_PREF_SIZE, ChoiceBox.USE_PREF_SIZE);
+    HBox hBoxSpectrum = new HBox();
+    hBoxSpectrum.setAlignment(Pos.TOP_RIGHT);
+    hBoxSpectrum.setPadding(new Insets(5));
+    Label labelSpectrum = new Label("Spectrum view");
+    labelSpectrum.setStyle("-fx-font-weight: bold");
+    FlowPane pnSpectrumHeader = new FlowPane(labelSpectrum);
     pnSpectrumHeader.setPadding(new Insets(5));
-    pnSpectrumStack.getChildren().addAll(pnSpectrumHeader, cbSpectrumType);
-    pnWrapSpectrum.setTop(pnSpectrumStack);
+    CheckBox checkBoxShowMassList = new CheckBox("Show mass list");
+    checkBoxShowMassList.setMinSize(ChoiceBox.USE_PREF_SIZE, CheckBox.USE_PREF_SIZE);
+    HBox hBoxSpectrumSetup = new HBox();
+    hBoxSpectrumSetup.setSpacing(10);
+    hBoxSpectrumSetup.setAlignment(Pos.BASELINE_RIGHT);
+    hBoxSpectrumSetup.getChildren().addAll(checkBoxShowMassList, cbSpectrumType);
+    hBoxSpectrum.getChildren().addAll(pnSpectrumHeader, hBoxSpectrumSetup);
+    pnWrapSpectrum.setTop(hBoxSpectrum);
+
+    showMassListProperty = checkBoxShowMassList.selectedProperty();
+    showMassListProperty.addListener((observable, oldValue, newValue) -> {
+      if (filesAndDataSets != null && chromPosition.getValue() != null) {
+        updateSpectraPlot(filesAndDataSets.keySet(), chromPosition.getValue());
+      }
+    });
 
     chromPlot.setLabelColorMatch(true);
     spectrumPlot.setLabelColorMatch(true);
@@ -554,7 +577,7 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void updateSpectraPlot(@NotNull Collection<RawDataFile> rawDataFiles,
       @NotNull ChromatogramCursorPosition pos) {
     SpectraDataSetCalc thread = new SpectraDataSetCalc(rawDataFiles, pos, getScanSelection(),
-        showSpectraOfEveryRawFile, getSpectrumPlot());
+        showSpectraOfEveryRawFile, getSpectrumPlot(), showMassListProperty);
 
     thread.addTaskStatusListener((task, newStatus, oldStatus) -> {
       // logger

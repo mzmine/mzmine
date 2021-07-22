@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -35,9 +35,9 @@ public class AllLipidClasses {
    */
   public static List<Object> getList() {
     LipidMainClasses lastMain = null;
-    LipidCoreClasses lastCore = null;
+    LipidCategories lastCore = null;
     for (LipidClasses classes : LipidClasses.values()) {
-      LipidCoreClasses core = classes.getCoreClass();
+      LipidCategories core = classes.getCoreClass();
       LipidMainClasses main = classes.getMainClass();
       if (lastCore == null || !core.equals(lastCore)) {
         lastCore = core;

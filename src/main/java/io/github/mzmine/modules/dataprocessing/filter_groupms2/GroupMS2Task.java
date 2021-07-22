@@ -67,6 +67,7 @@ public class GroupMS2Task extends AbstractTask {
   private RTTolerance rtTol;
   private MZTolerance mzTol;
   private boolean limitRTByFeature;
+  private boolean lockToFeatureMobilityRange;
   private final boolean combineTimsMS2;
 
   /**
@@ -86,6 +87,8 @@ public class GroupMS2Task extends AbstractTask {
     mzTol = parameters.getParameter(GroupMS2Parameters.mzTol).getValue();
     limitRTByFeature = parameters.getParameter(GroupMS2Parameters.limitRTByFeature).getValue();
     combineTimsMS2 = parameterSet.getParameter(GroupMS2Parameters.combineTimsMsMs).getValue();
+    lockToFeatureMobilityRange = parameterSet
+        .getParameter(GroupMS2Parameters.lockMS2ToFeatureMobilityRange).getValue();
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -120,8 +123,8 @@ public class GroupMS2Task extends AbstractTask {
         processedRows++;
       }
 
-      list.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          GroupMS2Module.class, parameters));
+      list.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters));
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished adding all MS2 scans to their features in " + list.getName());
 
@@ -150,8 +153,7 @@ public class GroupMS2Task extends AbstractTask {
         Range<Float> rtRange = f.getRawDataPointsRTRange();
 
         List<Scan> scans = ScanUtils.streamScans(raw, 2)
-            .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(
-                Collectors.toList());
+            .filter(scan -> filterScan(scan, frt, fmz, rtRange)).collect(Collectors.toList());
 
         // set list to feature
         f.setAllMS2FragmentScans(FXCollections.observableArrayList(scans));
@@ -161,12 +163,10 @@ public class GroupMS2Task extends AbstractTask {
     }
   }
 
-  private boolean filterScan(Scan scan, float frt, double fmz,
-      Range<Float> rtRange) {
-    return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
-        && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
-        && scan.getPrecursorMZ() != 0
-        && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ());
+  private boolean filterScan(Scan scan, float frt, double fmz, Range<Float> rtRange) {
+    return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime())) && rtTol
+        .checkWithinTolerance(frt, scan.getRetentionTime()) && scan.getPrecursorMZ() != 0 && mzTol
+        .checkWithinTolerance(fmz, scan.getPrecursorMZ());
   }
 
   private void processTimsFeature(ModularFeature feature) {
@@ -176,16 +176,17 @@ public class GroupMS2Task extends AbstractTask {
     Range<Float> rtRange = feature.getRawDataPointsRTRange();
     Float mobility = feature.getMobility();
 
-    List<? extends Scan> scans = feature.getRawDataFile().getScans().stream()
-        .filter(scan -> rtTol.checkWithinTolerance(frt, scan.getRetentionTime())
-            && scan.getMSLevel() == 2).collect(Collectors.toList());
+    final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream().filter(
+        scan -> (!limitRTByFeature && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) || (
+            limitRTByFeature && rtRange.contains(scan.getRetentionTime())))
+        .collect(Collectors.toList());
 
     if (scans.isEmpty() || !(scans.get(0) instanceof Frame)) {
       return;
     }
 
-    List<Frame> frames = (List<Frame>) scans;
-    List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
+    final List<Frame> frames = (List<Frame>) scans;
+    final List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
     for (Frame frame : frames) {
       frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
         if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
@@ -208,12 +209,13 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
 
-    MZTolerance mergeTol = new MZTolerance(0.008, 25);
+    final MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
     for (ImsMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
           .getMergedMsMsSpectrumForPASEF(info, mergeTol, MergingType.SUMMED,
-              ((ModularFeatureList) list).getMemoryMapStorage());
+              ((ModularFeatureList) list).getMemoryMapStorage(),
+              lockToFeatureMobilityRange ? feature.getMobilityRange() : null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
@@ -235,6 +237,5 @@ public class GroupMS2Task extends AbstractTask {
           .max(Comparator.comparingDouble(Scan::getTIC)).orElse(null);
       feature.setFragmentScan(best);
     }
-
   }
 }
