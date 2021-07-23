@@ -374,7 +374,7 @@ public class BatchWizardController {
         .setParameter(MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, 0.95);
     param.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE,
         (double) hplcParam.getParameter(BatchWizardHPLCParameters.approximateChromatographicFWHM)
-            .getValue().getTolerance());
+            .getValue().getToleranceInMinutes());
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.minimumFeatureHeight)
