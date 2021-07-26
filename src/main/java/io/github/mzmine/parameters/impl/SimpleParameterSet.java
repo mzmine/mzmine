@@ -231,7 +231,7 @@ public class SimpleParameterSet implements ParameterSet {
     for (RawDataFile file : rawDataFiles) {
       if (!(file instanceof IMSRawDataFile)) {
         onlyImsFiles = false;
-        errorMessages.add("Non-ion mobility spectrometry files: " + file.getName());
+        //errorMessages.add("Non-ion mobility spectrometry files: " + file.getName());
       } else {
         containsImsFile = true;
       }
