@@ -122,7 +122,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     final long numTdf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TDF))
         .count();
     if (numTdf > 0) {
-      TDFUtils.setDefaultNumThreads((int) (fileNames.length / numTdf));
+      TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
+          .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
     }
 
     for (int i = 0; i < fileNames.length; i++) {
