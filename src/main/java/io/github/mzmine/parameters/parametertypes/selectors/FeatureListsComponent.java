@@ -48,18 +48,18 @@ public class FeatureListsComponent extends BorderPane {
     setLeft(numPeakListsLabel);
 
     detailsButton = new Button("...");
-    detailsButton.setDisable(true);
     setRight(detailsButton);
 
     typeCombo = new ComboBox<>(FXCollections.observableArrayList(FeatureListsSelectionType.values()));
-    typeCombo.setOnAction(e -> {
-      FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
-      currentValue.setSelectionType(type);
-      detailsButton.setDisable((type != FeatureListsSelectionType.NAME_PATTERN)
-          && (type != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
+    typeCombo.getSelectionModel().selectFirst();
+
+    typeCombo.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+      currentValue.setSelectionType(newValue);
+      detailsButton.setDisable((newValue != FeatureListsSelectionType.NAME_PATTERN)
+          && (newValue != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
       updateNumPeakLists();
     });
-    typeCombo.getSelectionModel().selectFirst();
+
     setCenter(typeCombo);
 
     detailsButton.setOnAction(e -> {
