@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeChart;
@@ -27,15 +26,9 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
-import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
-import io.github.mzmine.util.FeatureUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -94,18 +87,8 @@ public class FeatureShapeType extends LinkedDataType
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> rawDataFiles) {
 
-    List<Feature> features = new ArrayList<>();
-    rawDataFiles.forEach(rawDataFile -> features.add(row.getFeature(rawDataFile)));
-    if (features.isEmpty()) {
-      return null;
-    }
     return () -> {
-      ScanSelection selection = new ScanSelection(1);
-      Map<Feature, String> labels = new HashMap<>();
-      features.forEach(f -> labels.put(f, FeatureUtils.featureToString(f)));
-      ChromatogramVisualizerModule
-          .showNewTICVisualizerWindow(rawDataFiles.toArray(new RawDataFile[0]), features, labels,
-              selection, TICPlotType.BASEPEAK, rawDataFiles.get(0).getDataMZRange(1));
+      MZmineCore.runLater(() -> ChromatogramVisualizerModule.visualizeFeatureListRows(List.of(row)));
     };
   }
 
