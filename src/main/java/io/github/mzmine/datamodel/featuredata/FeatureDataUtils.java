@@ -53,6 +53,11 @@ public class FeatureDataUtils {
   private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
 
   /**
+   * The default {@link CenterMeasure} for weighting and calculating feature m/z values.
+   */
+  public static final CenterMeasure DEFAULT_CENTER_MEASURE = CenterMeasure.AVG;
+
+  /**
    * The Rt range of the series.
    *
    * @param series The series, sorted ascending.
@@ -199,7 +204,7 @@ public class FeatureDataUtils {
     for (int i = 1; i < series.getNumberOfValues(); i++) {
       final double thisIntensity = intensities.get(i);
       final float thisRT = scans.get(i).getRetentionTime();
-      area += (thisRT - lastRT) * ((float)(thisIntensity + lastIntensity)) / 2.0;
+      area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
       lastRT = thisRT;
     }
@@ -227,15 +232,18 @@ public class FeatureDataUtils {
    * @param feature The feature.
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature) {
-    recalculateIonSeriesDependingTypes(feature, CenterMeasure.AVG);
+    recalculateIonSeriesDependingTypes(feature, DEFAULT_CENTER_MEASURE, true);
   }
 
   /**
-   * @param feature The feature
-   * @param cm      Center measure for m/z calculation. Defualt = {@link CenterMeasure#AVG}
+   * @param feature     The feature
+   * @param cm          Center measure for m/z calculation. Default = {@link
+   *                    FeatureDataUtils#DEFAULT_CENTER_MEASURE}
+   * @param calcQuality specifies if quality parameters (FWHM, asymmetry, tailing) shall be
+   *                    calculated.
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
-      @NotNull final CenterMeasure cm) {
+      @NotNull final CenterMeasure cm, boolean calcQuality) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
@@ -259,23 +267,14 @@ public class FeatureDataUtils {
       feature.setMobility(calculateMobility(summedMobilogram));
     }
 
-    float fwhm = QualityParameters.calculateFWHM(feature);
-    if (!Float.isNaN(fwhm)) {
-      feature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(feature);
-    if (!Float.isNaN(tf)) {
-      feature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(feature);
-    if (!Float.isNaN(af)) {
-      feature.set(AsymmetryFactorType.class, af);
+    if (calcQuality) {
+      calculateQualityParameters(feature);
     }
   }
 
   /**
    * @param series the series
-   * @param <T> Any series extending {@link IntensitySeries} and {@link MobilitySeries}.
+   * @param <T>    Any series extending {@link IntensitySeries} and {@link MobilitySeries}.
    * @return The mobility value (highest intensity).
    */
   public static <T extends IntensitySeries & MobilitySeries> float calculateMobility(T series) {
@@ -321,5 +320,18 @@ public class FeatureDataUtils {
     return smallestDelta;
   }
 
-
+  private static void calculateQualityParameters(@NotNull ModularFeature feature) {
+    float fwhm = QualityParameters.calculateFWHM(feature);
+    if (!Float.isNaN(fwhm)) {
+      feature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(feature);
+    if (!Float.isNaN(tf)) {
+      feature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(feature);
+    if (!Float.isNaN(af)) {
+      feature.set(AsymmetryFactorType.class, af);
+    }
+  }
 }
