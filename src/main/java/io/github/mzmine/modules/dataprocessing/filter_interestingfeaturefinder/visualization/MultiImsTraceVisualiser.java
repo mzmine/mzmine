@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.visualization;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -127,8 +128,19 @@ public class MultiImsTraceVisualiser extends BorderPane {
     if (oldValue != newFile) {
       ticChart.removeDataSet(ticDatasetIndex, false);
     }
-    final TICDataSet dataSet = new TICDataSet(newFile, newFile.getScanNumbers(1),
-        newFile.getDataMZRange(), null, TICPlotType.BASEPEAK);
+    Range<Double> bpcMzRange = newFile.getDataMZRange();
+    if (!getFeatures().isEmpty() && newFile != null) {
+      double min = getFeatures().stream()
+          .mapToDouble(f -> f.getRawDataPointsMZRange().lowerEndpoint()).min()
+          .orElseGet(() -> newFile.getDataMZRange().lowerEndpoint());
+      double max = getFeatures().stream()
+          .mapToDouble(f -> f.getRawDataPointsMZRange().lowerEndpoint()).min()
+          .orElseGet(() -> newFile.getDataMZRange().upperEndpoint());
+      bpcMzRange = Range.closed(min, max);
+    }
+
+    final TICDataSet dataSet = new TICDataSet(newFile, newFile.getScanNumbers(1), bpcMzRange, null,
+        TICPlotType.BASEPEAK);
     TICPlotRenderer renderer = new TICPlotRenderer();
     renderer.setSeriesPaint(0,
         MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT());
@@ -154,7 +166,7 @@ public class MultiImsTraceVisualiser extends BorderPane {
 
     for (ModularFeature feature : features) {
       var clr = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
-      if(clr.equals(javafx.scene.paint.Color.BLACK)) {
+      if (clr.equals(javafx.scene.paint.Color.BLACK)) {
         clr = MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor();
       }
 

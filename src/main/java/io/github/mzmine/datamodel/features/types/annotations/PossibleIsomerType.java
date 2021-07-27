@@ -40,6 +40,25 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   }
 
   @Override
+  public @NotNull String getFormattedString(@Nullable Object value) {
+    if (value == null) {
+      return "";
+    }
+    if (value instanceof List list) {
+      return list.isEmpty() ? "" : list.size() + ": " + list.toString();
+    }
+    if (value instanceof ListProperty list) {
+      return list.isEmpty() ? "" : list.size() + ": " + list.toString();
+    }
+    return super.getFormattedString(value);
+  }
+
+  @Override
+  public @NotNull String getFormattedString(@NotNull ListProperty<Integer> property) {
+    return property.isEmpty() ? "" : property.size() + ": " + property.toString();
+  }
+
+  @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file) {
 
@@ -52,11 +71,15 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
 
       final ModularFeatureList flist = row.getFeatureList();
       final List<ModularFeatureListRow> isomerRows = new ArrayList<>();
+      isomerRows.addAll(isomerIds.stream()
+          .<ModularFeatureListRow>map(id -> (ModularFeatureListRow) flist.findRowByID(id))
+          .filter(r -> r != null).distinct().toList());
       isomerRows.add(row);
-      isomerRows.addAll(flist.modularStream().filter(r -> isomerIds.contains(r.getID())).toList());
+//      isomerRows.addAll(flist.modularStream().filter(r -> isomerIds.contains(r.getID())).toList());
+//      isomerRows.addAll(flist.modularStream().filter(r -> isomerIds.contains(r.getID())).toList());
 
       // recursively add new isomer ids
-      boolean isomerFound = true;
+      /*boolean isomerFound = true;
       while (isomerFound) {
         isomerFound = false;
 
@@ -77,7 +100,7 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
         isomerIds.addAll(newIsomerIds);
         isomerRows
             .addAll(flist.modularStream().filter(r -> newIsomerIds.contains(r.getID())).toList());
-      }
+      }*/
 
       final MultiImsTraceVisualizerTab tab = new MultiImsTraceVisualizerTab();
 

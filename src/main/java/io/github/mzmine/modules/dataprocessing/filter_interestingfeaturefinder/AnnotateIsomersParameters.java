@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -49,9 +50,13 @@ public class AnnotateIsomersParameters extends SimpleParameterSet {
               + "module. The given tolerance will be applied between a possible multimer and the\n"
               + "multimer fragment."));
 
+  public static final ParameterSetParameter qualityParam = new ParameterSetParameter(
+      "Quality parameters", "Used to refine the results and filter out noise.",
+      new IsomerQualityParameters());
+
   public AnnotateIsomersParameters() {
     super(new Parameter[]{featureLists, mzTolerance, rtTolerance, maxMobilityChange,
-        multimerRecognitionTolerance});
+        multimerRecognitionTolerance, qualityParam});
   }
 
   @Override

@@ -34,12 +34,14 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
-import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,9 +55,11 @@ public class AnnotateIsomersTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
   private final double maxChangePercentage;
+  private final double minIntensity;
+  private final int minTraceDatapoints;
   private final boolean requireSingleRaw = true;
   private String description;
-  private int processed = 0;
+  private AtomicInteger processed = new AtomicInteger(0);
   private int totalRows;
   private final MobilityTolerance multimerRecognitionTolerance;
   private final boolean refineByIIN;
@@ -82,6 +86,11 @@ public class AnnotateIsomersTask extends AbstractTask {
     multimerRecognitionTolerance = parameters
         .getParameter(AnnotateIsomersParameters.multimerRecognitionTolerance).getEmbeddedParameter()
         .getValue();
+    final ParameterSet qualityParam = parameters
+        .getParameter(AnnotateIsomersParameters.qualityParam).getValue();
+    minTraceDatapoints = qualityParam.getParameter(IsomerQualityParameters.minDataPointsInTrace)
+        .getValue();
+    minIntensity = qualityParam.getParameter(IsomerQualityParameters.minIntensity).getValue();
 
     // todo maximum mobility difference
     // todo check if it's a fragmented multimer
@@ -94,7 +103,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return processed / (double) totalRows;
+    return processed.get() / (double) totalRows;
   }
 
   @Override
@@ -109,16 +118,37 @@ public class AnnotateIsomersTask extends AbstractTask {
 //        (row1, row2) -> -1 * Double
 //            .compare(row1.getMaxDataPointIntensity(), row2.getMaxDataPointIntensity())).toList();
 
-    for (final ModularFeatureListRow row : rowsByMz) {
+    rowsByMz.parallelStream().forEach(row -> {
+      if (isCanceled()) {
+        return;
+      }
+
+      processed.getAndIncrement();
+
+      if (row.getAverageMZ() > 212.127 && row.getAverageMZ() < 212.129) {
+        logger.info("blub");
+      }
+
+      Integer maxRowDp = IonMobilityUtils.getMaxNumTraceDatapoints(row);
+      if (row.getMaxDataPointIntensity() < minIntensity || maxRowDp == null
+          || maxRowDp < minTraceDatapoints) {
+        return;
+      }
+
       var possibleRows = FeatureListUtils
           .getRows(rowsByMz, rtTolerance.getToleranceRange(row.getAverageRT()),
               mzTolerance.getToleranceRange(row.getAverageMZ()), true);
 
-      processed++;
-      possibleRows.remove(row);
+      float min = Float.POSITIVE_INFINITY, max = Float.NEGATIVE_INFINITY;
 
+      for (ModularFeatureListRow rowz : possibleRows) {
+        min = Math.min(rowz.getAverageRT(), min);
+        max = Math.max(rowz.getAverageRT(), max);
+      }
+
+      possibleRows.remove(row);
       if (possibleRows.isEmpty()) {
-        continue;
+        return;
       }
 
       final float refMobility = row.getAverageMobility();
@@ -126,38 +156,108 @@ public class AnnotateIsomersTask extends AbstractTask {
 
       while (rowIterator.hasNext()) {
         ModularFeatureListRow possibleRow = rowIterator.next();
-        final float mobility = possibleRow.getAverageMobility();
+        final Float mobility = possibleRow.getAverageMobility();
+
+        if(!rtTolerance.checkWithinTolerance(row.getAverageRT(), possibleRow.getAverageRT())) {
+          logger.info("blub");
+        }
+
+        if (mobility == null) {
+          continue;
+        }
 
         final double percChange =
             1 - Math.min(mobility, refMobility) / Math.max(mobility, refMobility);
         if (percChange > maxChangePercentage) {
           rowIterator.remove();
         }
-
-      }
-
-      if (refineByIIN) {
-        refineResultsByIIN(row, possibleRows);
       }
 
       if (possibleRows.isEmpty()) {
-        continue;
+        return;
+      }
+
+      refineByQuality(possibleRows);
+      if (possibleRows.isEmpty()) {
+        return;
+      }
+
+      if (refineByIIN) {
+        refineByIIN(row, possibleRows);
+      }
+
+      if (possibleRows.isEmpty()) {
+        return;
       }
 
       row.set(PossibleIsomerType.class,
           possibleRows.stream().map(ModularFeatureListRow::getID).toList());
 
-      if(isCanceled()) {
-        return;
+      var isomerIds = new ArrayList<>(row.get(PossibleIsomerType.class));
+      final List<ModularFeatureListRow> isomerRows = new ArrayList<>();
+      isomerRows.addAll(isomerIds.stream()
+          .<ModularFeatureListRow>map(id -> (ModularFeatureListRow) flist.findRowByID(id))
+          .filter(r -> r != null).distinct().toList());
+      if(!possibleRows.containsAll(isomerRows)) {
+        logger.info("wrong");
       }
-    }
+    });
 
     flist.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(AnnotateIsomersModule.class, parameters));
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void refineResultsByIIN(@NotNull final ModularFeatureListRow row,
+  private void refineByQuality(List<ModularFeatureListRow> possibleRows) {
+    List<ModularFeatureListRow> rowsToRemove = new ArrayList<>();
+
+    for (ModularFeatureListRow possibleRow : possibleRows) {
+      Integer maxRowDp = IonMobilityUtils.getMaxNumTraceDatapoints(possibleRow);
+      if (possibleRow.getMaxDataPointIntensity() < minIntensity || maxRowDp == null
+          || maxRowDp < minTraceDatapoints) {
+        rowsToRemove.add(possibleRow);
+      }
+    }
+
+    possibleRows.removeAll(rowsToRemove);
+  }
+
+  private boolean isFragmentOfMultimer(@NotNull final ModularFeatureListRow row) {
+    if (row.getBestIonIdentity() == null || row.getAverageMobility() == null) {
+      return false;
+    }
+
+    final IonIdentity identity = row.getBestIonIdentity();
+    final IonNetwork network = identity.getNetwork();
+    final int rowMoleculeCount = identity.getIonType().getMolecules();
+    final Float rowMobility = row.getAverageMobility();
+
+    for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
+      final ModularFeatureListRow networkRow = (ModularFeatureListRow) entry.getKey();
+      if (row.equals(networkRow)) {
+        continue;
+      }
+
+      final IonIdentity networkIdentity = entry.getValue();
+      final IonType networkIonType = networkIdentity.getIonType();
+
+      if (networkIonType.getMolecules() > rowMoleculeCount && multimerRecognitionTolerance
+          .checkWithinTolerance(rowMobility, networkRow.getAverageMobility())) {
+        if (networkIdentity.getIonType().getAdduct().contains(identity.getIonType().getAdduct())) {
+          logger.finest(() -> String
+              .format("m/z %.4f (%s, %.4f %s) is a fragment of multimer m/z %.4f (%s, %.4f %s)",
+                  row.getAverageMZ(), identity.toString(), row.getAverageMobility(),
+                  row.getBestFeature().getMobilityUnit().getUnit(), networkRow.getAverageMZ(),
+                  networkIdentity.toString(), networkRow.getAverageMobility(),
+                  networkRow.getBestFeature().getMobilityUnit().getUnit()));
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private void refineByIIN(@NotNull final ModularFeatureListRow row,
       @NotNull List<ModularFeatureListRow> possibleIsomery) {
     if (!row.hasIonIdentity()) {
       return;
@@ -179,45 +279,38 @@ public class AnnotateIsomersTask extends AbstractTask {
 
     final Float rowMobility = row.getAverageMobility();
     final IonIdentity rowIdentity = row.getBestIonIdentity();
-    final int rowMoleculeCount = rowIdentity.getIonType().getMolecules();
-
-    if (rowIdentity == null) {
+    if (rowIdentity == null || rowMobility == null) {
       return;
     }
+    final int rowMoleculeCount = rowIdentity.getIonType().getMolecules();
 
-    if(("" + row.getAverageMZ()).contains("344.11")) {
-      logger.finest("test");
-    }
-    // todo this checks the wrong thing.
+    final List<ModularFeatureListRow> notIsomers = new ArrayList<>();
     final IonNetwork network = rowIdentity.getNetwork();
-    for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
-      final ModularFeatureListRow networkRow = (ModularFeatureListRow) entry.getKey();
+    for (final ModularFeatureListRow isomerRow : possibleIsomery) {
+      final IonIdentity isomerIdentity = network.get(isomerRow);
+      if (isomerIdentity == null) {
+        continue;
+      }
 
-      final IonIdentity networkIndentity = entry.getValue();
-
-      final IonType networkIonType = networkIndentity.getIonType();
-      if (networkIonType.getMolecules() > rowMoleculeCount && multimerRecognitionTolerance
-          .checkWithinTolerance(rowMobility, networkRow.getAverageMobility())) {
-        if(networkIndentity.getIonType().getAdduct()
-            .contains(rowIdentity.getIonType().getAdduct())) {
-          /*logger.finest(String.format("Adduct 1: %s\tAdduct 2: %s\t",
-              rowIdentity.getIonType().getAdduct().getParsedName(),
-              networkIndentity.getIonType().getAdduct().getParsedName()));*/
-          /*logger.finest(() -> String
-              .format("m/z %.4f (%s) is a monomer of m/z %.4f (%s)", row.getAverageMZ(),
-                  rowIdentity.toString(), networkRow.getAverageMZ(), networkIndentity.toString()));*/
-          logger.finest("Contains: " + networkIndentity.getIonType().getAdduct()
-              .contains(rowIdentity.getIonType().getAdduct()));
-//          logger.finest();
-
-          if(possibleIsomery.remove(networkRow)) {
-            logger.finest("Removed");
-          }
-        }
-
-        var pars1 = FormulaUtils.parseFormula(rowIdentity.toString());
-        var pars2 = FormulaUtils.parseFormula(networkIndentity.toString());
+      if (isFragmentOfMultimer(isomerRow)) {
+        // is just a fragmented multimer, remove from possibleIsomers.
+        notIsomers.add(isomerRow);
       }
     }
+    possibleIsomery.removeAll(notIsomers);
   }
+
+  /*private boolean checkRT(List<ModularFeatureListRow> rows) {
+    float min = Float.POSITIVE_INFINITY, max = Float.NEGATIVE_INFINITY;
+
+    for (ModularFeatureListRow row : rows) {
+      min = Math.min(row.getAverageRT(), min);
+      max = Math.max(row.getAverageRT(), max);
+    }
+
+    if(max - min > 1) {
+      return false;
+    }
+    return true;
+  }*/
 }
