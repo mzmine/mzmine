@@ -388,7 +388,7 @@ public class FeatureResolverTask extends AbstractTask {
         if (originalFeature.get(ImageType.class) != null) {
           f.set(ImageType.class, true);
         }
-        FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG, true);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
         if (resolved.getSpectra().size() <= 3) {
