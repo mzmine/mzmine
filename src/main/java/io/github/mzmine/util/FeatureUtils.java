@@ -39,11 +39,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 
 /**
  * Utilities for feature lists
@@ -69,6 +64,18 @@ public class FeatureUtils {
     buf.append(" (");
     buf.append(timeFormat.format(feature.getRT()));
     buf.append(" min) [" + feature.getRawDataFile().getName() + "]");
+    return buf.toString();
+  }
+
+  public static String rowToString(FeatureListRow row) {
+    StringBuffer buf = new StringBuffer();
+    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+    buf.append("m/z ");
+    buf.append(mzFormat.format(row.getAverageMZ()));
+    buf.append(" (");
+    buf.append(timeFormat.format(row.getAverageRT()));
+    buf.append(" min)");
     return buf.toString();
   }
 
