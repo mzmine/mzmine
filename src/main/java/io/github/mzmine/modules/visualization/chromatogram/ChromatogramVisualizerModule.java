@@ -126,7 +126,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     for (ModularFeatureListRow row : rows) {
       for (final Feature f : row.getFeatures()) {
         final ModularFeature feature = (ModularFeature) f;
-        if(feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+        if(feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
           continue;
         }
         if (mzRange == null) {
