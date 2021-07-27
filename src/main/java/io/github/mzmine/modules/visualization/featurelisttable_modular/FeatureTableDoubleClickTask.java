@@ -22,8 +22,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FeatureTableDoubleClickTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(FeatureTableDoubleClickTask.class.getName());
 
   private final Runnable runnable;
   private final ModularFeatureList flist;
@@ -54,8 +58,12 @@ public class FeatureTableDoubleClickTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    if(runnable != null) {
-      runnable.run();
+    try {
+      if(runnable != null) {
+        runnable.run();
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
     setStatus(TaskStatus.FINISHED);
   }
