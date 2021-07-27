@@ -868,6 +868,10 @@ public class MainWindowController {
       }));
     }
 
+    if(getMainTabPane().getTabs().contains(tab)) {
+      // sometimes we have duplicate tabs, which leads to exceptions. This is a dirty fix for now.
+      getMainTabPane().getTabs().remove(tab);
+    }
     getMainTabPane().getTabs().add(tab);
     getMainTabPane().getSelectionModel().select(tab);
   }
