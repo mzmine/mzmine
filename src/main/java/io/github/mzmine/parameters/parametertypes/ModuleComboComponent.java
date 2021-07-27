@@ -18,10 +18,10 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Arrays;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import java.util.Arrays;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -54,7 +54,7 @@ public class ModuleComboComponent extends FlowPane {
       setButton.setDisable(numOfParameters == 0);
     });
 
-    setButton = new Button("...");
+    setButton = new Button("Setup");
     setButton.setOnAction(e -> {
       MZmineProcessingStep<?> selected = comboBox.getSelectionModel().getSelectedItem();
       if (selected == null)

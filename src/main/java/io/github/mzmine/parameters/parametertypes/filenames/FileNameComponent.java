@@ -27,7 +27,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 
 /**
@@ -53,7 +52,7 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
     // on click - set file name to textField
     btnLastFiles = new LastFilesButton("last", file -> txtFilename.setText(file.getPath()));
 
-    Button btnFileBrowser = new Button("...");
+    Button btnFileBrowser = new Button("Select");
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
