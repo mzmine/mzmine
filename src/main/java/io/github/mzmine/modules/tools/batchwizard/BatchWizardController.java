@@ -204,7 +204,7 @@ public class BatchWizardController {
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
-    if (batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+    if (batchModeParameters.showSetupDialog(false) == ExitCode.OK) {
       MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters);
     }
   }
