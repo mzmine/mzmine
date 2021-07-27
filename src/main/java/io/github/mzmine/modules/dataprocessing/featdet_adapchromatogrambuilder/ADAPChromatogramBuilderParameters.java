@@ -39,8 +39,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
   public static final IntegerParameter minimumScanSpan = new IntegerParameter(
       "Min group size in # of scans",
@@ -50,15 +50,18 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
           + "is by studying the raw data and determining what is the typical time span of chromatographic features.",
       5, true, 2, null);
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      "Scan to scan accuracy (m/z)", "m/z tolerance of the same compound between two scans.\n"
+      + "This does not describe the deviation of the accurate mass (measured) from the exact mass (calculated),\n"
+      + "but the fluctuation of the accurate between two scans.", 0.002, 10);
 
-  public static final StringParameter suffix =
-      new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "This string is added to filename as suffix", "chromatograms");
 
   // Owen Edit
   public static final DoubleParameter IntensityThresh2 = new DoubleParameter(
       "Group intensity threshold",
-      "This parameter is the intensity value for wich intensities greater than this value can contribute to the minimumScanSpan count.",
+      "This parameter is the intensity value for which intensities greater than this value can contribute to the minimumScanSpan count.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final DoubleParameter startIntensity = new DoubleParameter("Min highest intensity",
@@ -67,8 +70,9 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   // End Owen Edit
 
   public ADAPChromatogramBuilderParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, IntensityThresh2,
-        startIntensity, mzTolerance, suffix});
+    super(
+        new Parameter[]{dataFiles, scanSelection, minimumScanSpan, IntensityThresh2, startIntensity,
+            mzTolerance, suffix});
   }
 
   @Override
