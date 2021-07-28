@@ -128,8 +128,13 @@ public class MultiImsTraceVisualiser extends BorderPane {
     if (oldValue != newFile) {
       ticChart.removeDataSet(ticDatasetIndex, false);
     }
+    if(newFile == null) {
+      ticChart.getChart().fireChartChanged();
+      return;
+    }
+
     Range<Double> bpcMzRange = newFile.getDataMZRange();
-    if (!getFeatures().isEmpty() && newFile != null) {
+    if (!getFeatures().isEmpty()) {
       double min = getFeatures().stream()
           .mapToDouble(f -> f.getRawDataPointsMZRange().lowerEndpoint()).min()
           .orElseGet(() -> newFile.getDataMZRange().lowerEndpoint());
