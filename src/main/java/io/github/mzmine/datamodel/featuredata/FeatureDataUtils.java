@@ -24,9 +24,13 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
+import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
+import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.maths.CenterFunction;
@@ -47,6 +51,11 @@ import org.jetbrains.annotations.Nullable;
 public class FeatureDataUtils {
 
   private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
+
+  /**
+   * The default {@link CenterMeasure} for weighting and calculating feature m/z values.
+   */
+  public static final CenterMeasure DEFAULT_CENTER_MEASURE = CenterMeasure.AVG;
 
   /**
    * The Rt range of the series.
@@ -195,7 +204,7 @@ public class FeatureDataUtils {
     for (int i = 1; i < series.getNumberOfValues(); i++) {
       final double thisIntensity = intensities.get(i);
       final float thisRT = scans.get(i).getRetentionTime();
-      area += (thisRT - lastRT) * ((float)(thisIntensity + lastIntensity)) / 2.0;
+      area += (thisRT - lastRT) * ((float) (thisIntensity + lastIntensity)) / 2.0;
       lastIntensity = thisIntensity;
       lastRT = thisRT;
     }
@@ -223,15 +232,18 @@ public class FeatureDataUtils {
    * @param feature The feature.
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature) {
-    recalculateIonSeriesDependingTypes(feature, CenterMeasure.AVG);
+    recalculateIonSeriesDependingTypes(feature, DEFAULT_CENTER_MEASURE, true);
   }
 
   /**
-   * @param feature The feature
-   * @param cm      Center measure for m/z calculation. Defualt = {@link CenterMeasure#AVG}
+   * @param feature     The feature
+   * @param cm          Center measure for m/z calculation. Default = {@link
+   *                    FeatureDataUtils#DEFAULT_CENTER_MEASURE}
+   * @param calcQuality specifies if quality parameters (FWHM, asymmetry, tailing) shall be
+   *                    calculated.
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
-      @NotNull final CenterMeasure cm) {
+      @NotNull final CenterMeasure cm, boolean calcQuality) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
@@ -254,12 +266,15 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
     }
-    // todo recalc quality parameters
+
+    if (calcQuality) {
+      calculateQualityParameters(feature);
+    }
   }
 
   /**
    * @param series the series
-   * @param <T> Any series extending {@link IntensitySeries} and {@link MobilitySeries}.
+   * @param <T>    Any series extending {@link IntensitySeries} and {@link MobilitySeries}.
    * @return The mobility value (highest intensity).
    */
   public static <T extends IntensitySeries & MobilitySeries> float calculateMobility(T series) {
@@ -305,5 +320,18 @@ public class FeatureDataUtils {
     return smallestDelta;
   }
 
-
+  private static void calculateQualityParameters(@NotNull ModularFeature feature) {
+    float fwhm = QualityParameters.calculateFWHM(feature);
+    if (!Float.isNaN(fwhm)) {
+      feature.set(FwhmType.class, fwhm);
+    }
+    float tf = QualityParameters.calculateTailingFactor(feature);
+    if (!Float.isNaN(tf)) {
+      feature.set(TailingFactorType.class, tf);
+    }
+    float af = QualityParameters.calculateAsymmetryFactor(feature);
+    if (!Float.isNaN(af)) {
+      feature.set(AsymmetryFactorType.class, af);
+    }
+  }
 }

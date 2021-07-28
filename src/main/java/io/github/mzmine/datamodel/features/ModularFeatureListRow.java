@@ -18,6 +18,17 @@
 
 package io.github.mzmine.datamodel.features;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
@@ -36,6 +47,8 @@ import io.github.mzmine.datamodel.features.types.FormulaSummaryType;
 import io.github.mzmine.datamodel.features.types.IdentityType;
 import io.github.mzmine.datamodel.features.types.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
+import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
@@ -54,19 +67,11 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Stream;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -77,17 +82,15 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- * <p>
- * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
- * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
- * chromatogram builder ~SteffenHeu
+ *         <p>
+ *         TODO: I think the RawFileType should also be in the map and not just accessible via the
+ *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
+ *         creation in the chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
@@ -96,8 +99,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
    */
-  private final ObservableMap<DataType, Property<?>> map = FXCollections
-      .observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Property<?>> map =
+      FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
@@ -108,7 +111,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * Creates an empty row
    *
    * @param flist the feature list
-   * @param id    the row id
+   * @param id the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
     this.flist = flist;
@@ -154,8 +157,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   /**
    * Constructor for row with only one feature.
    *
-   * @param flist   the feature list
-   * @param id      the row id
+   * @param flist the feature list
+   * @param id the row id
    * @param feature a feature to add to the row
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, Feature feature) {
@@ -166,8 +169,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   /**
    * Create a row based on another row. Uses the old row ID
    *
-   * @param flist        the new feature list
-   * @param row          a row to copy (uses the row.getID() as the new ID)
+   * @param flist the new feature list
+   * @param row a row to copy (uses the row.getID() as the new ID)
    * @param copyFeatures true also copy features, false leave features empty
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, ModularFeatureListRow row,
@@ -178,9 +181,9 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   /**
    * Create a row based on another row
    *
-   * @param flist        the new feature list
-   * @param id           the row id
-   * @param row          a row to copy
+   * @param flist the new feature list
+   * @param id the row id
+   * @param row a row to copy
    * @param copyFeatures true also copy features, false leave features empty
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, ModularFeatureListRow row,
@@ -220,7 +223,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = getFeatureList();
         flist.addRowType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException
+          | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return;
       }
@@ -471,8 +475,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   /**
-   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
-   * ModularType}
+   * Checks if typeClass was added as a FeatureType - does not check nested types in a
+   * {@link ModularType}
    *
    * @param typeClass class of a DataType
    * @return true if feature type is available
@@ -482,8 +486,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   /**
-   * Checks if typeClass was added as a row type - does not check nested types in a {@link
-   * ModularType}
+   * Checks if typeClass was added as a row type - does not check nested types in a
+   * {@link ModularType}
    *
    * @param typeClass class of a DataType
    * @return true if row type is available
@@ -573,6 +577,17 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
+  @NotNull
+  public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
+    ModularTypeProperty matchProperty = get(SpectralLibraryMatchType.class);
+    if (matchProperty != null) {
+      return matchProperty.get(SpectralLibMatchSummaryType.class).getValue();
+    } else {
+      return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
+    }
+  }
+
+  @Override
   public void removeFeatureIdentity(FeatureIdentity identity) {
     ObservableList<FeatureIdentity> identities = getPeakIdentities();
     identities.remove(identity);
@@ -605,7 +620,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   public double getMaxDataPointIntensity() {
     ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
     return rangeObjectProperty != null && rangeObjectProperty.getValue() != null
-        ? rangeObjectProperty.getValue().upperEndpoint() : Double.NaN;
+        ? rangeObjectProperty.getValue().upperEndpoint()
+        : Double.NaN;
   }
 
   @Nullable
@@ -683,6 +699,12 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       flist.addRowType(new FormulaAnnotationType());
     }
     get(FormulaAnnotationType.class).set(FormulaSummaryType.class, formulas);
+  }
+
+  @Override
+  public void addLipidAnnotation(MatchedLipid matchedLipid) {
+    // add column first if needed
+    get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).add(matchedLipid);
   }
 
 }

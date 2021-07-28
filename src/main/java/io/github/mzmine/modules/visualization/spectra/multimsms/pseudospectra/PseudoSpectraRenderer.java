@@ -20,8 +20,10 @@ package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
@@ -40,6 +42,7 @@ import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.text.TextUtils;
+import org.jfree.chart.ui.GradientPaintTransformer;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYDataset;
 
@@ -79,8 +82,22 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
       @Override
       public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column,
           RectangularShape bar, RectangleEdge base) {
-        super.paintBar(g2, renderer, row, column, new Rectangle2D.Double(
-            bar.getX() + (bar.getWidth() - 1.5) / 2, bar.getY(), 1.5, bar.getHeight()), base);
+
+        Paint itemPaint = renderer.getItemPaint(row, column);
+        g2.setPaint(itemPaint);
+        g2.fill(new Rectangle2D.Double(
+            bar.getX() - 1.5d / 2d, bar.getY(), 1.5, bar.getHeight()));
+      }
+    });
+    setDefaultBarPainter(new StandardXYBarPainter() {
+      @Override
+      public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column,
+          RectangularShape bar, RectangleEdge base) {
+
+        Paint itemPaint = renderer.getItemPaint(row, column);
+        g2.setPaint(itemPaint);
+        g2.fill(new Rectangle2D.Double(
+            bar.getX() - 1.5 / 2d, bar.getY(), 1.5, bar.getHeight()));
       }
     });
   }

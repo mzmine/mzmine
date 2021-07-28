@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -26,49 +26,32 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
  */
 public enum LipidMainClasses {
 
-  // Fattyacyls
-  FATTYACIDS("Fatty acids", LipidCoreClasses.FATTYACYLS), //
-  FATTYALCOHOLS("Fatty alcohols", LipidCoreClasses.FATTYACYLS), //
-  FATTYALDEHYDES("Fatty aldehydes", LipidCoreClasses.FATTYACYLS), //
-  FATTYESTERS("Fatty esters", LipidCoreClasses.FATTYACYLS), //
-  FATTYAMIDS("Fatty amids", LipidCoreClasses.FATTYACYLS), //
-  FATTYNITRILES("Fatty esters", LipidCoreClasses.FATTYACYLS), //
-  FATTYETHERS("Fatty ehters", LipidCoreClasses.FATTYACYLS), //
-  HYDROCARBONS("Hydrocarbons", LipidCoreClasses.FATTYACYLS), //
-  RHAMNOLIPIDS("Rhamnolipids", LipidCoreClasses.FATTYACYLS), //
-  SOPHOROLIPIDS("Sophorolipds", LipidCoreClasses.FATTYACYLS), //
-  MANNOSYLERYTHRITOL("Mannosylerythritol", LipidCoreClasses.FATTYACYLS), //
-
   // Glycerolipids
-  MONORADYLGLYCEROLS("Monoradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  DIRADYLGLYCEROLS("Diradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  TRIRADYLGLYCEROLS("Triradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  GLYCOSYLDIACYLGLYCEROLS("Glycosyldiacylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  GLYCOSYLMONOACYLGLYCEROLS("Glycosylmonoacylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
-  OTHERGLYCEROLIPIDS("Other glycerolipids", LipidCoreClasses.GLYCEROLIPIDS), //
+  MONORADYLGLYCEROLS("Monoradylglycerols", LipidCategories.GLYCEROLIPIDS), //
+  DIRADYLGLYCEROLS("Diradylglycerols", LipidCategories.GLYCEROLIPIDS), //
+  TRIRADYLGLYCEROLS("Triradylglycerols", LipidCategories.GLYCEROLIPIDS), //
+  GLYCOSYLDIACYLGLYCEROLS("Glycosyldiacylglycerols", LipidCategories.GLYCEROLIPIDS), //
+  GLYCOSYLMONOACYLGLYCEROLS("Glycosylmonoacylglycerols", LipidCategories.GLYCEROLIPIDS), //
+  OTHERGLYCEROLIPIDS("Other glycerolipids", LipidCategories.GLYCEROLIPIDS), //
 
   // Glycerophospholipids
-  PHOSPHATIDYLCHOLINE("Phosphatidylcholine", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOETHANOLAMINES("Glycerophosphoethanolamines", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOSERINES("Glycerophosphoserines", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOGLYCEROLS("Glycerophosphoglycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+  PHOSPHATIDYLCHOLINE("Phosphatidylcholine", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHOETHANOLAMINES("Glycerophosphoethanolamines", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHOSERINES("Glycerophosphoserines", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHOGLYCEROLS("Glycerophosphoglycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHOGLYCEROPHOSPHATES("Glycerophosphoglycerophosphates",
-      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHOINOSITOLS("Glycerophosphoinositols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+      LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHOINOSITOLS("Glycerophosphoinositols", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHOINOSITOLGLYCANS("Glycerophosphoinositolglycans",
-      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  GLYCEROPHOSPHATES("Glycerophosphates", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  CARDIOLIPIN("Cardiolipin", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  CDPGLYCEROLS("CDP-Glycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-
-  // Sphingolipids
-  CERAMIDES("Ceramides", LipidCoreClasses.SPHINGOLIPIDS), //
-  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCoreClasses.SPHINGOLIPIDS);//
+      LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHATES("Glycerophosphates", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  CARDIOLIPIN("Cardiolipin", LipidCategories.GLYCEROPHOSPHOLIPIDS), //
+  CDPGLYCEROLS("CDP-Glycerols", LipidCategories.GLYCEROPHOSPHOLIPIDS); //
 
   private String name;
-  private LipidCoreClasses coreClass;
+  private LipidCategories coreClass;
 
-  LipidMainClasses(String name, LipidCoreClasses coreClass) {
+  LipidMainClasses(String name, LipidCategories coreClass) {
     this.name = name;
     this.coreClass = coreClass;
   }
@@ -77,11 +60,7 @@ public enum LipidMainClasses {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public LipidCoreClasses getCoreClass() {
+  public LipidCategories getCoreClass() {
     return coreClass;
   }
 

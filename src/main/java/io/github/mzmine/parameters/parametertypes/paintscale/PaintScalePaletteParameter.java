@@ -20,7 +20,6 @@ package io.github.mzmine.parameters.parametertypes.paintscale;
 
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,9 +50,10 @@ public class PaintScalePaletteParameter
   public PaintScalePaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
-    value = SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
+    value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
     palettes.add(value);
+    palettes.add(SimpleColorPalette.RAINBOW);
   }
 
   @Override
@@ -98,6 +98,13 @@ public class PaintScalePaletteParameter
     }
 
     selected = (selected != -1) ? selected : 0;
+
+    if (!palettes.contains(SimpleColorPalette.BLUE_RED_WHITE)) {
+      palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
+      logger.info(
+          "Loaded color palettes did not contain default " + SimpleColorPalette.BLUE_RED_WHITE
+              .getName() + " palette. Adding...");
+    }
 
     if (!palettes.contains(SimpleColorPalette.RAINBOW)) {
       palettes.add(SimpleColorPalette.RAINBOW);

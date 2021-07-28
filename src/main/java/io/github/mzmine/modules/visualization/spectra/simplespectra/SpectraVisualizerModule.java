@@ -55,11 +55,19 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks) {
-    RawDataFile dataFiles[] = parameters.getParameter(SpectraVisualizerParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+    RawDataFile dataFile = parameters.getParameter(SpectraVisualizerParameters.dataFiles)
+        .getValue().getMatchingRawDataFiles()[0];
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
-    addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber));
+    Scan scan = dataFile.getScanAtNumber(scanNumber);
+    if (scan == null) {
+      assert MZmineCore.getDesktop() != null;
+      MZmineCore.getDesktop().displayErrorMessage("Raw data file " + dataFile +
+          " does not contain scan #" + scanNumber + ".");
+      return ExitCode.ERROR;
+    }
+
+    addNewSpectrumTab(dataFile, scan);
     return ExitCode.OK;
   }
 
@@ -93,8 +101,9 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
     assert Platform.isFxApplicationThread();
 
     if (scan == null) {
+      assert MZmineCore.getDesktop() != null;
       MZmineCore.getDesktop()
-          .displayErrorMessage("Raw data file " + dataFile + " does not contain scan #" + scan);
+          .displayErrorMessage("Raw data file " + dataFile + " does not contain the given scan.");
       return null;
     }
 

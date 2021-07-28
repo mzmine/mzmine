@@ -77,7 +77,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     previewChart = new SimpleXYChart<>(uf.format("Retention time", "min"),
-        uf.format("Intensity", "cps"));
+        uf.format("Intensity", "a.u."));
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
     ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)

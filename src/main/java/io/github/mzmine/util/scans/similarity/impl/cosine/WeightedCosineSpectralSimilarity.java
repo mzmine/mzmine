@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.scans.similarity.impl.cosine;
 
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,14 +50,14 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
     double minCos =
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.minCosine).getValue();
-    boolean removeUnmatched = parameters
-        .getParameter(WeightedCosineSpectralSimilarityParameters.removeUnmatched).getValue();
+    HandleUnmatchedSignalOptions handleUnmatched = parameters
+        .getParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched).getValue();
 
     // align
     List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     // removes all signals which were not found in both masslists
-    if (removeUnmatched)
-      aligned = removeUnaligned(aligned);
+    aligned = handleUnmatched.handleUnmatched(aligned);
+
     // overlapping within mass tolerance
     int overlap = calcOverlap(aligned);
 

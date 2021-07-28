@@ -67,6 +67,7 @@ public class GroupMS2Task extends AbstractTask {
   private RTTolerance rtTol;
   private MZTolerance mzTol;
   private boolean limitRTByFeature;
+  private boolean lockToFeatureMobilityRange;
   private final boolean combineTimsMS2;
 
   /**
@@ -86,6 +87,8 @@ public class GroupMS2Task extends AbstractTask {
     mzTol = parameters.getParameter(GroupMS2Parameters.mzTol).getValue();
     limitRTByFeature = parameters.getParameter(GroupMS2Parameters.limitRTByFeature).getValue();
     combineTimsMS2 = parameterSet.getParameter(GroupMS2Parameters.combineTimsMsMs).getValue();
+    lockToFeatureMobilityRange = parameterSet
+        .getParameter(GroupMS2Parameters.lockMS2ToFeatureMobilityRange).getValue();
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -182,8 +185,8 @@ public class GroupMS2Task extends AbstractTask {
       return;
     }
 
-    List<Frame> frames = (List<Frame>) scans;
-    List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
+    final List<Frame> frames = (List<Frame>) scans;
+    final List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
     for (Frame frame : frames) {
       frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
         if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
@@ -206,12 +209,13 @@ public class GroupMS2Task extends AbstractTask {
     }
     feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
 
-    MZTolerance mergeTol = new MZTolerance(0.008, 25);
+    final MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
     for (ImsMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
           .getMergedMsMsSpectrumForPASEF(info, mergeTol, MergingType.SUMMED,
-              ((ModularFeatureList) list).getMemoryMapStorage());
+              ((ModularFeatureList) list).getMemoryMapStorage(),
+              lockToFeatureMobilityRange ? feature.getMobilityRange() : null);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }

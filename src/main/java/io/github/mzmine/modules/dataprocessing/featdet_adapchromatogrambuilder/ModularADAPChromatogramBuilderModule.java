@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ModularADAPChromatogramBuilderModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Modular ADAP Chromatogram builder";
+  private static final String MODULE_NAME = "ADAP Chromatogram Builder";
   private static final String MODULE_DESCRIPTION =
       "This module connects data points from mass lists and builds chromatograms.";
 

@@ -87,9 +87,8 @@ public class FeatureResolverTask extends AbstractTask {
    * @param list         feature list to operate on.
    * @param parameterSet task parameters.
    */
-  public FeatureResolverTask(final MZmineProject project,
-      MemoryMapStorage storage, final FeatureList list,
-      final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
+  public FeatureResolverTask(final MZmineProject project, MemoryMapStorage storage,
+      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
     super(storage);
 
     // Initialize.
@@ -386,10 +385,10 @@ public class FeatureResolverTask extends AbstractTask {
         if (originalFeature.getMobilityUnit() != null) {
           f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
-        if(originalFeature.get(ImageType.class) != null) {
+        if (originalFeature.get(ImageType.class) != null) {
           f.set(ImageType.class, true);
         }
-        FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG);
+        FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG, true);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
         if (resolved.getSpectra().size() <= 3) {
@@ -423,8 +422,7 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList,
-      RSessionWrapper rSession)
-      throws RSessionWrapperException {
+      RSessionWrapper rSession) throws RSessionWrapperException {
 
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
@@ -440,8 +438,9 @@ public class FeatureResolverTask extends AbstractTask {
           .getRow(i);
       final ModularFeature originalFeature = originalRow.getFeature(dataFile);
 
-      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters,
-          rSession, mzCenterFunction, msmsRange, RTRangeMSMS);
+      final ResolvedPeak[] peaks = resolver
+          .resolvePeaks(originalFeature, parameters, rSession, mzCenterFunction, msmsRange,
+              RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {
         peak.setParentChromatogramRowID(originalRow.getID());
@@ -451,8 +450,7 @@ public class FeatureResolverTask extends AbstractTask {
             .ResolvedPeakToMoularFeature(resolvedFeatureList, peak,
                 originalFeature.getFeatureData());
         if (originalFeature.getMobilityUnit() != null) {
-          newFeature
-              .set(MobilityUnitType.class, originalFeature.getMobilityUnit());
+          newFeature.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
 
         newRow.addFeature(dataFile, newFeature);
@@ -470,8 +468,7 @@ public class FeatureResolverTask extends AbstractTask {
 
   private ModularFeatureList createNewFeatureList(ModularFeatureList originalFeatureList) {
     if (originalFeatureList.getRawDataFiles().size() > 1) {
-      throw new IllegalArgumentException(
-          "Resolving cannot be applied to aligned feature lists.");
+      throw new IllegalArgumentException("Resolving cannot be applied to aligned feature lists.");
     }
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
 

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.export;
 
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -27,7 +28,6 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
-import io.github.mzmine.parameters.parametertypes.rowfilter.RowFilter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class ExportCorrAnnotationParameters extends SimpleParameterSet {
@@ -53,9 +53,9 @@ public class ExportCorrAnnotationParameters extends SimpleParameterSet {
           "Either combine to one file or export one file per relationship type", false);
 
 
-  public static final ComboParameter<RowFilter> filter = new ComboParameter<>(
+  public static final ComboParameter<FeatureListRowsFilter> filter = new ComboParameter<>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
-      RowFilter.values(), RowFilter.ONLY_WITH_MS2_OR_ANNOTATION);
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
 
   // Constructor
   public ExportCorrAnnotationParameters() {

@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.modules.io.import_bruker_tdf.TDFUtils;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 

@@ -48,8 +48,6 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    * @param parameters
    * @param mzTol
    * @param minMatch minimum overlap in signals
-   * @param a
-   * @param b
    * @return A spectra similarity if all requirements were met - otherwise null
    */
   @Nullable

@@ -604,7 +604,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   @Override
-  protected void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents() {
     super.updateParameterSetFromComponents();
     selectedKovats = parameterSet.getParameter(KovatsIndexExtractionParameters.kovats).getValue();
     pickedValuesString =
