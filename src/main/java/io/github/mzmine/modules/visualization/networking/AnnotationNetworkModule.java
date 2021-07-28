@@ -27,11 +27,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * TIC/XIC visualizer using JFreeChart library
- */
 public class AnnotationNetworkModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "MS annotations networks";
@@ -39,21 +36,21 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
       "Visualise the results of the MS annotation module";
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks) {
     ModularFeatureList[] pkls = parameters.getParameter(AnnotationNetworkParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
     boolean connectByNetRelations =
@@ -76,13 +73,13 @@ public class AnnotationNetworkModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONFEATURELIST;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return AnnotationNetworkParameters.class;
   }
