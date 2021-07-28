@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.export;
 
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
-import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;

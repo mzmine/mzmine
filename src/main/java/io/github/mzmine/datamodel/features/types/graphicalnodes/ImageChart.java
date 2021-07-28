@@ -28,7 +28,7 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import java.awt.Color;

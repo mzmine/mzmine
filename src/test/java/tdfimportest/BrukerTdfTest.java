@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
-import io.github.mzmine.modules.io.import_bruker_tdf.TDFImportTask;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;

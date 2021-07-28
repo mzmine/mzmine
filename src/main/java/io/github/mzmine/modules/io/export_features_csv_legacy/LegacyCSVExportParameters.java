@@ -17,7 +17,7 @@
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
-import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;

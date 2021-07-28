@@ -24,7 +24,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
