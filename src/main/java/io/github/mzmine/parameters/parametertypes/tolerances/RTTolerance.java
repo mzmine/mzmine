@@ -46,12 +46,8 @@ public class RTTolerance {
 //    return unit == Unit.SECONDS || unit == Unit.MINUTES;
   }
 
-  /**
-   * @return The retention time tolerance in minutes. If the tolerance is not absolute, the
-   * tolerance will be calculated for 5 minutes.
-   */
   public float getTolerance() {
-    return getToleranceInMinutes();
+    return tolerance;
   }
 
   public Unit getUnit() {
@@ -76,7 +72,7 @@ public class RTTolerance {
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
   }
 
-  private float getToleranceInMinutes() {
+  public float getToleranceInMinutes() {
     return switch (unit) {
       case SECONDS -> tolerance / 60;
       case PERCENT -> 5f * 60f * (tolerance

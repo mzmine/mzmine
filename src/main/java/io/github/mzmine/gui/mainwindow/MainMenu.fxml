@@ -10,7 +10,6 @@
   xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
 
-
   <Menu text="Project">
       <Menu fx:id="recentProjectsMenu" text="Open recent project..."
         onShowing="#fillRecentProjects"/>
@@ -274,6 +273,20 @@
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
     </Menu>
 
+    <Menu text="Processing">
+      <MenuItem onAction="#runModule" text="Assign MS2 to features"
+        userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
+      <MenuItem onAction="#runModule"
+        text="Calculate CCS values"
+        userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
+    </Menu>
+
+    <Menu text="Isotopes">
+      <MenuItem text="Isotope grouper" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
+      <MenuItem text="Isotope peak scanner" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
+    </Menu>
 
     <Menu text="Feature grouping">
       <MenuItem text="metaCorrelate (corrGroup)" onAction="#runModule"
@@ -296,20 +309,13 @@
       userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
     </Menu>
 
-    <Menu text="Spectral deconvolution">
+    <Menu text="Spectral deconvolution (GC)">
       <MenuItem text="Hierarchical clustering"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.adap_hierarchicalclustering.ADAPHierarchicalClusteringModule"/>
       <MenuItem text="Multivariate curve resolution"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveResolutionModule"/>
-    </Menu>
-
-    <Menu text="Isotopes">
-      <MenuItem text="Isotope grouper" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem text="Isotope peak scanner" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
     </Menu>
 
     <Menu text="Feature list filtering">
@@ -331,8 +337,6 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
         userData="io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule"/>
-      <MenuItem onAction="#runModule" text="Assign MS2 to features"
-        userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
       <MenuItem text="Feature list blank subtraction" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule"/>
     </Menu>
@@ -370,10 +374,7 @@
         userData="io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule"/>
     </Menu>
 
-    <Menu text="Identification">
-      <MenuItem onAction="#runModule"
-        text="Calculate CCS values"
-        userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
+    <Menu text="Annotation">
       <Menu text="Search precursor mass">
         <MenuItem text="Local compound database (CSV) search"
           onAction="#runModule"

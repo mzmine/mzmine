@@ -32,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
+import java.text.DecimalFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,19 +46,19 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
       "Search minimum in RT range (min)",
       "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
-      MZmineCore.getConfiguration().getRTFormat());
+      MZmineCore.getConfiguration().getRTFormat(), 0.05);
 
   public static final PercentParameter MIN_RELATIVE_HEIGHT =
       new PercentParameter("Minimum relative height",
-          "Minimum height of a peak relative to the chromatogram top data point");
+          "Minimum height of a peak relative to the chromatogram top data point", 0d);
 
   public static final DoubleParameter MIN_ABSOLUTE_HEIGHT = new DoubleParameter(
       "Minimum absolute height", "Minimum absolute height of a peak to be recognized",
-      MZmineCore.getConfiguration().getIntensityFormat());
+      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
   public static final DoubleParameter MIN_RATIO = new DoubleParameter("Min ratio of peak top/edge",
       "Minimum ratio between peak's top intensity and side (lowest) data points."
-          + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
+          + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.", new DecimalFormat("0.00"), 1.7d);
 
   public static final DoubleRangeParameter PEAK_DURATION =
       new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",

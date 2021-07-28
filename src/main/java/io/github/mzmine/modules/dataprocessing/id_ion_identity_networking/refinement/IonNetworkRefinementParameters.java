@@ -41,7 +41,7 @@ public class IonNetworkRefinementParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<IntegerParameter> MIN_NETWORK_SIZE =
       new OptionalParameter<>(new IntegerParameter("Minimum size", "Minimum network size", 2));
-  public static final OptionalParameter<IntegerParameter> TRUE_THRESHOLD =
+  public static final OptionalParameter<IntegerParameter> TRUE_THRESHOLD = // todo - better description
       new OptionalParameter<>(new IntegerParameter("Delete smaller networks: Link threshold",
           "links>=true threshold, then delete all other occurance in annotation networks", 4));
 

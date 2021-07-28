@@ -19,17 +19,24 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.util.converter.NumberStringConverter;
 
 /**
  *
  */
 public class RTToleranceComponent extends BorderPane {
+
+  private final NumberFormat format = new DecimalFormat("0.000");
+  private final TextFormatter<Number> textFormatter = new TextFormatter<>(new NumberStringConverter(format));
 
   // the same order that the unit enum in RTTolerance is defined in
   private static final ObservableList<String> toleranceTypes =
@@ -44,6 +51,7 @@ public class RTToleranceComponent extends BorderPane {
 
     toleranceField = new TextField();
     toleranceField.setPrefColumnCount(6);
+    toleranceField.setTextFormatter(textFormatter);
 
     toleranceType = new ComboBox<String>(toleranceTypes);
     toleranceType.getSelectionModel().select(1);
