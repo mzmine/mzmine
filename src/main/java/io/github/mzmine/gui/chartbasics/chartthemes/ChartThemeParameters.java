@@ -44,13 +44,13 @@ import org.jfree.chart.JFreeChart;
  */
 public class ChartThemeParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", false);
+  public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", true);
   public static final OptionalParameter<StringParameter> changeTitle =
       new OptionalParameter<StringParameter>(new StringParameter("Change title", "", ""));
   public static final BooleanParameter showSubtitles = new BooleanParameter("Show subtitle", "",
-      false);
+      true);
   public static final BooleanParameter showLegends =
-      new BooleanParameter("Show legends", "", false);
+      new BooleanParameter("Show legends", "", true);
 
   public static final OptionalParameter<StringParameter> xlabel =
       new OptionalParameter<StringParameter>(new StringParameter("Change x", "", "x"));

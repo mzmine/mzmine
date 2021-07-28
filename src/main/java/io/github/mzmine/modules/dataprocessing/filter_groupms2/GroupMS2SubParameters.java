@@ -23,14 +23,22 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class GroupMS2SubParameters extends SimpleParameterSet {
 
-  public static final MZToleranceParameter mzTol = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTol = new MZToleranceParameter(
+      "MS1 to MS2 precursor tolerance (m/z)",
+      "Describes the tolerance between the precursor ion in a MS1 scan and the precursor "
+          + "m/z assigned to the MS2 scan.", 0.01, 10);
 
-  public static final RTToleranceParameter rtTol = new RTToleranceParameter();
+  public static final RTToleranceParameter rtTol = new RTToleranceParameter(
+      "Retention time tolerance",
+      "The maximum offset between the highest point of the chromatographic peak and the time the MS2 was acquired.",
+      new RTTolerance(0.2f, Unit.MINUTES));
 
   public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
       "Use the feature's edges (retention time) as a filter.", false);
@@ -48,7 +56,8 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
           + "This can be investigated in hte \"All MS MS\" window", false);
 
   public GroupMS2SubParameters() {
-    super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs, lockMS2ToFeatureMobilityRange});
+    super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs,
+        lockMS2ToFeatureMobilityRange});
   }
 
   @Override

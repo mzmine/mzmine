@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.io.import_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 
 
 public class SimpleImagingScan extends SimpleScan implements ImagingScan {

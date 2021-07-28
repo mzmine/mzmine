@@ -18,7 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -74,7 +73,7 @@ public class GraphicsExportParameters extends SimpleParameterSet {
       "Unit for width and height dimensions", DimUnit.values(), DimUnit.CM);
 
   public static final ParameterSetParameter chartParameters = new ParameterSetParameter(
-      "Chart parameters", "Manually set the chart parameters", (new ChartThemeParameters().cloneParameterSet()));
+      "Chart parameters", "Manually set the chart parameters", (new ExportChartThemeParameters()));
 
   public static final ColorPaletteParameter colorPalette = new ColorPaletteParameter("Color palette", "The color palette used for export.");
 

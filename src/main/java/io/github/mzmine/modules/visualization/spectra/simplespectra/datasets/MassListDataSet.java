@@ -20,11 +20,12 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
 import io.github.mzmine.datamodel.MassList;
 import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.IntervalXYDataset;
 
 /**
- * Data set for MassList
+ * Data set for MassList. Implements IntervalXYDataset to be used in pair with XYBarRenderer.
  */
-public class MassListDataSet extends AbstractXYDataset {
+public class MassListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
   private final double mzValues[], intensityValues[];
   /**
@@ -68,5 +69,45 @@ public class MassListDataSet extends AbstractXYDataset {
   @Override
   public Number getY(int series, int item) {
     return intensityValues[item];
+  }
+
+  @Override
+  public Number getEndX(int series, int item) {
+    return getX(series, item);
+  }
+
+  @Override
+  public double getEndXValue(int series, int item) {
+    return getXValue(series, item);
+  }
+
+  @Override
+  public Number getEndY(int series, int item) {
+    return getY(series, item);
+  }
+
+  @Override
+  public double getEndYValue(int series, int item) {
+    return getYValue(series, item);
+  }
+
+  @Override
+  public Number getStartX(int series, int item) {
+    return getX(series, item);
+  }
+
+  @Override
+  public double getStartXValue(int series, int item) {
+    return getXValue(series, item);
+  }
+
+  @Override
+  public Number getStartY(int series, int item) {
+    return getY(series, item);
+  }
+
+  @Override
+  public double getStartYValue(int series, int item) {
+    return getYValue(series, item);
   }
 }

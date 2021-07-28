@@ -19,7 +19,7 @@
 package tdfimportest;
 
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
-import io.github.mzmine.modules.io.import_bruker_tdf.TDFUtils;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

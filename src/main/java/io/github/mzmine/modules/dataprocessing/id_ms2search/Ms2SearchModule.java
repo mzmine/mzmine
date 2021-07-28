@@ -34,7 +34,7 @@ public class Ms2SearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "MS2 similarity search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches for similar MS2 fragmentation spectra between two peaklists";
+      "This method searches for similar MS2 fragmentation spectra between two feature lists";
 
   @Override
   public @NotNull String getName() {

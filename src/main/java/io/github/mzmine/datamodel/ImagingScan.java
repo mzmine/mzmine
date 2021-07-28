@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import org.jetbrains.annotations.Nullable;
-import io.github.mzmine.modules.io.import_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 
 public interface ImagingScan extends Scan {
   /**
