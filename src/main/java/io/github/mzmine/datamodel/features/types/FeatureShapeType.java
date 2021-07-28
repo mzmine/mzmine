@@ -42,8 +42,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class FeatureShapeType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeType extends LinkedDataType implements GraphicalColumType<Boolean> {
 
   @NotNull
   @Override
@@ -53,8 +52,7 @@ public class FeatureShapeType extends LinkedDataType
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null) {
       return null;

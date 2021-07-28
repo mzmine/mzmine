@@ -54,6 +54,7 @@ import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateF
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
+import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
@@ -251,6 +252,7 @@ public class BatchModeModulesList {
        */
       CorrelateGroupingModule.class,
       MS2SimilarityModule.class,
+      AnnotateIsomersModule.class,
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}

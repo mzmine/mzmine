@@ -63,6 +63,7 @@ public interface FeatureListRow {
   /**
    * Returns feature for given raw data file
    */
+  @Nullable
   public Feature getFeature(RawDataFile rawData);
 
   /**

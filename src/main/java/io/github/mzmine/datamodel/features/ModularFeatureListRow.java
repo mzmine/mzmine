@@ -413,6 +413,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @param raw
    * @return
    */
+  @Nullable
   @Override
   public ModularFeature getFeature(RawDataFile raw) {
     ModularFeature f = features.get(raw);

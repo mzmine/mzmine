@@ -255,16 +255,46 @@ public class IonMobilityUtils {
 
     Range<Float> mobilityRange = null;
     for (ModularFeature feature : row.getFilesFeatures().values()) {
-      if(mobilityRange == null) {
+      if (mobilityRange == null) {
         mobilityRange = feature.getMobilityRange();
       } else {
         var featureRange = feature.getMobilityRange();
-        if(featureRange != null) {
+        if (featureRange != null) {
           mobilityRange = mobilityRange.span(featureRange);
         }
       }
     }
     return mobilityRange;
+  }
+
+  /**
+   * Sums up the number of values of each {@link IonMobilitySeries} in the given {@link
+   * IonMobilogramTimeSeries}.
+   *
+   * @param trace The ion mobility trace.
+   * @return The number of data points.
+   */
+  public static int getTraceDatapoints(IonMobilogramTimeSeries trace) {
+    int num = 0;
+    for (IonMobilitySeries mobilogram : trace.getMobilograms()) {
+      num += mobilogram.getNumberOfValues();
+    }
+    return num;
+  }
+
+  /**
+   * Returns the maximum number of datapoints in {@link IonMobilogramTimeSeries} in this row.
+   *
+   * @param row The row.
+   * @return The maximum number of data points or null if there is no {@link
+   * IonMobilogramTimeSeries}.
+   */
+  public static Integer getMaxNumTraceDatapoints(ModularFeatureListRow row) {
+    int max = row.streamFeatures()
+        .filter(f -> f != null && f.getFeatureData() instanceof IonMobilogramTimeSeries)
+        .mapToInt(f -> getTraceDatapoints((IonMobilogramTimeSeries) f.getFeatureData())).max()
+        .orElse(-1);
+    return max == -1 ? null : max;
   }
 
   public enum MobilogramType {
