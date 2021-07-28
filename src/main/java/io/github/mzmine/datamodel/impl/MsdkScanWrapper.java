@@ -26,7 +26,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
