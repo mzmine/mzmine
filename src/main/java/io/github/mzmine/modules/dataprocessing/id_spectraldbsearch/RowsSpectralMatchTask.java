@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.SpectralLibraryMatchType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;

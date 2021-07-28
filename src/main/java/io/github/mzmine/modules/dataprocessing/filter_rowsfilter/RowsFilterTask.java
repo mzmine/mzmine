@@ -18,13 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -37,8 +30,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -47,6 +40,13 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Filters out feature list rows.

@@ -18,13 +18,18 @@
 
 package io.github.mzmine.datamodel.features.types;
 
-import java.util.List;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class LipidAnnotationType extends ModularType implements AnnotationType {
 

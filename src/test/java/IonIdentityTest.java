@@ -26,7 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
-import io.github.mzmine.datamodel.features.types.IonIdentityModularType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
