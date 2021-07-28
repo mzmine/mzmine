@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;

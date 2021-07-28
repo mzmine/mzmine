@@ -77,40 +77,40 @@
   <Menu text="Raw data methods">
     <Menu text="Raw data import">
       <MenuItem onAction="#runModule" text="MS data (advanced)"
-        userData="io.github.mzmine.modules.io.import_all_data_files.AllSpectralDataImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule"/>
 
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="mzML"
-        userData="io.github.mzmine.modules.io.import_mzml_msdk.MSDKmzMLImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule"/>
       <!-- *Obsolete* MenuItem onAction="#runModule" text="mzML via jmzml"
-        userData="io.github.mzmine.modules.io.import_mzml_jmzml.MzMLImportModule"/ -->
+        userData="io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule"/ -->
       <MenuItem onAction="#runModule" text="imzML"
-        userData="io.github.mzmine.modules.io.import_imzml.ImzMLImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule"/>
       <MenuItem onAction="#runModule" text="netCDF"
-        userData="io.github.mzmine.modules.io.import_netcdf.NetCDFImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule"/>
       <MenuItem onAction="#runModule" text="mzXML"
-        userData="io.github.mzmine.modules.io.import_mzxml.MzXMLImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule"/>
       <MenuItem onAction="#runModule" text="mzData"
-        userData="io.github.mzmine.modules.io.import_mzdata.MzDataImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule"/>
 
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="Thermo RAW"
-        userData="io.github.mzmine.modules.io.import_thermo_raw.ThermoRawImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule"/>
       <MenuItem onAction="#runModule" text="Waters RAW"
-        userData="io.github.mzmine.modules.io.import_waters_raw.WatersRawImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule"/>
       <MenuItem onAction="#runModule" text="Bruker TDF"
-        userData="io.github.mzmine.modules.io.import_bruker_tdf.TDFImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule"/>
       <MenuItem onAction="#runModule" text="Bruker TSF"
-        userData="io.github.mzmine.modules.io.import_bruker_tsf.TSFImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportModule"/>
       <MenuItem onAction="#runModule" text="ZIP / gzip"
-        userData="io.github.mzmine.modules.io.import_zip.ZipImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule"/>
 
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="ICP-MS CVS"
-        userData="io.github.mzmine.modules.io.import_icpms_csv.IcpMsCVSImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportModule"/>
       <accelerator>
         <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
       </accelerator>
@@ -121,10 +121,10 @@
     <Menu text="Raw data export">
       <MenuItem text="mzML"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_mzml.MzMLExportModule"/>
+        userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule"/>
       <MenuItem text="netCDF"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_netcdf.NetCDFExportModule"/>
+        userData="io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule"/>
       <MenuItem text="Export scans mgf, txt, msp and mzML"
         onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule"/>
@@ -250,25 +250,25 @@
       <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule"/>
       <MenuItem text="MetaboAnalyst" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_metaboanalyst.MetaboAnalystExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
       <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_mztab.MzTabExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_mztabm.MZTabmExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule"/>
       <MenuItem text="SQL Database" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_sql.SQLExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_sql.SQLExportModule"/>
       <MenuItem text="MSP file (ADAP)" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_msp.AdapMspExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_mgf.AdapMgfExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
       <MenuItem text="GNPS - feature based molecular networking"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
+        userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_gnps.gc.GnpsGcExportAndSubmitModule"/>
+        userData="io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule"/>
       <MenuItem text="SIRIUS / CSI-FingerID" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_sirius.SiriusExportModule"/>
+        userData="io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule"/>
       <MenuItem text="Export feature networks to csv" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule"/>
     </Menu>
