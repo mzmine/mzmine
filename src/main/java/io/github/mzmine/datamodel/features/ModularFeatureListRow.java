@@ -436,7 +436,8 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
 
   @Override
   public RowGroup getGroup() {
-    return get(FeatureGroupType.class).getValue();
+    ObjectProperty<RowGroup> groupProperty = get(FeatureGroupType.class);
+    return groupProperty == null? null : groupProperty.getValue();
   }
 
   @Override

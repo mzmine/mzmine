@@ -444,4 +444,5 @@ public class IonIdentity implements Comparable<IonIdentity> {
   public int compareTo(@NotNull IonIdentity ion) {
     return toString().compareTo(ion.toString());
   }
+
 }
