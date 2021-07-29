@@ -12,24 +12,27 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations.iin;
 
-import io.github.mzmine.datamodel.features.types.abstr.UrlType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Link to the GNPS cluster
- *
- * @author Robin Schmid (https://github.com/robinschmid)
+ * The ID from Ion Identity Networking (IIN), which searches for different ions describing the same
+ * molecule. See {@link IonIdentity} and {@link IonNetwork}
  */
-public class GNPSClusterUrlType extends UrlType {
+public class IonNetworkIDType extends IntegerType {
 
   @NotNull
   @Override
   public String getHeaderString() {
-    return "GNPS cluster";
+    return "IIN ID";
   }
+
 }

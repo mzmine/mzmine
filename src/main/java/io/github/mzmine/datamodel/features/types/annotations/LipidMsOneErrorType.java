@@ -16,8 +16,9 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations;
 
+import io.github.mzmine.datamodel.features.types.DataType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;

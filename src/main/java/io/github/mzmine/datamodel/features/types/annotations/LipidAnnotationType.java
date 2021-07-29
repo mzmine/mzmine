@@ -16,12 +16,11 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ModularType;
+import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;

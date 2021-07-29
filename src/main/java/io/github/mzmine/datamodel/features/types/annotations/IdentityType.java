@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.iin;
+package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
