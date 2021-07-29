@@ -16,9 +16,8 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.types.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FormulaUtils;

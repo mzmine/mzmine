@@ -19,13 +19,6 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -39,8 +32,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.main.MZmineCore;
@@ -51,8 +44,8 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
-import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
@@ -75,12 +68,19 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Conditions should be chosen in a way that exceptions are impossible when the item is clicked. On

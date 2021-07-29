@@ -15,21 +15,21 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.abstr.UrlType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Link to the GNPS cluster
+ * Link to a GNPS library entry
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class GNPSClusterUrlType extends UrlType {
+public class GNPSLibraryUrlType extends UrlType {
 
   @NotNull
   @Override
   public String getHeaderString() {
-    return "GNPS cluster";
+    return "GNPS library";
   }
 }

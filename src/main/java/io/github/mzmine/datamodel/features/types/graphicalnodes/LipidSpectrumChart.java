@@ -1,18 +1,11 @@
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationSummaryType;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -23,8 +16,15 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
+import javax.annotation.Nonnull;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.data.xy.XYDataset;
 
 public class LipidSpectrumChart extends StackPane {
 

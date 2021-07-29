@@ -16,13 +16,11 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.LinkedDataType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
@@ -31,10 +29,13 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.visualization.spectra.matchedlipid.MatchedLipidSpectrumTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class LipidSpectrumType extends LinkedDataType implements GraphicalColumType<Boolean> {
 

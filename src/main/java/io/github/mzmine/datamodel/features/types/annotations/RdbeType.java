@@ -16,23 +16,28 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 /**
- * A list of molecular formulas
+ * Ring and double bond equivalents
  */
-public class FormulaSummaryType extends ListDataType<ResultFormula>
-    implements AnnotationType, EditableColumnType {
+public class RdbeType extends FloatType {
+
+  public RdbeType() {
+    super(new DecimalFormat("0.0"));
+  }
 
   @Override
   public String getHeaderString() {
-    return "Formula";
+    return "RDBE";
   }
 
+  @Override
+  public NumberFormat getFormatter() {
+      return DEFAULT_FORMAT;
+  }
 }

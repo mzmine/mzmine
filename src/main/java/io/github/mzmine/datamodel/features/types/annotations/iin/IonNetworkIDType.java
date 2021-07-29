@@ -16,25 +16,23 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.features.types;
+package io.github.mzmine.datamodel.features.types.annotations.iin;
 
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * This annotation type stores a list of formulas that were predicted as consensus formulas for
- * multiple feature list rows (e.g., in Ion Identity Networking, see {@link
- * IonNetwork#getMolFormulas()}) or for multiple different methods
+ * The ID from Ion Identity Networking (IIN), which searches for different ions describing the same
+ * molecule. See {@link IonIdentity} and {@link IonNetwork}
  */
-public class FormulaConsensusSummaryType extends ListDataType<ResultFormula>
-    implements AnnotationType, EditableColumnType {
+public class IonNetworkIDType extends IntegerType {
 
+  @NotNull
   @Override
   public String getHeaderString() {
-    return "Consensus formula";
+    return "IIN ID";
   }
 
 }

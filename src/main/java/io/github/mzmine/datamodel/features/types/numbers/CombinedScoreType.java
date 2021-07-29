@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.FormulaAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 
 

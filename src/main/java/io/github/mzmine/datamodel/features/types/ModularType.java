@@ -20,22 +20,22 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * ModularType offers a main column for multiple sub columns (DataTypes) that are stored in a {@link ModularTypeProperty}
