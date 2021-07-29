@@ -93,7 +93,7 @@ import org.jetbrains.annotations.Nullable;
  *         creation in the chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
-public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
+public class ModularFeatureListRow implements FeatureListRow {
 
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
@@ -209,6 +209,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     return flist.getRowTypes();
   }
 
+  // todo make private?
   @Override
   public ObservableMap<DataType, Property<?>> getMap() {
     return map;
@@ -230,7 +231,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
       }
     }
     // access default method
-    ModularDataModel.super.set(tclass, value);
+    FeatureListRow.super.set(tclass, value);
 
     //
     if (tclass.equals(FeaturesType.class)) {
@@ -241,25 +242,16 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
     }
   }
 
-
+  @Override
   public Stream<ModularFeature> streamFeatures() {
     return this.getFeatures().stream().map(ModularFeature.class::cast).filter(Objects::nonNull);
   }
 
   // Helper methods
+  @Override
   public Range<Double> getMZRange() {
     ObjectProperty<Range<Double>> v = get(MZRangeType.class);
     return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
-  }
-
-  public float getHeight() {
-    Property<Float> v = get(HeightType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
-  }
-
-  public float getArea() {
-    Property<Float> v = get(AreaType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   public ObservableMap<RawDataFile, ModularFeature> getFilesFeatures() {
