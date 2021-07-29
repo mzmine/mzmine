@@ -26,15 +26,14 @@ import io.github.mzmine.datamodel.features.types.annotations.FormulaConsensusSum
 import io.github.mzmine.datamodel.features.types.annotations.FormulaSummaryType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
-import io.github.mzmine.datamodel.features.types.numbers.FormulaMassType;
-import io.github.mzmine.datamodel.features.types.numbers.IonNetworkIDType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.numbers.RdbeType;
+import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;

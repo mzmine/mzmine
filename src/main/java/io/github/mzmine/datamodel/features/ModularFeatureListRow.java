@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
@@ -40,7 +40,7 @@ import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSumm
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IdentityType;
+import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;

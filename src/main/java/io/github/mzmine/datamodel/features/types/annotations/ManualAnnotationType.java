@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import java.util.List;

@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;

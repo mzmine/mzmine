@@ -19,9 +19,6 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.GNPSClusterUrlType;
-import io.github.mzmine.datamodel.features.types.GNPSLibraryUrlType;
-import io.github.mzmine.datamodel.features.types.GNPSNetworkUrlType;
 import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
