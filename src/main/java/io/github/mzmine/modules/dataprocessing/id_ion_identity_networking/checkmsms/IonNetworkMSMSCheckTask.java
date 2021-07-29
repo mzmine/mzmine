@@ -178,7 +178,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
 
       if (rows != null) {
         for (FeatureListRow parent : rows) {
-          if (parent == null || parent.getID() == row.getID()) {
+          if (parent == null || parent.getID().equals(row.getID())) {
             continue;
           }
 
