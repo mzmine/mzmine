@@ -61,9 +61,9 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
         if (zAxisLabel.equals("Retention time")) {
           zValuesList.add((double) filteredRows[i].getAverageRT());
         } else if (zAxisLabel.equals("Intensity")) {
-          zValuesList.add(filteredRows[i].getAverageHeight());
+          zValuesList.add(filteredRows[i].getAverageHeight().doubleValue());
         } else if (zAxisLabel.equals("Area")) {
-          zValuesList.add(filteredRows[i].getAverageArea());
+          zValuesList.add(filteredRows[i].getAverageArea().doubleValue());
         } else if (zAxisLabel.equals("Tailing factor")) {
           zValuesList.add((double) filteredRows[i].getBestFeature().getTailingFactor());
         } else if (zAxisLabel.equals("Asymmetry factor")) {

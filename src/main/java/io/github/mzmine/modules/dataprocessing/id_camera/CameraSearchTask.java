@@ -642,7 +642,7 @@ public class CameraSearchTask extends AbstractTask {
         if (isoGroup.equals(isotopeGroup)) {
           groupRows.add(row);
           groupNames.add(identity.getName());
-          spectrum.put(row.getAverageMZ(), row.getAverageHeight());
+          spectrum.put(row.getAverageMZ(), row.getAverageHeight().doubleValue());
 
           if (isoGroup.length() < minLength) {
             minLength = isoGroup.length();

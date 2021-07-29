@@ -399,7 +399,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   public void addAllLinksTo(FeatureListRow row, IonIdentity pid) {
     double nmass = pid.getIonType().getMass(row.getAverageMZ());
     this.entrySet().stream().forEach(e -> {
-      if (e.getKey().getID() != row.getID()) {
+      if (e.getKey().getID().equals(row.getID())) {
         double pmass = getMass(e);
         if (mzTolerance.checkWithinTolerance(pmass, nmass)) {
           // add to both

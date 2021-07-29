@@ -45,17 +45,17 @@ public interface Feature {
   /**
    * This method returns raw M/Z value of the feature
    */
-  double getMZ();
+  Double getMZ();
 
   /**
    * Sets raw M/Z value of the feature
    */
-  void setMZ(double mz);
+  void setMZ(Double mz);
 
   /**
    * This method returns raw retention time of the feature in minutes
    */
-  float getRT();
+  Float getRT();
 
   /**
    * Sets retention time of the feature
@@ -65,17 +65,17 @@ public interface Feature {
   /**
    * This method returns the raw height of the feature
    */
-  float getHeight();
+  Float getHeight();
 
   /**
    * Sets height of the feature
    */
-  void setHeight(float height);
+  void setHeight(Float height);
 
   /**
    * This method returns the raw area of the feature
    */
-  float getArea();
+  Float getArea();
 
   /**
    * Sets area of the feature
@@ -270,42 +270,42 @@ public interface Feature {
   /**
    * Returns the charge of this ion. If the charge is unknown, returns 0.
    */
-  int getCharge();
+  Integer getCharge();
 
   /**
    * Sets the charge of this ion
    */
-  void setCharge(int charge);
+  void setCharge(Integer charge);
 
   /**
    * This method returns the full width at half maximum (FWHM) of the feature
    */
-  float getFWHM();
+  Float getFWHM();
 
   /**
    * Sets the full width at half maximum (FWHM)
    */
-  void setFWHM(double fwhm);
+  void setFWHM(Float fwhm);
 
   /**
    * This method returns the tailing factor of the feature
    */
-  float getTailingFactor();
+  Float getTailingFactor();
 
   /**
    * Sets the tailing factor
    */
-  void setTailingFactor(double tf);
+  void setTailingFactor(Float tf);
 
   /**
    * This method returns the asymmetry factor of the feature
    */
-  float getAsymmetryFactor();
+  Float getAsymmetryFactor();
 
   /**
    * Sets the asymmetry factor
    */
-  void setAsymmetryFactor(double af);
+  void setAsymmetryFactor(Float af);
 
   // dulab Edit
   void outputChromToFile();

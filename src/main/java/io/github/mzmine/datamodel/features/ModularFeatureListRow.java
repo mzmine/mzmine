@@ -308,7 +308,7 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
    * @return
    */
   @Override
-  public int getID() {
+  public Integer getID() {
     Property<Integer> idProp = get(IDType.class);
     return idProp == null || idProp.getValue() == null ? -1 : idProp.getValue();
   }
@@ -326,24 +326,24 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public double getAverageMZ() {
+  public Double getAverageMZ() {
     Property<Double> v = get(MZType.class);
     return v == null || v.getValue() == null ? Double.NaN : v.getValue();
   }
 
   @Override
-  public void setAverageMZ(double averageMZ) {
+  public void setAverageMZ(Double averageMZ) {
     // binding
   }
 
   @Override
-  public float getAverageRT() {
+  public Float getAverageRT() {
     Property<Float> v = get(RTType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
-  public void setAverageRT(float averageRT) {
+  public void setAverageRT(Float averageRT) {
     // binding
   }
 
@@ -360,19 +360,19 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public double getAverageHeight() {
+  public Float getAverageHeight() {
     Property<Float> v = get(HeightType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
 
   @Override
-  public int getRowCharge() {
+  public Integer getRowCharge() {
     Property<Integer> v = get(ChargeType.class);
     return v == null || v.getValue() == null ? 0 : v.getValue();
   }
 
   @Override
-  public double getAverageArea() {
+  public Float getAverageArea() {
     Property<Float> v = get(AreaType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
   }
@@ -618,11 +618,11 @@ public class ModularFeatureListRow implements FeatureListRow, ModularDataModel {
   }
 
   @Override
-  public double getMaxDataPointIntensity() {
+  public Float getMaxDataPointIntensity() {
     ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
     return rangeObjectProperty != null && rangeObjectProperty.getValue() != null
         ? rangeObjectProperty.getValue().upperEndpoint()
-        : Double.NaN;
+        : Float.NaN;
   }
 
   @Nullable

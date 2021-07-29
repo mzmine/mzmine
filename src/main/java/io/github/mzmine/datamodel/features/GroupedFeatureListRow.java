@@ -70,7 +70,7 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public int getID() {
+  public Integer getID() {
     return mainRow.getID();
   }
 
@@ -111,27 +111,27 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public double getAverageMZ() {
+  public Double getAverageMZ() {
     return mainRow.getAverageMZ();
   }
 
   @Override
-  public float getAverageRT() {
+  public Float getAverageRT() {
     return mainRow.getAverageRT();
   }
 
   @Override
-  public double getAverageHeight() {
+  public Float getAverageHeight() {
     return mainRow.getAverageHeight();
   }
 
   @Override
-  public int getRowCharge() {
+  public Integer getRowCharge() {
     return mainRow.getRowCharge();
   }
 
   @Override
-  public double getAverageArea() {
+  public Float getAverageArea() {
     return mainRow.getAverageArea();
   }
 
@@ -146,12 +146,12 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void setAverageMZ(double averageMZ) {
+  public void setAverageMZ(Double averageMZ) {
     mainRow.setAverageMZ(averageMZ);
   }
 
   @Override
-  public void setAverageRT(float averageRT) {
+  public void setAverageRT(Float averageRT) {
     mainRow.setAverageRT(averageRT);
   }
 
@@ -191,7 +191,7 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public double getMaxDataPointIntensity() {
+  public Float getMaxDataPointIntensity() {
     return mainRow.getMaxDataPointIntensity();
   }
 
