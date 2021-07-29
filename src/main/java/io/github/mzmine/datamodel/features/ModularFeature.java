@@ -305,6 +305,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return flist.getFeatureTypes();
   }
 
+  // todo make this private?
   @Override
   public ObservableMap<DataType, Property<?>> getMap() {
     return map;
@@ -533,6 +534,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return v == null || v.getValue() == null ? null : v.getValue();
   }
 
+  @Override
   public Float getRT() {
     Property<Float> v = get(RTType.class);
     return v == null || v.getValue() == null ? Float.NaN : v.getValue();
@@ -550,6 +552,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return v == null || v.getValue() == null ? FeatureStatus.UNKNOWN : v.getValue();
   }
 
+  @Override
   public Double getMZ() {
     Property<Double> mz = get(MZType.class);
     return mz == null || mz.getValue() == null ? Double.NaN : mz.getValue();
