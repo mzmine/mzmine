@@ -87,7 +87,7 @@ public class FeaturesComponent extends HBox {
         if (featureList == null)
           return;
         // TODO: make featureList.getRawDataFiles() return observable list
-        dataFilesCombo.setItems(FXCollections.observableArrayList(featureList.getRawDataFiles()));
+        dataFilesCombo.setItems(featureList.getRawDataFiles());
         dataFilesCombo.getSelectionModel().selectFirst();
       });
       dataFilesCombo.setOnAction(e3 -> {
@@ -96,7 +96,7 @@ public class FeaturesComponent extends HBox {
         if (featureList == null || dataFile == null)
           return;
         var features = FXCollections.observableArrayList(featureList.getFeatures(dataFile));
-        featuresSelection.setItems(features);
+        featuresSelection.setItems((ObservableList<Feature>) (ObservableList<? extends Feature>)features);
       });
       featureListsCombo.getSelectionModel().selectFirst();
       dataFilesCombo.getSelectionModel().selectFirst();
