@@ -44,6 +44,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Runtime.Version;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -302,23 +303,24 @@ public final class MZmineCore {
   }
 
   @NotNull
-  public static String getMZmineVersion() {
+  public static Version getMZmineVersion() {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
       InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
       if (inStream == null) {
-        return "0.0";
+        return Version.parse("3-SNAPSHOT");
       }
       Properties properties = new Properties();
       properties.load(inStream);
-      String version = properties.getProperty("mzmine.version");
-      if ((version == null) || (version.startsWith("$"))) {
-        return "0.0";
+      String versionString = properties.getProperty("mzmine.version");
+      if ((versionString == null) || (versionString.startsWith("$"))) {
+        return Version.parse("3-SNAPSHOT");
       }
+      Version version = Version.parse(versionString);
       return version;
     } catch (Exception e) {
       e.printStackTrace();
-      return "0.0";
+      return Version.parse("3-SNAPSHOT");
     }
   }
 
