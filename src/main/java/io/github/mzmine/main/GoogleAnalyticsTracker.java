@@ -71,11 +71,6 @@ public class GoogleAnalyticsTracker implements Runnable {
     // Only send data if sendStatistics variable is not set to 0
     Boolean sendStatistics = MZmineCore.getConfiguration().getSendStatistics();
 
-    // Don't send statistics for developers version
-    if (MZmineCore.getMZmineVersion().equals("0.0")) {
-      sendStatistics = false;
-    }
-
     if (sendStatistics) {
 
       // Find screen size for multiple screen setup
@@ -95,7 +90,7 @@ public class GoogleAnalyticsTracker implements Runnable {
         try {
           hostName = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-          // Ignore
+          e.printStackTrace();
         }
       }
 
@@ -164,7 +159,7 @@ public class GoogleAnalyticsTracker implements Runnable {
         }
 
       } catch (Exception e) {
-        // Ignore
+        e.printStackTrace();
       }
 
     }
