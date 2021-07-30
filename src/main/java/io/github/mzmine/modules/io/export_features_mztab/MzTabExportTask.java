@@ -126,7 +126,7 @@ class MzTabExportTask extends AbstractTask {
         mtd.setMZTabType(MZTabDescription.Type.Quantification);
         mtd.setDescription(peakList.getName());
         mtd.addSoftwareParam(1,
-            new CVParam("MS", "MS:1002342", "MZmine", MZmineCore.getMZmineVersion()));
+            new CVParam("MS", "MS:1002342", "MZmine", String.valueOf(MZmineCore.getMZmineVersion())));
         mtd.setSmallMoleculeQuantificationUnit(
             new CVParam("PRIDE", "PRIDE:0000330", "Arbitrary quantification unit", null));
         mtd.addSmallMoleculeSearchEngineScoreParam(1,

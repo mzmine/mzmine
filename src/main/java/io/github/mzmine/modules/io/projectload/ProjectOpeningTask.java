@@ -353,7 +353,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
     String projectVersionString = reader.readLine();
-    String mzmineVersionString = MZmineCore.getMZmineVersion();
+    String mzmineVersionString = String.valueOf(MZmineCore.getMZmineVersion());
 
     Matcher m = versionPattern.matcher(mzmineVersionString);
     if (!m.find()) {

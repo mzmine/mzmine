@@ -103,7 +103,7 @@ public class MZTabmExportTask extends AbstractTask {
         mtd.setDescription(featureList.getName());
         mtd.addSoftwareItem(new Software().id(1).parameter(
             new Parameter().cvLabel("MS").cvAccession("MS:1002342").name("MZmine")
-                .value(MZmineCore.getMZmineVersion())));
+                .value(String.valueOf(MZmineCore.getMZmineVersion()))));
         mtd.setSmallMoleculeQuantificationUnit(
             new Parameter().cvLabel("PRIDE").cvAccession("PRIDE:0000330")
                 .name("Arbitrary quantification unit"));
@@ -246,7 +246,7 @@ public class MZTabmExportTask extends AbstractTask {
                   featureIdentity.getPropertyValue(FeatureIdentity.PROPERTY_URL);
               databases.putIfAbsent(dbParam, new Database().param(dbParam)
                   .prefix(featureIdentity.getClass().getSimpleName())
-                  .version(MZmineCore.getMZmineVersion())
+                  .version(String.valueOf(MZmineCore.getMZmineVersion()))
                   .uri(dbURI));
 
               //Identity Information
