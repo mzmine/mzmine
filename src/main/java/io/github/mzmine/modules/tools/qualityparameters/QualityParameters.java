@@ -44,7 +44,7 @@ public class QualityParameters {
     // add quality columns to flist - feature columns
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
 
-    flist.modularStreamFeatures().forEach(peak -> {
+    flist.streamFeatures().forEach(peak -> {
       Property<Float> height = peak.getHeightProperty();
       Property<Float> rt = peak.getRTProperty();
 

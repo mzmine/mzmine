@@ -86,12 +86,12 @@ public interface FeatureList {
    * @param row         Row of the feature list
    * @param rawDataFile Raw data file where the feature is detected/estimated
    */
-  public Feature getFeature(int row, RawDataFile rawDataFile);
+  public ModularFeature getFeature(int row, RawDataFile rawDataFile);
 
   /**
    * Returns all features for a raw data file
    */
-  public ObservableList<Feature> getFeatures(RawDataFile rawDataFile);
+  public List<ModularFeature> getFeatures(RawDataFile rawDataFile);
 
   /**
    * Returns all features on one row
