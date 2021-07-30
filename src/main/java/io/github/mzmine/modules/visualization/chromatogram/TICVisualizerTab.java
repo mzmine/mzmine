@@ -111,7 +111,7 @@ public class TICVisualizerTab extends MZmineTab {
    * Constructor for total ion chromatogram visualizer
    */
   public TICVisualizerTab(RawDataFile dataFiles[], TICPlotType plotType,
-      ScanSelection scanSelection, Range<Double> mzRange, List<Feature> features,
+      ScanSelection scanSelection, Range<Double> mzRange, List<? extends Feature> features,
       Map<Feature, String> featureLabels) {
     super("TIC Visualizer", true, false);
 

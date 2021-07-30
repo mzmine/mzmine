@@ -18,19 +18,20 @@
 
 package io.github.mzmine.util.dialogs;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.javafx.WindowsMenu;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -130,7 +131,7 @@ public class FeatureOverviewWindow extends Stage {
     // labels
     labelsMap.put(feature, feature.toString());
 
-    List<Feature> featureSelection = row.getFeatures();
+    List<ModularFeature> featureSelection = row.getFeatures();
 
     TICVisualizerTab window = new TICVisualizerTab(rawFiles, // raw
         TICPlotType.BASEPEAK, // plot type

@@ -62,6 +62,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -260,11 +261,11 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public ObservableList<Feature> getFeatures() {
+  public List<ModularFeature> getFeatures() {
     // TODO remove features object - not always do we have features
     // FeaturesType creates an empty ListProperty for that
     // return FXCollections.observableArrayList(get(FeaturesType.class).getValue().values());
-    return FXCollections.observableArrayList(features.values());
+    return new ArrayList<>(features.values());
   }
 
   public MapProperty<RawDataFile, ModularFeature> getFeaturesProperty() {

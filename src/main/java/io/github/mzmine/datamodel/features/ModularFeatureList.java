@@ -428,7 +428,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public Stream<Feature> streamFeatures() {
+  public Stream<ModularFeature> streamFeatures() {
     return stream().flatMap(row -> row.getFeatures().stream()).filter(Objects::nonNull);
   }
 
@@ -437,7 +437,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public Stream<Feature> parallelStreamFeatures() {
+  public Stream<ModularFeature> parallelStreamFeatures() {
     return parallelStream().flatMap(row -> row.getFeatures().stream())
         .filter(Objects::nonNull);
   }

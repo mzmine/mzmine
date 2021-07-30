@@ -63,7 +63,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Return features assigned to this row
    */
-  public ObservableList<Feature> getFeatures();
+  public List<ModularFeature> getFeatures();
 
   /**
    * Returns feature for given raw data file

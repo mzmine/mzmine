@@ -131,7 +131,7 @@ public interface FeatureList {
    *
    * @return
    */
-  default Stream<Feature> streamFeatures(boolean parallel) {
+  default Stream<ModularFeature> streamFeatures(boolean parallel) {
     return parallel ? parallelStreamFeatures() : streamFeatures();
   }
 
@@ -140,14 +140,14 @@ public interface FeatureList {
    *
    * @return
    */
-  public Stream<Feature> streamFeatures();
+  public Stream<ModularFeature> streamFeatures();
 
   /**
    * Parallel stream of all rows.features across all samples
    *
    * @return
    */
-  public Stream<Feature> parallelStreamFeatures();
+  public Stream<ModularFeature> parallelStreamFeatures();
 
   /**
    * The selected scans to build this feature/chromatogram
