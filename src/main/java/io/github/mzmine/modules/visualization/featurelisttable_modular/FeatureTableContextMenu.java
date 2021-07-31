@@ -32,8 +32,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.main.MZmineCore;
@@ -169,7 +169,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         .setOnAction(e -> IsotopePatternExportModule.exportIsotopePattern(selectedRows.get(0)));
 
     final MenuItem exportMSMSItem = new ConditionalMenuItem("Export MS/MS pattern",
-        () -> selectedRows.size() == 1 && selectedRows.get(0).getBestFragmentation() != null);
+        () -> selectedRows.size() == 1 && selectedRows.get(0).getMostIntenseFragmentScan() != null);
     exportMSMSItem.setOnAction(e -> MSMSExportModule.exportMSMS(selectedRows.get(0)));
 
     final MenuItem exportToSirius =
@@ -329,8 +329,8 @@ public class FeatureTableContextMenu extends ContextMenu {
         MultiMsMsTab multi = new MultiMsMsTab(selectedRows,
             table.getFeatureList().getRawDataFiles(), selectedRows.get(0).getRawDataFiles().get(0));
         MZmineCore.getDesktop().addTab(multi);
-      } else if (selectedRow != null && selectedRow.getBestFragmentation() != null) {
-        SpectraVisualizerModule.addNewSpectrumTab(selectedRow.getBestFragmentation());
+      } else if (selectedRow != null && selectedRow.getMostIntenseFragmentScan() != null) {
+        SpectraVisualizerModule.addNewSpectrumTab(selectedRow.getMostIntenseFragmentScan());
       }
     });
 
@@ -338,13 +338,13 @@ public class FeatureTableContextMenu extends ContextMenu {
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
       MirrorScanWindowFX mirrorScanTab = new MirrorScanWindowFX();
-      mirrorScanTab.setScans(selectedRows.get(0).getBestFragmentation(),
-          selectedRows.get(1).getBestFragmentation());
+      mirrorScanTab.setScans(selectedRows.get(0).getMostIntenseFragmentScan(),
+          selectedRows.get(1).getMostIntenseFragmentScan());
       mirrorScanTab.show();
     });
 
     final MenuItem showAllMSMSItem = new ConditionalMenuItem("All MS/MS",
-        () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllMS2Fragmentations().isEmpty());
+        () -> !selectedRows.isEmpty() && !selectedRows.get(0).getAllFragmentScans().isEmpty());
     showAllMSMSItem.setOnAction(
         e -> MultiSpectraVisualizerTab.addNewMultiSpectraVisualizerTab(selectedRows.get(0)));
 
@@ -418,7 +418,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     int numFragmentScans = 0;
     for (ModularFeatureListRow row : rows) {
-      if (row.getBestFragmentation() != null) {
+      if (row.getMostIntenseFragmentScan() != null) {
         numFragmentScans++;
       }
     }

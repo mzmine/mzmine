@@ -180,7 +180,7 @@ public interface Feature {
   Range<Float> getRawDataPointsIntensityRange();
 
   /**
-   * Returns the number of scan that represents the fragmentation of this feature in MS2 level.
+   * Returns the scan that represents the fragmentation of this feature in MS2 level.
    */
   Scan getMostIntenseFragmentScan();
 
@@ -194,7 +194,6 @@ public interface Feature {
    *
    * @param allMS2FragmentScanNumbers
    */
-  //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
   void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
 
   /**

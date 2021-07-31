@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Logger;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
@@ -51,6 +43,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Task to search and annotate lipids in feature list
@@ -286,8 +286,8 @@ public class LipidSearchTask extends AbstractTask {
     Set<MatchedLipid> matchedLipids = new HashSet<>();
 
     // Check if selected feature has MSMS spectra and LipidIdentity
-    if (!row.getAllMS2Fragmentations().isEmpty()) {
-      List<Scan> msmsScans = row.getAllMS2Fragmentations();
+    if (!row.getAllFragmentScans().isEmpty()) {
+      List<Scan> msmsScans = row.getAllFragmentScans();
       for (Scan msmsScan : msmsScans) {
         if (msmsScan.getMassList() == null) {
           setErrorMessage("Mass List cannot be found.\nCheck if MS2 Scans have a Mass List");

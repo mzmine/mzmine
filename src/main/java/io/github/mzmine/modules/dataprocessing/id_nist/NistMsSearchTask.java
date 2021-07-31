@@ -25,7 +25,23 @@ import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParame
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.MS_LEVEL;
 import static io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
+import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,22 +55,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
-import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
 
 /**
  * Performs NIST MS Search.
@@ -303,7 +303,7 @@ public class NistMsSearchTask extends AbstractTask {
             } else {
 
               // Get best fragment scan.
-              Scan scan = row.getBestFragmentation();
+              Scan scan = row.getMostIntenseFragmentScan();
               dataPoints = ScanUtils.extractDataPoints(scan);
               comment =
                   "DATA_FILE = " + scan.getDataFile().getName() + " SCAN = " + scan.getScanNumber();

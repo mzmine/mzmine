@@ -209,13 +209,13 @@ public interface FeatureListRow {
   /**
    * Returns the most intense fragmentation scan in this row
    */
-  public Scan getBestFragmentation();
+  public Scan getMostIntenseFragmentScan();
 
   /**
    * Returns all fragmentation scans of this row
    */
   @NotNull
-  public ObservableList<Scan> getAllMS2Fragmentations();
+  public ObservableList<Scan> getAllFragmentScans();
 
   /**
    * Returns the most intense isotope pattern in this row. If there are no isotope patterns present
@@ -368,7 +368,7 @@ public interface FeatureListRow {
    */
   default boolean hasMs2Fragmentation() {
     // should be faster. Best fragmentation loops through all spectra to find best
-    return getAllMS2Fragmentations() != null && !getAllMS2Fragmentations().isEmpty();
+    return getAllFragmentScans() != null && !getAllFragmentScans().isEmpty();
   }
 
   /**
