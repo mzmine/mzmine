@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import com.google.common.collect.Range;
-import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -106,7 +106,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
       msdkTask = new MzMLFileImportMethod(file);
       msdkTask.execute();
-      io.github.msdk.datamodel.RawDataFile file = msdkTask.getResult();
+      io.github.mzmine.datamodel.msdk.RawDataFile file = msdkTask.getResult();
 
       if (file == null) {
         setStatus(TaskStatus.ERROR);
@@ -156,7 +156,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     super.cancel();
   }
 
-  public void buildLCMSFile(io.github.msdk.datamodel.RawDataFile file) throws IOException {
+  public void buildLCMSFile(io.github.mzmine.datamodel.msdk.RawDataFile file) throws IOException {
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
 
@@ -194,7 +194,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     }
   }
 
-  public void buildIonMobilityFile(io.github.msdk.datamodel.RawDataFile file) throws IOException {
+  public void buildIonMobilityFile(io.github.mzmine.datamodel.msdk.RawDataFile file) throws IOException {
     int mobilityScanNumberCounter = 0;
     int frameNumber = 1;
     SimpleFrame buildingFrame = null;

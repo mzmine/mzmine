@@ -20,7 +20,7 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 
 import com.google.common.collect.Range;
 import com.sun.jna.Platform;
-import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -143,7 +143,7 @@ public class ThermoRawImportTask extends AbstractTask {
 
       msdkTask = new MzMLFileImportMethod(bufStream);
       msdkTask.execute();
-      io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
+      io.github.mzmine.datamodel.msdk.RawDataFile msdkFile = msdkTask.getResult();
 
       if (msdkFile == null) {
         setStatus(TaskStatus.ERROR);

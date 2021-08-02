@@ -19,7 +19,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;

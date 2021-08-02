@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import io.github.msdk.datamodel.IsolationInfo;
-import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.datamodel.msdk.IsolationInfo;
+import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;

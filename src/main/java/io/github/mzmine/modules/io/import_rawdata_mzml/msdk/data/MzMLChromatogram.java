@@ -24,17 +24,17 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.msdk.datamodel.ActivationInfo;
-import io.github.msdk.datamodel.ActivationType;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.ChromatogramType;
-import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.datamodel.IsolationInfo;
-import io.github.msdk.datamodel.RawDataFile;
-import io.github.msdk.datamodel.SeparationType;
-import io.github.msdk.datamodel.SimpleActivationInfo;
-import io.github.msdk.datamodel.SimpleIsolationInfo;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.ActivationInfo;
+import io.github.mzmine.datamodel.msdk.ActivationType;
+import io.github.mzmine.datamodel.msdk.Chromatogram;
+import io.github.mzmine.datamodel.msdk.ChromatogramType;
+import io.github.mzmine.datamodel.msdk.IonAnnotation;
+import io.github.mzmine.datamodel.msdk.IsolationInfo;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
+import io.github.mzmine.datamodel.msdk.SeparationType;
+import io.github.mzmine.datamodel.msdk.SimpleActivationInfo;
+import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 
 
 class MzMLChromatogram implements Chromatogram {
@@ -163,7 +163,7 @@ class MzMLChromatogram implements Chromatogram {
    * getInputStream.
    * </p>
    *
-   * @return a {@link io.github.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
+   * @return a {@link io.github.mzmine.datamodel.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
    */
   public InputStream getInputStream() {
     return inputStream;

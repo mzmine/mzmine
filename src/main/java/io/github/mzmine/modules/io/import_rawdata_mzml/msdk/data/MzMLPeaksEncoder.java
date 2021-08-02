@@ -13,7 +13,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import io.github.msdk.MSDKException;
+import io.github.mzmine.datamodel.msdk.MSDKException;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.MSNumpress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

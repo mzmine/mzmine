@@ -41,7 +41,7 @@ public class MzMLScanList extends MzMLCVGroup {
   /**
    * <p>addScan.</p>
    *
-   * @param scan a {@link io.github.msdk.io.mzml.data.MzMLScan} object.
+   * @param scan a {@link io.github.mzmine.datamodel.msdk.io.mzml.data.MzMLScan} object.
    */
   public void addScan(MzMLScan scan) {
     scans.add(scan);

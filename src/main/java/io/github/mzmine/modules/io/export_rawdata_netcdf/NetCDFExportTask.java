@@ -21,7 +21,7 @@ package io.github.mzmine.modules.io.export_rawdata_netcdf;
 import java.io.File;
 import java.util.logging.Logger;
 
-import io.github.msdk.MSDKMethod;
+import io.github.mzmine.datamodel.msdk.MSDKMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.taskcontrol.AbstractTask;

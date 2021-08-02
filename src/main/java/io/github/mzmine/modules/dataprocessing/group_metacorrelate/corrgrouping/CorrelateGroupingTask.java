@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping
 
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;

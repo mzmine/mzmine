@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms;
 
 
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;

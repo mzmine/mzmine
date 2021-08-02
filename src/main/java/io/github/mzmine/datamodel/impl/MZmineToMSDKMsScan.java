@@ -19,13 +19,13 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
-import io.github.msdk.datamodel.ActivationInfo;
-import io.github.msdk.datamodel.IsolationInfo;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.msdk.datamodel.PolarityType;
-import io.github.msdk.datamodel.RawDataFile;
-import io.github.msdk.datamodel.SimpleIsolationInfo;
+import io.github.mzmine.datamodel.msdk.ActivationInfo;
+import io.github.mzmine.datamodel.msdk.IsolationInfo;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.MsSpectrumType;
+import io.github.mzmine.datamodel.msdk.PolarityType;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
+import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 import io.github.mzmine.datamodel.Scan;
 import java.util.ArrayList;
 import java.util.List;

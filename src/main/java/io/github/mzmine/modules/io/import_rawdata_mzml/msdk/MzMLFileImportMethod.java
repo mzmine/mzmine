@@ -13,11 +13,11 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk;
 
-import io.github.msdk.MSDKException;
-import io.github.msdk.MSDKMethod;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msdk.MSDKException;
+import io.github.mzmine.datamodel.msdk.MSDKMethod;
+import io.github.mzmine.datamodel.msdk.Chromatogram;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.FileMemoryMapper;

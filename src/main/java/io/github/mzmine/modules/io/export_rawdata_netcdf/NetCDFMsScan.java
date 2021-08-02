@@ -16,9 +16,9 @@ package io.github.mzmine.modules.io.export_rawdata_netcdf;
 import io.github.mzmine.util.SpectrumTypeDetectionAlgorithm;
 import java.io.IOException;
 
-import io.github.msdk.MSDKRuntimeException;
-import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.msdk.datamodel.SimpleMsScan;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MsSpectrumType;
+import io.github.mzmine.datamodel.msdk.SimpleMsScan;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.InvalidRangeException;

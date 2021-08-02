@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;

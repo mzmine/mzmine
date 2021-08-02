@@ -14,10 +14,10 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.ImmutableList;
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.FileType;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msdk.Chromatogram;
+import io.github.mzmine.datamodel.msdk.FileType;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;

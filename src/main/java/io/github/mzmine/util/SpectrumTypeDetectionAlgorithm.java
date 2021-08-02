@@ -15,8 +15,8 @@ package io.github.mzmine.util;
 
 import javax.annotation.Nonnull;
 
-import io.github.msdk.datamodel.MsSpectrum;
-import io.github.msdk.datamodel.MsSpectrumType;
+import io.github.mzmine.datamodel.msdk.MsSpectrum;
+import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 
 /**
  * Auto-detection of spectrum type from data points. Determines if the spectrum represented by given

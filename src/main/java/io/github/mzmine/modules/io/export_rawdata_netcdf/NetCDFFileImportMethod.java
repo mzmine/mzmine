@@ -24,12 +24,12 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.msdk.MSDKException;
-import io.github.msdk.MSDKMethod;
-import io.github.msdk.datamodel.FileType;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
-import io.github.msdk.datamodel.SimpleRawDataFile;
+import io.github.mzmine.datamodel.msdk.MSDKException;
+import io.github.mzmine.datamodel.msdk.MSDKMethod;
+import io.github.mzmine.datamodel.msdk.FileType;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
+import io.github.mzmine.datamodel.msdk.SimpleRawDataFile;
 import ucar.ma2.Array;
 import ucar.ma2.IndexIterator;
 import ucar.nc2.Attribute;

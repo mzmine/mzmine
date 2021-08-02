@@ -13,8 +13,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.datamodel.msdk.Chromatogram;
+import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util.TagTracker;
 import java.io.InputStream;

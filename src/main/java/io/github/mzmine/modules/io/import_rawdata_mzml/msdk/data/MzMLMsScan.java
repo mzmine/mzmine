@@ -14,16 +14,16 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.msdk.datamodel.ActivationInfo;
-import io.github.msdk.datamodel.IsolationInfo;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.MsScanType;
-import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.msdk.datamodel.PolarityType;
-import io.github.msdk.datamodel.RawDataFile;
-import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.msdk.util.MsSpectrumUtil;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.ActivationInfo;
+import io.github.mzmine.datamodel.msdk.IsolationInfo;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.MsScanType;
+import io.github.mzmine.datamodel.msdk.MsSpectrumType;
+import io.github.mzmine.datamodel.msdk.PolarityType;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
+import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
+import io.github.mzmine.datamodel.msdk.MsSpectrumUtil;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.util.SpectrumTypeDetectionAlgorithm;
 import java.io.InputStream;

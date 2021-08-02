@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
-import io.github.msdk.MSDKMethod;
+import io.github.mzmine.datamodel.msdk.MSDKMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFFileExportMethod;

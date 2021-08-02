@@ -25,8 +25,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.lang.Math;
 
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
 
 
 /**

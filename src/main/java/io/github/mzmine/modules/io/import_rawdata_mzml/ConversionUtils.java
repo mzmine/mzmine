@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.MsSpectrumType;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -93,7 +93,7 @@ public class ConversionUtils {
     };
   }
 
-  public static PolarityType msdkToMZminePolarityType(io.github.msdk.datamodel.PolarityType msdk) {
+  public static PolarityType msdkToMZminePolarityType(io.github.mzmine.datamodel.msdk.PolarityType msdk) {
     return switch (msdk) {
       case POSITIVE -> PolarityType.POSITIVE;
       case NEGATIVE -> PolarityType.NEGATIVE;

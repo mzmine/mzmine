@@ -26,10 +26,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.msdk.MSDKMethod;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.RawDataFile;
-import io.github.msdk.datamodel.SimpleChromatogram;
+import io.github.mzmine.datamodel.msdk.MSDKMethod;
+import io.github.mzmine.datamodel.msdk.MsScan;
+import io.github.mzmine.datamodel.msdk.RawDataFile;
+import io.github.mzmine.datamodel.msdk.SimpleChromatogram;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.ADAP3DPeakDetectionAlgorithm;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.CurveTool;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.SliceSparseMatrix;

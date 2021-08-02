@@ -24,7 +24,7 @@ import org.jfree.data.xy.IntervalXYDelegate;
 import org.jfree.data.xy.XYBarDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 

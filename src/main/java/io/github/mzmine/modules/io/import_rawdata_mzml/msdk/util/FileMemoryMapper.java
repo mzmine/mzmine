@@ -21,7 +21,7 @@ import java.nio.channels.FileChannel;
 /**
  * <p>
  * Used to load a {@link File File} onto a
- * {@link io.github.msdk.io.mzml.util.ByteBufferInputStream ByteBufferInputStream}
+ * {@link io.github.mzmine.datamodel.msdk.io.mzml.util.ByteBufferInputStream ByteBufferInputStream}
  * </p>
  */
 public abstract class FileMemoryMapper {
@@ -29,11 +29,11 @@ public abstract class FileMemoryMapper {
   /**
    * <p>
    * Used to load a {@link File File} onto a
-   * {@link io.github.msdk.io.mzml.util.ByteBufferInputStream ByteBufferInputStream} *
+   * {@link io.github.mzmine.datamodel.msdk.io.mzml.util.ByteBufferInputStream ByteBufferInputStream} *
    * </p>
    *
    * @param file the {@link File File} to be mapped
-   * @return a {@link io.github.msdk.io.mzml2.util.io.ByteBufferInputStream ByteBufferInputStream}
+   * @return a {@link io.github.mzmine.datamodel.msdk.io.mzml2.util.io.ByteBufferInputStream ByteBufferInputStream}
    * @throws IOException if any
    */
   public static ByteBufferInputStream mapToMemory(File file) throws IOException {

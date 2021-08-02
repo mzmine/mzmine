@@ -13,7 +13,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.util;
 
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import java.util.ArrayDeque;
 import javolution.text.CharArray;
 

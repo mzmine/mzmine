@@ -18,9 +18,9 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import io.github.msdk.datamodel.Chromatogram;
-import io.github.msdk.datamodel.FileType;
-import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.datamodel.msdk.Chromatogram;
+import io.github.mzmine.datamodel.msdk.FileType;
+import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import java.io.File;
@@ -33,7 +33,7 @@ import javafx.collections.ObservableList;
 /**
  * Simple implementation of the Scan interface.
  */
-public class MZmineToMSDKRawDataFile implements io.github.msdk.datamodel.RawDataFile {
+public class MZmineToMSDKRawDataFile implements io.github.mzmine.datamodel.msdk.RawDataFile {
 
   private final RawDataFile mzmineRawdataFile;
   private final List<MsScan> scans = new ArrayList<>();
