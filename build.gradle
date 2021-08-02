@@ -28,8 +28,7 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    // TODO change to mavenCentral()
-    maven { url = "https://repo.maven.apache.org/maven2" }
+    mavenCentral()
     // local libraries
     maven { url = "file://" + projectDir + "/src/main/lib" }
     // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
