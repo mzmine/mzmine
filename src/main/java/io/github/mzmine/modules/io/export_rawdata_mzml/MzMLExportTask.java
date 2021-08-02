@@ -18,17 +18,15 @@
 
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
-import java.io.File;
-import java.util.logging.Logger;
-
 import io.github.msdk.MSDKMethod;
-import io.github.msdk.io.mzml.MzMLFileExportMethod;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
-import io.github.msdk.io.netcdf.NetCDFFileExportMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
+import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFFileExportMethod;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCompressionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.io.File;
+import java.util.logging.Logger;
 
 public class MzMLExportTask extends AbstractTask {
 
@@ -42,7 +40,6 @@ public class MzMLExportTask extends AbstractTask {
 
   /**
    * @param dataFile
-   * @param parameters
    */
   public MzMLExportTask(RawDataFile dataFile, File outFilename) {
     super(null); // no new data stored -> null

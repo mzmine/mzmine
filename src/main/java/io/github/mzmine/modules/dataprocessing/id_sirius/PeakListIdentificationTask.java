@@ -25,7 +25,6 @@ import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;

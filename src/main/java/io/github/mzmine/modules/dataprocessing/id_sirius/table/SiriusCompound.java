@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table;
 
+import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIonAnnotation;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -42,7 +43,6 @@ import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import de.unijena.bioinf.chemdb.DBLink;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import javafx.beans.property.SimpleObjectProperty;

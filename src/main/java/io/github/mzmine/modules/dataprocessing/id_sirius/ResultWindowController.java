@@ -26,7 +26,6 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import com.google.common.base.Strings;
 import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;

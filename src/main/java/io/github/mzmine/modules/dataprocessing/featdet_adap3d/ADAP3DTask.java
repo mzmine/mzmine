@@ -32,8 +32,6 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import io.github.msdk.datamodel.Feature;
 import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionMethod;
-import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionParameters;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;

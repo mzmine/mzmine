@@ -13,8 +13,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import io.github.msdk.io.mzml.data.MzMLCVParam;
-
 /**
  * Controlled vocabulary (CV) values for mzML files.
  *

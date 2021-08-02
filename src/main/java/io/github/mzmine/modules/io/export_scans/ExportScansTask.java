@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
+import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLFileExportMethod;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCompressionType;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -29,8 +31,6 @@ import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.FileType;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.SimpleRawDataFile;
-import io.github.msdk.io.mzml.MzMLFileExportMethod;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;

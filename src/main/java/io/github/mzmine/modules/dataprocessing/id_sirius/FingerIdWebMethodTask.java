@@ -26,8 +26,6 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.id.sirius.FingerIdWebMethod;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;

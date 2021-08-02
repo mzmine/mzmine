@@ -23,10 +23,10 @@ import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.msdk.datamodel.PolarityType;
 import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.msdk.spectra.centroidprofiledetection.SpectrumTypeDetectionAlgorithm;
 import io.github.msdk.util.MsSpectrumUtil;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.util.SpectrumTypeDetectionAlgorithm;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -162,7 +162,6 @@ public class MzMLMsScan implements MsScan {
    * getInputStream.
    * </p>
    *
-   * @return a {@link io.github.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
    */
   public InputStream getInputStream() {
     return inputStream;

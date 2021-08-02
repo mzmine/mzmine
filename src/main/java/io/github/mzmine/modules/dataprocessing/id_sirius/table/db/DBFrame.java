@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius.table.db;
 
+import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIonAnnotation;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Logger;
 import de.unijena.bioinf.chemdb.DBLink;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_sirius.table.SiriusCompound;
 import javafx.application.Platform;

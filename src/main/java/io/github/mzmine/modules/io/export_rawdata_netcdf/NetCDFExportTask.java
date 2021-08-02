@@ -22,9 +22,6 @@ import java.io.File;
 import java.util.logging.Logger;
 
 import io.github.msdk.MSDKMethod;
-import io.github.msdk.io.mzml.MzMLFileExportMethod;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
-import io.github.msdk.io.netcdf.NetCDFFileExportMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -42,7 +39,6 @@ public class NetCDFExportTask extends AbstractTask {
 
   /**
    * @param dataFile
-   * @param parameters
    */
   public NetCDFExportTask(RawDataFile dataFile, File outFilename) {
     super(null); // no new data stored -> null
@@ -79,14 +75,7 @@ public class NetCDFExportTask extends AbstractTask {
 
       MZmineToMSDKRawDataFile msdkDataFile = new MZmineToMSDKRawDataFile(dataFile);
 
-      if (outFilename.getName().toLowerCase().endsWith("mzml")) {
-        msdkMethod = new MzMLFileExportMethod(msdkDataFile, outFilename, MzMLCompressionType.ZLIB,
-            MzMLCompressionType.ZLIB);
-      }
-
-      if (outFilename.getName().toLowerCase().endsWith("cdf")) {
-        msdkMethod = new NetCDFFileExportMethod(msdkDataFile, outFilename);
-      }
+      msdkMethod = new NetCDFFileExportMethod(msdkDataFile, outFilename);
 
       if (isCanceled())
         return;

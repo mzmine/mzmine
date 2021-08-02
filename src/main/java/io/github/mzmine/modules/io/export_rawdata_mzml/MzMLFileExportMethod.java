@@ -11,8 +11,10 @@
  * (b) the terms of the Eclipse Public License v1.0 as published by the Eclipse Foundation.
  */
 
-package io.github.mzmine.modules.io.import_rawdata_mzml.msdk;
+package io.github.mzmine.modules.io.export_rawdata_mzml;
 
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCompressionType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIon;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.security.DigestOutputStream;
@@ -20,9 +22,13 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nonnull;
+
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKMethod;
 import io.github.msdk.datamodel.ActivationInfo;
@@ -32,22 +38,21 @@ import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.msdk.datamodel.PolarityType;
 import io.github.msdk.datamodel.RawDataFile;
-import io.github.msdk.io.mzml.data.MzMLArrayType;
-import io.github.msdk.io.mzml.data.MzMLBitLength;
-import io.github.msdk.io.mzml.data.MzMLCV;
-import io.github.msdk.io.mzml.data.MzMLCVGroup;
-import io.github.msdk.io.mzml.data.MzMLCVParam;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
-import io.github.msdk.io.mzml.data.MzMLMsScan;
-import io.github.msdk.io.mzml.data.MzMLPeaksEncoder;
-import io.github.msdk.io.mzml.data.MzMLPrecursorElement;
-import io.github.msdk.io.mzml.data.MzMLPrecursorSelectedIon;
-import io.github.msdk.io.mzml.data.MzMLProduct;
-import io.github.msdk.io.mzml.data.MzMLRawDataFile;
-import io.github.msdk.io.mzml.data.MzMLTags;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLArrayType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLBitLength;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVGroup;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCompressionType;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPeaksEncoder;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIon;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLProduct;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLRawDataFile;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLTags;
 import javolution.xml.internal.stream.XMLStreamWriterImpl;
 import javolution.xml.stream.XMLStreamException;
-
 
 /**
  * <p>
@@ -70,12 +75,12 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
 
   private static final String PREFIX_XSI = "xsi";
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  private final @NotNull RawDataFile rawDataFile;
-  private final @NotNull File target;
-  private final @NotNull MzMLCompressionType doubleArrayCompression;
-  private final @NotNull MzMLCompressionType floatArrayCompression;
+  private final @Nonnull RawDataFile rawDataFile;
+  private final @Nonnull File target;
+  private final @Nonnull MzMLCompressionType doubleArrayCompression;
+  private final @Nonnull MzMLCompressionType floatArrayCompression;
 
   private boolean canceled = false;
 
@@ -93,8 +98,8 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * @param doubleArrayCompression compression type for <code>double[]</code> which are encoded
    * @param floatArrayCompression compression type for <code>float[]</code> which are encoded
    */
-  public MzMLFileExportMethod(@NotNull RawDataFile rawDataFile, @NotNull File target,
-      @NotNull MzMLCompressionType doubleArrayCompression,
+  public MzMLFileExportMethod(@Nonnull RawDataFile rawDataFile, @Nonnull File target,
+      @Nonnull MzMLCompressionType doubleArrayCompression,
       MzMLCompressionType floatArrayCompression) {
     this.rawDataFile = rawDataFile;
     this.target = target;
@@ -107,7 +112,8 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    *
    * <p>
    * Execute the process of writing the data from the the input
-   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target {@link File File}
+   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target
+   * {@link File File}
    * </p>
    */
   @Override
@@ -743,8 +749,9 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * <p>
    * Write a <code>&lt;cvParam&gt;</code> to the <code>xmlStreamWriter</code>
    * </p>
-   *
-   * @param xmlStreamWriter an {@link XMLStreamWriterImpl XMLStreamWriterImpl} instance
+   * 
+   * @param xmlStreamWriter an {@link javolution.xml.internal.stream.XMLStreamWriterImpl
+   *        XMLStreamWriterImpl} instance
    * @param cvParam the CV Parameter to be written to the target {@link File File}
    * @throws XMLStreamException
    */
@@ -781,10 +788,11 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * <p>
    * Write a group (or list) of <code>&lt;cvParam&gt;</code> to the <code>xmlStreamWriter</code>
    * </p>
-   *
-   * @param xmlStreamWriter an {@link XMLStreamWriterImpl XMLStreamWriterImpl} instance
-   * @param cvGroup the list (or group) of CV Parameters to be written to the target {@link File
-   *        File}
+   * 
+   * @param xmlStreamWriter an {@link javolution.xml.internal.stream.XMLStreamWriterImpl
+   *        XMLStreamWriterImpl} instance
+   * @param cvGroup the list (or group) of CV Parameters to be written to the target
+   *        {@link File File}
    * @throws XMLStreamException
    */
   private void writeCVGroup(XMLStreamWriterImpl xmlStreamWriter, MzMLCVGroup cvGroup)
