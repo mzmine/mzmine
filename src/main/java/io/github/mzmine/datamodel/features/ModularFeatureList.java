@@ -282,8 +282,8 @@ public class ModularFeatureList implements FeatureList {
    * Returns all features for a raw data file
    */
   @Override
-  public ObservableList<Feature> getFeatures(RawDataFile raw) {
-    ObservableList<Feature> features = FXCollections.observableArrayList();
+  public List<ModularFeature> getFeatures(RawDataFile raw) {
+    List<ModularFeature> features = new ArrayList<>();
     for (int row = 0; row < getNumberOfRows(); row++) {
       ModularFeature f = getFeature(row, raw);
       if (f != null) {
@@ -428,23 +428,16 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public Stream<Feature> streamFeatures() {
+  public Stream<ModularFeature> streamFeatures() {
     return stream().flatMap(row -> row.getFeatures().stream()).filter(Objects::nonNull);
   }
 
-  public Stream<ModularFeature> modularStreamFeatures() {
-    return streamFeatures().map(feature -> (ModularFeature) feature);
-  }
-
   @Override
-  public Stream<Feature> parallelStreamFeatures() {
+  public Stream<ModularFeature> parallelStreamFeatures() {
     return parallelStream().flatMap(row -> row.getFeatures().stream())
         .filter(Objects::nonNull);
   }
 
-  public Stream<ModularFeature> modularParallelStreamFeatures() {
-    return parallelStreamFeatures().map(feature -> (ModularFeature) feature);
-  }
 
   /**
    * @see FeatureList#getFeatureListRowNum(Feature)

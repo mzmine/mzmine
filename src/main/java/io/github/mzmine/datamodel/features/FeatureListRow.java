@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -30,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Interface representing feature list row
  */
-public interface FeatureListRow {
+public interface FeatureListRow extends ModularDataModel {
 
   /**
    * Return raw data with features on this row
@@ -55,10 +57,13 @@ public interface FeatureListRow {
    */
   public int getNumberOfFeatures();
 
+  // Helper methods
+  Range<Double> getMZRange();
+
   /**
    * Return features assigned to this row
    */
-  public ObservableList<Feature> getFeatures();
+  public List<ModularFeature> getFeatures();
 
   /**
    * Returns feature for given raw data file
@@ -396,4 +401,8 @@ public interface FeatureListRow {
    * @param matchedLipid the matched lipid
    */
   void addLipidAnnotation(MatchedLipid matchedLipid);
+
+  // -- ModularFeatureListRow additions
+  public Stream<ModularFeature> streamFeatures();
+
 }

@@ -80,7 +80,7 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public ObservableList<Feature> getFeatures() {
+  public List<ModularFeature> getFeatures() {
     return mainRow.getFeatures();
   }
 
