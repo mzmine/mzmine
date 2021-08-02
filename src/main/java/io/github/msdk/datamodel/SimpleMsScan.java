@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 
 import io.github.msdk.MSDKRuntimeException;
-import io.github.msdk.util.tolerances.MzTolerance;
 
 /**
  * Simple implementation of the Scan interface.
@@ -37,7 +36,6 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
   private @Nonnull Integer msLevel = 1;
   private @Nonnull PolarityType polarity = PolarityType.UNKNOWN;
   private @Nonnull MsScanType msScanType = MsScanType.UNKNOWN;
-  private @Nullable MzTolerance mzTolerance;
   private @Nullable Range<Double> scanningRange;
   private @Nullable Float rt;
   private @Nullable ActivationInfo sourceInducedFragInfo;
@@ -199,23 +197,6 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
   public void setMsScanType(@Nonnull MsScanType newMsScanType) {
     Preconditions.checkNotNull(newMsScanType);
     this.msScanType = newMsScanType;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public MzTolerance getMzTolerance() {
-    return mzTolerance;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * <p>
-   * Setter for the field <code>mzTolerance</code>.
-   * </p>
-   */
-  public void setMzTolerance(MzTolerance mzTolerance) {
-    this.mzTolerance = mzTolerance;
   }
 
   /** {@inheritDoc} */

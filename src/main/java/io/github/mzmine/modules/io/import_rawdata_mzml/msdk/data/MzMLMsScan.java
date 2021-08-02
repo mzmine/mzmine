@@ -24,7 +24,6 @@ import io.github.msdk.datamodel.PolarityType;
 import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
 import io.github.msdk.util.MsSpectrumUtil;
-import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.util.SpectrumTypeDetectionAlgorithm;
 import java.io.InputStream;
@@ -621,14 +620,6 @@ public class MzMLMsScan implements MsScan {
     }
 
     return retentionTime;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MzTolerance getMzTolerance() {
-    return null;
   }
 
   /**

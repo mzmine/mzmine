@@ -26,7 +26,6 @@ import io.github.msdk.datamodel.MsSpectrumType;
 import io.github.msdk.datamodel.PolarityType;
 import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
-import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.Scan;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,11 +89,6 @@ public class MZmineToMSDKMsScan implements MsScan {
   @Override
   public Range<Double> getMzRange() {
     return mzmineScan.getDataPointMZRange();
-  }
-
-  @Override
-  public MzTolerance getMzTolerance() {
-    return null;
   }
 
   @Override

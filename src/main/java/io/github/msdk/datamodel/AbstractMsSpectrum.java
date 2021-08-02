@@ -21,7 +21,6 @@ import com.google.common.collect.Range;
 
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.util.MsSpectrumUtil;
-import io.github.msdk.util.tolerances.MzTolerance;
 
 /**
  * Simple implementation of the MsSpectrum interface
@@ -36,7 +35,6 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
   private @Nonnull Float totalIonCurrent = 0f;
 
   private @Nonnull MsSpectrumType spectrumType = MsSpectrumType.CENTROIDED;
-  private @Nullable MzTolerance mzTolerance;
 
   /** {@inheritDoc} */
   @Override
@@ -136,21 +134,5 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
     return mzRange;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public MzTolerance getMzTolerance() {
-    return mzTolerance;
-  }
-
-  /**
-   * <p>
-   * Setter for the field <code>mzTolerance</code>.
-   * </p>
-   *
-   * @param mzTolerance a {@link MzTolerance} object.
-   */
-  public void setMzTolerance(MzTolerance mzTolerance) {
-    this.mzTolerance = mzTolerance;
-  }
 
 }

@@ -18,8 +18,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.Range;
 
-import io.github.msdk.util.tolerances.MzTolerance;
-
 /**
  * A mass spectrum. This is a base interface typically extended by other, more specialized
  * interfaces. It may represent a single scan in raw MS data, a calculated isotope pattern, a
@@ -117,12 +115,4 @@ public interface MsSpectrum {
   @Nullable
   Range<Double> getMzRange();
 
-  /**
-   * Returns an object that implements the MzTolerance interface. If not MzTolernace is available,
-   * then null is returned.
-   *
-   * @return m/z tolerance for the scan
-   */
-  @Nullable
-  MzTolerance getMzTolerance();
 }

@@ -12,6 +12,7 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_adap3d;
 
+import io.github.mzmine.datamodel.features.ModularFeature;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,11 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.github.msdk.MSDKMethod;
-import io.github.msdk.datamodel.Feature;
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleChromatogram;
-import io.github.msdk.datamodel.SimpleFeature;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.ADAP3DPeakDetectionAlgorithm;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.CurveTool;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.SliceSparseMatrix;
@@ -40,7 +39,7 @@ import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.SliceSpars
  * This class is used to run the whole ADAP3D algorithm and get peaks.
  * </p>
  */
-public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
+public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<ModularFeature>> {
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -56,7 +55,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
    */
   private static final double LOW_BOUND_PEAK_WIDTH_PERCENT = 0.75;
 
-  private final List<Feature> finalFeatureList;
+  private final List<ModularFeature> finalFeatureList;
 
   private ADAP3DPeakDetectionAlgorithm objPeakDetection;
 
@@ -73,7 +72,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
   public ADAP3DFeatureDetectionMethod(@Nonnull RawDataFile rawFile) {
     this(rawFile, s -> true, new ADAP3DFeatureDetectionParameters());
   }
-  
+
   /**
    * <p>
    * Constructor
@@ -87,7 +86,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
                                       @Nullable Predicate<MsScan> msScanPredicate) {
     this(rawFile, msScanPredicate, new ADAP3DFeatureDetectionParameters());
   }
-  
+
   /**
    * <p>
    * Constructor
@@ -128,16 +127,15 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
    * peaks.
    * </p>
    *
-   * @return newFeatureList a list of {@link Feature}
    */
-  public List<Feature> execute() {
+  public List<ModularFeature> execute() {
 
     logger.info("Starting ADAP3D feature detection on file " + rawFile.getName());
-    
+
     // Create SliceSparseMatrix
     logger.debug("Loading the raw data into SliceSparceMatrix");
     this.objSliceSparseMatrix = new SliceSparseMatrix(rawFile, msScanPredicate);
-    
+
     // Here fwhm across all the scans of raw data file is determined.
     logger.debug("Estimating FWHM values across all scans");
     CurveTool objCurveTool = new CurveTool(objSliceSparseMatrix);
@@ -210,7 +208,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
     convertPeaksToFeatures(newGoodPeakList, finalFeatureList);
 
     logger.info("Finished ADAP3D feature detection on file " + rawFile.getName());
-    
+
     return finalFeatureList;
   }
 
@@ -223,7 +221,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
    * </p>
    */
   private void convertPeaksToFeatures(List<ADAP3DPeakDetectionAlgorithm.GoodPeakInfo> goodPeakList,
-      List<Feature> featureList) {
+      List<ModularFeature> featureList) {
 
     int lowerScanBound;
     int upperScanBound;
@@ -245,16 +243,16 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
       chromatogram.setDataPoints(rtArray, mzArray, intensityArray,
           upperScanBound - lowerScanBound + 1);
 
-      SimpleFeature feature = new SimpleFeature();
+      ModularFeature feature = null;// new ModularFeature();
       feature.setArea(CurveTool.normalize(intensityArray));
       feature.setHeight(goodPeakInfo.maxHeight);
 
       int maxHeightScanNumber = goodPeakInfo.maxHeightScanNumber;
       float retentionTime = (float) objSliceSparseMatrix.getRetentionTime(maxHeightScanNumber);
 
-      feature.setRetentionTime(retentionTime);
-      feature.setMz(mz);
-      feature.setChromatogram(chromatogram);
+      // feature.setRetentionTime(retentionTime);
+      // feature.setMz(mz);
+      // feature.setChromatogram(chromatogram);
       featureList.add(feature);
     }
   }
@@ -270,7 +268,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<Feature>> {
 
   /** {@inheritDoc} */
   @Override
-  public List<Feature> getResult() {
+  public List<ModularFeature> getResult() {
     return finalFeatureList;
   }
 

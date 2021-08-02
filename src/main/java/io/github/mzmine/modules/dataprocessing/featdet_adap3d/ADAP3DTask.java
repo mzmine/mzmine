@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import io.github.msdk.datamodel.Feature;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -134,7 +133,7 @@ public class ADAP3DTask extends AbstractTask {
         scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
     msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate,
         new ADAP3DFeatureDetectionParameters());
-    List<Feature> features = null;
+    List<ModularFeature> features = null;
     try {
       if (isCanceled())
         return;
@@ -158,12 +157,9 @@ public class ADAP3DTask extends AbstractTask {
         getMemoryMapStorage(), dataFile);
 
     int rowId = 1;
-    for (Feature msdkFeature : features) {
+    for (ModularFeature mzmineFeature : features) {
       if (isCanceled())
         return;
-      // TODO: implement FeatureConvertors.MSDKFeatureToModularFeature(...)
-      ModularFeature mzmineFeature =
-          FeatureConvertors.MSDKFeatureToModularFeature(msdkFeature, dataFile, FeatureStatus.DETECTED);
       FeatureListRow row = new ModularFeatureListRow(newPeakList, rowId);
       row.addFeature(dataFile, mzmineFeature);
       newPeakList.addRow(row);
