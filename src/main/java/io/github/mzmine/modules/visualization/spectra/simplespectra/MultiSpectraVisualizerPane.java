@@ -94,7 +94,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
    * @param row
    */
   public MultiSpectraVisualizerPane(FeatureListRow row) {
-    this(row, row.getBestFragmentation().getDataFile());
+    this(row, row.getMostIntenseFragmentScan().getDataFile());
   }
 
   public MultiSpectraVisualizerPane(FeatureListRow row, RawDataFile raw) {

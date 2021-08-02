@@ -580,7 +580,7 @@ public class ScanSelectPanel extends BorderPane {
 
   private int getTotalScans() {
     if (row != null) {
-      return row.getAllMS2Fragmentations().size();
+      return row.getAllFragmentScans().size();
     }
     if (scansEntry != null) {
       return scansEntry.size();

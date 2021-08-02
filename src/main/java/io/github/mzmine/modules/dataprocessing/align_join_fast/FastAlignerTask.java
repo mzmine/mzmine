@@ -372,9 +372,9 @@ public class FastAlignerTask extends AbstractTask {
       // get data points of mass list of the best
       // fragmentation scans
       if (msLevel == 2) {
-        if (row.getBestFragmentation() != null && candidate.getBestFragmentation() != null) {
-          rowDPs = row.getBestFragmentation().getMassList().getDataPoints();
-          candidateDPs = candidate.getBestFragmentation().getMassList().getDataPoints();
+        if (row.getMostIntenseFragmentScan() != null && candidate.getMostIntenseFragmentScan() != null) {
+          rowDPs = row.getMostIntenseFragmentScan().getMassList().getDataPoints();
+          candidateDPs = candidate.getMostIntenseFragmentScan().getMassList().getDataPoints();
         } else {
           return false;
         }

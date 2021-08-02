@@ -520,7 +520,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
               links.entrySet().stream().filter(Objects::nonNull)
                   .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
                 FeatureListRow link = e.getKey();
-                if (!limitToMSMS || link.getBestFragmentation() != null) {
+                if (!limitToMSMS || link.getMostIntenseFragmentScan() != null) {
                   IonIdentity id = e.getValue();
                   double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
 

@@ -364,7 +364,7 @@ public class MultiMSMSPane extends BorderPane {
     // check raw
     if (raw != null && !rawContainsFragmentation(raw)) {
       // change to best of highest row
-      raw = Arrays.stream(rows).map(FeatureListRow::getBestFragmentation).filter(Objects::nonNull)
+      raw = Arrays.stream(rows).map(FeatureListRow::getMostIntenseFragmentScan).filter(Objects::nonNull)
           .findFirst().get().getDataFile();
     }
     // set raw and update

@@ -295,8 +295,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     // there was a problem in the RoundRobinMoleculaFormulaGenerator (index out of range
     try {
-      if (checkMSMS && featureListRow.getBestFragmentation() != null) {
-        Scan msmsScan = featureListRow.getBestFragmentation();
+      if (checkMSMS && featureListRow.getMostIntenseFragmentScan() != null) {
+        Scan msmsScan = featureListRow.getMostIntenseFragmentScan();
         MassList ms2MassList = msmsScan.getMassList();
         if (ms2MassList == null) {
           setStatus(TaskStatus.ERROR);

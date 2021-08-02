@@ -292,7 +292,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     Map<Double, String> msmsAnnotations = null;
 
     if (checkMSMS) {
-      Scan msmsScan = peakListRow.getBestFragmentation();
+      Scan msmsScan = peakListRow.getMostIntenseFragmentScan();
       if (msmsScan != null) {
         MassList ms2MassList = msmsScan.getMassList();
         if (ms2MassList == null) {

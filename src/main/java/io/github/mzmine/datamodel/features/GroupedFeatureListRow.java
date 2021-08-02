@@ -201,14 +201,14 @@ public abstract class GroupedFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public Scan getBestFragmentation() {
-    return mainRow.getBestFragmentation();
+  public Scan getMostIntenseFragmentScan() {
+    return mainRow.getMostIntenseFragmentScan();
   }
 
   @NotNull
   @Override
-  public ObservableList<Scan> getAllMS2Fragmentations() {
-    return mainRow.getAllMS2Fragmentations();
+  public ObservableList<Scan> getAllFragmentScans() {
+    return mainRow.getAllFragmentScans();
   }
 
   @Override

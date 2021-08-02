@@ -188,7 +188,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
       if (bestFeature == null) {
         continue;
       }
-      Scan msmsScan = row.getBestFragmentation();
+      Scan msmsScan = row.getMostIntenseFragmentScan();
       if (msmsScan != null) {
         // MS/MS scan must exist, because msmsScanNumber was > 0
 

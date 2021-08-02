@@ -185,7 +185,7 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
           // only correlated rows in this group
           if (group == null || group.isCorrelated(row, parent)) {
             // has MS/MS
-            Scan msmsScan = parent.getBestFragmentation();
+            Scan msmsScan = parent.getMostIntenseFragmentScan();
             if (msmsScan == null) {
               continue;
             }

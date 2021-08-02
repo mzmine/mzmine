@@ -295,9 +295,9 @@ public class MS2SimilarityTask extends AbstractTask {
     if (!row.hasMs2Fragmentation()) {
       return null;
     }
-    MassList masses = row.getBestFragmentation().getMassList();
+    MassList masses = row.getMostIntenseFragmentScan().getMassList();
     if (masses == null) {
-      throw new MissingMassListException(row.getBestFragmentation());
+      throw new MissingMassListException(row.getMostIntenseFragmentScan());
     }
     DataPoint[] filteredData = masses.getDataPoints();
     if (minHeight > 0) {

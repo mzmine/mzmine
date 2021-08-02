@@ -853,7 +853,7 @@ public class ScanUtils {
   }
 
   public static Stream<Scan> streamAllFragmentScans(FeatureListRow row) {
-    return row.getAllMS2Fragmentations().stream();
+    return row.getAllFragmentScans().stream();
   }
 
   /**
@@ -887,7 +887,7 @@ public class ScanUtils {
   @NotNull
   public static ObservableList<Scan> listAllFragmentScans(FeatureListRow row, double noiseLevel,
       int minNumberOfSignals) throws MissingMassListException {
-    ObservableList<Scan> scans = row.getAllMS2Fragmentations();
+    ObservableList<Scan> scans = row.getAllFragmentScans();
     return listAllScans(scans, noiseLevel, minNumberOfSignals);
   }
 
@@ -1194,7 +1194,7 @@ public class ScanUtils {
    */
   public static @NotNull Collection<Scan> selectBestMS2Scans(@NotNull FeatureListRow row,
       @NotNull Integer topN) throws MissingMassListException {
-    final @NotNull List<Scan> allMS2Scans = row.getAllMS2Fragmentations();
+    final @NotNull List<Scan> allMS2Scans = row.getAllFragmentScans();
     return selectBestMS2Scans(allMS2Scans, topN);
   }
 
