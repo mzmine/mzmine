@@ -92,7 +92,6 @@ import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
@@ -284,7 +283,6 @@ public class BatchModeModulesList {
       NistMsSearchModule.class, //
       OnlineDBSearchModule.class, //
       PrecursorDBSearchModule.class, //
-      SiriusIdentificationModule.class, //
       LocalSpectralDBSearchModule.class, //
 
       /*
