@@ -163,7 +163,7 @@ public class FeatureListSummaryController {
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
     if(batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
-      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters);
+      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
     }
   }
 
