@@ -15,6 +15,24 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<!--
+  ~ Copyright 2006-2021 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  -->
+
 <AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotAnchorPaneController">
    <children>
       <SplitPane dividerPositions="0.85" layoutX="87.0" layoutY="112.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
