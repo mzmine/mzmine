@@ -14,13 +14,13 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.msdk.ActivationInfo;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.MsScanType;
 import io.github.mzmine.datamodel.msdk.MsSpectrumType;
-import io.github.mzmine.datamodel.msdk.PolarityType;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsSpectrumUtil;

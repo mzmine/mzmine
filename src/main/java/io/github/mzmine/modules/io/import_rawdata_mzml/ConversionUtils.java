@@ -93,14 +93,6 @@ public class ConversionUtils {
     };
   }
 
-  public static PolarityType msdkToMZminePolarityType(io.github.mzmine.datamodel.msdk.PolarityType msdk) {
-    return switch (msdk) {
-      case POSITIVE -> PolarityType.POSITIVE;
-      case NEGATIVE -> PolarityType.NEGATIVE;
-      default -> PolarityType.UNKNOWN;
-    };
-  }
-
   /**
    * Creates a {@link SimpleScan} from an MSDK scan from MzML import
    *
@@ -163,7 +155,7 @@ public class ConversionUtils {
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
         scan.getRetentionTime() / 60, precursorMz, precursorCharge, mzs, intensities,
-        spectrumType, ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
+        spectrumType, scan.getPolarity(),
         scan.getScanDefinition(), scan.getScanningRange());
 
     return newScan;

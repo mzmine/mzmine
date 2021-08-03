@@ -170,7 +170,7 @@ public class MsdkScanWrapper implements Scan {
   @NotNull
   @Override
   public PolarityType getPolarity() {
-    return ConversionUtils.msdkToMZminePolarityType(scan.getPolarity());
+    return scan.getPolarity();
   }
 
 

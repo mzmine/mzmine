@@ -13,6 +13,7 @@
 
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCompressionType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIon;
 import java.io.File;
@@ -36,7 +37,6 @@ import io.github.mzmine.datamodel.msdk.Chromatogram;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.MsSpectrumType;
-import io.github.mzmine.datamodel.msdk.PolarityType;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLArrayType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLBitLength;
@@ -55,7 +55,6 @@ import javolution.xml.stream.XMLStreamException;
 /**
  * <p>
  * This class contains methods which can be used to write data contained in a
- * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to a file, in mzML format
  * </p>
  */
 public class MzMLFileExportMethod implements MSDKMethod<Void> {
@@ -90,8 +89,6 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    * Constructor for MzMLFileExportMethod.
    * </p>
    *
-   * @param rawDataFile the input {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile}
-   *        which contains the data to be exported
    * @param target the target {@link File File} to write the data, in mzML format
    * @param doubleArrayCompression compression type for <code>double[]</code> which are encoded
    * @param floatArrayCompression compression type for <code>float[]</code> which are encoded
@@ -110,7 +107,6 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
    *
    * <p>
    * Execute the process of writing the data from the the input
-   * {@link o.github.msdk.datamodel.rawdata.RawDataFile RawDataFile} to the target
    * {@link File File}
    * </p>
    */

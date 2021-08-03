@@ -237,7 +237,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
             scan.getRetentionTime() / 60f, 0, 0, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
-            ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
+            scan.getPolarity(), scan.getScanDefinition(),
             scan.getScanningRange(), mzMLScan.getMobility().mt(), null);
         frameNumber++;
 

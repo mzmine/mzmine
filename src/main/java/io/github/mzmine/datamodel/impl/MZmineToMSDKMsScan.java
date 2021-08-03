@@ -19,11 +19,11 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.msdk.ActivationInfo;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.MsSpectrumType;
-import io.github.mzmine.datamodel.msdk.PolarityType;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 import io.github.mzmine.datamodel.Scan;

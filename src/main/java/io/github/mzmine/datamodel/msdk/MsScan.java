@@ -13,6 +13,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
+import io.github.mzmine.datamodel.PolarityType;
 import java.util.List;
 
 import javax.annotation.Nonnull;
