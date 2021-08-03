@@ -18,25 +18,22 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join_fast;
 
-import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
-import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerTask;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class FastAlignerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Fast aligner";
+  private static final String MODULE_NAME = "Parallel join aligner";
   private static final String MODULE_DESCRIPTION =
-      "This method aligns detected peaks using a match score. This score is calculated based on the mass and retention time of each peak using preset tolerance.";
+      "This method aligns detected peaks using a match score. This score is calculated based on"
+          + " the mass and retention time of each peak using preset tolerance.";
 
   @Override
   public @NotNull String getName() {
@@ -52,7 +49,7 @@ public class FastAlignerModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks) {
-    Task newTask = new JoinAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
+    Task newTask = new FastAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
     return ExitCode.OK;
 
@@ -65,7 +62,7 @@ public class FastAlignerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return JoinAlignerParameters.class;
+    return FastAlignerParameters.class;
   }
 
 }

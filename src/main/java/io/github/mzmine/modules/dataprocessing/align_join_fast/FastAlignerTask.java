@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -52,7 +53,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +69,7 @@ public class FastAlignerTask extends AbstractTask {
 
   // Processed rows counter
   private int totalRows;
-  private final AtomicInteger processedRows = new AtomicInteger(0);
+  private final AtomicInteger alignedRows = new AtomicInteger(0);
 
   private final ParameterSet isotopeParams;
   private final String featureListName;
@@ -86,7 +86,7 @@ public class FastAlignerTask extends AbstractTask {
   private final ParameterSet parameters;
 
   // ID counter for the new peaklist
-  private int newRowID = 1;
+  private int iteration = 0;
 
 
   // fields for spectra similarity
@@ -143,7 +143,7 @@ public class FastAlignerTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Join aligner, " + featureListName + " (" + (featureLists.size() + 1)
+    return "Parallel join aligner, " + featureListName + " (" + featureLists.size()
         + " feature lists)";
   }
 
@@ -155,7 +155,8 @@ public class FastAlignerTask extends AbstractTask {
     if (totalRows == 0) {
       return 0f;
     }
-    return (double) processedRows.get() / (double) totalRows;
+    return alignedFeatureList != null ? (alignedFeatureList.getNumberOfRows() + alignedRows.get())
+        / (double) totalRows : 0d;
   }
 
   /**
@@ -171,12 +172,13 @@ public class FastAlignerTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.PROCESSING);
-    logger.info(() -> "Running join aligner on " + (featureLists.size() + 1) + " feature lists.");
+    logger
+        .info(() -> "Running parallel join aligner on " + featureLists.size() + " feature lists.");
 
     // Remember how many rows we need to process. Each row will be processed
     // twice, first for score calculation, second for actual alignment.
     for (FeatureList list : featureLists) {
-      totalRows += list.getNumberOfRows() * 2;
+      totalRows += list.getNumberOfRows();
     }
 
     // Collect all data files
@@ -191,8 +193,8 @@ public class FastAlignerTask extends AbstractTask {
     final AtomicInteger newRowID = new AtomicInteger(1);
 
     // get all rows of all feature lists.
-    final List<FeatureListRow> unalignedRows = featureLists.stream()
-        .flatMap(flist -> flist.stream()).toList();
+    final List<FeatureListRow> unalignedRows = new ArrayList<>(
+        featureLists.stream().flatMap(flist -> flist.stream()).toList());
 
     // contains all files that potentially have unaligned features.
     final List<ModularFeatureList> leftoverFlists = new ArrayList<>(featureLists);
@@ -203,7 +205,7 @@ public class FastAlignerTask extends AbstractTask {
     final List<FeatureListRow> leftoverRows = Collections
         .synchronizedList(new ArrayList<>(unalignedRows));
 
-    while (leftoverFlists.size() > 1) {
+    while (leftoverFlists.size() > 0) {
       // select the next base feature list, and get all rows from that feature list from our list
       // of rows. We use the flist with the most rows first.
       final ModularFeatureList nextBaseList = leftoverFlists.stream()
@@ -211,34 +213,41 @@ public class FastAlignerTask extends AbstractTask {
           .toList().get(0);
       leftoverFlists.remove(nextBaseList);
 
-      // the base rows are the rows we align the features on to.
-      List<FeatureListRow> nextBaseRows = leftoverRows.stream()
-          .filter(row -> row.getFeatureList().equals(nextBaseList)).toList();
+      // we add a new set of unaligned rows to the feature list that we can align on.
+      List<FeatureListRow> nextBaseRows = new ArrayList<>(
+          leftoverRows.stream().filter(row -> row.getFeatureList().equals(nextBaseList)).map(
+              row -> (FeatureListRow) new ModularFeatureListRow(alignedFeatureList,
+                  newRowID.getAndIncrement(), (ModularFeatureListRow) row, true)).toList());
       nextBaseRows.sort(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+      nextBaseRows.forEach(row -> alignedFeatureList.addRow(row));
 
-      // remove base rows from the leftover rows.
-      leftoverRows.removeIf(
-          row -> row.getFeatureList().equals(nextBaseList)); // removeIf faster than removeAll?
+      // remove new base rows from the leftover rows.
+      leftoverRows.removeIf(row -> row.getFeatureList().equals(nextBaseList));
 
-      // unaligned rows are our rows that shall be matched to the nextBaseRows. The leftover rows
-      // is supposed to contain all rows that have not been aligned during the method call.
+      // unaligned rows are our rows that shall be matched to the rows of the feature list. The
+      // leftover rows is supposed to contain all rows that have not been aligned during the method
+      // call.
       unalignedRows.clear();
       unalignedRows.addAll(leftoverRows);
       leftoverRows.clear();
 
-      alignRowsOnBaseRows(unalignedRows, nextBaseRows, leftoverRows);
+      // use the whole feature list to align on. the average row m/zs and rts change during alignment due to
+      List<FeatureListRow> baseRows = new ArrayList<>(alignedFeatureList.getRows());
+      baseRows.sort(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+      alignRowsOnBaseRows(unalignedRows, baseRows, leftoverRows);
 
-      // todo base rows have to be copied and added to the new feature list.
+      iteration++;
     }
 
+    alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
+    // Add task description to peakList
+    alignedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Parallel join aligner", FastAlignerModule.class,
+            parameters));
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);
 
-    // Add task description to peakList
-    alignedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Join aligner", FastAlignerModule.class, parameters));
-
-    logger.info("Finished join aligner");
+    logger.info("Finished parallel join aligner");
 
     setStatus(TaskStatus.FINISHED);
 
@@ -247,11 +256,11 @@ public class FastAlignerTask extends AbstractTask {
   private void alignRowsOnBaseRows(List<FeatureListRow> unalignedRows,
       List<FeatureListRow> baseRowsByMz, List<FeatureListRow> leftoverRows) {
 
-    final Map<FeatureListRow, Boolean> assignedRows = new ConcurrentHashMap<>();
+    final Map<FeatureListRow, Boolean> assignedRows = new HashMap<>();
     unalignedRows.forEach(row -> assignedRows.put(row, false));
 
     // key = a row to be aligned, value = all possible matches in the aligned fl and it's scores
-    final Map<FeatureListRow, List<RowVsRowScore>> rowToScoreMap = new ConcurrentHashMap<>();
+//    final Map<FeatureListRow, List<RowVsRowScore>> rowToScoreMap = new ConcurrentHashMap<>();
     final List<RowVsRowScore> scoresList = Collections.synchronizedList(new ArrayList<>());
 
     unalignedRows.parallelStream().forEach(row -> {
@@ -275,8 +284,8 @@ public class FastAlignerTask extends AbstractTask {
         return;
       }
 
-      final List<RowVsRowScore> rowVsRowScores = rowToScoreMap
-          .computeIfAbsent(row, r -> new ArrayList<>());
+//      final List<RowVsRowScore> rowVsRowScores = rowToScoreMap
+//          .computeIfAbsent(row, r -> new ArrayList<>());
 
       for (FeatureListRow candidateInAligned : candidatesInAligned) {
         if (checkMZ(candidateInAligned, mzRange) && checkRT(candidateInAligned, rtRange)
@@ -297,31 +306,31 @@ public class FastAlignerTask extends AbstractTask {
                 RangeUtils.rangeLength(rtRange) / 2.0, rtWeight,
                 RangeUtils.rangeLength(mobilityRange), mobilityWeight);
           }
-          rowVsRowScores.add(score);
+//          rowVsRowScores.add(score);
           scoresList.add(score);
         }
       }
-      processedRows.getAndIncrement();
     });
 
     // after an iteration, rows of all other featureLists have been given a mapping
     // now we have to find the best match
     scoresList.sort(RowVsRowScore::compareTo);
-    Map<FeatureListRow, FeatureListRow> assignedAlignedRows = new HashMap<>();
+//    Map<FeatureListRow, FeatureListRow> assignedAlignedRows = new HashMap<>();
     for (RowVsRowScore score : scoresList) {
       final FeatureListRow alignedRow = score.getAlignedRow();
       final FeatureListRow row = score.getPeakListRow();
-
-      if (!assignedRows.containsKey(row)) {
+      if (assignedRows.get(row) == false) {
         // put all features of the row into the aligned row
         for (Feature feature : row.getFeatures()) {
           if (!alignedRow.hasFeature(feature.getRawDataFile())) {
             alignedRow.addFeature(feature.getRawDataFile(),
                 new ModularFeature(alignedFeatureList, feature));
             assignedRows.put(row, true);
-          } else {
+            alignedRows.getAndIncrement();
+          } /*else {
+            // if we align all unaligned features on the full aligned feature list, this might actually happen.
             logger.finest(() -> "Warning: already a feature for raw file in row.");
-          }
+          }*/
         }
       }
     }
@@ -331,7 +340,8 @@ public class FastAlignerTask extends AbstractTask {
         .forEach(e -> leftoverRows.add(e.getKey()));
     logger.finest(
         () -> "Assigned " + (unalignedRows.size() - leftoverRows.size()) + "/" + unalignedRows
-            + ". " + leftoverRows.size() + " remaining.");
+            .size() + ". " + leftoverRows.size() + " remaining. Iteration " + iteration + "/"
+            + featureLists.size());
   }
 
   @Nullable
@@ -372,7 +382,8 @@ public class FastAlignerTask extends AbstractTask {
       // get data points of mass list of the best
       // fragmentation scans
       if (msLevel == 2) {
-        if (row.getMostIntenseFragmentScan() != null && candidate.getMostIntenseFragmentScan() != null) {
+        if (row.getMostIntenseFragmentScan() != null
+            && candidate.getMostIntenseFragmentScan() != null) {
           rowDPs = row.getMostIntenseFragmentScan().getMassList().getDataPoints();
           candidateDPs = candidate.getMostIntenseFragmentScan().getMassList().getDataPoints();
         } else {
