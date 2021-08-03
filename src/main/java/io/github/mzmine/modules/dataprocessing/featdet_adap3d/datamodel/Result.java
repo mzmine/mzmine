@@ -1,14 +1,19 @@
 /*
- * (C) Copyright 2015-2017 by MSDK Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This software is dual-licensed under either
+ * This file is part of MZmine.
  *
- * (a) the terms of the GNU Lesser General Public License version 2.1 as published by the Free
- * Software Foundation
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * or (per the licensee's choosing)
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * (b) the terms of the Eclipse Public License v1.0 as published by the Eclipse Foundation.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 /**
  * <p>

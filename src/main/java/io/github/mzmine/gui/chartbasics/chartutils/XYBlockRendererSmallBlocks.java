@@ -18,26 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.chartutils;
 
-/*
- * the Java(tm)platform===========================================================**(C)Copyright
- * 2000-2017,by Object Refinery Limited and Contributors.**Project Info:http://
- * www.jfree.org/jfreechart/index.html This library is free software;you can redistribute it and/or
- * modify it under the terms of the*GNU Lesser General Public License as published by the Free
- * Software Foundation;either version*2.1 of the License,or(at your option)any later version.**This
- * library is distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY;without*even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU*Lesser
- * General Public License for more details.**You should have received a copy of the GNU Lesser
- * General Public License along with this library;*if not,write to the Free Software
- * Foundation,Inc.,51 Franklin Street,Fifth Floor,Boston,MA*02110-1301,USA.**[Oracle and Java are
- * registered trademarks of Oracle and/or its affiliates.Other names may be*trademarks of their
- * respective owners.]**--------------------XYBlockRenderer.java--------------------(C)Copyright
- * 2006-2017,by Object*Refinery Limited.**Original Author:David Gilbert(for Object Refinery
- * Limited);Contributor(s):-;**Changes-------05-Jul-2006:Version 1(DG);02-Feb-2007:Added
- * getPaintScale()method(DG);*09-Mar-2007:Fixed cloning(DG);03-Aug-2007:Fix for bug
- * 1766646(DG);07-Apr-2008:Added*entity collection code(DG);22-Apr-2008:Implemented
- * PublicCloneable(DG);03-Jul-2013:Use*ParamChecks(DG);20-Feb-2017:Add update for crosshairs(DG);
- **/
-
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -62,41 +42,6 @@ import org.jfree.data.Range;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
-/*
- * =========================================================== JFreeChart : a free chart library for
- * the Java(tm) platform ===========================================================
- *
- * (C) Copyright 2000-2017, by Object Refinery Limited and Contributors.
- *
- * Project Info: http://www.jfree.org/jfreechart/index.html
- *
- * This library is free software; you can redistribute it and/or modify it under the terms of the
- * GNU Lesser General Public License as published by the Free Software Foundation; either version
- * 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License along with this library;
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
- *
- * [Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be
- * trademarks of their respective owners.]
- *
- * -------------------- XYBlockRenderer.java -------------------- (C) Copyright 2006-2017, by Object
- * Refinery Limited.
- *
- * Original Author: David Gilbert (for Object Refinery Limited); Contributor(s): -;
- *
- * Changes ------- 05-Jul-2006 : Version 1 (DG); 02-Feb-2007 : Added getPaintScale() method (DG);
- * 09-Mar-2007 : Fixed cloning (DG); 03-Aug-2007 : Fix for bug 1766646 (DG); 07-Apr-2008 : Added
- * entity collection code (DG); 22-Apr-2008 : Implemented PublicCloneable (DG); 03-Jul-2013 : Use
- * ParamChecks (DG); 20-Feb-2017 : Add update for crosshairs (DG); 18-Dec-2020 : allow smaller block
- * sizes for plots in MZmine (Ansgar Korf)
- */
 
 public class XYBlockRendererSmallBlocks extends AbstractXYItemRenderer
     implements XYItemRenderer, Cloneable, PublicCloneable, Serializable {
