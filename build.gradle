@@ -95,15 +95,6 @@ dependencies {
     implementation "org.openscience.cdk:cdk-renderawt:$cdkVersion"
     implementation "org.openscience.cdk:cdk-data:$cdkVersion"
     implementation "org.openscience.cdk:cdk-dict:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-fragment:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-fingerprint:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-forcefield:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-reaction:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-charges:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-smiles:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-qsar:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-qsaratomic:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-qsarmolecular:$cdkVersion"
     implementation "uk.ac.ebi.jmzml:jmzml:1.7.11"
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
     implementation "mysql:mysql-connector-java:5.1.34"
@@ -155,13 +146,10 @@ dependencies {
     implementation "io.gsonfire:gson-fire:1.8.0"
     implementation "org.json:json:20190722"
     implementation "org.glassfish:javax.json:1.1.4"
-
     implementation "org.threeten:threetenbp:1.3.8"
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
-
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
-
     implementation "net.java.dev.jna:jna:$jnaVersion"
     implementation "com.alanmrace:jimzmlparser:1.0.5"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
