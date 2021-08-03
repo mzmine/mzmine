@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join_fast;
+package io.github.mzmine.modules.dataprocessing.align_join_parallel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -57,7 +57,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
-public class FastAlignerTask extends AbstractTask {
+public class ParallelJoinAlignerTask extends AbstractTask {
 
   private final MZmineProject project;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -94,46 +94,46 @@ public class FastAlignerTask extends AbstractTask {
   private int msLevel;
   private final boolean compareMobility;
 
-  public FastAlignerTask(MZmineProject project, ParameterSet parameters,
+  public ParallelJoinAlignerTask(MZmineProject project, ParameterSet parameters,
       @Nullable MemoryMapStorage storage) {
     super(storage);
 
     this.project = project;
     this.parameters = parameters;
 
-    featureLists = Arrays.stream(parameters.getParameter(FastAlignerParameters.peakLists).getValue()
+    featureLists = Arrays.stream(parameters.getParameter(ParallelJoinAlignerParameters.peakLists).getValue()
         .getMatchingFeatureLists()).toList();
 
-    featureListName = parameters.getParameter(FastAlignerParameters.peakListName).getValue();
+    featureListName = parameters.getParameter(ParallelJoinAlignerParameters.peakListName).getValue();
 
-    mzTolerance = parameters.getParameter(FastAlignerParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(FastAlignerParameters.RTTolerance).getValue();
+    mzTolerance = parameters.getParameter(ParallelJoinAlignerParameters.MZTolerance).getValue();
+    rtTolerance = parameters.getParameter(ParallelJoinAlignerParameters.RTTolerance).getValue();
 
-    compareMobility = parameters.getParameter(FastAlignerParameters.mobilityTolerance).getValue();
-    mobilityTolerance = parameters.getParameter(FastAlignerParameters.mobilityTolerance)
+    compareMobility = parameters.getParameter(ParallelJoinAlignerParameters.mobilityTolerance).getValue();
+    mobilityTolerance = parameters.getParameter(ParallelJoinAlignerParameters.mobilityTolerance)
         .getEmbeddedParameter().getValue();
 
-    mzWeight = parameters.getParameter(FastAlignerParameters.MZWeight).getValue();
-    rtWeight = parameters.getParameter(FastAlignerParameters.RTWeight).getValue();
-    mobilityWeight = parameters.getParameter(FastAlignerParameters.mobilityWeight).getValue();
+    mzWeight = parameters.getParameter(ParallelJoinAlignerParameters.MZWeight).getValue();
+    rtWeight = parameters.getParameter(ParallelJoinAlignerParameters.RTWeight).getValue();
+    mobilityWeight = parameters.getParameter(ParallelJoinAlignerParameters.mobilityWeight).getValue();
 
-    sameChargeRequired = parameters.getParameter(FastAlignerParameters.SameChargeRequired)
+    sameChargeRequired = parameters.getParameter(ParallelJoinAlignerParameters.SameChargeRequired)
         .getValue();
 
-    sameIDRequired = parameters.getParameter(FastAlignerParameters.SameIDRequired).getValue();
-    compareIsotopePattern = parameters.getParameter(FastAlignerParameters.compareIsotopePattern)
+    sameIDRequired = parameters.getParameter(ParallelJoinAlignerParameters.SameIDRequired).getValue();
+    compareIsotopePattern = parameters.getParameter(ParallelJoinAlignerParameters.compareIsotopePattern)
         .getValue();
-    isotopeParams = parameters.getParameter(FastAlignerParameters.compareIsotopePattern)
+    isotopeParams = parameters.getParameter(ParallelJoinAlignerParameters.compareIsotopePattern)
         .getEmbeddedParameters();
     compareSpectraSimilarity = parameters
-        .getParameter(FastAlignerParameters.compareSpectraSimilarity).getValue();
+        .getParameter(ParallelJoinAlignerParameters.compareSpectraSimilarity).getValue();
 
     if (compareSpectraSimilarity) {
-      simFunction = parameters.getParameter(FastAlignerParameters.compareSpectraSimilarity)
+      simFunction = parameters.getParameter(ParallelJoinAlignerParameters.compareSpectraSimilarity)
           .getEmbeddedParameters()
-          .getParameter(FastAlignerSpectraSimilarityScoreParameters.similarityFunction).getValue();
-      msLevel = parameters.getParameter(FastAlignerParameters.compareSpectraSimilarity)
-          .getEmbeddedParameters().getParameter(FastAlignerSpectraSimilarityScoreParameters.msLevel)
+          .getParameter(ParallelJoinAlignerSpectraSimilarityScoreParameters.similarityFunction).getValue();
+      msLevel = parameters.getParameter(ParallelJoinAlignerParameters.compareSpectraSimilarity)
+          .getEmbeddedParameters().getParameter(ParallelJoinAlignerSpectraSimilarityScoreParameters.msLevel)
           .getValue();
     }
   }
@@ -242,7 +242,7 @@ public class FastAlignerTask extends AbstractTask {
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Parallel join aligner", FastAlignerModule.class,
+        new SimpleFeatureListAppliedMethod("Parallel join aligner", ParallelJoinAlignerModule.class,
             parameters));
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);

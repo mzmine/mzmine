@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join_fast;
+package io.github.mzmine.modules.dataprocessing.align_join_parallel;
 
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerSpectraSimilarityScoreParameters;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
@@ -35,7 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import java.text.DecimalFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class FastAlignerParameters extends SimpleParameterSet {
+public class ParallelJoinAlignerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
@@ -76,7 +76,7 @@ public class FastAlignerParameters extends SimpleParameterSet {
           "Compare MS1 or MS2 spectra similarity",
           new JoinAlignerSpectraSimilarityScoreParameters(), false);
 
-  public FastAlignerParameters() {
+  public ParallelJoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
         mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
         compareIsotopePattern,

@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join_fast;
+package io.github.mzmine.modules.dataprocessing.align_join_parallel;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -28,7 +28,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class FastAlignerModule implements MZmineProcessingModule {
+public class ParallelJoinAlignerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Parallel join aligner";
   private static final String MODULE_DESCRIPTION =
@@ -49,7 +49,7 @@ public class FastAlignerModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks) {
-    Task newTask = new FastAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
+    Task newTask = new ParallelJoinAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
     tasks.add(newTask);
     return ExitCode.OK;
 
@@ -62,7 +62,7 @@ public class FastAlignerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return FastAlignerParameters.class;
+    return ParallelJoinAlignerParameters.class;
   }
 
 }

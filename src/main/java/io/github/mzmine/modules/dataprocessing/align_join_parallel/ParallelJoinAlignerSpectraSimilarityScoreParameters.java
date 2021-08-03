@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join_fast;
+package io.github.mzmine.modules.dataprocessing.align_join_parallel;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -30,7 +30,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class FastAlignerSpectraSimilarityScoreParameters extends SimpleParameterSet {
+public class ParallelJoinAlignerSpectraSimilarityScoreParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Spectral m/z tolerance",
@@ -46,7 +46,7 @@ public class FastAlignerSpectraSimilarityScoreParameters extends SimpleParameter
           "Algorithm to calculate similarity and filter matches",
           SpectralSimilarityFunction.FUNCTIONS);
 
-  public FastAlignerSpectraSimilarityScoreParameters() {
+  public ParallelJoinAlignerSpectraSimilarityScoreParameters() {
     super(new Parameter[]{mzTolerance, msLevel, similarityFunction});
   }
 
