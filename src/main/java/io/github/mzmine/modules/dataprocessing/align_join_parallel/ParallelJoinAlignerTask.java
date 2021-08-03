@@ -50,11 +50,13 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 public class ParallelJoinAlignerTask extends AbstractTask {
@@ -101,28 +103,33 @@ public class ParallelJoinAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
 
-    featureLists = Arrays.stream(parameters.getParameter(ParallelJoinAlignerParameters.peakLists).getValue()
-        .getMatchingFeatureLists()).toList();
+    featureLists = Arrays.stream(
+        parameters.getParameter(ParallelJoinAlignerParameters.peakLists).getValue()
+            .getMatchingFeatureLists()).toList();
 
-    featureListName = parameters.getParameter(ParallelJoinAlignerParameters.peakListName).getValue();
+    featureListName = parameters.getParameter(ParallelJoinAlignerParameters.peakListName)
+        .getValue();
 
     mzTolerance = parameters.getParameter(ParallelJoinAlignerParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(ParallelJoinAlignerParameters.RTTolerance).getValue();
 
-    compareMobility = parameters.getParameter(ParallelJoinAlignerParameters.mobilityTolerance).getValue();
+    compareMobility = parameters.getParameter(ParallelJoinAlignerParameters.mobilityTolerance)
+        .getValue();
     mobilityTolerance = parameters.getParameter(ParallelJoinAlignerParameters.mobilityTolerance)
         .getEmbeddedParameter().getValue();
 
     mzWeight = parameters.getParameter(ParallelJoinAlignerParameters.MZWeight).getValue();
     rtWeight = parameters.getParameter(ParallelJoinAlignerParameters.RTWeight).getValue();
-    mobilityWeight = parameters.getParameter(ParallelJoinAlignerParameters.mobilityWeight).getValue();
+    mobilityWeight = parameters.getParameter(ParallelJoinAlignerParameters.mobilityWeight)
+        .getValue();
 
     sameChargeRequired = parameters.getParameter(ParallelJoinAlignerParameters.SameChargeRequired)
         .getValue();
 
-    sameIDRequired = parameters.getParameter(ParallelJoinAlignerParameters.SameIDRequired).getValue();
-    compareIsotopePattern = parameters.getParameter(ParallelJoinAlignerParameters.compareIsotopePattern)
+    sameIDRequired = parameters.getParameter(ParallelJoinAlignerParameters.SameIDRequired)
         .getValue();
+    compareIsotopePattern = parameters
+        .getParameter(ParallelJoinAlignerParameters.compareIsotopePattern).getValue();
     isotopeParams = parameters.getParameter(ParallelJoinAlignerParameters.compareIsotopePattern)
         .getEmbeddedParameters();
     compareSpectraSimilarity = parameters
@@ -131,10 +138,11 @@ public class ParallelJoinAlignerTask extends AbstractTask {
     if (compareSpectraSimilarity) {
       simFunction = parameters.getParameter(ParallelJoinAlignerParameters.compareSpectraSimilarity)
           .getEmbeddedParameters()
-          .getParameter(ParallelJoinAlignerSpectraSimilarityScoreParameters.similarityFunction).getValue();
-      msLevel = parameters.getParameter(ParallelJoinAlignerParameters.compareSpectraSimilarity)
-          .getEmbeddedParameters().getParameter(ParallelJoinAlignerSpectraSimilarityScoreParameters.msLevel)
+          .getParameter(ParallelJoinAlignerSpectraSimilarityScoreParameters.similarityFunction)
           .getValue();
+      msLevel = parameters.getParameter(ParallelJoinAlignerParameters.compareSpectraSimilarity)
+          .getEmbeddedParameters()
+          .getParameter(ParallelJoinAlignerSpectraSimilarityScoreParameters.msLevel).getValue();
     }
   }
 
@@ -208,9 +216,10 @@ public class ParallelJoinAlignerTask extends AbstractTask {
     while (leftoverFlists.size() > 0) {
       // select the next base feature list, and get all rows from that feature list from our list
       // of rows. We use the flist with the most rows first.
-      final ModularFeatureList nextBaseList = leftoverFlists.stream()
-          .sorted((l1, l2) -> Integer.compare(l1.getNumberOfRows(), l2.getNumberOfRows()) * -1)
-          .toList().get(0);
+      Map<FeatureList, Long> remainingFlists = unalignedRows.stream()
+          .collect(Collectors.groupingBy(row -> row.getFeatureList(), Collectors.counting()));
+      final FeatureList nextBaseList = remainingFlists.entrySet().stream()
+          .max(Comparator.comparingLong(e -> e.getValue())).get().getKey();
       leftoverFlists.remove(nextBaseList);
 
       // we add a new set of unaligned rows to the feature list that we can align on.
