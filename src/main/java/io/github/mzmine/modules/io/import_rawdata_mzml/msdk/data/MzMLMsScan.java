@@ -14,13 +14,13 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.msdk.ActivationInfo;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.MsScanType;
-import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsSpectrumUtil;
@@ -57,7 +57,7 @@ public class MzMLMsScan implements MsScan {
   private final @NotNull Integer scanNumber;
   private final int numOfDataPoints;
 
-  private MsSpectrumType spectrumType;
+  private MassSpectrumType spectrumType;
   private Float tic;
   private Float retentionTime;
   private Range<Double> mzRange;
@@ -290,14 +290,14 @@ public class MzMLMsScan implements MsScan {
    * {@inheritDoc}
    */
   @Override
-  public MsSpectrumType getSpectrumType() {
+  public MassSpectrumType getSpectrumType() {
     if (spectrumType == null) {
       if (getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()) {
-        spectrumType = MsSpectrumType.CENTROIDED;
+        spectrumType = MassSpectrumType.CENTROIDED;
       }
 
       if (getCVValue(MzMLCV.cvProfileSpectrum).isPresent()) {
-        spectrumType = MsSpectrumType.PROFILE;
+        spectrumType = MassSpectrumType.PROFILE;
       }
 
       if (spectrumType != null) {

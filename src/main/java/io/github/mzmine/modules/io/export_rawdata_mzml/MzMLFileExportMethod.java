@@ -13,6 +13,7 @@
 
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCompressionType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIon;
@@ -36,7 +37,6 @@ import io.github.mzmine.datamodel.msdk.ActivationInfo;
 import io.github.mzmine.datamodel.msdk.Chromatogram;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsScan;
-import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLArrayType;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLBitLength;
@@ -224,7 +224,7 @@ public class MzMLFileExportMethod implements MSDKMethod<Void> {
         if (!(rawDataFile instanceof MzMLRawDataFile) || (rawDataFile instanceof MzMLRawDataFile
             && !spectrum.getCVValue(MzMLCV.cvCentroidSpectrum).isPresent()
             && !spectrum.getCVValue(MzMLCV.cvProfileSpectrum).isPresent())) {
-          if (scan.getSpectrumType() == MsSpectrumType.CENTROIDED)
+          if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
             writeCVParam(xmlStreamWriter, MzMLCV.centroidCvParam);
           else
             writeCVParam(xmlStreamWriter, MzMLCV.profileCvParam);

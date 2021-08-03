@@ -13,6 +13,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -31,7 +32,7 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
   private @Nullable Range<Double> mzRange;
   private @Nonnull Float totalIonCurrent = 0f;
 
-  private @Nonnull MsSpectrumType spectrumType = MsSpectrumType.CENTROIDED;
+  private @Nonnull MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
 
   /** {@inheritDoc} */
   @Override
@@ -100,16 +101,16 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
   /** {@inheritDoc} */
   @Override
   @Nonnull
-  public MsSpectrumType getSpectrumType() {
+  public MassSpectrumType getSpectrumType() {
     return spectrumType;
   }
 
   /**
    * {@inheritDoc}
    *
-   * @param spectrumType a {@link MsSpectrumType} object.
+   * @param spectrumType a {@link MassSpectrumType} object.
    */
-  public void setSpectrumType(@Nonnull MsSpectrumType spectrumType) {
+  public void setSpectrumType(@Nonnull MassSpectrumType spectrumType) {
     this.spectrumType = spectrumType;
   }
 

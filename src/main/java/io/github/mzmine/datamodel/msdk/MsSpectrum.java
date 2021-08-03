@@ -13,6 +13,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -34,7 +35,7 @@ public interface MsSpectrum {
    * @return spectrum type (profile, centroided, thresholded)
    */
   @Nonnull
-  MsSpectrumType getSpectrumType();
+  MassSpectrumType getSpectrumType();
 
   /**
    * <p>

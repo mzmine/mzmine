@@ -19,10 +19,8 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import io.github.mzmine.datamodel.msdk.MsScan;
-import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -85,7 +83,7 @@ public class ConversionUtils {
     return output;
   }
 
-  public static MassSpectrumType msdkToMZmineSpectrumType(MsSpectrumType msdk) {
+  public static MassSpectrumType msdkToMZmineSpectrumType(MassSpectrumType msdk) {
     return switch (msdk) {
       case PROFILE -> MassSpectrumType.PROFILE;
       case CENTROIDED -> MassSpectrumType.CENTROIDED;

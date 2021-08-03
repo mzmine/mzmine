@@ -13,11 +13,11 @@
 
 package io.github.mzmine.modules.io.export_rawdata_netcdf;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.util.SpectrumTypeDetectionAlgorithm;
 import java.io.IOException;
 
 import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 import io.github.mzmine.datamodel.msdk.SimpleMsScan;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
@@ -41,7 +41,7 @@ public class NetCDFMsScan extends SimpleMsScan {
   private double[] preLoadedMzValues;
   private float[] preLoadedIntensityValues;
   private Integer numOfDataPoints;
-  private MsSpectrumType spectrumType;
+  private MassSpectrumType spectrumType;
 
   /**
    *
@@ -180,7 +180,7 @@ public class NetCDFMsScan extends SimpleMsScan {
 
   /** {@inheritDoc} */
   @Override
-  public MsSpectrumType getSpectrumType() {
+  public MassSpectrumType getSpectrumType() {
     if (spectrumType == null)
       spectrumType = SpectrumTypeDetectionAlgorithm.detectSpectrumType(getMzValues(),
           getIntensityValues(), getNumberOfDataPoints());

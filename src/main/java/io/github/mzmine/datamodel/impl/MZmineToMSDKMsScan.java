@@ -19,11 +19,11 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.msdk.ActivationInfo;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.MsScan;
-import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 import io.github.mzmine.datamodel.Scan;
@@ -54,8 +54,8 @@ public class MZmineToMSDKMsScan implements MsScan {
   }
 
   @Override
-  public MsSpectrumType getSpectrumType() {
-    return MsSpectrumType.valueOf(mzmineScan.getSpectrumType().name());
+  public MassSpectrumType getSpectrumType() {
+    return MassSpectrumType.valueOf(mzmineScan.getSpectrumType().name());
   }
 
   @Override

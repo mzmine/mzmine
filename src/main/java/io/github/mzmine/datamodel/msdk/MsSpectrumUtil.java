@@ -13,6 +13,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -281,90 +282,4 @@ public class MsSpectrumUtil {
 
   }
 
-  /**
-   * Filters with only N most intense elements.
-   * 
-   * @param spectrum - ms spectrum
-   * @param pairsLimit - maximum amount of items in a new Spectrum
-   * @return
-   */
-  public static @Nonnull MsSpectrum filterMsSpectrum(@Nonnull MsSpectrum ms,
-      @Nonnull Integer pairsLimit) {
-
-    TreeMap<Float, Double> intesityMzSorted = new TreeMap<>(Comparator.reverseOrder());
-    double mz[] = ms.getMzValues();
-    float intensity[] = ms.getIntensityValues();
-    if (mz.length <= pairsLimit)
-      return ms;
-
-    double[] newMz = new double[pairsLimit];
-    float[] newIntensity = new float[pairsLimit];
-
-    /* Sort intensity pairs */
-    for (int i = 0; i < mz.length; i++) {
-      intesityMzSorted.put(intensity[i], mz[i]);
-    }
-
-    /* Create new arrays with filtered intensity pairs */
-    for (int i = 0; i < pairsLimit; i++) {
-      Entry<Float, Double> pair = intesityMzSorted.firstEntry();
-      intesityMzSorted.remove(pair.getKey());
-      newMz[i] = pair.getValue();
-      newIntensity[i] = pair.getKey();
-    }
-    intesityMzSorted.clear();
-
-    /* Sort ascending by mz */
-    DataPointSorter.sortDataPoints(newMz, newIntensity, pairsLimit, SortingProperty.MZ,
-        SortingDirection.ASCENDING);
-
-    /* Create new Spectrum object */
-    MsSpectrumType type = ms.getSpectrumType();
-    SimpleMsSpectrum filteredMs = new SimpleMsSpectrum(newMz, newIntensity, pairsLimit, type);
-    return filteredMs;
-  }
-
-  /**
-   * Method preprocesses list of spectra, limits its amount
-   * Filtering of Spectrum objects is done by retrieving top N Spectrum objects with largest
-   * intensity values
-   *
-   * @param spectra - list of spectrum to be preprocessed
-   * @param listLimit - maximum amount of items to be in a new list
-   * @return filtered lists
-   */
-  public static List<MsSpectrum> filterMsSpectra(List<MsSpectrum> spectra, int listLimit) {
-    if (spectra == null)
-      return null;
-
-    /* Small optimization */
-    if (spectra.size() < listLimit) {
-      return spectra;
-    }
-
-    TreeMap<Float, MsSpectrum> orderedSpectra = new TreeMap<>(Comparator.reverseOrder());
-
-    /* Order by largest intensity value */
-    for (MsSpectrum ms : spectra) {
-      float biggest = 0;
-      for (float temp : ms.getIntensityValues()) {
-        if (temp > biggest)
-          biggest = temp;
-      }
-
-      orderedSpectra.put(biggest, ms);
-    }
-
-    /* Retrieve only top N items */
-    List<MsSpectrum> ordered = new LinkedList<>();
-    for (int i = 0; i < listLimit; i++) {
-      Entry<Float, MsSpectrum> pair = orderedSpectra.firstEntry();
-      if (pair == null) break;
-      orderedSpectra.remove(pair.getKey());
-      MsSpectrum ms = pair.getValue();
-      ordered.add(ms);
-    }
-
-    return ordered;
-  }
 }

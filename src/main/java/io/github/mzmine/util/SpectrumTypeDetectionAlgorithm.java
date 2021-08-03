@@ -13,10 +13,10 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.MassSpectrumType;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.msdk.MsSpectrum;
-import io.github.mzmine.datamodel.msdk.MsSpectrumType;
 
 /**
  * Auto-detection of spectrum type from data points. Determines if the spectrum represented by given
@@ -33,9 +33,9 @@ public class SpectrumTypeDetectionAlgorithm {
    * </p>
    *
    * @param msSpectrum a {@link MsSpectrum} object.
-   * @return a {@link MsSpectrumType} object.
+   * @return a {@link MassSpectrumType} object.
    */
-  public static MsSpectrumType detectSpectrumType(@Nonnull MsSpectrum msSpectrum) {
+  public static MassSpectrumType detectSpectrumType(@Nonnull MsSpectrum msSpectrum) {
     double mzValues[] = msSpectrum.getMzValues();
     float intensityValues[] = msSpectrum.getIntensityValues();
     Integer size = msSpectrum.getNumberOfDataPoints();
@@ -47,18 +47,18 @@ public class SpectrumTypeDetectionAlgorithm {
    * detectSpectrumType.
    * </p>
    *
-   * @return a {@link MsSpectrumType} object.
+   * @return a {@link MassSpectrumType} object.
    * @param mzValues an array of double.
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public static @Nonnull MsSpectrumType detectSpectrumType(@Nonnull double mzValues[],
+  public static @Nonnull MassSpectrumType detectSpectrumType(@Nonnull double mzValues[],
       @Nonnull float intensityValues[], @Nonnull Integer size) {
 
     // If the spectrum has less than 5 data points, it should be
     // centroided.
     if (size < 5)
-      return MsSpectrumType.CENTROIDED;
+      return MassSpectrumType.CENTROIDED;
 
     int basePeakIndex = 0;
     boolean hasZeroDataPoint = false;
@@ -96,12 +96,12 @@ public class SpectrumTypeDetectionAlgorithm {
     // centroid spectrum. These criteria are empirical and probably not
     // bulletproof. However, it works for all the test cases we have.
     if ((mainPeakDataPointCount < 3) || (mainPeakMzSpan > (scanMzSpan / 1000.0)))
-      return MsSpectrumType.CENTROIDED;
+      return MassSpectrumType.CENTROIDED;
     else {
       if (hasZeroDataPoint)
-        return MsSpectrumType.PROFILE;
+        return MassSpectrumType.PROFILE;
       else
-        return MsSpectrumType.THRESHOLDED;
+        return MassSpectrumType.THRESHOLDED;
     }
 
   }
