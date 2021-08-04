@@ -270,7 +270,8 @@ public class BatchWizardController {
   private MZmineProcessingStep<MZmineProcessingModule> makeMassDetectionStep(
       @NotNull final ParameterSet msParameters, int msLevel) {
 
-    final ParameterSet detectorParam = new AutoMassDetectorParameters().cloneParameterSet();
+    final ParameterSet detectorParam = MZmineCore.getConfiguration().getModuleParameters(
+        AutoMassDetector.class).cloneParameterSet();
     detectorParam.getParameter(AutoMassDetectorParameters.noiseLevel).setValue(
         msLevel == 1 ? msParameters
             .getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
@@ -293,7 +294,7 @@ public class BatchWizardController {
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
     param.getParameter(MassDetectionParameters.massDetector)
-        .setValue(new MZmineProcessingStepImpl<>(new AutoMassDetector(), detectorParam));
+        .setValue(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class), detectorParam));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param);
@@ -620,9 +621,10 @@ public class BatchWizardController {
         IonModification.H2O_2, IonModification.HFA, IonModification.ACN, IonModification.MEOH};
     ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
         new IonModification[][]{adducts, modifications});
-    param.getParameter(IonNetworkingParameters.LIBRARY).setEmbeddedParameters(
-        (IonLibraryParameterSet) ionLibraryParam);
+    param.getParameter(IonNetworkingParameters.LIBRARY)
+        .setEmbeddedParameters((IonLibraryParameterSet) ionLibraryParam);
 
-    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class), param);
+    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
+        param);
   }
 }
