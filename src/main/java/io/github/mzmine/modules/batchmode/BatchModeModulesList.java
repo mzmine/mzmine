@@ -24,6 +24,7 @@ import io.github.mzmine.modules.dataprocessing.adap_mcr.ADAPMultivariateCurveRes
 import io.github.mzmine.modules.dataprocessing.align_adap3.ADAP3AlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_hierarchical.HierarAlignerGcModule;
 import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerModule;
+import io.github.mzmine.modules.dataprocessing.align_join_parallel.ParallelJoinAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerModule;
 import io.github.mzmine.modules.dataprocessing.align_ransac.RansacAlignerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adap3d.ADAP3DModule;
@@ -97,6 +98,7 @@ import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectral
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
+import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
@@ -104,20 +106,19 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmit
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
 import io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule;
 import io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule;
-import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_features_mztab.MzTabExportModule;
 import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
-import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
+import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
-import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
-import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
@@ -214,6 +215,7 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ALIGNMENT}
        */
       JoinAlignerModule.class, //
+      ParallelJoinAlignerModule.class, //
       ADAP3AlignerModule.class, //
       HierarAlignerGcModule.class, //
       PathAlignerModule.class, //
