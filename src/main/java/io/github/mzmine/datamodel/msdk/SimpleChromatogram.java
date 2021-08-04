@@ -40,7 +40,6 @@ public class SimpleChromatogram implements Chromatogram {
   private @Nullable double mzValues[];
   private @NotNull float intensityValues[];
   private @NotNull Range<Float> rtRange;
-  private @Nullable IonAnnotation ionAnnotation;
 
   private final @NotNull List<IsolationInfo> isolations = new ArrayList<>();
 
@@ -222,20 +221,6 @@ public class SimpleChromatogram implements Chromatogram {
     this.mz = newMz;
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @param ionAnnotation a {@link IonAnnotation} object.
-   */
-  public void setIonAnnotation(@NotNull IonAnnotation ionAnnotation) {
-    this.ionAnnotation = ionAnnotation;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public IonAnnotation getIonAnnotation() {
-    return ionAnnotation;
-  }
 
   /** {@inheritDoc} */
   @Override

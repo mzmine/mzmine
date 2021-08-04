@@ -151,13 +151,6 @@ public interface Chromatogram {
 
 
   /**
-   * Returns the ion annotation for this chromatogram.
-   *
-   * @return the ion annotation.
-   */
-  IonAnnotation getIonAnnotation();
-
-  /**
    * Returns the range of retention times. This can return null if the chromatogram has no data
    * points.
    *
