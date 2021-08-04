@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
-import io.github.mzmine.datamodel.msdk.FileType;
 import io.github.mzmine.datamodel.msdk.SimpleRawDataFile;
 import ucar.nc2.NetcdfFile;
 
@@ -40,12 +39,11 @@ public class NetCDFRawDataFile extends SimpleRawDataFile {
    *
    * @param rawDataFileName a {@link String} object.
    * @param originalRawDataFile a {@link Optional} object.
-   * @param rawDataFileType a {@link FileType} object.
    * @param inputFile a {@link NetcdfFile} object.
    */
   public NetCDFRawDataFile(String rawDataFileName, Optional<File> originalRawDataFile,
-      FileType rawDataFileType, NetcdfFile inputFile) {
-    super(rawDataFileName, originalRawDataFile, rawDataFileType);
+      NetcdfFile inputFile) {
+    super(rawDataFileName, originalRawDataFile);
     this.inputFile = inputFile;
   }
 

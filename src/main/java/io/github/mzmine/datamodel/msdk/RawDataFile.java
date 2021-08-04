@@ -58,13 +58,7 @@ public interface RawDataFile {
   @Nonnull
   default String getOriginalFilename() { return "Unknown"; }
 
-  /**
-   * Returns the file type of this raw data file.
-   *
-   * @return Raw data file type
-   */
-  @Nonnull
-  FileType getRawDataFileType();
+
 
   /**
    * Returns all MS functions found in this raw data file.

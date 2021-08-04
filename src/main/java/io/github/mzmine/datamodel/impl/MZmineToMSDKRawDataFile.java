@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.msdk.Chromatogram;
-import io.github.mzmine.datamodel.msdk.FileType;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -60,11 +59,6 @@ public class MZmineToMSDKRawDataFile implements io.github.mzmine.datamodel.msdk.
   @Override
   public Optional<File> getOriginalFile() {
     return Optional.empty();
-  }
-
-  @Override
-  public FileType getRawDataFileType() {
-    return FileType.UNKNOWN;
   }
 
   @Override

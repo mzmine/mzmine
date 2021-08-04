@@ -20,7 +20,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.msdk.Chromatogram;
-import io.github.mzmine.datamodel.msdk.FileType;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import java.io.File;
@@ -35,8 +34,6 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class MzMLRawDataFile implements RawDataFile {
-
-  private static final @NotNull FileType fileType = FileType.MZML;
 
   private final File sourceFile;
 
@@ -84,13 +81,6 @@ public class MzMLRawDataFile implements RawDataFile {
   @Override
   public Optional<File> getOriginalFile() {
     return Optional.ofNullable(sourceFile);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  @NotNull
-  public FileType getRawDataFileType() {
-    return fileType;
   }
 
   /** {@inheritDoc} */

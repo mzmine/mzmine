@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.msdk.MSDKException;
-import io.github.mzmine.datamodel.msdk.FileType;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.SimpleRawDataFile;
 import io.github.mzmine.datamodel.DataPoint;
@@ -204,7 +203,7 @@ public class ExportScansTask extends AbstractTask {
 
     // Initialize objects
     SimpleRawDataFile msdkRawFile =
-        new SimpleRawDataFile("MZmine mzML export", Optional.empty(), FileType.MZML);
+        new SimpleRawDataFile("MZmine mzML export", Optional.empty());
     for (Scan scan : scans) {
       MsScan MSDKscan = new MZmineToMSDKMsScan(scan);
       msdkRawFile.addScan(MSDKscan);

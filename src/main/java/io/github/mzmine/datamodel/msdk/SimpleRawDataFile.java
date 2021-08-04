@@ -36,7 +36,6 @@ public class SimpleRawDataFile implements RawDataFile {
 
   private @Nonnull String rawDataFileName;
   private @Nonnull Optional<File> originalRawDataFile;
-  private @Nonnull FileType rawDataFileType;
   private final @Nonnull ArrayList<MsScan> scans;
   private final @Nonnull ArrayList<Chromatogram> chromatograms;
 
@@ -47,14 +46,11 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @param rawDataFileName a {@link String} object.
    * @param originalRawDataFile a {@link Optional} object.
-   * @param rawDataFileType a {@link FileType} object.
    */
   public SimpleRawDataFile(@Nonnull String rawDataFileName,
-      @Nonnull Optional<File> originalRawDataFile, @Nonnull FileType rawDataFileType) {
-    Preconditions.checkNotNull(rawDataFileType);
+      @Nonnull Optional<File> originalRawDataFile) {
     this.rawDataFileName = rawDataFileName;
     this.originalRawDataFile = originalRawDataFile;
-    this.rawDataFileType = rawDataFileType;
     this.scans = new ArrayList<>();
     this.chromatograms = new ArrayList<>();
   }
@@ -104,23 +100,6 @@ public class SimpleRawDataFile implements RawDataFile {
   public void setOriginalFile(@Nullable File newOriginalFile) {
     this.originalRawDataFile = Optional.ofNullable(newOriginalFile);
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public @Nonnull FileType getRawDataFileType() {
-    return rawDataFileType;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @param rawDataFileType a {@link FileType} object.
-   */
-  public void setRawDataFileType(@Nonnull FileType rawDataFileType) {
-    Preconditions.checkNotNull(rawDataFileType);
-    this.rawDataFileType = rawDataFileType;
-  }
-
   /** {@inheritDoc} */
   @Override
   @Nonnull

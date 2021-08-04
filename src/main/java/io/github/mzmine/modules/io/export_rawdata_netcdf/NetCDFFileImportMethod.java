@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import io.github.mzmine.datamodel.msdk.MSDKException;
 import io.github.mzmine.datamodel.msdk.MSDKMethod;
-import io.github.mzmine.datamodel.msdk.FileType;
 import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.datamodel.msdk.SimpleRawDataFile;
@@ -110,7 +109,7 @@ public class NetCDFFileImportMethod implements MSDKMethod<RawDataFile> {
       // Instantiate the raw file
       String fileName = sourceFile.getName();
       newRawFile =
-          new NetCDFRawDataFile(fileName, Optional.of(sourceFile), FileType.NETCDF, inputNetcdfFile);
+          new NetCDFRawDataFile(fileName, Optional.of(sourceFile), inputNetcdfFile);
 
       // Read NetCDF variables
       readVariables();
