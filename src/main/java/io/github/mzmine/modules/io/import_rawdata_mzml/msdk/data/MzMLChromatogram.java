@@ -37,7 +37,6 @@ import io.github.mzmine.datamodel.msdk.ChromatogramType;
 import io.github.mzmine.datamodel.msdk.IonAnnotation;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
-import io.github.mzmine.datamodel.msdk.SeparationType;
 import io.github.mzmine.datamodel.msdk.SimpleActivationInfo;
 import io.github.mzmine.datamodel.msdk.SimpleIsolationInfo;
 
@@ -57,8 +56,7 @@ class MzMLChromatogram implements Chromatogram {
   private MzMLBinaryDataInfo intensityBinaryDataInfo;
   private ChromatogramType chromatogramType;
   private Double mz;
-  private SeparationType separationType;
-  private Range<Float> rtRange;
+   private Range<Float> rtRange;
   private float[] rtValues;
   private float[] intensityValues;
 
@@ -83,7 +81,6 @@ class MzMLChromatogram implements Chromatogram {
     this.chromatogramId = chromatogramId;
     this.chromatogramNumber = chromatogramNumber;
     this.numOfDataPoints = numOfDataPoints;
-    this.separationType = SeparationType.UNKNOWN;
     this.rtBinaryDataInfo = null;
     this.intensityBinaryDataInfo = null;
     this.chromatogramType = ChromatogramType.UNKNOWN;
@@ -168,7 +165,6 @@ class MzMLChromatogram implements Chromatogram {
    * getInputStream.
    * </p>
    *
-   * @return a {@link io.github.mzmine.datamodel.msdk.io.mzml2.util.io.ByteBufferInputStream} object.
    */
   public InputStream getInputStream() {
     return inputStream;
@@ -360,12 +356,6 @@ class MzMLChromatogram implements Chromatogram {
     return Collections.emptyList();
   }
 
-  /** {@inheritDoc} */
-  @Override
-  @NotNull
-  public SeparationType getSeparationType() {
-    return separationType;
-  }
 
   /** {@inheritDoc} */
   @Override

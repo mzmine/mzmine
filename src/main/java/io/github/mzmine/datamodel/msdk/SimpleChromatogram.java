@@ -36,7 +36,6 @@ public class SimpleChromatogram implements Chromatogram {
   private @Nonnull Integer chromatogramNumber, numOfDataPoints = 0;
   private @Nonnull ChromatogramType chromatogramType;
   private @Nullable Double mz;
-  private @Nonnull SeparationType separationType;
   private @Nonnull float rtValues[];
   private @Nullable double mzValues[];
   private @Nonnull float intensityValues[];
@@ -205,22 +204,6 @@ public class SimpleChromatogram implements Chromatogram {
   @Nonnull
   public List<IsolationInfo> getIsolations() {
     return isolations;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  @Nonnull
-  public SeparationType getSeparationType() {
-    return separationType;
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * @param separationType a {@link SeparationType} object.
-   */
-  public void setSeparationType(@Nonnull SeparationType separationType) {
-    this.separationType = separationType;
   }
 
   /** {@inheritDoc} */

@@ -149,15 +149,6 @@ public interface Chromatogram {
   @Nonnull
   List<IsolationInfo> getIsolations();
 
-  /**
-   * Returns the separation type used for separation of molecules.
-   *
-   * @return the seperation type. Returns
-   *         {@link SeparationType#UNKNOWN} for unknown
-   *         separations.
-   */
-  @Nonnull
-  SeparationType getSeparationType();
 
   /**
    * Returns the ion annotation for this chromatogram.
