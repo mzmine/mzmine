@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.msdk;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
@@ -28,26 +28,26 @@ import com.google.common.collect.Range;
 /**
  * Simple implementation of the MsSpectrum interface
  */
-public abstract class AbstractMsSpectrum implements MsSpectrum {
+public abstract class AbstractMassSpectrum implements MassSpectrum {
 
-  private @Nonnull double mzValues[];
-  private @Nonnull float intensityValues[];
+  private @NotNull double mzValues[];
+  private @NotNull float intensityValues[];
 
-  private @Nonnull Integer numOfDataPoints = 0;
+  private @NotNull Integer numOfDataPoints = 0;
   private @Nullable Range<Double> mzRange;
-  private @Nonnull Float totalIonCurrent = 0f;
+  private @NotNull Float totalIonCurrent = 0f;
 
-  private @Nonnull MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
+  private @NotNull MassSpectrumType spectrumType = MassSpectrumType.CENTROIDED;
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull Integer getNumberOfDataPoints() {
+  public @NotNull Integer getNumberOfDataPoints() {
     return numOfDataPoints;
   }
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull double[] getMzValues(@Nullable double[] array) {
+  public @NotNull double[] getMzValues(@Nullable double[] array) {
     if ((array == null) || (array.length < numOfDataPoints))
       array = new double[numOfDataPoints];
     if (mzValues != null)
@@ -57,7 +57,7 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull float[] getIntensityValues(@Nullable float array[]) {
+  public @NotNull float[] getIntensityValues(@Nullable float array[]) {
     if ((array == null) || (array.length < numOfDataPoints))
       array = new float[numOfDataPoints];
     if (intensityValues != null)
@@ -73,8 +73,8 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public synchronized void setDataPoints(@Nonnull double mzValues[],
-      @Nonnull float intensityValues[], @Nonnull Integer size) {
+  public synchronized void setDataPoints(@NotNull double mzValues[],
+      @NotNull float intensityValues[], @NotNull Integer size) {
 
     Preconditions.checkNotNull(mzValues);
     Preconditions.checkNotNull(intensityValues);
@@ -105,7 +105,7 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public MassSpectrumType getSpectrumType() {
     return spectrumType;
   }
@@ -115,7 +115,7 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
    *
    * @param spectrumType a {@link MassSpectrumType} object.
    */
-  public void setSpectrumType(@Nonnull MassSpectrumType spectrumType) {
+  public void setSpectrumType(@NotNull MassSpectrumType spectrumType) {
     this.spectrumType = spectrumType;
   }
 
@@ -126,7 +126,7 @@ public abstract class AbstractMsSpectrum implements MsSpectrum {
    *
    * @return a {@link Float} object.
    */
-  @Nonnull
+  @NotNull
   public Float getTIC() {
     return totalIonCurrent;
   }

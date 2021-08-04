@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.msdk;
 
 import java.util.Arrays;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Mathematical calculation-related helper class
@@ -35,7 +35,7 @@ public class MathUtils {
    * @param q a double.
    * @return a double.
    */
-  public static double calcQuantile(double[] values, @Nonnull Integer size, double q) {
+  public static double calcQuantile(double[] values, @NotNull Integer size, double q) {
 
     if (size == 0)
       return 0.0;

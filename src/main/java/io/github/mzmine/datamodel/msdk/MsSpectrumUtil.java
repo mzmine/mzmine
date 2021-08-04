@@ -18,21 +18,11 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import io.github.mzmine.datamodel.MassSpectrumType;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.Map.Entry;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
-
-import io.github.mzmine.datamodel.msdk.DataPointSorter.SortingDirection;
-import io.github.mzmine.datamodel.msdk.DataPointSorter.SortingProperty;
 
 /**
  * <p>
@@ -49,7 +39,7 @@ public class MsSpectrumUtil {
    * @param size a {@link Integer} object.
    */
   @Nullable
-  public static Range<Double> getMzRange(@Nonnull double mzValues[], @Nonnull Integer size) {
+  public static Range<Double> getMzRange(@NotNull double mzValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(mzValues);
@@ -71,7 +61,7 @@ public class MsSpectrumUtil {
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public static @Nonnull Float getTIC(@Nonnull float intensityValues[], @Nonnull Integer size) {
+  public static @NotNull Float getTIC(@NotNull float intensityValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -94,8 +84,8 @@ public class MsSpectrumUtil {
    * @param mzValues an array of double.
    * @param mzRange a {@link Range} object.
    */
-  public static @Nonnull Float getTIC(@Nonnull double mzValues[], @Nonnull float intensityValues[],
-      @Nonnull Integer size, @Nonnull Range<Double> mzRange) {
+  public static @NotNull Float getTIC(@NotNull double mzValues[], @NotNull float intensityValues[],
+      @NotNull Integer size, @NotNull Range<Double> mzRange) {
 
     // Parameter check
     Preconditions.checkNotNull(mzValues);
@@ -120,8 +110,8 @@ public class MsSpectrumUtil {
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public static @Nonnull Float getMaxIntensity(@Nonnull float intensityValues[],
-      @Nonnull Integer size) {
+  public static @NotNull Float getMaxIntensity(@NotNull float intensityValues[],
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -143,8 +133,8 @@ public class MsSpectrumUtil {
    * @param mzValues an array of double.
    * @param mzRange a {@link Range} object.
    */
-  public static @Nonnull Float getMaxIntensity(@Nonnull double mzValues[],
-      @Nonnull float intensityValues[], @Nonnull Integer size, @Nonnull Range<Double> mzRange) {
+  public static @NotNull Float getMaxIntensity(@NotNull double mzValues[],
+      @NotNull float intensityValues[], @NotNull Integer size, @NotNull Range<Double> mzRange) {
 
     // Parameter check
     Preconditions.checkNotNull(mzValues);
@@ -167,8 +157,8 @@ public class MsSpectrumUtil {
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public static @Nullable Integer getBasePeakIndex(@Nonnull float intensityValues[],
-      @Nonnull Integer size) {
+  public static @Nullable Integer getBasePeakIndex(@NotNull float intensityValues[],
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -193,8 +183,8 @@ public class MsSpectrumUtil {
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public static @Nullable Integer getBasePeakIndex(@Nonnull double mzValues[],
-      @Nonnull float intensityValues[], @Nonnull Integer size, @Nonnull Range<Double> mzRange) {
+  public static @Nullable Integer getBasePeakIndex(@NotNull double mzValues[],
+      @NotNull float intensityValues[], @NotNull Integer size, @NotNull Range<Double> mzRange) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -222,8 +212,8 @@ public class MsSpectrumUtil {
    * @param size a {@link Integer} object.
    * @param scale a {@link Float} object.
    */
-  public static void normalizeIntensity(@Nonnull float intensityValues[], @Nonnull Integer size,
-      @Nonnull Float scale) {
+  public static void normalizeIntensity(@NotNull float intensityValues[], @NotNull Integer size,
+      @NotNull Float scale) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -244,10 +234,10 @@ public class MsSpectrumUtil {
    * msSpectrumToString.
    * </p>
    *
-   * @param spectrum a {@link MsSpectrum} object.
+   * @param spectrum a {@link MassSpectrum} object.
    * @return a {@link String} object.
    */
-  public static @Nonnull String msSpectrumToString(MsSpectrum spectrum) {
+  public static @NotNull String msSpectrumToString(MassSpectrum spectrum) {
 
     return msSpectrumToString(spectrum.getMzValues(), spectrum.getIntensityValues(),
         spectrum.getNumberOfDataPoints());
@@ -264,8 +254,8 @@ public class MsSpectrumUtil {
    * @param size a {@link Integer} object.
    * @return a {@link String} object.
    */
-  public static @Nonnull String msSpectrumToString(@Nonnull double mzValues[],
-      @Nonnull float intensityValues[], @Nonnull Integer size) {
+  public static @NotNull String msSpectrumToString(@NotNull double mzValues[],
+      @NotNull float intensityValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(mzValues);

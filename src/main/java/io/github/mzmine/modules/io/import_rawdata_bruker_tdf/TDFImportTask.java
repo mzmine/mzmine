@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -388,7 +388,7 @@ public class TDFImportTask extends AbstractTask {
    * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
    * @param frames        the frames to load mobility spectra for
    */
-  private void appendScansFromTimsSegment(@Nonnull final TDFUtils tdfUtils, final long handle,
+  private void appendScansFromTimsSegment(@NotNull final TDFUtils tdfUtils, final long handle,
       @NotNull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
 
     loadedFrames = 0;

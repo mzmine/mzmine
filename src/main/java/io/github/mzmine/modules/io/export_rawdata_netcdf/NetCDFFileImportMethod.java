@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class NetCDFFileImportMethod implements MSDKMethod<RawDataFile> {
   private int scanStartPositions[];
   private float scanRetentionTimes[];
 
-  private final @Nonnull File sourceFile;
+  private final @NotNull File sourceFile;
   private NetcdfFile inputNetcdfFile;
   private SimpleRawDataFile newRawFile;
   private boolean canceled = false;
@@ -76,7 +76,7 @@ public class NetCDFFileImportMethod implements MSDKMethod<RawDataFile> {
    * @param sourceFile a {@link File} object.
    * @throws IOException if any.
    */
-  public NetCDFFileImportMethod(@Nonnull File sourceFile) {
+  public NetCDFFileImportMethod(@NotNull File sourceFile) {
     this(sourceFile, s -> true);
   }
 
@@ -86,7 +86,7 @@ public class NetCDFFileImportMethod implements MSDKMethod<RawDataFile> {
    * @param sourceFile a {@link File} object.
    * @param msScanPredicate a {@link Predicate} object.
    */
-  public NetCDFFileImportMethod(@Nonnull File sourceFile, Predicate<MsScan> msScanPredicate) {
+  public NetCDFFileImportMethod(@NotNull File sourceFile, Predicate<MsScan> msScanPredicate) {
     this.sourceFile = sourceFile;
     this.msScanPredicate = msScanPredicate;
   }

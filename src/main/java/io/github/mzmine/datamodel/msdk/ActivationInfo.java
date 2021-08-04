@@ -18,15 +18,15 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Represents the fragmentation information of MS/MS experiments. For convenience, this interface is
  * immutable, so it can be passed by reference and safely used by multiple threads.
  */
-@Immutable
+@Unmodifiable
 public interface ActivationInfo {
 
   /**
@@ -35,7 +35,7 @@ public interface ActivationInfo {
    *
    * @return Fragmentation type
    */
-  @Nonnull
+  @NotNull
   ActivationType getActivationType();
 
   /**

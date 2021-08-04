@@ -21,8 +21,8 @@ package io.github.mzmine.datamodel.msdk;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
@@ -33,16 +33,16 @@ import com.google.common.collect.Range;
 public class SimpleChromatogram implements Chromatogram {
 
   private @Nullable RawDataFile dataFile;
-  private @Nonnull Integer chromatogramNumber, numOfDataPoints = 0;
-  private @Nonnull ChromatogramType chromatogramType;
+  private @NotNull Integer chromatogramNumber, numOfDataPoints = 0;
+  private @NotNull ChromatogramType chromatogramType;
   private @Nullable Double mz;
-  private @Nonnull float rtValues[];
+  private @NotNull float rtValues[];
   private @Nullable double mzValues[];
-  private @Nonnull float intensityValues[];
-  private @Nonnull Range<Float> rtRange;
+  private @NotNull float intensityValues[];
+  private @NotNull Range<Float> rtRange;
   private @Nullable IonAnnotation ionAnnotation;
 
-  private final @Nonnull List<IsolationInfo> isolations = new ArrayList<>();
+  private final @NotNull List<IsolationInfo> isolations = new ArrayList<>();
 
   /** {@inheritDoc} */
   @Override
@@ -56,13 +56,13 @@ public class SimpleChromatogram implements Chromatogram {
    *
    * @param newRawDataFile a {@link RawDataFile} object.
    */
-  public void setRawDataFile(@Nonnull RawDataFile newRawDataFile) {
+  public void setRawDataFile(@NotNull RawDataFile newRawDataFile) {
     this.dataFile = newRawDataFile;
   }
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public Integer getChromatogramNumber() {
     return chromatogramNumber;
   }
@@ -72,14 +72,14 @@ public class SimpleChromatogram implements Chromatogram {
    *
    * @param chromatogramNumber a {@link Integer} object.
    */
-  public void setChromatogramNumber(@Nonnull Integer chromatogramNumber) {
+  public void setChromatogramNumber(@NotNull Integer chromatogramNumber) {
     Preconditions.checkNotNull(chromatogramNumber);
     this.chromatogramNumber = chromatogramNumber;
   }
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public ChromatogramType getChromatogramType() {
     return chromatogramType;
   }
@@ -90,19 +90,19 @@ public class SimpleChromatogram implements Chromatogram {
    * @param newChromatogramType a {@link ChromatogramType}
    *        object.
    */
-  public void setChromatogramType(@Nonnull ChromatogramType newChromatogramType) {
+  public void setChromatogramType(@NotNull ChromatogramType newChromatogramType) {
     this.chromatogramType = newChromatogramType;
   }
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull Integer getNumberOfDataPoints() {
+  public @NotNull Integer getNumberOfDataPoints() {
     return numOfDataPoints;
   }
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull float[] getRetentionTimes() {
+  public @NotNull float[] getRetentionTimes() {
     return getRetentionTimes(null);
   }
 
@@ -112,7 +112,7 @@ public class SimpleChromatogram implements Chromatogram {
    * @param array an array of float.
    * @return an array of float.
    */
-  public @Nonnull float[] getRetentionTimes(@Nullable float[] array) {
+  public @NotNull float[] getRetentionTimes(@Nullable float[] array) {
     if ((array == null) || (array.length < numOfDataPoints))
       array = new float[numOfDataPoints];
     if (rtValues != null)
@@ -122,7 +122,7 @@ public class SimpleChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull double[] getMzValues() {
+  public @NotNull double[] getMzValues() {
     return getMzValues(null);
   }
 
@@ -132,7 +132,7 @@ public class SimpleChromatogram implements Chromatogram {
    * @param array an array of float.
    * @return an array of float.
    */
-  public @Nonnull double[] getMzValues(@Nullable double[] array) {
+  public @NotNull double[] getMzValues(@Nullable double[] array) {
     if ((array == null) || (array.length < numOfDataPoints))
       array = new double[numOfDataPoints];
     if (mzValues != null)
@@ -142,13 +142,13 @@ public class SimpleChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull float[] getIntensityValues() {
+  public @NotNull float[] getIntensityValues() {
     return getIntensityValues(null);
   }
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull float[] getIntensityValues(@Nullable float array[]) {
+  public @NotNull float[] getIntensityValues(@Nullable float array[]) {
     if ((array == null) || (array.length < numOfDataPoints))
       array = new float[numOfDataPoints];
     if (intensityValues != null)
@@ -164,8 +164,8 @@ public class SimpleChromatogram implements Chromatogram {
    * @param intensityValues an array of float.
    * @param size a {@link Integer} object.
    */
-  public synchronized void setDataPoints(@Nonnull float rtValues[], @Nullable double mzValues[],
-      @Nonnull float intensityValues[], @Nonnull Integer size) {
+  public synchronized void setDataPoints(@NotNull float rtValues[], @Nullable double mzValues[],
+      @NotNull float intensityValues[], @NotNull Integer size) {
 
     Preconditions.checkNotNull(rtValues);
     Preconditions.checkNotNull(intensityValues);
@@ -201,7 +201,7 @@ public class SimpleChromatogram implements Chromatogram {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public List<IsolationInfo> getIsolations() {
     return isolations;
   }
@@ -227,7 +227,7 @@ public class SimpleChromatogram implements Chromatogram {
    *
    * @param ionAnnotation a {@link IonAnnotation} object.
    */
-  public void setIonAnnotation(@Nonnull IonAnnotation ionAnnotation) {
+  public void setIonAnnotation(@NotNull IonAnnotation ionAnnotation) {
     this.ionAnnotation = ionAnnotation;
   }
 
@@ -251,8 +251,8 @@ public class SimpleChromatogram implements Chromatogram {
    * @param mz a {@link Double} object.
    * @param intensity a {@link Float} object.
    */
-  public synchronized void addDataPoint(@Nonnull Float rt, @Nullable Double mz,
-      @Nonnull Float intensity) {
+  public synchronized void addDataPoint(@NotNull Float rt, @Nullable Double mz,
+      @NotNull Float intensity) {
     Preconditions.checkNotNull(rt);
     Preconditions.checkNotNull(intensity);
     if (mzValues != null)

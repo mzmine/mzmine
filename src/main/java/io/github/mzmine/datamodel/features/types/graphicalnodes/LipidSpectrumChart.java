@@ -40,13 +40,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
 public class LipidSpectrumChart extends StackPane {
 
-  public LipidSpectrumChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public LipidSpectrumChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
 
     SimpleXYChart<LipidSpectrumProvider> chart =
         new SimpleXYChart<>("Matched fragments", "m/z", "Intensity");

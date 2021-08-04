@@ -18,8 +18,8 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
@@ -41,7 +41,7 @@ public class ChromatogramUtil {
    * @return a {@link Double} object.
    */
   @Nullable
-  public static Double getMedianMz(@Nonnull double mzValues[], @Nonnull Integer size) {
+  public static Double getMedianMz(@NotNull double mzValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(mzValues);
@@ -64,7 +64,7 @@ public class ChromatogramUtil {
    * @param size a {@link Integer} object.
    */
   @Nullable
-  public static Range<Float> getRtRange(@Nonnull float rtValues[], @Nonnull Integer size) {
+  public static Range<Float> getRtRange(@NotNull float rtValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -86,9 +86,9 @@ public class ChromatogramUtil {
    * @param rtValues an array of
    * @param size a
    */
-  @Nonnull
-  public static Range<Float> getDataPointsChromatographyRange(@Nonnull float rtValues[],
-      @Nonnull Integer size) {
+  @NotNull
+  public static Range<Float> getDataPointsChromatographyRange(@NotNull float rtValues[],
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -106,8 +106,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of
    * @param size a
    */
-  public static @Nullable Range<Float> getDataPointsIntensityRange(@Nonnull Float intensityValues[],
-      @Nonnull Integer size) {
+  public static @Nullable Range<Float> getDataPointsIntensityRange(@NotNull Float intensityValues[],
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -147,8 +147,8 @@ public class ChromatogramUtil {
    * @return a
    * @param size a
    */
-  public static @Nullable Double calculateMz(@Nonnull double[] mzValues,
-      @Nonnull float[] intensityValues, @Nonnull Integer size, @Nonnull CalculationMethod method) {
+  public static @Nullable Double calculateMz(@NotNull double[] mzValues,
+      @NotNull float[] intensityValues, @NotNull Integer size, @NotNull CalculationMethod method) {
 
     // Parameter check
     Preconditions.checkNotNull(mzValues);
@@ -216,8 +216,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of float.
    * @param size a
    */
-  public static @Nullable Float getRt(@Nonnull float rtValues[], @Nonnull float[] intensityValues,
-      @Nonnull Integer size) {
+  public static @Nullable Float getRt(@NotNull float rtValues[], @NotNull float[] intensityValues,
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -247,7 +247,7 @@ public class ChromatogramUtil {
    * @param rtValues an array of
    * @param size a
    */
-  public static @Nullable Float getRtStart(@Nonnull float rtValues[], @Nonnull Integer size) {
+  public static @Nullable Float getRtStart(@NotNull float rtValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -267,7 +267,7 @@ public class ChromatogramUtil {
    * @param rtValues an array of
    * @param size a
    */
-  public static Float getRtEnd(@Nonnull float rtValues[], @Nonnull Integer size) {
+  public static Float getRtEnd(@NotNull float rtValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -288,7 +288,7 @@ public class ChromatogramUtil {
    * @param rtValues an array of
    * @param size a
    */
-  public static @Nullable Float getDuration(@Nonnull float rtValues[], @Nonnull Integer size) {
+  public static @Nullable Float getDuration(@NotNull float rtValues[], @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -314,8 +314,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of float.
    * @param size a
    */
-  public static @Nullable Float getMaxHeight(@Nonnull float[] intensityValues,
-      @Nonnull Integer size) {
+  public static @Nullable Float getMaxHeight(@NotNull float[] intensityValues,
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(intensityValues);
@@ -345,8 +345,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of float.
    * @param size a
    */
-  public static @Nullable Float getArea(@Nonnull float rtValues[], @Nonnull float[] intensityValues,
-      @Nonnull Integer size) {
+  public static @Nullable Float getArea(@NotNull float rtValues[], @NotNull float[] intensityValues,
+      @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -376,8 +376,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of float.
    * @param size a
    */
-  public static @Nullable Double getFwhm(@Nonnull float rtValues[],
-      @Nonnull float[] intensityValues, @Nonnull Integer size) {
+  public static @Nullable Double getFwhm(@NotNull float rtValues[],
+      @NotNull float[] intensityValues, @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -411,8 +411,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of float.
    * @param size a
    */
-  public static @Nullable Double getTailingFactor(@Nonnull float rtValues[],
-      @Nonnull float[] intensityValues, @Nonnull Integer size) {
+  public static @Nullable Double getTailingFactor(@NotNull float rtValues[],
+      @NotNull float[] intensityValues, @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -450,8 +450,8 @@ public class ChromatogramUtil {
    * @param intensityValues an array of float.
    * @param size a
    */
-  public static @Nullable Double getAsymmetryFactor(@Nonnull float rtValues[],
-      @Nonnull float[] intensityValues, @Nonnull Integer size) {
+  public static @Nullable Double getAsymmetryFactor(@NotNull float rtValues[],
+      @NotNull float[] intensityValues, @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);
@@ -479,8 +479,8 @@ public class ChromatogramUtil {
     return af;
   }
 
-  private static double[] findRTs(double intensity, float rt, @Nonnull float rtValues[],
-      @Nonnull float[] intensityValues, @Nonnull Integer size) {
+  private static double[] findRTs(double intensity, float rt, @NotNull float rtValues[],
+      @NotNull float[] intensityValues, @NotNull Integer size) {
 
     // Parameter check
     Preconditions.checkNotNull(rtValues);

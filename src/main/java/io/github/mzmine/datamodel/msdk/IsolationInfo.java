@@ -18,9 +18,9 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import com.google.common.collect.Range;
 
@@ -30,7 +30,7 @@ import com.google.common.collect.Range;
  * details are unknown, getFragmentationInfo() will return null. For convenience, this interface is
  * immutable, so it can be passed by reference and safely used by multiple threads.
  */
-@Immutable
+@Unmodifiable
 public interface IsolationInfo {
 
   /**
@@ -38,7 +38,7 @@ public interface IsolationInfo {
    *
    * @return Isolated m/z range.
    */
-  @Nonnull
+  @NotNull
   Range<Double> getIsolationMzRange();
 
   /**

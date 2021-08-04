@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -48,9 +48,9 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<ModularFeat
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  private final @Nonnull RawDataFile rawFile;
+  private final @NotNull RawDataFile rawFile;
   private final @Nullable Predicate<MsScan> msScanPredicate;
-  private final @Nonnull ADAP3DFeatureDetectionParameters parameters;
+  private final @NotNull ADAP3DFeatureDetectionParameters parameters;
 
   private SliceSparseMatrix objSliceSparseMatrix;
 
@@ -74,7 +74,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<ModularFeat
    *
    * @param rawFile {@link RawDataFile} object.
    */
-  public ADAP3DFeatureDetectionMethod(@Nonnull RawDataFile rawFile) {
+  public ADAP3DFeatureDetectionMethod(@NotNull RawDataFile rawFile) {
     this(rawFile, s -> true, new ADAP3DFeatureDetectionParameters());
   }
 
@@ -87,7 +87,7 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<ModularFeat
    * @param msScanPredicate a {@link Predicate} object. Only MsScan which pass
    *        this predicate will be processed.
    */
-  public ADAP3DFeatureDetectionMethod(@Nonnull RawDataFile rawFile,
+  public ADAP3DFeatureDetectionMethod(@NotNull RawDataFile rawFile,
                                       @Nullable Predicate<MsScan> msScanPredicate) {
     this(rawFile, msScanPredicate, new ADAP3DFeatureDetectionParameters());
   }
@@ -99,8 +99,8 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<ModularFeat
    *
    * @param rawFile {@link RawDataFile} object.
    */
-  public ADAP3DFeatureDetectionMethod(@Nonnull RawDataFile rawFile,
-                                      @Nonnull ADAP3DFeatureDetectionParameters params) {
+  public ADAP3DFeatureDetectionMethod(@NotNull RawDataFile rawFile,
+                                      @NotNull ADAP3DFeatureDetectionParameters params) {
     this(rawFile, s -> true, params);
   }
 
@@ -113,9 +113,9 @@ public class ADAP3DFeatureDetectionMethod implements MSDKMethod<List<ModularFeat
    * @param msScanPredicate a {@link Predicate} object. Only MsScan which pass
    *        this predicate will be processed.
    */
-  public ADAP3DFeatureDetectionMethod(@Nonnull RawDataFile rawFile,
+  public ADAP3DFeatureDetectionMethod(@NotNull RawDataFile rawFile,
                                       @Nullable Predicate<MsScan> msScanPredicate,
-                                      @Nonnull ADAP3DFeatureDetectionParameters parameters) {
+                                      @NotNull ADAP3DFeatureDetectionParameters parameters) {
     this.rawFile = rawFile;
     this.msScanPredicate = msScanPredicate;
     this.parameters = parameters;

@@ -19,12 +19,12 @@
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
 import java.util.List;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * This class contains information related to isotope, namely adduct annotations, mass value and scores
  */
-@Immutable
+@Unmodifiable
 public class AdductInfo {
 
   public Integer feature;

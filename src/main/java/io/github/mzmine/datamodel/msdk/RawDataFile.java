@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Raw data file, typically obtained by loading data from one of the supported file formats. A raw
@@ -38,7 +38,7 @@ public interface RawDataFile {
    *
    * @return Raw data file name
    */
-  @Nonnull
+  @NotNull
   String getName();
   
   /**
@@ -47,7 +47,7 @@ public interface RawDataFile {
    *
    * @return Original file.
    */
-  @Nonnull
+  @NotNull
   Optional<File> getOriginalFile();
 
   /**
@@ -55,7 +55,7 @@ public interface RawDataFile {
    * 
    * @return Filename of original file.
    */
-  @Nonnull
+  @NotNull
   default String getOriginalFilename() { return "Unknown"; }
 
 
@@ -65,7 +65,7 @@ public interface RawDataFile {
    *
    * @return A list of MS functions.
    */
-  @Nonnull
+  @NotNull
   List<String> getMsFunctions();
 
   /**
@@ -74,7 +74,7 @@ public interface RawDataFile {
    *
    * @return A list of all scans.
    */
-  @Nonnull
+  @NotNull
   List<MsScan> getScans();
 
   /**
@@ -83,7 +83,7 @@ public interface RawDataFile {
    *
    * @return A list of all chromatograms.
    */
-  @Nonnull
+  @NotNull
   List<Chromatogram> getChromatograms();
 
   /**

@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel.msdk;
 
 import io.github.mzmine.datamodel.MassSpectrumType;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.Range;
 
@@ -30,7 +30,7 @@ import com.google.common.collect.Range;
  * predicted fragmentation spectrum of a molecule, etc.
  *
  */
-public interface MsSpectrum {
+public interface MassSpectrum {
 
   /**
    * Returns the type of this mass spectrum. For spectra that are loaded from raw data files, the
@@ -39,7 +39,7 @@ public interface MsSpectrum {
    *
    * @return spectrum type (profile, centroided, thresholded)
    */
-  @Nonnull
+  @NotNull
   MassSpectrumType getSpectrumType();
 
   /**
@@ -49,7 +49,7 @@ public interface MsSpectrum {
    *
    * @return a {@link Integer} object.
    */
-  @Nonnull
+  @NotNull
   Integer getNumberOfDataPoints();
 
   /**
@@ -61,7 +61,7 @@ public interface MsSpectrum {
    *
    * @return an array of double.
    */
-  @Nonnull
+  @NotNull
   default double[] getMzValues() {
     return getMzValues(null);
   }
@@ -75,7 +75,7 @@ public interface MsSpectrum {
    *
    * @return an array of double.
    */
-  @Nonnull
+  @NotNull
   double[] getMzValues(double array[]);
 
   /**
@@ -87,7 +87,7 @@ public interface MsSpectrum {
    *
    * @return an array of float.
    */
-  @Nonnull
+  @NotNull
   default float[] getIntensityValues() {
     return getIntensityValues(null);
   }
@@ -101,7 +101,7 @@ public interface MsSpectrum {
    *
    * @return an array of float.
    */
-  @Nonnull
+  @NotNull
   float[] getIntensityValues(float array[]);
 
   /**
@@ -109,7 +109,7 @@ public interface MsSpectrum {
    *
    * @return total ion current
    */
-  @Nonnull
+  @NotNull
   Float getTIC();
 
   /**

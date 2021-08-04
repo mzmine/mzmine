@@ -21,14 +21,14 @@ package io.github.mzmine.datamodel.msdk;
 import io.github.mzmine.datamodel.PolarityType;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.Range;
 
 /**
  * Represents a single MS scan in a raw data file. This interface extends
- * {@link MsSpectrum}, therefore the actual data points can be
+ * {@link MassSpectrum}, therefore the actual data points can be
  * accessed through the inherited methods of MsSpectrum.
  *
  * If the scan is not added to any file, its data points are stored in memory. However, once the
@@ -36,7 +36,7 @@ import com.google.common.collect.Range;
  * a temporary file that belongs to that RawDataFile. When RawDataFile.dispose() is called, the data
  * points are discarded so the MsScan instance cannot be used anymore.
  */
-public interface MsScan extends MsSpectrum {
+public interface MsScan extends MassSpectrum {
 
   /**
    * Returns the raw data file that contains this scan. This might return null when the scan is
@@ -56,7 +56,7 @@ public interface MsScan extends MsSpectrum {
    *
    * @return Scan number
    */
-  @Nonnull
+  @NotNull
   Integer getScanNumber();
 
   /**
@@ -85,7 +85,7 @@ public interface MsScan extends MsSpectrum {
    * 
    * @return MS level
    */
-  @Nonnull
+  @NotNull
   Integer getMsLevel();
 
   /**
@@ -93,7 +93,7 @@ public interface MsScan extends MsSpectrum {
    *
    * @return MS scan type
    */
-  @Nonnull
+  @NotNull
   default MsScanType getMsScanType() {
     return MsScanType.UNKNOWN;
   }
@@ -125,7 +125,7 @@ public interface MsScan extends MsSpectrum {
    *
    * @return Polarity of this scan.
    */
-  @Nonnull
+  @NotNull
   default PolarityType getPolarity() {
     return PolarityType.UNKNOWN;
   }
@@ -145,7 +145,7 @@ public interface MsScan extends MsSpectrum {
    *
    * @return A mutable list of isolations. New isolation items can be added to this list.
    */
-  @Nonnull
+  @NotNull
   List<IsolationInfo> getIsolations();
 
 }

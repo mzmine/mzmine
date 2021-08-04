@@ -19,13 +19,13 @@
 package io.github.mzmine.datamodel.msdk;
 
 import io.github.mzmine.datamodel.PolarityType;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Annotation of ionization type
  */
-@Immutable
+@Unmodifiable
 public interface IonType {
 
   /**
@@ -35,7 +35,7 @@ public interface IonType {
    *
    * @return Name of ionization type, such as [M+2H]2+.
    */
-  @Nonnull
+  @NotNull
   String getName();
 
   /**
@@ -45,7 +45,7 @@ public interface IonType {
    *
    * @return Polarity of ionization. See #PolarityType.java for values.
    */
-  @Nonnull
+  @NotNull
   PolarityType getPolarity();
 
   /**
@@ -64,7 +64,7 @@ public interface IonType {
    *
    * @return Chemical formula for adduct.
    */
-  @Nonnull
+  @NotNull
   String getAdductFormula();
 
   /**

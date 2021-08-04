@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.PolarityType;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
@@ -31,20 +31,20 @@ import com.google.common.collect.Range;
 /**
  * Simple implementation of the Scan interface.
  */
-public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
+public class SimpleMsScan extends AbstractMassSpectrum implements MsScan {
 
   private @Nullable RawDataFile dataFile;
-  private @Nonnull Integer scanNumber;
+  private @NotNull Integer scanNumber;
   private @Nullable String scanDefinition;
   private @Nullable String msFunction;
-  private @Nonnull Integer msLevel = 1;
-  private @Nonnull PolarityType polarity = PolarityType.UNKNOWN;
-  private @Nonnull MsScanType msScanType = MsScanType.UNKNOWN;
+  private @NotNull Integer msLevel = 1;
+  private @NotNull PolarityType polarity = PolarityType.UNKNOWN;
+  private @NotNull MsScanType msScanType = MsScanType.UNKNOWN;
   private @Nullable Range<Double> scanningRange;
   private @Nullable Float rt;
   private @Nullable ActivationInfo sourceInducedFragInfo;
 
-  private final @Nonnull List<IsolationInfo> isolations = new LinkedList<>();
+  private final @NotNull List<IsolationInfo> isolations = new LinkedList<>();
 
   /**
    * <p>
@@ -53,7 +53,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    *
    * @param scanNumber a {@link Integer} object.
    */
-  public SimpleMsScan(@Nonnull Integer scanNumber) {
+  public SimpleMsScan(@NotNull Integer scanNumber) {
     this(scanNumber, null);
   }
 
@@ -63,7 +63,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    * </p>
    *
    */
-  public SimpleMsScan(@Nonnull Integer scanNumber, String msFunction) {
+  public SimpleMsScan(@NotNull Integer scanNumber, String msFunction) {
     Preconditions.checkNotNull(scanNumber);
     this.scanNumber = scanNumber;
     this.msFunction = msFunction;
@@ -81,7 +81,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    *
    * @param newRawDataFile a {@link RawDataFile} object.
    */
-  public void setRawDataFile(@Nonnull RawDataFile newRawDataFile) {
+  public void setRawDataFile(@NotNull RawDataFile newRawDataFile) {
     if ((this.dataFile != null) && (this.dataFile != newRawDataFile)) {
       throw new MSDKRuntimeException(
           "Cannot set the raw data file reference to this scan, because it has already been set");
@@ -91,7 +91,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public Integer getScanNumber() {
     return scanNumber;
   }
@@ -101,7 +101,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    *
    * @param scanNumber a {@link Integer} object.
    */
-  public void setScanNumber(@Nonnull Integer scanNumber) {
+  public void setScanNumber(@NotNull Integer scanNumber) {
     Preconditions.checkNotNull(scanNumber);
     this.scanNumber = scanNumber;
   }
@@ -149,7 +149,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    *
    * @param msLevel a {@link Integer} object.
    */
-  public void setMsLevel(@Nonnull Integer msLevel) {
+  public void setMsLevel(@NotNull Integer msLevel) {
     this.msLevel = msLevel;
   }
 
@@ -171,7 +171,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public PolarityType getPolarity() {
     return polarity;
   }
@@ -181,14 +181,14 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    *
    * @param newPolarity a {@link PolarityType} object.
    */
-  public void setPolarity(@Nonnull PolarityType newPolarity) {
+  public void setPolarity(@NotNull PolarityType newPolarity) {
     Preconditions.checkNotNull(newPolarity);
     this.polarity = newPolarity;
   }
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public MsScanType getMsScanType() {
     return msScanType;
   }
@@ -198,7 +198,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
    *
    * @param newMsScanType a {@link MsScanType} object.
    */
-  public void setMsScanType(@Nonnull MsScanType newMsScanType) {
+  public void setMsScanType(@NotNull MsScanType newMsScanType) {
     Preconditions.checkNotNull(newMsScanType);
     this.msScanType = newMsScanType;
   }
@@ -237,7 +237,7 @@ public class SimpleMsScan extends AbstractMsSpectrum implements MsScan {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public List<IsolationInfo> getIsolations() {
     return isolations;
   }

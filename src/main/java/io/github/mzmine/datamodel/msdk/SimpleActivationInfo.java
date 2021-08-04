@@ -18,8 +18,8 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 
@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
  */
 public class SimpleActivationInfo implements ActivationInfo {
 
-  private @Nonnull ActivationType fragmentationType = ActivationType.UNKNOWN;
+  private @NotNull ActivationType fragmentationType = ActivationType.UNKNOWN;
   private @Nullable Double activationEnergy;
 
   /**
@@ -47,7 +47,7 @@ public class SimpleActivationInfo implements ActivationInfo {
    * @param fragmentationType a {@link ActivationType} object.
    */
   public SimpleActivationInfo(@Nullable Double activationEnergy,
-      @Nonnull ActivationType fragmentationType) {
+      @NotNull ActivationType fragmentationType) {
     Preconditions.checkNotNull(fragmentationType);
     this.activationEnergy = activationEnergy;
     this.fragmentationType = fragmentationType;
@@ -55,7 +55,7 @@ public class SimpleActivationInfo implements ActivationInfo {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public ActivationType getActivationType() {
     return fragmentationType;
   }

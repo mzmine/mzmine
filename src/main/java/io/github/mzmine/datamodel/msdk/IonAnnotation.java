@@ -20,7 +20,7 @@ package io.github.mzmine.datamodel.msdk;
 
 import java.net.URL;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;

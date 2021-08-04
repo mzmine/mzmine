@@ -34,8 +34,8 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidSpectrumType extends LinkedDataType implements GraphicalColumType<Boolean> {
 
@@ -77,8 +77,8 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
 
   @Nullable
   @Override
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file) {
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> file) {
     List<MatchedLipid> matchedLipids =
         row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
     MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(

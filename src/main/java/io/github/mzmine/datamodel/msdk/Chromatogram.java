@@ -20,8 +20,8 @@ package io.github.mzmine.datamodel.msdk;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.Range;
 
@@ -50,7 +50,7 @@ public interface Chromatogram {
    *
    * @return Chromatogram number
    */
-  @Nonnull
+  @NotNull
   Integer getChromatogramNumber();
 
   /**
@@ -58,7 +58,7 @@ public interface Chromatogram {
    *
    * @return Chromatogram type
    */
-  @Nonnull
+  @NotNull
   ChromatogramType getChromatogramType();
 
   /**
@@ -68,7 +68,7 @@ public interface Chromatogram {
    *
    * @return a {@link Integer} object.
    */
-  @Nonnull
+  @NotNull
   Integer getNumberOfDataPoints();
 
   /**
@@ -79,12 +79,12 @@ public interface Chromatogram {
    *
    * @return an array of
    */
-  @Nonnull
+  @NotNull
   default float[] getRetentionTimes() {
     return getRetentionTimes(null);
   }
 
-  @Nonnull
+  @NotNull
   float[] getRetentionTimes(@Nullable float array[]);
 
   /**
@@ -94,7 +94,7 @@ public interface Chromatogram {
    *
    * @return an array of float.
    */
-  @Nonnull
+  @NotNull
   default float[] getIntensityValues() {
     return getIntensityValues(null);
   }
@@ -107,7 +107,7 @@ public interface Chromatogram {
    * @param array an array of float.
    * @return an array of float.
    */
-  @Nonnull
+  @NotNull
   float[] getIntensityValues(@Nullable float array[]);
 
   /**
@@ -146,7 +146,7 @@ public interface Chromatogram {
    *
    * @return A mutable list of isolations. New isolation items can be added to this list.
    */
-  @Nonnull
+  @NotNull
   List<IsolationInfo> getIsolations();
 
 

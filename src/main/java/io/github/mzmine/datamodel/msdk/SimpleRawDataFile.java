@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -34,10 +34,10 @@ import com.google.common.collect.ImmutableList;
  */
 public class SimpleRawDataFile implements RawDataFile {
 
-  private @Nonnull String rawDataFileName;
-  private @Nonnull Optional<File> originalRawDataFile;
-  private final @Nonnull ArrayList<MsScan> scans;
-  private final @Nonnull ArrayList<Chromatogram> chromatograms;
+  private @NotNull String rawDataFileName;
+  private @NotNull Optional<File> originalRawDataFile;
+  private final @NotNull ArrayList<MsScan> scans;
+  private final @NotNull ArrayList<Chromatogram> chromatograms;
 
   /**
    * <p>
@@ -47,8 +47,8 @@ public class SimpleRawDataFile implements RawDataFile {
    * @param rawDataFileName a {@link String} object.
    * @param originalRawDataFile a {@link Optional} object.
    */
-  public SimpleRawDataFile(@Nonnull String rawDataFileName,
-      @Nonnull Optional<File> originalRawDataFile) {
+  public SimpleRawDataFile(@NotNull String rawDataFileName,
+      @NotNull Optional<File> originalRawDataFile) {
     this.rawDataFileName = rawDataFileName;
     this.originalRawDataFile = originalRawDataFile;
     this.scans = new ArrayList<>();
@@ -60,7 +60,7 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @return a {@link String} object.
    */
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return rawDataFileName;
   }
 
@@ -69,7 +69,7 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @param name a {@link String} object.
    */
-  public void setName(@Nonnull String name) {
+  public void setName(@NotNull String name) {
     Preconditions.checkNotNull(name);
     this.rawDataFileName = name;
   }
@@ -83,7 +83,7 @@ public class SimpleRawDataFile implements RawDataFile {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public String getOriginalFilename() {
     if (originalRawDataFile.isPresent()) {
       return originalRawDataFile.get().getName();
@@ -102,7 +102,7 @@ public class SimpleRawDataFile implements RawDataFile {
   }
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public List<String> getMsFunctions() {
     ArrayList<String> msFunctionList = new ArrayList<>();
     synchronized (scans) {
@@ -117,7 +117,7 @@ public class SimpleRawDataFile implements RawDataFile {
 
   /** {@inheritDoc} */
   @Override
-  public @Nonnull List<MsScan> getScans() {
+  public @NotNull List<MsScan> getScans() {
     return ImmutableList.copyOf(scans);
   }
 
@@ -126,7 +126,7 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @param scan a {@link MsScan} object.
    */
-  public void addScan(@Nonnull MsScan scan) {
+  public void addScan(@NotNull MsScan scan) {
     Preconditions.checkNotNull(scan);
     synchronized (scans) {
       scans.add(scan);
@@ -138,7 +138,7 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @param scan a {@link MsScan} object.
    */
-  public void removeScan(@Nonnull MsScan scan) {
+  public void removeScan(@NotNull MsScan scan) {
     Preconditions.checkNotNull(scan);
     synchronized (scans) {
       scans.remove(scan);
@@ -147,7 +147,7 @@ public class SimpleRawDataFile implements RawDataFile {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public List<Chromatogram> getChromatograms() {
     return ImmutableList.copyOf(chromatograms);
   }
@@ -157,7 +157,7 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @param chromatogram a {@link Chromatogram} object.
    */
-  public void addChromatogram(@Nonnull Chromatogram chromatogram) {
+  public void addChromatogram(@NotNull Chromatogram chromatogram) {
     Preconditions.checkNotNull(chromatogram);
     synchronized (chromatograms) {
       chromatograms.add(chromatogram);
@@ -169,7 +169,7 @@ public class SimpleRawDataFile implements RawDataFile {
    *
    * @param chromatogram a {@link Chromatogram} object.
    */
-  public void removeChromatogram(@Nonnull Chromatogram chromatogram) {
+  public void removeChromatogram(@NotNull Chromatogram chromatogram) {
     Preconditions.checkNotNull(chromatogram);
     synchronized (chromatograms) {
       chromatograms.remove(chromatogram);

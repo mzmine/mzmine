@@ -18,18 +18,18 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of IsolationInfo
  */
 public class SimpleIsolationInfo implements IsolationInfo {
 
-  private @Nonnull Range<Double> isolationMzRange;
+  private @NotNull Range<Double> isolationMzRange;
   private @Nullable Float ionInjectTime;
   private @Nullable Double precursorMz;
   private @Nullable Integer precursorCharge;
@@ -43,7 +43,7 @@ public class SimpleIsolationInfo implements IsolationInfo {
    *
    * @param isolationMzRange a {@link Range} object.
    */
-  public SimpleIsolationInfo(@Nonnull Range<Double> isolationMzRange) {
+  public SimpleIsolationInfo(@NotNull Range<Double> isolationMzRange) {
     Preconditions.checkNotNull(isolationMzRange);
     this.isolationMzRange = isolationMzRange;
     ionInjectTime = null;
@@ -64,7 +64,7 @@ public class SimpleIsolationInfo implements IsolationInfo {
    * @param precursorCharge a {@link Integer} object.
    * @param activationInfo a {@link ActivationInfo} object.
    */
-  public SimpleIsolationInfo(@Nonnull Range<Double> isolationMzRange, @Nullable Float ionInjectTime,
+  public SimpleIsolationInfo(@NotNull Range<Double> isolationMzRange, @Nullable Float ionInjectTime,
       @Nullable Double precursorMz, @Nullable Integer precursorCharge,
       @Nullable ActivationInfo activationInfo, @Nullable Integer precursorScanNumber) {
     Preconditions.checkNotNull(isolationMzRange);
@@ -78,7 +78,7 @@ public class SimpleIsolationInfo implements IsolationInfo {
 
   /** {@inheritDoc} */
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getIsolationMzRange() {
     return isolationMzRange;
   }

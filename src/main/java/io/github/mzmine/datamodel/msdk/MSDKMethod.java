@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface represents a method or algorithm of MSDK.

@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +50,10 @@ import ucar.nc2.Variable;
  */
 public class NetCDFFileExportMethod implements MSDKMethod<Void> {
 
-  private final @Nonnull RawDataFile rawDataFile;
-  private final @Nonnull File target;
-  private final @Nonnull double massValueScaleFactor;
-  private final @Nonnull double intensityValueScaleFactor;
+  private final @NotNull RawDataFile rawDataFile;
+  private final @NotNull File target;
+  private final @NotNull double massValueScaleFactor;
+  private final @NotNull double intensityValueScaleFactor;
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private boolean canceled = false;
@@ -73,7 +73,7 @@ public class NetCDFFileExportMethod implements MSDKMethod<Void> {
    *        which contains the data to be exported
    * @param target the target {@link File File} to write the data, in netCDF format
    */
-  public NetCDFFileExportMethod(@Nonnull RawDataFile rawDataFile, @Nonnull File target) {
+  public NetCDFFileExportMethod(@NotNull RawDataFile rawDataFile, @NotNull File target) {
     this(rawDataFile, target, 1, 1);
   }
 
@@ -90,7 +90,7 @@ public class NetCDFFileExportMethod implements MSDKMethod<Void> {
    *        by
 
    */
-  public NetCDFFileExportMethod(@Nonnull RawDataFile rawDataFile, @Nonnull File target,
+  public NetCDFFileExportMethod(@NotNull RawDataFile rawDataFile, @NotNull File target,
       double massValueScaleFactor, double intensityValueScaleFactor) {
     this.rawDataFile = rawDataFile;
     this.target = target;
