@@ -34,7 +34,6 @@ import io.github.mzmine.datamodel.msdk.ActivationInfo;
 import io.github.mzmine.datamodel.msdk.ActivationType;
 import io.github.mzmine.datamodel.msdk.Chromatogram;
 import io.github.mzmine.datamodel.msdk.ChromatogramType;
-import io.github.mzmine.datamodel.msdk.IonAnnotation;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;
 import io.github.mzmine.datamodel.msdk.RawDataFile;
 import io.github.mzmine.datamodel.msdk.SimpleActivationInfo;
@@ -354,13 +353,6 @@ class MzMLChromatogram implements Chromatogram {
     }
 
     return Collections.emptyList();
-  }
-
-
-  /** {@inheritDoc} */
-  @Override
-  public IonAnnotation getIonAnnotation() {
-    return null;
   }
 
   /** {@inheritDoc} */
