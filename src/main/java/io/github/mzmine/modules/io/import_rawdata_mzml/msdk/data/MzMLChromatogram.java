@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.msdk.ActivationInfo;
-import io.github.mzmine.datamodel.msdk.ActivationType;
+import io.github.mzmine.datamodel.ActivationType;
 import io.github.mzmine.datamodel.msdk.Chromatogram;
 import io.github.mzmine.datamodel.msdk.ChromatogramType;
 import io.github.mzmine.datamodel.msdk.IsolationInfo;

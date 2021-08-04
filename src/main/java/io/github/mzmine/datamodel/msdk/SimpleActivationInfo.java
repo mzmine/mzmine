@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
+import io.github.mzmine.datamodel.ActivationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

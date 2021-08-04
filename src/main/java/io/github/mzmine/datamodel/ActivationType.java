@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.datamodel.msdk;
+package io.github.mzmine.datamodel;
 
 /**
  * Represents the various types of MS/MS experiments.
