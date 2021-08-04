@@ -17,6 +17,8 @@
 
 package io.github.mzmine.util.webapi;
 
+import io.github.mzmine.modules.tools.massql.MassQLFilter;
+import io.github.mzmine.modules.tools.massql.MassQLQuery;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -75,5 +77,15 @@ public class MassQLUtils {
       return new JSONObject(response.body());
     }
     return null;
+  }
+
+
+  public static MassQLQuery getFilter(String query) {
+    try {
+      JSONObject jsonQuery = parseQueryGetJson(query);
+      return jsonQuery==null? MassQLQuery.NONE : new MassQLQuery(jsonQuery);
+    } catch (URISyntaxException | IOException | InterruptedException e) {
+      return MassQLQuery.NONE;
+    }
   }
 }
