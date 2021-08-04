@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.msdk;
 
+import io.github.mzmine.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,7 @@ public class ChromatogramUtil {
     if (size == 0)
       return null;
 
-    Double mz = MathUtils.calcQuantile(mzValues, size, 0.5f);
+    Double mz = MathUtils.calcQuantile(mzValues, 0.5f, size);
     return mz;
 
   }
