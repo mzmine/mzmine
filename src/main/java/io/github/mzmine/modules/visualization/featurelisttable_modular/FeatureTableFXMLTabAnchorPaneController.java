@@ -53,6 +53,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
@@ -137,14 +138,13 @@ public class FeatureTableFXMLTabAnchorPaneController {
 
     // add massql filter
     massQLSearchField = new TextField();
-    massQLSearchField.setPrefWidth(10000000);
     massQLSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     HBox massQLFilter = new HBox(new Label("MassQL: "), massQLSearchField);
     massQLFilter.setAlignment(filtersRow.getAlignment());
 
     VBox pnSouth = new VBox(2, filtersRow, massQLFilter);
     pnSouth.setFillWidth(true);
-
+    HBox.setHgrow(massQLSearchField, Priority.ALWAYS);
     pnFilters.getItems().add(pnSouth);
 
     featureTable.getSelectionModel().selectedItemProperty()
@@ -172,7 +172,12 @@ public class FeatureTableFXMLTabAnchorPaneController {
     if (massQlFilter != MassQLQuery.NONE) {
       massQLSearchField.setBorder(new Border(
           new BorderStroke(Color.LIGHTBLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-              BorderStroke.MEDIUM)));
+              BorderStroke.THICK)));
+    } else if (!massQlQuery.isBlank()) {
+      // error
+      massQLSearchField.setBorder(new Border(
+          new BorderStroke(Color.DARKRED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+              BorderStroke.THICK)));
     } else {
       massQLSearchField.setBorder(new Border(
           new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
