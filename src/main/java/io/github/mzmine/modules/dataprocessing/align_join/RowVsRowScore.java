@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.align_join_parallel;
+package io.github.mzmine.modules.dataprocessing.align_join;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 
