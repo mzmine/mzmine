@@ -50,27 +50,36 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-          new RecursiveMassDetector(), new WaveletMassDetector(), new AutoMassDetector()};
+  public static final CentroidMassDetector centroid = MZmineCore
+      .getModuleInstance(CentroidMassDetector.class);
+  public static final ExactMassDetector exact = MZmineCore
+      .getModuleInstance(ExactMassDetector.class);
+  public static final LocalMaxMassDetector localmax = MZmineCore
+      .getModuleInstance(LocalMaxMassDetector.class);
+  public static final RecursiveMassDetector recursive = MZmineCore
+      .getModuleInstance(RecursiveMassDetector.class);
+  public static final WaveletMassDetector wavelet = MZmineCore
+      .getModuleInstance(WaveletMassDetector.class);
+  public static final AutoMassDetector auto = MZmineCore.getModuleInstance(AutoMassDetector.class);
+
+  public static final MassDetector massDetectors[] = {centroid, exact, localmax, recursive, wavelet,
+      auto};
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
-  public static final ModuleComboParameter<MassDetector> massDetector =
-      new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters.", massDetectors);
+  public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
+      "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors);
 
-  public static final FileNameParameter outFilename =
-      new FileNameParameter("Output netCDF filename (optional)",
-          "If selected, centroided spectra will be written to this file netCDF file. "
-              + "If the file already exists, it will be overwritten.",
-          "cdf", FileSelectionType.SAVE);
+  public static final FileNameParameter outFilename = new FileNameParameter(
+      "Output netCDF filename (optional)",
+      "If selected, centroided spectra will be written to this file netCDF file. "
+          + "If the file already exists, it will be overwritten.", "cdf", FileSelectionType.SAVE);
 
-  public static final OptionalParameter<FileNameParameter> outFilenameOption =
-      new OptionalParameter<>(outFilename);
+  public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
+      outFilename);
 
   public MassDetectionParameters() {
     super(new Parameter[]{dataFiles, scanSelection, massDetector, outFilenameOption});
@@ -123,14 +132,12 @@ public class MassDetectionParameters extends SimpleParameterSet {
     String massDetectorName = getParameter(massDetector).getValue().toString();
 
     if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
-      String msg =
-          "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
+      String msg = "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
     if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
-      String msg =
-          "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
+      String msg = "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
