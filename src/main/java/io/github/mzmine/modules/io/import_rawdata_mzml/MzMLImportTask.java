@@ -106,12 +106,14 @@ public class MzMLImportTask extends AbstractTask {
 
   }
 
-  public MzMLImportTask(MZmineProject project, InputStream inputStreamToOpen, RawDataFile newMZmineFile
-      ) {
+  public MzMLImportTask(MZmineProject project, InputStream inputStreamToOpen,
+      RawDataFile newMZmineFile
+  ) {
     this(project, inputStreamToOpen, newMZmineFile, null);
   }
 
-  public MzMLImportTask(MZmineProject project, InputStream inputStreamToOpen, RawDataFile newMZmineFile,
+  public MzMLImportTask(MZmineProject project, InputStream inputStreamToOpen,
+      RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam) {
     super(newMZmineFile.getMemoryMapStorage()); // storage in raw data file
 
@@ -152,65 +154,65 @@ public class MzMLImportTask extends AbstractTask {
 
     try {
 
-        InputStream is = null;
+      InputStream is = null;
 
-        if (fileToOpen != null) {
-          logger.finest("Began parsing file: " + fileToOpen.getAbsolutePath());
-          is = FileMemoryMapper.mapToMemory(fileToOpen);
-        } else if (inputStreamToOpen != null) {
-          logger.finest("Began parsing file from stream");
-          is = inputStreamToOpen;
-        } else {
-          throw new MZmineException("Invalid input");
-        }
-        // It's ok to directly create this particular reader, this class is `public final`
-        // and we precisely want that fast UFT-8 reader implementation
-        final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
-        xmlStreamReader.setInput(is, "UTF-8");
+      if (fileToOpen != null) {
+        logger.finest("Began parsing file: " + fileToOpen.getAbsolutePath());
+        is = FileMemoryMapper.mapToMemory(fileToOpen);
+      } else if (inputStreamToOpen != null) {
+        logger.finest("Began parsing file from stream");
+        is = inputStreamToOpen;
+      } else {
+        throw new MZmineException("Invalid input");
+      }
+      // It's ok to directly create this particular reader, this class is `public final`
+      // and we precisely want that fast UFT-8 reader implementation
+      final XMLStreamReaderImpl xmlStreamReader = new XMLStreamReaderImpl();
+      xmlStreamReader.setInput(is, "UTF-8");
 
-        this.parser = new MzMLParser(this);
-        this.newRawFile = parser.getMzMLRawFile();
+      this.parser = new MzMLParser(this);
+      this.newRawFile = parser.getMzMLRawFile();
 
-        int eventType;
-        try {
-          do {
-            // check if parsing has been cancelled?
-            if (isCanceled()) {
-              return;
-            }
-
-            eventType = xmlStreamReader.next();
-
-            switch (eventType) {
-              case XMLStreamConstants.START_ELEMENT:
-                final CharArray openingTagName = xmlStreamReader.getLocalName();
-                parser.processOpeningTag(xmlStreamReader, is, openingTagName);
-                break;
-
-              case XMLStreamConstants.END_ELEMENT:
-                final CharArray closingTagName = xmlStreamReader.getLocalName();
-                parser.processClosingTag(xmlStreamReader, closingTagName);
-                break;
-
-              case XMLStreamConstants.CHARACTERS:
-                parser.processCharacters(xmlStreamReader);
-                break;
-            }
-
-          } while (eventType != XMLStreamConstants.END_DOCUMENT);
-
-        } finally {
-          if (xmlStreamReader != null) {
-            xmlStreamReader.close();
+      int eventType;
+      try {
+        do {
+          // check if parsing has been cancelled?
+          if (isCanceled()) {
+            return;
           }
-        }
-        logger.finest("Parsing Complete");
 
+          eventType = xmlStreamReader.next();
+
+          switch (eventType) {
+            case XMLStreamConstants.START_ELEMENT:
+              final CharArray openingTagName = xmlStreamReader.getLocalName();
+              parser.processOpeningTag(xmlStreamReader, is, openingTagName);
+              break;
+
+            case XMLStreamConstants.END_ELEMENT:
+              final CharArray closingTagName = xmlStreamReader.getLocalName();
+              parser.processClosingTag(xmlStreamReader, closingTagName);
+              break;
+
+            case XMLStreamConstants.CHARACTERS:
+              parser.processCharacters(xmlStreamReader);
+              break;
+          }
+
+        } while (eventType != XMLStreamConstants.END_DOCUMENT);
+
+      } finally {
+        if (xmlStreamReader != null) {
+          xmlStreamReader.close();
+        }
+      }
+      logger.finest("Parsing Complete");
 
       totalScans = newRawFile.getScans().size();
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {
-        ((IMSRawDataFileImpl) newMZmineFile).addSegment(Range.closed(1, newRawFile.getScans().size()));
+        ((IMSRawDataFileImpl) newMZmineFile).addSegment(
+            Range.closed(1, newRawFile.getScans().size()));
         buildIonMobilityFile(newRawFile);
       } else {
         buildLCMSFile(newRawFile);
@@ -247,7 +249,8 @@ public class MzMLImportTask extends AbstractTask {
   public void buildLCMSFile(MzMLRawDataFile file) throws IOException {
     for (MzMLMsScan mzMLScan : file.getScans()) {
 
-      Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan);;
+      Scan newScan = MzMLConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan);
+      ;
 
       if (applyMassDetection) {
 
@@ -264,8 +267,7 @@ public class MzMLImportTask extends AbstractTask {
           SimpleMassList newMassList = new SimpleMassList(newMZmineFile.getMemoryMapStorage(),
               mzIntensities[0], mzIntensities[1]);
           newScan.addMassList(newMassList);
-        } else
-        {
+        } else {
           // Override data points and spectrum type
           ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
           newScan.addMassList(newMassList);
@@ -321,7 +323,7 @@ public class MzMLImportTask extends AbstractTask {
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, mzMLScan.getMsLevel(),
             mzMLScan.getRetentionTime() / 60f, 0, 0, null, null,
-            ConversionUtils.msdkToMZmineSpectrumType(mzMLScan.getSpectrumType()),
+            MzMLConversionUtils.msdkToMZmineSpectrumType(mzMLScan.getSpectrumType()),
             mzMLScan.getPolarity(), mzMLScan.getScanDefinition(),
             mzMLScan.getScanningRange(), mzMLScan.getMobility().mt(), null);
         frameNumber++;
@@ -358,9 +360,10 @@ public class MzMLImportTask extends AbstractTask {
         lastScanId = mzMLScan.getScanNumber();
       }
 
-      mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
+      mobilityScans.add(
+          MzMLConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, mzMLScan));
       mobilities.add(mzMLScan.getMobility().mobility());
-      ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
+      MzMLConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
       parsedScans++;
@@ -377,8 +380,16 @@ public class MzMLImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalScans == 0) return 0.0;
-    return (double) parsedScans / totalScans;
+    // Parsing has not started yet
+    if (parser == null) {
+      return 0.0;
+    }
+    // First stage - parsing mzML
+    if (totalScans == 0) {
+      return parser.getFinishedPercentage() * 0.5;
+    }
+    // Second stage - importing scan data
+    return 0.5 + (0.5 * ((double) parsedScans / totalScans));
   }
 
 }

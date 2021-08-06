@@ -36,9 +36,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public class ConversionUtils {
+public class MzMLConversionUtils {
 
-  private static Logger logger = Logger.getLogger(ConversionUtils.class.getName());
+  private static Logger logger = Logger.getLogger(MzMLConversionUtils.class.getName());
 
   public static double[] convertFloatsToDoubles(float[] input, int length) {
     if (input == null) {
@@ -113,7 +113,7 @@ public class ConversionUtils {
   public static io.github.mzmine.datamodel.Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
       double[] intensities) {
     return msdkScanToSimpleScan(rawDataFile, scan, mzs, intensities,
-        ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
+        MzMLConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
   }
 
   /**

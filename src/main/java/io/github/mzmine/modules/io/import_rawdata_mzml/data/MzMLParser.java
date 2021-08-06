@@ -691,14 +691,14 @@ public class MzMLParser {
     }
   }
 
-  public Float getFinishedPercentage() {
+  public double getFinishedPercentage() {
     if (totalScans == 0) {
-      return 0.0f;
+      return 0.0;
     }
     if (parsedScans > totalScans) {
-      return 1.0f;
+      return 1.0;
     }
-    return ((float) parsedScans) / totalScans;
+    return ((double) parsedScans) / totalScans;
   }
 
 }
