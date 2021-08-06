@@ -20,6 +20,7 @@ package io.github.mzmine.project.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Chromatogram;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -72,7 +73,9 @@ public class RawDataFileImpl implements RawDataFile {
 
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
 
-  protected final ObservableList<Scan> scans;
+  protected final ObservableList<Scan> scans = FXCollections.observableArrayList();
+  protected final ObservableList<Chromatogram> chromatograms = FXCollections.observableArrayList();
+
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
 
@@ -87,8 +90,6 @@ public class RawDataFileImpl implements RawDataFile {
 
     this.dataFileName = dataFileName;
     this.storageMemoryMap = storage;
-
-    scans = FXCollections.observableArrayList();
 
     this.color.setValue(color);
   }
@@ -190,6 +191,11 @@ public class RawDataFileImpl implements RawDataFile {
   @NotNull
   public List<Scan> getScanNumbers(int msLevel) {
     return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
+  }
+
+  @Override
+  public ObservableList<Chromatogram> getChromatograms() {
+    return chromatograms;
   }
 
   /**

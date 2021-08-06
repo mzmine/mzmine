@@ -32,7 +32,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
@@ -188,10 +188,10 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile);
       // IMS
-      case MZML_IMS -> new MSDKmzMLImportTask(project, file, (IMSRawDataFile) newMZmineFile);
+      case MZML_IMS -> new MzMLImportTask(project, file, (IMSRawDataFile) newMZmineFile);
       case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile);
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile);
+      case MZML -> new MzMLImportTask(project, file, newMZmineFile);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile);
       case MZDATA -> new MzDataImportTask(project, file, newMZmineFile);
       case NETCDF -> new NetCDFImportTask(project, file, newMZmineFile);
@@ -214,7 +214,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull AdvancedSpectraImportParameters advancedParam) {
     return switch (fileType) {
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam);
+      case MZML -> new MzMLImportTask(project, file, newMZmineFile, advancedParam);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam);
       case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile,
           advancedParam);

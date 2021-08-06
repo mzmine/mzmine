@@ -20,14 +20,10 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 
 import com.google.common.collect.Range;
 import com.sun.jna.Platform;
-import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -69,7 +65,7 @@ public class ThermoRawImportTask extends AbstractTask {
   private float retentionTime = 0;
   private double precursorMZ = 0;
 
-  private MzMLFileImportMethod msdkTask;
+  private MzMLImportTask msdkTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     super(null); // storage in raw data file
@@ -84,10 +80,10 @@ public class ThermoRawImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (msdkTask == null || msdkTask.getFinishedPercentage() == null) {
+    if (msdkTask == null) {
       return 0.0;
     } else {
-      return msdkTask.getFinishedPercentage().doubleValue();
+      return msdkTask.getFinishedPercentage();
     }
   }
 
@@ -141,36 +137,12 @@ public class ThermoRawImportTask extends AbstractTask {
       InputStream mzMLStream = dumper.getInputStream();
       BufferedInputStream bufStream = new BufferedInputStream(mzMLStream);
 
-      msdkTask = new MzMLFileImportMethod(bufStream);
-      msdkTask.execute();
-      io.github.mzmine.datamodel.msdk.RawDataFile msdkFile = msdkTask.getResult();
+      msdkTask = new MzMLImportTask(project, bufStream, newMZmineFile);
+      msdkTask.run();
 
-      if (msdkFile == null) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("MSDK returned null");
-        return;
-      }
-      totalScans = msdkFile.getScans().size();
-
-      for (MsScan scan : msdkFile.getScans()) {
-
-        if (isCanceled()) {
-          bufStream.close();
-          dumper.destroy();
-          return;
-        }
-
-        Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, (MzMLMsScan) scan);
-
-        newMZmineFile.addScan(newScan);
-        parsedScans++;
-        taskDescription =
-            "Importing " + fileToOpen.getName() + ", parsed " + parsedScans + "/" + totalScans
-                + " scans";
-      }
+      // taskDescription = "Importing " + fileToOpen.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
 
       // Finish
-      bufStream.close();
       dumper.destroy();
 
       if (parsedScans == 0) {

@@ -18,10 +18,9 @@
 
 package io.github.mzmine.util;
 
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import org.jetbrains.annotations.NotNull;
-
-import io.github.mzmine.datamodel.msdk.MassSpectrum;
 
 /**
  * Auto-detection of spectrum type from data points. Determines if the spectrum represented by given
@@ -41,8 +40,8 @@ public class SpectrumTypeDetectionAlgorithm {
    * @return a {@link MassSpectrumType} object.
    */
   public static MassSpectrumType detectSpectrumType(@NotNull MassSpectrum msSpectrum) {
-    double mzValues[] = msSpectrum.getMzValues();
-    float intensityValues[] = msSpectrum.getIntensityValues();
+    double mzValues[] = msSpectrum.getMzValues(null);
+    double intensityValues[] = msSpectrum.getIntensityValues(null);
     Integer size = msSpectrum.getNumberOfDataPoints();
     return detectSpectrumType(mzValues, intensityValues, size);
   }
@@ -58,7 +57,7 @@ public class SpectrumTypeDetectionAlgorithm {
    * @param size a {@link Integer} object.
    */
   public static @NotNull MassSpectrumType detectSpectrumType(@NotNull double mzValues[],
-      @NotNull float intensityValues[], @NotNull Integer size) {
+      @NotNull double intensityValues[], @NotNull Integer size) {
 
     // If the spectrum has less than 5 data points, it should be
     // centroided.

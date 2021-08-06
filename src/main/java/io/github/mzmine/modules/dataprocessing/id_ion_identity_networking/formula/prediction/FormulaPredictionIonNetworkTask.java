@@ -19,7 +19,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
@@ -241,7 +241,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
         checkConstraints(resultingFormulas, cdkFormula, cdkFormulaIon, row, ion, searchedMass);
       } catch (CloneNotSupportedException e) {
         logger.log(Level.SEVERE, "Cannot copy cdk formula", e);
-        throw new MSDKRuntimeException(e);
+        throw new MZmineRuntimeException(e);
       }
     }
 

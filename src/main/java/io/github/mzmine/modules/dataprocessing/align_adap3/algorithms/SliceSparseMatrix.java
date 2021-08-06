@@ -17,6 +17,8 @@
  */
 package io.github.mzmine.modules.dataprocessing.align_adap3.algorithms;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.dataprocessing.align_adap3.algorithms.ADAP3DPeakDetectionAlgorithm.GoodPeakInfo;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,9 +31,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.lang.Math;
-
-import io.github.mzmine.datamodel.msdk.MsScan;
-import io.github.mzmine.datamodel.msdk.RawDataFile;
 
 
 /**
@@ -89,7 +88,7 @@ public class SliceSparseMatrix {
    * listOfScans is used for getting scan objects from raw data file.
    * </p>
    */
-  private final List<MsScan> listOfScans;
+  private final List<Scan> listOfScans;
 
   /**
    * <p>
@@ -106,7 +105,7 @@ public class SliceSparseMatrix {
   public static class Triplet {
     public int mz;
     public int scanListIndex;
-    public float intensity;
+    public double intensity;
     public byte removed;
   }
 
@@ -116,8 +115,8 @@ public class SliceSparseMatrix {
    * </p>
    */
   public static class VerticalSliceDataPoint {
-    float mz;
-    float intensity;
+    double mz;
+    double intensity;
   }
 
   /**
@@ -144,23 +143,23 @@ public class SliceSparseMatrix {
    * @param msScanPredicate a {@link Predicate} object. Only MsScan which pass
    *        this predicate will be processed.
    */
-  public SliceSparseMatrix(RawDataFile rawFile, Predicate<MsScan> msScanPredicate) {
+  public SliceSparseMatrix(RawDataFile rawFile, Predicate<Scan> msScanPredicate) {
     listOfScans =
-        rawFile.getScans().stream().filter(msScanPredicate).collect(Collectors.<MsScan>toList());
+        rawFile.getScans().stream().filter(msScanPredicate).collect(Collectors.<Scan>toList());
     List<Triplet> listOfTriplet = new ArrayList<Triplet>();
     rtMap = new HashMap<Integer, Float>();
 
+    double mzBuffer[] = null, intensityBuffer[] = null;
+
     for (int i = 0; i < listOfScans.size(); i++) {
-      MsScan scan = listOfScans.get(i);
+      Scan scan = listOfScans.get(i);
 
       if (scan == null)
         continue;
 
-      double mzBuffer[];
-      float intensityBuffer[];
       Float rt;
-      mzBuffer = scan.getMzValues();
-      intensityBuffer = scan.getIntensityValues();
+      mzBuffer = scan.getMzValues(mzBuffer);
+      intensityBuffer = scan.getIntensityValues(intensityBuffer);
       rt = scan.getRetentionTime();
 
       if (rt == null)
@@ -249,8 +248,8 @@ public class SliceSparseMatrix {
       @Override
       public int compare(Triplet o1, Triplet o2) {
 
-        Float intensity1 = o1.intensity;
-        Float intensity2 = o2.intensity;
+        Double intensity1 = o1.intensity;
+        Double intensity2 = o2.intensity;
         int intensityCompare = intensity2.compareTo(intensity1);
         return intensityCompare;
       }
@@ -591,9 +590,9 @@ public class SliceSparseMatrix {
    * @return intensities a {@link Float} array.
    * @param peak a {@link ADAP3DPeakDetectionAlgorithm.GoodPeakInfo} object.
    */
-  public float[] getIntensities(GoodPeakInfo peak) {
+  public double[] getIntensities(GoodPeakInfo peak) {
 
-    float[] intensities = new float[peak.upperScanBound - peak.lowerScanBound + 1];
+    double[] intensities = new double[peak.upperScanBound - peak.lowerScanBound + 1];
 
     for (int i = 0; i < peak.upperScanBound - peak.lowerScanBound + 1; i++) {
       Triplet searchTriplet = new Triplet();

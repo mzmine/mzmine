@@ -18,6 +18,7 @@
 
 package io.github.mzmine.util.scans;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -994,6 +995,27 @@ public class ScanUtils {
   }
 
   /**
+   * Calculates the total ion current (=sum of all intensity values)
+   *
+   * @return a {@link Float} object.
+   * @param intensityValues an array of float.
+   * @param size a {@link Integer} object.
+   */
+  public static @NotNull Double getTIC(@NotNull double[] intensityValues, @NotNull Integer size) {
+
+    // Parameter check
+    Preconditions.checkNotNull(intensityValues);
+    Preconditions.checkNotNull(size);
+    Preconditions.checkPositionIndex(size, intensityValues.length);
+
+    double tic = 0.0;
+    for (int i = 0; i < size; i++) {
+      tic += intensityValues[i];
+    }
+    return tic;
+  }
+
+  /**
    * threshold: keep data points >= noiseLevel
    *
    * @param data
@@ -1090,6 +1112,29 @@ public class ScanUtils {
 
     // Didn't find any MS1 scan
     return null;
+  }
+
+  /**
+   * Returns the m/z range of given data points. Can return null if the data point list is empty.
+   *
+   * @return a {@link Range} object.
+   * @param mzValues an array of double.
+   * @param size a {@link Integer} object.
+   */
+  @Nullable
+  public static Range<Double> getMzRange(@NotNull double mzValues[], @NotNull Integer size) {
+
+    // Parameter check
+    Preconditions.checkNotNull(mzValues);
+    Preconditions.checkNotNull(size);
+    Preconditions.checkPositionIndex(size, mzValues.length);
+
+    if (size == 0)
+      return null;
+
+    double min = mzValues[0];
+    double max = mzValues[size - 1];
+    return Range.closed(min, max);
   }
 
   @Nullable

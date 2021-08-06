@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.RowGroup;
@@ -125,7 +125,7 @@ public class IonNetworkingTask extends AbstractTask {
       LOG.log(Level.SEVERE, "Adduct search error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
-      throw new MSDKRuntimeException(t);
+      throw new MZmineRuntimeException(t);
     }
   }
 
@@ -135,7 +135,7 @@ public class IonNetworkingTask extends AbstractTask {
     List<RowGroup> groups = featureList.getGroups();
 
     if (groups == null || groups.isEmpty()) {
-      throw new MSDKRuntimeException(
+      throw new MZmineRuntimeException(
           "Run grouping before: No groups found for peakList + " + featureList.getName());
     }
     //

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_adap3d;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -29,12 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
-import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -101,7 +98,7 @@ public class ADAP3DTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started ADAP3D on " + dataFile);
 
-    List<Scan> selectedScans = Arrays.asList(scanSelection.getMatchingScans(dataFile));
+    List<io.github.mzmine.datamodel.Scan> selectedScans = Arrays.asList(scanSelection.getMatchingScans(dataFile));
 
     // Check if we have any scans
     if (selectedScans.size() == 0) {
@@ -112,7 +109,7 @@ public class ADAP3DTask extends AbstractTask {
 
     // Check if the scans are properly ordered by RT
     double prevRT = Double.NEGATIVE_INFINITY;
-    for (Scan s : selectedScans) {
+    for (io.github.mzmine.datamodel.Scan s : selectedScans) {
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()
@@ -126,10 +123,9 @@ public class ADAP3DTask extends AbstractTask {
     }
 
     // Run MSDK module
-    MZmineToMSDKRawDataFile msdkRawDataFile = new MZmineToMSDKRawDataFile(dataFile);
-    Predicate<MsScan> scanSelectionPredicate =
-        scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
-    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate,
+    Predicate<Scan> scanSelectionPredicate =
+        scan -> selectedScans.contains(dataFile);
+    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(dataFile, scanSelectionPredicate,
         new ADAP3DFeatureDetectionParameters());
     List<ModularFeature> features = null;
     try {

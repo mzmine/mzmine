@@ -113,8 +113,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModul
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportModule;
 import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
@@ -143,10 +142,10 @@ public class BatchModeModulesList {
        */
       AllSpectralDataImportModule.class, //
       TDFImportModule.class, //
-      MzMLImportModule.class, //
+      io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule.class, //
       ImzMLImportModule.class, //
       MzDataImportModule.class, //
-      MSDKmzMLImportModule.class, //
+      MzMLImportModule.class, //
       MzXMLImportModule.class, //
       NetCDFImportModule.class, //
       ThermoRawImportModule.class, //

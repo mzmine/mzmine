@@ -19,7 +19,7 @@
 package io.github.mzmine.parameters.parametertypes;
 
 
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import java.util.Collection;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -143,10 +143,10 @@ public class SumformulaParameter extends StringParameter {
               builder);
         }
       } catch (Exception e) {
-        throw new MSDKRuntimeException("Could not set up formula. Invalid input.");
+        throw new MZmineRuntimeException("Could not set up formula. Invalid input.");
       }
     } else if (valueRequired) {
-      throw new MSDKRuntimeException("Could not set up formula. Invalid input.");
+      throw new MZmineRuntimeException("Could not set up formula. Invalid input.");
     }
     return null;
   }

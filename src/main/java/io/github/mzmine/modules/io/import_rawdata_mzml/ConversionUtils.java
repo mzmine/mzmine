@@ -18,20 +18,18 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
-import io.github.mzmine.datamodel.msdk.MsScan;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLIsolationWindow;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLPrecursorActivation;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLPrecursorSelectedIonList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -98,9 +96,9 @@ public class ConversionUtils {
    * @param scan        the scan
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
-    return msdkScanToSimpleScan(rawDataFile, scan, scan.getMzValues(),
-        convertFloatsToDoubles(scan.getIntensityValues()));
+  public static io.github.mzmine.datamodel.Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan) {
+    return msdkScanToSimpleScan(rawDataFile, scan, scan.getMzValues(null),
+        scan.getIntensityValues(null));
   }
 
   /**
@@ -112,7 +110,7 @@ public class ConversionUtils {
    * @param intensities use these intensity values instead of the scan data
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
+  public static io.github.mzmine.datamodel.Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
       double[] intensities) {
     return msdkScanToSimpleScan(rawDataFile, scan, mzs, intensities,
         ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()));
@@ -128,7 +126,7 @@ public class ConversionUtils {
    * @param spectrumType override spectrum type
    * @return a {@link SimpleScan}
    */
-  public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
+  public static io.github.mzmine.datamodel.Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
       double[] intensities, MassSpectrumType spectrumType) {
     double precursorMz = 0.0;
     int precursorCharge = -1;
@@ -160,9 +158,9 @@ public class ConversionUtils {
   }
 
   public static BuildingMobilityScan msdkScanToMobilityScan(int scannum,
-      MsScan scan) {
-    return new BuildingMobilityScan(scannum, scan.getMzValues(),
-        convertFloatsToDoubles(scan.getIntensityValues()));
+      MzMLMsScan scan) {
+    return new BuildingMobilityScan(scannum, scan.getMzValues(null),
+        scan.getIntensityValues(null));
   }
 
   /**

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -109,20 +109,20 @@ public class RawFileMergeModule implements MZmineProcessingModule {
       case AFTER_LAST:
         int index = name.lastIndexOf(posMarker);
         if (index == -1)
-          throw new MSDKRuntimeException(
+          throw new MZmineRuntimeException(
               "Merging of raw data files not possible. Position marker was not present in file: "
                   + name);
         return name.substring(index + 1, name.length());
       case BEFORE_FIRST:
         int first = name.indexOf(posMarker);
         if (first == -1)
-          throw new MSDKRuntimeException(
+          throw new MZmineRuntimeException(
               "Merging of raw data files not possible. Position marker was not present in file: "
                   + name);
         return name.substring(0, first);
 
       default:
-        throw new MSDKRuntimeException("Should not end here");
+        throw new MZmineRuntimeException("Should not end here");
     }
   }
 

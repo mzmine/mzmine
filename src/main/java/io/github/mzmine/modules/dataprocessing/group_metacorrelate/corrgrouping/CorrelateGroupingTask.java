@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping
 
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
@@ -252,7 +252,7 @@ public class CorrelateGroupingTask extends AbstractTask {
       logger.log(Level.SEVERE, "Correlation error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
-      throw new MSDKRuntimeException(t);
+      throw new MZmineRuntimeException(t);
     }
   }
 
@@ -315,7 +315,7 @@ public class CorrelateGroupingTask extends AbstractTask {
           stageProgress.addAndGet(1d / totalRows);
         } catch (Exception e) {
           logger.log(Level.SEVERE, "Error in parallel R2Rcomparison: " + e.getMessage(), e);
-          throw new MSDKRuntimeException(e);
+          throw new MZmineRuntimeException(e);
         }
       }
     });

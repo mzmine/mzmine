@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
-import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
+import io.github.mzmine.project.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids;
 
 
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -83,7 +83,7 @@ public class ClearIonIdentitiesTask extends AbstractTask {
       LOG.log(Level.SEVERE, "Clearing ion identities and networks error", t);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(t.getMessage());
-      throw new MSDKRuntimeException(t);
+      throw new MZmineRuntimeException(t);
     }
   }
 

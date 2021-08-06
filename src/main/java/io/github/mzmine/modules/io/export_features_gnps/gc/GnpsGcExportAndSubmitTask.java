@@ -30,7 +30,7 @@
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -162,7 +162,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
         }, lerror -> {
       setErrorMessage("GNPS-GC submit was not started due too errors while file export");
       thistask.setStatus(TaskStatus.ERROR);
-      throw new MSDKRuntimeException(
+      throw new MZmineRuntimeException(
           "GNPS-GC submit was not started due too errors while file export");
     },
         // cancel if one was cancelled

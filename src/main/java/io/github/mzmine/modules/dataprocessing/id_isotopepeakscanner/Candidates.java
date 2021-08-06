@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassList;
@@ -103,7 +103,7 @@ public class Candidates {
    */
   public Candidate get(int index) {
     if (index >= candidate.length) {
-      throw new MSDKRuntimeException("Candidates.get(index): index > length");
+      throw new MZmineRuntimeException("Candidates.get(index): index > length");
     }
     return candidate[index];
   }
@@ -119,7 +119,7 @@ public class Candidates {
     }
 
     if (index >= candidate.length) {
-      throw new MSDKRuntimeException("Candidates.get(index): index > length");
+      throw new MZmineRuntimeException("Candidates.get(index): index > length");
     }
     return avgRating[index];
   }
@@ -230,7 +230,7 @@ public class Candidates {
       return candidate[index].checkForBetterRating(dpParent, candidateIntensity, cand, pattern,
           index, minRating, checkIntensity);
     } else {
-      throw new MSDKRuntimeException("Error: Invalid RatingType.");
+      throw new MZmineRuntimeException("Error: Invalid RatingType.");
     }
   }
 

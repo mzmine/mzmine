@@ -249,7 +249,7 @@ public class ADAP3DPeakDetectionAlgorithm {
             objPeakInfo.mz = (double) triplet.mz / 10000;
             objPeakInfo.lowerScanBound = peakList.get(i).curLeftBound + lowerScanBound;
             objPeakInfo.upperScanBound = peakList.get(i).curRightBound + lowerScanBound;
-            objPeakInfo.maxHeight = triplet.intensity;
+            objPeakInfo.maxHeight = (float) triplet.intensity;
             objPeakInfo.maxHeightScanNumber = triplet.scanListIndex;
             objPeakInfo.objResult = peakList.get(i);
           } else {
