@@ -61,7 +61,7 @@ public class MzMLRawDataFile {
   public MzMLRawDataFile(File sourceFile, List<String> msFunctions, List<MzMLMsScan> msScans,
       List<MzMLChromatogram> chromatograms) {
     this.sourceFile = sourceFile;
-    this.name = sourceFile != null ? sourceFile.getName() : null;
+    this.name = sourceFile != null ? sourceFile.getName() : "No name";
     this.msFunctions = msFunctions;
     this.msScans = msScans;
     this.chromatograms = chromatograms;

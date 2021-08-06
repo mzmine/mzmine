@@ -277,7 +277,7 @@ public class SimpleChromatogram implements Chromatogram {
     }
     rtValues[numOfDataPoints] = rt;
 
-    if (mz != null) {
+    if (mzValues != null && mz != null) {
       if (mzValues.length <= numOfDataPoints) {
         double newMzValues[] = new double[Math.min(128, numOfDataPoints * 2)];
         System.arraycopy(mzValues, 0, newMzValues, 0, numOfDataPoints);

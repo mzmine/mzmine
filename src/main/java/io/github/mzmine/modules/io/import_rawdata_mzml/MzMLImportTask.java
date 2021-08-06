@@ -86,6 +86,7 @@ public class MzMLImportTask extends AbstractTask {
     this.project = project;
     this.newMZmineFile = newMZmineFile;
     this.fileToOpen = fileToOpen;
+    this.inputStreamToOpen = null;
 
     this.description = "Importing raw data file: " + fileToOpen.getName();
     if (advancedParam != null) {
@@ -118,6 +119,7 @@ public class MzMLImportTask extends AbstractTask {
     this.newMZmineFile = newMZmineFile;
     this.description = "Importing raw data file from a stream";
     this.fileToOpen = null;
+    this.inputStreamToOpen = inputStreamToOpen;
 
     if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
