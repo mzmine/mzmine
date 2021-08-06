@@ -18,18 +18,17 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import java.util.logging.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Module combo parameter - to choose from a list of modules and setup their parameters individually
@@ -37,6 +36,8 @@ import io.github.mzmine.parameters.UserParameter;
  */
 public class ModuleComboParameter<ModuleType extends MZmineModule>
     implements UserParameter<MZmineProcessingStep<ModuleType>, ModuleComboComponent> {
+
+  private static final Logger logger = Logger.getLogger(ModuleComboParameter.class.getName());
 
   private String name, description;
   private MZmineProcessingStep<ModuleType> modulesWithParams[];
@@ -124,7 +125,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule>
       ParameterSet params = modulesWithParams[i].getParameterSet();
       params = params.cloneParameterSet();
       newModules[i] = new MZmineProcessingStepImpl<ModuleType>(module, params);
-      if (value == modulesWithParams[i])
+      if (value.getModule().equals(modulesWithParams[i].getModule()))
         newValue = newModules[i];
     }
     ModuleComboParameter<ModuleType> copy =
