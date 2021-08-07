@@ -141,6 +141,10 @@ public class ThermoRawImportTask extends AbstractTask {
       mzMlImportTask = new MzMLImportTask(project, bufStream, newMZmineFile);
       mzMlImportTask.run();
 
+      if (isCanceled()) {
+        return;
+      }
+
       if (mzMlImportTask.getStatus() != TaskStatus.FINISHED) {
         throw (new MZmineException("ThermoRawFileParser process crashed before all scans were extracted"));
       }

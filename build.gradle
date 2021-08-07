@@ -173,6 +173,7 @@ configurations.all {
     exclude group: "ch.qos.logback", module: "logback-classic"
     exclude group: "org.checkerframework", module: "checker-qual"
     exclude group: "javax.annotation", module: "javax.annotation-api"
+    exclude group: "com.google.code.findbugs", module: "jsr305"
 }
 
 

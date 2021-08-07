@@ -206,7 +206,7 @@ public class MzMLImportTask extends AbstractTask {
           xmlStreamReader.close();
         }
       }
-      logger.finest("Parsing Complete");
+      logger.finest("mzML parsing complete");
 
       totalScans = newRawFile.getScans().size();
 
@@ -250,7 +250,6 @@ public class MzMLImportTask extends AbstractTask {
     for (MzMLMsScan mzMLScan : file.getScans()) {
 
       Scan newScan = MzMLConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan);
-      ;
 
       if (applyMassDetection) {
 
