@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.datamodel.MZmineException;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_advanced.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLParser;
 import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLRawDataFile;
 import io.github.mzmine.modules.io.import_rawdata_mzml.data.MzMLMsScan;
