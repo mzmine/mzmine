@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
@@ -39,7 +40,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class FileNamesComponent extends FlowPane {
 
-  public static final Font smallFont = new Font("SansSerif", 10);
+  private static final Font smallFont = new Font("SansSerif", 10);
 
   private TextArea txtFilename;
   private CheckBox useSubFolders;
@@ -91,7 +92,8 @@ public class FileNamesComponent extends FlowPane {
     });
 
     VBox vbox = new VBox(btnFileBrowser, btnClear, useSubFolders);
-
+    vbox.setSpacing(10.0);
+    vbox.setPadding(new Insets(0, 10,0,10));
     List<Button> directoryButtons = createFromDirectoryBtns(filters);
     vbox.getChildren().addAll(directoryButtons);
 

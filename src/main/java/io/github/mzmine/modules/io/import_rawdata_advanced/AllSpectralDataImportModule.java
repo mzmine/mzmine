@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.io.import_rawdata_all;
+package io.github.mzmine.modules.io.import_rawdata_advanced;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.IMSRawDataFile;

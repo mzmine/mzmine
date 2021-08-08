@@ -95,7 +95,7 @@
   <Menu text="Raw data methods">
     <Menu text="Raw data import">
       <MenuItem onAction="#runModule" text="MS data (advanced)"
-        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_advanced.AllSpectralDataImportModule"/>
 
       <SeparatorMenuItem/>
 

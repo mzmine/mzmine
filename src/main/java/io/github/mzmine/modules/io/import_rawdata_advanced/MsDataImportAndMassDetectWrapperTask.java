@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.io.import_rawdata_all;
+package io.github.mzmine.modules.io.import_rawdata_advanced;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;

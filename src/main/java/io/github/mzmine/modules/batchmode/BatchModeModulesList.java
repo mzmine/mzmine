@@ -109,7 +109,7 @@ import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_advanced.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule;

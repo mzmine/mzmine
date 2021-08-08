@@ -65,6 +65,8 @@ import javafx.stage.Stage;
  */
 public class ParameterSetupDialog extends Stage {
 
+  private static final int TOOLTIP_PREF_WIDTH = 400;
+
   public static final Logger logger = Logger.getLogger(ParameterSetupDialog.class.getName());
   protected final URL helpURL;
   // Parameters and their representation in the dialog
@@ -443,12 +445,15 @@ public class ParameterSetupDialog extends Stage {
 
   protected void addToolTipToControls(Node node, String toolTipText) {
     if (node instanceof Control) {
-      ((Control) node).setTooltip(new Tooltip(toolTipText));
+      final Control controlNode = (Control) node;
+      final Tooltip toolTip = new Tooltip(toolTipText);
+      toolTip.setPrefWidth(TOOLTIP_PREF_WIDTH);
+      toolTip.setWrapText(true);
+      controlNode.setTooltip(toolTip);
     }
     if (node instanceof Region) {
-      Region panelComp = (Region) node;
-      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child = panelComp.getChildrenUnmodifiable().get(i);
+      Region regionNode = (Region) node;
+      for (Node child : regionNode.getChildrenUnmodifiable()) {
         addToolTipToControls(child, toolTipText);
       }
     }

@@ -24,8 +24,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 
-/**
- */
 public class OptionalModuleComponent extends FlowPane {
 
   private CheckBox checkBox;
@@ -34,16 +32,12 @@ public class OptionalModuleComponent extends FlowPane {
   public OptionalModuleComponent(ParameterSet embeddedParameters) {
 
     checkBox = new CheckBox();
-    checkBox.setOnAction(e -> {
-      boolean checkBoxSelected = checkBox.isSelected();
-      setButton.setDisable(!checkBoxSelected);
-    });
 
     setButton = new Button("Setup");
+    setButton.disableProperty().bind(checkBox.selectedProperty().not());
     setButton.setOnAction(e -> {
       embeddedParameters.showSetupDialog(true);
     });
-    setButton.setDisable(true);
 
     super.setHgap(7d);
     super.getChildren().addAll(checkBox, setButton);
@@ -56,19 +50,10 @@ public class OptionalModuleComponent extends FlowPane {
 
   public void setSelected(boolean selected) {
     checkBox.setSelected(selected);
-    setButton.setDisable(!selected);
-  }
-
-  public void setToolTipText(String toolTip) {
-    checkBox.setTooltip(new Tooltip(toolTip));
   }
 
   public CheckBox getCheckbox() {
     return checkBox;
   }
-
-  /*
-   * public void addItemListener(ItemListener il) { checkBox.addItemListener(il); }
-   */
 
 }

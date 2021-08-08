@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.io.import_rawdata_all;
+package io.github.mzmine.modules.io.import_rawdata_advanced;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -51,7 +51,11 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       new FileNamesParameter("File names", "", extensions);
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
-      "Advanced import", "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help). Positive: Lower memory consumption; Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or inial results apart from the current state.", new AdvancedSpectraImportParameters(), true
+      "Advanced import",
+      "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help).\n"
+          + "Positive: Lower memory consumption;\n"
+          + "Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or initial results apart from the current state.",
+      new AdvancedSpectraImportParameters(), true
   );
 
   public AllSpectralDataImportParameters() {

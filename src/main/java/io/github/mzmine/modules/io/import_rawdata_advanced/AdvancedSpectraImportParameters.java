@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.io.import_rawdata_all;
+package io.github.mzmine.modules.io.import_rawdata_advanced;
 
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
