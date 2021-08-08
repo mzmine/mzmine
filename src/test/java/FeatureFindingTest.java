@@ -50,9 +50,9 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParame
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_advanced.AdvancedSpectraImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_advanced.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_advanced.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
