@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
@@ -45,19 +45,19 @@ public class LipidMsOneErrorType extends DoubleType implements ExpandableType {
     return "\u0394 ppm";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getExpandedTypeClass() {
     return LipidMsOneErrorType.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return getClass();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.AVERAGE));

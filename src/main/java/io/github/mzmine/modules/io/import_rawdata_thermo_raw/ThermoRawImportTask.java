@@ -20,14 +20,11 @@ package io.github.mzmine.modules.io.import_rawdata_thermo_raw;
 
 import com.google.common.collect.Range;
 import com.sun.jna.Platform;
-import io.github.msdk.datamodel.MsScan;
+import io.github.mzmine.datamodel.MZmineException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
-import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -57,7 +54,6 @@ public class ThermoRawImportTask extends AbstractTask {
   private Process dumper = null;
 
   private String taskDescription;
-  private int totalScans = 0, parsedScans = 0;
 
   /*
    * These variables are used during parsing of the RAW dump.
@@ -69,7 +65,7 @@ public class ThermoRawImportTask extends AbstractTask {
   private float retentionTime = 0;
   private double precursorMZ = 0;
 
-  private MzMLFileImportMethod msdkTask;
+  private MzMLImportTask mzMlImportTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
     super(null); // storage in raw data file
@@ -84,10 +80,10 @@ public class ThermoRawImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (msdkTask == null || msdkTask.getFinishedPercentage() == null) {
+    if (mzMlImportTask == null) {
       return 0.0;
     } else {
-      return msdkTask.getFinishedPercentage().doubleValue();
+      return mzMlImportTask.getFinishedPercentage();
     }
   }
 
@@ -140,49 +136,29 @@ public class ThermoRawImportTask extends AbstractTask {
       // Get the stdout of ThermoRawFileParser process as InputStream
       InputStream mzMLStream = dumper.getInputStream();
       BufferedInputStream bufStream = new BufferedInputStream(mzMLStream);
+      assert bufStream != null;
 
-      msdkTask = new MzMLFileImportMethod(bufStream);
-      msdkTask.execute();
-      io.github.msdk.datamodel.RawDataFile msdkFile = msdkTask.getResult();
+      mzMlImportTask = new MzMLImportTask(project, bufStream, newMZmineFile);
+      mzMlImportTask.run();
 
-      if (msdkFile == null) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("MSDK returned null");
+      if (isCanceled()) {
         return;
       }
-      totalScans = msdkFile.getScans().size();
 
-      for (MsScan scan : msdkFile.getScans()) {
-
-        if (isCanceled()) {
-          bufStream.close();
-          dumper.destroy();
-          return;
-        }
-
-        Scan newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, (MzMLMsScan) scan);
-
-        newMZmineFile.addScan(newScan);
-        parsedScans++;
-        taskDescription =
-            "Importing " + fileToOpen.getName() + ", parsed " + parsedScans + "/" + totalScans
-                + " scans";
+      if (mzMlImportTask.getStatus() != TaskStatus.FINISHED) {
+        throw (new MZmineException("ThermoRawFileParser process crashed before all scans were extracted"));
       }
 
       // Finish
-      bufStream.close();
       dumper.destroy();
 
-      if (parsedScans == 0) {
+      if (isCanceled()) {
+        return;
+      }
+
+      if (newMZmineFile.getNumOfScans() == 0) {
         throw (new Exception("No scans found"));
       }
-
-      if (parsedScans != totalScans) {
-        throw (new Exception("ThermoRawFileParser process crashed before all scans were extracted ("
-            + parsedScans + " out of " + totalScans + ")"));
-      }
-
-      project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
 
@@ -200,7 +176,7 @@ public class ThermoRawImportTask extends AbstractTask {
       return;
     }
 
-    logger.info("Finished parsing " + fileToOpen + ", parsed " + parsedScans + " scans");
+    logger.info("Finished parsing " + fileToOpen + ", parsed " + newMZmineFile.getNumOfScans() + " scans");
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -252,8 +228,8 @@ public class ThermoRawImportTask extends AbstractTask {
   public void cancel() {
     super.cancel();
 
-    if (msdkTask != null) {
-      msdkTask.cancel();
+    if (mzMlImportTask != null) {
+      mzMlImportTask.cancel();
     }
 
     // Try to destroy the dumper process

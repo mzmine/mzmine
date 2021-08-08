@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -719,7 +719,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       }
 
       if (sizeCounter == 0) {
-        throw new MSDKRuntimeException(
+        throw new MZmineRuntimeException(
             "Min pattern size excludes every calculated isotope pattern.\nPlease increase min pattern intensity for more data points or decrease the minimum pattern size.");
       }
 

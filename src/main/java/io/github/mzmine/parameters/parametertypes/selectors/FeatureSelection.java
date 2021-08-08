@@ -21,14 +21,14 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
 
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 
 import io.github.mzmine.main.MZmineCore;
 
-@Immutable
+@Unmodifiable
 public class FeatureSelection {
 
   private final Range<Integer> idRange;

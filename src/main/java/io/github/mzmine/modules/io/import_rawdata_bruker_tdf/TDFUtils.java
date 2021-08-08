@@ -40,7 +40,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFr
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLConversionUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import java.io.File;
 import java.io.IOException;
@@ -232,7 +232,7 @@ public class TDFUtils {
         final int numPeaks = scanBuffer[i];
         final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
         d += numPeaks;
-        final double[] intensities = ConversionUtils
+        final double[] intensities = MzMLConversionUtils
             .convertIntsToDoubles(Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
         d += numPeaks;
         final double[] masses = convertIndicesToMZ(handle, frameId, indices);

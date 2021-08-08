@@ -21,9 +21,9 @@ package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 import io.github.mzmine.main.MZmineCore;
 import java.util.Arrays;
 import java.util.Objects;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Unmodifiable;
 
-@Immutable
+@Unmodifiable
 public class AdductType {
 
   // Default adducts.

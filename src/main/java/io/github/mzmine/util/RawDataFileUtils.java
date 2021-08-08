@@ -37,7 +37,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
@@ -87,7 +87,7 @@ public class RawDataFileUtils {
           break;
         case MZML:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile);
+          newTask = new MzMLImportTask(project, fileName, newMZmineFile);
           break;
         case IMZML:
           newMZmineFile = MZmineCore.createNewImagingFile(fileName.getName(), storage);
@@ -118,7 +118,7 @@ public class RawDataFileUtils {
           break;
         case MZML_IMS:
           newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
-          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile);
+          newTask = new MzMLImportTask(project, fileName, newMZmineFile);
           break;
         default:
           break;

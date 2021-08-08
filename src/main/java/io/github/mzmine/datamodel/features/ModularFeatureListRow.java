@@ -400,7 +400,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * nonnull if this feature list contains this raw data file. Even if there is no feature in this
+   * NotNull if this feature list contains this raw data file. Even if there is no feature in this
    * raw data file
    *
    * @param raw

@@ -95,12 +95,12 @@
   <Menu text="Raw data methods">
     <Menu text="Raw data import">
       <MenuItem onAction="#runModule" text="MS data (advanced)"
-        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_advanced.AllSpectralDataImportModule"/>
 
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="mzML"
-        userData="io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule"/>
+        userData="io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportModule"/>
       <!-- *Obsolete* MenuItem onAction="#runModule" text="mzML via jmzml"
         userData="io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule"/ -->
       <MenuItem onAction="#runModule" text="imzML"

@@ -45,7 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
 import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
@@ -149,7 +149,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         }, lerror -> {
       setErrorMessage("GNPS submit was not started due too errors while file export");
       thistask.setStatus(TaskStatus.ERROR);
-      throw new MSDKRuntimeException(
+      throw new MZmineRuntimeException(
           "GNPS submit was not started due too errors while file export");
     },
         // cancel if one was cancelled

@@ -28,17 +28,15 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    // TODO change to mavenCentral()
-    maven { url = "https://repo.maven.apache.org/maven2" }
+    mavenCentral()
     // local libraries
     maven { url = "file://" + projectDir + "/src/main/lib" }
     // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
     maven { url = "https://lifstools.jfrog.io/artifactory/ebi-tools/" }
     // For jmzml, etc.
     maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
-    // For SIRIUS ID modules
-    maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
     maven { url = "https://jitpack.io" }
+    // For GLPK
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
     maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
@@ -47,7 +45,6 @@ repositories {
 }
 
 ext {
-    msdkVersion = "0.0.27"
     cdkVersion = "2.5"
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
@@ -87,6 +84,8 @@ dependencies {
     implementation "org.apache.poi:poi:$poiVersion"
     implementation "org.apache.poi:poi-ooxml:$poiVersion"
     implementation "org.openscience.cdk:cdk-core:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-interfaces:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-inchi:$cdkVersion"
     implementation "org.openscience.cdk:cdk-io:$cdkVersion"
     implementation "org.openscience.cdk:cdk-standard:$cdkVersion"
     implementation "org.openscience.cdk:cdk-silent:$cdkVersion"
@@ -95,8 +94,7 @@ dependencies {
     implementation "org.openscience.cdk:cdk-renderbasic:$cdkVersion"
     implementation "org.openscience.cdk:cdk-renderawt:$cdkVersion"
     implementation "org.openscience.cdk:cdk-data:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-interfaces:$cdkVersion"
-    implementation "org.openscience.cdk:cdk-smiles:$cdkVersion"
+    implementation "org.openscience.cdk:cdk-dict:$cdkVersion"
     implementation "uk.ac.ebi.jmzml:jmzml:1.7.11"
     implementation "org.postgresql:postgresql:9.3-1102-jdbc41"
     implementation "mysql:mysql-connector-java:5.1.34"
@@ -110,10 +108,10 @@ dependencies {
     implementation "uk.ac.ebi.pride:jmztab-modular-util:$jmztabVersion"
     implementation "org.apache.xmlgraphics:fop:1.0"
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
-    implementation "io.github.msdk:msdk-io-mzml:$msdkVersion"
-    implementation "io.github.msdk:msdk-io-netcdf:$msdkVersion"
-    implementation "io.github.msdk:msdk-featuredetection-adap3d:$msdkVersion"
-    implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
+    implementation "javax.json:javax.json-api:1.1.4"
+    implementation "net.sf.trove4j:trove4j:3.0.3"
+    implementation "org.apache.httpcomponents:httpclient:4.5.13"
+    implementation "com.github.chhh:javolution-core-java-msftbx:6.11.8"
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
     implementation "org.du-lab.adap:adap:4.1.4"
     implementation "gnf:clustering:20210422"
@@ -146,14 +144,13 @@ dependencies {
     implementation "com.squareup.okhttp:logging-interceptor:$okhttpVersion"
     implementation "com.google.code.gson:gson:2.8.5"
     implementation "io.gsonfire:gson-fire:1.8.0"
+    implementation "org.json:json:20190722"
+    implementation "org.glassfish:javax.json:1.1.4"
     implementation "org.threeten:threetenbp:1.3.8"
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
-    implementation "org.json:json:20190722"
-    implementation "com.github.oshi:oshi-core:4.5.2"
-    // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
-    implementation 'net.java.dev.jna:jna:$jnaVersion'
+    implementation "net.java.dev.jna:jna:$jnaVersion"
     implementation "com.alanmrace:jimzmlparser:1.0.5"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
 
@@ -174,10 +171,9 @@ configurations.all {
     exclude group: "xom", module: "xom"
     exclude group: "ch.qos.logback", module: "logback-core"
     exclude group: "ch.qos.logback", module: "logback-classic"
-    exclude group: "gurobi", module: "gurobi-linux64"
-    exclude group: "cplex", module: "cplex"
     exclude group: "org.checkerframework", module: "checker-qual"
     exclude group: "javax.annotation", module: "javax.annotation-api"
+    exclude group: "com.google.code.findbugs", module: "jsr305"
 }
 
 

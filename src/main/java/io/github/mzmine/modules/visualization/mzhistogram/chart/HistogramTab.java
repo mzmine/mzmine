@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
 import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -206,7 +206,7 @@ public class HistogramTab extends MZmineTab implements ActionListener {
         dataArray[i] = data.get(i);
       }
     } else {
-      throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
+      throw new MZmineRuntimeException("Data was empty. Review your selected filters.");
     }
 
     return new HistogramData(dataArray);

@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks;
 
 import com.sun.jna.Pointer;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLConversionUtils;
 
 public class CentroidData implements CentroidCallback {
 
@@ -43,7 +43,7 @@ public class CentroidData implements CentroidCallback {
   public final double[][] toDoubles() {
     double[][] data = new double[2][];
     data[0] = mzs;
-    data[1] = ConversionUtils.convertFloatsToDoubles(intensities);
+    data[1] = MzMLConversionUtils.convertFloatsToDoubles(intensities);
     return data;
   }
 }

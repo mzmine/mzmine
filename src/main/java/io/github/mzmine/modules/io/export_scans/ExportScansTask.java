@@ -18,23 +18,19 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportTask;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.msdk.MSDKException;
-import io.github.msdk.datamodel.FileType;
-import io.github.msdk.datamodel.MsScan;
-import io.github.msdk.datamodel.SimpleRawDataFile;
-import io.github.msdk.io.mzml.MzMLFileExportMethod;
-import io.github.msdk.io.mzml.data.MzMLCompressionType;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -127,7 +123,7 @@ public class ExportScansTask extends AbstractTask {
     // Open the writer - append data if file already exists
     final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
     try {
-      for (Scan scan : scans) {
+      for (io.github.mzmine.datamodel.Scan scan : scans) {
         logger.info("Exporting scan #" + scan.getScanNumber() + " of raw file: "
             + scan.getDataFile().getName());
         // Write Header row
@@ -200,18 +196,15 @@ public class ExportScansTask extends AbstractTask {
    * @throws IOException if there are i/o problems.
    */
 
-  public void exportmzML() throws MSDKException {
+  public void exportmzML() throws IOException {
 
-    // Initialize objects
-    SimpleRawDataFile msdkRawFile =
-        new SimpleRawDataFile("MZmine mzML export", Optional.empty(), FileType.MZML);
-    for (Scan scan : scans) {
-      MsScan MSDKscan = new MZmineToMSDKMsScan(scan);
-      msdkRawFile.addScan(MSDKscan);
-    }
-    // Actually write to disk
-    MzMLFileExportMethod method = new MzMLFileExportMethod(msdkRawFile, exportFile,
-        MzMLCompressionType.ZLIB, MzMLCompressionType.ZLIB);
-    method.execute();
+    // TODO: should remove the memMap after the task is finished
+    MemoryMapStorage memMap = MemoryMapStorage.forRawDataFile();
+
+    RawDataFile tmpRawDataFile = MZmineCore.createNewFile("Export from MZmine", memMap);
+
+    MzMLExportTask task = new MzMLExportTask(tmpRawDataFile, exportFile);
+    task.run();
+
   }
 }

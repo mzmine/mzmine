@@ -31,9 +31,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Unmodifiable;
 
-@Immutable
+@Unmodifiable
 public class ScanSelection {
 
   private final Range<Integer> scanNumberRange;

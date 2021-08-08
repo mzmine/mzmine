@@ -92,7 +92,6 @@ import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
@@ -110,12 +109,11 @@ import io.github.mzmine.modules.io.export_features_mztabm.MZTabmExportModule;
 import io.github.mzmine.modules.io.export_rawdata_netcdf.NetCDFExportModule;
 import io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_advanced.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportModule;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLImportModule;
 import io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule;
 import io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule;
 import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule;
@@ -144,10 +142,10 @@ public class BatchModeModulesList {
        */
       AllSpectralDataImportModule.class, //
       TDFImportModule.class, //
-      MzMLImportModule.class, //
+      io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule.class, //
       ImzMLImportModule.class, //
       MzDataImportModule.class, //
-      MSDKmzMLImportModule.class, //
+      MzMLImportModule.class, //
       MzXMLImportModule.class, //
       NetCDFImportModule.class, //
       ThermoRawImportModule.class, //
@@ -284,7 +282,6 @@ public class BatchModeModulesList {
       NistMsSearchModule.class, //
       OnlineDBSearchModule.class, //
       PrecursorDBSearchModule.class, //
-      SiriusIdentificationModule.class, //
       LocalSpectralDBSearchModule.class, //
 
       /*

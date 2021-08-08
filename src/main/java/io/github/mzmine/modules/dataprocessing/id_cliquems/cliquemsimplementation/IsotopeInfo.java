@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementation;
 
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * This class contains information related to isotope, namely feature ID, charge, grade value and
  * cluster ID among the clique
  */
-@Immutable
+@Unmodifiable
 public class IsotopeInfo {
 
   public Integer feature;

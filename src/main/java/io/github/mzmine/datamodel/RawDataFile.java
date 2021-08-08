@@ -78,6 +78,7 @@ public interface RawDataFile {
   @NotNull
   List<Scan> getScanNumbers(int msLevel);
 
+
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
    *
@@ -152,6 +153,7 @@ public interface RawDataFile {
 
   ObservableList<Scan> getScans();
 
+  ObservableList<Chromatogram> getChromatograms();
 
   /**
    * Mass list has changed. reset all precomputed values

@@ -18,11 +18,11 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.Unmodifiable;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-@Immutable
+@Unmodifiable
 public class FontSpecs {
 
   private final Color color;

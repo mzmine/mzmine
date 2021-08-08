@@ -33,7 +33,7 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFr
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
-import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MzMLConversionUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -115,7 +115,7 @@ public class TSFUtils {
 
     double[][] mzIntensities = new double[2][];
     mzIntensities[0] = Arrays.copyOfRange(centroidMzArray, 0, (int) numDataPoints);
-    mzIntensities[1] = ConversionUtils
+    mzIntensities[1] = MzMLConversionUtils
         .convertFloatsToDoubles(centroidIntensityArray, (int) numDataPoints);
     return mzIntensities;
   }

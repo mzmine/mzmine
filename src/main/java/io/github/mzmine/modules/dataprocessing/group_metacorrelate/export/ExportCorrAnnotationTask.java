@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.export;
 
 
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -177,7 +177,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
         return false;
       }
     } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
+      throw new MZmineRuntimeException(e);
     }
   }
 
@@ -233,7 +233,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
         return false;
       }
     } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
+      throw new MZmineRuntimeException(e);
     }
   }
 
@@ -553,7 +553,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
         return false;
       }
     } catch (Exception e) {
-      throw new MSDKRuntimeException(e);
+      throw new MZmineRuntimeException(e);
     }
   }
 

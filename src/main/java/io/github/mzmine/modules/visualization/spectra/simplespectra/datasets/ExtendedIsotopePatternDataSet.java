@@ -24,7 +24,7 @@ import org.jfree.data.xy.IntervalXYDelegate;
 import org.jfree.data.xy.XYBarDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 
@@ -118,15 +118,15 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
 
   // the next two methods are not needed yet but might come in handy in the
   // future
-  public int getSeriesDpIndex(int peakIndex) throws MSDKRuntimeException {
+  public int getSeriesDpIndex(int peakIndex) throws MZmineRuntimeException {
     if (peakIndex >= pattern.getNumberOfDataPoints())
-      throw new MSDKRuntimeException("Index out of bounds.");
+      throw new MZmineRuntimeException("Index out of bounds.");
     return assignment[peakIndex].id;
   }
 
-  public AB getSeriesAB(int peakIndex) throws MSDKRuntimeException {
+  public AB getSeriesAB(int peakIndex) throws MZmineRuntimeException {
     if (peakIndex >= pattern.getNumberOfDataPoints())
-      throw new MSDKRuntimeException("Index out of bounds.");
+      throw new MZmineRuntimeException("Index out of bounds.");
     return assignment[peakIndex].ab;
   }
 

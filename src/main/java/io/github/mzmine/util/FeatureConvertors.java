@@ -19,7 +19,6 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
-import io.github.msdk.datamodel.Feature;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
@@ -361,12 +360,6 @@ public class FeatureConvertors {
     }
 
     return modularFeature;
-  }
-
-  // TODO:
-  static public ModularFeature MSDKFeatureToModularFeature(Feature msdkFeature,
-      RawDataFile dataFile, FeatureStatus detected) {
-    return null;
   }
 
   public static io.github.mzmine.datamodel.features.Feature SameRangePeakToModularFeature(

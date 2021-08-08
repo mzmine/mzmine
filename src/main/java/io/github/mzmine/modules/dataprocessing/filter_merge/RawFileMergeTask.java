@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_merge;
 
-import io.github.msdk.MSDKRuntimeException;
+import io.github.mzmine.datamodel.MZmineRuntimeException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -143,7 +143,7 @@ class RawFileMergeTask extends AbstractTask {
       if (getStatus() == TaskStatus.PROCESSING)
         setStatus(TaskStatus.FINISHED);
     } catch (IOException e) {
-      throw new MSDKRuntimeException(e);
+      throw new MZmineRuntimeException(e);
     }
   }
 

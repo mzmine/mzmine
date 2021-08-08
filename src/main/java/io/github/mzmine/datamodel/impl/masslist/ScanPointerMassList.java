@@ -24,8 +24,6 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
-import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import java.util.Iterator;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * This class points back to the scan to access data. (Useful if the scan is already centroided /
- * thresholded) See its use in {@link AllSpectralDataImportModule} or in {@link MSDKmzMLImportTask}
+ * thresholded) See its use in AllSpectralDataImportModule.
  */
 public class ScanPointerMassList implements MassList {
 

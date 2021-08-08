@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-// import io.github.mzmine.util.swing.IconUtil;
-// import io.github.mzmine.util.swing.SwingExportUtil;
 import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
