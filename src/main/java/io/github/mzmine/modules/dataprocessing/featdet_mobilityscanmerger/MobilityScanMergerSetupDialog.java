@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
@@ -99,6 +100,10 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
   @Override
   protected void parametersChanged() {
+    if(frameComboBox.getValue() == null) {
+      return;
+    }
+
     updateParameterSetFromComponents();
     double noiseLevel = parameterSet.getParameter(MobilityScanMergerParameters.noiseLevel)
         .getValue();
@@ -113,14 +118,16 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
       return;
     }
 
-    logger.info("Start calc");
-    double[][] merged = SpectraMerging
-        .calculatedMergedMzsAndIntensities(frameComboBox.getValue().getMobilityScans(),
-            mzTolerance, mergingType, new CenterFunction(
-                CenterMeasure.AVG, weighting), noiseLevel);
-    logger.info("End calc");
-
-    if (merged == null) {
+    double[][] merged;
+    try {
+       merged = SpectraMerging.calculatedMergedMzsAndIntensities(
+          frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
+              .toList(), mzTolerance, mergingType, new CenterFunction(CenterMeasure.AVG, weighting),
+          noiseLevel);
+    } catch (NullPointerException e) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "No mass list present in " + frameComboBox.getValue().getDataFile().getName()
+              + ".\nPlease run mass detection first.");
       return;
     }
 

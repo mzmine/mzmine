@@ -20,21 +20,26 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
-import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MoblityScanMergerTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(MoblityScanMergerTask.class.getName());
 
   private final ScanSelection scanSelection;
   private final IMSRawDataFile rawDataFile;
@@ -76,20 +81,30 @@ public class MoblityScanMergerTask extends AbstractTask {
 
     setStatus(TaskStatus.PROCESSING);
 
-    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, weighting);
+    final CenterFunction cf = new CenterFunction(SpectraMerging.DEFAULT_CENTER_MEASURE, weighting);
 
-    Collection<Frame> frames = (Collection<Frame>) scanSelection
+    List<? extends Frame> frames = scanSelection
         .getMatchingScans(rawDataFile.getFrames());
     totalFrames = frames.size();
-    for (Frame f : frames) {
-      SimpleFrame frame = (SimpleFrame) f;
-      double[][] merged = SpectraMerging
-          .calculatedMergedMzsAndIntensities(frame.getMobilityScans(), mzTolerance,
-              MergingType.SUMMED, cf, noiseLevel);
 
-      frame.setDataPoints(merged[0], merged[1]);
+    try {
+      for (Frame f : frames) {
+        SimpleFrame frame = (SimpleFrame) f;
+        double[][] merged = SpectraMerging
+            .calculatedMergedMzsAndIntensities(frame.getMobilityScans().stream().map(
+                MobilityScan::getMassList).toList(), mzTolerance,
+                MergingType.SUMMED, cf, noiseLevel);
 
-      processedFrames++;
+        frame.setDataPoints(merged[0], merged[1]);
+        frame.addMassList(new ScanPointerMassList(frame));
+
+        processedFrames++;
+      }
+    } catch (NullPointerException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setErrorMessage("No mass list present in " + rawDataFile.getName() + ".\nPlease run mass detection first.");
+      setStatus(TaskStatus.ERROR);
+      return;
     }
 
     rawDataFile.getAppliedMethods()
