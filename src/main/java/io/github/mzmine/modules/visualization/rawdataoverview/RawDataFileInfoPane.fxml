@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
 <!--
   ~ Copyright 2006-2021 The MZmine Development Team
@@ -23,69 +29,65 @@
   ~
   -->
 
-<BorderPane xmlns="http://javafx.com/javafx"
-  xmlns:fx="http://javafx.com/fxml"
-  fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataFileInfoPaneController"
-  prefHeight="400.0" prefWidth="600.0" fx:id="pnRawDataFileInfo" minHeight="150.0"
-  SplitPane.resizableWithParent="false">
+<?import io.github.mzmine.modules.tools.massql.MassQLTextField?>
+<BorderPane fx:id="pnRawDataFileInfo" minHeight="150.0" prefHeight="400.0" prefWidth="600.0" SplitPane.resizableWithParent="false" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.rawdataoverview.RawDataFileInfoPaneController">
   <right>
-    <GridPane fx:id="metaDataGridPane" maxHeight="150.0" minHeight="150.0" minWidth="200.0"
-      prefHeight="150.0" prefWidth="200.0" BorderPane.alignment="TOP_LEFT">
+    <GridPane fx:id="metaDataGridPane" maxHeight="150.0" minHeight="150.0" minWidth="200.0" prefHeight="150.0" prefWidth="200.0" BorderPane.alignment="TOP_LEFT">
       <columnConstraints>
         <ColumnConstraints hgrow="ALWAYS" maxWidth="180.0" minWidth="140.0" prefWidth="140.0">
         </ColumnConstraints>
       </columnConstraints>
       <rowConstraints>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
       </rowConstraints>
       <children>
         <Label style="-fx-font-weight: bold;" text="Total number of scans:">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label style="-fx-font-weight: bold;" text="Retention time range:" GridPane.rowIndex="2">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label style="-fx-font-weight: bold;" text="m/z range:" GridPane.rowIndex="4">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label style="-fx-font-weight: bold;" text="Maximum TIC:" GridPane.rowIndex="6">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label fx:id="lblNumScans" text="Label" GridPane.rowIndex="1">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label fx:id="lblRtRange" text="Label" GridPane.rowIndex="3">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label fx:id="lblMzRange" text="Label" GridPane.rowIndex="5">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
         <Label fx:id="lblMaxTIC" text="Label" GridPane.rowIndex="7">
           <GridPane.margin>
-            <Insets left="5.0"/>
+            <Insets left="5.0" />
           </GridPane.margin>
         </Label>
       </children>
@@ -97,21 +99,20 @@
         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
 	  </columnResizePolicy>
       <columns>
-        <TableColumn fx:id="scanColumn" editable="false" prefWidth="75.0" text="Scan #"/>
-        <TableColumn fx:id="rtColumn" editable="false" prefWidth="75.0" text="Retention time"/>
-        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="75.0" text="Base peak"/>
-        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="75.0"
-          text="Base peak intenstity"/>
-        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="60.0" text="MS level"/>
-        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="75.0"
-          text="Precursor m/z"/>
-        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="75.0" text="m/z range"/>
-        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="65.0" text="Scan type"/>
-        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="60.0" text="Polarity"/>
-        <TableColumn fx:id="definitionColumn" minWidth="0.0" prefWidth="65.0"
-          text="Scan definition" editable="false"/>
+        <TableColumn fx:id="scanColumn" editable="false" prefWidth="75.0" text="Scan #" />
+        <TableColumn fx:id="rtColumn" editable="false" prefWidth="75.0" text="Retention time" />
+        <TableColumn fx:id="basePeakColumn" editable="false" prefWidth="75.0" text="Base peak" />
+        <TableColumn fx:id="basePeakIntensityColumn" editable="false" prefWidth="75.0" text="Base peak intenstity" />
+        <TableColumn fx:id="msLevelColumn" editable="false" prefWidth="60.0" text="MS level" />
+        <TableColumn fx:id="precursorMzColumn" editable="false" prefWidth="75.0" text="Precursor m/z" />
+        <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="75.0" text="m/z range" />
+        <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="65.0" text="Scan type" />
+        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="60.0" text="Polarity" />
+        <TableColumn fx:id="definitionColumn" editable="false" minWidth="0.0" prefWidth="65.0" text="Scan definition" />
       </columns>
     </TableView>
   </center>
+   <bottom>
+      <MassQLTextField fx:id="txtMassQL" promptText="MassQL Query" BorderPane.alignment="CENTER" />
+   </bottom>
 </BorderPane>
-

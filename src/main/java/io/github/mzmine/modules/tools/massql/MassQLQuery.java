@@ -17,10 +17,10 @@
 
 package io.github.mzmine.modules.tools.massql;
 
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.util.webapi.MassQLUtils;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +54,7 @@ public class MassQLQuery {
   }
 
   /**
-   * Create filter based on MassQL query. See {@link MassQLUtils#getFilter(String)}
+   * Create filter based on MassQL query. See {@link MassQLUtils#getQuery(String)}
    *
    * @param jsonQuery the query that was parsed by the MassQL API
    */
@@ -86,12 +86,20 @@ public class MassQLQuery {
     }
   }
 
-
   /**
    * @param row candidate row
    * @return true if the row matches all filters. false if one fails
    */
   public boolean accept(FeatureListRow row) {
     return filters.isEmpty() || filters.stream().allMatch(filter -> filter.accept(row));
+  }
+
+  /**
+   *
+   * @param scan candidate scan
+   * @return true if the scan matches all filters. false if one fails
+   */
+  public boolean accept(Scan scan) {
+    return filters.isEmpty() || filters.stream().allMatch(filter -> filter.accept(scan));
   }
 }

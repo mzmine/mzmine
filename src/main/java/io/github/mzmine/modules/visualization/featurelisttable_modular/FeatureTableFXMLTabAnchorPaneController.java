@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.massql.MassQLQuery;
+import io.github.mzmine.modules.tools.massql.MassQLTextField;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
@@ -77,11 +78,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
   private ComboBox<DataType> typeComboBox;
 
   // filter table by mass QL commands
-  private TextField massQLSearchField;
+  private MassQLTextField massQLSearchField;
 
   public void initialize() {
-    param = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class);
+    param = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
 
     // Filters hbox
     HBox filtersRow = new HBox();
@@ -137,7 +137,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
         .addAll(new Separator(Orientation.VERTICAL), typeComboBox, new Label(": "), anySearchField);
 
     // add massql filter
-    massQLSearchField = new TextField();
+    massQLSearchField = new MassQLTextField();
     massQLSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
     HBox massQLFilter = new HBox(new Label("MassQL: "), massQLSearchField);
     massQLFilter.setAlignment(filtersRow.getAlignment());
@@ -166,23 +166,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
     DataType<?> type = typeComboBox.getValue();
 
     // filter by MassQL
-    String massQlQuery = massQLSearchField.getText();
-    final MassQLQuery massQlFilter = MassQLUtils.getFilter(massQlQuery);
-
-    if (massQlFilter != MassQLQuery.NONE) {
-      massQLSearchField.setBorder(new Border(
-          new BorderStroke(Color.LIGHTBLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-              BorderStroke.THICK)));
-    } else if (!massQlQuery.isBlank()) {
-      // error
-      massQLSearchField.setBorder(new Border(
-          new BorderStroke(Color.DARKRED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-              BorderStroke.THICK)));
-    } else {
-      massQLSearchField.setBorder(new Border(
-          new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
-              BorderStroke.THIN)));
-    }
+    final MassQLQuery massQlFilter = massQLSearchField.getQuery();
 
     // Filter rows
     featureTable.getFilteredRowItems().setPredicate(item -> {

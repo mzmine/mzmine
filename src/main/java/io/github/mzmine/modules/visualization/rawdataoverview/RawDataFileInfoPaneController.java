@@ -18,39 +18,41 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.massql.MassQLQuery;
+import io.github.mzmine.modules.tools.massql.MassQLTextField;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.NotNull;
 
 public class RawDataFileInfoPaneController {
 
   private static Logger logger = Logger.getLogger(RawDataFileInfoPaneController.class.getName());
 
-  private RawDataFile rawDataFile;
   private boolean populated = false;
-  private List<TableRow> rawDataTableViewRows;
+
+  @FXML
+  private MassQLTextField txtMassQL;
 
   @FXML
   private TableView<ScanDescription> rawDataTableView;
@@ -100,9 +102,32 @@ public class RawDataFileInfoPaneController {
   @FXML
   private GridPane metaDataGridPane;
 
+  @FXML
+  public void initialize() {
+    // add listeners etc
+    txtMassQL.textProperty().addListener((o, old, value) ->
+        applyMassQLQuery(rawDataTableView.getItems()));
+  }
+
+  private void applyMassQLQuery(ObservableList<ScanDescription> tableData) {
+    MassQLQuery query = txtMassQL.getQuery();
+    if (tableData instanceof FilteredList<ScanDescription> filteredList) {
+      filteredList.setPredicate(e -> query.accept(e.getScan()));
+    } else {
+      int i = 0;
+      while (i < tableData.size()) {
+        if (!query.accept(tableData.get(i).getScan())) {
+          tableData.remove(i);
+        } else {
+          i++;
+        }
+      }
+    }
+  }
+
   /**
-   * Only populate the table if it gets selected. This is called by a listener in
-   * {@link RawDataOverviewWindowController}.
+   * Only populate the table if it gets selected. This is called by a listener in {@link
+   * RawDataOverviewWindowController}.
    *
    * @param rawDataFile
    */
@@ -111,7 +136,6 @@ public class RawDataFileInfoPaneController {
       return;
     }
     populated = true;
-    this.rawDataFile = rawDataFile;
     updateRawDataFileInfo(rawDataFile);
     updateScanTable(rawDataFile);
   }
@@ -125,29 +149,29 @@ public class RawDataFileInfoPaneController {
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       int level = rawDataFile.getMSLevels()[i];
       scansMSLevel = scansMSLevel + "MS" + level + " level ("
-          + rawDataFile.getScanNumbers(level).size() + ") ";
+                     + rawDataFile.getScanNumbers(level).size() + ") ";
       lblNumScans.setText(scansMSLevel);
     }
 
     String rtRangeMSLevel = "";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       rtRangeMSLevel = rtRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.rtFormat.getValue()
-              .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
-          + "-" + MZminePreferences.rtFormat.getValue()
-              .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
-          + " [min] ";
+                       + MZminePreferences.rtFormat.getValue()
+                           .format(rawDataFile.getDataRTRange(i + 1).lowerEndpoint())
+                       + "-" + MZminePreferences.rtFormat.getValue()
+                           .format(rawDataFile.getDataRTRange(i + 1).upperEndpoint())
+                       + " [min] ";
       lblRtRange.setText(rtRangeMSLevel);
     }
 
     String mzRangeMSLevel = "";
     for (int i = 0; i < rawDataFile.getMSLevels().length; i++) {
       mzRangeMSLevel = mzRangeMSLevel + "MS" + rawDataFile.getMSLevels()[i] + " level "
-          + MZminePreferences.mzFormat.getValue()
-              .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
-          + "-" + MZminePreferences.mzFormat.getValue()
-              .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
-          + " ";
+                       + MZminePreferences.mzFormat.getValue()
+                           .format(rawDataFile.getDataMZRange(i + 1).lowerEndpoint())
+                       + "-" + MZminePreferences.mzFormat.getValue()
+                           .format(rawDataFile.getDataMZRange(i + 1).upperEndpoint())
+                       + " ";
       lblMzRange.setText(mzRangeMSLevel);
     }
 
@@ -213,8 +237,6 @@ public class RawDataFileInfoPaneController {
 
   private class PopulateTask implements Task {
 
-    private ObservableList<ScanDescription> tableData = FXCollections.observableArrayList();
-
     private double perc = 0;
     private TaskStatus status;
     private boolean isCanceled;
@@ -229,12 +251,11 @@ public class RawDataFileInfoPaneController {
 
     @Override
     public void run() {
+      ObservableList<ScanDescription> list = FXCollections.observableArrayList();
 
       NumberFormat mzFormat = MZminePreferences.mzFormat.getValue();
       NumberFormat rtFormat = MZminePreferences.rtFormat.getValue();
       NumberFormat itFormat = MZminePreferences.intensityFormat.getValue();
-
-      tableData.clear();
 
       final ObservableList<Scan> scanNumbers = rawDataFile.getScans();
       if (scanNumbers.size() > 5E5) {
@@ -242,7 +263,7 @@ public class RawDataFileInfoPaneController {
         // it's not the computation that takes long, it's putting the data into the table.
         // This bricks the MZmine window
         logger.info("Number of entries >500 000 for raw data file " + rawDataFile.getName() + " ("
-            + rawDataFile.getNumOfScans() + ")");
+                    + rawDataFile.getNumOfScans() + ")");
         logger.info("Will not compute table data.");
         return;
       }
@@ -268,7 +289,7 @@ public class RawDataFileInfoPaneController {
         String mzRangeStr = "";
         if (mzRange != null) {
           mzRangeStr = mzFormat.format(mzRange.lowerEndpoint()) + "-"
-              + mzFormat.format(mzRange.upperEndpoint());
+                       + mzFormat.format(mzRange.upperEndpoint());
         }
 
         String basePeakMZ = "-";
@@ -279,8 +300,8 @@ public class RawDataFileInfoPaneController {
           basePeakIntensity = itFormat.format(scan.getBasePeakIntensity());
         }
 
-        tableData.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan
-                                                                                        // number
+        list.add(new ScanDescription(scan, Integer.toString(scan.getScanNumber()), // scan
+            // number
             rtFormat.format(scan.getRetentionTime()), // rt
             Integer.toString(scan.getMSLevel()), // MS level
             precursor, // precursor mz
@@ -299,7 +320,11 @@ public class RawDataFileInfoPaneController {
         }
       }
 
+      final FilteredList<ScanDescription> tableData = new FilteredList<>(list);
+      applyMassQLQuery(tableData);
+
       Platform.runLater(() -> {
+        // Update rows in feature table
         rawDataTableView.setItems(tableData);
         // rawDataTableView.getSelectionModel().select(0);
       });

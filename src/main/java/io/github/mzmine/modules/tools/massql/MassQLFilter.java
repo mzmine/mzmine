@@ -94,8 +94,8 @@ public class MassQLFilter {
     return switch (condition) {
       case RTMIN -> scan.getRetentionTime() >= values.get(0);
       case RTMAX -> scan.getRetentionTime() <= values.get(0);
-      case SCANMIN -> scan.getScanNumber() >= (int) values.get(0).intValue();
-      case SCANMAX -> scan.getScanNumber() <= (int) values.get(0).intValue();
+      case SCANMIN -> scan.getScanNumber() >= values.get(0).intValue();
+      case SCANMAX -> scan.getScanNumber() <= values.get(0).intValue();
       case CHARGE -> scan.getMSLevel() > 1 && scan.getPrecursorCharge() == values.get(0).intValue();
       case POLARITY -> throw new UnsupportedOperationException(
           "Polarity is currently not supported");
