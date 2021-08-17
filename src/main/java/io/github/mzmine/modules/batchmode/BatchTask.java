@@ -27,6 +27,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -133,21 +134,8 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    // Update the FeatureListsParameter parameters to reflect the current
-    // state of the batch
-    for (Parameter<?> p : batchStepParameters.getParameters()) {
-      if (p instanceof FeatureListsParameter) {
-        FeatureListsParameter rdp = (FeatureListsParameter) p;
-        FeatureList createdPls[] = createdFeatureLists.toArray(new FeatureList[0]);
-        final FeatureListsSelection selectedFeatureLists = rdp.getValue();
-        if (selectedFeatureLists == null) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
-          return;
-        }
-        selectedFeatureLists.setBatchLastFeatureLists(createdPls);
-      }
+    if (!setBatchlastFeatureListsToParamSet(method, batchStepParameters)) {
+      return;
     }
 
     // Check if the parameter settings are valid
@@ -155,8 +143,8 @@ public class BatchTask extends AbstractTask {
     boolean paramsCheck = batchStepParameters.checkParameterValues(messages);
     if (!paramsCheck) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-          + Arrays.toString(messages.toArray()));
+      setErrorMessage("Invalid parameter settings for module " + method.getName() + ": " + Arrays
+          .toString(messages.toArray()));
     }
 
     List<Task> currentStepTasks = new ArrayList<Task>();
@@ -247,6 +235,39 @@ public class BatchTask extends AbstractTask {
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
     }
+  }
+
+  /**
+   * Recursively sets the last feature lists to the parameters since there might be embedded
+   * parameters.
+   *
+   * @param method
+   * @param batchStepParameters
+   * @return false on error
+   */
+  private boolean setBatchlastFeatureListsToParamSet(MZmineProcessingModule method,
+      ParameterSet batchStepParameters) {
+    // Update the FeatureListsParameter parameters to reflect the current
+    // state of the batch
+    for (Parameter<?> p : batchStepParameters.getParameters()) {
+      if (p instanceof FeatureListsParameter) {
+        FeatureListsParameter rdp = (FeatureListsParameter) p;
+        FeatureList createdPls[] = createdFeatureLists.toArray(new FeatureList[0]);
+        final FeatureListsSelection selectedFeatureLists = rdp.getValue();
+        if (selectedFeatureLists == null) {
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
+              + "Missing parameter value for " + p.getName());
+          return false;
+        }
+        selectedFeatureLists.setBatchLastFeatureLists(createdPls);
+      } else if (p instanceof EmbeddedParameterSet omp) {
+        if (!setBatchlastFeatureListsToParamSet(method, omp.getEmbeddedParameters())) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   @Override
