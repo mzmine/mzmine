@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,6 +50,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -103,33 +105,28 @@ public class JoinAlignerTask extends AbstractTask {
     this.project = project;
     this.parameters = parameters;
 
-    featureLists = Arrays.stream(
-        parameters.getParameter(JoinAlignerParameters.peakLists).getValue()
-            .getMatchingFeatureLists()).toList();
+    featureLists = Arrays.stream(parameters.getParameter(JoinAlignerParameters.peakLists).getValue()
+        .getMatchingFeatureLists()).toList();
 
-    featureListName = parameters.getParameter(JoinAlignerParameters.peakListName)
-        .getValue();
+    featureListName = parameters.getParameter(JoinAlignerParameters.peakListName).getValue();
 
     mzTolerance = parameters.getParameter(JoinAlignerParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(JoinAlignerParameters.RTTolerance).getValue();
 
-    compareMobility = parameters.getParameter(JoinAlignerParameters.mobilityTolerance)
-        .getValue();
+    compareMobility = parameters.getParameter(JoinAlignerParameters.mobilityTolerance).getValue();
     mobilityTolerance = parameters.getParameter(JoinAlignerParameters.mobilityTolerance)
         .getEmbeddedParameter().getValue();
 
     mzWeight = parameters.getParameter(JoinAlignerParameters.MZWeight).getValue();
     rtWeight = parameters.getParameter(JoinAlignerParameters.RTWeight).getValue();
-    mobilityWeight = parameters.getParameter(JoinAlignerParameters.mobilityWeight)
-        .getValue();
+    mobilityWeight = parameters.getParameter(JoinAlignerParameters.mobilityWeight).getValue();
 
     sameChargeRequired = parameters.getParameter(JoinAlignerParameters.SameChargeRequired)
         .getValue();
 
-    sameIDRequired = parameters.getParameter(JoinAlignerParameters.SameIDRequired)
+    sameIDRequired = parameters.getParameter(JoinAlignerParameters.SameIDRequired).getValue();
+    compareIsotopePattern = parameters.getParameter(JoinAlignerParameters.compareIsotopePattern)
         .getValue();
-    compareIsotopePattern = parameters
-        .getParameter(JoinAlignerParameters.compareIsotopePattern).getValue();
     isotopeParams = parameters.getParameter(JoinAlignerParameters.compareIsotopePattern)
         .getEmbeddedParameters();
     compareSpectraSimilarity = parameters
@@ -138,11 +135,10 @@ public class JoinAlignerTask extends AbstractTask {
     if (compareSpectraSimilarity) {
       simFunction = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
           .getEmbeddedParameters()
-          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.similarityFunction)
-          .getValue();
+          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.similarityFunction).getValue();
       msLevel = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
-          .getEmbeddedParameters()
-          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.msLevel).getValue();
+          .getEmbeddedParameters().getParameter(JoinAlignerSpectraSimilarityScoreParameters.msLevel)
+          .getValue();
     }
   }
 
@@ -151,7 +147,7 @@ public class JoinAlignerTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Parallel join aligner, " + featureListName + " (" + featureLists.size()
+    return "Join aligner, " + featureListName + " (" + featureLists.size()
         + " feature lists)";
   }
 
@@ -198,6 +194,7 @@ public class JoinAlignerTask extends AbstractTask {
     // Create a new aligned feature list based on the baseList and renumber IDs
     alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
         allDataFiles);
+    transferRowTypes(alignedFeatureList, featureLists);
     final AtomicInteger newRowID = new AtomicInteger(1);
 
     // get all rows of all feature lists.
@@ -251,12 +248,11 @@ public class JoinAlignerTask extends AbstractTask {
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Parallel join aligner", JoinAlignerModule.class,
-            parameters));
+        new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class, parameters));
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);
 
-    logger.info("Finished parallel join aligner");
+    logger.info("Finished join aligner");
 
     setStatus(TaskStatus.FINISHED);
 
@@ -458,4 +454,14 @@ public class JoinAlignerTask extends AbstractTask {
         .getSimilarity(simFunction.getParameterSet(), mzTolerance, 0, library, query);
   }
 
+  private void transferRowTypes(ModularFeatureList targetFlist,
+      Collection<ModularFeatureList> sourceFlists) {
+    for (ModularFeatureList sourceFlist : sourceFlists) {
+      for (Class<? extends DataType> value : sourceFlist.getRowTypes().keySet()) {
+        if (!targetFlist.hasRowType(value)) {
+          targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
+        }
+      }
+    }
+  }
 }
