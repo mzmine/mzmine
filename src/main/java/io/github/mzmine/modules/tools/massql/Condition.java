@@ -23,6 +23,10 @@ import org.json.JSONObject;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public enum Condition {
+
+  // non standard conditions (maybe MZmine specific or proposed to MassQL)
+  MSLEVEL,
+  // MassQL conditions
   RTMIN("rtmincondition"), RTMAX("rtmaxcondition"), SCANMIN("scanmincondition"), SCANMAX("scanmaxcondition"), CHARGE("chargecondition"), POLARITY("polaritycondition"), MS2PROD("ms2productcondition"), MS2PREC("ms2precursorcondition"), MS2NL("ms2neutrallosscondition");
 
   public static final String JSON_FIELD = "type";

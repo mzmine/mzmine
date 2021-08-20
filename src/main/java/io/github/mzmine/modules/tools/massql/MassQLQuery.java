@@ -36,6 +36,7 @@ public class MassQLQuery {
 
   // fields
   public static final String QUERY_TYPE = "querytype";
+  public static final String DATA_TYPE = "datatype";
   public static final String CONDITIONS = "conditions";
   public static final String QUALIFIERS = "qualifiers";
   public static final String VALUE = "value";
@@ -61,6 +62,13 @@ public class MassQLQuery {
   public MassQLQuery(@NotNull JSONObject jsonQuery) {
     this.jsonQuery = jsonQuery;
     filters = new ArrayList<>();
+
+    // Add MSlevel as a condition although MassQL currently does not handle it like a condition
+    JSONObject querytype = jsonQuery.getJSONObject(QUERY_TYPE);
+    String datatype = querytype.getString(DATA_TYPE);
+    double mslevel = Double.parseDouble(datatype.replaceAll("[^0-9]", ""));
+    filters.add(new MassQLFilter(Condition.MSLEVEL, null, List.of(mslevel)));
+
 
     JSONArray conditions = jsonQuery.getJSONArray(CONDITIONS);
     for(int i=0; i<conditions.length(); i++) {

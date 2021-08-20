@@ -33,15 +33,15 @@ public enum ConditionQualifier {
   /**
    * Define minimum absolute intensity value
    */
-  INTENSITYVALUE,
+  INTENSITYVALUE("qualifierintensityvalue"),
   /**
    * Define minimum relative intensity value (to highest signal)
    */
-  INTENSITYPERCENT,
+  INTENSITYPERCENT("qualifierintensitypercent"),
   /**
    * Define minimum intensity value relative to TIC in the spectrum
    */
-  INTENSITYTICPERCENT;
+  INTENSITYTICPERCENT("qualifierintensityticpercent");
 
   private static final String VALUE = "value";
 

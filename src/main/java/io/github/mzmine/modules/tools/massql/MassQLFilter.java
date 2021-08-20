@@ -20,8 +20,11 @@ package io.github.mzmine.modules.tools.massql;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -30,6 +33,7 @@ public class MassQLFilter {
 
   public static final double DEFAULT_MZ_TOLERANCE = 0.005;
   public static final double DEFAULT_PPM_TOLERANCE = 20d;
+  private static final Map<ConditionQualifier, Double> EMPTY_MAP = new HashMap<>();
 
   private final Condition condition;
   private final Map<ConditionQualifier, Double> qualifiers;
@@ -37,30 +41,31 @@ public class MassQLFilter {
 
   // special case with mz tolerance
   private final MZTolerance mzTol;
+  private final double ticPercent;
+  private final double intensityPercent;
+  private final double intensityAbsolute;
 
   /**
    * @param condition  the condition
    * @param qualifiers qualifiers mapped to their values
    * @param values     conditions values
    */
-  public MassQLFilter(Condition condition, Map<ConditionQualifier, Double> qualifiers,
+  public MassQLFilter(@NotNull Condition condition,
+      @Nullable Map<ConditionQualifier, Double> qualifiers,
       List<Double> values) {
+    if (qualifiers == null) {
+      qualifiers = Map.of();
+    }
     this.condition = condition;
     this.qualifiers = qualifiers;
     this.values = values;
     // search for mz tolerance
-    Double ppm = DEFAULT_PPM_TOLERANCE;
-    Double mz = DEFAULT_MZ_TOLERANCE;
-    if(qualifiers != null) {
-      for (var entry : qualifiers.entrySet()) {
-        if (ConditionQualifier.TOLERANCEPPM == entry.getKey()) {
-          ppm = entry.getValue();
-        }
-        if (ConditionQualifier.TOLERANCEMZ == entry.getKey()) {
-          mz = entry.getValue();
-        }
-      }
-    }
+    Double ppm = qualifiers.getOrDefault(ConditionQualifier.TOLERANCEPPM, DEFAULT_PPM_TOLERANCE);
+    Double mz = qualifiers.getOrDefault(ConditionQualifier.TOLERANCEMZ, DEFAULT_MZ_TOLERANCE);
+    ticPercent = qualifiers.getOrDefault(ConditionQualifier.INTENSITYTICPERCENT, 0d);
+    intensityAbsolute = qualifiers.getOrDefault(ConditionQualifier.INTENSITYVALUE, 0d);
+    intensityPercent = qualifiers.getOrDefault(ConditionQualifier.INTENSITYPERCENT, 0d);
+
     mzTol = new MZTolerance(mz, ppm);
   }
 
@@ -70,6 +75,15 @@ public class MassQLFilter {
    */
   public boolean accept(FeatureListRow row) {
     return switch (condition) {
+      case MSLEVEL -> {
+        int msLevel = values.get(0).intValue();
+        if (msLevel == 1 || (msLevel == 2 && row.hasMs2Fragmentation()) || row.getAllFragmentScans()
+            .stream().mapToInt(Scan::getMSLevel).anyMatch(ms -> ms == msLevel)) {
+          yield true;
+        } else {
+          yield false;
+        }
+      }
       case RTMIN -> row.getAverageRT() >= values.get(0);
       case RTMAX -> row.getAverageRT() <= values.get(0);
       case SCANMIN -> row.getBestFeature().getRepresentativeScan().getScanNumber() >= values.get(0)
@@ -92,6 +106,7 @@ public class MassQLFilter {
 
   public boolean accept(Scan scan) {
     return switch (condition) {
+      case MSLEVEL -> scan.getMSLevel() == values.get(0).intValue();
       case RTMIN -> scan.getRetentionTime() >= values.get(0);
       case RTMAX -> scan.getRetentionTime() <= values.get(0);
       case SCANMIN -> scan.getScanNumber() >= values.get(0).intValue();
@@ -99,6 +114,7 @@ public class MassQLFilter {
       case CHARGE -> scan.getMSLevel() > 1 && scan.getPrecursorCharge() == values.get(0).intValue();
       case POLARITY -> throw new UnsupportedOperationException(
           "Polarity is currently not supported");
+      // working with signals
       // precursor
       case MS2PREC -> scan.getMSLevel() > 1 && mzTol
           .checkWithinTolerance(scan.getPrecursorMZ(), values.get(0));
@@ -117,8 +133,9 @@ public class MassQLFilter {
 
   public boolean containsMz(Scan scan, double targetMZ) {
     double[] mzs = scan.getMzValues(new double[scan.getNumberOfDataPoints()]);
-    for (double mz : mzs) {
-      if (mzTol.checkWithinTolerance(mz, targetMZ)) {
+    for (int i = 0; i < mzs.length; i++) {
+      if (mzTol.checkWithinTolerance(mzs[i], targetMZ) &&
+          checkIntensity(scan, scan.getIntensityValue(i))) {
         return true;
       }
     }
@@ -129,13 +146,44 @@ public class MassQLFilter {
     double[] mzs = scan.getMzValues(new double[scan.getNumberOfDataPoints()]);
     double absDelta = Math.abs(mzDelta);
     for (int i = 0; i < mzs.length - 1; i++) {
-      for (int k = 1; k < mzs.length; k++) {
-        if (mzTol.checkWithinTolerance(absDelta, Math.abs(mzs[i] - mzs[k]))) {
-          return true;
+      if (checkIntensity(scan, scan.getIntensityValue(i))) {
+        for (int k = 1; k < mzs.length; k++) {
+          if (mzTol.checkWithinTolerance(absDelta, Math.abs(mzs[i] - mzs[k])) &&
+              checkIntensity(scan, scan.getIntensityValue(k))) {
+            return true;
+          }
         }
       }
     }
     return false;
   }
 
+
+  private boolean checkIntensity(Scan scan, double value) {
+    if (Double.compare(ticPercent, 0d) == 0 && Double.compare(intensityAbsolute, 0d) == 0
+        && Double.compare(intensityPercent, 0d) == 0) {
+      return true;
+    } else {
+      return value >= intensityAbsolute &&
+             checkTICRelativeIntensity(scan, value) &&
+             checkRelativeIntensity(scan, value);
+    }
+  }
+
+  private boolean checkTICRelativeIntensity(Scan scan, double value) {
+    if (Double.compare(ticPercent, 0d) == 0) {
+      return true;
+    }
+    Double tic = scan.getTIC();
+    return tic != null && tic > 0 && value / tic >= ticPercent;
+  }
+
+  private boolean checkRelativeIntensity(Scan scan, double value) {
+    if (Double.compare(intensityPercent, 0d) == 0) {
+      return true;
+    }
+    Double basePeakIntensity = scan.getBasePeakIntensity();
+    return basePeakIntensity != null && basePeakIntensity > 0
+           && value / basePeakIntensity >= intensityPercent;
+  }
 }
