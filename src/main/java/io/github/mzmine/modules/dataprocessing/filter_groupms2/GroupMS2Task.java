@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -149,11 +150,12 @@ public class GroupMS2Task extends AbstractTask {
    */
   public void processRow(FeatureListRow row) {
     for (ModularFeature f : row.getFeatures()) {
-      if (f != null && (f.getMobilityUnit() == io.github.mzmine.datamodel.MobilityType.TIMS || (
-          f.getRawDataFile() instanceof IMSRawDataFile imsfile
-              && imsfile.getMobilityType() == MobilityType.TIMS))) {
+      if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN && (
+          f.getMobilityUnit() == io.github.mzmine.datamodel.MobilityType.TIMS || (
+              f.getRawDataFile() instanceof IMSRawDataFile imsfile
+                  && imsfile.getMobilityType() == MobilityType.TIMS))) {
         processTimsFeature(f);
-      } else if (!f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+      } else if (f != null && !f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
         RawDataFile raw = f.getRawDataFile();
         float frt = f.getRT();
         double fmz = f.getMZ();
