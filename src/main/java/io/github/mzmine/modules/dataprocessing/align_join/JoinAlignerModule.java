@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class JoinAlignerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Parallel join aligner";
+  private static final String MODULE_NAME = "Join aligner";
   private static final String MODULE_DESCRIPTION =
       "This method aligns detected peaks using a match score. This score is calculated based on"
           + " the mass and retention time of each peak using preset tolerance.";
