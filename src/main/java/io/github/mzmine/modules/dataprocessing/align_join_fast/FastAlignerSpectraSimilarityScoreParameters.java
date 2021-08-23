@@ -44,7 +44,7 @@ public class FastAlignerSpectraSimilarityScoreParameters extends SimpleParameter
   public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
       new ModuleComboParameter<>("Compare spectra similarity",
           "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS);
+          SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
   public FastAlignerSpectraSimilarityScoreParameters() {
     super(new Parameter[]{mzTolerance, msLevel, similarityFunction});
