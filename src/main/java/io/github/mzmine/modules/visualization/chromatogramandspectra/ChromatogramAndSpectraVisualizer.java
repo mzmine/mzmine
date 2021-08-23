@@ -490,9 +490,16 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
     if (!filesAndDataSets.keySet().contains(rawDataFile) || scanNum == null) {
       return;
     }
-    ChromatogramCursorPosition pos =
-        new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0, 0, rawDataFile, scanNum);
-    setChromPosition(pos);
+    // set MS2 scan directly
+    if(scanNum.getMSLevel()>1) {
+      setFocusedScanSilent(rawDataFile, scanNum);
+    }
+    else {
+      // use chrom position to set MS1 scan indirectly
+      ChromatogramCursorPosition pos =
+          new ChromatogramCursorPosition(scanNum.getRetentionTime(), 0, 0, rawDataFile, scanNum);
+      setChromPosition(pos);
+    }
   }
 
   /**
