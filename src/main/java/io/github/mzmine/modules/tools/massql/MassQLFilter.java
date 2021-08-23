@@ -20,6 +20,7 @@ package io.github.mzmine.modules.tools.massql;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,12 +95,12 @@ public class MassQLFilter {
       case POLARITY -> throw new UnsupportedOperationException(
           "Polarity is currently not supported");
       // precursor
-      case MS2PREC -> mzTol.checkWithinTolerance(row.getAverageMZ(), values.get(0));
+      case MS2PREC, MS1MZ -> mzTol.checkWithinTolerance(row.getAverageMZ(), values.get(0));
       // signals in MS2 spectra
-      case MS2PROD -> row.getAllFragmentScans().stream()
+      case MS2PROD, MS2MZ -> row.getAllFragmentScans().stream()
           .anyMatch(scan -> containsFragmentIon(scan, values.get(0)));
       case MS2NL -> row.getAllFragmentScans().stream()
-          .anyMatch(scan -> containsMzDelta(scan, values.get(0)));
+          .anyMatch(scan -> containsNeutralLoss(scan, row.getAverageMZ(), values.get(0)));
     };
   }
 
@@ -119,9 +120,18 @@ public class MassQLFilter {
       case MS2PREC -> scan.getMSLevel() > 1 && mzTol
           .checkWithinTolerance(scan.getPrecursorMZ(), values.get(0));
       // signals in MS2 spectra
-      case MS2PROD -> scan.getMSLevel() > 1 && containsFragmentIon(scan, values.get(0));
-      case MS2NL -> scan.getMSLevel() > 1 && containsMzDelta(scan, values.get(0));
+      case MS1MZ -> checkMS1MZ(scan, values.get(0));
+      case MS2PROD, MS2MZ -> scan.getMSLevel() > 1 && containsFragmentIon(scan, values.get(0));
+      case MS2NL -> scan.getMSLevel() > 1 && containsNeutralLoss(scan, values.get(0));
     };
+  }
+
+  private boolean checkMS1MZ(Scan scan, double targetMZ) {
+    Scan ms1 = scan.getMSLevel() == 1 ? scan : ScanUtils.findPrecursorMS1Scan(scan);
+    if (ms1 != null) {
+      return containsMz(ms1, targetMZ);
+    }
+    return false;
   }
 
   public boolean containsFragmentIon(Scan scan, double targetMZ) {
@@ -135,6 +145,22 @@ public class MassQLFilter {
     double[] mzs = scan.getMzValues(new double[scan.getNumberOfDataPoints()]);
     for (int i = 0; i < mzs.length; i++) {
       if (mzTol.checkWithinTolerance(mzs[i], targetMZ) &&
+          checkIntensity(scan, scan.getIntensityValue(i))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean containsNeutralLoss(Scan scan, double mzDelta) {
+    return containsNeutralLoss(scan, scan.getPrecursorMZ(), mzDelta);
+  }
+
+  public boolean containsNeutralLoss(Scan scan, double precursorMZ, double mzDelta) {
+    double[] mzs = scan.getMzValues(new double[scan.getNumberOfDataPoints()]);
+    double absDelta = Math.abs(mzDelta);
+    for (int i = 0; i < mzs.length; i++) {
+      if (mzTol.checkWithinTolerance(absDelta, precursorMZ - mzs[i]) &&
           checkIntensity(scan, scan.getIntensityValue(i))) {
         return true;
       }

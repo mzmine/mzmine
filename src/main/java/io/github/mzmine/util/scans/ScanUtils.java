@@ -76,6 +76,7 @@ public class ScanUtils {
 
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 
+
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
    *
@@ -435,7 +436,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-              - leftNeighbourBinIndex);
+                                                                       - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -1071,29 +1072,32 @@ public class ScanUtils {
   }
 
   /**
-   * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
+   * Find MS1 scan (if available) that precedes an MS2 scan
+   *
+   * @param scan any scan
+   * @return the MS1 scan that precedes any fragmentation scan (MSlevel>=2) or null if there is
+   * none. If the argument scan is already MS1 this scan is returned
    */
-  public static @Nullable Scan findPrecursorScan(@NotNull Scan scan) {
-
-    assert scan != null;
+  public static @Nullable Scan findPrecursorMS1Scan(@NotNull Scan scan) {
+    if (scan.getMSLevel() == 1) {
+      return scan;
+    }
     final RawDataFile dataFile = scan.getDataFile();
     final ObservableList<Scan> scanNumbers = dataFile.getScans();
 
-    int startIndex = scanNumbers.indexOf(scan);
-
-    for (int i = startIndex; i >= 0; i--) {
+    int i = scanNumbers.indexOf(scan);
+    for (; i >= 0; i--) {
       Scan s = scanNumbers.get(i);
       if (s.getMSLevel() == 1) {
         return s;
       }
     }
-
-    // Didn't find any MS1 scan
     return null;
   }
 
   @Nullable
-  public static Scan findPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged, MZTolerance mzTolerance) {
+  public static Scan findPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged,
+      MZTolerance mzTolerance) {
     final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
     if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
       // this was an IMS file, so scans have been merged
@@ -1111,8 +1115,7 @@ public class ScanUtils {
       final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
           .toList();
       final List<Frame> ms1Frames = ms2Frames.stream()
-          .map(scan -> (Frame) ScanUtils.findPrecursorScan(scan)).filter(Objects::nonNull).toList();
-
+          .map(scan -> (Frame) ScanUtils.findPrecursorMS1Scan(scan)).filter(Objects::nonNull).toList();
 
       final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
           .<MobilityScan>mapMulti((f, c) -> {
@@ -1153,7 +1156,8 @@ public class ScanUtils {
   }
 
   @Nullable
-  public static Scan findSucceedingPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged, MZTolerance mzTolerance) {
+  public static Scan findSucceedingPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged,
+      MZTolerance mzTolerance) {
     final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
     if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
       // this was an IMS file, so scans have been merged
@@ -1171,7 +1175,8 @@ public class ScanUtils {
       final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
           .toList();
       final List<Frame> ms1Frames = ms2Frames.stream()
-          .map(scan -> (Frame) ScanUtils.findSucceedingPrecursorScan(scan)).filter(Objects::nonNull).toList();
+          .map(scan -> (Frame) ScanUtils.findSucceedingPrecursorScan(scan)).filter(Objects::nonNull)
+          .toList();
 
       final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
           .<MobilityScan>mapMulti((f, c) -> {

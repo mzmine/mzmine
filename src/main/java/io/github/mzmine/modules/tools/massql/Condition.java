@@ -20,14 +20,61 @@ package io.github.mzmine.modules.tools.massql;
 import org.json.JSONObject;
 
 /**
+ * MassQL condtions
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public enum Condition {
 
   // non standard conditions (maybe MZmine specific or proposed to MassQL)
+  /**
+   * MSLEVEL is a non standard condition that is used by MZmine
+   */
   MSLEVEL,
-  // MassQL conditions
-  RTMIN("rtmincondition"), RTMAX("rtmaxcondition"), SCANMIN("scanmincondition"), SCANMAX("scanmaxcondition"), CHARGE("chargecondition"), POLARITY("polaritycondition"), MS2PROD("ms2productcondition"), MS2PREC("ms2precursorcondition"), MS2NL("ms2neutrallosscondition");
+  /**
+   * minimum retention time (inclusive)
+   */
+  RTMIN("rtmincondition"),
+  /**
+   * maximum retention time (inclusive)
+   */
+  RTMAX("rtmaxcondition"),
+  /**
+   * minimum scan number (inclusive)
+   */
+  SCANMIN("scanmincondition"),
+  /**
+   * maximum scan number (inclusive)
+   */
+  SCANMAX("scanmaxcondition"),
+  /**
+   * charge of the scan or feature
+   */
+  CHARGE("chargecondition"),
+  /**
+   * polarity of scan or feature
+   */
+  POLARITY("polaritycondition"),
+  /**
+   * signals in MS1 scan even when MS2 is searched
+   */
+  MS1MZ("ms1mzcondition"),
+  /**
+   * signals in MS2 scans (MS2MZ == MS2PROD)
+   */
+  MS2MZ("ms2productcondition"),
+  /**
+   * signals in MS2 scans (MS2MZ == MS2PROD)
+   */
+  MS2PROD("ms2productcondition"),
+  /**
+   * precursor ion
+   */
+  MS2PREC("ms2precursorcondition"),
+  /**
+   * Neutral loss from precursor ion
+   */
+  MS2NL("ms2neutrallosscondition");
 
   public static final String JSON_FIELD = "type";
   private final String json;
@@ -43,14 +90,28 @@ public enum Condition {
   public static Condition valueOf(JSONObject condition) {
     String type = condition.getString(JSON_FIELD);
     for (Condition value : Condition.values()) {
-      if(value.getJson().equalsIgnoreCase(type)) {
+      if (value.getJson().equalsIgnoreCase(type)) {
         return value;
       }
     }
     return null;
   }
 
+  /**
+   * The json reprensentation of this condition
+   *
+   * @return JSON key
+   */
   public String getJson() {
-    return json == null? toString() : json;
+    return json == null ? toString() : json;
+  }
+
+  /**
+   * The MassQL string used for this condition
+   *
+   * @return massql word
+   */
+  public String getMassQLString() {
+    return this.toString();
   }
 }
