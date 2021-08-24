@@ -22,7 +22,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
  * Defines how values that were previously zero shall be handled when returning the smoothed
  * values.
  */
-enum ZeroHandlingType {
+public enum ZeroHandlingType {
   /**
    * Values that were previously zero will be zero after smoothing.
    */

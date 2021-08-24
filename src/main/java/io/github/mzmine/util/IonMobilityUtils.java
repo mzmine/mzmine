@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
+import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -295,6 +296,25 @@ public class IonMobilityUtils {
         .mapToInt(f -> getTraceDatapoints((IonMobilogramTimeSeries) f.getFeatureData())).max()
         .orElse(-1);
     return max == -1 ? null : max;
+  }
+
+  /**
+   *
+   * @param series The series.
+   * @return The mobility values in the series.
+   */
+  public static <T extends IntensitySeries & MobilitySeries> double[] extractMobilities(
+      @NotNull final T series) {
+
+    final double[] mobilities = new double[series.getNumberOfValues()];
+    if (series instanceof SummedIntensityMobilitySeries summed) {
+      summed.getMobilityValues(mobilities);
+    } else {
+      for (int i = 0; i < mobilities.length; i++) {
+        mobilities[i] = series.getMobility(i);
+      }
+    }
+    return mobilities;
   }
 
   public enum MobilogramType {

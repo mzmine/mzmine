@@ -18,57 +18,45 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SGIntensitySmoothing;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.weightedaverage.LoessSmoothing;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 public class SmoothingParameters extends SimpleParameterSet {
 
+  public static final SmoothingAlgorithm sgSmoothing = MZmineCore
+      .getModuleInstance(SGIntensitySmoothing.class);
+
+  public static final SmoothingAlgorithm loessSmoothing = MZmineCore
+      .getModuleInstance(LoessSmoothing.class);
+
+  public static final SmoothingAlgorithm[] smoothingAlgorithms = new SmoothingAlgorithm[]{
+      sgSmoothing, loessSmoothing};
+
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final OptionalParameter<ComboParameter<Integer>> rtSmoothing = new OptionalParameter<>(
-      new ComboParameter<Integer>("Retention time smoothing",
-          "Enables intensity smoothing along the rt axis.",
-          new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5));
-
-  public static final OptionalParameter<ComboParameter<Integer>> mobilitySmoothing = new OptionalParameter<>(
-      new ComboParameter<Integer>("Mobility smoothing",
-          "Enables intensity smoothing of the summed mobilogram.",
-          new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5));
+  public static final ModuleComboParameter<SmoothingAlgorithm> smoothingAlgorithm = new ModuleComboParameter<SmoothingAlgorithm>(
+      "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms);
 
   public static final BooleanParameter removeOriginal = new BooleanParameter(
       "Remove original feature list",
-      "The originial feature list is removed after the processing has finished");
+      "The original feature list is removed after the processing has finished");
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix to be added to processed feature lists.", " sm");
 
   public SmoothingParameters() {
-    super(new Parameter[]{featureLists, rtSmoothing, mobilitySmoothing, removeOriginal, suffix});
-  }
-
-  @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    boolean superCheck = super.checkParameterValues(errorMessages);
-    if (!superCheck) {
-      return false;
-    }
-
-    if (!this.getParameter(mobilitySmoothing).getValue()
-        && !this.getParameter(rtSmoothing).getValue()) {
-      errorMessages.add("At least one smoothing type must be selected");
-      return false;
-    }
-    return true;
+    super(new Parameter[]{featureLists, smoothingAlgorithm, removeOriginal, suffix});
   }
 
   @Override

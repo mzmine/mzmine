@@ -19,6 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
@@ -36,6 +39,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask.S
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.util.FeatureUtils;
+import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -45,6 +49,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.Nullable;
 
 public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
@@ -58,9 +63,9 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected SmoothingDimension previewDimension;
+  protected FeatureDataAccess access;
 
-  public SmoothingSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public SmoothingSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     uf = MZmineCore.getConfiguration().getUnitFormat();
@@ -77,18 +82,17 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimension = SmoothingDimension.RETENTION_TIME;
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
-        (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists();
+    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore
+        .getProjectManager().getCurrentProject().getFeatureLists();
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                (ObservableList<ModularFeature>) (ObservableList<? extends Feature>) newValue
-                    .getFeatures(newValue.getRawDataFile(0)));
+            fBox.setItems(FXCollections
+                .observableArrayList(newValue.getFeatures(newValue.getRawDataFile(0))));
+            access = EfficientDataAccess.of(newValue, FeatureDataType.INCLUDE_ZEROS);
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }
@@ -117,7 +121,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimensionBox.setValue(previewDimension);
     previewDimensionBox.valueProperty().addListener((obs, old, newval) -> {
       this.previewDimension = newval;
-      if(previewDimension == SmoothingDimension.RETENTION_TIME) {
+      if (previewDimension == SmoothingDimension.RETENTION_TIME) {
         previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
       } else {
         previewChart.setDomainAxisLabel("Mobility");
@@ -148,9 +152,9 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     IonTimeSeries<? extends Scan> featureSeries = f.getFeatureData();
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
-      previewChart
-          .addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(f.getFeatureData(),
-              FeatureUtils.featureToString(f), f.getRawDataFile().colorProperty())));
+      previewChart.addDataset(new ColoredXYDataset(
+          new IonTimeSeriesToXYProvider(f.getFeatureData(), FeatureUtils.featureToString(f),
+              f.getRawDataFile().colorProperty())));
     } else {
       if (featureSeries instanceof IonMobilogramTimeSeries) {
         previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(f)));
@@ -160,36 +164,24 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     final Color previewColor = MZmineCore.getConfiguration().getDefaultColorPalette()
         .getPositiveColor();
 
-    final boolean smoothRt = parameterSet.getParameter(SmoothingParameters.rtSmoothing).getValue();
-    final int rtFilterWidth = parameterSet.getParameter(SmoothingParameters.rtSmoothing)
-        .getEmbeddedParameter()
-        .getValue();
-    boolean smoothMobility = parameterSet.getParameter(SmoothingParameters.mobilitySmoothing)
-        .getValue();
-    if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
-      smoothMobility = false;
-    }
-    final int mobilityFilterWidth = parameterSet.getParameter(SmoothingParameters.mobilitySmoothing)
-        .getEmbeddedParameter().getValue();
-    final double[] rtWeights = SavitzkyGolayFilter.getNormalizedWeights(rtFilterWidth);
-    final double[] mobilityWeights = SavitzkyGolayFilter.getNormalizedWeights(mobilityFilterWidth);
+    // in case we smooth rt, we remap the rt dimension to all scans, as we would do usually.
+    featureSeries = previewDimension == SmoothingDimension.RETENTION_TIME ? IonTimeSeries
+        .remapRtAxis(featureSeries, flistBox.getValue().getSeletedScans(f.getRawDataFile()))
+        : featureSeries;
 
-    final SGIntensitySmoothing smoothing = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
-        rtWeights);
-    final IonTimeSeries<? extends Scan> smoothed = SmoothingTask
-        .replaceOldIntensities(null, featureSeries, f, smoothing.smooth(featureSeries),
-            ZeroHandlingType.KEEP, smoothMobility, mobilityWeights);
+    final SmoothingAlgorithm smoothing = initialiseSmoother(parameterSet);
+    final IonTimeSeries<? extends Scan> smoothed = smoothing
+        .smoothFeature(null, featureSeries, f, ZeroHandlingType.KEEP);
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
-      previewChart.addDataset(
-          new ColoredXYDataset(new IonTimeSeriesToXYProvider(smoothed, "smoothed",
+      previewChart.addDataset(new ColoredXYDataset(
+          new IonTimeSeriesToXYProvider(smoothed, "smoothed",
               new SimpleObjectProperty<>(previewColor))), smoothedRenderer);
     } else {
       if (smoothed instanceof IonMobilogramTimeSeries) {
         previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(
             ((IonMobilogramTimeSeries) smoothed).getSummedMobilogram(),
-            new SimpleObjectProperty<>(previewColor),
-            "smoothed")), smoothedRenderer);
+            new SimpleObjectProperty<>(previewColor), "smoothed")), smoothedRenderer);
       }
     }
   }
@@ -199,5 +191,19 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     super.parametersChanged();
     updateParameterSetFromComponents();
     onSelectedFeatureChanged(fBox.getValue());
+  }
+
+  @Nullable
+  private SmoothingAlgorithm initialiseSmoother(ParameterSet parameters) {
+    final SmoothingAlgorithm smoother;
+    try {
+      smoother = parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()
+          .getModule().getClass().getDeclaredConstructor(ParameterSet.class).newInstance(
+              parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()
+                  .getParameterSet());
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+      return null;
+    }
+    return smoother;
   }
 }
