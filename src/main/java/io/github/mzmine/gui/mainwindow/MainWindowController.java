@@ -60,6 +60,7 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
@@ -90,6 +91,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
@@ -106,6 +108,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -134,7 +137,7 @@ public class MainWindowController {
   @FXML
   public MenuItem rawDataRemoveExtensionMenuItem;
   @FXML
-  public MenuItem rawDataSetColorMenuItem;
+  public Menu rawDataSetColorMenu;
   @FXML
   public MenuItem openFeatureListMenuItem;
   @FXML
@@ -451,11 +454,11 @@ public class MainWindowController {
             if (rawDataList.getSelectedValues().size() == 1) {
               rawDataRemoveMenuItem.setText("Remove file");
               rawDataRemoveExtensionMenuItem.setText("Remove file extension");
-              rawDataSetColorMenuItem.setDisable(false);
+              rawDataSetColorMenu.setDisable(false);
             } else {
               rawDataRemoveMenuItem.setText("Remove files");
               rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
-              rawDataSetColorMenuItem.setDisable(true);
+              rawDataSetColorMenu.setDisable(true);
             }
 
             if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
@@ -505,6 +508,36 @@ public class MainWindowController {
     );
 
     addTab(new MZmineIntroductionTab());
+
+    // add colors to context menu based on default palette
+    var colorPalette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    var setColorMenuItems = new ArrayList<MenuItem>();
+    for (var color : colorPalette) {
+      // Color.toString "might vary between implementations" and produces ugly string anyway
+      var colorHex = String.format(
+          "#%02x%02x%02x",
+          (int) Math.round(color.getRed() * 255),
+          (int) Math.round(color.getGreen() * 255),
+          (int) Math.round(color.getBlue() * 255));
+      var setColorMenuItem = new MenuItem(colorHex);
+      setColorMenuItem.setGraphic(new Rectangle(16, 16, color));
+      setColorMenuItem.setOnAction(e -> {
+        if (rawDataList.getSelectionModel() == null) {
+          return;
+        }
+
+        ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
+        // Only one file must be selected
+        if (rows == null || rows.size() != 1 || rows.get(0) == null) {
+          return;
+        }
+
+        rows.get(0).setColor(color);
+      });
+      setColorMenuItems.add(setColorMenuItem);
+    }
+    // place at top
+    rawDataSetColorMenu.getItems().addAll(0, setColorMenuItems);
   }
 
   public GroupableListView<RawDataFile> getRawDataList() {
