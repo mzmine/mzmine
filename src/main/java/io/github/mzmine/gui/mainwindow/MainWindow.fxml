@@ -107,9 +107,9 @@
                                     onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem fx:id="rawDataSetColorMenuItem"
-                                    onAction="#handleSetRawDataFileColor" text="Set color"/>
-
+                                  <Menu text="Set color" fx:id="rawDataSetColorMenu">
+                                    <MenuItem onAction="#handleSetRawDataFileColor" text="Custom..."/>
+                                  </Menu>
                                 </items>
                               </ContextMenu>
                             </contextMenu>
