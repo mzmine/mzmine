@@ -331,6 +331,9 @@ public class BatchWizardController {
     param.setParameter(IonMobilityTraceBuilderParameters.scanSelection, new ScanSelection(1));
     param.setParameter(IonMobilityTraceBuilderParameters.minDataPointsRt, 5);
     param.setParameter(IonMobilityTraceBuilderParameters.minTotalSignals, 60);
+    param.setParameter(IonMobilityTraceBuilderParameters.mzTolerance,
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
+            .getValue());
     param.setParameter(IonMobilityTraceBuilderParameters.suffix, "traces");
 
     ParameterSet advanced = new AdvancedImsTraceBuilderParameters().cloneParameterSet();
