@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
-import io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoParameters;
+import io.github.mzmine.modules.visualization.mzhistogram.ScanMzHistogramParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.RangeUtils;
@@ -99,17 +99,17 @@ public class HistogramTab extends MZmineTab implements ActionListener {
     //setTitle(title);
 
     this.dataFile = dataFile;
-    scanSelection = parameters.getParameter(MZDistributionHistoParameters.scanSelection).getValue();
+    scanSelection = parameters.getParameter(ScanMzHistogramParameters.scanSelection).getValue();
 
-    mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
-    useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
+    mzRange = parameters.getParameter(ScanMzHistogramParameters.mzRange).getValue();
+    useRTRange = parameters.getParameter(ScanMzHistogramParameters.rtRange).getValue();
     if (useRTRange) {
       rtRange = RangeUtils
-          .toFloatRange(parameters.getParameter(MZDistributionHistoParameters.rtRange)
+          .toFloatRange(parameters.getParameter(ScanMzHistogramParameters.rtRange)
               .getEmbeddedParameter().getValue());
     }
-    binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
-    useMobilityScans = parameters.getParameter(MZDistributionHistoParameters.useMobilityScans)
+    binWidth = parameters.getParameter(ScanMzHistogramParameters.binWidth).getValue();
+    useMobilityScans = parameters.getParameter(ScanMzHistogramParameters.useMobilityScans)
         .getValue();
 
     data = buildHistogramData(dataFile);

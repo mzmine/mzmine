@@ -28,7 +28,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
 
-public class MZDistributionHistoTask extends AbstractTask {
+public class ScanMzHistogramTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private MZmineProject project;
@@ -42,7 +42,7 @@ public class MZDistributionHistoTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public MZDistributionHistoTask(MZmineProject project, RawDataFile dataFile,
+  public ScanMzHistogramTask(MZmineProject project, RawDataFile dataFile,
       ParameterSet parameters) {
     super(null); // no new data stored -> null
     this.project = project;

@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
-public class MZDistributionHistoModule implements MZmineRunnableModule {
+public class ScanMzHistogramModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "m/z scan histogram";
   private static final String MODULE_DESCRIPTION =
@@ -51,12 +51,12 @@ public class MZDistributionHistoModule implements MZmineRunnableModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks) {
 
-    RawDataFile[] dataFiles = parameters.getParameter(MZDistributionHistoParameters.dataFiles)
+    RawDataFile[] dataFiles = parameters.getParameter(ScanMzHistogramParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask =
-          new MZDistributionHistoTask(project, dataFiles[i], parameters.cloneParameterSet());
+          new ScanMzHistogramTask(project, dataFiles[i], parameters.cloneParameterSet());
       tasks.add(newTask);
     }
 
@@ -70,7 +70,7 @@ public class MZDistributionHistoModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return MZDistributionHistoParameters.class;
+    return ScanMzHistogramParameters.class;
   }
 
 }

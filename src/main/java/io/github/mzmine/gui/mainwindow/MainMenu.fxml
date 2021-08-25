@@ -499,7 +499,7 @@
     <SeparatorMenuItem/>
 
     <MenuItem text="m/z scan histogram" onAction="#runModule"
-      userData="io.github.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule"/>
+      userData="io.github.mzmine.modules.visualization.mzhistogram.ScanMzHistogramModule"/>
 
     <SeparatorMenuItem/>
 
