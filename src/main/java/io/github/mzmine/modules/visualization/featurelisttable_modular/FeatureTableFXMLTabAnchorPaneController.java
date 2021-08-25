@@ -25,10 +25,13 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.tools.massql.MassQLQuery;
+import io.github.mzmine.modules.tools.massql.MassQLTextField;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import io.github.mzmine.util.webapi.MassQLUtils;
 import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,7 +49,14 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 public class FeatureTableFXMLTabAnchorPaneController {
 
@@ -67,9 +77,11 @@ public class FeatureTableFXMLTabAnchorPaneController {
   private TextField anySearchField;
   private ComboBox<DataType> typeComboBox;
 
+  // filter table by mass QL commands
+  private MassQLTextField massQLSearchField;
+
   public void initialize() {
-    param = MZmineCore.getConfiguration()
-        .getModuleParameters(FeatureTableFXModule.class);
+    param = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
 
     // Filters hbox
     HBox filtersRow = new HBox();
@@ -124,7 +136,16 @@ public class FeatureTableFXMLTabAnchorPaneController {
     filtersRow.getChildren()
         .addAll(new Separator(Orientation.VERTICAL), typeComboBox, new Label(": "), anySearchField);
 
-    pnFilters.getItems().add(filtersRow);
+    // add massql filter
+    massQLSearchField = new MassQLTextField();
+    massQLSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterRows());
+    HBox massQLFilter = new HBox(new Label("MassQL: "), massQLSearchField);
+    massQLFilter.setAlignment(filtersRow.getAlignment());
+
+    VBox pnSouth = new VBox(2, filtersRow, massQLFilter);
+    pnSouth.setFillWidth(true);
+    HBox.setHgrow(massQLSearchField, Priority.ALWAYS);
+    pnFilters.getItems().add(pnSouth);
 
     featureTable.getSelectionModel().selectedItemProperty()
         .addListener(((obs, o, n) -> selectedRowChanged()));
@@ -144,6 +165,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
         anySearchField.getText().isBlank() ? null : anySearchField.getText().toLowerCase().trim();
     DataType<?> type = typeComboBox.getValue();
 
+    // filter by MassQL
+    final MassQLQuery massQlFilter = massQLSearchField.getQuery();
+
     // Filter rows
     featureTable.getFilteredRowItems().setPredicate(item -> {
       ModularFeatureListRow row = item.getValue();
@@ -156,8 +180,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
       }
 
       return mzFilter.contains(row.getAverageMZ())
-          && rtFilter.contains((double) row.getAverageRT())
-          && anyFilterOk;
+             && rtFilter.contains((double) row.getAverageRT())
+             && anyFilterOk
+             && massQlFilter.accept(row);
     });
 
     // Update rows in feature table
@@ -221,6 +246,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
         param.getParameter(FeatureTableFXParameters.showFeatureTypeColumns).getValue());
   }
 
+  public FeatureList getFeatureList() {
+    return featureTable.getFeatureList();
+  }
+
   public void setFeatureList(FeatureList featureList) {
     if (!(featureList instanceof ModularFeatureList flist)) {
       return;
@@ -233,7 +262,7 @@ public class FeatureTableFXMLTabAnchorPaneController {
       Range<Double> mzRange = featureList.getRowsMZRange();
       if (mzRange != null) {
         mzSearchField.setPromptText(mzFormat.format(mzRange.lowerEndpoint()) + " - "
-            + mzFormat.format(mzRange.upperEndpoint()));
+                                    + mzFormat.format(mzRange.upperEndpoint()));
       }
       mzSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
 
@@ -241,16 +270,12 @@ public class FeatureTableFXMLTabAnchorPaneController {
       Range<Float> rtRange = featureList.getRowsRTRange();
       if (rtRange != null) {
         rtSearchField.setPromptText(rtFormat.format(rtRange.lowerEndpoint()) + " - "
-            + rtFormat.format(rtRange.upperEndpoint()));
+                                    + rtFormat.format(rtRange.upperEndpoint()));
       }
       rtSearchField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -30%);");
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Error in table visualization", ex);
     }
-  }
-
-  public FeatureList getFeatureList() {
-    return featureTable.getFeatureList();
   }
 
   void selectedRowChanged() {

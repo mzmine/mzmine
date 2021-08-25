@@ -88,7 +88,7 @@ class FragmentScan {
       Scan scan = ms2[i];
       Scan precursorScan = scan instanceof MergedMsMsSpectrum ?
           ScanUtils.findPrecursorScanForMerged((MergedMsMsSpectrum) scan, massAccuracy)
-          : ScanUtils.findPrecursorScan(scan);
+          : ScanUtils.findPrecursorMS1Scan(scan);
       Scan precursorScan2 = scan instanceof MergedMsMsSpectrum ?
           ScanUtils.findSucceedingPrecursorScanForMerged((MergedMsMsSpectrum) scan, massAccuracy)
           : ScanUtils.findSucceedingPrecursorScan(scan);
