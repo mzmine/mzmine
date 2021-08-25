@@ -616,9 +616,9 @@ public class BatchWizardController {
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 3);
     IonModification[] adducts =
-        polarity == Polarity.Positive ? new IonModification[]{IonModification.M_PLUS,
+        polarity == Polarity.Positive ? new IonModification[]{IonModification.H,
             IonModification.NA, IonModification.K, IonModification.NH4, IonModification.H2plus}
-            : new IonModification[]{IonModification.M_MINUS, IonModification.FA,
+            : new IonModification[]{IonModification.H_NEG, IonModification.FA,
                 IonModification.NA_2H};
     IonModification[] modifications = new IonModification[]{IonModification.H2O,
         IonModification.H2O_2, IonModification.HFA, IonModification.ACN, IonModification.MEOH};
