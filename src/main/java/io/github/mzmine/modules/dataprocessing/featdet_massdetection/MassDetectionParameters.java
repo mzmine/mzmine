@@ -131,20 +131,22 @@ public class MassDetectionParameters extends SimpleParameterSet {
     // Check the selected mass detector
     String massDetectorName = getParameter(massDetector).getValue().toString();
 
-    if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
-      String msg = "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
-      MZmineCore.getDesktop().displayMessage(null, msg);
-    }
+    if(!massDetectorName.contains("Auto")) {
+      if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
+        String msg = "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
+        MZmineCore.getDesktop().displayMessage(null, msg);
+      }
 
-    if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
-      String msg = "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
-      MZmineCore.getDesktop().displayMessage(null, msg);
+      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
+        String msg = "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
+        MZmineCore.getDesktop().displayMessage(null, msg);
+      }
     }
 
     RawDataFile[] files = dataFiles.getValue().getMatchingRawDataFiles();
     Optional<RawDataFile> opt = Arrays.stream(files)
         .filter(file -> (file instanceof IMSRawDataFile)).findAny();
-    if (opt.isPresent() && !massDetectorName.startsWith("Centroid")) {
+    if (opt.isPresent() && !massDetectorName.startsWith("Centroid") && !massDetectorName.contains("Auto")) {
       String msg = "MZmine thinks you are running a profile mass detector on an Ion mobility raw "
           + "data file. Only the centroid mass detector officially supports mobility scan peak "
           + "detection due to the size of ion mobility raw data files."
