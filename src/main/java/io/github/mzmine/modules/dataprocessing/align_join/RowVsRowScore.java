@@ -90,7 +90,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   }
 
   /**
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   * @see Comparable#compareTo(Object)
    */
   public int compareTo(RowVsRowScore object) {
 
