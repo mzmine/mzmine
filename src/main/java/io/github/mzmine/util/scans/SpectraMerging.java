@@ -81,6 +81,9 @@ public class SpectraMerging {
   public static final CenterFunction DEFAULT_CENTER_FUNCTION = new CenterFunction(
       DEFAULT_CENTER_MEASURE, DEFAULT_WEIGHTING);
 
+  // for merging IMS-TOF MS1 scans ~Steffen
+  public static final MZTolerance defaultMs1MergeTol = new MZTolerance(0.005, 15);
+
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
   private static Logger logger = Logger.getLogger(SpectraMerging.class.getName());
@@ -351,9 +354,17 @@ public class SpectraMerging {
     return mergedSpectra;
   }
 
+  @Nullable
   public static MergedMassSpectrum extractSummedMobilityScan(@NotNull final ModularFeature f,
       @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
       @Nullable final MemoryMapStorage storage) {
+    return extractSummedMobilityScan(f, tolerance, mobilityRange, Range.all(), storage);
+  }
+
+  @Nullable
+  public static MergedMassSpectrum extractSummedMobilityScan(@NotNull final ModularFeature f,
+      @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
+      @NotNull final Range<Float> rtRange, @Nullable final MemoryMapStorage storage) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return null;
     }
@@ -361,7 +372,8 @@ public class SpectraMerging {
     final List<MobilityScan> scans = series.getMobilograms().stream()
         .<MobilityScan>mapMulti((s, c) -> {
           for (var spectrum : s.getSpectra()) {
-            if (mobilityRange.contains((float) spectrum.getMobility())) {
+            if (mobilityRange.contains((float) spectrum.getMobility()) && rtRange
+                .contains(spectrum.getRetentionTime())) {
               c.accept(spectrum);
             }
           }
@@ -372,20 +384,21 @@ public class SpectraMerging {
     final double merged[][] = calculatedMergedMzsAndIntensities(scans, tolerance,
         MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null);
 
-    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans,
-        MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
+    return new SimpleMergedMassSpectrum(storage, merged[0], merged[1], 1, scans, MergingType.SUMMED,
+        DEFAULT_CENTER_FUNCTION);
   }
 
   /**
    * @return A summed spectrum with the given tolerances.
    */
-  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(final @NotNull List<T> source,
-      @NotNull final MZTolerance tolerance, @Nullable final MemoryMapStorage storage) {
+  public static <T extends MassSpectrum> MergedMassSpectrum mergeSpectra(
+      final @NotNull List<T> source, @NotNull final MZTolerance tolerance,
+      @Nullable final MemoryMapStorage storage) {
 
     // if we have mass lists, use them to merge.
     final List<? extends MassSpectrum> spectra;
-    if(source.stream().allMatch(s -> s instanceof Scan)) {
-      spectra = source.stream().map(s -> ((Scan)s).getMassList()).toList();
+    if (source.stream().allMatch(s -> s instanceof Scan)) {
+      spectra = source.stream().map(s -> ((Scan) s).getMassList()).toList();
     } else {
       spectra = source;
     }
