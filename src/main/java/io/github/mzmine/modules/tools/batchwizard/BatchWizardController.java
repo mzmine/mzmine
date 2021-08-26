@@ -270,8 +270,8 @@ public class BatchWizardController {
   private MZmineProcessingStep<MZmineProcessingModule> makeMassDetectionStep(
       @NotNull final ParameterSet msParameters, int msLevel) {
 
-    final ParameterSet detectorParam = MZmineCore.getConfiguration().getModuleParameters(
-        AutoMassDetector.class).cloneParameterSet();
+    final ParameterSet detectorParam = MZmineCore.getConfiguration()
+        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
     detectorParam.getParameter(AutoMassDetectorParameters.noiseLevel).setValue(
         msLevel == 1 ? msParameters
             .getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
@@ -293,8 +293,9 @@ public class BatchWizardController {
     param.getParameter(MassDetectionParameters.dataFiles)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
-    param.getParameter(MassDetectionParameters.massDetector)
-        .setValue(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class), detectorParam));
+    param.getParameter(MassDetectionParameters.massDetector).setValue(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
+            detectorParam));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param);
@@ -386,6 +387,13 @@ public class BatchWizardController {
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters()
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevel, true);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
+        .getEmbeddedParameter().setValue(
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
+            * 3);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
@@ -432,6 +440,13 @@ public class BatchWizardController {
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters()
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevel, true);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
+        .getEmbeddedParameter().setValue(
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
+            * 3);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);
