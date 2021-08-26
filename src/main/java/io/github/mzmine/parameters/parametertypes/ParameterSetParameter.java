@@ -34,7 +34,7 @@ import io.github.mzmine.parameters.UserParameter;
  * @author aleksandrsmirnov
  */
 public class ParameterSetParameter
-    implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer {
+    implements UserParameter<ParameterSet, ParameterSetComponent>, ParameterContainer, EmbeddedParameterSet {
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
   private String name;
@@ -141,5 +141,10 @@ public class ParameterSetParameter
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     // delegate skipSensitiveParameters embedded ParameterContainers
     value.setSkipSensitiveParameters(skipSensitiveParameters);
+  }
+
+  @Override
+  public ParameterSet getEmbeddedParameters() {
+    return getValue();
   }
 }

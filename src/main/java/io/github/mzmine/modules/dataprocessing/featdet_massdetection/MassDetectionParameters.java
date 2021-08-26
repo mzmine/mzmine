@@ -62,7 +62,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       .getModuleInstance(WaveletMassDetector.class);
   public static final AutoMassDetector auto = MZmineCore.getModuleInstance(AutoMassDetector.class);
 
-  public static final MassDetector massDetectors[] = {centroid, exact, localmax, recursive, wavelet,
+  public static final MassDetector[] massDetectors = {centroid, exact, localmax, recursive, wavelet,
       auto};
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
@@ -71,7 +71,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
       new ScanSelection(1));
 
   public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
-      "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors);
+      "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors, centroid);
 
   public static final FileNameParameter outFilename = new FileNameParameter(
       "Output netCDF filename (optional)",

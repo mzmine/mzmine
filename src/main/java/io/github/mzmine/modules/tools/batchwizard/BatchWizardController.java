@@ -332,6 +332,9 @@ public class BatchWizardController {
     param.setParameter(IonMobilityTraceBuilderParameters.scanSelection, new ScanSelection(1));
     param.setParameter(IonMobilityTraceBuilderParameters.minDataPointsRt, 5);
     param.setParameter(IonMobilityTraceBuilderParameters.minTotalSignals, 60);
+    param.setParameter(IonMobilityTraceBuilderParameters.mzTolerance,
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
+            .getValue());
     param.setParameter(IonMobilityTraceBuilderParameters.suffix, "traces");
 
     ParameterSet advanced = new AdvancedImsTraceBuilderParameters().cloneParameterSet();
@@ -628,9 +631,9 @@ public class BatchWizardController {
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 3);
     IonModification[] adducts =
-        polarity == Polarity.Positive ? new IonModification[]{IonModification.M_PLUS,
+        polarity == Polarity.Positive ? new IonModification[]{IonModification.H,
             IonModification.NA, IonModification.K, IonModification.NH4, IonModification.H2plus}
-            : new IonModification[]{IonModification.M_MINUS, IonModification.FA,
+            : new IonModification[]{IonModification.H_NEG, IonModification.FA,
                 IonModification.NA_2H};
     IonModification[] modifications = new IonModification[]{IonModification.H2O,
         IonModification.H2O_2, IonModification.HFA, IonModification.ACN, IonModification.MEOH};

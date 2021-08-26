@@ -82,6 +82,9 @@ public class SpectraMerging {
   public static final CenterFunction DEFAULT_CENTER_FUNCTION = new CenterFunction(
       DEFAULT_CENTER_MEASURE, DEFAULT_WEIGHTING);
 
+  // for merging IMS-TOF MS1 scans ~Steffen
+  public static final MZTolerance defaultMs1MergeTol = new MZTolerance(0.005, 15);
+
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
   private static Logger logger = Logger.getLogger(SpectraMerging.class.getName());
@@ -357,9 +360,17 @@ public class SpectraMerging {
     return mergedSpectra;
   }
 
+  @Nullable
   public static MergedMassSpectrum extractSummedMobilityScan(@NotNull final ModularFeature f,
       @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
       @Nullable final MemoryMapStorage storage) {
+    return extractSummedMobilityScan(f, tolerance, mobilityRange, Range.all(), storage);
+  }
+
+  @Nullable
+  public static MergedMassSpectrum extractSummedMobilityScan(@NotNull final ModularFeature f,
+      @NotNull final MZTolerance tolerance, @NotNull final Range<Float> mobilityRange,
+      @NotNull final Range<Float> rtRange, @Nullable final MemoryMapStorage storage) {
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return null;
     }
@@ -367,7 +378,8 @@ public class SpectraMerging {
     final List<MobilityScan> scans = series.getMobilograms().stream()
         .<MobilityScan>mapMulti((s, c) -> {
           for (var spectrum : s.getSpectra()) {
-            if (mobilityRange.contains((float) spectrum.getMobility())) {
+            if (mobilityRange.contains((float) spectrum.getMobility()) && rtRange
+                .contains(spectrum.getRetentionTime())) {
               c.accept(spectrum);
             }
           }

@@ -112,6 +112,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 
     final List<ModularFeatureListRow> rowsByMz = flist.modularStream()
         .sorted(Comparator.comparingDouble(ModularFeatureListRow::getAverageMZ)).toList();
+    flist.addRowType(new PossibleIsomerType());
 
     // sort by decreasing intensity
 //    final List<ModularFeatureListRow> rowsByIntensity = flist.modularStream().sorted(
