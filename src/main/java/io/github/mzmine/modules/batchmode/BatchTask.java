@@ -250,19 +250,18 @@ public class BatchTask extends AbstractTask {
     // Update the FeatureListsParameter parameters to reflect the current
     // state of the batch
     for (Parameter<?> p : batchStepParameters.getParameters()) {
-      if (p instanceof FeatureListsParameter) {
-        FeatureListsParameter rdp = (FeatureListsParameter) p;
-        FeatureList createdPls[] = createdFeatureLists.toArray(new FeatureList[0]);
-        final FeatureListsSelection selectedFeatureLists = rdp.getValue();
+      if (p instanceof FeatureListsParameter featureListsParameter) {
+        FeatureList createdFlists[] = createdFeatureLists.toArray(new FeatureList[0]);
+        final FeatureListsSelection selectedFeatureLists = featureListsParameter.getValue();
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
               + "Missing parameter value for " + p.getName());
           return false;
         }
-        selectedFeatureLists.setBatchLastFeatureLists(createdPls);
-      } else if (p instanceof EmbeddedParameterSet omp) {
-        if (!setBatchlastFeatureListsToParamSet(method, omp.getEmbeddedParameters())) {
+        selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
+      } else if (p instanceof EmbeddedParameterSet embedded) {
+        if (!setBatchlastFeatureListsToParamSet(method, embedded.getEmbeddedParameters())) {
           return false;
         }
       }
