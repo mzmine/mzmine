@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
@@ -287,51 +288,57 @@ public class SiriusExportTask extends AbstractTask {
       MergeMode mergeMode = mergeParameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE)
           .getValue();
       MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
-      if (mergeMode != MergeMode.ACROSS_SAMPLES) {
-        for (Feature f : row.getFeatures()) {
-          if (f.getFeatureStatus() == FeatureStatus.DETECTED
-              && f.getMostIntenseFragmentScan() != null) {
-            // write correlation spectrum
-            writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null,
-                msAnnotationsFlags);
-            writeCorrelationSpectrum(writer, row, f.getRawDataFile());
-            if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
-              // merge MS/MS
-              List<MergedSpectrum> spectra = merger.mergeConsecutiveScans(mergeParameters, f);
-              for (MergedSpectrum spectrum : spectra) {
-                writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum
+
+      switch (mergeMode) {
+        case SAME_SAMPLE, CONSECUTIVE_SCANS:
+          for (Feature f : row.getFeatures()) {
+            if (f.getFeatureStatus() == FeatureStatus.DETECTED
+                && f.getMostIntenseFragmentScan() != null
+                && f.getMostIntenseFragmentScan().getNumberOfDataPoints() > 0) {
+              // write correlation spectrum
+              writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null,
+                  msAnnotationsFlags);
+              writeCorrelationSpectrum(writer, row, f.getRawDataFile());
+
+              if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
+                // merge MS/MS
+                List<MergedSpectrum> spectra = merger.mergeConsecutiveScans(mergeParameters, f);
+                for (MergedSpectrum spectrum : spectra) {
+                  writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum
+                      .filterByRelativeNumberOfScans(mergeParameters
+                          .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER)
+                          .getValue()), msAnnotationsFlags);
+                  writeSpectrum(writer, spectrum.data);
+                }
+              } else {
+                MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
                     .filterByRelativeNumberOfScans(mergeParameters
                         .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER)
-                        .getValue()), msAnnotationsFlags);
-                writeSpectrum(writer, spectrum.data);
-              }
-            } else {
-              MergedSpectrum spectrum = merger.mergeFromSameSample(mergeParameters, f)
-                  .filterByRelativeNumberOfScans(mergeParameters
-                      .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue());
-              if (spectrum.data.length > 0) {
-                writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum,
-                    msAnnotationsFlags);
-                writeSpectrum(writer, spectrum.data);
+                        .getValue());
+                if (spectrum.data.length > 0) {
+                  writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum,
+                      msAnnotationsFlags);
+                  writeSpectrum(writer, spectrum.data);
+                }
               }
             }
           }
-        }
-      } else {
-        // write correlation spectrum
-        writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED,
-            -1, null, msAnnotationsFlags);
-        writeCorrelationSpectrum(writer, row, row.getBestFeature().getRawDataFile());
-        // merge everything into one
-        MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
-            .filterByRelativeNumberOfScans(
-                mergeParameters.getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER)
-                    .getValue());
-        if (spectrum.data.length > 0) {
-          writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.MSMS,
-              spectrum, msAnnotationsFlags);
-          writeSpectrum(writer, spectrum.data);
-        }
+
+        case ACROSS_SAMPLES:
+          // write correlation spectrum
+          writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity,
+              MsType.CORRELATED, -1, null, msAnnotationsFlags);
+          writeCorrelationSpectrum(writer, row, row.getBestFeature().getRawDataFile());
+          // merge everything into one
+          MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
+              .filterByRelativeNumberOfScans(
+                  mergeParameters.getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER)
+                      .getValue());
+          if (spectrum.data.length > 0) {
+            writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.MSMS,
+                spectrum, msAnnotationsFlags);
+            writeSpectrum(writer, spectrum.data);
+          }
       }
     } else {
       // No merging
@@ -367,7 +374,6 @@ public class SiriusExportTask extends AbstractTask {
           writeSpectrum(writer, ms2MassList.getDataPoints());
         }
       }
-
     }
     nextID++;
     return true;
@@ -546,8 +552,8 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
-   * Generetes a spectrum of all correlated features, such as isotope patterns and other adducts
-   * assigned via IIN.
+   * Generetes a spectrum of all correlated features, such as isotope patterns and adducts assigned
+   * via IIN.
    */
   @Nullable
   private List<DataPoint> generateCorrelationSpectrum(@NotNull ModularFeatureListRow row,
@@ -555,14 +561,20 @@ public class SiriusExportTask extends AbstractTask {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
     List<DataPoint> dps = new ArrayList<>();
 
-    //add isotope pattern
+    final IonIdentity identity = row.getBestIonIdentity();
     final IsotopePattern ip = row.getFeature(file).getIsotopePattern();
+
+    //add isotope pattern
     if (ip != null) {
-      dps.addAll(Arrays.asList(ScanUtils.extractDataPoints(ip)));
+      for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
+        // make sure to not export the molecular ion twice.
+        if (Double.compare(row.getAverageMZ(), ip.getMzValue(i)) != 0 && identity != null) {
+          dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
+        }
+      }
     }
 
     // add correlated ions
-    IonIdentity identity = row.getBestIonIdentity();
     if (identity != null) {
       IonNetwork network = identity.getNetwork();
       for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
