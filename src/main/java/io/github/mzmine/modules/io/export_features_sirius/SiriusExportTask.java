@@ -39,6 +39,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -69,7 +70,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -295,10 +295,9 @@ public class SiriusExportTask extends AbstractTask {
             if (f.getFeatureStatus() == FeatureStatus.DETECTED
                 && f.getMostIntenseFragmentScan() != null
                 && f.getMostIntenseFragmentScan().getNumberOfDataPoints() > 0) {
+
               // write correlation spectrum
-              writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null,
-                  msAnnotationsFlags);
-              writeCorrelationSpectrum(writer, row, f.getRawDataFile());
+              exportCorrelationSpectrum(row, writer, polarity, msAnnotationsFlags, f);
 
               if (mergeMode == MergeMode.CONSECUTIVE_SCANS) {
                 // merge MS/MS
@@ -326,9 +325,8 @@ public class SiriusExportTask extends AbstractTask {
 
         case ACROSS_SAMPLES:
           // write correlation spectrum
-          writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity,
-              MsType.CORRELATED, -1, null, msAnnotationsFlags);
-          writeCorrelationSpectrum(writer, row, row.getBestFeature().getRawDataFile());
+          exportCorrelationSpectrum(row, writer, polarity, msAnnotationsFlags,
+              row.getBestFeature());
           // merge everything into one
           MergedSpectrum spectrum = merger.mergeAcrossSamples(mergeParameters, row)
               .filterByRelativeNumberOfScans(
@@ -358,9 +356,7 @@ public class SiriusExportTask extends AbstractTask {
       writeSpectrum(writer, ms1MassList.getDataPoints());
 
       // correlated ms1 features
-      writeHeader(writer, row, row.getBestFeature().getRawDataFile(), polarity, MsType.CORRELATED,
-          -1, null, msAnnotationsFlags);
-      writeCorrelationSpectrum(writer, row, row.getBestFeature().getRawDataFile());
+      exportCorrelationSpectrum(row, writer, polarity, msAnnotationsFlags, row.getBestFeature());
 
       for (Feature f : row.getFeatures()) {
         for (Scan ms2scan : f.getAllMS2FragmentScans()) {
@@ -377,6 +373,15 @@ public class SiriusExportTask extends AbstractTask {
     }
     nextID++;
     return true;
+  }
+
+  private void exportCorrelationSpectrum(FeatureListRow row, BufferedWriter writer, char polarity,
+      String msAnnotationsFlags, Feature f) throws IOException {
+    if (row.getGroup() != null || f.getIsotopePattern() != null) {
+      writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.CORRELATED, -1, null,
+          msAnnotationsFlags);
+      writeCorrelationSpectrum(writer, row, f.getRawDataFile());
+    }
   }
 
 
@@ -552,42 +557,73 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   /**
-   * Generetes a spectrum of all correlated features, such as isotope patterns and adducts assigned
-   * via IIN.
+   * Generates a spectrum of all correlated features, such as isotope patterns and adducts assigned
+   * via IIN (+ their isotopes).
    */
   @Nullable
   private List<DataPoint> generateCorrelationSpectrum(@NotNull ModularFeatureListRow row,
       @Nullable RawDataFile file) {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
-    List<DataPoint> dps = new ArrayList<>();
+    final List<DataPoint> dps = new ArrayList<>();
 
+    final ModularFeature feature = row.getFeature(file);
+    if (feature == null) {
+      return null;
+    }
+
+    final RowGroup group = row.getGroup();
     final IonIdentity identity = row.getBestIonIdentity();
-    final IsotopePattern ip = row.getFeature(file).getIsotopePattern();
+    final IsotopePattern ip = feature.getIsotopePattern();
 
-    //add isotope pattern
+    if (group == null && identity != null) {
+      throw new IllegalStateException("Cannot have an ion identity without a row group.");
+    }
+
+    //add isotope pattern of this feature
+    addIsotopePattern(feature, dps, identity, ip);
+
+    if (group != null) {
+      final IonNetwork network = identity != null ? identity.getNetwork() : null;
+      for (final FeatureListRow groupedRow : group.getRows()) {
+        // only write intensities of the same file, otherwise intensities will be distorted
+        final Feature sameFileFeature = groupedRow.getFeature(file);
+        if (sameFileFeature == null
+            || sameFileFeature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
+
+        if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
+          // if we have an annotation, export the annotation
+          if (network != null && network.get(groupedRow) != null) {
+            dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
+                network.get(groupedRow).getAdduct()));
+          } else {
+            dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
+          }
+          // add isotope pattern of correlated ions.
+          addIsotopePattern(sameFileFeature, dps, groupedRow.getBestIonIdentity(),
+              sameFileFeature.getIsotopePattern());
+        }
+      }
+    }
+
+    dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    return dps.isEmpty() ? null : dps;
+  }
+
+  /**
+   * Adds the isotopic peaks of this row to the list of data points.
+   */
+  private void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
+      @Nullable IonIdentity identity, @Nullable IsotopePattern ip) {
     if (ip != null) {
       for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
-        // make sure to not export the molecular ion twice.
-        if (Double.compare(row.getAverageMZ(), ip.getMzValue(i)) != 0 && identity != null) {
+        // make sure to not export the molecular ion twice. Mass might change a bit due to smoothing
+        if (mzTol.checkWithinTolerance(feature.getMZ(), ip.getMzValue(i)) && identity != null) {
           dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
         }
       }
     }
-
-    // add correlated ions
-    if (identity != null) {
-      IonNetwork network = identity.getNetwork();
-      for (Entry<FeatureListRow, IonIdentity> entry : network.entrySet()) {
-        Feature sameFileFeature = entry.getKey().getFeature(file);
-        // only write intensities of the same file
-        if (sameFileFeature != null) {
-          dps.add(new AnnotatedDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight(),
-              entry.getValue().getAdduct()));
-        }
-      }
-    }
-    dps.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
-    return dps.isEmpty() ? null : dps;
   }
 
   private void writeSpectrum(BufferedWriter writer, DataPoint[] spectrum) throws IOException {
