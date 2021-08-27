@@ -24,8 +24,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.Window;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors.AsymmetryCorrector;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.correctors.LocMinLoessCorrector;
@@ -95,7 +93,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<BaselineCorrector> BASELINE_CORRECTORS =
       new ModuleComboParameter<BaselineCorrector>("Correction method",
-          "Alternative baseline correction methods", baselineCorrectors);
+          "Alternative baseline correction methods", baselineCorrectors, baselineCorrectors[0]);
 
   /**
    * Apply in bins.

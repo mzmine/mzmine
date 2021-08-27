@@ -57,6 +57,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -83,7 +84,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<Class<? extends MZmineModule>, ParameterSet>();
     preferences = new MZminePreferences();
-    lastProjects = new FileNameListSilentParameter("Last projets");
+    lastProjects = new FileNameListSilentParameter("Last projects");
     globalEncrypter = new EncryptionKeyParameter();
     standardChartTheme = new EStandardChartTheme("default");
   }
@@ -96,14 +97,25 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     return globalEncrypter.getValue();
   }
 
+  /**
+   * Returns null if the given module does not exist
+   */
   @Override
-  public ParameterSet getModuleParameters(Class<? extends MZmineModule> moduleClass) {
+  public @Nullable ParameterSet getModuleParameters(Class<? extends MZmineModule> moduleClass) {
     ParameterSet parameters = moduleParameters.get(moduleClass);
     if (parameters == null) {
       // Create an instance of parameter set
       MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
+      if (moduleInstance == null) {
+        logger.log(Level.WARNING,
+            "Module " + moduleClass + " does not exist");
+        return null;
+      }
+
       final Class<? extends ParameterSet> parameterSetClass = moduleInstance.getParameterSetClass();
       if (parameterSetClass == null) {
+        logger.log(Level.WARNING,
+            "Module " + moduleClass + " does not provide any ParameterSet class");
         return null;
       }
 
@@ -256,7 +268,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
           ParameterSet moduleParameters = getModuleParameters(moduleClass);
           moduleParameters.loadValuesFromXML(moduleElement);
-        } catch (Exception e) {
+        } catch (Exception | NoClassDefFoundError e) {
           logger.log(Level.WARNING, "Failed to load configuration for module " + moduleClassName,
               e);
         }

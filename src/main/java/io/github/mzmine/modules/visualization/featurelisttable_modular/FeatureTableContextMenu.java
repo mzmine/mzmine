@@ -62,7 +62,6 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -310,7 +309,7 @@ public class FeatureTableContextMenu extends ContextMenu {
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
       if (fwhm != null) {
         MergedMassSpectrum spectrum = SpectraMerging.extractSummedMobilityScan(selectedFeature,
-            new MZTolerance(0.01, 15), fwhm, null);
+            SpectraMerging.defaultMs1MergeTol, fwhm, null);
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(), spectrum,
             selectedFeature);
       }

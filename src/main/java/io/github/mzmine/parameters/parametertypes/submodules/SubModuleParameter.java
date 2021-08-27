@@ -22,6 +22,7 @@ package io.github.mzmine.parameters.parametertypes.submodules;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import org.w3c.dom.Element;
 
 import java.util.Collection;
@@ -31,7 +32,7 @@ import java.util.Collection;
  * 
  */
 public class SubModuleParameter<SUB extends ParameterSet>
-    implements UserParameter<Boolean, SubModuleComponent> {
+    implements UserParameter<Boolean, SubModuleComponent>, EmbeddedParameterSet {
 
   private String name, description;
   private SUB embeddedParameters;

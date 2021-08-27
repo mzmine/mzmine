@@ -100,7 +100,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
       new ModuleComboParameter<>("Similarity",
           "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS);
+          SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
   /**
    * for SelectedRowsParameters

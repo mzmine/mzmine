@@ -26,11 +26,9 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -40,7 +38,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import java.awt.Window;
 import java.util.Collection;
-import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 
 /**
@@ -59,13 +56,13 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       "Tolerance to match spectral signals in the query and library spectra (usually higher than precursor m/z tolerance (if used))",
       0.0015, 10);
 
-  public static final OptionalParameter<DoubleParameter> usePrecursorMZ =
-      new OptionalParameter<>(new DoubleParameter("Use precursor m/z",
+  public static final OptionalParameter<DoubleParameter> usePrecursorMZ = new OptionalParameter<>(
+      new DoubleParameter("Use precursor m/z",
           "Use precursor m/z as a filter. Precursor m/z of library entry and this scan need to be within m/z tolerance. Entries without precursor m/z are skipped.",
           MZmineCore.getConfiguration().getMZFormat(), 0d));
-  public static final MZToleranceParameter mzTolerancePrecursor =
-      new MZToleranceParameter("Precursor m/z tolerance",
-          "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
+  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
+      5);
 
 
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
@@ -80,24 +77,23 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       "Minimum number of matched signals in spectra and spectral library entry (within mz tolerance)",
       20);
 
-  public static final OptionalParameter<IntegerParameter> needsIsotopePattern =
-      new OptionalParameter<>(new IntegerParameter("Min matched isotope signals",
+  public static final OptionalParameter<IntegerParameter> needsIsotopePattern = new OptionalParameter<>(
+      new IntegerParameter("Min matched isotope signals",
           "Useful for scans and libraries with isotope pattern. Minimum matched signals of 13C isotopes, distance of H and 2H or Cl isotopes. Can not be applied with deisotoping",
           3, 0, 1000), false);
 
-  public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
-      new OptionalModuleParameter<>("13C deisotoping",
-          "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
+  public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(
+      "13C deisotoping", "Removes 13C isotope signals from mass lists",
+      new MassListDeisotoperParameters(), true);
 
   public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
       "Crop spectra to m/z overlap",
       "Crop query and library spectra to overlapping m/z range (+- spectra m/z tolerance). This is helptful if spectra were acquired with different fragmentation energies / methods.",
       true);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
-      new ModuleComboParameter<>("Similarity",
-          "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS);
+  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+      "Similarity", "Algorithm to calculate similarity and filter matches",
+      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
     super(new Parameter[]{dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, removePrecursor,
@@ -126,7 +122,6 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
-
 
     CheckBox usePreComp = dialog.getComponentForParameter(usePrecursorMZ).getCheckBox();
     CheckBox cRemovePrec = dialog.getComponentForParameter(removePrecursor);

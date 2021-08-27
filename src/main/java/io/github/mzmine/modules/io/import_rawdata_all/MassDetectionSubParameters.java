@@ -38,13 +38,13 @@ public class MassDetectionSubParameters extends SimpleParameterSet {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-          new RecursiveMassDetector(), new WaveletMassDetector()};
+  public static final MassDetector massDetectors[] = {new CentroidMassDetector(),
+      new ExactMassDetector(), new LocalMaxMassDetector(), new RecursiveMassDetector(),
+      new WaveletMassDetector()};
 
-  public static final ModuleComboParameter<MassDetector> massDetector =
-      new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+  public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
+      "Mass detector", "Algorithm to use for mass detection and its parameters", massDetectors,
+      massDetectors[0]);
 
   public MassDetectionSubParameters() {
     super(new Parameter[]{massDetector});

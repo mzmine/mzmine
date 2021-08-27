@@ -31,7 +31,7 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<OnlineDatabases> DATABASE =
       new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
-          OnlineDatabases.values());
+          OnlineDatabases.values(), OnlineDatabases.PubChem);
 
   public static final NeutralMassParameter NEUTRAL_MASS =
       new NeutralMassParameter("Neutral mass", "Value to use in the search query");

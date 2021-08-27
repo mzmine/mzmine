@@ -33,8 +33,13 @@ public class CentroidData implements CentroidCallback {
       Pointer userData) {
     precursorId = precursor_id;
     numPeaks = num_peaks;
-    mzs = pMz.getDoubleArray(0, num_peaks);
-    intensities = pIntensites.getFloatArray(0, num_peaks);
+    if(num_peaks != 0) {
+      mzs = pMz.getDoubleArray(0, num_peaks);
+      intensities = pIntensites.getFloatArray(0, num_peaks);
+    } else {
+      mzs = new double[0];
+      intensities = new float[0];
+    }
   }
 
   /**
