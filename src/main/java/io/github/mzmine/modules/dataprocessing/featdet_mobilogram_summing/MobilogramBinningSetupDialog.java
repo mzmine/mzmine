@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -87,8 +86,8 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
             fBox.setItems(
-                (ObservableList<ModularFeature>) (ObservableList<? extends Feature>) newValue
-                    .getFeatures(newValue.getRawDataFile(0)));
+                FXCollections.observableArrayList(newValue
+                    .getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }
