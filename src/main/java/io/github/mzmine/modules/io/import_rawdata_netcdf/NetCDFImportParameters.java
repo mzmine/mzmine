@@ -30,7 +30,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class NetCDFImportParameters extends SimpleParameterSet {
 
   private static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("netCDF files", "*.cdf", "*.netcdf", "*.nc"), //
+      new ExtensionFilter("netCDF files", "*.cdf", "*.CDF", "*.netcdf", "*.nc"), //
       new ExtensionFilter("All files", "*.*") //
   );
 
