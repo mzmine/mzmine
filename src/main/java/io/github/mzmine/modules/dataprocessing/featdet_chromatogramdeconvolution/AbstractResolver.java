@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -42,6 +43,15 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Abstract implementation of a {{@link Resolver}}. Does the convenience for every implementation,
+ * such as processing the parameters and determining, which dimension shall be resolved. Accepts the
+ * ranges returned by {@link Resolver#resolveRt(IntensitySeries)} and {@link
+ * Resolver#resolveMobility(IntensitySeries)} and splits the given {@link IonTimeSeries} into
+ * individual features.
+ *
+ * @author SteffenHeu https://github.com/SteffenHeu
+ */
 public abstract class AbstractResolver implements Resolver {
 
   protected final ParameterSet generalParameters;
@@ -143,7 +153,8 @@ public abstract class AbstractResolver implements Resolver {
     }
   }
 
-  public BinningMobilogramDataAccess getMobilogramDataAccess() {
+  @NotNull
+  protected BinningMobilogramDataAccess getMobilogramDataAccess() {
     if (mobilogramDataAccess != null) {
       return mobilogramDataAccess;
     }

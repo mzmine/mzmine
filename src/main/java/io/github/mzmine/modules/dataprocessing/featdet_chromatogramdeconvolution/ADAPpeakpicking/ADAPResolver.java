@@ -33,27 +33,15 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.PeakInfo;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.TimeSeries;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.IonMobilityUtils;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
-import io.github.mzmine.util.R.RSessionWrapperException;
-import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,7 +54,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
  */
-public class ADAPResolver extends AbstractResolver implements FeatureResolver {
+public class ADAPResolver extends AbstractResolver /*implements FeatureResolver*/ {
 
   private final ParameterSet parameters;
   double[] xBuffer;
@@ -75,11 +63,6 @@ public class ADAPResolver extends AbstractResolver implements FeatureResolver {
   protected ADAPResolver(@NotNull ParameterSet parameters, @NotNull ModularFeatureList flist) {
     super(parameters, flist);
     this.parameters = parameters;
-  }
-
-  @Override
-  public Resolver newInstance(ParameterSet param, ModularFeatureList flist) {
-    return new ADAPResolver(parameters, flist);
   }
 
   @Override
@@ -96,7 +79,7 @@ public class ADAPResolver extends AbstractResolver implements FeatureResolver {
   // Minutes <-> seconds.
   private static final double SECONDS_PER_MINUTE = 60.0;
 
-  @NotNull
+ /* @NotNull
   @Override
   public String getName() {
 
@@ -259,7 +242,7 @@ public class ADAPResolver extends AbstractResolver implements FeatureResolver {
     }
 
     return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
-  }
+  }*/
 
   @Override
   public @NotNull <T extends IntensitySeries & TimeSeries> List<Range<Double>> resolveRt(

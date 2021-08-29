@@ -91,7 +91,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   @Nullable
   @Override
-  public Resolver getXYResolver(ParameterSet parameters, ModularFeatureList flist) {
+  public Resolver getResolver(ParameterSet parameters, ModularFeatureList flist) {
     return new MinimumSearchFeatureResolver(
         parameters, flist);//new MinimumSearchFeatureResolver(parameters);
   }

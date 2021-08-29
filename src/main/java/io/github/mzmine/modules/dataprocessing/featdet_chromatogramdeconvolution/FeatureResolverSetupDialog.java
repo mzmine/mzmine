@@ -167,7 +167,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
     if (resolver == null) {
       resolver = ((GeneralResolverParameters) parameterSet)
-          .getXYResolver(parameterSet, flistBox.getValue());
+          .getResolver(parameterSet, flistBox.getValue());
     }
     if (resolver != null) {
 
@@ -247,7 +247,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     super.parametersChanged();
     updateParameterSetFromComponents();
     resolver = ((GeneralResolverParameters) parameterSet)
-        .getXYResolver(parameterSet, flistBox.getValue());
+        .getResolver(parameterSet, flistBox.getValue());
 
     List<String> errors = new ArrayList<>();
     if (parameterSet.checkParameterValues(errors)) {

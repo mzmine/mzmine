@@ -24,31 +24,45 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.TimeSeries;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Resolves a {@link IntensitySeries}-and-{@link TimeSeries} in time dimension and/or a {@link
+ * IntensitySeries}-and-{@link MobilitySeries} in mobility dimension.
+ *
+ * @author SteffenHeu https://github.com/SteffenHeu
+ */
 public interface Resolver {
 
   /**
-   * Creates a new resolver with the given parameters. A single instance is not thread safe.
+   * Resolves a series in time dimension.
    *
-   * @param param The parameter set.
-   * @param flist The feature list this resolver will be used for.
-   * @return The resolver or null if it could not be initialised.
+   * @param series The series.
+   * @return A list of time ranges.
    */
-  public Resolver newInstance(ParameterSet param, ModularFeatureList flist);
-
   @NotNull <T extends IntensitySeries & TimeSeries> List<Range<Double>> resolveRt(
       @NotNull final T series);
 
+  /**
+   * Resolves a series in mobility dimension.
+   *
+   * @param series The series.
+   * @return A list of mobility ranges.
+   */
   @NotNull <T extends IntensitySeries & MobilitySeries> List<Range<Double>> resolveMobility(
       @NotNull final T series);
 
+  /**
+   * Resolves a series (EICs) into individual series (features).
+   *
+   * @param series  The EIC
+   * @param storage A storage for the resolved features.
+   * @return A list of resolved series.
+   */
   @NotNull <T extends IonTimeSeries<? extends Scan>> List<T> resolve(@NotNull T series,
       @Nullable MemoryMapStorage storage);
 

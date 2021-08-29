@@ -120,9 +120,8 @@ public class FeatureResolverTask extends AbstractTask {
             "Feature resolving can only be performed on feature lists with a single raw data file");
       } else {
         try {
-          // Peak resolver.
-          if (((GeneralResolverParameters) parameters).getXYResolver(parameters,
-              (ModularFeatureList) originalPeakList) != null) {
+          if (((GeneralResolverParameters) parameters)
+              .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
           } else {
             legacyResolve();
@@ -309,7 +308,7 @@ public class FeatureResolverTask extends AbstractTask {
 
   /**
    * Used for compatibility with old {@link FeatureResolver}s. New methods should implement {@link
-   * XYResolver}. See {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
+   * Resolver}. See {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
    * as an example implementation.
    *
    * @throws RSessionWrapperException
@@ -339,17 +338,9 @@ public class FeatureResolverTask extends AbstractTask {
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
     @NotNull final Resolver resolver = ((GeneralResolverParameters) parameters)
-        .getXYResolver(parameters, originalFeatureList);
+        .getResolver(parameters, originalFeatureList);
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
-
-//    final ResolvingDimension dimension = parameters
-//        .getParameter(GeneralResolverParameters.dimension).getValue();
-    /*final BinningMobilogramDataAccess mobilogramBinning =
-        dataFile instanceof IMSRawDataFile && originalFeatureList.getFeatureTypes()
-            .containsKey(MobilityType.class) ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
-            BinningMobilogramDataAccess.getPreviousBinningWith(originalFeatureList,
-                ((IMSRawDataFile) dataFile).getMobilityType())) : null;*/
 
     final FeatureDataAccess access = EfficientDataAccess
         .of(originalFeatureList, EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
@@ -397,7 +388,6 @@ public class FeatureResolverTask extends AbstractTask {
 
   @Override
   public void cancel() {
-
     super.cancel();
     // Turn off R instance, if already existing.
     try {
@@ -409,6 +399,7 @@ public class FeatureResolverTask extends AbstractTask {
     }
   }
 
+  @Deprecated
   private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList,
       RSessionWrapper rSession) throws RSessionWrapperException {
 

@@ -99,11 +99,11 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
 
   @Override
   public FeatureResolver getResolver() {
-    return null;
+    throw new UnsupportedOperationException("Legacy resolving is not supported by ADAPResolver.");
   }
 
   @Override
-  public @Nullable Resolver getXYResolver(ParameterSet parameterSet, ModularFeatureList flist) {
+  public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return new ADAPResolver(parameterSet, flist);
   }
 }
