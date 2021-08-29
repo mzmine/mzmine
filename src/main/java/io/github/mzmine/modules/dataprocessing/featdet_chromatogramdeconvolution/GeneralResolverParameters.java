@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -69,7 +70,7 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public abstract FeatureResolver getResolver();
 
   @Nullable
-  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameterSet) {
+  public Resolver getXYResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return null;
   }
 }

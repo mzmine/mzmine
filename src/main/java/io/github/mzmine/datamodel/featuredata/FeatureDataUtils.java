@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
@@ -50,12 +51,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureDataUtils {
 
-  private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
-
   /**
    * The default {@link CenterMeasure} for weighting and calculating feature m/z values.
    */
   public static final CenterMeasure DEFAULT_CENTER_MEASURE = CenterMeasure.AVG;
+  private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
 
   /**
    * The Rt range of the series.
@@ -260,11 +260,12 @@ public class FeatureDataUtils {
     feature.setRT(mostIntenseSpectrum != null ? mostIntenseSpectrum.getRetentionTime() : Float.NaN);
     feature.setMZ(calculateMz(featureData, cm));
 
-    if (featureData instanceof IonMobilogramTimeSeries) {
-      final SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
-          .getSummedMobilogram();
+    if (featureData instanceof IonMobilogramTimeSeries imts) {
+      final SummedIntensityMobilitySeries summedMobilogram = imts.getSummedMobilogram();
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
+      feature
+          .setMobilityUnit(((IMSRawDataFile) imts.getSpectrum(0).getDataFile()).getMobilityType());
     }
 
     if (calcQuality) {

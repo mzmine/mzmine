@@ -379,8 +379,11 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
   @Override
   public double[] getIntensityValues(double[] dst) {
-    throw new UnsupportedOperationException(
-        "This data access is designed to loop over intensities/mobilities.");
+    assert dst.length >= getNumberOfValues();
+    System.arraycopy(intensities, 0, dst, 0, getNumberOfValues());
+//    throw new UnsupportedOperationException(
+//        "This data access is designed to loop over intensities/mobilities.");
+    return dst;
   }
 
   @Override
@@ -396,6 +399,11 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   @Override
   public double getMobility(int index) {
     return mobilities[index];
+  }
+
+  public void getMobilityValues(@NotNull double[] dst) {
+    assert dst.length >= mobilities.length;
+    System.arraycopy(mobilities, 0, dst, 0, mobilities.length);
   }
 
   public IMSRawDataFile getDataFile() {

@@ -27,21 +27,25 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
+import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedValue;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.XYResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,22 +53,19 @@ import org.jetbrains.annotations.NotNull;
  * a local minimum even at a given retention time range, it is considered a border between two
  * peaks.
  */
-public class MinimumSearchFeatureResolver implements FeatureResolver,
-    XYResolver<Double, Double, double[], double[]> {
+public class MinimumSearchFeatureResolver extends AbstractResolver implements FeatureResolver {
 
-  private final ParameterSet parameters;
-  private final double chromThreshold;
-  private final int minDataPoints;
   final Range<Double> xRange;
   final double searchXWidth;
   final double minRatio;
+  private final ParameterSet parameters;
+  private final double chromThreshold;
+  private final int minDataPoints;
+  double[] xBuffer;
+  double[] yBuffer;
 
-  @Override
-  public Class<? extends MZmineProcessingModule> getModuleClass() {
-    return MinimumSearchFeatureResolverModule.class;
-  }
-
-  public MinimumSearchFeatureResolver(ParameterSet parameterSet) {
+  public MinimumSearchFeatureResolver(ParameterSet parameterSet, ModularFeatureList flist) {
+    super(parameterSet, flist);
     this.parameters = parameterSet;
     chromThreshold = parameters.getParameter(CHROMATOGRAPHIC_THRESHOLD_LEVEL).getValue();
     minDataPoints = parameters.getParameter(MIN_NUMBER_OF_DATAPOINTS).getValue();
@@ -74,8 +75,12 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
   }
 
   @Override
-  public @NotNull
-  String getName() {
+  public Class<? extends MZmineProcessingModule> getModuleClass() {
+    return MinimumSearchFeatureResolverModule.class;
+  }
+
+  @Override
+  public @NotNull String getName() {
     return "Local minimum search";
   }
 
@@ -88,8 +93,7 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
   }
 
   @Override
-  public @NotNull
-  Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return MinimumSearchFeatureResolverParameters.class;
   }
 
@@ -120,7 +124,7 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
    *          they fall below the chromatographicThresholdLevel.
    * @return Collection of a Set of x values for each resolved peak
    */
-  @Override
+  /*@Override
   public Set<List<ResolvedValue<Double, Double>>> resolve(double[] x, double[] y, int totalScans) {
     if (x.length != y.length) {
       throw new AssertionError("Length of x, y and indices array does not match.");
@@ -152,8 +156,7 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
     // Current region is a region between two minima, representing a
     // candidate for a resolved peak.
     startSearch:
-    for (int currentRegionStart = 0; currentRegionStart < lastScan
-        - 2; currentRegionStart++) {
+    for (int currentRegionStart = 0; currentRegionStart < lastScan - 2; currentRegionStart++) {
 
       // Find at least two consecutive non-zero data points
       if (y[currentRegionStart] == 0.0 || y[currentRegionStart + 1] == 0.0) {
@@ -163,8 +166,8 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
       double currentRegionHeight = y[currentRegionStart];
 
       endSearch:
-      for (int currentRegionEnd =
-          currentRegionStart + 1; currentRegionEnd < valueCount; currentRegionEnd++) {
+      for (int currentRegionEnd = currentRegionStart + 1; currentRegionEnd < valueCount;
+          currentRegionEnd++) {
 
         // Update height of current region.
         currentRegionHeight = Math.max(currentRegionHeight, y[currentRegionEnd]);
@@ -180,10 +183,10 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
           // inclusive start and end values
           final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
           // Check the shape of the peak.
-          if (numberOfDataPoints >= minDataPoints &&
-              currentRegionHeight >= minHeight && currentRegionHeight >= peakMinLeft * minRatio
-              && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
-              x[currentRegionEnd] - x[currentRegionStart])) {
+          if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
+              && currentRegionHeight >= peakMinLeft * minRatio
+              && currentRegionHeight >= peakMinRight * minRatio && xRange
+              .contains(x[currentRegionEnd] - x[currentRegionStart])) {
 
             List<ResolvedValue<Double, Double>> resolvedValues = new ArrayList<>();
             for (int i = currentRegionStart; i <= currentRegionEnd; i++) {
@@ -201,13 +204,11 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
         }
 
         // Minimum duration of peak must be at least searchXRange.
-        if (x[currentRegionEnd]
-            - x[currentRegionStart] >= searchXWidth) {
+        if (x[currentRegionEnd] - x[currentRegionStart] >= searchXWidth) {
 
           // Set the RT range to check
-          final Range<Double> checkRange =
-              Range.closed(x[currentRegionEnd] - searchXWidth,
-                  x[currentRegionEnd] + searchXWidth);
+          final Range<Double> checkRange = Range
+              .closed(x[currentRegionEnd] - searchXWidth, x[currentRegionEnd] + searchXWidth);
 
           // Search if there is lower data point on the left from
           // current peak i.
@@ -249,14 +250,199 @@ public class MinimumSearchFeatureResolver implements FeatureResolver,
             // Check the shape of the peak.
             if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
                 && currentRegionHeight >= peakMinLeft * minRatio
-                && currentRegionHeight >= peakMinRight * minRatio && xRange.contains(
-                x[currentRegionEnd] - x[currentRegionStart])) {
+                && currentRegionHeight >= peakMinRight * minRatio && xRange
+                .contains(x[currentRegionEnd] - x[currentRegionStart])) {
 
               List<ResolvedValue<Double, Double>> resolvedValues = new ArrayList<>();
               for (int i = currentRegionStart; i <= currentRegionEnd; i++) {
                 resolvedValues.add(new ResolvedValue<>(x[i], y[i]));
               }
               resolved.add(resolvedValues);
+            }
+
+            // Set the next region start to current region end-1
+            // because it will be immediately
+            // increased +1 as we continue the for-cycle.
+            currentRegionStart = currentRegionEnd - 1;
+            continue startSearch;
+          }
+        }
+      }
+    }
+    return resolved;
+  }*/
+
+  @Override
+  public Resolver newInstance(ParameterSet param, ModularFeatureList flist) {
+    return new MinimumSearchFeatureResolver(param, flist);
+  }
+
+  @Override
+  public <T extends IntensitySeries & TimeSeries> @NotNull List<Range<Double>> resolveRt(
+      @NotNull T series) {
+    final int numValues = series.getNumberOfValues();
+    if (xBuffer == null || xBuffer.length < numValues) {
+      xBuffer = new double[numValues];
+      yBuffer = new double[numValues];
+    }
+
+    Arrays.fill(xBuffer, 0d);
+    for(int i = 0; i < numValues; i++) {
+      xBuffer[i] = series.getRetentionTime(i);
+    }
+    Arrays.fill(yBuffer, 0d);
+    series.getIntensityValues(yBuffer);
+
+    return resolve(xBuffer, yBuffer);
+  }
+
+  @Override
+  public <T extends IntensitySeries & MobilitySeries> @NotNull List<Range<Double>> resolveMobility(
+      @NotNull T series) {
+    final int numValues = series.getNumberOfValues();
+    if (xBuffer == null || xBuffer.length < numValues) {
+      xBuffer = new double[numValues];
+      yBuffer = new double[numValues];
+    }
+
+    Arrays.fill(xBuffer, 0d);
+    IonMobilityUtils.extractMobilities(series, xBuffer);
+    Arrays.fill(yBuffer, 0d);
+    series.getIntensityValues(yBuffer);
+    return resolve(xBuffer, yBuffer);
+  }
+
+  /**
+   * @param x domain values of the data to be resolved
+   * @param y range values of the data to be resolved. Values have to be <b>strictly monotonically
+   *          increasing</b> (e.g. RT or mobility). The values inside this array are set to 0 if
+   *          they fall below the chromatographicThresholdLevel.
+   * @return List of x values for each resolved peak
+   */
+  public List<Range<Double>> resolve(double[] x, double[] y) {
+    if (x.length != y.length) {
+      throw new AssertionError("Length of x, y and indices array does not match.");
+    }
+
+    // Important: empty scans need to be represented by a 0!
+    final int valueCount = x.length;
+
+    List<Range<Double>> resolved = new ArrayList<>();
+
+    final int lastScan = valueCount - 1;
+    assert valueCount > 0;
+
+    // First, remove all data points below chromatographic threshold.
+    final double chromatographicThresholdLevel = MathUtils.calcQuantile(y, chromThreshold);
+    double maxY = 0;
+    for (int i = 0; i < y.length; i++) {
+      if (y[i] < chromatographicThresholdLevel) {
+        y[i] = 0.0;
+      }
+      if (y[i] > maxY) {
+        maxY = y[i];
+      }
+    }
+
+    final double minHeight = Math.max(parameters.getParameter(MIN_ABSOLUTE_HEIGHT).getValue(),
+        parameters.getParameter(MIN_RELATIVE_HEIGHT).getValue() * maxY);
+
+    // Current region is a region between two minima, representing a
+    // candidate for a resolved peak.
+    startSearch:
+    for (int currentRegionStart = 0; currentRegionStart < lastScan - 2; currentRegionStart++) {
+
+      // Find at least two consecutive non-zero data points
+      if (y[currentRegionStart] == 0.0 || y[currentRegionStart + 1] == 0.0) {
+        continue;
+      }
+
+      double currentRegionHeight = y[currentRegionStart];
+
+      endSearch:
+      for (int currentRegionEnd = currentRegionStart + 1; currentRegionEnd < valueCount;
+          currentRegionEnd++) {
+
+        // Update height of current region.
+        currentRegionHeight = Math.max(currentRegionHeight, y[currentRegionEnd]);
+
+        // If we reached the end, or if the next intensity is 0, we
+        // have to stop here.
+        if (currentRegionEnd == lastScan || y[currentRegionEnd + 1] == 0.0) {
+
+          // Find the intensity at the sides (lowest data points).
+          final double peakMinLeft = y[currentRegionStart];
+          final double peakMinRight = y[currentRegionEnd];
+
+          // inclusive start and end values
+          final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
+          // Check the shape of the peak.
+          if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
+              && currentRegionHeight >= peakMinLeft * minRatio
+              && currentRegionHeight >= peakMinRight * minRatio && xRange
+              .contains(x[currentRegionEnd] - x[currentRegionStart])) {
+
+            resolved.add(Range.closed(x[currentRegionStart], x[currentRegionEnd]));
+          }
+
+          // Set the next region start to current region end - 1
+          // because it will be immediately
+          // increased +1 as we continue the for-cycle.
+          currentRegionStart = currentRegionEnd - 1;
+          continue startSearch;
+        }
+
+        // Minimum duration of peak must be at least searchXRange.
+        if (x[currentRegionEnd] - x[currentRegionStart] >= searchXWidth) {
+
+          // Set the RT range to check
+          final Range<Double> checkRange = Range
+              .closed(x[currentRegionEnd] - searchXWidth, x[currentRegionEnd] + searchXWidth);
+
+          // Search if there is lower data point on the left from
+          // current peak i.
+          for (int i = currentRegionEnd - 1; i > 0; i--) {
+
+            if (!checkRange.contains(x[i])) {
+              break;
+            }
+
+            if (y[i] < y[currentRegionEnd]) {
+
+              continue endSearch;
+            }
+          }
+
+          // Search on the right from current peak i.
+          for (int i = currentRegionEnd + 1; i < valueCount; i++) {
+
+            if (!checkRange.contains(x[i])) {
+              break;
+            }
+
+            if (y[i] < y[currentRegionEnd]) {
+
+              continue endSearch;
+            }
+          }
+
+          // Find the intensity at the sides (lowest data points).
+          final double peakMinLeft = y[currentRegionStart];
+          final double peakMinRight = y[currentRegionEnd];
+
+          // If we have reached a minimum which is non-zero, but
+          // the peak shape would not fulfill the
+          // ratio condition, continue searching for next minimum.
+          if (currentRegionHeight >= peakMinRight * minRatio) {
+            // inclusive start and end values
+            final int numberOfDataPoints = currentRegionEnd - currentRegionStart + 1;
+            // Check the shape of the peak.
+            if (numberOfDataPoints >= minDataPoints && currentRegionHeight >= minHeight
+                && currentRegionHeight >= peakMinLeft * minRatio
+                && currentRegionHeight >= peakMinRight * minRatio && xRange
+                .contains(x[currentRegionEnd] - x[currentRegionStart])) {
+
+              resolved.add(Range.closed(x[currentRegionStart], x[currentRegionEnd]));
             }
 
             // Set the next region start to current region end-1

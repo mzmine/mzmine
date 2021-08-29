@@ -113,6 +113,10 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     this.totalFeatures = totalFeatures;
   }
 
+  public Feature getFeature() {
+    return feature;
+  }
+
   /**
    * The maximum number of data points on a feature/chromatogram
    */

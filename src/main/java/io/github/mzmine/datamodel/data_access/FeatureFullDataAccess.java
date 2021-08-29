@@ -175,4 +175,10 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
     return feature;
   }
 
+  @Override
+  public double[] getIntensityValues(double[] dst) {
+    assert dst.length >= getNumberOfValues();
+    System.arraycopy(intensities, 0, dst, 0, getNumberOfValues());
+    return dst;
+  }
 }
