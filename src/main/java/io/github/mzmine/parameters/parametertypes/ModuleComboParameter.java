@@ -135,6 +135,13 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
   @Override
   public void setValue(MZmineProcessingStep<ModuleType> value) {
     this.value = value;
+    // also copy the parameter set to our internal parameter set
+    for (int i = 0; i < modulesWithParams.length; i++) {
+      if (modulesWithParams[i].getModule().equals(value.getModule())) {
+        modulesWithParams[i] = new MZmineProcessingStepImpl<>(value.getModule(),
+            value.getParameterSet().cloneParameterSet());
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")
