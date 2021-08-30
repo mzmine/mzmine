@@ -42,6 +42,22 @@ public interface RowsRelationship {
   double getScore();
 
   /**
+   * Get m/z delta between the two rows
+   * @return b - a
+   */
+  default double getMzDelta() {
+    return getRowB().getAverageMZ() - getRowA().getAverageMZ();
+  }
+
+  /**
+   * Get absolute m/z delta between the two rows
+   * @return absolute m/z delta
+   */
+  default double getAbsMzDelta() {
+    return Math.abs(getRowB().getAverageMZ() - getRowA().getAverageMZ());
+  }
+
+  /**
    * A formatted string of the score
    *
    * @return formatted score string

@@ -507,8 +507,13 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
-      z.zoomRangeAxes(0, pri, endPoint);
+      if(myChart.getRenderingInfo()==null) {
+        z.zoomRangeAxes(0, null, endPoint);
+      }
+      else {
+        PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+        z.zoomRangeAxes(0, pri, endPoint);
+      }
     }
   }
   /**

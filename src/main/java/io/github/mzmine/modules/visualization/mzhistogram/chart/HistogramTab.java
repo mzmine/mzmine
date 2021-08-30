@@ -199,17 +199,12 @@ public class HistogramTab extends MZmineTab implements ActionListener {
       }
     }
 
-    double[] dataArray = new double[data.size()];
     if (!data.isEmpty()) {
       // to array
-      for (int i = 0; i < data.size(); i++) {
-        dataArray[i] = data.get(i);
-      }
+      return new HistogramData(data.toDoubleArray());
     } else {
       throw new MSDKRuntimeException("Data was empty. Review your selected filters.");
     }
-
-    return new HistogramData(dataArray);
   }
 
   @Override
