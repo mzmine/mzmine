@@ -191,9 +191,10 @@ public class ModularFeatureListRow implements FeatureListRow {
       boolean copyFeatures) {
     this(flist, id);
 
-    // copy all but features
+    // copy all but features and id
     if (row != null) {
-      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType))
+      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType)
+          && !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     }
 

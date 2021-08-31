@@ -147,8 +147,7 @@ public class JoinAlignerTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Join aligner, " + featureListName + " (" + featureLists.size()
-        + " feature lists)";
+    return "Join aligner, " + featureListName + " (" + featureLists.size() + " feature lists)";
   }
 
   /**
