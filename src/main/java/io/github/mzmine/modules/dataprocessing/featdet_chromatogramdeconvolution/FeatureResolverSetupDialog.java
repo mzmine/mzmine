@@ -246,8 +246,11 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
-    resolver = ((GeneralResolverParameters) parameterSet)
-        .getResolver(parameterSet, flistBox.getValue());
+
+    if (flistBox.getValue() != null) {
+      resolver = ((GeneralResolverParameters) parameterSet)
+          .getResolver(parameterSet, flistBox.getValue());
+    }
 
     List<String> errors = new ArrayList<>();
     if (parameterSet.checkParameterValues(errors)) {
