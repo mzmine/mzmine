@@ -46,7 +46,7 @@ public class SmoothingParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final ModuleComboParameter<SmoothingAlgorithm> smoothingAlgorithm = new ModuleComboParameter<SmoothingAlgorithm>(
-      "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms);
+      "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms, sgSmoothing);
 
   public static final BooleanParameter removeOriginal = new BooleanParameter(
       "Remove original feature list",
