@@ -18,18 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
-import java.util.ArrayList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import java.util.ArrayList;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
@@ -37,8 +34,8 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  */
 public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview {
 
-  private MassDetector massDetector;
-  private ParameterSet parameters;
+  protected MassDetector massDetector;
+  protected ParameterSet parameters;
 
   /**
    * @param parameters
@@ -67,7 +64,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
 
     spectrumPlot.removeAllDataSets();
-    spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerTab.scanColor, false);
+    spectrumPlot.addDataSet(spectraDataSet, previewScan.getDataFile().getColorAWT(), false);
 
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();

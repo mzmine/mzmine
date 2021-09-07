@@ -100,7 +100,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
   @Override
   protected void parametersChanged() {
-    if(frameComboBox.getValue() == null) {
+    if (frameComboBox.getValue() == null) {
       return;
     }
 
@@ -120,10 +120,10 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
     double[][] merged;
     try {
-       merged = SpectraMerging.calculatedMergedMzsAndIntensities(
+      merged = SpectraMerging.calculatedMergedMzsAndIntensities(
           frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
               .toList(), mzTolerance, mergingType, new CenterFunction(CenterMeasure.AVG, weighting),
-          noiseLevel);
+          noiseLevel, null);
     } catch (NullPointerException e) {
       MZmineCore.getDesktop().displayErrorMessage(
           "No mass list present in " + frameComboBox.getValue().getDataFile().getName()

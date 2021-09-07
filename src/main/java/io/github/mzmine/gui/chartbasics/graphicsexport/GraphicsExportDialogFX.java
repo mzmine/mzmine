@@ -20,7 +20,6 @@ package io.github.mzmine.gui.chartbasics.graphicsexport;
 
 import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory2;
-import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeParameters;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -29,7 +28,6 @@ import io.github.mzmine.parameters.parametertypes.DoubleComponent;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import java.awt.Color;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,8 +35,6 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.plot.DefaultDrawingSupplier;
-import org.jfree.chart.plot.DrawingSupplier;
 
 /**
  * 
@@ -53,7 +49,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected BorderPane pnChartPreview;
   protected JFreeChart chart;
   protected EChartViewer chartPanel;
-  protected ChartThemeParameters chartParam;
+  protected ExportChartThemeParameters chartParam;
   protected SimpleColorPalette colorPalette;
 
   private Button btnRenewPreview;
@@ -65,7 +61,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
       JFreeChart chart) {
     super(valueCheckRequired, parameterSet);
 
-    chartParam = (ChartThemeParameters) parameterSet
+    chartParam = (ExportChartThemeParameters) parameterSet
         .getParameter(GraphicsExportParameters.chartParameters).getValue();
 
     colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
@@ -109,7 +105,7 @@ public class GraphicsExportDialogFX extends ParameterSetupDialog {
   protected void applyTheme() {
     // update param
     updateParameterSetFromComponents();
-    chartParam = (ChartThemeParameters) parameterSet
+    chartParam = (ExportChartThemeParameters) parameterSet
         .getParameter(GraphicsExportParameters.chartParameters).getValue();
     colorPalette = parameterSet.getParameter(GraphicsExportParameters.colorPalette).getValue();
     // apply settings

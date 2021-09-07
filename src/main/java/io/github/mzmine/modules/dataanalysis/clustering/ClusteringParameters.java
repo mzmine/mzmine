@@ -56,7 +56,7 @@ public class ClusteringParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm =
       new ModuleComboParameter<ClusteringAlgorithm>("Clustering algorithm",
-          "Select the algorithm you want to use for clustering", algorithms);
+          "Select the algorithm you want to use for clustering", algorithms, algorithms[0]);
 
   public static final ComboParameter<ClusteringDataType> typeOfData =
       new ComboParameter<ClusteringDataType>("Type of data",

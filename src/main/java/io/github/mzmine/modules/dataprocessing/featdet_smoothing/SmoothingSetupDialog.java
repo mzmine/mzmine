@@ -19,12 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess.FeatureDataType;
-import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -63,7 +59,6 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected SmoothingDimension previewDimension;
-  protected FeatureDataAccess access;
 
   public SmoothingSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
@@ -90,9 +85,9 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(FXCollections
-                .observableArrayList(newValue.getFeatures(newValue.getRawDataFile(0))));
-            access = EfficientDataAccess.of(newValue, FeatureDataType.INCLUDE_ZEROS);
+            fBox.setItems(
+                FXCollections.observableArrayList(newValue
+                    .getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }

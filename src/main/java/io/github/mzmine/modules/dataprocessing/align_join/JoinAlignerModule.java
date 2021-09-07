@@ -18,23 +18,22 @@
 
 package io.github.mzmine.modules.dataprocessing.align_join;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class JoinAlignerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Join aligner";
   private static final String MODULE_DESCRIPTION =
-      "This method aligns detected peaks using a match score. This score is calculated based on the mass and retention time of each peak using preset tolerance.";
+      "This method aligns detected peaks using a match score. This score is calculated based on"
+          + " the mass and retention time of each peak using preset tolerance.";
 
   @Override
   public @NotNull String getName() {

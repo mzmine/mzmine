@@ -77,6 +77,24 @@ public interface FeatureListRow extends ModularDataModel {
   public void addFeature(RawDataFile rawData, Feature feature);
 
   /**
+   * Thread safe addition of a feature, if this row does not have a feature of the given raw data
+   * file.
+   *
+   * @param rawDataFile The data file.
+   * @param feature The feature.
+   * @return true if the feature was added, false if this row already had a feature.
+   */
+  public default boolean addFeatureIfAbsent(RawDataFile rawDataFile, Feature feature) {
+    synchronized (this) {
+      if (!hasFeature(rawDataFile)) {
+        addFeature(rawDataFile, feature);
+        return true;
+      }
+      return false;
+    }
+  }
+
+  /**
    * Remove a feature
    */
   public void removeFeature(RawDataFile file);
@@ -114,8 +132,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns average mobility for features on this row
    */
-  @Nullable
-  Float getAverageMobility();
+  @Nullable Float getAverageMobility();
 
   Float getAverageCCS();
 
@@ -228,8 +245,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   public IsotopePattern getBestIsotopePattern();
 
-  @Nullable
-  FeatureList getFeatureList();
+  @Nullable FeatureList getFeatureList();
 
   void setFeatureList(@NotNull FeatureList flist);
 
@@ -256,8 +272,7 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return null or the current list. First element is the "preferred" element
    */
-  @Nullable
-  List<IonIdentity> getIonIdentities();
+  @Nullable List<IonIdentity> getIonIdentities();
 
   /**
    * Set the list of ion identities with the first element being the preferred
@@ -378,12 +393,13 @@ public interface FeatureListRow extends ModularDataModel {
 
   /**
    * The intensity summed over all features
+   *
    * @return sum of all feature heights
    */
   default double getSumIntensity() {
     return this.getFeatures().stream().filter(Objects::nonNull)
-        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(
-        Feature::getHeight).sum();
+        .filter(f -> f.getFeatureStatus() != FeatureStatus.UNKNOWN).mapToDouble(Feature::getHeight)
+        .sum();
   }
 
 
@@ -392,8 +408,7 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return list of library matches or an empty list
    */
-  @NotNull
-  List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+  @NotNull List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
 
   /**
    * Add annotations from lipid search

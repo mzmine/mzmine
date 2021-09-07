@@ -40,7 +40,7 @@ public class DPPMassDetectionParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<MassDetector> massDetector =
       new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+          "Algorithm to use for mass detection and its parameters", massDetectors, massDetectors[0]);
 
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",

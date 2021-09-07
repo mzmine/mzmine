@@ -36,7 +36,7 @@ public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParamet
 
   public static final ModuleComboParameter<OnlineDatabases> database =
       new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
-          OnlineDatabases.values());
+          OnlineDatabases.values(), OnlineDatabases.PubChem);
 
   public static final ComboParameter<IonizationType> ionizationType =
       new ComboParameter<IonizationType>("Ionization type", "Ionization type",

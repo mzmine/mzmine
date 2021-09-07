@@ -32,8 +32,7 @@ public interface MobilityScan extends MassSpectrum, Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 
-  @NotNull
-  RawDataFile getDataFile();
+  @NotNull RawDataFile getDataFile();
 
   /**
    * @return The mobility of this sub-spectrum. The unit will depend on the respective mass
@@ -63,11 +62,9 @@ public interface MobilityScan extends MassSpectrum, Scan {
    */
   int getMobilityScanNumber();
 
-  @Nullable
-  ImsMsMsInfo getMsMsInfo();
+  @Nullable ImsMsMsInfo getMsMsInfo();
 
-  @Nullable
-  MassList getMassList();
+  @Nullable MassList getMassList();
 
   @Override
   default int compareTo(@NotNull Scan s) {
@@ -83,6 +80,12 @@ public interface MobilityScan extends MassSpectrum, Scan {
     return Integer.compare(this.getMobilityScanNumber(), ms.getMobilityScanNumber());
   }
 
+  /**
+   * Returns the frame id. The mobility scan number can be accessed via {@link
+   * MobilityScan#getMobilityScanNumber()}.
+   *
+   * @return The frame Id. {@link Frame#getScanNumber()}.
+   */
   @Override
   default int getScanNumber() {
     return getFrame().getFrameId();
@@ -120,4 +123,5 @@ public interface MobilityScan extends MassSpectrum, Scan {
   default int getMSLevel() {
     return getFrame().getMSLevel();
   }
+
 }

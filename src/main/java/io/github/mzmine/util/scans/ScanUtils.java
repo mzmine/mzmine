@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
@@ -96,13 +97,37 @@ public class ScanUtils {
     StringBuffer buf = new StringBuffer();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+    UnitFormat unitFormat = MZmineCore.getConfiguration().getUnitFormat();
     if (includeFileName) {
       buf.append(scan.getDataFile().getName());
     }
-    buf.append("#");
-    buf.append(scan.getScanNumber());
+    if (scan instanceof Frame) {
+      buf.append("Frame");
+    } else if (scan instanceof MobilityScan) {
+      buf.append("Mobility scan");
+    } else {
+      buf.append("Scan");
+    }
+    buf.append(" #");
+    buf.append(scan instanceof MobilityScan ? ((MobilityScan) scan).getMobilityScanNumber()
+        : scan.getScanNumber());
     buf.append(" @");
-    buf.append(rtFormat.format(scan.getRetentionTime()));
+    buf.append(rtFormat.format(scan.getRetentionTime()) + "min");
+
+    if (scan instanceof MobilityScan ms) {
+      buf.append(" ");
+      buf.append(mobilityFormat.format(ms.getMobility()));
+      buf.append(ms.getMobilityType().getUnit());
+    }
+    if (scan instanceof Frame f) {
+      buf.append(" ");
+      buf.append(mobilityFormat.format(f.getMobilityRange().lowerEndpoint()));
+      buf.append("-");
+      buf.append(mobilityFormat.format(f.getMobilityRange().upperEndpoint()));
+      buf.append(f.getMobilityType().getUnit());
+    }
+
     buf.append(" MS");
     buf.append(scan.getMSLevel());
     if (scan.getMSLevel() > 1) {
@@ -1093,7 +1118,8 @@ public class ScanUtils {
   }
 
   @Nullable
-  public static Scan findPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged, MZTolerance mzTolerance) {
+  public static Scan findPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged,
+      MZTolerance mzTolerance) {
     final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
     if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
       // this was an IMS file, so scans have been merged
@@ -1112,7 +1138,6 @@ public class ScanUtils {
           .toList();
       final List<Frame> ms1Frames = ms2Frames.stream()
           .map(scan -> (Frame) ScanUtils.findPrecursorScan(scan)).filter(Objects::nonNull).toList();
-
 
       final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
           .<MobilityScan>mapMulti((f, c) -> {
@@ -1153,7 +1178,8 @@ public class ScanUtils {
   }
 
   @Nullable
-  public static Scan findSucceedingPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged, MZTolerance mzTolerance) {
+  public static Scan findSucceedingPrecursorScanForMerged(@NotNull MergedMsMsSpectrum merged,
+      MZTolerance mzTolerance) {
     final List<MassSpectrum> sourceSpectra = merged.getSourceSpectra();
     if (sourceSpectra.stream().allMatch(s -> s instanceof MobilityScan)) {
       // this was an IMS file, so scans have been merged
@@ -1171,7 +1197,8 @@ public class ScanUtils {
       final List<Frame> ms2Frames = mobilityScans.stream().map(MobilityScan::getFrame).distinct()
           .toList();
       final List<Frame> ms1Frames = ms2Frames.stream()
-          .map(scan -> (Frame) ScanUtils.findSucceedingPrecursorScan(scan)).filter(Objects::nonNull).toList();
+          .map(scan -> (Frame) ScanUtils.findSucceedingPrecursorScan(scan)).filter(Objects::nonNull)
+          .toList();
 
       final List<MobilityScan> ms1MobilityScans = ms1Frames.stream()
           .<MobilityScan>mapMulti((f, c) -> {

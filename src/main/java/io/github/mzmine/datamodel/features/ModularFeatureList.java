@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.beans.property.SimpleStringProperty;
@@ -57,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 public class ModularFeatureList implements FeatureList {
 
   public static final DateFormat DATA_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+  private static final Logger logger = Logger.getLogger(ModularFeatureList.class.getName());
   /**
    * The storage of this feature list. May be null if data points of features shall be stored in
    * ram.
@@ -491,7 +493,16 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public FeatureListRow findRowByID(int id) {
-    return stream().filter(r -> r.getID() == id).findFirst().orElse(null);
+    List<FeatureListRow> featureListRows = stream().filter(r -> r.getID() == id).toList();
+    if(featureListRows.isEmpty()) {
+      return null;
+    }
+
+    if(featureListRows.size() > 1) {
+      logger.info("more than one row with id " + id);
+    }
+
+    return featureListRows.get(0);
   }
 
   @Override
