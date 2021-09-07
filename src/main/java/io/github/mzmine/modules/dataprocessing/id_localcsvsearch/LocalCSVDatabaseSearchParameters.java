@@ -18,9 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.OrderParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -28,9 +39,10 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.util.List;
 
 /**
- * 
+ *
  */
 public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
@@ -42,20 +54,30 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file", ",");
 
-  public static final OrderParameter<FieldItem> fieldOrder =
-      new OrderParameter<FieldItem>("Field order",
-          "Order of items in which they are read from database file", FieldItem.values());
-
-  public static final BooleanParameter ignoreFirstLine =
-      new BooleanParameter("Ignore first line", "Ignore the first line of database file");
-
+  public static final OrderParameter<FieldItem> fieldOrder = new OrderParameter<FieldItem>(
+      "Field order", "Order of items in which they are read from database file",
+      FieldItem.values());
+  public static final BooleanParameter ignoreFirstLine = new BooleanParameter("Ignore first line",
+      "Ignore the first line of database file");
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
-
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
+  private static final List<ImportType> importTypes = List
+      .of(new ImportType(true, "mz", new MZType()), new ImportType(true, "rt", new RTType()),
+          new ImportType(true, "identity", new IdentityType()),
+          new ImportType(true, "formula", new FormulaType()),
+          new ImportType(true, "smiles", new SmilesStructureType()),
+          new ImportType(false, "name", new CompoundNameType()),
+          new ImportType(false, "CCS", new CCSType()),
+          new ImportType(false, "mobility", new MobilityType()),
+          new ImportType(true, "comment", new CommentType()));
+
+  public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
+      "Select the columns you want to import from the library file.", importTypes);
+
   public LocalCSVDatabaseSearchParameters() {
-    super(new Parameter[] {peakLists, dataBaseFile, fieldSeparator, fieldOrder, ignoreFirstLine,
-        mzTolerance, rtTolerance});
+    super(new Parameter[]{peakLists, dataBaseFile, fieldSeparator, fieldOrder, ignoreFirstLine,
+        mzTolerance, rtTolerance, columns});
   }
 
 }
