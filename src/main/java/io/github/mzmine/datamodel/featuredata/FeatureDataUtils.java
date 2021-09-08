@@ -265,7 +265,7 @@ public class FeatureDataUtils {
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
       feature
-          .setMobilityUnit(((IMSRawDataFile) imts.getSpectrum(0).getDataFile()).getMobilityType());
+          .setMobilityUnit(((IMSRawDataFile)feature.getRawDataFile()).getMobilityType());
     }
 
     if (calcQuality) {

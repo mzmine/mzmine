@@ -49,7 +49,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
  */
-public class ADAPResolver extends AbstractResolver /*implements FeatureResolver*/ {
+public class ADAPResolver extends AbstractResolver {
 
   private final ParameterSet parameters;
   double[] xBuffer;

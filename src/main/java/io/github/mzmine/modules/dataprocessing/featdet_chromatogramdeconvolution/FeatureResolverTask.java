@@ -48,7 +48,6 @@ import io.github.mzmine.util.maths.CenterFunction;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -337,8 +336,14 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    @NotNull final Resolver resolver = ((GeneralResolverParameters) parameters)
+    final Resolver resolver = ((GeneralResolverParameters) parameters)
         .getResolver(parameters, originalFeatureList);
+    if(resolver == null) {
+      setErrorMessage("Resolver could not be initialised.");
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
@@ -399,6 +404,11 @@ public class FeatureResolverTask extends AbstractTask {
     }
   }
 
+  /**
+   * This method is kept around to keep compatibility with resolvers implementing the legacy
+   * interface {@link FeatureResolver}. All new resolvers should implement {@link Resolver} or
+   * {@link AbstractResolver} instead.
+   */
   @Deprecated
   private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList,
       RSessionWrapper rSession) throws RSessionWrapperException {

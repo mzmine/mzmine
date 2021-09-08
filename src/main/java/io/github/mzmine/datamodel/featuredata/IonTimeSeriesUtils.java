@@ -17,8 +17,9 @@ public class IonTimeSeriesUtils {
 
   /**
    * Remaps the values of the given series onto another set of scans to gain access to all RT
-   * values. This should only be used for preview purposes, since buffers created by this method are
-   * not reused. If a set of features is processed, a {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess}
+   * values, for example if the whole chromatogram including 0 intensities is required. This should
+   * only be used for preview purposes, since buffers created by this method are not reused. If a
+   * set of features is processed, a {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess}
    * should be used. If access to all intensity and rt values including zero intensities is required
    * in array form, {@link this#remapRtAxis(IonTimeSeries, List, double[], double[], double[])} can
    * be used instead.
@@ -43,9 +44,10 @@ public class IonTimeSeriesUtils {
   }
 
   /**
-   * Remaps the intensity, m/z and rt values of a feature onto a new set of scans. This method can
-   * be used in case access to all rt and intensity values is required in array form. (e.g. for
-   * resolving or smoothing).
+   * Remaps the intensity, m/z and rt values of a feature onto a new set of scans, for example if
+   * the whole chromatogram including 0 intensities is required. This method can be used in case
+   * access to all rt and intensity values is required in array form. (e.g. for resolving or
+   * smoothing).
    *
    * @param series             The series.
    * @param newScans           The new set of scans. Must contain all scans in the series.
