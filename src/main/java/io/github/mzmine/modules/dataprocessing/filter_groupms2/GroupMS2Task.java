@@ -21,9 +21,11 @@ package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -61,6 +63,7 @@ public class GroupMS2Task extends AbstractTask {
   private final MZmineProject project;
   // Parameters.
   private final ParameterSet parameters;
+  private final Double minMs2Intensity;
   // Processed rows counter
   private int processedRows, totalRows;
   private FeatureList list;
@@ -89,6 +92,10 @@ public class GroupMS2Task extends AbstractTask {
     combineTimsMS2 = parameterSet.getParameter(GroupMS2Parameters.combineTimsMsMs).getValue();
     lockToFeatureMobilityRange = parameterSet
         .getParameter(GroupMS2Parameters.lockMS2ToFeatureMobilityRange).getValue();
+    minMs2Intensity =
+        parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getValue() ? parameterSet
+            .getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter().getValue()
+            : null;
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -142,11 +149,13 @@ public class GroupMS2Task extends AbstractTask {
    * @param row
    */
   public void processRow(FeatureListRow row) {
-    for (Feature f : row.getFeatures()) {
-      if (f instanceof ModularFeature && ((ModularFeature) f).getMobilityUnit()
-          == io.github.mzmine.datamodel.MobilityType.TIMS) {
-        processTimsFeature((ModularFeature) f);
-      } else if (!f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+    for (ModularFeature f : row.getFeatures()) {
+      if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN && (
+          f.getMobilityUnit() == io.github.mzmine.datamodel.MobilityType.TIMS || (
+              f.getRawDataFile() instanceof IMSRawDataFile imsfile
+                  && imsfile.getMobilityType() == MobilityType.TIMS))) {
+        processTimsFeature(f);
+      } else if (f != null && !f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
         RawDataFile raw = f.getRawDataFile();
         float frt = f.getRT();
         double fmz = f.getMZ();
@@ -190,14 +199,19 @@ public class GroupMS2Task extends AbstractTask {
     for (Frame frame : frames) {
       frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
         if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
-
-          // todo: maybe revisit this for a more sophisticated range check
-          int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScanNumber();
-          float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
-              imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
-          float mobility2 = (float) frame.getMobilityForMobilityScanNumber(
-              imsMsMsInfo.getSpectrumNumberRange().upperEndpoint() - mobilityScannumberOffset);
-          if (Range.singleton(mobility1).span(Range.singleton(mobility2)).contains(mobility)) {
+          // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
+          if (mobility != null) {
+            // todo: maybe revisit this for a more sophisticated range check
+            int mobilityScannumberOffset = frame.getMobilityScan(0).getMobilityScanNumber();
+            float mobility1 = (float) frame.getMobilityForMobilityScanNumber(
+                imsMsMsInfo.getSpectrumNumberRange().lowerEndpoint() - mobilityScannumberOffset);
+            float mobility2 = (float) frame.getMobilityForMobilityScanNumber(
+                imsMsMsInfo.getSpectrumNumberRange().upperEndpoint() - mobilityScannumberOffset);
+            if (Range.singleton(mobility1).span(Range.singleton(mobility2)).contains(mobility)) {
+              eligibleMsMsInfos.add(imsMsMsInfo);
+            }
+          } else {
+            // if we don't have a mobility, we can simply add the msms info.
             eligibleMsMsInfos.add(imsMsMsInfo);
           }
         }
@@ -215,7 +229,8 @@ public class GroupMS2Task extends AbstractTask {
       MergedMsMsSpectrum spectrum = SpectraMerging
           .getMergedMsMsSpectrumForPASEF(info, mergeTol, MergingType.SUMMED,
               ((ModularFeatureList) list).getMemoryMapStorage(),
-              lockToFeatureMobilityRange ? feature.getMobilityRange() : null);
+              lockToFeatureMobilityRange && feature.getMobilityRange() != null ? feature
+                  .getMobilityRange() : null, minMs2Intensity);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }

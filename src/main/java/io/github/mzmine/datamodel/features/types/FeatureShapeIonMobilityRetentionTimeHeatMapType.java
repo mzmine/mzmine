@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -32,10 +33,13 @@ import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVi
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import java.util.List;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,8 +61,16 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
       return null;
     }
     ModularFeature feature = row.getFeature(raw);
-    if (feature == null || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+    if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
       return null;
+    }
+
+    if(!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+      Label label = new Label("Processed with\nLC-MS workflow");
+      StackPane pane = new StackPane(label);
+      label.setTextAlignment(TextAlignment.CENTER);
+      pane.setAlignment(Pos.CENTER);
+      return pane;
     }
 
     // get existing buffered node from row (for column name)

@@ -270,8 +270,8 @@ public class BatchWizardController {
   private MZmineProcessingStep<MZmineProcessingModule> makeMassDetectionStep(
       @NotNull final ParameterSet msParameters, int msLevel) {
 
-    final ParameterSet detectorParam = MZmineCore.getConfiguration().getModuleParameters(
-        AutoMassDetector.class).cloneParameterSet();
+    final ParameterSet detectorParam = MZmineCore.getConfiguration()
+        .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
     detectorParam.getParameter(AutoMassDetectorParameters.noiseLevel).setValue(
         msLevel == 1 ? msParameters
             .getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
@@ -293,8 +293,9 @@ public class BatchWizardController {
     param.getParameter(MassDetectionParameters.dataFiles)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
-    param.getParameter(MassDetectionParameters.massDetector)
-        .setValue(new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class), detectorParam));
+    param.getParameter(MassDetectionParameters.massDetector).setValue(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
+            detectorParam));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param);
@@ -331,6 +332,9 @@ public class BatchWizardController {
     param.setParameter(IonMobilityTraceBuilderParameters.scanSelection, new ScanSelection(1));
     param.setParameter(IonMobilityTraceBuilderParameters.minDataPointsRt, 5);
     param.setParameter(IonMobilityTraceBuilderParameters.minTotalSignals, 60);
+    param.setParameter(IonMobilityTraceBuilderParameters.mzTolerance,
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
+            .getValue());
     param.setParameter(IonMobilityTraceBuilderParameters.suffix, "traces");
 
     ParameterSet advanced = new AdvancedImsTraceBuilderParameters().cloneParameterSet();
@@ -386,6 +390,13 @@ public class BatchWizardController {
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters()
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevel, true);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
+        .getEmbeddedParameter().setValue(
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
+            * 3);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
@@ -432,6 +443,13 @@ public class BatchWizardController {
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters()
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevel, true);
+    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
+        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
+        .getEmbeddedParameter().setValue(
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
+            * 3);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);
@@ -613,9 +631,9 @@ public class BatchWizardController {
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 3);
     IonModification[] adducts =
-        polarity == Polarity.Positive ? new IonModification[]{IonModification.M_PLUS,
+        polarity == Polarity.Positive ? new IonModification[]{IonModification.H,
             IonModification.NA, IonModification.K, IonModification.NH4, IonModification.H2plus}
-            : new IonModification[]{IonModification.M_MINUS, IonModification.FA,
+            : new IonModification[]{IonModification.H_NEG, IonModification.FA,
                 IonModification.NA_2H};
     IonModification[] modifications = new IonModification[]{IonModification.H2O,
         IonModification.H2O_2, IonModification.HFA, IonModification.ACN, IonModification.MEOH};

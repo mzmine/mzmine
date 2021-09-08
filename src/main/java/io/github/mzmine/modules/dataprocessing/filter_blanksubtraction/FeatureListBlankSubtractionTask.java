@@ -138,7 +138,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
         for (RawDataFile file : nonBlankFiles) {
           final ModularFeature f = row.getFeature(file);
           // check if there's actually a feature
-          if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+          if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
             // check validity
             if (!checkFoldChange || f.getHeight() / blankIntensity >= foldChange) {
               filteredRow.addFeature(file, new ModularFeature(result, f));

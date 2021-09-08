@@ -18,10 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
@@ -55,9 +58,16 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
           + "the MS/MS window might be larger than the peak in mobility dimension and thus cause chimeric MS/MS spectra.\n"
           + "This can be investigated in hte \"All MS MS\" window", false);
 
+  public static final OptionalParameter<DoubleParameter> outputNoiseLevel = new OptionalParameter<>(
+      new DoubleParameter("Minimum merged intensity (IMS)",
+          "If an ion mobility spectrometry (IMS) feature is processed, this parameter "
+              + "can be used to filter low abundant peaks in the MS/MS spectrum, since multiple "
+              + "MS/MS mobility scans need to be merged together.",
+          MZmineCore.getConfiguration().getIntensityFormat(), 250d, 0d, Double.MAX_VALUE));
+
   public GroupMS2SubParameters() {
     super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs,
-        lockMS2ToFeatureMobilityRange});
+        lockMS2ToFeatureMobilityRange, outputNoiseLevel});
   }
 
   @Override

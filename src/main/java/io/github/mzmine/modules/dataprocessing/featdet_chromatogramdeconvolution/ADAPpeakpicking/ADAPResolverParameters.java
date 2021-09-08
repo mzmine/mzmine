@@ -38,12 +38,12 @@ import java.text.NumberFormat;
  */
 public class ADAPResolverParameters extends GeneralResolverParameters {
 
-  private static final SNEstimatorChoice[] SNESTIMATORS =
-      {new IntensityWindowsSNEstimator(), new WaveletCoefficientsSNEstimator()};
+  private static final SNEstimatorChoice[] SNESTIMATORS = {new IntensityWindowsSNEstimator(),
+      new WaveletCoefficientsSNEstimator()};
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), true, Range.closed(0.0, 10.0));
+  public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+      "Peak duration range", "Range of acceptable peak lengths",
+      MZmineCore.getConfiguration().getRTFormat(), true, Range.closed(0.0, 10.0));
 
   public static final DoubleRangeParameter RT_FOR_CWT_SCALES_DURATION = new DoubleRangeParameter(
       "RT wavelet range",
@@ -55,27 +55,26 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
   // "Wavelet scales",
   // "Range wavelet widths (smallest, largest) in minutes", MZmineCore
   // .getConfiguration().getRTFormat(), Range.closed(0.25, 5.0));
-  public static final ModuleComboParameter<SNEstimatorChoice> SN_ESTIMATORS =
-      new ModuleComboParameter<SNEstimatorChoice>("S/N estimator", "SN description", SNESTIMATORS);
+  public static final ModuleComboParameter<SNEstimatorChoice> SN_ESTIMATORS = new ModuleComboParameter<SNEstimatorChoice>(
+      "S/N estimator", "SN description", SNESTIMATORS, SNESTIMATORS[0]);
 
   public static final DoubleParameter SN_THRESHOLD = new DoubleParameter("S/N threshold",
       "Signal to noise ratio threshold", NumberFormat.getNumberInstance(), 10.0, 0.0, null);
 
-  public static final DoubleParameter COEF_AREA_THRESHOLD =
-      new DoubleParameter("coefficient/area threshold",
-          "This is a theshold for the maximum coefficient (inner product) devided by the area "
-              + "under the curve of the feautre. Filters out bad peaks.",
-          NumberFormat.getNumberInstance(), 110.0, 0.0, null);
+  public static final DoubleParameter COEF_AREA_THRESHOLD = new DoubleParameter(
+      "coefficient/area threshold",
+      "This is a theshold for the maximum coefficient (inner product) devided by the area "
+          + "under the curve of the feautre. Filters out bad peaks.",
+      NumberFormat.getNumberInstance(), 110.0, 0.0, null);
 
   public static final DoubleParameter MIN_FEAT_HEIGHT = new DoubleParameter("min feature height",
       "Minimum height of a feature. Should be the same, or similar to, the value - min start intensity - "
-          + "set in the chromatogram building.",
-      NumberFormat.getNumberInstance(), 10.0, 0.0, null);
+          + "set in the chromatogram building.", NumberFormat.getNumberInstance(), 10.0, 0.0, null);
 
   public ADAPResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, SN_THRESHOLD,
-        SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD,
-        PEAK_DURATION, RT_FOR_CWT_SCALES_DURATION});
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
+        SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
+        RT_FOR_CWT_SCALES_DURATION});
   }
 
   @Override
@@ -88,8 +87,8 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
         + "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>"
         + "</html>";
 
-    final FeatureResolverSetupDialog dialog =
-        new FeatureResolverSetupDialog(valueCheckRequired, this, message);
+    final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
+        this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.masslist.MobilityScanMassList;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -52,7 +53,6 @@ public class SimpleMobilityScan implements MobilityScan {
   private final int basePeakIndex;
 
   /**
-   *
    * @param mobilityScanNumber The mobility scan number starting with 0.
    */
   public SimpleMobilityScan(int mobilityScanNumber, SimpleFrame frame, int storageOffset,
@@ -129,7 +129,9 @@ public class SimpleMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    return Range.closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1));
+    return getNumberOfDataPoints() > 1 ? Range
+        .closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1))
+        : Range.singleton(getNumberOfDataPoints() == 0 ? 0d : getMzValue(0));
   }
 
   @Nullable
@@ -177,10 +179,15 @@ public class SimpleMobilityScan implements MobilityScan {
 
   /**
    * @return Used to retrieve this scans storage offset when reading mz/intensity values. Not
-   *         intended for public usage, therefore not declared in {@link MobilityScan}.
+   * intended for public usage, therefore not declared in {@link MobilityScan}.
    */
   int getStorageOffset() {
     return storageOffset;
+  }
+
+  @Override
+  public String toString() {
+    return ScanUtils.scanToString(this);
   }
 
   @Override
