@@ -164,7 +164,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
         .remapRtAxis(featureSeries, flistBox.getValue().getSeletedScans(f.getRawDataFile()))
         : featureSeries;
 
-    final SmoothingAlgorithm smoothing = initialiseSmoother(parameterSet);
+    final SmoothingAlgorithm smoothing = initializeSmoother(parameterSet);
     final IonTimeSeries<? extends Scan> smoothed = smoothing
         .smoothFeature(null, featureSeries, f, ZeroHandlingType.KEEP);
 
@@ -189,7 +189,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   }
 
   @Nullable
-  private SmoothingAlgorithm initialiseSmoother(ParameterSet parameters) {
+  private SmoothingAlgorithm initializeSmoother(ParameterSet parameters) {
     final SmoothingAlgorithm smoother;
     try {
       smoother = parameters.getParameter(SmoothingParameters.smoothingAlgorithm).getValue()

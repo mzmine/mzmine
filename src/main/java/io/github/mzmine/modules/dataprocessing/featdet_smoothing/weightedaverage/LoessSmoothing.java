@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing.weightedaverage;
 
 import io.github.mzmine.datamodel.Scan;
@@ -51,10 +69,8 @@ public class LoessSmoothing implements SmoothingAlgorithm {
       return null;
     }
 
-    // has to be at least 3 points wide
-//    final double rtWidth = Math.max(1d / series.getNumberOfValues() * 3, this.rtWidth);
-    final double rtWidth = (1d / series.getNumberOfValues() * this.rtWidth);
-    final LoessInterpolator interpolator = new LoessInterpolator(rtWidth, 0);
+    final double rtBandwidth = (((double) this.rtWidth) / series.getNumberOfValues());
+    final LoessInterpolator interpolator = new LoessInterpolator(rtBandwidth, 0);
 
     double[] intensities = new double[series.getNumberOfValues()];
     double[] rts = new double[series.getNumberOfValues()];
@@ -80,11 +96,9 @@ public class LoessSmoothing implements SmoothingAlgorithm {
       return null;
     }
 
-    // has to be at least 3 points wide
-//    final double mobilityWidth = Math
-//        .max(1d / mobilogram.getNumberOfValues() * 3, this.mobilityWidth);
-    final double mobilityWidth = (1d / mobilogram.getNumberOfValues() * this.mobilityWidth);
-    final LoessInterpolator interpolator = new LoessInterpolator(mobilityWidth, 0);
+    final double mobilityBandwidth = (((double) this.mobilityWidth) / mobilogram
+        .getNumberOfValues());
+    final LoessInterpolator interpolator = new LoessInterpolator(mobilityBandwidth, 0);
 
     double[] intensities = new double[mobilogram.getNumberOfValues()];
     mobilogram.getIntensityValues(intensities);
