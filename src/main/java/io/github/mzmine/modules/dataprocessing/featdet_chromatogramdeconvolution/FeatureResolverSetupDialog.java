@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -174,7 +175,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       if (newValue.getFeatureList() instanceof ModularFeatureList flist) {
         if (dimension == ResolvingDimension.RETENTION_TIME) {
           // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
-          final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(IonTimeSeries
+          final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(IonTimeSeriesUtils
               .remapRtAxis(newValue.getFeatureData(),
                   flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
 

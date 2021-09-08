@@ -19,11 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
-import io.github.mzmine.util.DataPointUtils;
-import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,42 +66,4 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
-  /**
-   * Remaps the values of the given series onto another set of scans to gain access to all RT
-   * values. This should only be used for preview purposes, since buffers cannot be reused. If a set
-   * of features is processed, a {@link io.github.mzmine.datamodel.data_access.FeatureDataAccess}
-   * should be used.
-   *
-   * @param series   The series.
-   * @param newScans The scans. Have to contain all scans in the series.
-   * @return A {@link SimpleIonTimeSeries} with the new rt values.
-   * @throws IllegalStateException If newScans did not contain all scans in the series.
-   */
-  static IonTimeSeries<Scan> remapRtAxis(@NotNull final IonTimeSeries<? extends Scan> series,
-      @NotNull final List<? extends Scan> newScans) {
-    assert series.getNumberOfValues() <= newScans.size();
-
-    int seriesIndex = 0;
-    final double[] newIntensities = new double[newScans.size()];
-    final double avgMz = MathUtils
-        .calcAvg(DataPointUtils.getDoubleBufferAsArray(series.getMZValues()));
-    final double[] newMzs = new double[newScans.size()];
-    Arrays.fill(newMzs, avgMz);
-
-    for (int i = 0; i < newScans.size() && seriesIndex < series.getNumberOfValues(); i++) {
-      if (series.getSpectrum(seriesIndex).equals(newScans.get(i))) {
-        newIntensities[i] = series.getIntensity(seriesIndex);
-        newMzs[i] = series.getIntensity(seriesIndex);
-        seriesIndex++;
-      } else {
-        newIntensities[i] = 0d;
-      }
-    }
-    if (seriesIndex < series.getNumberOfValues()) {
-      throw new IllegalStateException(
-          "Incomplete rt remap. newScans did not contain all scans in the series.");
-    }
-
-    return new SimpleIonTimeSeries(null, newMzs, newIntensities, (List<Scan>) newScans);
-  }
 }

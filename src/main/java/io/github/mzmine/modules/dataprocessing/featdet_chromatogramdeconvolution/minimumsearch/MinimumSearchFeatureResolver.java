@@ -27,17 +27,12 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.featuredata.IntensitySeries;
-import io.github.mzmine.datamodel.featuredata.MobilitySeries;
-import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MathUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,41 +67,6 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
     return MinimumSearchFeatureResolverModule.class;
   }
 
-  @Override
-  public <T extends IntensitySeries & TimeSeries> @NotNull List<Range<Double>> resolveRt(
-      @NotNull T series) {
-    final int numValues = series.getNumberOfValues();
-    if (xBuffer == null || xBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-    }
-
-    Arrays.fill(xBuffer, 0d);
-    for (int i = 0; i < numValues; i++) {
-      xBuffer[i] = series.getRetentionTime(i);
-    }
-    Arrays.fill(yBuffer, 0d);
-    series.getIntensityValues(yBuffer);
-
-    return resolve(xBuffer, yBuffer);
-  }
-
-  @Override
-  public <T extends IntensitySeries & MobilitySeries> @NotNull List<Range<Double>> resolveMobility(
-      @NotNull T series) {
-    final int numValues = series.getNumberOfValues();
-    if (xBuffer == null || xBuffer.length < numValues) {
-      xBuffer = new double[numValues];
-      yBuffer = new double[numValues];
-    }
-
-    Arrays.fill(xBuffer, 0d);
-    IonMobilityUtils.extractMobilities(series, xBuffer);
-    Arrays.fill(yBuffer, 0d);
-    series.getIntensityValues(yBuffer);
-    return resolve(xBuffer, yBuffer);
-  }
-
   /**
    * @param x domain values of the data to be resolved
    * @param y range values of the data to be resolved. Values have to be <b>strictly monotonically
@@ -114,6 +74,8 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
    *          they fall below the chromatographicThresholdLevel.
    * @return List of x values for each resolved peak
    */
+  @Override
+  @NotNull
   public List<Range<Double>> resolve(double[] x, double[] y) {
     if (x.length != y.length) {
       throw new AssertionError("Length of x, y and indices array does not match.");

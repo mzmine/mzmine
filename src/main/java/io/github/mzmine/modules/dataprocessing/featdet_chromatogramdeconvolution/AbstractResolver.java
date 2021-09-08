@@ -26,18 +26,23 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
+import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.datamodel.featuredata.TimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +64,9 @@ public abstract class AbstractResolver implements Resolver {
   protected final ModularFeatureList flist;
   protected final RawDataFile file;
   protected BinningMobilogramDataAccess mobilogramDataAccess;
+
+  protected double[] xBuffer;
+  protected double[] yBuffer;
 
   protected AbstractResolver(@NotNull final ParameterSet parameters,
       @NotNull final ModularFeatureList flist) {
@@ -165,5 +173,68 @@ public abstract class AbstractResolver implements Resolver {
       return mobilogramDataAccess;
     }
     throw new RuntimeException("Could not initialize BinningMobilogramDataAccess.");
+  }
+
+  @Override
+  public @NotNull <T extends IntensitySeries & TimeSeries> List<Range<Double>> resolveRt(
+      @NotNull T series) {
+    xBuffer = extractRtValues(series, xBuffer);
+
+    if (series instanceof FeatureFullDataAccess featureFullDataAccess) {
+      return resolve(xBuffer, featureFullDataAccess.getIntensityValues(null));
+    } else {
+      // intensities only need to be extracted if we are not using a FeatureFullDataAccess
+      final int numValues = series.getNumberOfValues();
+      if (yBuffer == null || yBuffer.length <= numValues) {
+        yBuffer = new double[numValues];
+      }
+      Arrays.fill(yBuffer, 0d);
+      series.getIntensityValues(yBuffer);
+
+      return resolve(xBuffer, yBuffer);
+    }
+  }
+
+  @Override
+  public @NotNull <T extends IntensitySeries & MobilitySeries> List<Range<Double>> resolveMobility(
+      @NotNull T series) {
+
+    if (series instanceof BinningMobilogramDataAccess) {
+      return resolve(((BinningMobilogramDataAccess) series).getMobilityValues(null),
+          series.getIntensityValues(null));
+    } else {
+
+      final int numValues = series.getNumberOfValues();
+      if (xBuffer == null || xBuffer.length < numValues) {
+        xBuffer = new double[numValues];
+        yBuffer = new double[numValues];
+      }
+
+      Arrays.fill(xBuffer, 0d);
+      Arrays.fill(yBuffer, 0d);
+      IonMobilityUtils.extractMobilities(series, xBuffer);
+      series.getIntensityValues(yBuffer);
+      return resolve(xBuffer, yBuffer);
+    }
+  }
+
+  /**
+   * Extracts the rt values of the scans into a buffer. If the size of the buffer is too small, a
+   * new buffer will be allocated and returned.
+   *
+   * @param timeSeries The time series.
+   * @param rtBuffer   The proposed buffer.
+   * @return The buffer the rt values were written into.
+   */
+  protected double[] extractRtValues(@NotNull final TimeSeries timeSeries, double[] rtBuffer) {
+    final int numValues = timeSeries.getNumberOfValues();
+    if (rtBuffer == null || rtBuffer.length < numValues) {
+      rtBuffer = new double[numValues];
+    }
+    Arrays.fill(rtBuffer, 0d);
+    for (int i = 0; i < numValues; i++) {
+      rtBuffer[i] = timeSeries.getRetentionTime(i);
+    }
+    return rtBuffer;
   }
 }

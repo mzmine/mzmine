@@ -56,6 +56,8 @@ public interface Resolver {
   @NotNull <T extends IntensitySeries & MobilitySeries> List<Range<Double>> resolveMobility(
       @NotNull final T series);
 
+   @NotNull List<Range<Double>> resolve(final double[] x, final double[] y);
+
   /**
    * Resolves a series (EICs) into individual series (features).
    *
