@@ -68,7 +68,8 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
     rtRange = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.rtRange)
         .getEmbeddedParameter().getValue();
     mzRange = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.mzRange).getValue();
-    saveToFile = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.rtRange)
+
+    saveToFile = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.saveToFile)
         .getValue();
     outputFile =
         saveToFile ? parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.saveToFile)
@@ -140,19 +141,19 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
               // delta to neutral mass
               if (ionA != null && ionB != null) {
 //                if (ionA.getNetID() != ionB.getNetID()) {
-                  double neutralMassDeltaA = mzb - ionA.getNetwork().getNeutralMass();
-                  deltaMZToNeutralMassList.add(neutralMassDeltaA);
-                  double neutralMassDeltaB = mza - ionB.getNetwork().getNeutralMass();
-                  deltaMZToNeutralMassList.add(neutralMassDeltaB);
+                double neutralMassDeltaA = mzb - ionA.getNetwork().getNeutralMass();
+                deltaMZToNeutralMassList.add(neutralMassDeltaA);
+                double neutralMassDeltaB = mza - ionB.getNetwork().getNeutralMass();
+                deltaMZToNeutralMassList.add(neutralMassDeltaB);
 
-                  appendRow(csvOutputNeutralMass, a, b, raw, corrData.getPearsonR());
-                  appendRow(csvOutputNeutralMass, b, a, raw, corrData.getPearsonR());
+                appendRow(csvOutputNeutralMass, a, b, raw, corrData.getPearsonR());
+                appendRow(csvOutputNeutralMass, b, a, raw, corrData.getPearsonR());
 //                }
               } else if (ionA != null) {
                 double neutralMassDeltaA = mzb - ionA.getNetwork().getNeutralMass();
                 deltaMZToNeutralMassList.add(neutralMassDeltaA);
                 appendRow(csvOutputNeutralMass, a, b, raw, corrData.getPearsonR());
-              } else if(ionB!=null){
+              } else if (ionB != null) {
                 double neutralMassDeltaB = mza - ionB.getNetwork().getNeutralMass();
                 deltaMZToNeutralMassList.add(neutralMassDeltaB);
                 appendRow(csvOutputNeutralMass, b, a, raw, corrData.getPearsonR());
