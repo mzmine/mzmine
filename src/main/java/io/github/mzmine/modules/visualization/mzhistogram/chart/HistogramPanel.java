@@ -25,9 +25,13 @@ import io.github.mzmine.util.maths.Precision;
 import java.awt.event.ActionEvent;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import java.util.stream.DoubleStream;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
@@ -45,6 +49,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Duration;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
@@ -56,6 +61,8 @@ import org.jfree.data.xy.XYDataset;
 public class HistogramPanel extends BorderPane {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
+
+  private AtomicLong currentUpdateID = new AtomicLong(0);
 
   private final BorderPane contentPanel;
   private BorderPane southwest;
@@ -237,7 +244,7 @@ public class HistogramPanel extends BorderPane {
     contentPanel.setCenter(southwest);
 
     addListener();
-    exec = Executors.newFixedThreadPool(5, runnable -> {
+    exec = Executors.newFixedThreadPool(2, runnable -> {
       Thread t = new Thread(runnable);
       t.setDaemon(true);
       return t;
@@ -303,9 +310,23 @@ public class HistogramPanel extends BorderPane {
     txtRangeXEnd.textProperty().addListener((o, ov, nv) -> applyXRange());
     txtRangeY.textProperty().addListener((o, ov, nv) -> applyYRange());
     txtRangeYEnd.textProperty().addListener((o, ov, nv) -> applyYRange());
-    txtBinShift.textProperty().addListener((o, ov, nv) -> updateHistograms());
-    txtBinWidth.textProperty().addListener((o, ov, nv) -> updateHistograms());
-    cbExcludeSmallerNoise.setOnAction(e -> updateHistograms());
+
+//    txtBinShift.textProperty().addListener((o, ov, nv) -> updateHistograms());
+//    txtBinWidth.textProperty().addListener((o, ov, nv) -> updateHistograms());
+//    cbExcludeSmallerNoise.setOnAction(e -> updateHistograms());
+
+    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+    ChangeListener<String> listener = (observable, oldValue, newValue) -> {
+      pause.setOnFinished(event -> HistogramPanel.this.updateHistograms());
+      pause.playFromStart();
+    };
+    txtBinShift.textProperty().addListener(listener);
+    txtBinWidth.textProperty().addListener(listener);
+    cbExcludeSmallerNoise.setOnAction(e -> {
+      pause.setOnFinished(event -> HistogramPanel.this.updateHistograms());
+      pause.playFromStart();
+    });
+
     // add gaussian?
     cbGaussianFit.setOnAction(e -> updateGaussian());
   }
@@ -365,12 +386,20 @@ public class HistogramPanel extends BorderPane {
           final double binwidth = binwidth2;
           final double binShift = Math.abs(binShift2);
           try {
+            // set current update ID to prevent old updates to change the chart
+            final long startID = currentUpdateID.incrementAndGet();
 
             exec.execute(() -> {
-              JFreeChart chart = doInBackground(binShift, binwidth);
-              Platform.runLater(() -> {
-                done(chart);
-              });
+              logger.finest("Create histogram update thread "+startID);
+              if(startID == currentUpdateID.get()) {
+                JFreeChart chart = doInBackground(binShift, binwidth);
+                Platform.runLater(() -> {
+                  if(startID == currentUpdateID.get()) {
+                    done(chart);
+                    logger.info("Finished histogram update thread "+startID);
+                  }
+                });
+              }
             });
 
           } catch (Exception e) {
