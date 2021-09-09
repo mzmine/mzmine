@@ -24,7 +24,10 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -45,15 +48,20 @@ public class IcpMsCVSImportTask extends AbstractTask {
   private File file;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private RawDataFile finalRawDataFile;
 
   private int totalScans, parsedScans;
 
-  public IcpMsCVSImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+  public IcpMsCVSImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
     super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
+    this.parameters = parameters;
+    this.module = module;
   }
 
   @Override
@@ -125,8 +133,9 @@ public class IcpMsCVSImportTask extends AbstractTask {
       }
 
       double[] mzValues = new double[mzsList.size()];
-      for (int i = 0; i < mzsList.size(); i++)
+      for (int i = 0; i < mzsList.size(); i++) {
         mzValues[i] = Integer.valueOf(mzsList.get(i));
+      }
 
       Range<Double> mzRange = Range.closed(mzValues[0] - 10, mzValues[1] + 10);
 
@@ -134,11 +143,13 @@ public class IcpMsCVSImportTask extends AbstractTask {
 
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();
-        if (line == null || line.trim().equals(""))
+        if (line == null || line.trim().equals("")) {
           continue;
+        }
         String[] columns = line.split(",");
-        if (columns == null || columns.length != mzValues.length + 1)
+        if (columns == null || columns.length != mzValues.length + 1) {
           continue;
+        }
 
         float rt = (float) (Double.valueOf(columns[0]) / 60);
 
@@ -156,6 +167,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
         scanNumber++;
       }
 
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
       project.addFile(newMZmineFile);
 
     } catch (Exception e) {
