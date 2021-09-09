@@ -38,6 +38,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.util.List;
 
@@ -66,7 +67,8 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
-  public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter();
+  public static final MobilityToleranceParameter mobTolerance = new MobilityToleranceParameter(
+      new MobilityTolerance(0.01f));
   public static final PercentParameter ccsTolerance = new PercentParameter("CCS tolerance (%)",
       "Maximum allowed difference (in per cent) for two ccs values.", 0.05);
 
@@ -74,8 +76,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Select the columns you want to import from the library file.", importTypes);
 
   public LocalCSVDatabaseSearchParameters() {
-    super(new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance,
-        rtTolerance, mobTolerance, ccsTolerance});
+    super(
+        new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
+            mobTolerance, ccsTolerance});
   }
 
 }
