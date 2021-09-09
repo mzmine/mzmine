@@ -20,10 +20,10 @@ package io.github.mzmine.util.swing;
 
 import java.awt.Image;
 import java.net.URL;
-
-import org.jetbrains.annotations.NotNull;
+import javafx.scene.image.ImageView;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 
@@ -54,4 +54,9 @@ public class IconUtil {
     return new ImageIcon(newimg);
   }
 
+  public static ImageView scaledImageView(final javafx.scene.image.Image img, final double width) {
+    ImageView view = new ImageView(img);
+    view.setFitWidth(width);
+    return view;
+  }
 }
