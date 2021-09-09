@@ -32,6 +32,8 @@ public class ImportType {
   private StringProperty csvColumnName;
   private ObjectProperty<DataType<?>> dataType;
 
+  private int columnIndex = -1;
+
   public ImportType(Boolean selected, String csvColumnName, DataType<?> dataType) {
     this.selected = new SimpleBooleanProperty(selected);
     this.csvColumnName = new SimpleStringProperty(csvColumnName);
@@ -73,4 +75,21 @@ public class ImportType {
   public ObjectProperty<DataType<?>> dataTypeProperty() {
     return dataType;
   }
+
+  /**
+   * @return The column index if specified. This value is not set in the gui and has to be
+   * determined from the file.
+   */
+  public int getColumnIndex() {
+    return columnIndex;
+  }
+
+  /**
+   * @param columnIndex The column index. This value is not set in the gui and has to be determined
+   *                    from the file.
+   */
+  public void setColumnIndex(int columnIndex) {
+    this.columnIndex = columnIndex;
+  }
+
 }

@@ -24,7 +24,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.util.StringConverter;
@@ -44,7 +43,7 @@ public class ImportTypeComponent extends BorderPane {
     importColumn.setEditable(true);
 
     final TableColumn<ImportType, String> nameInFile = new TableColumn<>("Column name");
-    nameInFile.setCellValueFactory(new PropertyValueFactory<>("csvColumnName"));
+    nameInFile.setCellValueFactory(cdf -> cdf.getValue().csvColumnName());
     nameInFile.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<String>() {
       @Override
       public String toString(String object) {
