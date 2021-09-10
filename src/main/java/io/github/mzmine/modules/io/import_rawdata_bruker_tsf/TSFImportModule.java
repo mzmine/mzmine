@@ -97,7 +97,7 @@ public class TSFImportModule implements MZmineProcessingModule {
         // IMS files are big, reserve a single storage for each file
         final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
         ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName, storage);
-        Task newTask = new TSFImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new TSFImportTask(project, fileNames[i], newMZmineFile, TSFImportModule.class, parameters);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

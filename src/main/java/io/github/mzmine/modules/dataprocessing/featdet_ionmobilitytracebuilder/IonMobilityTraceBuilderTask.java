@@ -148,6 +148,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
     progress = 0.0;
     Set<RetentionTimeMobilityDataPoint> rtMobilityDataPoints = extractAllDataPointsFromFrames();
     createIonMobilityTraceTargetSet(rtMobilityDataPoints);
+    rtMobilityDataPoints = null;
     SortedSet<IIonMobilityTrace> ionMobilityTraces = finishIonMobilityTraces();
     buildModularFeatureList(ionMobilityTraces);
     progress = 1.0;

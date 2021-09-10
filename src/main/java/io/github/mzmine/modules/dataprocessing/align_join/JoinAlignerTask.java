@@ -147,8 +147,7 @@ public class JoinAlignerTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Join aligner, " + featureListName + " (" + featureLists.size()
-        + " feature lists)";
+    return "Join aligner, " + featureListName + " (" + featureLists.size() + " feature lists)";
   }
 
   /**
@@ -218,6 +217,9 @@ public class JoinAlignerTask extends AbstractTask {
       final FeatureList nextBaseList = remainingFlists.entrySet().stream()
           .max(Comparator.comparingLong(e -> e.getValue())).get().getKey();
       leftoverFlists.remove(nextBaseList);
+
+      nextBaseList.getRawDataFiles().forEach(
+          file -> alignedFeatureList.setSelectedScans(file, nextBaseList.getSeletedScans(file)));
 
       // we add a new set of unaligned rows to the feature list that we can align on.
       List<FeatureListRow> nextBaseRows = new ArrayList<>(

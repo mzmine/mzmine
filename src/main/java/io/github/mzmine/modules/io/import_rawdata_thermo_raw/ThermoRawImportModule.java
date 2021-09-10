@@ -106,7 +106,8 @@ public class ThermoRawImportModule implements MZmineProcessingModule {
 
       try {
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new ThermoRawImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new ThermoRawImportTask(project, fileNames[i], newMZmineFile,
+            ThermoRawImportModule.class, parameters);
         tasks.add(newTask);
 
       } catch (IOException e) {

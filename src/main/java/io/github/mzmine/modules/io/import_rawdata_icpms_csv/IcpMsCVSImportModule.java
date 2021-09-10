@@ -110,7 +110,8 @@ public class IcpMsCVSImportModule implements MZmineProcessingModule {
 
       try {
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new IcpMsCVSImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new IcpMsCVSImportTask(project, fileNames[i], newMZmineFile,
+            IcpMsCVSImportModule.class, parameters);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();
