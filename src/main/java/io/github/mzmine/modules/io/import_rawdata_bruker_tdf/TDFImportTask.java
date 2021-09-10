@@ -24,12 +24,14 @@ import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -91,6 +93,8 @@ public class TDFImportTask extends AbstractTask {
   private TDFMaldiFrameInfoTable maldiFrameInfoTable;
   private TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private IMSRawDataFile newMZmineFile;
+  private final Class<? extends MZmineModule> module;
+  private final ParameterSet parameters;
   private boolean isMaldi;
   private String description;
   private double finishedPercentage;
@@ -115,16 +119,20 @@ public class TDFImportTask extends AbstractTask {
    * @param newMZmineFile needs to be created as {@link IMSRawDataFileImpl} via {@link
    *                      MZmineCore#createNewIMSFile}.
    */
-  public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile) {
-    this(project, file, newMZmineFile, null);
+  public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
+    this(project, file, newMZmineFile, null, module, parameters);
   }
 
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
-      @Nullable final AdvancedSpectraImportParameters advancedParam) {
+      @Nullable final AdvancedSpectraImportParameters advancedParam,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
     super(newMZmineFile.getMemoryMapStorage());
     this.fileNameToOpen = file;
     this.project = project;
     this.newMZmineFile = newMZmineFile;
+    this.module = module;
+    this.parameters = parameters;
 
     if (advancedParam != null && advancedParam
         .getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
@@ -292,6 +300,7 @@ public class TDFImportTask extends AbstractTask {
     }
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
     setFinishedPercentage(1.0);
     logger.info(
         "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "

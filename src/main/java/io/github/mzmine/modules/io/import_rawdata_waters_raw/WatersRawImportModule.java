@@ -105,7 +105,8 @@ public class WatersRawImportModule implements MZmineProcessingModule {
 
       try {
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new WatersRawImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new WatersRawImportTask(project, fileNames[i], newMZmineFile,
+            WatersRawImportModule.class, parameters);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();
