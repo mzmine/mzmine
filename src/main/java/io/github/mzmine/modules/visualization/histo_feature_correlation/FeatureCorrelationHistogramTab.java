@@ -43,8 +43,8 @@ public class FeatureCorrelationHistogramTab extends MZmineTab {
   //private final Scene mainScene;
   private final BorderPane mainPane;
   private final ModularFeatureList flist;
-  protected HistogramPanel histo;
-  protected HistogramPanel histoDeltaNeutralMass;
+  protected HistogramPanel histoUnidentified;
+  protected HistogramPanel histoIonIdentities;
 
   // parameters
   private final HistogramData dataUnidentified;
@@ -63,21 +63,21 @@ public class FeatureCorrelationHistogramTab extends MZmineTab {
     //mainScene.getStylesheets()
     //    .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
 
-    histo = new HistogramPanel(xLabel + " (unidentified)", dataUnidentified, binWidth);
+    histoUnidentified = new HistogramPanel(xLabel + " (unidentified)", dataUnidentified, binWidth);
 
-    histoDeltaNeutralMass = new HistogramPanel(xLabel + " (connected ion identities)",
+    histoIonIdentities = new HistogramPanel(xLabel + " (connected ion identities)",
         dataIdentified,
         binWidth);
 
     setContent(mainPane);
 
     GridPane gridPane = new GridPane();
-    gridPane.add(histo, 0, 0);
-    gridPane.add(histoDeltaNeutralMass, 1, 0);
-    GridPane.setVgrow(histo, Priority.ALWAYS);
-    GridPane.setVgrow(histoDeltaNeutralMass, Priority.ALWAYS);
-    GridPane.setHgrow(histo, Priority.ALWAYS);
-    GridPane.setHgrow(histoDeltaNeutralMass, Priority.ALWAYS);
+    gridPane.add(histoUnidentified, 0, 0);
+    gridPane.add(histoIonIdentities, 1, 0);
+    GridPane.setVgrow(histoUnidentified, Priority.ALWAYS);
+    GridPane.setVgrow(histoIonIdentities, Priority.ALWAYS);
+    GridPane.setHgrow(histoUnidentified, Priority.ALWAYS);
+    GridPane.setHgrow(histoIonIdentities, Priority.ALWAYS);
     mainPane.setCenter(gridPane);
   }
 
