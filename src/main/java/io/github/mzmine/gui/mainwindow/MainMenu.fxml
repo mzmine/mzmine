@@ -495,8 +495,10 @@
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
     <MenuItem onAction="#runModule" text="Feature networking"
       userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
-    <MenuItem onAction="#runModule" text="m/z scan histogram (correlated features)"
+    <MenuItem onAction="#runModule" text="m/z histogram (correlated features)"
       userData="io.github.mzmine.modules.visualization.mzhistogram.CorrelatedFeaturesMzHistogramModule"/>
+    <MenuItem onAction="#runModule" text="Correlation histogram (grouped features)"
+      userData="io.github.mzmine.modules.visualization.histo_feature_correlation.FeatureCorrelationHistogramModule"/>
 
     <SeparatorMenuItem/>
 
