@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
-import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -237,8 +236,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
       // Add column
       this.getColumns().add(col);
-
-      registerColumn(col, ColumnType.ROW_TYPE, dataType, null);
+      newColumnMap.put(col, new ColumnID(dataType, ColumnType.ROW_TYPE, null));
       if (!(dataType instanceof ExpandableType)) {
         // Hide area bars and area share columns, if there is only one raw data file in the feature list
         if ((dataType instanceof AreaBarType || dataType instanceof AreaShareType)
@@ -246,23 +244,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
           col.setVisible(false);
         } else {
           recursivelyApplyVisibilityParameterToColumn(col);
-        }
-      }
-    }
-  }
-
-  /**
-   * Registers a data type column and all it's sub colums to the {@link
-   * FeatureTableFX#newColumnMap}.
-   */
-  private void registerColumn(@NotNull TreeTableColumn<ModularFeatureListRow, ?> column,
-      @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {
-    newColumnMap.put(column, new ColumnID(dataType, type, file));
-
-    if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()) {
-      for (TreeTableColumn<ModularFeatureListRow, ?> subCol : column.getColumns()) {
-        if(subCol.getUserData() instanceof DataType) {
-          registerColumn(subCol, type, (DataType<?>) subCol.getUserData(), file);
         }
       }
     }
@@ -453,8 +434,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             setupExpandableColumn(ftype, subCol, ColumnType.FEATURE_TYPE, dataFile);
           }
           sampleCol.getColumns().add(subCol);
-          registerColumn(subCol, ColumnType.FEATURE_TYPE, ftype, dataFile);
-//          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
+          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
           if (!(ftype instanceof ExpandableType)) {
             recursivelyApplyVisibilityParameterToColumn(subCol);
           }
@@ -502,9 +482,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
           ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
           Runnable runnable = ((DataType<?>) userData).getDoubleClickAction(row, files);
           if (runnable != null) {
-            MZmineCore.getTaskController().addTask(
-                new FeatureTableDoubleClickTask(runnable, getFeatureList(),
-                    (DataType<?>) userData));
+            MZmineCore.getTaskController().addTask(new FeatureTableDoubleClickTask(runnable, getFeatureList(),
+                (DataType<?>) userData));
           }
         }
       }
@@ -641,5 +620,4 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       });
     });
   }
-
 }
