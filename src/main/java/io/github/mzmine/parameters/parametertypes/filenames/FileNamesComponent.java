@@ -189,15 +189,16 @@ public class FileNamesComponent extends FlowPane {
         final List<String> patterns = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder(txtFilename.getText());
-        if(!sb.toString().endsWith("\n")) {
+        if (!sb.toString().endsWith("\n")) {
           sb.append("\n");
         }
 
-        filters.stream().flatMap(f -> f.getExtensions().stream())
-            .forEach(extension -> patterns.add(extension.toLowerCase().replace("*", "")));
+        filters.stream().flatMap(f -> f.getExtensions().stream()).forEach(
+            extension -> patterns.add(extension.toLowerCase().replace("*", "").toLowerCase()));
 
         for (File file : files) {
-          if (patterns.stream().anyMatch(filter -> file.getAbsolutePath().contains(filter))) {
+          if (patterns.stream()
+              .anyMatch(filter -> file.getAbsolutePath().toLowerCase().endsWith(filter))) {
             sb.append(file.getPath()).append("\n");
           }
         }
