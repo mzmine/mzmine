@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractResolver implements Resolver {
 
   private SourceDataType mobilogramDataSource = SourceDataType.NOT_SET;
-  private SourceDataType crhomatogramDataSource = SourceDataType.NOT_SET;
+  private SourceDataType chromatogramDataSource = SourceDataType.NOT_SET;
 
   protected double[] xBuffer;
   protected final ParameterSet generalParameters;
@@ -183,7 +183,7 @@ public abstract class AbstractResolver implements Resolver {
     if (!validateChromatogramDataSource(series)) {
       // if the date comes from a different source, the results might be inconsistent.
       throw new IllegalArgumentException(
-          "This resolver has been set to use data from a " + mobilogramDataSource.toString()
+          "This resolver has been set to use data from a " + chromatogramDataSource.toString()
               + ". The current data os passed from a " + series.getClass().toString());
     }
 
