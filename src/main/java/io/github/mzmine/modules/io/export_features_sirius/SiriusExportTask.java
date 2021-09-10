@@ -321,9 +321,22 @@ public class SiriusExportTask extends AbstractTask {
       switch (mergeMode) {
         case SAME_SAMPLE, CONSECUTIVE_SCANS:
           for (Feature f : row.getFeatures()) {
-            if (f.getFeatureStatus() == FeatureStatus.DETECTED
-                && f.getMostIntenseFragmentScan() != null
-                && f.getMostIntenseFragmentScan().getNumberOfDataPoints() > 0) {
+            if (f.getFeatureStatus() == FeatureStatus.DETECTED) {
+              if (f.getMostIntenseFragmentScan() == null && excludeEmptyMSMS) {
+                continue;
+              }
+              if (f.getMostIntenseFragmentScan() != null
+                  && f.getMostIntenseFragmentScan().getMassList() == null && !excludeEmptyMSMS) {
+                setErrorMessage(
+                    "No mass list in fragment scans of raw data file " + f.getRawDataFile()
+                        .getName());
+                setStatus(TaskStatus.ERROR);
+                return false;
+              }
+              if (excludeEmptyMSMS
+                  && f.getMostIntenseFragmentScan().getMassList().getNumberOfDataPoints() <= 0) {
+                continue;
+              }
 
               // write correlation spectrum
               exportCorrelationSpectrum(row, writer, polarity, msAnnotationsFlags, f);
@@ -360,7 +373,7 @@ public class SiriusExportTask extends AbstractTask {
       if (ms1MassList == null) {
         setErrorMessage("A mass list was missing for scan " + ScanUtils
             .scanToString(bestFeature.getRepresentativeScan(), true)
-                        + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
+            + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
         setStatus(TaskStatus.ERROR);
         return false;
       }
@@ -379,7 +392,7 @@ public class SiriusExportTask extends AbstractTask {
               msAnnotationsFlags);
           MassList ms2MassList = ms2scan.getMassList();
           if (ms2MassList == null || (excludeEmptyMSMS
-                                      && ms2MassList.getNumberOfDataPoints() <= 0)) {
+              && ms2MassList.getNumberOfDataPoints() <= 0)) {
             continue;
           }
           writeSpectrum(writer, ms2MassList.getDataPoints());
@@ -459,7 +472,7 @@ public class SiriusExportTask extends AbstractTask {
     final Feature feature = row.getFeature(raw);
     writer.write("BEGIN IONS");
     writer.newLine();
-    writer.write("FEATURE_ID=" + (renumberID? nextID : row.getID()));
+    writer.write("FEATURE_ID=" + (renumberID ? nextID : row.getID()));
     writer.newLine();
     writer.write("PEPMASS=");
     writer.write(String.valueOf(row.getBestFeature().getMZ()));
@@ -563,8 +576,11 @@ public class SiriusExportTask extends AbstractTask {
       throw new IllegalStateException("Cannot have an ion identity without a row group.");
     }
 
-    //add isotope pattern of this feature
-    addIsotopePattern(feature, dps, identity, ip);
+    if (group == null) {
+      // add isotope pattern of this feature only if we don't have a group, otherwise the isotope
+      // pattern is exported below.
+      addIsotopePattern(feature, dps, true, ip);
+    }
 
     if (group != null) {
       final IonNetwork network = identity != null ? identity.getNetwork() : null;
@@ -576,6 +592,7 @@ public class SiriusExportTask extends AbstractTask {
           continue;
         }
 
+        // this writes the data points of the row we want to export and all grouped rows + their isotope patterns.
         if (row.equals(groupedRow) || group.isCorrelated(row, groupedRow)) {
           // if we have an annotation, export the annotation
           if (network != null && network.get(groupedRow) != null) {
@@ -584,9 +601,9 @@ public class SiriusExportTask extends AbstractTask {
           } else {
             dps.add(new SimpleDataPoint(sameFileFeature.getMZ(), sameFileFeature.getHeight()));
           }
-          // add isotope pattern of correlated ions.
-          addIsotopePattern(sameFileFeature, dps, groupedRow.getBestIonIdentity(),
-              sameFileFeature.getIsotopePattern());
+
+          // add isotope pattern of correlated ions. The groupedRow ion has been added previously.
+          addIsotopePattern(sameFileFeature, dps, false, sameFileFeature.getIsotopePattern());
         }
       }
     }
@@ -599,11 +616,11 @@ public class SiriusExportTask extends AbstractTask {
    * Adds the isotopic peaks of this row to the list of data points.
    */
   private void addIsotopePattern(@NotNull Feature feature, @NotNull List<DataPoint> dps,
-      @Nullable IonIdentity identity, @Nullable IsotopePattern ip) {
+      boolean exportMolecularIon, @Nullable IsotopePattern ip) {
     if (ip != null) {
       for (int i = 0; i < ip.getNumberOfDataPoints(); i++) {
         // make sure to not export the molecular ion twice. Mass might change a bit due to smoothing
-        if (mzTol.checkWithinTolerance(feature.getMZ(), ip.getMzValue(i)) && identity != null) {
+        if (mzTol.checkWithinTolerance(feature.getMZ(), ip.getMzValue(i)) && exportMolecularIon) {
           dps.add(new SimpleDataPoint(ip.getMzValue(i), ip.getIntensityValue(i)));
         }
       }
