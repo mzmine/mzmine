@@ -300,7 +300,6 @@ public class IonMobilityUtils {
   }
 
   /**
-   *
    * @param series The series.
    * @return The mobility values in the series.
    */
@@ -312,9 +311,8 @@ public class IonMobilityUtils {
   }
 
   /**
-   *
    * @param series The series.
-   * @param dst A buffer to write the mobility values to.
+   * @param dst    A buffer to write the mobility values to.
    */
   public static <T extends IntensitySeries & MobilitySeries> void extractMobilities(
       @NotNull final T series, @NotNull final double[] dst) {
@@ -322,8 +320,8 @@ public class IonMobilityUtils {
 
     if (series instanceof SummedIntensityMobilitySeries summed) {
       summed.getMobilityValues(dst);
-    } else if (series instanceof BinningMobilogramDataAccess access){
-      access.getMobilityValues(dst);
+    } else if (series instanceof BinningMobilogramDataAccess access) {
+      System.arraycopy(access.getMobilityValues(), 0, dst, 0, access.getNumberOfValues());
     } else {
       for (int i = 0; i < dst.length; i++) {
         dst[i] = series.getMobility(i);

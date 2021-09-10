@@ -59,13 +59,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AbstractResolver implements Resolver {
 
+  private SourceDataType mobilogramDataSource = SourceDataType.NOT_SET;
+  private SourceDataType crhomatogramDataSource = SourceDataType.NOT_SET;
+
+  protected double[] xBuffer;
   protected final ParameterSet generalParameters;
   protected final ResolvingDimension dimension;
   protected final ModularFeatureList flist;
   protected final RawDataFile file;
   protected BinningMobilogramDataAccess mobilogramDataAccess;
-
-  protected double[] xBuffer;
   protected double[] yBuffer;
 
   protected AbstractResolver(@NotNull final ParameterSet parameters,
@@ -178,10 +180,17 @@ public abstract class AbstractResolver implements Resolver {
   @Override
   public @NotNull <T extends IntensitySeries & TimeSeries> List<Range<Double>> resolveRt(
       @NotNull T series) {
+    if (!validateChromatogramDataSource(series)) {
+      // if the date comes from a different source, the results might be inconsistent.
+      throw new IllegalArgumentException(
+          "This resolver has been set to use data from a " + mobilogramDataSource.toString()
+              + ". The current data os passed from a " + series.getClass().toString());
+    }
+
     xBuffer = extractRtValues(series, xBuffer);
 
     if (series instanceof FeatureFullDataAccess featureFullDataAccess) {
-      return resolve(xBuffer, featureFullDataAccess.getIntensityValues(null));
+      return resolve(xBuffer, featureFullDataAccess.getIntensityValues());
     } else {
       // intensities only need to be extracted if we are not using a FeatureFullDataAccess
       final int numValues = series.getNumberOfValues();
@@ -189,7 +198,7 @@ public abstract class AbstractResolver implements Resolver {
         yBuffer = new double[numValues];
       }
       Arrays.fill(yBuffer, 0d);
-      series.getIntensityValues(yBuffer);
+      yBuffer = series.getIntensityValues(yBuffer);
 
       return resolve(xBuffer, yBuffer);
     }
@@ -199,9 +208,15 @@ public abstract class AbstractResolver implements Resolver {
   public @NotNull <T extends IntensitySeries & MobilitySeries> List<Range<Double>> resolveMobility(
       @NotNull T series) {
 
-    if (series instanceof BinningMobilogramDataAccess) {
-      return resolve(((BinningMobilogramDataAccess) series).getMobilityValues(null),
-          series.getIntensityValues(null));
+    if (!validateMobilogramDataSource(series)) {
+      // if the date comes from a different source, the results might be inconsistent.
+      throw new IllegalArgumentException(
+          "This resolver has been set to use data from a " + mobilogramDataSource.toString()
+              + ". The current data os passed from a " + series.getClass().toString());
+    }
+
+    if (series instanceof BinningMobilogramDataAccess dataAccess) {
+      return resolve(dataAccess.getMobilityValues(), dataAccess.getIntensityValues());
     } else {
 
       final int numValues = series.getNumberOfValues();
@@ -213,9 +228,47 @@ public abstract class AbstractResolver implements Resolver {
       Arrays.fill(xBuffer, 0d);
       Arrays.fill(yBuffer, 0d);
       IonMobilityUtils.extractMobilities(series, xBuffer);
-      series.getIntensityValues(yBuffer);
+      yBuffer = series.getIntensityValues(yBuffer);
       return resolve(xBuffer, yBuffer);
     }
+  }
+
+  private <T extends IntensitySeries & MobilitySeries> boolean validateMobilogramDataSource(T series) {
+    if (mobilogramDataSource == SourceDataType.NOT_SET) {
+      mobilogramDataSource =
+          series instanceof BinningMobilogramDataAccess ? SourceDataType.DATA_ACCESS
+              : SourceDataType.SERIES;
+      return true;
+    }
+    if (mobilogramDataSource == SourceDataType.DATA_ACCESS
+        && series instanceof BinningMobilogramDataAccess) {
+      return true;
+    }
+    if (mobilogramDataSource == SourceDataType.SERIES
+        && !(series instanceof BinningMobilogramDataAccess)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private <T extends IntensitySeries & TimeSeries> boolean validateChromatogramDataSource(T series) {
+    if (mobilogramDataSource == SourceDataType.NOT_SET) {
+      mobilogramDataSource =
+          series instanceof FeatureDataAccess ? SourceDataType.DATA_ACCESS
+              : SourceDataType.SERIES;
+      return true;
+    }
+    if (mobilogramDataSource == SourceDataType.DATA_ACCESS
+        && series instanceof FeatureDataAccess) {
+      return true;
+    }
+    if (mobilogramDataSource == SourceDataType.SERIES
+        && !(series instanceof FeatureDataAccess)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -236,5 +289,23 @@ public abstract class AbstractResolver implements Resolver {
       rtBuffer[i] = timeSeries.getRetentionTime(i);
     }
     return rtBuffer;
+  }
+
+  private enum SourceDataType {
+    /**
+     * No data has been processed yet.
+     */
+    NOT_SET,
+
+    /**
+     * A {@link FeatureFullDataAccess} or a {@link BinningMobilogramDataAccess} is used as a data
+     * source.
+     */
+    DATA_ACCESS,
+
+    /**
+     * An actual {@link IonTimeSeries} or {@link IonMobilogramTimeSeries} is used as a data source.
+     */
+    SERIES;
   }
 }

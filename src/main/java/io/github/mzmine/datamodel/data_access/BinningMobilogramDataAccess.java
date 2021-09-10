@@ -390,6 +390,14 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     }
   }
 
+  public double[] getIntensityValues() {
+    return intensities;
+  }
+
+  public double[] getMobilityValues() {
+    return mobilities;
+  }
+
   @Override
   public double getIntensity(int index) {
     return intensities[index];
@@ -434,4 +442,5 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   public double getApproximateBinSize() {
     return approximateBinSize;
   }
+
 }
