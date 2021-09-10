@@ -42,7 +42,7 @@ public class ImportTypeComponent extends BorderPane {
     importColumn.setCellValueFactory(cdf -> cdf.getValue().selectedProperty());
     importColumn.setEditable(true);
 
-    final TableColumn<ImportType, String> nameInFile = new TableColumn<>("Column name");
+    final TableColumn<ImportType, String> nameInFile = new TableColumn<>("Column name (csv)");
     nameInFile.setCellValueFactory(cdf -> cdf.getValue().csvColumnName());
     nameInFile.setCellFactory(column -> new TextFieldTableCell<>(new StringConverter<String>() {
       @Override
@@ -57,7 +57,7 @@ public class ImportTypeComponent extends BorderPane {
     }));
     nameInFile.setEditable(true);
 
-    final TableColumn<ImportType, String> dataTypeColumn = new TableColumn<>("Data type");
+    final TableColumn<ImportType, String> dataTypeColumn = new TableColumn<>("Data type (MZmine)");
     dataTypeColumn.setCellValueFactory(
         cdf -> new SimpleStringProperty(cdf.getValue().getDataType().getHeaderString()));
     dataTypeColumn.setEditable(false);

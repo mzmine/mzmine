@@ -20,14 +20,17 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -153,12 +156,14 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     var formulaType = new FormulaType();
     var compoundNameType = new CompoundNameType();
+    var commentType = new CommentType();
     var mzType = new MZType();
     var rtType = new RTType();
     var mobType = new MobilityType();
     var ccsType = new CCSType();
     var smilesType = new SmilesStructureType();
     var identityType = new IdentityType();
+    var adductType = new IonAdductType();
 
     final Map<DataType<?>, String> entry = new HashMap<>();
 
@@ -170,15 +175,14 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
 //    lineID = entry.get();
     String lineName = entry.get(compoundNameType);
     String lineFormula = entry.get(formulaType);
+    String lineComment = entry.get(commentType);
+    String lineAdduct = entry.get(adductType);
     Double lineMZ = (entry.get(mzType) != null) ? Double.parseDouble(entry.get(mzType)) : null;
     Double lineRT = (entry.get(rtType) != null) ? Double.parseDouble(entry.get(rtType)) : null;
     Double lineMob = (entry.get(mobType) != null) ? Double.parseDouble(entry.get(mobType)) : null;
     Double lineCCS = (entry.get(ccsType) != null) ? Double.parseDouble(entry.get(ccsType)) : null;
     String smiles = entry.get(smilesType);
     String identity = entry.get(identityType);
-
-    SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(lineName, lineFormula,
-        dataBaseFile.getName(), identity, null);
 
     Range<Double> mzRange =
         lineMZ != null && Double.compare(lineMZ, 0d) != 0 ? mzTolerance.getToleranceRange(lineMZ)
@@ -204,6 +208,13 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
 
         logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
 
+        SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(lineName, lineFormula,
+            dataBaseFile.getName(), identity, null);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, smiles);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_COMMENT, lineComment);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
+            LocalCSVDatabaseSearchModule.MODULE_NAME);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, lineAdduct);
         // add new identity to the row
         peakRow.addFeatureIdentity(newIdentity, false);
 

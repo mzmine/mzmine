@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -40,6 +41,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -56,14 +58,16 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Character(s) used to separate fields in the database file", ",");
 
   private static final List<ImportType> importTypes = List
-      .of(new ImportType(true, "mz", new MZType()), new ImportType(true, "rt", new RTType()),
+      .of(new ImportType(true, "mz", new MZType()), //
+          new ImportType(true, "rt", new RTType()),
           new ImportType(true, "identity", new IdentityType()),
           new ImportType(true, "formula", new FormulaType()),
           new ImportType(true, "smiles", new SmilesStructureType()),
           new ImportType(false, "name", new CompoundNameType()),
           new ImportType(false, "CCS", new CCSType()),
           new ImportType(false, "mobility", new MobilityType()),
-          new ImportType(true, "comment", new CommentType()));
+          new ImportType(true, "comment", new CommentType()),
+          new ImportType(false, "adduct", new IonAdductType()));
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
@@ -81,4 +85,17 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
             mobTolerance, ccsTolerance});
   }
 
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(errorMessages);
+    boolean myCheck = false;
+    if (getParameter(columns).getValue().stream()
+        .filter(type -> type.getDataType().equals(new CompoundNameType())).findFirst().get()
+        .isSelected()) {
+      myCheck = true;
+    } else {
+      errorMessages.add(new CompoundNameType().getHeaderString() + " must be selected.");
+    }
+    return superCheck && myCheck;
+  }
 }

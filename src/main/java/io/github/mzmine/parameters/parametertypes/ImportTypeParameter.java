@@ -26,6 +26,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * Used to allow a list of types to be imported from a csv. Provides a mapping of selection state,
+ * mzmine data type and column name in the csv.
+ */
 public class ImportTypeParameter implements UserParameter<List<ImportType>, ImportTypeComponent> {
 
   private static final String SELECTED = "selected";
@@ -65,19 +69,24 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    final NodeList childNodes = xmlElement.getChildNodes();
+    final NodeList childNodes = xmlElement.getElementsByTagName(SUB_ELEMENT);
 
     for (int i = 0; i < childNodes.getLength(); i++) {
-      final Element typeElement = (Element) childNodes.item(i);
-      boolean selected = Boolean.getBoolean(typeElement.getAttribute(SELECTED));
-      String columnName = typeElement.getAttribute(COL_NAME);
-      String typeName = typeElement.getAttribute(COL_NAME);
+      try{
 
-      for (ImportType val : values) {
-        if(val.getDataType().getHeaderString().equals(typeName)) {
-          val.setSelected(selected);
-          val.setCsvColumnName(columnName);
+        final Element typeElement = (Element) childNodes.item(i);
+        boolean selected = Boolean.getBoolean(typeElement.getAttribute(SELECTED));
+        String columnName = typeElement.getAttribute(COL_NAME);
+        String typeName = typeElement.getAttribute(COL_NAME);
+
+        for (ImportType val : values) {
+          if (val.getDataType().getHeaderString().equals(typeName)) {
+            val.setSelected(selected);
+            val.setCsvColumnName(columnName);
+          }
         }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
   }
@@ -91,6 +100,7 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
       element.setAttribute(SELECTED, String.valueOf(value.isSelected()));
       element.setAttribute(COL_NAME, value.getCsvColumnName());
       element.setAttribute(TYPE_NAME, value.getDataType().getHeaderString());
+      xmlElement.appendChild(element);
     }
   }
 

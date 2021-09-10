@@ -18,18 +18,22 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
+import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import java.util.List;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class ManualAnnotationType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new IdentityType(), new CommentType(),
-          new CompoundNameType(), new IonAdductType(),
+  private final List<DataType> subTypes = List
+      .of(new IdentityType(), new CommentType(), new CompoundNameType(), new IonAdductType(),
           new FormulaType(), new SmilesStructureType());
 
   @NotNull
@@ -44,4 +48,39 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
     return "Manual annotation";
   }
 
+  @Override
+  public ModularTypeProperty createProperty() {
+    final ModularTypeProperty property = super.createProperty();
+
+    property.get(IdentityType.class)
+        .addListener((ListChangeListener<? super FeatureIdentity>) change -> {
+          ObservableList<? extends FeatureIdentity> list = change.getList();
+          boolean firstElementChanged = false;
+          while (change.next()) {
+            firstElementChanged = firstElementChanged || change.getFrom() == 0;
+          }
+          if (firstElementChanged) {
+            // first list elements has changed - set all other fields
+            setCurrentElement(property, list.isEmpty() ? null : list.get(0));
+          }
+        });
+    return property;
+  }
+
+  private void setCurrentElement(ModularTypeProperty data, FeatureIdentity identity) {
+    if (identity == null) {
+      for (DataType type : this.getSubDataTypes()) {
+        if (!(type instanceof IdentityType)) {
+          data.set(type, null);
+        }
+      }
+    } else {
+      data.set(CommentType.class, identity.getPropertyValue(FeatureIdentity.PROPERTY_COMMENT));
+      data.set(CompoundNameType.class, identity.getName());
+      data.set(IonAdductType.class, identity.getPropertyValue(FeatureIdentity.PROPERTY_ADDUCT));
+      data.set(FormulaType.class, identity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA));
+      data.set(SmilesStructureType.class,
+          identity.getPropertyValue(FeatureIdentity.PROPERTY_SMILES));
+    }
+  }
 }

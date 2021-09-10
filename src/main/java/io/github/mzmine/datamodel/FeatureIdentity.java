@@ -36,7 +36,10 @@ public interface FeatureIdentity extends Cloneable {
   String PROPERTY_ID = "ID";
   String PROPERTY_URL = "URL";
   String PROPERTY_SPECTRUM = "SPECTRUM";
-
+  String PROPERTY_COMMENT = "Comment";
+  String PROPERTY_ADDUCT ="Adduct";
+  String PROPERTY_SMILES = "Smiles";
+  
   /**
    * Returns the value of the PROPERTY_NAME property. This value must always be set. Same value is
    * returned by the toString() method.
