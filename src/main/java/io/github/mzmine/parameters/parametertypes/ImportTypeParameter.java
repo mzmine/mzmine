@@ -72,22 +72,18 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
     final NodeList childNodes = xmlElement.getElementsByTagName(SUB_ELEMENT);
 
     for (int i = 0; i < childNodes.getLength(); i++) {
-      try{
-
         final Element typeElement = (Element) childNodes.item(i);
-        boolean selected = Boolean.getBoolean(typeElement.getAttribute(SELECTED));
+        boolean selected = Boolean.valueOf(typeElement.getAttribute(SELECTED));
         String columnName = typeElement.getAttribute(COL_NAME);
-        String typeName = typeElement.getAttribute(COL_NAME);
+        String typeName = typeElement.getAttribute(TYPE_NAME);
 
         for (ImportType val : values) {
-          if (val.getDataType().getHeaderString().equals(typeName)) {
+          if (val.getDataType().getClass().getName().equals(typeName)) {
             val.setSelected(selected);
             val.setCsvColumnName(columnName);
+            break;
           }
         }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
     }
   }
 
@@ -99,7 +95,7 @@ public class ImportTypeParameter implements UserParameter<List<ImportType>, Impo
       final Element element = doc.createElement(SUB_ELEMENT);
       element.setAttribute(SELECTED, String.valueOf(value.isSelected()));
       element.setAttribute(COL_NAME, value.getCsvColumnName());
-      element.setAttribute(TYPE_NAME, value.getDataType().getHeaderString());
+      element.setAttribute(TYPE_NAME, value.getDataType().getClass().getName());
       xmlElement.appendChild(element);
     }
   }
