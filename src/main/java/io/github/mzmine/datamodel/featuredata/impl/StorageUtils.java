@@ -55,7 +55,7 @@ public class StorageUtils {
 
     for (final T series : seriesList) {
       double[][] mzIntensity = DataPointUtils
-          .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
+          .getDataPointsAsDoubleArray(series.getMZValueBuffer(), series.getIntensityValueBuffer());
       mzIntensities.add(mzIntensity);
     }
 

@@ -256,7 +256,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -268,7 +268,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }

@@ -197,7 +197,7 @@ public class FeatureDataUtils {
       return 0f;
     }
     float area = 0f;
-    DoubleBuffer intensities = series.getIntensityValues();
+    DoubleBuffer intensities = series.getIntensityValueBuffer();
     List<? extends Scan> scans = series.getSpectra();
     double lastIntensity = intensities.get(0);
     float lastRT = scans.get(0).getRetentionTime();
@@ -222,7 +222,7 @@ public class FeatureDataUtils {
       @NotNull final CenterMeasure cm) {
     CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
+        .getDataPointsAsDoubleArray(series.getMZValueBuffer(), series.getIntensityValueBuffer());
     return cf.calcCenter(data[0], data[1]);
   }
 

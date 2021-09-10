@@ -31,7 +31,7 @@ public interface IntensitySeries extends SeriesValueCount {
    *
    * @return All non-zero intensities.
    */
-  DoubleBuffer getIntensityValues();
+  DoubleBuffer getIntensityValueBuffer();
 
   /**
    *
@@ -42,7 +42,7 @@ public interface IntensitySeries extends SeriesValueCount {
     if (dst.length < getNumberOfValues()) {
       dst = new double[getNumberOfValues()];
     }
-    getIntensityValues().get(0, dst, 0, getNumberOfValues());
+    getIntensityValueBuffer().get(0, dst, 0, getNumberOfValues());
     return dst;
   }
 
@@ -52,7 +52,7 @@ public interface IntensitySeries extends SeriesValueCount {
    * @return The intensity at the index position. Note that this
    */
   default double getIntensity(int index) {
-    return getIntensityValues().get(index);
+    return getIntensityValueBuffer().get(index);
   }
 
   /**
@@ -60,7 +60,7 @@ public interface IntensitySeries extends SeriesValueCount {
    * @return The number of non-zero intensity values in this series.
    */
   default int getNumberOfValues() {
-    return getIntensityValues().capacity();
+    return getIntensityValueBuffer().capacity();
   }
 
 }

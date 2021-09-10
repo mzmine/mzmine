@@ -369,7 +369,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "This data access is designed to loop over intensities/mobilities.");
   }
@@ -406,7 +406,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   /**
-   * @param dst a buffer to copy the intensities to. must be of appropriate size. If null is passed,
+   * @param dst a buffer to copy the mobilities to. must be of appropriate size. If null is passed,
    *            the intensity array is returned directly. Do not modify.
    * @return The intensity values.
    */

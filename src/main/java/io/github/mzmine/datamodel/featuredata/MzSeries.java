@@ -31,7 +31,7 @@ public interface MzSeries extends SeriesValueCount {
   /**
    * @return All mz values corresponding to non-0 intensities.
    */
-  DoubleBuffer getMZValues();
+  DoubleBuffer getMZValueBuffer();
 
   /**
    *
@@ -42,7 +42,7 @@ public interface MzSeries extends SeriesValueCount {
     if (dst.length < getNumberOfValues()) {
       dst = new double[getNumberOfValues()];
     }
-    getMZValues().get(0, dst, 0, getNumberOfValues());
+    getMZValueBuffer().get(0, dst, 0, getNumberOfValues());
     return dst;
   }
 
@@ -52,14 +52,14 @@ public interface MzSeries extends SeriesValueCount {
    * @see IonTimeSeries#getMzForSpectrum(Scan)
    */
   default double getMZ(int index) {
-    return getMZValues().get(index);
+    return getMZValueBuffer().get(index);
   }
 
   /**
    * @return The number of mz values corresponding to non-0 intensities.
    */
   default int getNumberOfValues() {
-    return getMZValues().capacity();
+    return getMZValueBuffer().capacity();
   }
 
 }

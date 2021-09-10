@@ -69,7 +69,7 @@ public class IonTimeSeriesUtils {
 
     if (outMzBuffer != null) {
       final double avgMz = MathUtils
-          .calcAvg(DataPointUtils.getDoubleBufferAsArray(series.getMZValues()));
+          .calcAvg(DataPointUtils.getDoubleBufferAsArray(series.getMZValueBuffer()));
       Arrays.fill(outMzBuffer, avgMz);
     }
 
