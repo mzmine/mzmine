@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.mzhistogram;
@@ -28,7 +27,7 @@ import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.mzhistogram.chart.CorrelationHistogramTab;
+import io.github.mzmine.modules.visualization.mzhistogram.chart.MzDeltaCorrelationHistogramTab;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -52,9 +51,9 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
   private final File outputFile;
   private final File outputFileNeutralMasses;
   private final Boolean saveToFile;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private CorrelationHistogramTab tab;
-  private ParameterSet parameters;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private MzDeltaCorrelationHistogramTab tab;
+  private final ParameterSet parameters;
 
   public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters) {
     super(null); // no new data stored -> null
@@ -192,7 +191,7 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
 
     // create histogram dialog
     Platform.runLater(() -> {
-      tab = new CorrelationHistogramTab(flist, deltaMZList, deltaMZToNeutralMassList,
+      tab = new MzDeltaCorrelationHistogramTab(flist, deltaMZList, deltaMZToNeutralMassList,
           "m/z delta correlation histogram", "delta m/z", parameters);
       MZmineCore.getDesktop().addTab(tab);
     });

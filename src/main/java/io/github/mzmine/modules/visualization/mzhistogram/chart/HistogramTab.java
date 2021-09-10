@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
@@ -59,13 +58,13 @@ public class HistogramTab extends MZmineTab {
   private int processedScans, totalScans;
 
   // parameters
-  private ScanSelection scanSelection;
+  private final ScanSelection scanSelection;
   private Scan[] scans;
-  private Range<Double> mzRange;
+  private final Range<Double> mzRange;
   private Range<Float> rtRange;
-  private Boolean useRTRange;
-  private boolean useMobilityScans;
-  private double binWidth;
+  private final Boolean useRTRange;
+  private final boolean useMobilityScans;
+  private final double binWidth;
 
   private HistogramData data;
 
@@ -149,7 +148,7 @@ public class HistogramTab extends MZmineTab {
               throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
                                              + " does not have a mass list");
             }
-            DataPoint mzValues[] = massList.getDataPoints();
+            DataPoint[] mzValues = massList.getDataPoints();
 
             // insert all mz in order and count them
             Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))
@@ -162,7 +161,7 @@ public class HistogramTab extends MZmineTab {
             throw new NullPointerException("Scan " + dataFile + " #" + scan.getScanNumber()
                                            + " does not have a mass list");
           }
-          DataPoint mzValues[] = massList.getDataPoints();
+          DataPoint[] mzValues = massList.getDataPoints();
 
           // insert all mz in order and count them
           Arrays.stream(mzValues).mapToDouble(dp -> dp.getMZ()).filter(mz -> mzRange.contains(mz))

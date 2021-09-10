@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
@@ -31,7 +30,6 @@ import java.util.stream.DoubleStream;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
@@ -61,31 +59,32 @@ import org.jfree.data.xy.XYDataset;
 public class HistogramPanel extends BorderPane {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
-
-  private AtomicLong currentUpdateID = new AtomicLong(0);
-
   private final BorderPane contentPanel;
-  private BorderPane southwest;
-  private TextField txtBinWidth, txtBinShift;
-  private CheckBox cbExcludeSmallerNoise;
-  private Label lbStats;
-  private TextField txtRangeX;
-  private TextField txtRangeY;
-  private TextField txtRangeXEnd;
-  private TextField txtRangeYEnd;
-  private TextField txtGaussianLower;
-  private TextField txtGaussianUpper;
-  private TextField txtPrecision;
-  private CheckBox cbGaussianFit;
-  private CheckBox cbKeepSameXaxis;
+  private final AtomicLong currentUpdateID = new AtomicLong(0);
+  private final BorderPane southwest;
+  private final TextField txtBinWidth;
+  private final TextField txtBinShift;
+  private final CheckBox cbExcludeSmallerNoise;
+  private final Label lbStats;
+  private final TextField txtRangeX;
+  private final TextField txtRangeY;
+  private final TextField txtRangeXEnd;
+  private final TextField txtRangeYEnd;
+  private final TextField txtGaussianLower;
+  private final TextField txtGaussianUpper;
+  private final TextField txtPrecision;
+  private final CheckBox cbGaussianFit;
+  private final CheckBox cbKeepSameXaxis;
 
   private EChartViewer pnHisto;
   private String xLabel;
   private HistogramData data;
-  private VBox boxSettings;
-  private VBox secondGaussian;
-  private HBox pnHistoSett, xRanges, yRanges;
-  private Executor exec;
+  private final VBox boxSettings;
+  private final VBox secondGaussian;
+  private final HBox pnHistoSett;
+  private final HBox xRanges;
+  private final HBox yRanges;
+  private final Executor exec;
 
   /**
    * Create the dialog.
@@ -390,13 +389,13 @@ public class HistogramPanel extends BorderPane {
             final long startID = currentUpdateID.incrementAndGet();
 
             exec.execute(() -> {
-              logger.finest("Create histogram update thread "+startID);
-              if(startID == currentUpdateID.get()) {
+              logger.finest("Create histogram update thread " + startID);
+              if (startID == currentUpdateID.get()) {
                 JFreeChart chart = doInBackground(binShift, binwidth);
                 Platform.runLater(() -> {
-                  if(startID == currentUpdateID.get()) {
+                  if (startID == currentUpdateID.get()) {
                     done(chart);
-                    logger.info("Finished histogram update thread "+startID);
+                    logger.info("Finished histogram update thread " + startID);
                   }
                 });
               }
