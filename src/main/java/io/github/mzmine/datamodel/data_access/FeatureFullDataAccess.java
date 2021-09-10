@@ -185,9 +185,9 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
    *
    * @return The intensity buffer of this data access.
    */
-//  public double[] getIntensityValueBuffer() {
-//    return intensities;
-//  }
+  public double[] getIntensityValues() {
+    return intensities;
+  }
 
   /**
    * Usage of this method is strongly discouraged because it returns the internal buffer of this
@@ -201,7 +201,7 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
    *
    * @return The m/z buffer of this data access.
    */
-//  public double[] getMzValueBuffer() {
-//    return mzs;
-//  }
+  public double[] getMzValues() {
+    return mzs;
+  }
 }
