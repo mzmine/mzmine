@@ -110,7 +110,8 @@ public class ImzMLImportModule implements MZmineProcessingModule {
 
       try {
         ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName, storage);
-        Task newTask = new ImzMLImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new ImzMLImportTask(project, fileNames[i], newMZmineFile,
+            ImzMLImportModule.class, parameters);
         tasks.add(newTask);
 
       } catch (IOException e) {

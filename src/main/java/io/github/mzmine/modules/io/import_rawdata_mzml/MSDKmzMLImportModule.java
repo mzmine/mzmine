@@ -115,7 +115,8 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
         } else {
           newMZmineFile = MZmineCore.createNewFile(newName, storage);
         }
-        Task newTask = new MSDKmzMLImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new MSDKmzMLImportTask(project, fileNames[i], newMZmineFile,
+            MSDKmzMLImportModule.class, parameters);
         tasks.add(newTask);
 
       } catch (IOException e) {
