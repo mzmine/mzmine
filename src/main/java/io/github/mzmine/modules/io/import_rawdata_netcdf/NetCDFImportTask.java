@@ -18,21 +18,25 @@
 
 package io.github.mzmine.modules.io.import_rawdata_netcdf;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.IndexIterator;
@@ -58,6 +62,8 @@ public class NetCDFImportTask extends AbstractTask {
   private File file;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
 
   private Variable massValueVariable, intensityValueVariable;
 
@@ -65,11 +71,14 @@ public class NetCDFImportTask extends AbstractTask {
   private double massValueScaleFactor = 1;
   private double intensityValueScaleFactor = 1;
 
-  public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+  public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
     super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
+    this.parameters = parameters;
+    this.module = module;
   }
 
   /**
@@ -111,6 +120,7 @@ public class NetCDFImportTask extends AbstractTask {
 
       // Close file
       this.finishReading();
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {

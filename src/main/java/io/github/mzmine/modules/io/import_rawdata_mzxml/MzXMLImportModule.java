@@ -105,7 +105,7 @@ public class MzXMLImportModule implements MZmineProcessingModule {
 
       try {
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new MzXMLImportTask(project, fileNames[i], newMZmineFile, MzXMLImportModule.class, parameters);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();
