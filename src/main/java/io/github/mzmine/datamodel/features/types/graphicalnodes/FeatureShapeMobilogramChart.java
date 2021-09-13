@@ -74,26 +74,29 @@ public class FeatureShapeMobilogramChart extends StackPane {
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
     final ModularFeature bestFeature = row.getBestFeature();
-    final org.jfree.data.Range defaultRange;
-    com.google.common.collect.Range<Float> mobilityRange = bestFeature.getMobilityRange();
-    final Float mobility = bestFeature.getMobility();
-    if (bestFeature != null && bestFeature.getRawDataFile() instanceof IMSRawDataFile imsRaw
-        && mobilityRange != null && mobility != null && !Float.isNaN(mobility)) {
-      final Float length = RangeUtils.rangeLength(mobilityRange);
-
-      defaultRange = new org.jfree.data.Range(
-          Math.max(mobility - 3 * length, imsRaw.getDataMobilityRange().lowerEndpoint()),
-          Math.min(mobility + 3 * length, imsRaw.getDataMobilityRange().upperEndpoint()));
-    } else {
+    org.jfree.data.Range defaultRange = null;
+    if (bestFeature != null && bestFeature.getRawDataFile() instanceof IMSRawDataFile imsRaw) {
+      com.google.common.collect.Range<Float> mobilityRange = bestFeature.getMobilityRange();
+      final Float mobility = bestFeature.getMobility();
+      if (mobilityRange != null && mobility != null && !Float.isNaN(mobility)) {
+        final Float length = RangeUtils.rangeLength(mobilityRange);
+        defaultRange = new org.jfree.data.Range(
+            Math.max(mobility - 3 * length, imsRaw.getDataMobilityRange().lowerEndpoint()),
+            Math.min(mobility + 3 * length, imsRaw.getDataMobilityRange().upperEndpoint()));
+      }
+    }
+    if (defaultRange == null) {
       defaultRange = new Range(0, 1);
     }
+
+    final var finalRange = defaultRange;
 
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     Platform.runLater(() -> {
       getChildren().add(chart);
       chart.addDatasets(datasets);
-      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
-      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(finalRange);
+      chart.getXYPlot().getDomainAxis().setRange(finalRange);
     });
   }
 }
