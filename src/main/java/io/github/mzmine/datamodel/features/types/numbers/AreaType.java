@@ -26,6 +26,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class AreaType extends HeightType {
 
+  @NotNull
+  @Override
+  public String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "area";
+  }
+
   @Override
   public String getHeaderString() {
     return "Area";

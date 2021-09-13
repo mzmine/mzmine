@@ -23,12 +23,20 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.FormulaUtils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The formula mass typically follows a {@link FormulaType} and describes the neutral mass or m/z
  * depending on the formula. Also see {@link FormulaUtils}.
  */
 public class FormulaMassType extends DoubleType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "formula_mass";
+  }
 
   public FormulaMassType() {
     super(new DecimalFormat("0.0000"));

@@ -27,6 +27,13 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_mobility_unit";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Mobility unit";
   }

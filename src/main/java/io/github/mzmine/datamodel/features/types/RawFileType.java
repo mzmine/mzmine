@@ -26,6 +26,13 @@ import javafx.beans.property.SimpleObjectProperty;
 
 public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implements NullColumnType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "datafile";
+  }
+
   @Override
   @NotNull
   public String getHeaderString() {

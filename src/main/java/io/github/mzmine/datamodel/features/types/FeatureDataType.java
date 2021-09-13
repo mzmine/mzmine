@@ -34,6 +34,13 @@ public class FeatureDataType extends
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "feature_data";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Feature data";
   }

@@ -26,6 +26,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
 public class CommentType extends DataType<StringProperty>
     implements EditableColumnType, StringParser<String>, AnnotationType {
@@ -52,5 +53,11 @@ public class CommentType extends DataType<StringProperty>
     return new SimpleStringProperty("");
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "comment";
+  }
 
 }

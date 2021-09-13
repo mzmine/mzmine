@@ -34,6 +34,13 @@ public class PrecursorMZType extends DoubleType {
     super(new DecimalFormat("0.0000"));
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "precursor_mz";
+  }
+
   @Override
   public NumberFormat getFormatter() {
     try {

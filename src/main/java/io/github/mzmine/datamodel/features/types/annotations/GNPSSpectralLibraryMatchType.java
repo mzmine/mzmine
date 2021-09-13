@@ -54,6 +54,14 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
     return subTypes;
   }
 
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "gnps_library_match_annotation";
+  }
+
   @NotNull
   @Override
   public String getHeaderString() {

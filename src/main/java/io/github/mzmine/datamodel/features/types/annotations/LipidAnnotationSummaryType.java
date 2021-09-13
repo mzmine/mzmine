@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import org.jetbrains.annotations.NotNull;
 
 public class LipidAnnotationSummaryType extends ListDataType<MatchedLipid>
     implements AnnotationType, EditableColumnType {
@@ -31,4 +32,10 @@ public class LipidAnnotationSummaryType extends ListDataType<MatchedLipid>
     return "Lipid Name";
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "lipid_annotation_list";
+  }
 }

@@ -22,9 +22,17 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibMatchSummaryType extends ListDataType<SpectralDBFeatureIdentity>
     implements AnnotationType, EditableColumnType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "spectral_lib_match_list";
+  }
 
   @Override
   public String getHeaderString() {

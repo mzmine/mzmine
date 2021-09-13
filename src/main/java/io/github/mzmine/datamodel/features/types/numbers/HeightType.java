@@ -34,6 +34,13 @@ public class HeightType extends FloatType {
     super(new DecimalFormat("0.0E00"));
   }
 
+  @NotNull
+  @Override
+  public String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "height";
+  }
+
   @Override
   public NumberFormat getFormatter() {
     try {
