@@ -78,12 +78,12 @@ public class FeatureShapeMobilogramChart extends StackPane {
     com.google.common.collect.Range<Float> mobilityRange = bestFeature.getMobilityRange();
     final Float mobility = bestFeature.getMobility();
     if (bestFeature != null && bestFeature.getRawDataFile() instanceof IMSRawDataFile imsRaw
-        && mobilityRange != null && mobility != null && !Float.isNaN(mobility)){
+        && mobilityRange != null && mobility != null && !Float.isNaN(mobility)) {
       final Float length = RangeUtils.rangeLength(mobilityRange);
 
-      defaultRange = new org.jfree.data.Range(Math.max(mobility - 3 * length, 0),
-          Math.min(mobility + 3 * length,
-              bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+      defaultRange = new org.jfree.data.Range(
+          Math.max(mobility - 3 * length, imsRaw.getDataMobilityRange().lowerEndpoint()),
+          Math.min(mobility + 3 * length, imsRaw.getDataMobilityRange().upperEndpoint()));
     } else {
       defaultRange = new Range(0, 1);
     }
