@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
@@ -299,22 +300,33 @@ public class IonMobilityUtils {
   }
 
   /**
-   *
    * @param series The series.
    * @return The mobility values in the series.
    */
   public static <T extends IntensitySeries & MobilitySeries> double[] extractMobilities(
       @NotNull final T series) {
-
     final double[] mobilities = new double[series.getNumberOfValues()];
+    extractMobilities(series, mobilities);
+    return mobilities;
+  }
+
+  /**
+   * @param series The series.
+   * @param dst    A buffer to write the mobility values to.
+   */
+  public static <T extends IntensitySeries & MobilitySeries> void extractMobilities(
+      @NotNull final T series, @NotNull final double[] dst) {
+    assert series.getNumberOfValues() <= dst.length;
+
     if (series instanceof SummedIntensityMobilitySeries summed) {
-      summed.getMobilityValues(mobilities);
+      summed.getMobilityValues(dst);
+    } else if (series instanceof BinningMobilogramDataAccess access) {
+      System.arraycopy(access.getMobilityValues(), 0, dst, 0, access.getNumberOfValues());
     } else {
-      for (int i = 0; i < mobilities.length; i++) {
-        mobilities[i] = series.getMobility(i);
+      for (int i = 0; i < dst.length; i++) {
+        dst[i] = series.getMobility(i);
       }
     }
-    return mobilities;
   }
 
   public enum MobilogramType {

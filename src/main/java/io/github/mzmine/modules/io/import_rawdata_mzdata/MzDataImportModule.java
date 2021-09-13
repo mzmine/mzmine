@@ -110,7 +110,8 @@ public class MzDataImportModule implements MZmineProcessingModule {
 
       try {
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new MzDataImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new MzDataImportTask(project, fileNames[i], newMZmineFile,
+            MzDataImportModule.class, parameters);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

@@ -18,13 +18,6 @@
 
 package io.github.mzmine.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -33,6 +26,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
@@ -43,7 +37,13 @@ import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -52,6 +52,8 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Raw data file related utilities
@@ -61,6 +63,7 @@ public class RawDataFileUtils {
   private static final Logger logger = Logger.getLogger(RawDataFileUtils.class.getName());
 
   public static void createRawDataImportTasks(MZmineProject project, List<Task> taskList,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       File... fileNames) throws IOException {
 
     // one storage for all files imported in the same task as they are typically analyzed together
@@ -79,52 +82,57 @@ public class RawDataFileUtils {
       switch (fileType) {
         case ICPMSMS_CSV:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile);
+          newTask = new IcpMsCVSImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         case MZDATA:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new MzDataImportTask(project, fileName, newMZmineFile);
+          newTask = new MzDataImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         case MZML:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile);
+          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         case IMZML:
           newMZmineFile = MZmineCore.createNewImagingFile(fileName.getName(), storage);
-          newTask = new ImzMLImportTask(project, fileName, (ImagingRawDataFile) newMZmineFile);
+          newTask = new ImzMLImportTask(project, fileName, (ImagingRawDataFile) newMZmineFile,
+              module, parameters);
           break;
         case MZXML:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new MzXMLImportTask(project, fileName, newMZmineFile);
+          newTask = new MzXMLImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         case NETCDF:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new NetCDFImportTask(project, fileName, newMZmineFile);
+          newTask = new NetCDFImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         case THERMO_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile);
+          newTask = new ThermoRawImportTask(project, fileName, newMZmineFile, module, parameters);
         case WATERS_RAW:
           newMZmineFile = MZmineCore.createNewFile(fileName.getName(), storage);
-          newTask = new WatersRawImportTask(project, fileName, newMZmineFile);
+          newTask = new WatersRawImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         case ZIP:
         case GZIP:
-          newTask = new ZipImportTask(project, fileName, fileType);
+          newTask = new ZipImportTask(project, fileName, fileType, module, parameters);
           break;
         case BRUKER_TDF:
-          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
-          newTask = new TDFImportTask(project, fileName, (IMSRawDataFile) newMZmineFile);
+          newMZmineFile = MZmineCore
+              .createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
+          newTask = new TDFImportTask(project, fileName, (IMSRawDataFile) newMZmineFile, module,
+              parameters);
           break;
         case MZML_IMS:
-          newMZmineFile = MZmineCore.createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
-          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile);
+          newMZmineFile = MZmineCore
+              .createNewIMSFile(fileName.getName(), MemoryMapStorage.forRawDataFile());
+          newTask = new MSDKmzMLImportTask(project, fileName, newMZmineFile, module, parameters);
           break;
         default:
           break;
       }
-      if (newTask != null)
+      if (newTask != null) {
         taskList.add(newTask);
+      }
     }
   }
 
@@ -134,22 +142,25 @@ public class RawDataFileUtils {
    * user wants to remove the prefix or a part of it. If the user says yes, the method returns the
    * prefix to be removed, otherwise returns null. Only works in GUI mode and when called on the
    * JavaFX thread, otherwise returns null.
-   *
+   * <p>
    * Assumes that fileNames doesn't contain null entries.
    */
   public static @Nullable String askToRemoveCommonPrefix(@NotNull File fileNames[]) {
 
     // If we're running in batch mode or not on the JavaFX thread, give up
-    if ((MZmineCore.getDesktop().getMainWindow() == null) || (!Platform.isFxApplicationThread()))
+    if ((MZmineCore.getDesktop().getMainWindow() == null) || (!Platform.isFxApplicationThread())) {
       return null;
+    }
 
     // We need at least 2 files to have a common prefix
-    if (fileNames.length < 2)
+    if (fileNames.length < 2) {
       return null;
+    }
 
     String commonPrefix = null;
     final String firstName = fileNames[0].getName();
-    outerloop: for (int x = 0; x < firstName.length(); x++) {
+    outerloop:
+    for (int x = 0; x < firstName.length(); x++) {
       for (int i = 0; i < fileNames.length; i++) {
         if (!firstName.substring(0, x).equals(fileNames[i].getName().substring(0, x))) {
           commonPrefix = firstName.substring(0, x - 1);
@@ -158,9 +169,9 @@ public class RawDataFileUtils {
       }
     }
     // If we didn't find a common prefix, leave here
-    if (Strings.isNullOrEmpty(commonPrefix))
+    if (Strings.isNullOrEmpty(commonPrefix)) {
       return null;
-
+    }
 
     // Show a dialog to allow user to remove common prefix
     Dialog<ButtonType> dialog = new Dialog<>();
@@ -181,8 +192,8 @@ public class RawDataFileUtils {
 
     ButtonType removeButtonType = new ButtonType("Remove", ButtonData.YES);
     ButtonType notRemoveButtonType = new ButtonType("Do not remove", ButtonData.NO);
-    dialog.getDialogPane().getButtonTypes().addAll(removeButtonType, notRemoveButtonType,
-        ButtonType.CANCEL);
+    dialog.getDialogPane().getButtonTypes()
+        .addAll(removeButtonType, notRemoveButtonType, ButtonType.CANCEL);
     dialog.getDialogPane().setContent(panel);
     Optional<ButtonType> result = dialog.showAndWait();
 
@@ -207,15 +218,18 @@ public class RawDataFileUtils {
     Range<Float> rtRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Float> dfRange = file.getDataRTRange(msLevel);
-      if (dfRange == null)
+      if (dfRange == null) {
         continue;
-      if (rtRange == null)
+      }
+      if (rtRange == null) {
         rtRange = dfRange;
-      else
+      } else {
         rtRange = rtRange.span(dfRange);
+      }
     }
-    if (rtRange == null)
+    if (rtRange == null) {
       rtRange = Range.singleton(0.0f);
+    }
     return rtRange;
   }
 
@@ -223,27 +237,30 @@ public class RawDataFileUtils {
     Range<Double> mzRange = null;
     for (RawDataFile file : dataFiles) {
       Range<Double> dfRange = file.getDataMZRange(msLevel);
-      if (dfRange == null)
+      if (dfRange == null) {
         continue;
-      if (mzRange == null)
+      }
+      if (mzRange == null) {
         mzRange = dfRange;
-      else
+      } else {
         mzRange = mzRange.span(dfRange);
+      }
     }
-    if (mzRange == null)
+    if (mzRange == null) {
       mzRange = Range.singleton(0.0);
+    }
     return mzRange;
   }
 
   /**
    * Returns true if the given data file has mass lists for all MS1 scans
-   *
    */
   public static boolean hasMassLists(RawDataFile dataFile) {
     List<Scan> scans = dataFile.getScanNumbers(1);
     for (Scan scan : scans) {
-      if (scan.getMassList() == null)
+      if (scan.getMassList() == null) {
         return false;
+      }
     }
     return true;
   }
@@ -251,8 +268,9 @@ public class RawDataFileUtils {
   public static Scan getClosestScanNumber(RawDataFile dataFile, double rt) {
 
     ObservableList<Scan> scanNums = dataFile.getScans();
-    if (scanNums.size() == 0)
+    if (scanNums.size() == 0) {
       return null;
+    }
     int best = 0;
     double bestRt = scanNums.get(0).getRetentionTime();
 

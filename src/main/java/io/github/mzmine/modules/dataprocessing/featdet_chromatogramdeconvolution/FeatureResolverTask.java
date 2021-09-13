@@ -18,13 +18,11 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -33,15 +31,10 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.DetectionType;
-import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
-import io.github.mzmine.datamodel.features.types.RawFileType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
-import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -52,11 +45,9 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -128,8 +119,8 @@ public class FeatureResolverTask extends AbstractTask {
             "Feature resolving can only be performed on feature lists with a single raw data file");
       } else {
         try {
-          // Peak resolver.
-          if (((GeneralResolverParameters) parameters).getXYResolver(parameters) != null) {
+          if (((GeneralResolverParameters) parameters)
+              .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
           } else {
             legacyResolve();
@@ -316,7 +307,7 @@ public class FeatureResolverTask extends AbstractTask {
 
   /**
    * Used for compatibility with old {@link FeatureResolver}s. New methods should implement {@link
-   * XYResolver}. See {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
+   * Resolver}. See {@link io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolver}
    * as an example implementation.
    *
    * @throws RSessionWrapperException
@@ -345,50 +336,43 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    @NotNull final XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameters)
-        .getXYResolver(parameters);
+    final Resolver resolver = ((GeneralResolverParameters) parameters)
+        .getResolver(parameters, originalFeatureList);
+    if(resolver == null) {
+      setErrorMessage("Resolver could not be initialised.");
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
-    final ResolvingDimension dimension = parameters
-        .getParameter(GeneralResolverParameters.dimension).getValue();
-    final BinningMobilogramDataAccess mobilogramBinning = dataFile instanceof IMSRawDataFile
-            && originalFeatureList.getFeatureTypes().containsKey(MobilityType.class)
-            ? EfficientDataAccess.of((IMSRawDataFile) dataFile,
-            BinningMobilogramDataAccess.getPreviousBinningWith(originalFeatureList,
-                ((IMSRawDataFile) dataFile).getMobilityType())) : null;
+    final FeatureDataAccess access = EfficientDataAccess
+        .of(originalFeatureList, EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
 
-    final List<? extends Scan> seletedScans = originalFeatureList.getSeletedScans(dataFile);
-
     int c = 0;
-    for (int i = 0; i < totalRows; i++) {
-      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
-          .getRow(i);
-      final ModularFeature originalFeature = originalRow.getFeature(dataFile);
-      final IonTimeSeries<? extends Scan> data = originalFeature.getFeatureData();
 
-      final List<IonTimeSeries<? extends Scan>> resolvedSeries = ResolvingUtil
-          .resolve(resolver, data, resolvedFeatureList.getMemoryMapStorage(), dimension,
-              seletedScans, mobilogramBinning);
+    while (access.hasNextFeature()) {
+      final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
+      final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver
+          .resolve(access, getMemoryMapStorage());
 
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);
-        final ModularFeature f = new ModularFeature(resolvedFeatureList);
-        f.set(RawFileType.class, originalFeature.getRawDataFile());
-        f.set(FeatureDataType.class, resolved);
-        f.set(DetectionType.class, originalFeature.get(DetectionType.class));
+        final ModularFeature f = new ModularFeature(resolvedFeatureList,
+            originalFeature.getRawDataFile(), resolved, originalFeature.getFeatureStatus());
+
         if (originalFeature.getMobilityUnit() != null) {
           f.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
         if (originalFeature.get(ImageType.class) != null) {
           f.set(ImageType.class, true);
         }
-        FeatureDataUtils.recalculateIonSeriesDependingTypes(f, CenterMeasure.AVG, true);
         newRow.addFeature(originalFeature.getRawDataFile(), f);
         resolvedFeatureList.addRow(newRow);
         if (resolved.getSpectra().size() <= 3) {
@@ -399,7 +383,7 @@ public class FeatureResolverTask extends AbstractTask {
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
         + " have less than 4 scans (frames for IMS data)");
-    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
+//    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
@@ -409,7 +393,6 @@ public class FeatureResolverTask extends AbstractTask {
 
   @Override
   public void cancel() {
-
     super.cancel();
     // Turn off R instance, if already existing.
     try {
@@ -421,6 +404,12 @@ public class FeatureResolverTask extends AbstractTask {
     }
   }
 
+  /**
+   * This method is kept around to keep compatibility with resolvers implementing the legacy
+   * interface {@link FeatureResolver}. All new resolvers should implement {@link Resolver} or
+   * {@link AbstractResolver} instead.
+   */
+  @Deprecated
   private FeatureList resolvePeaks(final ModularFeatureList originalFeatureList,
       RSessionWrapper rSession) throws RSessionWrapperException {
 

@@ -110,7 +110,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
   }
 
   public double getIntensity(int index) {
-    return getIntensityValues().get(index);
+    return getIntensityValueBuffer().get(index);
   }
 
   /**
@@ -126,7 +126,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return getMobilityValues().get(index);
   }
 
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     return intensityValues;
   }
 
