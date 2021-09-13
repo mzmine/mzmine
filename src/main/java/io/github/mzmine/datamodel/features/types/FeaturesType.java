@@ -37,6 +37,13 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "features_map";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Features";
   }

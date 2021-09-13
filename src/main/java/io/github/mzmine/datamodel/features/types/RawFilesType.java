@@ -30,6 +30,13 @@ public class RawFilesType extends ListDataType<RawDataFile> implements NullColum
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "datafile_list";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Raw data files";
   }

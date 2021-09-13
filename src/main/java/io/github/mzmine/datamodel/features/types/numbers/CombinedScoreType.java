@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -29,6 +30,13 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
  * MsMsScoreType}, and the relative mass differnce into one score.
  */
 public class CombinedScoreType extends ScoreType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "combined_score";
+  }
 
   @Override
   public String getHeaderString() {

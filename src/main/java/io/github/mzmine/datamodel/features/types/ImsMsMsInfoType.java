@@ -29,6 +29,13 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_mobility_msms_info";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "ImsMsMsInfo";
   }

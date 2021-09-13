@@ -33,6 +33,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CCSType extends FloatType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "collisional_cross_section";
+  }
+
   private final String headerString = MZmineCore.getConfiguration().getUnitFormat()
       .format("CCS", "\u212B\u00B2");
 

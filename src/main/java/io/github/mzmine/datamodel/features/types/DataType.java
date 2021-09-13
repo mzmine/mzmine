@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
-import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
@@ -55,10 +54,20 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class DataType<T extends Property<?>> {
 
-  protected Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
   public DataType() {
   }
+
+  /**
+   * A unique ID that is used to store and retrieve data types. This value should never be changed
+   * after introducing a new type to retain backwards compatibility. (even if the class name or
+   * string representation changes)
+   *
+   * @return a unique identifier
+   */
+  @NotNull
+  public abstract String getUniqueID();
 
   /**
    * A formatted string representation of the value
@@ -158,7 +167,7 @@ public abstract class DataType<T extends Property<?>> {
                   ((ListProperty) model.get(this)).add(0, data);
                 } catch (Exception ex) {
                   logger.log(Level.SEVERE, "Cannot set value from table cell to data type: "
-                      + this.getHeaderString());
+                                           + this.getHeaderString());
                   logger.log(Level.SEVERE, ex.getMessage(), ex);
                 }
               }
@@ -184,7 +193,8 @@ public abstract class DataType<T extends Property<?>> {
       return new EditableDataTypeCellFactory(raw, this);
     } else {
       throw new UnsupportedOperationException("Programming error: No edit CellFactory for "
-          + "data type: " + this.getHeaderString() + " class " + this.getClass().toString());
+                                              + "data type: " + this.getHeaderString() + " class "
+                                              + this.getClass().toString());
     }
   }
 

@@ -43,6 +43,13 @@ public class IonNetworkIDType extends IntegerType {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_network_id";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "IIN ID";
   }

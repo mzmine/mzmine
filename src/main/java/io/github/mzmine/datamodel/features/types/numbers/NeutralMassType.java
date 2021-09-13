@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The neutral mass of a feature or annotation.
@@ -30,6 +31,13 @@ public class NeutralMassType extends DoubleType {
 
   public NeutralMassType() {
     super(new DecimalFormat("0.0000"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "neutral_mass";
   }
 
   @Override

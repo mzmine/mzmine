@@ -23,8 +23,16 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
 
 public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implements NullColumnType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "best_ms1_scan_number";
+  }
 
   @Override
   public String getHeaderString() {

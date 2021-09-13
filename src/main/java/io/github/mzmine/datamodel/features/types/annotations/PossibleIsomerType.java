@@ -34,6 +34,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class PossibleIsomerType extends ListDataType<Integer> implements AnnotationType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "possible_isomers";
+  }
+
   @Override
   public @NotNull String getHeaderString() {
     return "Possible Isomers";

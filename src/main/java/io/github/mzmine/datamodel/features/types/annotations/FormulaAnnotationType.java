@@ -41,6 +41,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FormulaAnnotationType extends ModularType implements AnnotationType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "formula_annotation";
+  }
+
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List
       .of(new FormulaSummaryType(), new FormulaMassType(), new RdbeType(),

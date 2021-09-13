@@ -20,11 +20,19 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Describes the {@link FeatureListRow#getID()}
  */
 public class IDType extends IntegerType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "id";
+  }
 
   @Override
   public String getHeaderString() {

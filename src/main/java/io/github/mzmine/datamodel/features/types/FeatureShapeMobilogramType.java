@@ -38,6 +38,13 @@ public class FeatureShapeMobilogramType extends LinkedDataType
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "feature_shape_mobilogram";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Mobilograms";
   }
