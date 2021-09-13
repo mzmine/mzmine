@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * ResolvedPeak
  */
+@Deprecated
 public class ResolvedPeak implements PlotXYDataProvider {
 
   private SimpleFeatureInformation peakInfo;

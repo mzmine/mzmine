@@ -65,4 +65,5 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   @Override
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+
 }

@@ -99,12 +99,12 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     return intensityValues;
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     return mzValues;
   }
 
@@ -121,7 +121,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
   @Override
   public IonSpectrumSeries<Scan> copy(MemoryMapStorage storage) {
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
+        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
 
     return copyAndReplace(storage, data[0], data[1]);
   }

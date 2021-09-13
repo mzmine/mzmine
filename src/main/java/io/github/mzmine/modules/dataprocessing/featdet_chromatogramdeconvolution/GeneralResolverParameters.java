@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
@@ -51,9 +52,10 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());
 
-  public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>("Dimension",
-      "Select the dimension to be resolved.",
-      FXCollections.observableArrayList(ResolvingDimension.values()), ResolvingDimension.RETENTION_TIME);
+  public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>(
+      "Dimension", "Select the dimension to be resolved.",
+      FXCollections.observableArrayList(ResolvingDimension.values()),
+      ResolvingDimension.RETENTION_TIME);
 
   /**
    * R engine type. Only added in parameter sets that need R.
@@ -66,10 +68,11 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
     super(parameters);
   }
 
+  @Deprecated
   public abstract FeatureResolver getResolver();
 
   @Nullable
-  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameterSet) {
+  public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return null;
   }
 }

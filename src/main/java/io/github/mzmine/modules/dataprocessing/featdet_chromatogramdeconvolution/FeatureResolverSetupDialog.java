@@ -21,9 +21,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolutio
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
-import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -67,9 +67,10 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess mobilogramBinning;
+  protected Resolver resolver;
 
-  public FeatureResolverSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters, String message) {
+  public FeatureResolverSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      String message) {
     super(valueCheckRequired, parameters, message);
     uf = MZmineCore.getConfiguration().getUnitFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -79,18 +80,16 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         uf.format("Intensity", "a.u."));
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
-        (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists();
+    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore
+        .getProjectManager().getCurrentProject().getFeatureLists();
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                FXCollections.observableArrayList(newValue
-                    .getFeatures(newValue.getRawDataFile(0))));
+            fBox.setItems(FXCollections
+                .observableArrayList(newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }
@@ -167,31 +166,29 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     int resolvedFeatureCounter = 0;
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
 
-    if (((GeneralResolverParameters) parameterSet).getXYResolver(parameterSet) != null) {
-      XYResolver<Double, Double, double[], double[]> resolver = ((GeneralResolverParameters) parameterSet)
-          .getXYResolver(parameterSet);
-      if ((mobilogramBinning == null || mobilogramBinning.getDataFile() != newValue
-          .getRawDataFile()) && dimension == ResolvingDimension.MOBILITY) {
-        mobilogramBinning = EfficientDataAccess.of((IMSRawDataFile) newValue.getRawDataFile(),
-            BinningMobilogramDataAccess
-                .getPreviousBinningWith(flistBox.getValue(), newValue.getMobilityUnit()));
-      }
+    if (resolver == null) {
+      resolver = ((GeneralResolverParameters) parameterSet)
+          .getResolver(parameterSet, flistBox.getValue());
+    }
+    if (resolver != null) {
 
       if (newValue.getFeatureList() instanceof ModularFeatureList flist) {
-        List<? extends Scan> selectedScans = flist.getSeletedScans(newValue.getRawDataFile());
-        List<IonTimeSeries<? extends Scan>> resolved = ResolvingUtil
-            .resolve(resolver, newValue.getFeatureData(), null, dimension, selectedScans,
-                mobilogramBinning);
-        if (resolved.isEmpty()) {
-          return;
-        }
+        if (dimension == ResolvingDimension.RETENTION_TIME) {
+          // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
+          final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(IonTimeSeriesUtils
+              .remapRtAxis(newValue.getFeatureData(),
+                  flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
 
-        for (IonTimeSeries<? extends Scan> series : resolved) {
-          if (dimension == ResolvingDimension.RETENTION_TIME) {
+          for (IonTimeSeries<? extends Scan> series : resolved) {
             ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, "",
                 new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
             MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
-          } else {
+          }
+        } else {
+          // for mobility dimension we don't need to remap RT
+          final List<IonTimeSeries<? extends Scan>> resolved = resolver
+              .resolve(newValue.getFeatureData(), null);
+          for (IonTimeSeries<? extends Scan> series : resolved) {
             ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(
                 ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
                 new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
@@ -250,6 +247,11 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
+
+    if (flistBox.getValue() != null) {
+      resolver = ((GeneralResolverParameters) parameterSet)
+          .getResolver(parameterSet, flistBox.getValue());
+    }
 
     List<String> errors = new ArrayList<>();
     if (parameterSet.checkParameterValues(errors)) {
