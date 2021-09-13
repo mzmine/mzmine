@@ -75,7 +75,7 @@ public class FeatureShapeChart extends StackPane {
     if (bestFeature != null) {
       final Float rt = bestFeature.getRT();
 
-      if (bestFeature.getFWHM() != null) {
+      if (bestFeature.getFWHM() != null && !Float.isNaN(bestFeature.getFWHM())) {
         final Float fwhm = bestFeature.getFWHM();
         defaultRange = new org.jfree.data.Range(Math.max(rt - 5 * fwhm, 0),
             Math.min(rt + 5 * fwhm, bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
