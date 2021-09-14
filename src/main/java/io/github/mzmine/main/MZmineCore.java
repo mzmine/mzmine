@@ -76,8 +76,7 @@ public final class MZmineCore {
   private static final List<MemoryMapStorage> storageList = Collections
       .synchronizedList(new ArrayList<>());
 
-  private static final Map<Class<?>, MZmineModule> initializedModules =
-      new Hashtable<>();
+  private static final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
   private static boolean headLessMode = false;
   // batch exit code is only set if run in headless mode with batch file
   private static ExitCode batchExitCode = null;
@@ -133,14 +132,14 @@ public final class MZmineCore {
     argsParser.parse(args);
 
     // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
-    switch(argsParser.isKeepInRam()) {
+    switch (argsParser.isKeepInRam()) {
       case NONE -> {
         // nothing in RAM
       }
       case ALL -> MemoryMapStorage.setStoreAllInRam(true);
       case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
       case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
-      case RAW_SCANS ->  MemoryMapStorage.setStoreRawFilesInRam(true);
+      case RAW_SCANS -> MemoryMapStorage.setStoreRawFilesInRam(true);
       case MASSES_AND_FEATURES -> {
         MemoryMapStorage.setStoreMassListsInRam(true);
         MemoryMapStorage.setStoreFeaturesInRam(true);
@@ -184,13 +183,13 @@ public final class MZmineCore {
       desktop = new HeadLessDesktop();
 
       // Tracker
-      GoogleAnalyticsTracker GAT =
-          new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)", "/JAVA/Main/GUI");
+      GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)",
+          "/JAVA/Main/GUI");
       Thread gatThread = new Thread(GAT);
       gatThread.setPriority(Thread.MIN_PRIORITY);
       gatThread.start();
 
-      if(batchFile!=null) {
+      if (batchFile != null) {
         // load batch
         if ((!batchFile.exists()) || (!batchFile.canRead())) {
           logger.severe("Cannot read batch file " + batchFile);
@@ -198,8 +197,7 @@ public final class MZmineCore {
         }
 
         // run batch file
-        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(),
-            batchFile);
+        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile);
       }
 
       // option to keep MZmine running after the batch is finished
@@ -287,19 +285,20 @@ public final class MZmineCore {
     return initializedModules.values();
   }
 
-  public static RawDataFile createNewFile(String name, MemoryMapStorage storage)
-      throws IOException {
-    return new RawDataFileImpl(name, storage);
+  public static RawDataFile createNewFile(@NotNull final String name, @Nullable final String absPath,
+      @Nullable final MemoryMapStorage storage) throws IOException {
+    return new RawDataFileImpl(name, absPath, storage);
   }
 
-  public static IMSRawDataFile createNewIMSFile(String name, MemoryMapStorage storage)
-      throws IOException {
-    return new IMSRawDataFileImpl(name, storage);
+  public static IMSRawDataFile createNewIMSFile(@NotNull final String name,
+      @Nullable final String absPath, @Nullable final MemoryMapStorage storage) throws IOException {
+    return new IMSRawDataFileImpl(name, absPath, storage);
   }
 
-  public static ImagingRawDataFile createNewImagingFile(String name, MemoryMapStorage storage)
+  public static ImagingRawDataFile createNewImagingFile(@NotNull final String name,
+      @Nullable final String absPath, @Nullable final MemoryMapStorage storage)
       throws IOException {
-    return new ImagingRawDataFileImpl(name, storage);
+    return new ImagingRawDataFileImpl(name, absPath, storage);
   }
 
   @NotNull
@@ -338,8 +337,8 @@ public final class MZmineCore {
     MZmineRunnableModule module = getModuleInstance(moduleClass);
 
     // Usage Tracker
-    GoogleAnalyticsTracker GAT =
-        new GoogleAnalyticsTracker(module.getName(), "/JAVA/" + module.getName());
+    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(module.getName(),
+        "/JAVA/" + module.getName());
     Thread gatThread = new Thread(GAT);
     gatThread.setPriority(Thread.MIN_PRIORITY);
     gatThread.start();

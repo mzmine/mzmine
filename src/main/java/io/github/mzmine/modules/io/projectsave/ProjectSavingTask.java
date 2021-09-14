@@ -18,7 +18,16 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
-import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.StreamCopy;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,22 +36,9 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
-
 import org.xml.sax.SAXException;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.StreamCopy;
 
 public class ProjectSavingTask extends AbstractTask {
 
@@ -79,8 +75,9 @@ public class ProjectSavingTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    if (currentSavedObjectName == null)
+    if (currentSavedObjectName == null) {
       return "Saving project";
+    }
     return "Saving project (" + currentSavedObjectName + ")";
   }
 
@@ -90,19 +87,22 @@ public class ProjectSavingTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
 
-    if (totalSaveItems == 0)
+    if (totalSaveItems == 0) {
       return 0.0;
+    }
 
     double currentItemProgress = 0.0;
 
     switch (currentStage) {
       case 2:
-        if (rawDataFileSaveHandler != null)
+        if (rawDataFileSaveHandler != null) {
           currentItemProgress = rawDataFileSaveHandler.getProgress();
+        }
         break;
       case 3:
-        if (peakListSaveHandler != null)
+        if (peakListSaveHandler != null) {
           currentItemProgress = peakListSaveHandler.getProgress();
+        }
         break;
       case 4:
       case 5:
@@ -126,14 +126,17 @@ public class ProjectSavingTask extends AbstractTask {
 
     setStatus(TaskStatus.CANCELED);
 
-    if (rawDataFileSaveHandler != null)
+    if (rawDataFileSaveHandler != null) {
       rawDataFileSaveHandler.cancel();
+    }
 
-    if (peakListSaveHandler != null)
+    if (peakListSaveHandler != null) {
       peakListSaveHandler.cancel();
+    }
 
-    if (userParameterSaveHandler != null)
+    if (userParameterSaveHandler != null) {
       userParameterSaveHandler.cancel();
+    }
 
   }
 
@@ -239,8 +242,9 @@ public class ProjectSavingTask extends AbstractTask {
       if (currentSavedObjectName == null) {
         setErrorMessage("Failed saving the project: " + ExceptionUtils.exceptionToString(e));
       } else {
-        setErrorMessage("Failed saving the project. Error while saving " + currentSavedObjectName
-            + ": " + ExceptionUtils.exceptionToString(e));
+        setErrorMessage(
+            "Failed saving the project. Error while saving " + currentSavedObjectName + ": "
+                + ExceptionUtils.exceptionToString(e));
       }
 
     }
@@ -248,7 +252,7 @@ public class ProjectSavingTask extends AbstractTask {
 
   /**
    * Save the version info
-   * 
+   *
    * @throws java.io.IOException
    */
   private void saveVersion(ZipOutputStream zipStream) throws IOException {
@@ -263,7 +267,7 @@ public class ProjectSavingTask extends AbstractTask {
 
   /**
    * Save the configuration file.
-   * 
+   *
    * @throws java.io.IOException
    */
   private void saveConfiguration(ZipOutputStream zipStream) throws IOException {
@@ -293,44 +297,34 @@ public class ProjectSavingTask extends AbstractTask {
 
   /**
    * Save the raw data files
-   * 
-   * @throws SAXException
-   * @throws TransformerConfigurationException
+   *
    */
   private void saveRawDataFiles(ZipOutputStream zipStream)
-      throws IOException, TransformerConfigurationException, SAXException {
+      throws IOException, ParserConfigurationException {
 
-    rawDataFileSaveHandler = new RawDataFileSaveHandler(zipStream);
+    rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream);
+    rawDataFileSaveHandler.saveRawDataFilesAsBatch();
 
-    RawDataFile rawDataFiles[] = savedProject.getDataFiles();
-
-    for (int i = 0; i < rawDataFiles.length; i++) {
-
-      if (isCanceled())
-        return;
-
-      currentSavedObjectName = rawDataFiles[i].getName();
-      rawDataFileSaveHandler.writeRawDataFile((RawDataFileImpl) rawDataFiles[i], i + 1);
-      dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
-      finishedSaveItems++;
-    }
   }
 
   /**
    * Save the feature lists
-   * 
+   *
    * @throws SAXException
    * @throws TransformerConfigurationException
    */
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    FeatureList peakLists[] = savedProject.getFeatureLists().toArray(new FeatureList[0]);
+    return;
+
+    /*FeatureList peakLists[] = savedProject.getFeatureLists().toArray(new FeatureList[0]);
 
     for (int i = 0; i < peakLists.length; i++) {
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       logger.info("Saving feature list: " + peakLists[i].getName());
 
@@ -343,27 +337,28 @@ public class ProjectSavingTask extends AbstractTask {
       currentSavedObjectName = peakLists[i].getName();
       peakListSaveHandler.savePeakList(peakLists[i]);
       finishedSaveItems++;
-    }
+    }*/
   }
 
   /**
    * Save the feature lists
-   * 
+   *
    * @throws SAXException
    * @throws TransformerConfigurationException
    */
   private void saveUserParameters(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     logger.info("Saving user parameters");
 
     zipStream.putNextEntry(new ZipEntry(PARAMETERS_FILENAME));
 
-    userParameterSaveHandler =
-        new UserParameterSaveHandler(zipStream, savedProject, dataFilesIDMap);
+    userParameterSaveHandler = new UserParameterSaveHandler(zipStream, savedProject,
+        dataFilesIDMap);
 
     currentSavedObjectName = "User parameters";
     userParameterSaveHandler.saveParameters();

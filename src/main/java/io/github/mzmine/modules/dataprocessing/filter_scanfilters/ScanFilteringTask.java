@@ -119,7 +119,7 @@ class ScanFilteringTask extends AbstractTask {
       // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
-      newFile = MZmineCore.createNewFile(newName, getMemoryMapStorage());
+      newFile = MZmineCore.createNewFile(newName, null, getMemoryMapStorage());
 
       for (int i = 0; i < totalScans; i++) {
 

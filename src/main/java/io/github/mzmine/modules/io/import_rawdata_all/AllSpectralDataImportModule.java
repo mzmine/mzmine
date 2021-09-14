@@ -150,7 +150,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       logger.finest("File " + fileName + " type detected as " + fileType);
 
       try {
-        RawDataFile newMZmineFile = createDataFile(fileType, newName, storage);
+        RawDataFile newMZmineFile = createDataFile(fileType, fileName.getAbsolutePath(), newName,
+            storage);
 
         final AbstractTask newTask =
             useAdvancedOptions && advancedParam != null ? createAdvancedTask(fileType, project,
@@ -224,7 +225,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam, module,
           parameters);
       case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile,
-                advancedParam, module, parameters);
+          advancedParam, module, parameters);
       // all unsupported tasks are wrapped to apply import and mass detection separately
       case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
           fileType, project, file, newMZmineFile, advancedParam, module, parameters);
@@ -243,13 +244,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         createTask(fileType, project, file, newMZmineFile, module, parameters), advancedParam);
   }
 
-  private RawDataFile createDataFile(RawDataFileType fileType, String newName,
+  private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {
       case MZML, MZXML, MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV -> MZmineCore
-          .createNewFile(newName, storage);
-      case IMZML -> MZmineCore.createNewImagingFile(newName, storage);
-      case BRUKER_TDF, MZML_IMS -> MZmineCore.createNewIMSFile(newName, storage);
+          .createNewFile(newName, absPath, storage);
+      case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
+      case BRUKER_TDF, MZML_IMS -> MZmineCore.createNewIMSFile(newName, absPath, storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }

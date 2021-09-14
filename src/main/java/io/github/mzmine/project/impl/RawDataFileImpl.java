@@ -41,6 +41,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -61,6 +62,8 @@ public class RawDataFileImpl implements RawDataFile {
   // Name of this raw data file - may be changed by the user
   private String dataFileName;
 
+  protected final String absolutePath;
+
   private final Hashtable<Integer, Range<Double>> dataMZRange = new Hashtable<>();
   private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();
 
@@ -76,17 +79,21 @@ public class RawDataFileImpl implements RawDataFile {
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
 
-  protected final ObservableList<FeatureListAppliedMethod> appliedMethods
-      = FXCollections.observableArrayList();
+  protected final ObservableList<FeatureListAppliedMethod> appliedMethods = FXCollections
+      .observableArrayList();
 
-  public RawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
-    this(dataFileName, storage, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+  public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
+      @Nullable final MemoryMapStorage storage) throws IOException {
+    this(dataFileName, absolutePath, storage,
+        MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
   }
 
-  public RawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color) throws IOException {
+  public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
+      @Nullable final MemoryMapStorage storage, @NotNull Color color) throws IOException {
 
     this.dataFileName = dataFileName;
     this.storageMemoryMap = storage;
+    this.absolutePath = absolutePath;
 
     scans = FXCollections.observableArrayList();
 
@@ -94,8 +101,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public @NotNull
-  MemoryMapStorage getMemoryMapStorage() {
+  public @NotNull MemoryMapStorage getMemoryMapStorage() {
     return storageMemoryMap;
   }
 
@@ -112,8 +118,8 @@ public class RawDataFileImpl implements RawDataFile {
    */
   @Override
   public int getMaxCentroidDataPoints() {
-      return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
-          .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
+    return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
+        .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
   }
 
   /**
@@ -196,8 +202,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
-  public @NotNull
-  Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
+  public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     assert rtRange != null;
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
@@ -414,8 +419,8 @@ public class RawDataFileImpl implements RawDataFile {
   @NotNull
   @Override
   public List<PolarityType> getDataPolarity() {
-    Set<PolarityType> polarities =
-        scans.stream().map(Scan::getPolarity).collect(Collectors.toSet());
+    Set<PolarityType> polarities = scans.stream().map(Scan::getPolarity)
+        .collect(Collectors.toSet());
     return ImmutableList.copyOf(polarities);
   }
 
@@ -480,5 +485,11 @@ public class RawDataFileImpl implements RawDataFile {
    * @param masses new mass list
    */
   public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
+  }
+
+  @Nullable
+  @Override
+  public String getAbsolutePath() {
+    return absolutePath;
   }
 }

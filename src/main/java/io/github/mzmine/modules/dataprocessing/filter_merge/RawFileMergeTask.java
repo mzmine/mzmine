@@ -116,7 +116,7 @@ class RawFileMergeTask extends AbstractTask {
       scans.sort(Comparator.comparingDouble(Scan::getRetentionTime));
 
       // create new file
-      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix,
+      RawDataFile newFile = MZmineCore.createNewFile(raw[0].getName() + " " + suffix, null,
           getMemoryMapStorage());
 
       int i = 0;

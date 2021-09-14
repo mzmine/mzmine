@@ -18,393 +18,233 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
-import io.github.mzmine.datamodel.ImagingScan;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
-import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.batchmode.BatchQueue;
+import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.util.StreamCopy;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.sax.SAXTransformerFactory;
-import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributesImpl;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 class RawDataFileSaveHandler {
 
+  private static final String BATCH_QUEUES_ROOT = "batch-queue-list";
+  private static final String BATCH_QUEUE_ELEMENT = "batch-queue";
+
+  private final String RAW_DATA_IMPORT_BATCH_FILENAME = "raw_data_import_batch.xml";
+
+  private final MZmineProject project;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  private int numOfScans, completedScans;
-  private ZipOutputStream zipOutputStream;
+  private ZipOutputStream zipStream;
   private boolean canceled = false;
-  private Map<Integer, Long> dataPointsOffsets;
-  private Map<Integer, Long> consolidatedDataPointsOffsets;
-  private Map<Integer, Integer> dataPointsLengths;
   private double progress = 0;
 
-  RawDataFileSaveHandler(ZipOutputStream zipOutputStream) {
-    this.zipOutputStream = zipOutputStream;
+  public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream) {
+    this.project = project;
+    this.zipStream = zipOutputStream;
+  }
+
+  public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
+
+    final Map<RawDataFile, BatchQueue> rawDataSteps = dissectRawDataMethods();
+    final List<BatchQueue> mergedBatchQueues = mergeBatchQueues(rawDataSteps);
+
+    zipStream.putNextEntry(new ZipEntry(RAW_DATA_IMPORT_BATCH_FILENAME));
+
+    try {
+      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+
+      final Document batchQueueFile = dbBuilder.newDocument();
+      final Element root = batchQueueFile.createElement(BATCH_QUEUES_ROOT);
+      batchQueueFile.appendChild(root);
+
+      TransformerFactory transfac = TransformerFactory.newInstance();
+      Transformer transformer = transfac.newTransformer();
+      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+      for (final BatchQueue mergedBatchQueue : mergedBatchQueues) {
+         final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
+         mergedBatchQueue.saveToXml(batchQueueEntry);
+         root.appendChild(batchQueueEntry);
+      }
+
+      final File tmpFile = File.createTempFile("mzmine_project_rawimportbatch", ".tmp");
+      final StreamResult result = new StreamResult(new FileOutputStream(tmpFile));
+      final DOMSource source = new DOMSource(batchQueueFile);
+      transformer.transform(source, result);
+
+      final StreamCopy copyMachine = new StreamCopy();
+      final FileInputStream fileInputStream = new FileInputStream(tmpFile);
+      copyMachine.copy(fileInputStream, zipStream);
+
+      fileInputStream.close();
+      tmpFile.delete();
+    } catch (ParserConfigurationException | TransformerException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, "Could not save batch import step.\n" + e.getMessage(), e);
+      return false;
+    }
+    return true;
   }
 
   /**
-   * Copy the data points file of the raw data file from the temporary folder to the zip file.
-   * Create an XML file which contains the description of the same raw data file an copy it into the
-   * same zip file.
-   *
-   * @param rawDataFile raw data file to be copied
-   * @param number number of the raw data file
-   * @throws java.io.IOException
-   * @throws TransformerConfigurationException
-   * @throws SAXException
+   * @return A map of every raw data file with a batch queue of the methods applied to it.
+   * Parameters are adjusted in a way that they only fit the specific raw data file.
    */
-  void writeRawDataFile(RawDataFileImpl rawDataFile, int number)
-      throws IOException, TransformerConfigurationException, SAXException {
+  private Map<RawDataFile, BatchQueue> dissectRawDataMethods() {
 
-    numOfScans = rawDataFile.getNumOfScans();
+    final Map<RawDataFile, BatchQueue> rawDataSteps = new LinkedHashMap<>();
 
-    // Get the structure of the data points file
-    // dataPointsOffsets = rawDataFile.getDataPointsOffsets();
-    // dataPointsLengths = rawDataFile.getDataPointsLengths();
-    consolidatedDataPointsOffsets = new TreeMap<Integer, Long>();
-
-    // step 1 - save data file
-    logger.info("Saving data points of: " + rawDataFile.getName());
-
-    String rawDataSavedName;
-    if (rawDataFile instanceof IMSRawDataFile) {
-      rawDataSavedName =
-          IMSRawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
-    } else if (rawDataFile instanceof ImagingRawDataFile) {
-      rawDataSavedName =
-          ImagingRawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
-    } else {
-      rawDataSavedName =
-          RawDataFileImpl.SAVE_IDENTIFIER + " #" + number + " " + rawDataFile.getName();
-    }
-
-    zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
-
-    // We save only those data points that still have a reference in the
-    // dataPointsOffset table. Some deleted mass lists may still be present
-    // in the data points file, we don't want to copy those.
-    long newOffset = 0;
-    byte buffer[] = new byte[1 << 20];
-    /*
-     * RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile(); for (Integer storageID :
-     * dataPointsOffsets.keySet()) {
-     * 
-     * if (canceled) { return; }
-     * 
-     * final long offset = dataPointsOffsets.get(storageID); dataPointsFile.seek(offset);
-     * 
-     * final int bytes = dataPointsLengths.get(storageID) * 4 * 2;
-     * consolidatedDataPointsOffsets.put(storageID, newOffset); if (buffer.length < bytes) { buffer
-     * = new byte[bytes * 2]; } dataPointsFile.read(buffer, 0, bytes); zipOutputStream.write(buffer,
-     * 0, bytes); newOffset += bytes; progress = 0.9 * ((double) offset / dataPointsFile.length());
-     * }
-     */
-
-    if (canceled) {
-      return;
-    }
-
-    // step 2 - save raw data description
-    logger.info("Saving raw data description of: " + rawDataFile.getName());
-
-    zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
-    OutputStream finalStream = zipOutputStream;
-
-    StreamResult streamResult = new StreamResult(finalStream);
-    SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
-
-    TransformerHandler hd = tf.newTransformerHandler();
-    Transformer serializer = hd.getTransformer();
-    serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-    serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-    hd.setResult(streamResult);
-    hd.startDocument();
-    saveRawDataInformation(rawDataFile, hd);
-    hd.endDocument();
-  }
-
-  /**
-   * Function which creates an XML file with the descripcion of the raw data
-   *
-   * @param rawDataFile
-   * @param hd
-   * @throws SAXException
-   * @throws java.lang.Exception
-   */
-  private void saveRawDataInformation(RawDataFileImpl rawDataFile, TransformerHandler hd)
-      throws SAXException, IOException {
-
-    AttributesImpl atts = new AttributesImpl();
-
-    hd.startElement("", "", RawDataElementName.RAWDATA.getElementName(), atts);
-
-    // <NAME>
-    hd.startElement("", "", RawDataElementName.NAME.getElementName(), atts);
-    hd.characters(rawDataFile.getName().toCharArray(), 0, rawDataFile.getName().length());
-    hd.endElement("", "", RawDataElementName.NAME.getElementName());
-
-    // COLOR
-    hd.startElement("", "", RawDataElementName.COLOR.getElementName(), atts);
-    hd.characters(rawDataFile.getColor().toString().toCharArray(), 0,
-        rawDataFile.getColor().toString().length());
-    hd.endElement("", "", RawDataElementName.COLOR.getElementName());
-
-    // <STORED_DATAPOINTS>
-    atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
-        String.valueOf(dataPointsOffsets.size()));
-    hd.startElement("", "", RawDataElementName.STORED_DATAPOINTS.getElementName(), atts);
-    atts.clear();
-    for (Integer storageID : dataPointsOffsets.keySet()) {
-      if (canceled) {
-        return;
-      }
-      int length = dataPointsLengths.get(storageID);
-      long offset = consolidatedDataPointsOffsets.get(storageID);
-      atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-          String.valueOf(storageID));
-      atts.addAttribute("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), "CDATA",
-          String.valueOf(length));
-      hd.startElement("", "", RawDataElementName.STORED_DATA.getElementName(), atts);
-      atts.clear();
-      hd.characters(String.valueOf(offset).toCharArray(), 0, String.valueOf(offset).length());
-      hd.endElement("", "", RawDataElementName.STORED_DATA.getElementName());
-    }
-
-    hd.endElement("", "", RawDataElementName.STORED_DATAPOINTS.getElementName());
-
-    // <QUANTITY>
-    hd.startElement("", "", RawDataElementName.QUANTITY_SCAN.getElementName(), atts);
-    hd.characters(String.valueOf(numOfScans).toCharArray(), 0, String.valueOf(numOfScans).length());
-    hd.endElement("", "", RawDataElementName.QUANTITY_SCAN.getElementName());
-
-    // <SCAN>
-    for (Scan scan : rawDataFile.getScans()) {
-
-      if (canceled) {
-        return;
+    for (final RawDataFile file : project.getDataFiles()) {
+      var importStep = extractImportStep(file);
+      if (importStep != null) {
+        BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
+        q.add(importStep);
       }
 
-      int storageID = 0;
-      atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-          String.valueOf(storageID));
-      hd.startElement("", "", RawDataElementName.SCAN.getElementName(), atts);
-      fillScanElement(scan, hd);
-      hd.endElement("", "", RawDataElementName.SCAN.getElementName());
-      atts.clear();
-      completedScans++;
-      progress = 0.8 + (0.1 * ((double) completedScans / numOfScans));
-    }
-
-    // for loading frames it is important, that scans have already been loaded! so save frames after
-    // scans
-    // <FRAME>
-    if (rawDataFile instanceof IMSRawDataFile) {
-
-      final IMSRawDataFile imsFile = (IMSRawDataFile) rawDataFile;
-      final int numOfFrames = imsFile.getNumberOfFrames();
-
-      // <QUANTITY>
-      hd.startElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName(), atts);
-      hd.characters(String.valueOf(numOfFrames).toCharArray(), 0,
-          String.valueOf(numOfFrames).length());
-      hd.endElement("", "", RawDataElementName.QUANTITY_FRAMES.getElementName());
-
-      int completedFrames = 0;
-      for (Frame frameNum : imsFile.getFrames()) {
-
-        if (canceled) {
-          return;
+      var appliedMethods = file.getAppliedMethods();
+      for (FeatureListAppliedMethod appliedMethod : appliedMethods) {
+        if (importStep != null && appliedMethod.getModule() == importStep.getModule()) {
+          continue;
+        }
+        if (!(appliedMethod.getModule() instanceof MZmineProcessingModule)) {
+          logger.fine(() -> "Cannot save module " + appliedMethod.getModule().getClass().getName()
+              + " is not an MZmine processing step.");
         }
 
-        // StorableFrame frame = (StorableFrame) imsFile.getFrame(frameNum);
-        // int storageID = frame.getStorageID();
-        // atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-        // String.valueOf(storageID));
-        // hd.startElement("", "", RawDataElementName.FRAME.getElementName(), atts);
-        // fillScanElement(frame, hd);
-        // fillFrameElement(frame, hd);
-        // hd.endElement("", "", RawDataElementName.FRAME.getElementName());
-        // atts.clear();
-        //
-        // completedFrames++;
-        // progress = 0.9 + (0.1 * ((double) completedFrames / numOfFrames));
+        ParameterSet parameters = appliedMethod.getParameters().cloneParameterSet();
+        for (Parameter<?> param : parameters.getParameters()) {
+          if (param instanceof RawDataFilesParameter) {
+            ((RawDataFilesParameter) param)
+                .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});
+          }
+        }
+        BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
+        q.add(new MZmineProcessingStepImpl<>((MZmineProcessingModule) appliedMethod.getModule(),
+            parameters));
       }
     }
 
-    hd.endElement("", "", RawDataElementName.RAWDATA.getElementName());
-
+    return rawDataSteps;
   }
 
   /**
-   * Create the part of the XML document related to the scans
-   *
-   * @param scan
-   * @param hd
+   * Merges batch queues consisting of the same module calls with the same parameters.
+   * @return The merged batch queues.
    */
-  private void fillScanElement(Scan scan, TransformerHandler hd) throws SAXException, IOException {
-    // <SCAN_ID>
-    AttributesImpl atts = new AttributesImpl();
-    hd.startElement("", "", RawDataElementName.SCAN_ID.getElementName(), atts);
-    hd.characters(String.valueOf(scan.getScanNumber()).toCharArray(), 0,
-        String.valueOf(scan.getScanNumber()).length());
-    hd.endElement("", "", RawDataElementName.SCAN_ID.getElementName());
+  private List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
 
-    // <MS_LEVEL>
-    hd.startElement("", "", RawDataElementName.MS_LEVEL.getElementName(), atts);
-    hd.characters(String.valueOf(scan.getMSLevel()).toCharArray(), 0,
-        String.valueOf(scan.getMSLevel()).length());
-    hd.endElement("", "", RawDataElementName.MS_LEVEL.getElementName());
+    List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
+    Map<BatchQueue, List<BatchQueue>> mergableQueues = new HashMap<>();
 
-    if (scan.getMSLevel() >= 2) {
-      // <PRECURSOR_MZ>
-      hd.startElement("", "", RawDataElementName.PRECURSOR_MZ.getElementName(), atts);
-      hd.characters(String.valueOf(scan.getPrecursorMZ()).toCharArray(), 0,
-          String.valueOf(scan.getPrecursorMZ()).length());
-      hd.endElement("", "", RawDataElementName.PRECURSOR_MZ.getElementName());
+    // find queues that are equal (same module calls and same parameters)
+    for (BatchQueue originalQueue : originalQueues) {
+      List<BatchQueue> equalQueueEntries = mergableQueues.keySet().stream()
+          .filter(key -> SavingUtils.queuesEqual(key, originalQueue)).toList();
+      if (equalQueueEntries.size() > 1) {
+        logger.warning(() -> "More than one queue is equal to the current queue.");
+      }
 
-      // <PRECURSOR_CHARGE>
-      hd.startElement("", "", RawDataElementName.PRECURSOR_CHARGE.getElementName(), atts);
-      hd.characters(String.valueOf(scan.getPrecursorCharge()).toCharArray(), 0,
-          String.valueOf(scan.getPrecursorCharge()).length());
-      hd.endElement("", "", RawDataElementName.PRECURSOR_CHARGE.getElementName());
+      final List<BatchQueue> mapping;
+      if (equalQueueEntries.isEmpty()) {
+        mergableQueues.put(originalQueue, new ArrayList<>());
+        mapping = mergableQueues.get(originalQueue);
+      } else {
+        mapping = mergableQueues.get(equalQueueEntries.get(0));
+      }
+      mapping.add(originalQueue);
     }
 
-    // <RETENTION_TIME>
-    hd.startElement("", "", RawDataElementName.RETENTION_TIME.getElementName(), atts);
-    // In the project file, retention time is represented in seconds, for
-    // historical reasons
-    // TODO @tomas change to minutes here?
-    float rt = scan.getRetentionTime() * 60;
-    hd.characters(String.valueOf(rt).toCharArray(), 0, String.valueOf(rt).length());
-    hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
+    // merge equal module calls
+    List<BatchQueue> mergedBatchQueues = new ArrayList<>();
+    for (List<BatchQueue> value : mergableQueues.values()) {
+      // if we just have one queue, add id directly.
+      if (value.size() == 1) {
+        mergedBatchQueues.add(value.get(0));
+        continue;
+      }
 
-    // <CENTROIDED>
-    hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(), atts);
-    hd.characters(String.valueOf(scan.getSpectrumType()).toCharArray(), 0,
-        String.valueOf(scan.getSpectrumType()).length());
-    hd.endElement("", "", RawDataElementName.CENTROIDED.getElementName());
-
-    // <QUANTITY_DATAPOINTS>
-    hd.startElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), atts);
-    hd.characters(String.valueOf((scan.getNumberOfDataPoints())).toCharArray(), 0,
-        String.valueOf((scan.getNumberOfDataPoints())).length());
-    hd.endElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
-
-    // <FRAGMENT_SCAN>
-    /*
-     * if (scan.getFragmentScanNumbers() != null) { int[] fragmentScans =
-     * scan.getFragmentScanNumbers(); atts.addAttribute("", "",
-     * RawDataElementName.QUANTITY.getElementName(), "CDATA", String.valueOf(fragmentScans.length));
-     * hd.startElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(), atts);
-     * atts.clear(); for (int i : fragmentScans) { hd.startElement("", "",
-     * RawDataElementName.FRAGMENT_SCAN.getElementName(), atts);
-     * hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
-     * hd.endElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName()); } hd.endElement("",
-     * "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
-     *
-     * }
-     */
-
-    // <MASS_LIST>
-      MassList stMassList = scan.getMassList();
-      atts.addAttribute("", "", RawDataElementName.NAME.getElementName(), "CDATA",
-          "masses");
-      // atts.addAttribute("", "", RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
-      // String.valueOf(stMassList.getStorageID()));
-      hd.startElement("", "", RawDataElementName.MASS_LIST.getElementName(), atts);
-      atts.clear();
-      hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
-
-    // <POLARITY>
-    hd.startElement("", "", RawDataElementName.POLARITY.getElementName(), atts);
-    String pol = scan.getPolarity().toString();
-    hd.characters(pol.toCharArray(), 0, pol.length());
-    hd.endElement("", "", RawDataElementName.POLARITY.getElementName());
-
-    // <SCAN_DESCRIPTION>
-    hd.startElement("", "", RawDataElementName.SCAN_DESCRIPTION.getElementName(), atts);
-    String scanDesc = scan.getScanDefinition();
-    hd.characters(scanDesc.toCharArray(), 0, scanDesc.length());
-    hd.endElement("", "", RawDataElementName.SCAN_DESCRIPTION.getElementName());
-
-    // <SCAN_MZ_RANGE>
-    hd.startElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName(), atts);
-    Range<Double> mzRange = scan.getScanningMZRange();
-    String mzRangeStr = mzRange.lowerEndpoint() + "-" + mzRange.upperEndpoint();
-    hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
-    hd.endElement("", "", RawDataElementName.SCAN_MZ_RANGE.getElementName());
-
-    // <MOBILITY>
-    // hd.startElement("", "", RawDataElementName.MOBILITY.getElementName(), atts);
-    // double mobility = scan.getMobility();
-    // hd.characters(String.valueOf(mobility).toCharArray(), 0, String.valueOf(mobility).length());
-    // hd.endElement("", "", RawDataElementName.MOBILITY.getElementName());
-
-    if (scan instanceof ImagingScan) {
-      // <COORDINATES>
-      hd.startElement("", "", RawDataElementName.COORDINATES.getElementName(), atts);
-      Coordinates coordinates = ((ImagingScan) scan).getCoordinates();
-      hd.characters(coordinates.toString().toCharArray(), 0, coordinates.toString().length());
-      hd.endElement("", "", RawDataElementName.COORDINATES.getElementName());
+      Iterator<BatchQueue> iterator = value.iterator();
+      BatchQueue merged = iterator.next();
+      while (iterator.hasNext()) {
+        merged = SavingUtils.mergeQueues(merged, iterator.next());
+      }
+      mergedBatchQueues.add(merged);
     }
+
+    return mergedBatchQueues;
   }
 
-  private void fillFrameElement(Frame frame, TransformerHandler hd)
-      throws SAXException, IOException {
-    AttributesImpl atts = new AttributesImpl();
-
-    String frameId = String.valueOf(frame.getFrameId());
-    hd.startElement("", "", RawDataElementName.FRAME_ID.getElementName(), atts);
-    hd.characters(frameId.toCharArray(), 0, frameId.length());
-    hd.endElement("", "", RawDataElementName.FRAME_ID.getElementName());
-
-    // <MOBILITY_TYPE>
-    // hd.startElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName(), atts);
-    // MobilityType mobilityType = scan.getMobilityType();
-    // hd.characters(mobilityType.toString().toCharArray(), 0, mobilityType.toString().length());
-    // hd.endElement("", "", RawDataElementName.MOBILITY_TYPE.getElementName());
-
-    hd.startElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName(), atts);
-    hd.characters(frame.getMobilityRange().lowerEndpoint().toString().toCharArray(), 0,
-        frame.getMobilityRange().lowerEndpoint().toString().toCharArray().length);
-    hd.endElement("", "", RawDataElementName.LOWER_MOBILITY_RANGE.getElementName());
-
-    hd.startElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName(), atts);
-    hd.characters(frame.getMobilityRange().upperEndpoint().toString().toCharArray(), 0,
-        frame.getMobilityRange().upperEndpoint().toString().toCharArray().length);
-    hd.endElement("", "", RawDataElementName.UPPER_MOBILITY_RANGE.getElementName());
-
-    /*Set<Integer> mobilityScanNumbers = frame.getMobilityScanNumbers();
-    atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA",
-        String.valueOf(mobilityScanNumbers.size()));
-    hd.startElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName(), atts);
-    atts.clear();
-    for (int i : mobilityScanNumbers) {
-      hd.startElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName(), atts);
-      hd.characters(String.valueOf(i).toCharArray(), 0, String.valueOf(i).length());
-      hd.endElement("", "", RawDataElementName.MOBILITY_SCANNUM.getElementName());
+  /**
+   * @param file The raw data file.
+   * @return An {@link MZmineProcessingStep} with the given {@link RawDataFile} as the only file in
+   * the {@link FileNamesParameter}.
+   */
+  private MZmineProcessingStep<MZmineProcessingModule> extractImportStep(
+      @NotNull final RawDataFile file) {
+    if (file.getAppliedMethods().isEmpty()) {
+      return null;
     }
-    hd.endElement("", "", RawDataElementName.QUANTITY_MOBILITY_SCANS.getElementName());*/
 
+    var appliedMethods = file.getAppliedMethods();
+    var step = appliedMethods.get(0);
+
+    if (!(step.getModule() instanceof MZmineProcessingModule importModule)) {
+      logger.info(
+          () -> "First module (" + step.getModule().getName() + ") applied to raw data file " + file
+              .getName() + " is not am import module.");
+      return null;
+    } else if (file.getAbsolutePath() == null) {
+      logger.fine(() -> "Cannot save raw data file " + file.getName()
+          + " since there is no path associated.");
+      return null;
+    } else {
+      final ParameterSet clone = step.getParameters().cloneParameterSet();
+      for (Parameter<?> parameter : clone.getParameters()) {
+        if (!(parameter instanceof FileNamesParameter fnp)) {
+          continue;
+        }
+        fnp.setValue(new File[]{new File(file.getAbsolutePath())});
+        return new MZmineProcessingStepImpl<>(importModule, clone);
+      }
+    }
+    return null;
   }
 
   /**

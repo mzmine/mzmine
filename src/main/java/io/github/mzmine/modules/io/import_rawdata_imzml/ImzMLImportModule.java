@@ -109,7 +109,8 @@ public class ImzMLImportModule implements MZmineProcessingModule {
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
       try {
-        ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName, storage);
+        ImagingRawDataFile newMZmineFile = MZmineCore
+            .createNewImagingFile(newName, fileNames[i].getAbsolutePath(), storage);
         Task newTask = new ImzMLImportTask(project, fileNames[i], newMZmineFile,
             ImzMLImportModule.class, parameters);
         tasks.add(newTask);

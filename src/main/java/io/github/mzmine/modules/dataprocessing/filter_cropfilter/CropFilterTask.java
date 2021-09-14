@@ -91,7 +91,7 @@ public class CropFilterTask extends AbstractTask {
 
     try {
 
-      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, storage);
+      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, null, storage);
 
       for (Scan scan : scans) {
 

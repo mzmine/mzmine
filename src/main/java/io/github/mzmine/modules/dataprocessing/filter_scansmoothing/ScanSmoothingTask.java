@@ -125,7 +125,7 @@ public class ScanSmoothingTask extends AbstractTask {
     int timepassed = 0;
     int mzpassed = 0;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, storage);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, null, storage);
 
       DataPoint mzValues[][] = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, ssi, ssj;

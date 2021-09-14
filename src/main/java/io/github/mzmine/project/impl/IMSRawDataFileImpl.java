@@ -63,8 +63,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
 
-  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
-    super(dataFileName, storage);
+  public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
+      MemoryMapStorage storage) throws IOException {
+    super(dataFileName, absolutePath, storage);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
@@ -76,9 +77,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   }
 
-  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color)
-      throws IOException {
-    super(dataFileName, storage, color);
+  public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
+      MemoryMapStorage storage, Color color) throws IOException {
+    super(dataFileName, absolutePath, storage, color);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
@@ -129,8 +130,8 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @NotNull
   @Override
   public List<Frame> getFrames(int msLevel) {
-    return frameMsLevelCache.computeIfAbsent(msLevel, level -> getFrames().stream()
-        .filter(frame -> frame.getMSLevel() == msLevel).toList());
+    return frameMsLevelCache.computeIfAbsent(msLevel,
+        level -> getFrames().stream().filter(frame -> frame.getMSLevel() == msLevel).toList());
   }
 
   @Nullable
@@ -172,8 +173,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public List<Scan> getFrameNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     // since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
-        .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime()))
-        .toList();
+        .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime())).toList();
   }
 
   @NotNull

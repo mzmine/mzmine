@@ -50,7 +50,7 @@ class IonTimeSeriesTest {
 
   public static IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
 
-    RawDataFile file = new RawDataFileImpl("test", null, Color.BLACK);
+    RawDataFile file = new RawDataFileImpl("test", null, null, Color.BLACK);
     List<Scan> scans = new ArrayList();
     scans.add(new SimpleScan(file, 0, 1, 1f, 0, 0, new double[]{10d, 10d}, new double[]{10d, 10d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
@@ -64,7 +64,7 @@ class IonTimeSeriesTest {
   }
 
   public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
-    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, Color.BLACK);
+    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, null, Color.BLACK);
 
     List<Frame> frames = new ArrayList<>();
     SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,

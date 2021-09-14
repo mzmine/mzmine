@@ -115,7 +115,7 @@ public class AlignScansTask extends AbstractTask {
 
     RawDataFile newRDFW = null;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, getMemoryMapStorage());
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, null, getMemoryMapStorage());
 
       DataPoint[][] mzValues = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, shift, ks;

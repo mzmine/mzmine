@@ -104,7 +104,8 @@ public class TDFImportModule implements MZmineProcessingModule {
       try {
         // IMS files are big, reserve a single storage for each file
         final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
-        IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
+        IMSRawDataFile newMZmineFile = MZmineCore
+            .createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
         Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile,
             TDFImportModule.class, parameters);
         tasks.add(newTask);

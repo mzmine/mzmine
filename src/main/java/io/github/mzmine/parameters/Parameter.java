@@ -58,4 +58,19 @@ public interface Parameter<ValueType> {
    */
   public Parameter<ValueType> cloneParameter();
 
+  public default boolean valueEquals(Parameter<?> that) {
+    if(that == null || !(this.getClass() == that.getClass())) {
+      return false;
+    }
+    if(getValue() instanceof Double) {
+      return Double.compare((Double)this.getValue(), (Double)that.getValue()) == 0;
+    } else if (getValue() instanceof Float) {
+      return Float.compare((Float)this.getValue(), (Float)that.getValue()) == 0;
+    } else if (getValue() instanceof Integer) {
+      return ((Integer) getValue()).equals((Integer) that.getValue());
+    } else if(getValue() instanceof String) {
+      return this.getValue().equals(that.getValue());
+    }
+    return this.getValue().equals(that.getValue());
+  }
 }

@@ -109,7 +109,8 @@ public class MzDataImportModule implements MZmineProcessingModule {
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
+        RawDataFile newMZmineFile = MZmineCore
+            .createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
         Task newTask = new MzDataImportTask(project, fileNames[i], newMZmineFile,
             MzDataImportModule.class, parameters);
         tasks.add(newTask);

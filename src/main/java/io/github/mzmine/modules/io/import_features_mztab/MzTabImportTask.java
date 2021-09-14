@@ -286,7 +286,7 @@ class MzTabImportTask extends AbstractTask {
 
       // If no data file of that name exists, create a dummy one
       if (rawDataFile == null) {
-        RawDataFile writer = MZmineCore.createNewFile(rawFileName, storage);
+        RawDataFile writer = MZmineCore.createNewFile(rawFileName, null, storage);
         project.addFile(writer);
       }
 

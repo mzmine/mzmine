@@ -95,7 +95,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     charBuffer = new StringBuffer();
     massLists = new ArrayList<>();
 
-    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
+    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null, null);
     // newRawDataFile.openDataPointsFile(scansFile);
 
     // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();

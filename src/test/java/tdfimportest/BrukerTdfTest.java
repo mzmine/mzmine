@@ -62,7 +62,7 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(),
+    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), null,
         MemoryMapStorage.forRawDataFile(), Color.BLACK);
 
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);

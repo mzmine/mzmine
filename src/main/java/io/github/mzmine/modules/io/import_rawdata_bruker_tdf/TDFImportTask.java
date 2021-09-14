@@ -221,7 +221,7 @@ public class TDFImportTask extends AbstractTask {
     if (isMaldi) {
       try {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
-            newMZmineFile.getMemoryMapStorage());
+            newMZmineFile.getAbsolutePath(), newMZmineFile.getMemoryMapStorage());
         ((IMSImagingRawDataFile) newMZmineFile).setImagingParam(
             new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
       } catch (IOException e) {

@@ -113,9 +113,9 @@ public class MzMLImportModule implements MZmineProcessingModule {
         logger.finest("File " + fileNames[i] + " type detected as " + fileType);
         RawDataFile newMZmineFile;
         if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
+          newMZmineFile = MZmineCore.createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
         } else {
-          newMZmineFile = MZmineCore.createNewFile(newName, storage);
+          newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
         }
         Task newTask = new MzMLImportTask(project, fileNames[i], newMZmineFile);
         tasks.add(newTask);
