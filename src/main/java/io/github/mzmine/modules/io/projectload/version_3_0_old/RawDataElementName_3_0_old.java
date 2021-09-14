@@ -16,9 +16,9 @@
  *
  */
 
-package io.github.mzmine.modules.io.projectload.version_3_0;
+package io.github.mzmine.modules.io.projectload.version_3_0_old;
 
-enum RawDataElementName_3_0 {
+enum RawDataElementName_3_0_old {
 
   RAWDATA("rawdata"), //
   NAME("name"), //
@@ -62,7 +62,7 @@ enum RawDataElementName_3_0 {
 
   private String elementName;
 
-  private RawDataElementName_3_0(String itemName) {
+  private RawDataElementName_3_0_old(String itemName) {
     this.elementName = itemName;
   }
 

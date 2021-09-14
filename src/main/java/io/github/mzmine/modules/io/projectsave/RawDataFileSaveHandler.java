@@ -58,12 +58,13 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-class RawDataFileSaveHandler {
+public class RawDataFileSaveHandler {
 
-  private static final String BATCH_QUEUES_ROOT = "batch-queue-list";
-  private static final String BATCH_QUEUE_ELEMENT = "batch-queue";
-
-  private final String RAW_DATA_IMPORT_BATCH_FILENAME = "raw_data_import_batch.xml";
+  public static final String RAW_DATA_IMPORT_BATCH_FILENAME = "raw_data_import_batch.xml";
+  public static final String ROOT_ELEMENT = "root";
+  public static final String BATCH_QUEUES_ROOT = "batch-queue-list";
+  public static final String BATCH_QUEUE_ELEMENT = "batch-queue";
+  public static final String TEMP_FILE_NAME = "mzmine_project_rawimportbatch";
 
   private final MZmineProject project;
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -88,7 +89,10 @@ class RawDataFileSaveHandler {
       final DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
 
       final Document batchQueueFile = dbBuilder.newDocument();
-      final Element root = batchQueueFile.createElement(BATCH_QUEUES_ROOT);
+      final Element root = batchQueueFile.createElement(ROOT_ELEMENT);
+      final Element batchRoot = batchQueueFile.createElement(BATCH_QUEUES_ROOT);
+
+      root.appendChild(batchRoot);
       batchQueueFile.appendChild(root);
 
       TransformerFactory transfac = TransformerFactory.newInstance();
@@ -99,12 +103,12 @@ class RawDataFileSaveHandler {
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
       for (final BatchQueue mergedBatchQueue : mergedBatchQueues) {
-         final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
-         mergedBatchQueue.saveToXml(batchQueueEntry);
-         root.appendChild(batchQueueEntry);
+        final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
+        mergedBatchQueue.saveToXml(batchQueueEntry);
+        batchRoot.appendChild(batchQueueEntry);
       }
 
-      final File tmpFile = File.createTempFile("mzmine_project_rawimportbatch", ".tmp");
+      final File tmpFile = File.createTempFile(TEMP_FILE_NAME, ".tmp");
       final StreamResult result = new StreamResult(new FileOutputStream(tmpFile));
       final DOMSource source = new DOMSource(batchQueueFile);
       transformer.transform(source, result);
@@ -150,9 +154,11 @@ class RawDataFileSaveHandler {
 
         ParameterSet parameters = appliedMethod.getParameters().cloneParameterSet();
         for (Parameter<?> param : parameters.getParameters()) {
-          if (param instanceof RawDataFilesParameter) {
-            ((RawDataFilesParameter) param)
-                .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});
+          if (param instanceof RawDataFilesParameter rfp) {
+            // todo? it would be ideal to have SPECIFIC_FILES working for files that are not loaded yet
+            /*((RawDataFilesParameter) param)
+                .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});*/
+            rfp.setValue(RawDataFilesSelectionType.BATCH_LAST_FILES);
           }
         }
         BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
@@ -166,6 +172,7 @@ class RawDataFileSaveHandler {
 
   /**
    * Merges batch queues consisting of the same module calls with the same parameters.
+   *
    * @return The merged batch queues.
    */
   private List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {

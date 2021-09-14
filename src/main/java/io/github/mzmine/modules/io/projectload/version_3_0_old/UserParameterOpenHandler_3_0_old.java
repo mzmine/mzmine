@@ -16,15 +16,8 @@
  *
  */
 
-package io.github.mzmine.modules.io.projectload.version_3_0;
+package io.github.mzmine.modules.io.projectload.version_3_0_old;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.io.projectload.UserParameterOpenHandler;
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -36,8 +29,15 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.io.projectload.UserParameterOpenHandler;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.StringParameter;
 
-public class UserParameterOpenHandler_3_0 extends DefaultHandler
+public class UserParameterOpenHandler_3_0_old extends DefaultHandler
     implements UserParameterOpenHandler {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -56,7 +56,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
 
   private boolean canceled = false;
 
-  public UserParameterOpenHandler_3_0(MZmineProject newProject,
+  public UserParameterOpenHandler_3_0_old(MZmineProject newProject,
       Hashtable<String, RawDataFile> dataFilesIDMap) {
     this.newProject = newProject;
     this.dataFilesIDMap = dataFilesIDMap;
@@ -107,21 +107,16 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
       throw new SAXException("Parsing canceled");
 
     // <PARAMETERS>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETERS.getElementName())) {
-      String count = attrs.getValue(
-          UserParameterElementName_3_0.COUNT.getElementName());
+    if (qName.equals(UserParameterElementName_3_0_old.PARAMETERS.getElementName())) {
+      String count = attrs.getValue(UserParameterElementName_3_0_old.COUNT.getElementName());
       totalParams = Integer.parseInt(count);
     }
 
     // <PARAMETER>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETER.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0_old.PARAMETER.getElementName())) {
 
-      String name = attrs.getValue(
-          UserParameterElementName_3_0.NAME.getElementName());
-      String type = attrs.getValue(
-          UserParameterElementName_3_0.TYPE.getElementName());
+      String name = attrs.getValue(UserParameterElementName_3_0_old.NAME.getElementName());
+      String type = attrs.getValue(UserParameterElementName_3_0_old.TYPE.getElementName());
 
       if (type.equals(DoubleParameter.class.getSimpleName())) {
         currentParameter = new DoubleParameter(name, null);
@@ -141,10 +136,8 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
     }
 
     // <VALUE>
-    if (qName.equals(
-        UserParameterElementName_3_0.VALUE.getElementName())) {
-      currentDataFileID = attrs.getValue(
-          UserParameterElementName_3_0.DATA_FILE.getElementName());
+    if (qName.equals(UserParameterElementName_3_0_old.VALUE.getElementName())) {
+      currentDataFileID = attrs.getValue(UserParameterElementName_3_0_old.DATA_FILE.getElementName());
     }
 
   }
@@ -160,15 +153,13 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
       throw new SAXException("Parsing canceled");
 
     // <OPTION>
-    if (qName.equals(
-        UserParameterElementName_3_0.OPTION.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0_old.OPTION.getElementName())) {
       String optionValue = getTextOfElement();
       currentOptions.add(optionValue);
     }
 
     // <VALUE>
-    if (qName.equals(
-        UserParameterElementName_3_0.VALUE.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0_old.VALUE.getElementName())) {
       RawDataFile currentDataFile = dataFilesIDMap.get(currentDataFileID);
       String valueString = getTextOfElement();
       Object value;
@@ -180,8 +171,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
     }
 
     // <PARAMETER>
-    if (qName.equals(
-        UserParameterElementName_3_0.PARAMETER.getElementName())) {
+    if (qName.equals(UserParameterElementName_3_0_old.PARAMETER.getElementName())) {
       if (currentParameter instanceof ComboParameter) {
         String newChoices[] = currentOptions.toArray(new String[0]);
         ((ComboParameter<String>) currentParameter).setChoices(newChoices);

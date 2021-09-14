@@ -16,21 +16,27 @@
  *
  */
 
-package io.github.mzmine.modules.io.projectload;
+package io.github.mzmine.modules.io.projectload.version_3_0_old;
 
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
-import io.github.mzmine.taskcontrol.Task;
-import java.io.InputStream;
+enum UserParameterElementName_3_0_old {
 
-public interface RawDataFileOpenHandler extends Task {
+  PARAMETERS("parameters"), //
+  COUNT("count"), //
+  PARAMETER("parameter"), //
+  NAME("name"), //
+  TYPE("type"), //
+  OPTION("option"), //
+  VALUE("value"), //
+  DATA_FILE("data_file");
 
-  public static RawDataFileOpenHandler forVersion(String versionString) {
-    return new RawDataFileOpenHandler_3_0();
+  private String elementName;
+
+  private UserParameterElementName_3_0_old(String itemName) {
+    this.elementName = itemName;
   }
 
-  void setBatchFileStream(InputStream batchFileStream);
-
-  void setProject(MZmineProject project);
+  public String getElementName() {
+    return elementName;
+  }
 
 }

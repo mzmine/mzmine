@@ -1,10 +1,7 @@
 package io.github.mzmine.modules.io.projectsave;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
-import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
@@ -23,59 +20,10 @@ public class SavingUtils {
 
   private static final Logger logger = Logger.getLogger(SavingUtils.class.getName());
 
-  public static boolean importStepsEqual(MZmineProcessingStep<?> a, MZmineProcessingStep<?> b) {
-    if (a.getModule() != b.getModule()) {
-      return false;
-    }
-
-    if (!a.getParameterSet().getClass().equals(b.getParameterSet().getClass())) {
-      return false;
-    }
-
-    if (a.getParameterSet().getParameters().length != b.getParameterSet().getParameters().length) {
-      return false;
-    }
-
-    Parameter<?>[] parameters = a.getParameterSet().getParameters();
-    boolean[] found = new boolean[parameters.length];
-    for (int i = 0; i < parameters.length; i++) {
-      Parameter<?> pa = a.getParameterSet().getParameters()[i];
-      Parameter<?> pb = b.getParameterSet().getParameters()[i];
-
-      if (!pa.getName().equals(pb.getName())) {
-        return false;
-      }
-
-      if (pa instanceof FileNamesParameter filesA && pb instanceof FileNamesParameter filesB) {
-        if (!(filesA.getValue().length == filesB.getValue().length)) {
-          return false;
-        }
-
-        for (int j = 0; j < filesA.getValue().length; j++) {
-          if (!filesA.getValue()[j].getAbsolutePath()
-              .equals(filesB.getValue()[j].getAbsolutePath())) {
-            return false;
-          }
-        }
-      }
-
-      if (pa instanceof AdvancedSpectraImportParameters aa
-          && pb instanceof AdvancedSpectraImportParameters ab) {
-        if (aa.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue() == ab
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-          return false;
-        }
-
-        if (aa.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue() == ab
-            .getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-          return false;
-        }
-        // it's unlikely it was different module calls now...
-      }
-    }
-    return true;
-  }
-
+  /**
+   * @return The merged queue or null if queues are not equal.
+   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue)
+   */
   @Nullable
   public static BatchQueue mergeQueues(BatchQueue q1, BatchQueue q2) {
     if (!queuesEqual(q1, q2)) {
@@ -104,13 +52,16 @@ public class SavingUtils {
           logger.finest(() -> "Combined FileNamesParameter to " + Arrays.toString(files.toArray()));
           fnp.setValue(files.toArray(new File[0]));
         } else if (mergedParam instanceof RawDataFilesParameter rfp) {
-          List<RawDataFile> files = new ArrayList<>();
+          // todo? it would be ideal to have SPECIFIC_FILES working for files that are not loaded yet
+          /*List<RawDataFile> files = new ArrayList<>();
           Collections
               .addAll(files, ((RawDataFilesParameter) param1).getValue().getMatchingRawDataFiles());
           Collections
               .addAll(files, ((RawDataFilesParameter) param2).getValue().getMatchingRawDataFiles());
-          logger.finest(() -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
-          rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files.toArray(new RawDataFile[0]));
+          logger.finest(
+              () -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
+          rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files.toArray(new RawDataFile[0]));*/
+          rfp.setValue(RawDataFilesSelectionType.BATCH_LAST_FILES);
         }
       }
 
