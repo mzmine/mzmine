@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -60,7 +61,6 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
@@ -108,7 +108,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -146,6 +145,7 @@ public class MainWindowController {
   public MenuItem featureListsRenameMenuItem;
   @FXML
   public MenuItem featureListsRemoveMenuItem;
+  public ColorPickerMenuItem rawDataFileColorPicker;
   @FXML
   private Scene mainScene;
   @FXML
@@ -509,35 +509,19 @@ public class MainWindowController {
 
     addTab(new MZmineIntroductionTab());
 
-    // add colors to context menu based on default palette
-    var colorPalette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    var setColorMenuItems = new ArrayList<MenuItem>();
-    for (var color : colorPalette) {
-      // Color.toString "might vary between implementations" and produces ugly string anyway
-      var colorHex = String.format(
-          "#%02x%02x%02x",
-          (int) Math.round(color.getRed() * 255),
-          (int) Math.round(color.getGreen() * 255),
-          (int) Math.round(color.getBlue() * 255));
-      var setColorMenuItem = new MenuItem(colorHex);
-      setColorMenuItem.setGraphic(new Rectangle(16, 16, color));
-      setColorMenuItem.setOnAction(e -> {
-        if (rawDataList.getSelectionModel() == null) {
-          return;
-        }
+    rawDataFileColorPicker.selectedColorProperty().addListener((observable, oldValue, newValue) -> {
+      if (rawDataList.getSelectionModel() == null) {
+        return;
+      }
 
-        ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
-        // Only one file must be selected
-        if (rows == null || rows.size() != 1 || rows.get(0) == null) {
-          return;
-        }
+      ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
+      // Only one file must be selected
+      if (rows == null || rows.size() != 1 || rows.get(0) == null) {
+        return;
+      }
 
-        rows.get(0).setColor(color);
-      });
-      setColorMenuItems.add(setColorMenuItem);
-    }
-    // place at top
-    rawDataSetColorMenu.getItems().addAll(0, setColorMenuItems);
+      rows.get(0).setColor(newValue);
+    });
   }
 
   public GroupableListView<RawDataFile> getRawDataList() {

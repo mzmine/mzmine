@@ -38,6 +38,7 @@
   ~
   -->
 
+<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -108,7 +109,7 @@
 
                                   <SeparatorMenuItem/>
                                   <Menu text="Set color" fx:id="rawDataSetColorMenu">
-                                    <MenuItem onAction="#handleSetRawDataFileColor" text="Custom..."/>
+                                    <ColorPickerMenuItem fx:id="rawDataFileColorPicker" />
                                   </Menu>
                                 </items>
                               </ContextMenu>
