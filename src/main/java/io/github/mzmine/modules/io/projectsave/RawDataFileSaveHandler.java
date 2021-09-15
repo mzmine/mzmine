@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.DocumentBuilder;
@@ -56,6 +57,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -66,6 +68,10 @@ public class RawDataFileSaveHandler {
   public static final String BATCH_QUEUES_ROOT = "batch-queue-list";
   public static final String BATCH_QUEUE_ELEMENT = "batch-queue";
   public static final String TEMP_FILE_NAME = "mzmine_project_rawimportbatch";
+  public static final String DATA_FILES_FOLDER = "msdatafiles/";
+  public static final String DATA_FILES_PREFIX = "$$";
+  public static final String DATA_FILES_SUFFIX = DATA_FILES_PREFIX;
+  public static final Pattern DATA_FILE_PATTERN = Pattern.compile("(\\$\\$)([^\\n]+)(\\$\\$)");
 
   private final MZmineProject project;
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -88,7 +94,13 @@ public class RawDataFileSaveHandler {
         logger.finest(() -> "File " + file.getName() + " does not have a path.");
         continue;
       }
-      oldPathNewPath.put(file.getAbsolutePath(), getZipPath(file));
+      final String newPath = getZipPath(file, DATA_FILES_PREFIX, DATA_FILES_SUFFIX);
+      if (!DATA_FILE_PATTERN.matcher(newPath).matches()) {
+        throw new IllegalArgumentException(
+            "Cannot save file. New path does not match the save pattern. Please contact the developers. absolutePath: "
+                + file.getAbsolutePath() + " newPath: " + newPath);
+      }
+      oldPathNewPath.put(file.getAbsolutePath(), newPath);
     }
 
     for (BatchQueue queue : queues) {
@@ -331,7 +343,21 @@ public class RawDataFileSaveHandler {
   }
 
   public static String getZipPath(RawDataFile file) {
-    return "msdatafiles/" + file.getAbsolutePath()
-        .substring(file.getAbsolutePath().lastIndexOf("\\") + 1);
+    return getZipPath(file, null, null);
+  }
+
+  public static String getZipPath(@NotNull RawDataFile file, @Nullable String prefix,
+      @Nullable String suffix) {
+    StringBuilder path = new StringBuilder();
+    if (prefix != null) {
+      path.append(prefix);
+    }
+    path.append(DATA_FILES_FOLDER);
+    path.append(file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf("\\") + 1));
+    if (suffix != null) {
+      path.append(suffix);
+    }
+
+    return path.toString();
   }
 }

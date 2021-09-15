@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -86,9 +84,7 @@ public class ZipUtils {
 
     for (final File file : files) {
       if (file.isDirectory()) {
-        Path relPath = Paths.get(file.getAbsolutePath())
-            .relativize(Paths.get(dir.getAbsolutePath()));
-        addDirectoryToZip(stream, file, destPath + relPath.toString());
+        addDirectoryToZip(stream, file, destPath + file.getName());
       }
 
       if(file.isFile()) {
