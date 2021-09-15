@@ -14,17 +14,17 @@
   stylesheets="@ColorPicker.css"
   xmlns="http://javafx.com/javafx"
   fx:controller="io.github.mzmine.gui.colorpicker.ColorPicker">
-  <ColorMixer VBox.vgrow="SOMETIMES" spacing="10" fx:id="colorMixer"/>
-  <HBox>
-    <ColorSwatch styleClass="color-swatch" fx:id="colorSwatch"/>
-    <Region HBox.hgrow="ALWAYS"/>
-    <Region HBox.hgrow="ALWAYS"/>
-  </HBox>
-  <HBox>
-    <Button onAction="#onCustomColorConfirm" text="Confirm"/>
-    <Region HBox.hgrow="ALWAYS"/>
-    <Region HBox.hgrow="ALWAYS"/>
-  </HBox>
   <Text>Quick Select</Text>
+  <HBox>
+    <Region HBox.hgrow="ALWAYS" />
+    <ColorSwatch fx:id="colorSwatch" styleClass="color-swatch" />
+    <Region HBox.hgrow="ALWAYS" />
+  </HBox>
   <Text>Custom Color</Text>
+  <ColorMixer fx:id="colorMixer" VBox.vgrow="SOMETIMES" spacing="10" />
+  <HBox>
+    <Region HBox.hgrow="ALWAYS" />
+    <Button onAction="#onCustomColorConfirm" text="Confirm" />
+    <Region HBox.hgrow="ALWAYS" />
+  </HBox>
 </VBox>
