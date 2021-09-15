@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.taskcontrol.Task;
 import java.io.InputStream;
+import java.util.zip.ZipFile;
 
 public interface RawDataFileOpenHandler extends Task {
 
@@ -33,4 +34,5 @@ public interface RawDataFileOpenHandler extends Task {
 
   void setProject(MZmineProject project);
 
+  void setZipFile(ZipFile zipFile);
 }

@@ -134,7 +134,7 @@ public class RawDataFileSaveHandler {
 
       final File f = new File(file.getAbsolutePath());
       if (f.isDirectory()) {
-        ZipUtils.addDirectoryToZip(zipStream, f, getZipPath(file));
+        ZipUtils.zipDirectory(zipStream, f, getZipPath(file));
       } else {
         String zipPath = getZipPath(file);
         StreamCopy cpy = new StreamCopy();

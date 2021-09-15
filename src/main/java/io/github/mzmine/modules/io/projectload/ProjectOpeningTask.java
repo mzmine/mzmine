@@ -173,7 +173,7 @@ public class ProjectOpeningTask extends AbstractTask {
         } else if (entryName.equals(ProjectSavingTask.PARAMETERS_FILENAME)) {
           loadUserParameters(cis);
         } else if(entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
-          loadRawDataFiles(cis);
+          loadRawDataFiles(cis, zipFile);
         }
 
         // Load a feature list
@@ -367,9 +367,10 @@ public class ProjectOpeningTask extends AbstractTask {
 
   }
 
-  private boolean loadRawDataFiles(InputStream is) {
+  private boolean loadRawDataFiles(InputStream is, ZipFile zipFile) {
     rawDataFileOpenHandler.setBatchFileStream(is);
     rawDataFileOpenHandler.setProject(newProject);
+    rawDataFileOpenHandler.setZipFile(zipFile);
     rawDataFileOpenHandler.run();
     return rawDataFileOpenHandler.getStatus() == TaskStatus.FINISHED;
   }
