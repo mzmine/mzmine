@@ -63,9 +63,9 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -91,9 +91,6 @@ public class FeatureFindingTest {
   private static MZmineProject project;
   private final String sample1 = "DOM_a.mzML";
   private final String sample2 = "DOM_b.mzXML";
-  private ModularFeatureList lastFlistA = null;
-  private ModularFeatureList lastFlistB = null;
-
   private final String chromSuffix = "chrom";
   private final String smoothSuffix = "smooth";
   private final String deconSuffix = "decon";
@@ -102,7 +99,8 @@ public class FeatureFindingTest {
   private final String rowFilterSuffix = "rowFilter";
   private final String alignedName = "aligned";
   private final String gapFilledSuffix = "gap";
-
+  private ModularFeatureList lastFlistA = null;
+  private ModularFeatureList lastFlistB = null;
 
   /**
    * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
@@ -401,11 +399,13 @@ public class FeatureFindingTest {
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
     boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, MinimumSearchFeatureResolverModule.class, generalParam);
+        .callModuleWithTimeout(45, MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
     assertTrue(finished, "Time out during deconvolution smoother. Not finished in time.");
 
+    logger.info("Lists after deconvolution:  " + project.getFeatureLists().stream()
+        .map(FeatureList::getName).collect(Collectors.joining(", ")));
     assertEquals(6, project.getFeatureLists().size());
     // test feature lists
     ModularFeatureList processed1 = (ModularFeatureList) project
