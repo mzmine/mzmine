@@ -451,14 +451,19 @@ public class MainWindowController {
               return;
             }
 
+            // Setting color should be enabled only if files are selected
+            if (rawDataList.getSelectedValues().size() > 0) {
+              rawDataSetColorMenu.setDisable(false);
+            } else {
+              rawDataSetColorMenu.setDisable(true);
+            }
+
             if (rawDataList.getSelectedValues().size() == 1) {
               rawDataRemoveMenuItem.setText("Remove file");
               rawDataRemoveExtensionMenuItem.setText("Remove file extension");
-              rawDataSetColorMenu.setDisable(false);
             } else {
               rawDataRemoveMenuItem.setText("Remove files");
               rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
-              rawDataSetColorMenu.setDisable(true);
             }
 
             if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
@@ -515,12 +520,12 @@ public class MainWindowController {
       }
 
       ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
-      // Only one file must be selected
-      if (rows == null || rows.size() != 1 || rows.get(0) == null) {
+      if (rows == null) {
         return;
       }
-
-      rows.get(0).setColor(newValue);
+      for (var row : rows) {
+        row.setColor(newValue);
+      }
     });
   }
 
