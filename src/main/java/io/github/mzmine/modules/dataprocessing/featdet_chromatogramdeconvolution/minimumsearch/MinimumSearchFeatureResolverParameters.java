@@ -19,11 +19,12 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.XYResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -48,9 +49,9 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
       MZmineCore.getConfiguration().getRTFormat(), 0.05);
 
-  public static final PercentParameter MIN_RELATIVE_HEIGHT =
-      new PercentParameter("Minimum relative height",
-          "Minimum height of a peak relative to the chromatogram top data point", 0d);
+  public static final PercentParameter MIN_RELATIVE_HEIGHT = new PercentParameter(
+      "Minimum relative height",
+      "Minimum height of a peak relative to the chromatogram top data point", 0d);
 
   public static final DoubleParameter MIN_ABSOLUTE_HEIGHT = new DoubleParameter(
       "Minimum absolute height", "Minimum absolute height of a peak to be recognized",
@@ -58,26 +59,27 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   public static final DoubleParameter MIN_RATIO = new DoubleParameter("Min ratio of peak top/edge",
       "Minimum ratio between peak's top intensity and side (lowest) data points."
-          + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.", new DecimalFormat("0.00"), 1.7d);
+          + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.",
+      new DecimalFormat("0.00"), 1.7d);
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
+  public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+      "Peak duration range (min)", "Range of acceptable peak lengths",
+      MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter("Min # of data points",
-      "Minimum number of data points on a feature", 3, true);
+  public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(
+      "Min # of data points", "Minimum number of data points on a feature", 3, true);
 
 
   public MinimumSearchFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
-        MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
+        dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
+        MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final FeatureResolverSetupDialog dialog =
-        new FeatureResolverSetupDialog(valueCheckRequired, this, null);
+    final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
+        this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -89,8 +91,8 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   @Nullable
   @Override
-  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameters) {
-    return new MinimumSearchFeatureResolver(parameters);
+  public Resolver getResolver(ParameterSet parameters, ModularFeatureList flist) {
+    return new MinimumSearchFeatureResolver(parameters, flist);
   }
 
   @NotNull

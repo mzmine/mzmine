@@ -40,6 +40,13 @@ public class AreaShareType extends DataType<MapProperty<RawDataFile, ModularFeat
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "area_share";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Area Share";
   }

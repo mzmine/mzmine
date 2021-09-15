@@ -34,6 +34,13 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "manual_annotation";
+  }
+
+  @NotNull
+  @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }

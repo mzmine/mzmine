@@ -29,6 +29,13 @@ public class CosineScoreType extends ScoreType {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "cosine_score";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Cosine similarity";
   }

@@ -105,7 +105,8 @@ public class NetCDFImportModule implements MZmineProcessingModule {
 
       try {
         RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new NetCDFImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new NetCDFImportTask(project, fileNames[i], newMZmineFile,
+            NetCDFImportModule.class, parameters);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

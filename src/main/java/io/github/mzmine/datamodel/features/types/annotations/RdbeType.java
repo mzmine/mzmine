@@ -21,11 +21,20 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Ring and double bond equivalents
  */
 public class RdbeType extends FloatType {
+
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "rdbe";
+  }
 
   public RdbeType() {
     super(new DecimalFormat("0.0"));

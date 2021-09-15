@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The MS/MS score is used during molecular formula prediction to score how many signals are
@@ -27,6 +28,13 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
  * MSMSScoreCalculator#evaluateMSMS}
  */
 public class MsMsScoreType extends ScoreType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "msms_score";
+  }
 
   @Override
   public String getHeaderString() {

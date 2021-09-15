@@ -34,6 +34,8 @@ import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
@@ -42,12 +44,10 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,9 +80,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.jetbrains.annotations.NotNull;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MZmine JavaFX Application class
@@ -96,7 +96,7 @@ public class MZmineGUI extends Application implements Desktop {
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -193,8 +193,8 @@ public class MZmineGUI extends Application implements Desktop {
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
 
-    final GroupableListView<FeatureList> featureListView =
-        mainWindowController.getFeatureListsList();
+    final GroupableListView<FeatureList> featureListView = mainWindowController
+        .getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
 
   }
@@ -203,8 +203,8 @@ public class MZmineGUI extends Application implements Desktop {
   public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
       Class<ModuleType> moduleClass) {
 
-    final ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+    final ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(moduleClass);
     ExitCode result = moduleParameters.showSetupDialog(true);
     if (result == ExitCode.OK) {
       MZmineCore.runMZmineModule(moduleClass, moduleParameters);
@@ -215,8 +215,8 @@ public class MZmineGUI extends Application implements Desktop {
   public static void showAboutWindow() {
     // Show the about window
     MZmineCore.runLater(() -> {
-      final URL aboutPage =
-          MZmineGUI.class.getClassLoader().getResource("aboutpage/AboutMZmine.html");
+      final URL aboutPage = MZmineGUI.class.getClassLoader()
+          .getResource("aboutpage/AboutMZmine.html");
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
       aboutWindow.show();
     });
@@ -250,37 +250,47 @@ public class MZmineGUI extends Application implements Desktop {
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
-      for (File selectedFile : dragboard.getFiles()) {
 
+      final List<File> rawDataFiles = new ArrayList<>();
+      for (File selectedFile : dragboard.getFiles()) {
         final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile =
-            {"cdf", "netcdf", "nc", "mzData", "mzML", "imzML", "mzXML", "raw", "tdf"};
-        final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
-        final Boolean isMZmineProject = extension.equals("mzmine");
+        String[] rawDataFile = {"cdf", "netcdf", "nc", "mzData", "mzML", "imzML", "mzXML", "raw",
+            "tdf", "d", "tsf"};
+        final boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
+        final boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
         if (isMZmineProject) {
+          logger.finest(
+              () -> "Importing project " + selectedFile.getAbsolutePath() + " via drag and drop.");
           moduleJavaClass = ProjectLoadModule.class;
-          ParameterSet moduleParameters =
-              MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          ParameterSet moduleParameters = MZmineCore.getConfiguration()
+              .getModuleParameters(moduleJavaClass);
           moduleParameters.getParameter(projectFile).setValue(selectedFile);
           ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
           MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
         } else if (isRawDataFile) {
-          // import files
-          List<Task> underlyingTasks = new ArrayList<>();
-          try {
-            RawDataFileUtils.createRawDataImportTasks(
-                MZmineCore.getProjectManager().getCurrentProject(), underlyingTasks, selectedFile);
-            if (underlyingTasks.size() > 0) {
-              MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
-            }
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-
+          // add to raw files list
+          rawDataFiles.add(selectedFile);
         }
+      }
 
+      if (!rawDataFiles.isEmpty()) {
+        logger.finest(
+            () -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: " + Arrays
+                .toString(rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
+        ParameterSet param = MZmineCore.getConfiguration()
+            .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
+        param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
+        param.getParameter(AllSpectralDataImportParameters.fileNames)
+            .setValue(rawDataFiles.toArray(File[]::new));
+        AllSpectralDataImportModule module = MZmineCore
+            .getModuleInstance(AllSpectralDataImportModule.class);
+        if (module != null) {
+          List<Task> tasks = new ArrayList<>();
+          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks);
+          MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
+        }
       }
     }
     event.setDropCompleted(hasFileDropped);
@@ -367,8 +377,8 @@ public class MZmineGUI extends Application implements Desktop {
      */
 
     // Activate project - bind it to the desktop's project tree
-    MZmineProjectImpl currentProject =
-        (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProjectImpl currentProject = (MZmineProjectImpl) MZmineCore.getProjectManager()
+        .getCurrentProject();
     MZmineGUI.activateProject(currentProject);
 
     // Check for updated version
@@ -378,8 +388,8 @@ public class MZmineGUI extends Application implements Desktop {
     nvcThread.start();
 
     // Tracker
-    GoogleAnalyticsTracker GAT =
-        new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
+    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)",
+        "/JAVA/Main/GUI");
     Thread gatThread = new Thread(GAT);
     gatThread.setPriority(Thread.MIN_PRIORITY);
     gatThread.start();
@@ -573,8 +583,8 @@ public class MZmineGUI extends Application implements Desktop {
     return tabs;
   }
 
-  public ButtonType createAlertWithOptOut(String title, String headerText,
-      String message, String optOutMessage, Consumer<Boolean> optOutAction) {
+  public ButtonType createAlertWithOptOut(String title, String headerText, String message,
+      String optOutMessage, Consumer<Boolean> optOutAction) {
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);

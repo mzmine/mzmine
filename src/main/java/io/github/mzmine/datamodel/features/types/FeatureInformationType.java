@@ -29,6 +29,13 @@ import java.util.stream.Collectors;
 public class FeatureInformationType extends
     DataType<ObjectProperty<SimpleFeatureInformation>> implements NullColumnType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "feature_information";
+  }
+
   @Override
   @NotNull
   public String getHeaderString() {

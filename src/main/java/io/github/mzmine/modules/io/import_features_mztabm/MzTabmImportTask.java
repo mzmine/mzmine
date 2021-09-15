@@ -63,6 +63,7 @@ public class MzTabmImportTask extends AbstractTask {
 
   // parameter values
   private MZmineProject project;
+  private final ParameterSet parameters;
   private File inputFile;
   private boolean importRawFiles;
   private double finishedPercentage = 0.0;
@@ -74,6 +75,7 @@ public class MzTabmImportTask extends AbstractTask {
       @Nullable MemoryMapStorage storage) {
     super(storage);
     this.project = project;
+    this.parameters = parameters;
     this.inputFile = inputFile;
     this.importRawFiles = parameters.getParameter(MzTabmImportParameters.importRawFiles).getValue();
   }
@@ -225,7 +227,7 @@ public class MzTabmImportTask extends AbstractTask {
 
       // import files
       RawDataFileUtils.createRawDataImportTasks(MZmineCore.getProjectManager().getCurrentProject(),
-          underlyingTasks, filesToImport.toArray(new File[0]));
+          underlyingTasks, MZTabmImportModule.class, parameters, filesToImport.toArray(new File[0]));
       if (underlyingTasks.size() > 0) {
         MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
       }

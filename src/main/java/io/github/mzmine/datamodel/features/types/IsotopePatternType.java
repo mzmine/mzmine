@@ -29,6 +29,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>> {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "isotope_pattern";
+  }
+
   @Override
   @NotNull
   public String getHeaderString() {

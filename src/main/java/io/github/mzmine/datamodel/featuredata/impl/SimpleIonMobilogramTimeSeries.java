@@ -175,12 +175,12 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     return intensityValues;
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     return mzValues;
   }
 
@@ -200,7 +200,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
   @Override
   public IonMobilogramTimeSeries copy(@Nullable MemoryMapStorage storage) {
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
+        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
     return IonMobilogramTimeSeriesFactory
         .of(storage, data[0], data[1], mobilograms, frames, summedMobilogram.copy(storage));
   }
@@ -242,8 +242,8 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
 
     for (int i = 0; i < mobilograms.size(); i++) {
       IonMobilitySeries ims = mobilograms.get(i);
-      DoubleBuffer mobilogramIntensities = ims.getIntensityValues();
-      DoubleBuffer mobilogramMzs = ims.getMZValues();
+      DoubleBuffer mobilogramIntensities = ims.getIntensityValueBuffer();
+      DoubleBuffer mobilogramMzs = ims.getMZValueBuffer();
       double weightedMz = 0;
       for (int j = 0; j < mobilogramMzs.capacity(); j++) {
         weightedMz += mobilogramMzs.get(j) * (mobilogramIntensities.get(j) / summedIntensities[i]);
@@ -261,7 +261,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     double[] summedIntensities = new double[mobilograms.size()];
     for (int i = 0; i < mobilograms.size(); i++) {
       IonMobilitySeries ims = mobilograms.get(i);
-      DoubleBuffer intensities = ims.getIntensityValues();
+      DoubleBuffer intensities = ims.getIntensityValueBuffer();
       for (int j = 0; j < intensities.capacity(); j++) {
         summedIntensities[i] += intensities.get(j);
       }

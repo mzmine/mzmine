@@ -84,8 +84,9 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     final Map<Frame, Range<Double>> ranges = IonMobilityUtils.getUniqueMobilityRanges(rawDataFile);
     // multiple mobility ranges are possible in tims
-    final int maxMobilityScans = rawDataFile.getFrames().stream()
-        .mapToInt(Frame::getNumberOfMobilityScans).max().orElseThrow() * ranges.size();
+    final int maxMobilityScans =
+        rawDataFile.getFrames().stream().mapToInt(Frame::getNumberOfMobilityScans).max()
+            .orElseThrow() * ranges.size();
 
     tempIntensities = new double[maxMobilityScans];
     tempMobilities = new double[maxMobilityScans];
@@ -235,8 +236,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         break;
       }
 
-      if (method.getModule()
-          .equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
+      if (method.getModule().equals(MZmineCore.getModuleInstance(MobilogramBinningModule.class))) {
         final ParameterSet parameterSet = method.getParameters();
         binWidth = switch (mt) {
           case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
@@ -282,17 +282,14 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     for (int binnedIndex = 0; binnedIndex < intensities.length && rawIndex < numValues;
         binnedIndex++) {
       // ensure we are above the current lower-binning-limit
-      while (rawIndex < numValues
-          && Double.compare(tempMobilities[rawIndex],
-          binnedIndex == 0 ? 0d : upperBinLimits[binnedIndex - 1])
-          == -1) {
+      while (rawIndex < numValues && Double.compare(tempMobilities[rawIndex],
+          binnedIndex == 0 ? 0d : upperBinLimits[binnedIndex - 1]) == -1) {
         rawIndex++;
       }
 
       // ensure we are below the current upper-binning-limit
-      while (rawIndex < numValues &&
-          Double.compare(tempMobilities[rawIndex], upperBinLimits[binnedIndex])
-              == -1) {
+      while (rawIndex < numValues
+          && Double.compare(tempMobilities[rawIndex], upperBinLimits[binnedIndex]) == -1) {
         intensities[binnedIndex] += tempIntensities[rawIndex];
         rawIndex++;
       }
@@ -309,8 +306,9 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
 
     int order = 1;
     if (!mobilograms.isEmpty()) {
-      order = mobilograms.get(0).getSpectrum(0).getFrame().getMobilityType()
-          == MobilityType.TIMS ? -1 : +1;
+      order =
+          mobilograms.get(0).getSpectrum(0).getFrame().getMobilityType() == MobilityType.TIMS ? -1
+              : +1;
     }
 
     for (IonMobilitySeries ims : mobilograms) {
@@ -334,8 +332,7 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
         final double binStart = i == 0 ? -MOBILITY_EPSILON : upperBinLimits[i - 1];
         final double binEnd = upperBinLimits[i];
         // if we are in the correct bin, add all values that fit
-        while (rawIndex >= 0 && rawIndex < numValues &&
-            tempMobilities[rawIndex] < binEnd
+        while (rawIndex >= 0 && rawIndex < numValues && tempMobilities[rawIndex] < binEnd
             && tempMobilities[rawIndex] > binStart) {
 
           intensities[i] += tempIntensities[rawIndex];
@@ -372,15 +369,33 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "This data access is designed to loop over intensities/mobilities.");
   }
 
+  /**
+   * @param dst a buffer to copy the intensities to. must be of appropriate size. If null is passed,
+   *            the intensity array is returned directly. Do not modify.
+   * @return The intensity values.
+   */
   @Override
   public double[] getIntensityValues(double[] dst) {
-    throw new UnsupportedOperationException(
-        "This data access is designed to loop over intensities/mobilities.");
+    if (dst != null) {
+      assert dst.length >= getNumberOfValues();
+      System.arraycopy(intensities, 0, dst, 0, getNumberOfValues());
+      return dst;
+    } else {
+      return intensities;
+    }
+  }
+
+  public double[] getIntensityValues() {
+    return intensities;
+  }
+
+  public double[] getMobilityValues() {
+    return mobilities;
   }
 
   @Override
@@ -398,6 +413,21 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
     return mobilities[index];
   }
 
+  /**
+   * @param dst a buffer to copy the mobilities to. must be of appropriate size. If null is passed,
+   *            the intensity array is returned directly. Do not modify.
+   * @return The intensity values.
+   */
+  public double[] getMobilityValues(@Nullable double[] dst) {
+    if (dst != null) {
+      assert dst.length >= mobilities.length;
+      System.arraycopy(mobilities, 0, dst, 0, mobilities.length);
+      return dst;
+    } else {
+      return mobilities;
+    }
+  }
+
   public IMSRawDataFile getDataFile() {
     return dataFile;
   }
@@ -407,10 +437,10 @@ public class BinningMobilogramDataAccess implements IntensitySeries, MobilitySer
   }
 
   /**
-   *
    * @return The approximate bin size in mobility units with respect to the raw data file.
    */
   public double getApproximateBinSize() {
     return approximateBinSize;
   }
+
 }

@@ -18,6 +18,20 @@
 
 package io.github.mzmine.modules.io.import_rawdata_waters_raw;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.TextUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -27,17 +41,7 @@ import java.nio.ByteOrder;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.TextUtils;
-import io.github.mzmine.util.scans.ScanUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This module binds spawns a separate process that dumps the native format's data in a text+binary
@@ -50,6 +54,8 @@ public class WatersRawImportTask extends AbstractTask {
   private File file;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
 
   private Process dumper = null;
 
@@ -66,11 +72,14 @@ public class WatersRawImportTask extends AbstractTask {
   private float retentionTime = 0;
   private double precursorMZ = 0;
 
-  public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
+  public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
     super(null); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
+    this.parameters = parameters;
+    this.module = module;
   }
 
   /**
@@ -92,14 +101,15 @@ public class WatersRawImportTask extends AbstractTask {
 
     // Check the OS we are running
     String osName = System.getProperty("os.name").toUpperCase();
-    String rawDumpPath = System.getProperty("user.dir") + File.separator + "lib" + File.separator
-        + "vendor_lib" + File.separator + "waters" + File.separator + "WatersRawDump.exe";
+    String rawDumpPath =
+        System.getProperty("user.dir") + File.separator + "lib" + File.separator + "vendor_lib"
+            + File.separator + "waters" + File.separator + "WatersRawDump.exe";
     String cmdLine[];
 
     if (osName.toUpperCase().contains("WINDOWS")) {
-      cmdLine = new String[] {rawDumpPath, file.getPath()};
+      cmdLine = new String[]{rawDumpPath, file.getPath()};
     } else {
-      cmdLine = new String[] {"wine", rawDumpPath, file.getPath()};
+      cmdLine = new String[]{"wine", rawDumpPath, file.getPath()};
     }
 
     try {
@@ -127,10 +137,12 @@ public class WatersRawImportTask extends AbstractTask {
       }
 
       if (parsedScans != totalScans) {
-        throw (new Exception("RAW dump process crashed before all scans were extracted ("
-            + parsedScans + " out of " + totalScans + ")"));
+        throw (new Exception(
+            "RAW dump process crashed before all scans were extracted (" + parsedScans + " out of "
+                + totalScans + ")"));
       }
 
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -235,8 +247,8 @@ public class WatersRawImportTask extends AbstractTask {
         }
         dumpStream.read(byteBuffer, 0, numOfBytes);
 
-        ByteBuffer mzByteBuffer =
-            ByteBuffer.wrap(byteBuffer, 0, numOfBytes).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer mzByteBuffer = ByteBuffer.wrap(byteBuffer, 0, numOfBytes)
+            .order(ByteOrder.LITTLE_ENDIAN);
         if (mzValuesBuffer.length < numOfDataPoints) {
           mzValuesBuffer = new double[numOfDataPoints * 2];
         }
@@ -262,8 +274,9 @@ public class WatersRawImportTask extends AbstractTask {
         // numOfDataPoints must be same for MASS VALUES and INTENSITY
         // VALUES
         if (numOfDataPoints != Integer.parseInt(m.group(1))) {
-          throw new IOException("Scan " + scanNumber + " contained " + numOfDataPoints
-              + " mass values, but " + m.group(1) + " intensity values");
+          throw new IOException(
+              "Scan " + scanNumber + " contained " + numOfDataPoints + " mass values, but " + m
+                  .group(1) + " intensity values");
         }
         final int byteSize = Integer.parseInt(m.group(2));
 
@@ -273,8 +286,8 @@ public class WatersRawImportTask extends AbstractTask {
         }
         dumpStream.read(byteBuffer, 0, numOfBytes);
 
-        ByteBuffer intensityByteBuffer =
-            ByteBuffer.wrap(byteBuffer, 0, numOfBytes).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer intensityByteBuffer = ByteBuffer.wrap(byteBuffer, 0, numOfBytes)
+            .order(ByteOrder.LITTLE_ENDIAN);
         if (intensityValuesBuffer.length < numOfDataPoints) {
           intensityValuesBuffer = new double[numOfDataPoints * 2];
         }
@@ -295,7 +308,6 @@ public class WatersRawImportTask extends AbstractTask {
         double intensityValues[] = new double[numOfDataPoints];
         System.arraycopy(mzValuesBuffer, 0, mzValues, 0, numOfDataPoints);
         System.arraycopy(intensityValuesBuffer, 0, intensityValues, 0, numOfDataPoints);
-
 
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);

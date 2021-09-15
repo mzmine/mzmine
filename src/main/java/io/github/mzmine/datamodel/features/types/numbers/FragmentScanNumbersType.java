@@ -26,6 +26,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class FragmentScanNumbersType extends ScanNumbersType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "fragment_scan_number_list";
+  }
+
   @Override
   public String getHeaderString() {
     return "Fragment scans";

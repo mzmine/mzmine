@@ -36,8 +36,16 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public class LipidSpectrumType extends LinkedDataType implements GraphicalColumType<Boolean> {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "lipid_matched_signals";
+  }
 
   @Override
   public String getHeaderString() {
