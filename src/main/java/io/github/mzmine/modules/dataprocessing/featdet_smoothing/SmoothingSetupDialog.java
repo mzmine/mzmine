@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -160,7 +161,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
         .getPositiveColor();
 
     // in case we smooth rt, we remap the rt dimension to all scans, as we would do usually.
-    featureSeries = previewDimension == SmoothingDimension.RETENTION_TIME ? IonTimeSeries
+    featureSeries = previewDimension == SmoothingDimension.RETENTION_TIME ? IonTimeSeriesUtils
         .remapRtAxis(featureSeries, flistBox.getValue().getSeletedScans(f.getRawDataFile()))
         : featureSeries;
 
