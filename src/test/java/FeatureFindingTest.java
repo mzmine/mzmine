@@ -84,7 +84,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 @DisplayName("Test Feature Finding")
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
-@Disabled
+//@Disabled
 public class FeatureFindingTest {
 
   private static final Logger logger = Logger.getLogger(FeatureFindingTest.class.getName());
@@ -233,7 +233,7 @@ public class FeatureFindingTest {
     int filesTested = 0;
     for (FeatureList flist : project.getFeatureLists()) {
       assertEquals(1, flist.getNumberOfRawDataFiles());
-      assertEquals(1, flist.getAppliedMethods().size());
+      assertEquals(2, flist.getAppliedMethods().size());
       // check default sorting of rows
       // assertTrue(MZmineTestUtil.isSorted(flist));
 
@@ -571,9 +571,10 @@ public class FeatureFindingTest {
   }
 
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {
-    CentroidMassDetector detect = new CentroidMassDetector();
+    CentroidMassDetector detect = MZmineCore.getModuleInstance(CentroidMassDetector.class);
     CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
     param.setParameter(CentroidMassDetectorParameters.noiseLevel, noise);
+    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
     return new MZmineProcessingStepImpl<>(detect, param);
   }
 
