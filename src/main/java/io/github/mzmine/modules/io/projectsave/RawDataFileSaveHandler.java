@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.ZipUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -71,16 +72,80 @@ public class RawDataFileSaveHandler {
   private ZipOutputStream zipStream;
   private boolean canceled = false;
   private double progress = 0;
+  private final List<RawDataFile> files;
+  private final boolean saveFilesInProject = true;
 
   public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream) {
     this.project = project;
     this.zipStream = zipOutputStream;
+    files = List.of(project.getDataFiles());
+  }
+
+  private void replaceRawFilePaths(List<BatchQueue> queues) {
+    final Map<String, String> oldPathNewPath = new HashMap<>();
+    for (RawDataFile file : files) {
+      if (file.getAbsolutePath() == null) {
+        logger.finest(() -> "File " + file.getName() + " does not have a path.");
+        continue;
+      }
+      oldPathNewPath.put(file.getAbsolutePath(), getZipPath(file));
+    }
+
+    for (BatchQueue queue : queues) {
+      for (MZmineProcessingStep<MZmineProcessingModule> step : queue) {
+        for (Parameter<?> parameter : step.getParameterSet().getParameters()) {
+          if (parameter instanceof FileNamesParameter fnp) {
+            List<File> newValue = new ArrayList<>();
+            File[] oldValue = fnp.getValue();
+            for (File file : oldValue) {
+              String newPath = oldPathNewPath.get(file.getAbsolutePath());
+              if (newPath == null) {
+                logger.warning(() -> "No new path for file " + file.getAbsolutePath());
+              }
+              newValue.add(new File(newPath));
+            }
+            fnp.setValue(newValue.toArray(File[]::new));
+          }
+        }
+      }
+    }
+  }
+
+  private void copyRawDataFilesToZip() throws IOException {
+
+    for (final RawDataFile file : files) {
+      if (file.getAbsolutePath() == null) {
+        continue;
+      }
+
+      logger.finest(() -> "Copying data file " + file.getAbsolutePath() + " to project file.");
+
+      final File f = new File(file.getAbsolutePath());
+      if (f.isDirectory()) {
+        ZipUtils.addDirectoryToZip(zipStream, f, getZipPath(file));
+      } else {
+        String zipPath = getZipPath(file);
+        StreamCopy cpy = new StreamCopy();
+        zipStream.putNextEntry(new ZipEntry(zipPath));
+
+        FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
+        cpy.copy(inputStream, zipStream);
+        inputStream.close();
+      }
+
+      progress = (files.indexOf(file) + 1) / (double) files.size();
+    }
   }
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
     final Map<RawDataFile, BatchQueue> rawDataSteps = dissectRawDataMethods();
     final List<BatchQueue> mergedBatchQueues = mergeBatchQueues(rawDataSteps);
+
+    if (saveFilesInProject) {
+      replaceRawFilePaths(mergedBatchQueues);
+      copyRawDataFilesToZip();
+    }
 
     zipStream.putNextEntry(new ZipEntry(RAW_DATA_IMPORT_BATCH_FILENAME));
 
@@ -135,7 +200,7 @@ public class RawDataFileSaveHandler {
 
     final Map<RawDataFile, BatchQueue> rawDataSteps = new LinkedHashMap<>();
 
-    for (final RawDataFile file : project.getDataFiles()) {
+    for (final RawDataFile file : files) {
       var importStep = extractImportStep(file);
       if (importStep != null) {
         BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
@@ -263,5 +328,10 @@ public class RawDataFileSaveHandler {
 
   void cancel() {
     canceled = true;
+  }
+
+  public static String getZipPath(RawDataFile file) {
+    return "msdatafiles/" + file.getAbsolutePath()
+        .substring(file.getAbsolutePath().lastIndexOf("\\") + 1);
   }
 }

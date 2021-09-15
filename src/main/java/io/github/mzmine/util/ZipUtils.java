@@ -19,10 +19,16 @@
 package io.github.mzmine.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ZIP related utilities
@@ -53,7 +59,45 @@ public class ZipUtils {
         extractedFile.setExecutable(true);
       }
     }
+  }
 
+  /**
+   *
+   * @param stream
+   * @param dir
+   * @param destPath
+   * @throws IOException
+   */
+  public static void addDirectoryToZip(@NotNull ZipOutputStream stream, @NotNull File dir,
+      @Nullable String destPath) throws IOException {
+    if (!dir.isDirectory()) {
+      return;
+    }
+
+    final File[] files = dir.listFiles();
+    if (files == null) {
+      return;
+    }
+
+    destPath = (destPath == null) ? "" : destPath;
+    if(!destPath.endsWith("/")) {
+      destPath = destPath + "/";
+    }
+
+    for (final File file : files) {
+      if (file.isDirectory()) {
+        Path relPath = Paths.get(file.getAbsolutePath())
+            .relativize(Paths.get(dir.getAbsolutePath()));
+        addDirectoryToZip(stream, file, destPath + relPath.toString());
+      }
+
+      if(file.isFile()) {
+        stream.putNextEntry(new ZipEntry(destPath + file.getName()));
+        final StreamCopy copy = new StreamCopy();
+        final FileInputStream inputStream = new FileInputStream(file);
+        copy.copy(inputStream, stream);
+      }
+    }
   }
 
 }
