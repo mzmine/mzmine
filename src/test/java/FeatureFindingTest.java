@@ -397,12 +397,12 @@ public class FeatureFindingTest {
     groupMS2SubParameters
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(0.15f, Unit.MINUTES));
 
-    logger.info("Testing chromatogram smoothing (RT, 5 dp)");
+    logger.info("Testing chromatogram deconvolution");
     boolean finished = MZmineTestUtil
         .callModuleWithTimeout(45, MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during deconvolution smoother. Not finished in time.");
+    assertTrue(finished, "Time out during feature deconvolution. Not finished in time.");
 
     logger.info("Lists after deconvolution:  " + project.getFeatureLists().stream()
         .map(FeatureList::getName).collect(Collectors.joining(", ")));

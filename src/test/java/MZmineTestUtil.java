@@ -93,7 +93,8 @@ public class MZmineTestUtil {
     });
 
     // wait
-    boolean finished = lock.await(timeout, unit);
+    boolean finished =
+        lock.await(timeout, unit) && abstractTasks.stream().allMatch(task -> task.isFinished());
 
     if (errorMessage.size() > 0) {
       throw new RuntimeException(
