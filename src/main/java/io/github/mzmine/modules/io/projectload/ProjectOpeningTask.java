@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -172,7 +173,7 @@ public class ProjectOpeningTask extends AbstractTask {
           loadConfiguration(cis);
         } else if (entryName.equals(ProjectSavingTask.PARAMETERS_FILENAME)) {
           loadUserParameters(cis);
-        } else if(entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
+        } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
         }
 
@@ -371,7 +372,35 @@ public class ProjectOpeningTask extends AbstractTask {
     rawDataFileOpenHandler.setBatchFileStream(is);
     rawDataFileOpenHandler.setProject(newProject);
     rawDataFileOpenHandler.setZipFile(zipFile);
-    rawDataFileOpenHandler.run();
+
+    AtomicBoolean finished = new AtomicBoolean(false);
+    ((AbstractTask) rawDataFileOpenHandler).addTaskStatusListener((task, newStatus, oldStatus) -> {
+      switch (newStatus) {
+        case WAITING, PROCESSING -> {
+        }
+        case FINISHED -> {
+          finished.set(true);
+        }
+        case CANCELED -> {
+          finished.set(true);
+          setStatus(TaskStatus.CANCELED);
+        }
+        case ERROR -> {
+          setErrorMessage("Error while saving raw data files.");
+          setStatus(TaskStatus.ERROR);
+        }
+      }
+    });
+    MZmineCore.getTaskController().addTask(rawDataFileOpenHandler);
+
+    while (!finished.get() || !isCanceled()) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+
     return rawDataFileOpenHandler.getStatus() == TaskStatus.FINISHED;
   }
 

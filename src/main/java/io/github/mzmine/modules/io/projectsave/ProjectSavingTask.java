@@ -33,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -61,6 +62,7 @@ public class ProjectSavingTask extends AbstractTask {
 
   // This hashtable maps raw data files to their ID within the saved project
   private Hashtable<RawDataFile, String> dataFilesIDMap;
+  private boolean saveStandaloneProject = true;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
     super(null);
@@ -302,9 +304,35 @@ public class ProjectSavingTask extends AbstractTask {
   private void saveRawDataFiles(ZipOutputStream zipStream)
       throws IOException, ParserConfigurationException {
 
-    rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream);
-    rawDataFileSaveHandler.saveRawDataFilesAsBatch();
+    AtomicBoolean finished = new AtomicBoolean(false);
+    rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream, saveStandaloneProject);
+    rawDataFileSaveHandler.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      switch (newStatus) {
+        case WAITING, PROCESSING -> {
+        }
+        case FINISHED -> {
+          finished.set(true);
+        }
+        case CANCELED -> {
+          finished.set(true);
+          setStatus(TaskStatus.CANCELED);
+        }
+        case ERROR -> {
+          finished.set(true);
+          setErrorMessage("Error while saving raw data files.");
+          setStatus(TaskStatus.ERROR);
+        }
+      }
+    });
+    MZmineCore.getTaskController().addTask(rawDataFileSaveHandler);
 
+    while(!finished.get() || !isCanceled()) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   /**

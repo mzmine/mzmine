@@ -39,6 +39,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -47,6 +48,7 @@ import org.xml.sax.SAXException;
 
 public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataFileOpenHandler {
 
+  public static final String TEMP_RAW_DATA_FOLDER = "mzmine_msdatafiles_temp";
   private static final Logger logger = Logger.getLogger(RawDataFileOpenHandler_3_0.class.getName());
   private int numSteps = 1;
   private int processedSteps = 0;
@@ -97,48 +99,57 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
     setStatus(TaskStatus.FINISHED);
   }
 
-  private List<BatchQueue> loadBatchQueues()
-      throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
+  private List<BatchQueue> loadBatchQueues() throws IOException {
 
     final List<BatchQueue> queues = new ArrayList<>();
 
-    final File tempFile = File.createTempFile(RawDataFileSaveHandler.TEMP_FILE_NAME, ".tmp");
-    final FileOutputStream fstream = new FileOutputStream(tempFile);
-    StreamCopy copyMachine = new StreamCopy();
-    copyMachine.copy(batchFileStream, fstream);
-    fstream.close();
+    File tempFile = null;
+    FileOutputStream fstream = null;
+    try {
+      tempFile = File.createTempFile(RawDataFileSaveHandler.TEMP_FILE_NAME, ".tmp");
+      fstream = new FileOutputStream(tempFile);
+      StreamCopy copyMachine = new StreamCopy();
+      copyMachine.copy(batchFileStream, fstream);
 
-    final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-    final Document batchQueuesDocument = dBuilder.parse(tempFile);
+      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+      final Document batchQueuesDocument = dBuilder.parse(tempFile);
 
-    final XPathFactory factory = XPathFactory.newInstance();
-    final XPath xpath = factory.newXPath();
+      final XPathFactory factory = XPathFactory.newInstance();
+      final XPath xpath = factory.newXPath();
 
-    XPathExpression expr = xpath.compile("//" + RawDataFileSaveHandler.ROOT_ELEMENT + "/"
-        + RawDataFileSaveHandler.BATCH_QUEUES_ROOT);
+      final XPathExpression expr = xpath.compile("//" + RawDataFileSaveHandler.ROOT_ELEMENT + "/"
+          + RawDataFileSaveHandler.BATCH_QUEUES_ROOT);
 
-    NodeList nodes = (NodeList) expr.evaluate(batchQueuesDocument, XPathConstants.NODESET);
-    if (nodes.getLength() != 1) {
-      logger.warning(
-          () -> "NodeList for element " + RawDataFileSaveHandler.BATCH_QUEUES_ROOT + " is != 1.");
-    }
+      final NodeList nodes = (NodeList) expr.evaluate(batchQueuesDocument, XPathConstants.NODESET);
+      if (nodes.getLength() != 1) {
+        logger.warning(
+            () -> "NodeList for element " + RawDataFileSaveHandler.BATCH_QUEUES_ROOT + " is != 1.");
+      }
 
-    final Element batchQueuesRoot = (Element) nodes.item(0);
-    final NodeList batchQueues = batchQueuesRoot
-        .getElementsByTagName(RawDataFileSaveHandler.BATCH_QUEUE_ELEMENT);
+      final Element batchQueuesRoot = (Element) nodes.item(0);
+      final NodeList batchQueues = batchQueuesRoot
+          .getElementsByTagName(RawDataFileSaveHandler.BATCH_QUEUE_ELEMENT);
 
-    for (int i = 0; i < batchQueues.getLength(); i++) {
-      Element queueElement = (Element) batchQueues.item(i);
-      BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement);
+      for (int i = 0; i < batchQueues.getLength(); i++) {
+        Element queueElement = (Element) batchQueues.item(i);
+        BatchQueue batchQueue = BatchQueue.loadFromXml(queueElement);
 
-      if (!batchQueue.isEmpty()) {
-        queues.add(batchQueue);
+        if (!batchQueue.isEmpty()) {
+          queues.add(batchQueue);
+        }
+      }
+
+    } catch (IOException | XPathExpressionException | ParserConfigurationException | SAXException e) {
+      e.printStackTrace();
+    } finally {
+      if (tempFile != null) {
+        tempFile.delete();
+      }
+      if (fstream != null) {
+        fstream.close();
       }
     }
-
-    tempFile.delete();
-
     return queues;
   }
 
@@ -150,8 +161,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
 
   @Override
   public double getFinishedPercentage() {
-    return currentTask != null ? numSteps / (double) processedSteps / currentTask
-        .getFinishedPercentage() : 0d;
+    return currentTask != null ? (double) (processedSteps) / numSteps : 0d;
   }
 
   public boolean loadRawDataFiles() throws InterruptedException {
@@ -163,7 +173,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       List<BatchQueue> batchQueues = loadBatchQueues();
       numSteps = batchQueues.size();
 
-      Path tempDir = Files.createTempDirectory("mzmine_msdatafiles_temp");
+      Path tempDir = Files.createTempDirectory(TEMP_RAW_DATA_FOLDER);
 
       for (BatchQueue batchQueue : batchQueues) {
         final ParameterSet param = MZmineCore.getConfiguration()
@@ -172,7 +182,6 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         resolvePathsUnpackFiles(batchQueue, tempDir);
 
         param.setParameter(BatchModeParameters.batchQueue, batchQueue);
-
         final BatchModeModule batchModule = MZmineCore.getModuleInstance(BatchModeModule.class);
         final List<Task> tasks = new ArrayList<>();
         batchModule.runModule(project, param, tasks);
@@ -202,10 +211,16 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         processedSteps++;
       }
 
-      if(!tempDir.toFile().delete()) {
-        tempDir.toFile().deleteOnExit();
+      if (!tempDir.toFile().delete()) {
+        try {
+          FileUtils.deleteDirectory(tempDir.toFile());
+        } catch (IOException e) {
+          // in mzml import the file is memory mapped and cannot be deleted on windows, so this is
+          // expected.
+          logger.log(Level.FINE, "Cannot delete temp folder.", e);
+        }
       }
-    } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
+    } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot load batch queues for raw data import.", e);
       setErrorMessage("Cannot load batch queues for raw data import.");
       setStatus(TaskStatus.ERROR);

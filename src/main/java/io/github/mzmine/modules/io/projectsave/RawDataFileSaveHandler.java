@@ -30,12 +30,16 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.ZipUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,7 +65,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class RawDataFileSaveHandler {
+public class RawDataFileSaveHandler extends AbstractTask {
 
   public static final String RAW_DATA_IMPORT_BATCH_FILENAME = "raw_data_import_batch.xml";
   public static final String ROOT_ELEMENT = "root";
@@ -76,17 +80,37 @@ public class RawDataFileSaveHandler {
   private final MZmineProject project;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private ZipOutputStream zipStream;
-  private boolean canceled = false;
   private double progress = 0;
   private final List<RawDataFile> files;
-  private final boolean saveFilesInProject = true;
+  private final boolean saveFilesInProject;
+  private final String prefix = "Saving raw data files: ";
+  private String description;
+  private final int numSteps;
+  private final double stepProgress;
 
-  public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream) {
-    this.project = project;
-    this.zipStream = zipOutputStream;
-    files = List.of(project.getDataFiles());
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
   }
 
+  public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream,
+      boolean saveFilesInProject) {
+    super(null);
+    this.project = project;
+    this.zipStream = zipOutputStream;
+    this.saveFilesInProject = saveFilesInProject;
+    files = List.of(project.getDataFiles());
+    numSteps = 1 /*dissect + merge */ + (saveFilesInProject ? files.size() : 0) /*save files*/
+        + 1 /*save batch file*/;
+    stepProgress = 1 / (double)numSteps;
+  }
+
+  /**
+   * Replaces the raw data file paths in case an independent project is saved to an MZmine project
+   * file.
+   *
+   * @param queues The batch queues.
+   */
   private void replaceRawFilePaths(List<BatchQueue> queues) {
     final Map<String, String> oldPathNewPath = new HashMap<>();
     for (RawDataFile file : files) {
@@ -103,7 +127,7 @@ public class RawDataFileSaveHandler {
       oldPathNewPath.put(file.getAbsolutePath(), newPath);
     }
 
-    for (BatchQueue queue : queues) {
+    for (final BatchQueue queue : queues) {
       for (MZmineProcessingStep<MZmineProcessingModule> step : queue) {
         for (Parameter<?> parameter : step.getParameterSet().getParameters()) {
           if (parameter instanceof FileNamesParameter fnp) {
@@ -123,13 +147,19 @@ public class RawDataFileSaveHandler {
     }
   }
 
+  /**
+   * Copies the raw data files to the zip folder (MZmine project file).
+   *
+   * @throws IOException
+   */
   private void copyRawDataFilesToZip() throws IOException {
 
     for (final RawDataFile file : files) {
-      if (file.getAbsolutePath() == null) {
+      if (file.getAbsolutePath() == null || !Files.exists(Paths.get(file.getAbsolutePath()))) {
         continue;
       }
 
+      description = prefix + "Copying data file " + file.getAbsolutePath() + " to project file.";
       logger.finest(() -> "Copying data file " + file.getAbsolutePath() + " to project file.");
 
       final File f = new File(file.getAbsolutePath());
@@ -145,7 +175,7 @@ public class RawDataFileSaveHandler {
         inputStream.close();
       }
 
-      progress = (files.indexOf(file) + 1) / (double) files.size();
+      progress += stepProgress;
     }
   }
 
@@ -153,8 +183,10 @@ public class RawDataFileSaveHandler {
 
     final Map<RawDataFile, BatchQueue> rawDataSteps = dissectRawDataMethods();
     final List<BatchQueue> mergedBatchQueues = mergeBatchQueues(rawDataSteps);
+    progress += stepProgress;
 
     if (saveFilesInProject) {
+      description = prefix + "Zipping raw data files.";
       replaceRawFilePaths(mergedBatchQueues);
       copyRawDataFilesToZip();
     }
@@ -201,6 +233,8 @@ public class RawDataFileSaveHandler {
       logger.log(Level.WARNING, "Could not save batch import step.\n" + e.getMessage(), e);
       return false;
     }
+    progress+= stepProgress;
+
     return true;
   }
 
@@ -209,6 +243,9 @@ public class RawDataFileSaveHandler {
    * Parameters are adjusted in a way that they only fit the specific raw data file.
    */
   private Map<RawDataFile, BatchQueue> dissectRawDataMethods() {
+
+    description = prefix + "Dissecting batch queues for " + files.size() + ".";
+    logger.finest(() -> description);
 
     final Map<RawDataFile, BatchQueue> rawDataSteps = new LinkedHashMap<>();
 
@@ -254,6 +291,9 @@ public class RawDataFileSaveHandler {
    */
   private List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
 
+    description = prefix + "Merging equal batch queues.";
+    logger.finest(() -> description);
+
     List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
     Map<BatchQueue, List<BatchQueue>> mergableQueues = new HashMap<>();
 
@@ -292,6 +332,9 @@ public class RawDataFileSaveHandler {
       mergedBatchQueues.add(merged);
     }
 
+    logger.finest(
+        () -> prefix + "Created " + mergedBatchQueues.size() + " batch queues for " + files.size()
+            + " files.");
     return mergedBatchQueues;
   }
 
@@ -338,8 +381,14 @@ public class RawDataFileSaveHandler {
     return progress;
   }
 
-  void cancel() {
-    canceled = true;
+  @Override
+  public String getTaskDescription() {
+    return description;
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return 0;
   }
 
   public static String getZipPath(RawDataFile file) {
@@ -359,5 +408,10 @@ public class RawDataFileSaveHandler {
     }
 
     return path.toString();
+  }
+
+  @Override
+  public void run() {
+
   }
 }
