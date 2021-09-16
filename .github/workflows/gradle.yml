@@ -45,7 +45,7 @@ jobs:
     - name: Build with Gradle
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew --stacktrace --debug
+      run: ./gradlew --stacktrace --info
       
     - name: Upload builds
       if: matrix.os == 'windows-latest'
