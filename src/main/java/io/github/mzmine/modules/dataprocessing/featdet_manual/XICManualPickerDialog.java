@@ -209,7 +209,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     mzRange = parameters.getParameter(XICManualPickerParameters.mzRange).getValue();
     rtRange = parameters.getParameter(XICManualPickerParameters.rtRange).getValue();
     rawDataFile = parameters.getParameter(XICManualPickerParameters.rawDataFiles).getValue()
-        .getSpecificFiles()[0];
+        .getMatchingRawDataFiles()[0];
 
     ScanSelection sel = new ScanSelection(rawDataFile.getDataRTRange(), 1);
     Scan[] scans = sel.getMatchingScans(rawDataFile);
