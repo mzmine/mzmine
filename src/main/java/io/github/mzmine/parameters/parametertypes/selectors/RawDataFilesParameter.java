@@ -122,7 +122,9 @@ public class RawDataFilesParameter implements
     } else {
       matchingFiles = value.getMatchingRawDataFiles();
     }
-    value.resetSelection(); // has to be reset after evaluation
+    if (value != null) {
+      value.resetSelection(); // has to be reset after evaluation
+    }
 
     if (matchingFiles.length < minCount) {
       errorMessages.add("At least " + minCount + " raw data files must be selected");
