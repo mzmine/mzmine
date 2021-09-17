@@ -27,12 +27,11 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
 import java.util.List;
@@ -255,12 +254,12 @@ public class ScanSmoothingTask extends AbstractTask {
       }
 
       if (!isCanceled()) {
-
+        newRDF = newRDFW;
         for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
           newRDF.getAppliedMethods().add(appliedMethod);
         }
         newRDF.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, parameters));
+            ScanSmoothingModule.class, parameters));
 
         // Add the newly created file to the project
         project.addFile(newRDF);
