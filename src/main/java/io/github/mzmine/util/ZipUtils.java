@@ -92,8 +92,9 @@ public class ZipUtils {
       if (file.isFile()) {
         stream.putNextEntry(new ZipEntry(destPath + file.getName()));
         final StreamCopy copy = new StreamCopy();
-        final FileInputStream inputStream = new FileInputStream(file);
-        copy.copy(inputStream, stream);
+        try (final FileInputStream inputStream = new FileInputStream(file)) {
+          copy.copy(inputStream, stream);
+        }
       }
     }
   }
@@ -114,6 +115,10 @@ public class ZipUtils {
       }
 
       File extractedFile = new File(destinationFolder, entry.getName());
+      if(!extractedFile.toPath().normalize().startsWith(destinationFolder.toPath())) {
+        throw new IllegalArgumentException("Bad zip entry.");
+      }
+
       if (entry.isDirectory()) {
         extractedFile.mkdirs();
         continue;
