@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.io.CountingInputStream;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
@@ -40,7 +39,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -68,8 +66,8 @@ public class ProjectOpeningTask extends AbstractTask {
   private String currentLoadedObjectName;
 
   // This hashtable maps stored IDs to raw data file objects
-  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
-  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
+//  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
+//  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
   public ProjectOpeningTask(ParameterSet parameters) {
     super(null);
