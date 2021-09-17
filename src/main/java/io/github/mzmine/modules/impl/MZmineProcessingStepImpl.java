@@ -18,12 +18,12 @@
 
 package io.github.mzmine.modules.impl;
 
-import io.github.mzmine.modules.io.projectsave.SavingUtils;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.io.projectsave.SavingUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MZmine processing step implementation
@@ -50,6 +50,11 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implement
   @Override
   public String toString() {
     return module.getName();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getModule(), parameters.getClass());
   }
 
   @Override
