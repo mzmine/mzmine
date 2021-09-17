@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import org.xml.sax.SAXException;
@@ -150,6 +151,25 @@ public class ProjectSavingTask extends AbstractTask {
     try {
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
+
+      if (!MZmineCore.isHeadLessMode()) {
+        ButtonType btn = MZmineCore.getDesktop().displayConfirmation(
+            "Would you like to save a standalone project?\n\nIf yes, raw data files will be "
+                + "copied into the project file. Otherwise the project will require that all raw "
+                + "files stay in the same directories.\n<b>WARNING</b> If this is an existing "
+                + "project, it is recommended to save it in the same way.",
+            ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+        if (btn == ButtonType.CANCEL) {
+          setStatus(TaskStatus.FINISHED);
+          return;
+        } else if (btn == ButtonType.YES) {
+          saveStandaloneProject = true;
+        } else {
+          saveStandaloneProject = false;
+        }
+      } else {
+        saveStandaloneProject = true;
+      }
 
       // Prepare a temporary ZIP file. We create this file in the same
       // directory as the final saveFile to avoid moving between
@@ -299,13 +319,13 @@ public class ProjectSavingTask extends AbstractTask {
 
   /**
    * Save the raw data files
-   *
    */
   private void saveRawDataFiles(ZipOutputStream zipStream)
       throws IOException, ParserConfigurationException {
 
     AtomicBoolean finished = new AtomicBoolean(false);
-    rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream, saveStandaloneProject);
+    rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream,
+        saveStandaloneProject);
     rawDataFileSaveHandler.addTaskStatusListener((task, newStatus, oldStatus) -> {
       switch (newStatus) {
         case WAITING, PROCESSING -> {
@@ -326,7 +346,7 @@ public class ProjectSavingTask extends AbstractTask {
     });
     MZmineCore.getTaskController().addTask(rawDataFileSaveHandler);
 
-    while(!finished.get() && !isCanceled()) {
+    while (!finished.get() && !isCanceled()) {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
