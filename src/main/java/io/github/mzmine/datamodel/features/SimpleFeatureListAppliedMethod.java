@@ -38,26 +38,26 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
    *                   set is created in the constructor and saved in this class.
    */
   public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters) {
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
     this.description = module.getName();
   }
 
   public SimpleFeatureListAppliedMethod(Class<? extends MZmineModule> moduleClass, ParameterSet parameters) {
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = MZmineCore.getModuleInstance(moduleClass);
     this.description = this.module.getName();
   }
 
   public SimpleFeatureListAppliedMethod(String description, MZmineModule module, ParameterSet parameters) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
   }
 
   public SimpleFeatureListAppliedMethod(String description, Class<? extends MZmineModule> moduleClass, ParameterSet parameters) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = MZmineCore.getModuleInstance(moduleClass);
   }
 
@@ -73,7 +73,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
   public @NotNull
   ParameterSet getParameters() {
     // don't return the saved parameters, return a clone so parameters cannot be altered by accident.
-    return parameters.cloneParameterSet();
+    return parameters.cloneParameterSet(true);
   }
 
   @Override

@@ -28,10 +28,13 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.ZipUtils;
 import java.io.File;
@@ -102,7 +105,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
     files = List.of(project.getDataFiles());
     numSteps = 1 /*dissect + merge */ + (saveFilesInProject ? files.size() : 0) /*save files*/
         + 1 /*save batch file*/;
-    stepProgress = 1 / (double)numSteps;
+    stepProgress = 1 / (double) numSteps;
   }
 
   /**
@@ -141,6 +144,19 @@ public class RawDataFileSaveHandler extends AbstractTask {
               newValue.add(new File(newPath));
             }
             fnp.setValue(newValue.toArray(File[]::new));
+          } else if (parameter instanceof RawDataFilesParameter rfp && saveFilesInProject) {
+            RawDataFilesSelection selection = rfp.getValue();
+            if (selection.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
+              RawDataFile[] files = selection.getMatchingRawDataFiles();
+              RawDataFilePlaceholder[] placeholders = new RawDataFilePlaceholder[files.length];
+              for (int i = 0; i < files.length; i++) {
+                final RawDataFile file = files[i];
+                placeholders[i] = new RawDataFilePlaceholder(file.getName(),
+                    file.getAbsolutePath() != null ? getZipPath(file, DATA_FILES_PREFIX,
+                        DATA_FILES_SUFFIX) : null);
+              }
+              selection.setSpecificFiles(placeholders);
+            }
           }
         }
       }
@@ -156,6 +172,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
     for (final RawDataFile file : files) {
       if (file.getAbsolutePath() == null || !Files.exists(Paths.get(file.getAbsolutePath()))) {
+        progress += stepProgress;
         continue;
       }
 
@@ -233,7 +250,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
       logger.log(Level.WARNING, "Could not save batch import step.\n" + e.getMessage(), e);
       return false;
     }
-    progress+= stepProgress;
+    progress += stepProgress;
 
     return true;
   }
@@ -269,9 +286,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
         ParameterSet parameters = appliedMethod.getParameters().cloneParameterSet();
         for (Parameter<?> param : parameters.getParameters()) {
           if (param instanceof RawDataFilesParameter rfp) {
-            // todo? it would be ideal to have SPECIFIC_FILES working for files that are not loaded yet
-            /*((RawDataFilesParameter) param)
-                .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});*/
+//            rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});
             rfp.setValue(RawDataFilesSelectionType.BATCH_LAST_FILES);
           }
         }
@@ -300,7 +315,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
     // find queues that are equal (same module calls and same parameters)
     for (BatchQueue originalQueue : originalQueues) {
       List<BatchQueue> equalQueueEntries = mergableQueues.keySet().stream()
-          .filter(key -> SavingUtils.queuesEqual(key, originalQueue)).toList();
+          .filter(key -> SavingUtils.queuesEqual(key, originalQueue, false)).toList();
       if (equalQueueEntries.size() > 1) {
         logger.warning(() -> "More than one queue is equal to the current queue.");
       }
@@ -388,7 +403,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return progress;
   }
 
   public static String getZipPath(RawDataFile file) {
@@ -412,6 +427,18 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   @Override
   public void run() {
+    setStatus(TaskStatus.PROCESSING);
 
+    try {
+      if (!saveRawDataFilesAsBatch()) {
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
+    } catch (IOException | ParserConfigurationException e) {
+      setStatus(TaskStatus.ERROR);
+      e.printStackTrace();
+    }
+
+    setStatus(TaskStatus.FINISHED);
   }
 }

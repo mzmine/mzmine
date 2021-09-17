@@ -109,7 +109,7 @@ public class ZipUtils {
       entry = entries.nextElement();
 
       // only extract the given folder
-      if(!entry.getName().startsWith(folder)) {
+      if (!entry.getName().startsWith(folder)) {
         continue;
       }
 
@@ -118,8 +118,8 @@ public class ZipUtils {
         extractedFile.mkdirs();
         continue;
       }
-      if(!extractedFile.exists()) {
-        if(!extractedFile.getParentFile().exists()) {
+      if (!extractedFile.exists()) {
+        if (!extractedFile.getParentFile().exists()) {
           extractedFile.getParentFile().mkdirs();
         }
         extractedFile.createNewFile();

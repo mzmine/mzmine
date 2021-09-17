@@ -43,6 +43,8 @@ public interface ParameterSet extends ParameterContainer {
 
   public ParameterSet cloneParameterSet();
 
+  ParameterSet cloneParameterSet(boolean keepSelection);
+
   /**
    * This method specifies the fitness of a module to process data acquired on a ion mobility
    * spectrometry (IMS)-mass spectrometer. The default implementation returns {@link
