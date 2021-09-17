@@ -12,9 +12,13 @@ import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
 import io.github.mzmine.util.ZipUtils;
@@ -39,7 +43,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -155,8 +158,8 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
 
   @Override
   public String getTaskDescription() {
-    return "Importing raw data files from project. Processing import batch step " + processedSteps
-        + "/" + numSteps + ".";
+    return "Importing raw data files from project. Processing import batch step " + (processedSteps
+        + 1) + "/" + numSteps + ".";
   }
 
   @Override
@@ -211,15 +214,6 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         processedSteps++;
       }
 
-      if (!tempDir.toFile().delete()) {
-        try {
-          FileUtils.deleteDirectory(tempDir.toFile());
-        } catch (IOException e) {
-          // in mzml import the file is memory mapped and cannot be deleted on windows, so this is
-          // expected.
-          logger.log(Level.FINE, "Cannot delete temp folder.", e);
-        }
-      }
     } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot load batch queues for raw data import.", e);
       setErrorMessage("Cannot load batch queues for raw data import.");
@@ -227,6 +221,11 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       return false;
     }
     return true;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
   }
 
   /**
@@ -255,6 +254,32 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
             }
           }
           fnp.setValue(newFiles);
+        } else if (parameter instanceof RawDataFilesParameter rfp) {
+          if (rfp.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
+            // we set specific files during export. We might have to adjust the paths if we saved
+            // the files to zip and unpack them
+            final RawDataFilePlaceholder[] specificFilesPlaceholders = rfp.getValue()
+                .getSpecificFilesPlaceholders();
+            var newPlaceholders = new RawDataFilePlaceholder[specificFilesPlaceholders.length];
+            for (int i = 0; i < specificFilesPlaceholders.length; i++) {
+              RawDataFilePlaceholder placeholder = specificFilesPlaceholders[i];
+              if (placeholder.getAbsolutePath() != null) {
+                Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN
+                    .matcher(placeholder.getAbsolutePath());
+                // if the matcher matches, we have to replace the path.
+                if (matcher.matches()) {
+                  String filename = matcher.group(2);
+                  newPlaceholders[i] = new RawDataFilePlaceholder(placeholder.getName(),
+                      new File(tempDir.toFile(), filename).getAbsolutePath());
+                } else {
+                  newPlaceholders[i] = placeholder;
+                }
+              } else {
+                newPlaceholders[i] = new RawDataFilePlaceholder(placeholder.getName(), null);
+              }
+            }
+            rfp.getValue().setSpecificFiles(newPlaceholders);
+          }
         }
       }
     }

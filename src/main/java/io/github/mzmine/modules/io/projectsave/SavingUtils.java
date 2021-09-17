@@ -22,11 +22,11 @@ public class SavingUtils {
 
   /**
    * @return The merged queue or null if queues are not equal.
-   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue)
+   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean)
    */
   @Nullable
   public static BatchQueue mergeQueues(BatchQueue q1, BatchQueue q2) {
-    if (!queuesEqual(q1, q2)) {
+    if (!queuesEqual(q1, q2, false)) {
       return null;
     }
 
@@ -71,8 +71,8 @@ public class SavingUtils {
     return mergedQueue;
   }
 
-  public static boolean queuesEqual(BatchQueue q1, BatchQueue q2) {
-    if (!queueModulesEqual(q1, q2)) {
+  public static boolean queuesEqual(BatchQueue q1, BatchQueue q2, boolean allowSubsets) {
+    if (!queueModulesEqual(q1, q2, allowSubsets)) {
       return false;
     }
 
@@ -83,7 +83,7 @@ public class SavingUtils {
       final var parameterSet1 = step1.getParameterSet();
       final var parameterSet2 = step2.getParameterSet();
 
-      if (!parameterSetsEqual(parameterSet1, parameterSet2, true)) {
+      if (!parameterSetsEqual(parameterSet1, parameterSet2, true, allowSubsets)) {
         logger.finest("Queues are not equal. Parameter sets of step " + i + " are not equal.");
         return false;
       }
@@ -97,14 +97,20 @@ public class SavingUtils {
    *                                 FileNamesParameter}s will be skipped.
    */
   private static boolean parameterSetsEqual(ParameterSet parameterSet1, ParameterSet parameterSet2,
-      boolean skipRawAndFileParameters) {
+      boolean skipRawAndFileParameters, boolean allowSubsets) {
     if (parameterSet1 == null || parameterSet2 == null || parameterSet1.getClass() != parameterSet2
         .getClass()) {
       logger.info(() -> "Cannot compare parameters. Either null or not the same class.");
-      return true;
+      return false;
     }
 
-    for (int j = 0; j < parameterSet1.getParameters().length; j++) {
+    if (!allowSubsets && parameterSet1.getParameters().length != parameterSet2
+        .getParameters().length) {
+      return false;
+    }
+
+    for (int j = 0;
+        j < parameterSet1.getParameters().length && j < parameterSet2.getParameters().length; j++) {
       final Parameter<?> param1 = parameterSet1.getParameters()[j];
       final Parameter<?> param2 = parameterSet2.getParameters()[j];
 
@@ -127,9 +133,10 @@ public class SavingUtils {
       }
 
       if (param1 instanceof EmbeddedParameterSet embedded1
-          && param2 instanceof EmbeddedParameterSet embedded2) {
-        return parameterSetsEqual(embedded1.getEmbeddedParameters(),
-            embedded2.getEmbeddedParameters(), skipRawAndFileParameters);
+          && param2 instanceof EmbeddedParameterSet embedded2 && !parameterSetsEqual(
+          embedded1.getEmbeddedParameters(), embedded2.getEmbeddedParameters(),
+          skipRawAndFileParameters, allowSubsets)) {
+        return false;
       }
 
       if (!param1.valueEquals(param2)) {
@@ -146,12 +153,12 @@ public class SavingUtils {
   /**
    * @return True if the Modules used in both queues are equal.
    */
-  private static boolean queueModulesEqual(BatchQueue q1, BatchQueue q2) {
-    if (q1.size() != q2.size()) {
+  private static boolean queueModulesEqual(BatchQueue q1, BatchQueue q2, boolean allowSubsets) {
+    if (q1.size() != q2.size() && !allowSubsets) {
       return false;
     }
 
-    for (int i = 0; i < q1.size(); i++) {
+    for (int i = 0; i < q1.size() && i < q2.size(); i++) {
       if (!q1.get(i).getModule().equals(q2.get(i).getModule())) {
         logger.finest(
             "Modules " + q1.get(i).getModule().getClass().getName() + " is not equal to " + q2

@@ -326,7 +326,7 @@ public class ProjectSavingTask extends AbstractTask {
     });
     MZmineCore.getTaskController().addTask(rawDataFileSaveHandler);
 
-    while(!finished.get() || !isCanceled()) {
+    while(!finished.get() && !isCanceled()) {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {

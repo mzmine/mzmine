@@ -219,6 +219,7 @@ public class ProjectOpeningTask extends AbstractTask {
       // If project opening was canceled, parser was stopped by a
       // SAXException which can be safely ignored
       if (isCanceled()) {
+        setStatus(TaskStatus.FINISHED);
         return;
       }
 
@@ -369,6 +370,7 @@ public class ProjectOpeningTask extends AbstractTask {
   }
 
   private boolean loadRawDataFiles(InputStream is, ZipFile zipFile) {
+    currentLoadedObjectName = ("MS data files");
     rawDataFileOpenHandler.setBatchFileStream(is);
     rawDataFileOpenHandler.setProject(newProject);
     rawDataFileOpenHandler.setZipFile(zipFile);
@@ -386,14 +388,15 @@ public class ProjectOpeningTask extends AbstractTask {
           setStatus(TaskStatus.CANCELED);
         }
         case ERROR -> {
-          setErrorMessage("Error while saving raw data files.");
+          finished.set(true);
+          setErrorMessage("Error while opening raw data files.");
           setStatus(TaskStatus.ERROR);
         }
       }
     });
     MZmineCore.getTaskController().addTask(rawDataFileOpenHandler);
 
-    while (!finished.get() || !isCanceled()) {
+    while (!finished.get() && !isCanceled()) {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
