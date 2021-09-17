@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.impl;
 
+import io.github.mzmine.modules.io.projectsave.SavingUtils;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.modules.MZmineModule;
@@ -27,8 +28,8 @@ import io.github.mzmine.parameters.ParameterSet;
 /**
  * MZmine processing step implementation
  */
-public class MZmineProcessingStepImpl<ModuleType extends MZmineModule>
-    implements MZmineProcessingStep<ModuleType> {
+public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implements
+    MZmineProcessingStep<ModuleType> {
 
   private ModuleType module;
   private ParameterSet parameters;
@@ -51,4 +52,13 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule>
     return module.getName();
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof MZmineProcessingStep that)) {
+      return false;
+    }
+
+    return getModule().equals(that.getModule()) && SavingUtils
+        .parameterSetsEqual(parameters, that.getParameterSet(), false, false, false);
+  }
 }

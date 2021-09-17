@@ -133,6 +133,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
     for (final BatchQueue queue : queues) {
       for (MZmineProcessingStep<MZmineProcessingModule> step : queue) {
         for (Parameter<?> parameter : step.getParameterSet().getParameters()) {
+          // adjust the file names and paths for import steps.
           if (parameter instanceof FileNamesParameter fnp) {
             List<File> newValue = new ArrayList<>();
             File[] oldValue = fnp.getValue();
@@ -140,23 +141,26 @@ public class RawDataFileSaveHandler extends AbstractTask {
               String newPath = oldPathNewPath.get(file.getAbsolutePath());
               if (newPath == null) {
                 logger.warning(() -> "No new path for file " + file.getAbsolutePath());
+                continue;
               }
               newValue.add(new File(newPath));
             }
             fnp.setValue(newValue.toArray(File[]::new));
           } else if (parameter instanceof RawDataFilesParameter rfp && saveFilesInProject) {
+            // if we save files in project, we have to adjust the paths and file selections
             RawDataFilesSelection selection = rfp.getValue();
-            if (selection.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-              RawDataFile[] files = selection.getMatchingRawDataFiles();
-              RawDataFilePlaceholder[] placeholders = new RawDataFilePlaceholder[files.length];
-              for (int i = 0; i < files.length; i++) {
-                final RawDataFile file = files[i];
-                placeholders[i] = new RawDataFilePlaceholder(file.getName(),
-                    file.getAbsolutePath() != null ? getZipPath(file, DATA_FILES_PREFIX,
-                        DATA_FILES_SUFFIX) : null);
-              }
-              selection.setSpecificFiles(placeholders);
+            final RawDataFile[] files =
+                selection.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES ? selection
+                    .getSpecificFilesPlaceholders() : selection.getEvaluationResult();
+            final RawDataFilePlaceholder[] placeholders = new RawDataFilePlaceholder[files.length];
+            for (int i = 0; i < files.length; i++) {
+              final RawDataFile file = files[i];
+              placeholders[i] = new RawDataFilePlaceholder(file.getName(),
+                  file.getAbsolutePath() != null ? getZipPath(file, DATA_FILES_PREFIX,
+                      DATA_FILES_SUFFIX) : null);
             }
+            selection.setSelectionType(RawDataFilesSelectionType.SPECIFIC_FILES);
+            selection.setSpecificFiles(placeholders);
           }
         }
       }
@@ -283,13 +287,14 @@ public class RawDataFileSaveHandler extends AbstractTask {
               + " is not an MZmine processing step.");
         }
 
-        ParameterSet parameters = appliedMethod.getParameters().cloneParameterSet();
-        for (Parameter<?> param : parameters.getParameters()) {
+        // parameters from the applied method are a clone already
+        ParameterSet parameters = appliedMethod.getParameters();
+        /*for (Parameter<?> param : parameters.getParameters()) {
           if (param instanceof RawDataFilesParameter rfp) {
-//            rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});
-            rfp.setValue(RawDataFilesSelectionType.BATCH_LAST_FILES);
+            rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});
+//            rfp.setValue(RawDataFilesSelectionType.BATCH_LAST_FILES);
           }
-        }
+        }*/
         BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
         q.add(new MZmineProcessingStepImpl<>((MZmineProcessingModule) appliedMethod.getModule(),
             parameters));
@@ -315,7 +320,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
     // find queues that are equal (same module calls and same parameters)
     for (BatchQueue originalQueue : originalQueues) {
       List<BatchQueue> equalQueueEntries = mergableQueues.keySet().stream()
-          .filter(key -> SavingUtils.queuesEqual(key, originalQueue, false)).toList();
+          .filter(key -> SavingUtils.queuesEqual(key, originalQueue, true, true, true)).toList();
       if (equalQueueEntries.size() > 1) {
         logger.warning(() -> "More than one queue is equal to the current queue.");
       }
@@ -342,7 +347,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
       Iterator<BatchQueue> iterator = value.iterator();
       BatchQueue merged = iterator.next();
       while (iterator.hasNext()) {
-        merged = SavingUtils.mergeQueues(merged, iterator.next());
+        merged = SavingUtils.mergeQueues(merged, iterator.next(), true);
       }
       mergedBatchQueues.add(merged);
     }

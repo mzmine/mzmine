@@ -166,8 +166,7 @@ public class RawDataFilesSelection implements Cloneable {
     RawDataFilePlaceholder[] placeholder = new RawDataFilePlaceholder[specificFiles.length];
     for (int i = 0; i < specificFiles.length; i++) {
       RawDataFile specificFile = specificFiles[i];
-      placeholder[i] = new RawDataFilePlaceholder(specificFile.getName(),
-          specificFile.getAbsolutePath());
+      placeholder[i] = new RawDataFilePlaceholder(specificFile);
     }
     this.specificFiles = placeholder;
   }

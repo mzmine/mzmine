@@ -59,8 +59,7 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask = new ScanSmoothingTask(project, dataFiles[i], parameters.cloneParameterSet(),
-          storage);
+      Task newTask = new ScanSmoothingTask(project, dataFiles[i], parameters, storage);
       tasks.add(newTask);
     }
 

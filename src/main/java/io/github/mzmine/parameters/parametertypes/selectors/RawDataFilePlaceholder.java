@@ -38,12 +38,24 @@ import org.jetbrains.annotations.Nullable;
 
 public class RawDataFilePlaceholder implements RawDataFile {
 
-  final String name;
-  final String absPath;
-  final Integer fileHashCode;
+  private final String name;
+  private final String absPath;
+  @Nullable
+  private final Integer fileHashCode;
 
   public RawDataFilePlaceholder(@NotNull final RawDataFile file) {
-    this(file.getName(), file.getAbsolutePath(), file.hashCode());
+    name = file.getName();
+    absPath = file.getAbsolutePath();
+    if(file instanceof RawDataFilePlaceholder rfp) {
+      if(rfp.fileHashCode == null) {
+        fileHashCode = null;
+      } else {
+        fileHashCode = rfp.fileHashCode;
+      }
+    }
+    else {
+      fileHashCode = file.hashCode();
+    }
   }
 
   public RawDataFilePlaceholder(@NotNull String name, @Nullable String absPath) {
@@ -57,8 +69,11 @@ public class RawDataFilePlaceholder implements RawDataFile {
     this.fileHashCode = fileHashCode;
   }
 
+  public @Nullable Integer getFileHashCode() {
+    return fileHashCode;
+  }
+
   /**
-   *
    * @return The first matching raw data file of the current project.
    */
   @Nullable
@@ -264,5 +279,23 @@ public class RawDataFilePlaceholder implements RawDataFile {
   public @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RawDataFilePlaceholder that = (RawDataFilePlaceholder) o;
+    return Objects.equals(getName(), that.getName()) && Objects.equals(absPath, that.absPath)
+        && Objects.equals(fileHashCode, that.fileHashCode);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), absPath, fileHashCode);
   }
 }
