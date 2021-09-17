@@ -86,6 +86,7 @@
                                   <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
                                     onAction="#handleRemoveFileExtension"
                                     text="Remove file extension"/>
+                                  <MenuItem onAction="#handleShowFileSummary" text="Show file summary"/>
 
                                   <SeparatorMenuItem/>
                                   <Menu text="Raw data export">
