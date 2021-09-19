@@ -64,6 +64,6 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implement
     }
 
     return getModule().equals(that.getModule()) && SavingUtils
-        .parameterSetsEqual(parameters, that.getParameterSet(), false, false, false);
+        .parameterSetsEqual(parameters, that.getParameterSet(), false, false);
   }
 }

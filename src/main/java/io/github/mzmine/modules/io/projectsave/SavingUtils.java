@@ -52,7 +52,7 @@ public class SavingUtils {
         final Parameter<?> mergedParam = mergedParameterSet.getParameters()[j];
 
         if (mergedParam instanceof FileNamesParameter fnp) {
-          Set<File> files = new LinkedHashSet<>();
+          Set<File> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
           Collections.addAll(files, ((FileNamesParameter) param1).getValue());
           Collections.addAll(files, ((FileNamesParameter) param2).getValue());
           logger.finest(() -> "Combined FileNamesParameter to " + Arrays.toString(files.toArray()));
@@ -60,8 +60,7 @@ public class SavingUtils {
         } else if (mergedParam instanceof RawDataFilesParameter rfp
             && param1 instanceof RawDataFilesParameter rfp1
             && param2 instanceof RawDataFilesParameter rfp2) {
-          // todo? it would be ideal to have SPECIFIC_FILES working for files that are not loaded yet
-          final Set<RawDataFile> files = new LinkedHashSet<>();
+          final Set<RawDataFile> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
           if (rfp1.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
             Collections.addAll(files, rfp1.getValue().getSpecificFilesPlaceholders());
           } else {
@@ -83,6 +82,7 @@ public class SavingUtils {
       mergedQueue.add(new MZmineProcessingStepImpl<>(q1.get(i).getModule(), mergedParameterSet));
     }
 
+    // append steps of longer batch queues
     for (int j = shorterQueue.size(); j < longerQueue.size(); j++) {
       mergedQueue.add(new MZmineProcessingStepImpl<>(longerQueue.get(j).getModule(),
           longerQueue.get(j).getParameterSet().cloneParameterSet(true)));
@@ -90,6 +90,19 @@ public class SavingUtils {
     return mergedQueue;
   }
 
+  /**
+   * Compares two batch queues.
+   *
+   * @param q1                        A batch queue.
+   * @param q2                        Another batch queue.
+   * @param skipFileParameters        If true, contents of {@link FileNamesParameter} are not
+   *                                  compared.
+   * @param skipRawDataFileParameters If true, contents of {@link RawDataFilesParameter} are not
+   *                                  compared.
+   * @param allowSubsets              If true, the queues may be of different length, as long as the
+   *                                  longer queue only appends additional steps.
+   * @return true or false.
+   */
   public static boolean queuesEqual(BatchQueue q1, BatchQueue q2, boolean skipFileParameters,
       boolean skipRawDataFileParameters, boolean allowSubsets) {
     if (!queueModulesEqual(q1, q2, allowSubsets)) {
@@ -105,7 +118,7 @@ public class SavingUtils {
       final var parameterSet2 = step2.getParameterSet();
 
       if (!parameterSetsEqual(parameterSet1, parameterSet2, skipFileParameters,
-          skipRawDataFileParameters, allowSubsets)) {
+          skipRawDataFileParameters)) {
         logger.finest("Queues are not equal. Parameter sets of step " + i + " are not equal.");
         return false;
       }
@@ -115,18 +128,20 @@ public class SavingUtils {
   }
 
   /**
+   * @param skipFileParameters        If true, contents of {@link FileNamesParameter} are not
+   *                                  compared.
    * @param skipRawDataFileParameters If true, values of {@link RawDataFilesParameter}s and {@link
    *                                  FileNamesParameter}s will be skipped.
    */
   public static boolean parameterSetsEqual(ParameterSet parameterSet1, ParameterSet parameterSet2,
-      boolean skipFileParameters, boolean skipRawDataFileParameters, boolean allowSubsets) {
+      boolean skipFileParameters, boolean skipRawDataFileParameters) {
     if (parameterSet1 == null || parameterSet2 == null || parameterSet1.getClass() != parameterSet2
         .getClass()) {
       logger.info(() -> "Cannot compare parameters. Either null or not the same class.");
       return false;
     }
 
-    if (!allowSubsets && parameterSet1.getParameters().length != parameterSet2
+    if (parameterSet1.getParameters().length != parameterSet2
         .getParameters().length) {
       return false;
     }
@@ -141,7 +156,7 @@ public class SavingUtils {
             () -> "Parameters " + param1.getName() + "(" + param1.getClass().getName() + ") and "
                 + param2.getName() + " (" + param2.getClass().getName()
                 + ") are not of the same class.");
-        return true;
+        return false;
       }
 
       if ((param1 instanceof FileNamesParameter && skipFileParameters)
@@ -157,7 +172,7 @@ public class SavingUtils {
       if (param1 instanceof EmbeddedParameterSet embedded1
           && param2 instanceof EmbeddedParameterSet embedded2 && !parameterSetsEqual(
           embedded1.getEmbeddedParameters(), embedded2.getEmbeddedParameters(), skipFileParameters,
-          skipRawDataFileParameters, allowSubsets)) {
+          skipRawDataFileParameters)) {
         return false;
       }
 
