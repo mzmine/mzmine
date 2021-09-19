@@ -53,6 +53,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -188,10 +189,16 @@ public class RawDataFileSaveHandler extends AbstractTask {
         ZipUtils.zipDirectory(zipStream, f, getZipPath(file));
       } else {
         String zipPath = getZipPath(file);
-        StreamCopy cpy = new StreamCopy();
-        zipStream.putNextEntry(new ZipEntry(zipPath));
+        try {
+          zipStream.putNextEntry(new ZipEntry(zipPath));
+        } catch (ZipException e) {
+          // this might happen in case fo duplicate files
+          logger.info(e::getMessage);
+          continue;
+        }
 
         FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
+        StreamCopy cpy = new StreamCopy();
         cpy.copy(inputStream, zipStream);
         inputStream.close();
       }
@@ -314,30 +321,12 @@ public class RawDataFileSaveHandler extends AbstractTask {
     description = prefix + "Merging equal batch queues.";
     logger.finest(() -> description);
 
-    List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
-    Map<BatchQueue, List<BatchQueue>> mergableQueues = new HashMap<>();
-
-    // find queues that are equal (same module calls and same parameters)
-    for (BatchQueue originalQueue : originalQueues) {
-      List<BatchQueue> equalQueueEntries = mergableQueues.keySet().stream()
-          .filter(key -> SavingUtils.queuesEqual(key, originalQueue, true, true, true)).toList();
-      if (equalQueueEntries.size() > 1) {
-        logger.warning(() -> "More than one queue is equal to the current queue.");
-      }
-
-      final List<BatchQueue> mapping;
-      if (equalQueueEntries.isEmpty()) {
-        mergableQueues.put(originalQueue, new ArrayList<>());
-        mapping = mergableQueues.get(originalQueue);
-      } else {
-        mapping = mergableQueues.get(equalQueueEntries.get(0));
-      }
-      mapping.add(originalQueue);
-    }
+    final List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
+    List<List<BatchQueue>> mergableQueuesList = SavingUtils.groupQueuesByMergability(originalQueues);
 
     // merge equal module calls
     List<BatchQueue> mergedBatchQueues = new ArrayList<>();
-    for (List<BatchQueue> value : mergableQueues.values()) {
+    for (List<BatchQueue> value : mergableQueuesList) {
       // if we just have one queue, add id directly.
       if (value.size() == 1) {
         mergedBatchQueues.add(value.get(0));

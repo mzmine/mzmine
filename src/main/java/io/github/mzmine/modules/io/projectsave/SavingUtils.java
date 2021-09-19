@@ -11,9 +11,11 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +96,8 @@ public class SavingUtils {
       return false;
     }
 
-    for (int i = 0; i < q1.size(); i++) {
+    var shorterQueue = (q1.size() < q2.size()) ? q1 : q2;
+    for (int i = 0; i < shorterQueue.size(); i++) {
       var step1 = q1.get(i);
       var step2 = q2.get(i);
 
@@ -187,5 +190,39 @@ public class SavingUtils {
     }
 
     return true;
+  }
+
+  /**
+   * Groups all queues by their mergability. Note that this list might still contain queues with
+   * equal steps.
+   *
+   * @param originalQueues
+   * @return The grouped queues.
+   */
+  public static List<List<BatchQueue>> groupQueuesByMergability(List<BatchQueue> originalQueues) {
+    List<List<BatchQueue>> mergableQueuesList = new ArrayList<>();
+    // find queues that are equal (same module calls and same parameters)
+    for (BatchQueue originalQueue : originalQueues) {
+      boolean match = false;
+      for (List<BatchQueue> mergableQueues : mergableQueuesList) {
+        boolean found = true;
+        for (BatchQueue mergableQueue : mergableQueues) {
+          if (!SavingUtils.queuesEqual(originalQueue, mergableQueue, true, true, true)) {
+            found = false;
+          }
+        }
+        if (found) {
+          match = true;
+          mergableQueues.add(originalQueue);
+        }
+      }
+
+      if (!match) {
+        List<BatchQueue> entry = new ArrayList<>();
+        entry.add(originalQueue);
+        mergableQueuesList.add(entry);
+      }
+    }
+    return mergableQueuesList;
   }
 }
