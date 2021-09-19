@@ -45,7 +45,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,7 +209,10 @@ public class RawDataFileSaveHandler extends AbstractTask {
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
     final Map<RawDataFile, BatchQueue> rawDataSteps = dissectRawDataMethods();
-    final List<BatchQueue> mergedBatchQueues = mergeBatchQueues(rawDataSteps);
+
+    description = prefix + "Merging equal batch queues.";
+    logger.finest(() -> description);
+    final List<BatchQueue> mergedBatchQueues = SavingUtils.mergeBatchQueues(rawDataSteps);
     progress += stepProgress;
 
     if (saveFilesInProject) {
@@ -309,42 +311,6 @@ public class RawDataFileSaveHandler extends AbstractTask {
     }
 
     return rawDataSteps;
-  }
-
-  /**
-   * Merges batch queues consisting of the same module calls with the same parameters.
-   *
-   * @return The merged batch queues.
-   */
-  private List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
-
-    description = prefix + "Merging equal batch queues.";
-    logger.finest(() -> description);
-
-    final List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
-    List<List<BatchQueue>> mergableQueuesList = SavingUtils.groupQueuesByMergability(originalQueues);
-
-    // merge equal module calls
-    List<BatchQueue> mergedBatchQueues = new ArrayList<>();
-    for (List<BatchQueue> value : mergableQueuesList) {
-      // if we just have one queue, add id directly.
-      if (value.size() == 1) {
-        mergedBatchQueues.add(value.get(0));
-        continue;
-      }
-
-      Iterator<BatchQueue> iterator = value.iterator();
-      BatchQueue merged = iterator.next();
-      while (iterator.hasNext()) {
-        merged = SavingUtils.mergeQueues(merged, iterator.next(), true);
-      }
-      mergedBatchQueues.add(merged);
-    }
-
-    logger.finest(
-        () -> prefix + "Created " + mergedBatchQueues.size() + " batch queues for " + files.size()
-            + " files.");
-    return mergedBatchQueues;
   }
 
   /**

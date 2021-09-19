@@ -14,8 +14,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +28,7 @@ public class SavingUtils {
 
   /**
    * @return The merged queue or null if queues are not equal.
-   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean)
+   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean, boolean, boolean) 
    */
   @Nullable
   public static BatchQueue mergeQueues(BatchQueue q1, BatchQueue q2, boolean mergeSubsets) {
@@ -239,5 +241,38 @@ public class SavingUtils {
       }
     }
     return mergableQueuesList;
+  }
+
+  /**
+   * Merges batch queues consisting of the same module calls with the same parameters.
+   *
+   * @return The merged batch queues.
+   */
+  public static List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
+
+    final List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
+    List<List<BatchQueue>> mergableQueuesList = SavingUtils.groupQueuesByMergability(originalQueues);
+
+    // merge equal module calls
+    List<BatchQueue> mergedBatchQueues = new ArrayList<>();
+    for (List<BatchQueue> value : mergableQueuesList) {
+      // if we just have one queue, add id directly.
+      if (value.size() == 1) {
+        mergedBatchQueues.add(value.get(0));
+        continue;
+      }
+
+      Iterator<BatchQueue> iterator = value.iterator();
+      BatchQueue merged = iterator.next();
+      while (iterator.hasNext()) {
+        merged = SavingUtils.mergeQueues(merged, iterator.next(), true);
+      }
+      mergedBatchQueues.add(merged);
+    }
+
+    logger.finest(
+        () -> "Created " + mergedBatchQueues.size() + " batch queues for " + rawDataSteps.size()
+            + " files.");
+    return mergedBatchQueues;
   }
 }
