@@ -1,6 +1,8 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
@@ -19,6 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,8 +31,42 @@ public class SavingUtils {
   private static final Logger logger = Logger.getLogger(SavingUtils.class.getName());
 
   /**
+   * Groups all queues by their mergability. Note that this list might still contain queues with
+   * equal steps.
+   *
+   * @param originalQueues
+   * @return The grouped queues.
+   */
+  public static List<List<BatchQueue>> groupQueuesByMergability(List<BatchQueue> originalQueues) {
+    List<List<BatchQueue>> mergableQueuesList = new ArrayList<>();
+    // find queues that are equal (same module calls and same parameters)
+    for (BatchQueue originalQueue : originalQueues) {
+      boolean match = false;
+      for (List<BatchQueue> mergableQueues : mergableQueuesList) {
+        boolean found = true;
+        for (BatchQueue mergableQueue : mergableQueues) {
+          if (!SavingUtils.queuesEqual(originalQueue, mergableQueue, true, true, true)) {
+            found = false;
+          }
+        }
+        if (found) {
+          match = true;
+          mergableQueues.add(originalQueue);
+        }
+      }
+
+      if (!match) {
+        List<BatchQueue> entry = new ArrayList<>();
+        entry.add(originalQueue);
+        mergableQueuesList.add(entry);
+      }
+    }
+    return mergableQueuesList;
+  }
+
+  /**
    * @return The merged queue or null if queues are not equal.
-   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean, boolean, boolean) 
+   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean, boolean, boolean)
    */
   @Nullable
   public static BatchQueue mergeQueues(BatchQueue q1, BatchQueue q2, boolean mergeSubsets) {
@@ -53,6 +91,7 @@ public class SavingUtils {
         final Parameter<?> param2 = parameterSet2.getParameters()[j];
         final Parameter<?> mergedParam = mergedParameterSet.getParameters()[j];
 
+        // merge file names and selected raw data files
         if (mergedParam instanceof FileNamesParameter fnp) {
           Set<File> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
           Collections.addAll(files, ((FileNamesParameter) param1).getValue());
@@ -93,6 +132,82 @@ public class SavingUtils {
   }
 
   /**
+   * Merges batch queues consisting of the same module calls with the same parameters.
+   *
+   * @return The merged batch queues.
+   */
+  public static List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
+
+    final List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
+    List<List<BatchQueue>> mergableQueuesList = SavingUtils
+        .groupQueuesByMergability(originalQueues);
+
+    // merge equal module calls
+    List<BatchQueue> mergedBatchQueues = new ArrayList<>();
+    for (List<BatchQueue> value : mergableQueuesList) {
+      // if we just have one queue, add id directly.
+      if (value.size() == 1) {
+        mergedBatchQueues.add(value.get(0));
+        continue;
+      }
+
+      Iterator<BatchQueue> iterator = value.iterator();
+      BatchQueue merged = iterator.next();
+      while (iterator.hasNext()) {
+        merged = SavingUtils.mergeQueues(merged, iterator.next(), true);
+      }
+      mergedBatchQueues.add(merged);
+    }
+
+    logger.finest(
+        () -> "Created " + mergedBatchQueues.size() + " batch queues for " + rawDataSteps.size()
+            + " files.");
+    return mergedBatchQueues;
+  }
+
+  public static List<BatchQueue> removeDuplicateSteps(List<BatchQueue> qs) {
+    List<BatchQueue> queues = new ArrayList<>(qs);
+    queues.sort((l1, l2) -> Integer.compare(l2.size(), l1.size())); // sort descending
+
+    logger.finest(() -> "Removing duplicate steps from " + qs.size() + " batch queues.");
+    AtomicInteger removedSteps = new AtomicInteger(0);
+
+    for (int i = 0; i < queues.size(); i++) {
+      final BatchQueue base = queues.get(i);
+      for (int j = 1; j < queues.size(); j++) {
+        if (i == j) {
+          continue;
+        }
+        final BatchQueue potentialDuplicate = queues.get(j);
+
+        AtomicBoolean differentStepFound = new AtomicBoolean(false);
+        var remove = potentialDuplicate
+            .stream().filter(potentialDuplicateStep -> {
+              boolean found = false;
+              for (int k = potentialDuplicate.indexOf(potentialDuplicateStep);
+                  k < base.size() && !found; k++) {
+                MZmineProcessingStep<MZmineProcessingModule> baseStep = base.get(k);
+                // only remove steps from the beginning of the batch queue.
+                if (processingStepEquals(potentialDuplicateStep, baseStep, false, false)
+                    && !differentStepFound.get()) {
+                  removedSteps.getAndIncrement();
+                  found = true;
+                  return true;
+                } else {
+                  differentStepFound.set(true);
+                }
+              }
+              return false;
+            }).toList();
+        potentialDuplicate.removeAll(remove);
+      }
+    }
+
+    logger.finest(() -> "Removed " + removedSteps.get() + " duplicate steps ");
+    return queues;
+  }
+
+  /**
    * Compares two batch queues.
    *
    * @param q1                        A batch queue.
@@ -107,25 +222,40 @@ public class SavingUtils {
    */
   public static boolean queuesEqual(BatchQueue q1, BatchQueue q2, boolean skipFileParameters,
       boolean skipRawDataFileParameters, boolean allowSubsets) {
-    if (!queueModulesEqual(q1, q2, allowSubsets)) {
+    if (q1.size() != q2.size() && !allowSubsets) {
       return false;
     }
 
-    var shorterQueue = (q1.size() < q2.size()) ? q1 : q2;
-    for (int i = 0; i < shorterQueue.size(); i++) {
-      var step1 = q1.get(i);
-      var step2 = q2.get(i);
-
-      final var parameterSet1 = step1.getParameterSet();
-      final var parameterSet2 = step2.getParameterSet();
-
-      if (!parameterSetsEqual(parameterSet1, parameterSet2, skipFileParameters,
+    for (int i = 0; i < q1.size() && i < q2.size(); i++) {
+      if (!processingStepEquals(q1.get(i), q2.get(i), skipFileParameters,
           skipRawDataFileParameters)) {
-        logger.finest("Queues are not equal. Parameter sets of step " + i + " are not equal.");
         return false;
       }
     }
 
+    return true;
+  }
+
+  private static boolean processingStepEquals(MZmineProcessingStep<?> step1,
+      MZmineProcessingStep<?> step2, boolean skipFileParameters,
+      boolean skipRawDataFileParameters) {
+
+    if (!step1.getModule().equals(step2.getModule())) {
+      logger.finest(
+          "Modules " + step1.getModule().getClass().getName() + " is not equal to " + step2
+              .getModule().getClass().getName());
+      return false;
+    }
+
+    final var parameterSet1 = step1.getParameterSet();
+    final var parameterSet2 = step2.getParameterSet();
+
+    if (!parameterSetsEqual(parameterSet1, parameterSet2, skipFileParameters,
+        skipRawDataFileParameters)) {
+      logger.finest(
+          "Queues are not equal. Parameter sets of step " + step1.getModule() + " are not equal.");
+      return false;
+    }
     return true;
   }
 
@@ -143,8 +273,7 @@ public class SavingUtils {
       return false;
     }
 
-    if (parameterSet1.getParameters().length != parameterSet2
-        .getParameters().length) {
+    if (parameterSet1.getParameters().length != parameterSet2.getParameters().length) {
       return false;
     }
 
@@ -187,92 +316,5 @@ public class SavingUtils {
       }
     }
     return true;
-  }
-
-  /**
-   * @return True if the Modules used in both queues are equal.
-   */
-  private static boolean queueModulesEqual(BatchQueue q1, BatchQueue q2, boolean allowSubsets) {
-    if (q1.size() != q2.size() && !allowSubsets) {
-      return false;
-    }
-
-    for (int i = 0; i < q1.size() && i < q2.size(); i++) {
-      if (!q1.get(i).getModule().equals(q2.get(i).getModule())) {
-        logger.finest(
-            "Modules " + q1.get(i).getModule().getClass().getName() + " is not equal to " + q2
-                .get(i).getModule().getClass().getName());
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Groups all queues by their mergability. Note that this list might still contain queues with
-   * equal steps.
-   *
-   * @param originalQueues
-   * @return The grouped queues.
-   */
-  public static List<List<BatchQueue>> groupQueuesByMergability(List<BatchQueue> originalQueues) {
-    List<List<BatchQueue>> mergableQueuesList = new ArrayList<>();
-    // find queues that are equal (same module calls and same parameters)
-    for (BatchQueue originalQueue : originalQueues) {
-      boolean match = false;
-      for (List<BatchQueue> mergableQueues : mergableQueuesList) {
-        boolean found = true;
-        for (BatchQueue mergableQueue : mergableQueues) {
-          if (!SavingUtils.queuesEqual(originalQueue, mergableQueue, true, true, true)) {
-            found = false;
-          }
-        }
-        if (found) {
-          match = true;
-          mergableQueues.add(originalQueue);
-        }
-      }
-
-      if (!match) {
-        List<BatchQueue> entry = new ArrayList<>();
-        entry.add(originalQueue);
-        mergableQueuesList.add(entry);
-      }
-    }
-    return mergableQueuesList;
-  }
-
-  /**
-   * Merges batch queues consisting of the same module calls with the same parameters.
-   *
-   * @return The merged batch queues.
-   */
-  public static List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
-
-    final List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
-    List<List<BatchQueue>> mergableQueuesList = SavingUtils.groupQueuesByMergability(originalQueues);
-
-    // merge equal module calls
-    List<BatchQueue> mergedBatchQueues = new ArrayList<>();
-    for (List<BatchQueue> value : mergableQueuesList) {
-      // if we just have one queue, add id directly.
-      if (value.size() == 1) {
-        mergedBatchQueues.add(value.get(0));
-        continue;
-      }
-
-      Iterator<BatchQueue> iterator = value.iterator();
-      BatchQueue merged = iterator.next();
-      while (iterator.hasNext()) {
-        merged = SavingUtils.mergeQueues(merged, iterator.next(), true);
-      }
-      mergedBatchQueues.add(merged);
-    }
-
-    logger.finest(
-        () -> "Created " + mergedBatchQueues.size() + " batch queues for " + rawDataSteps.size()
-            + " files.");
-    return mergedBatchQueues;
   }
 }

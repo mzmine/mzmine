@@ -212,7 +212,7 @@ public class RawDataFilesSelection implements Cloneable {
   }
 
   public String toString() {
-    if(evaluatedSelection != null) {
+    if (evaluatedSelection != null) {
       StringBuilder str = new StringBuilder();
       RawDataFile files[] = getEvaluationResult();
       for (int i = 0; i < files.length; i++) {
@@ -224,5 +224,52 @@ public class RawDataFilesSelection implements Cloneable {
       return str.toString();
     }
     return "Evaluation not executed.";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RawDataFilesSelection that = (RawDataFilesSelection) o;
+
+    if (getSelectionType() != that.getSelectionType() || !Objects
+        .equals(getNamePattern(), that.getNamePattern())) {
+      return false;
+    }
+
+    if (getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES && //
+        ((batchLastFiles != null && that.batchLastFiles != null && !List.of(batchLastFiles)
+            .containsAll(List.of(that.batchLastFiles))) // not all files equal
+            || (batchLastFiles == null && that.batchLastFiles != null) //
+            || (batchLastFiles != null && that.batchLastFiles == null))) {
+      return false;
+    }
+
+    if (getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES && //
+        !List.of(getSpecificFiles()).containsAll(List.of(that.getSpecificFiles()))) {
+      return false;
+    }
+
+    if ((this.evaluatedSelection != null && that.evaluatedSelection != null && //
+        !List.of(evaluatedSelection).containsAll(List.of(that.evaluatedSelection))) || //
+        ((evaluatedSelection == null && that.evaluatedSelection != null) || (
+            evaluatedSelection != null && that.evaluatedSelection == null))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(getSelectionType(), getNamePattern());
+    result = 31 * result + Arrays.hashCode(batchLastFiles);
+    result = 31 * result + Arrays.hashCode(getSpecificFiles());
+    result = 31 * result + Arrays.hashCode(evaluatedSelection);
+    return result;
   }
 }

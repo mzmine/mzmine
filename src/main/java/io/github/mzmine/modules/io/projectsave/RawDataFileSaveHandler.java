@@ -215,9 +215,11 @@ public class RawDataFileSaveHandler extends AbstractTask {
     final List<BatchQueue> mergedBatchQueues = SavingUtils.mergeBatchQueues(rawDataSteps);
     progress += stepProgress;
 
+    final List<BatchQueue> cleanedBatchQueues = SavingUtils.removeDuplicateSteps(mergedBatchQueues);
+
     if (saveFilesInProject) {
       description = prefix + "Zipping raw data files.";
-      replaceRawFilePaths(mergedBatchQueues);
+      replaceRawFilePaths(cleanedBatchQueues);
       copyRawDataFilesToZip();
     }
 

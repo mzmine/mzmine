@@ -18,9 +18,9 @@
 
 package io.github.mzmine.parameters;
 
-import org.w3c.dom.Element;
-
+import java.util.Arrays;
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
@@ -73,6 +73,9 @@ public interface Parameter<ValueType> {
       return ((Integer) getValue()).equals((Integer) that.getValue());
     } else if (getValue() instanceof String) {
       return this.getValue().equals(that.getValue());
+    } else if (getValue() instanceof Object[]) {
+      boolean b = Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
+      return b;
     }
     return this.getValue().equals(that.getValue());
   }
