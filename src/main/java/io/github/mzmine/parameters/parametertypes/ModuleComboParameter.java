@@ -138,7 +138,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
     // also copy the parameter set to our internal parameter set
     for (int i = 0; i < modulesWithParams.length; i++) {
       if (modulesWithParams[i].getModule().equals(value.getModule())) {
-        modulesWithParams[i] = new MZmineProcessingStepImpl<>(value.getModule(),
+        modulesWithParams[i] = new MZmineProcessingStepImpl<>(modulesWithParams[i].getModule(),
             value.getParameterSet().cloneParameterSet());
       }
     }

@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem;
 import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -90,6 +91,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
@@ -134,7 +136,7 @@ public class MainWindowController {
   @FXML
   public MenuItem rawDataRemoveExtensionMenuItem;
   @FXML
-  public MenuItem rawDataSetColorMenuItem;
+  public Menu rawDataSetColorMenu;
   @FXML
   public MenuItem openFeatureListMenuItem;
   @FXML
@@ -143,6 +145,7 @@ public class MainWindowController {
   public MenuItem featureListsRenameMenuItem;
   @FXML
   public MenuItem featureListsRemoveMenuItem;
+  public ColorPickerMenuItem rawDataFileColorPicker;
   @FXML
   private Scene mainScene;
   @FXML
@@ -445,14 +448,19 @@ public class MainWindowController {
               return;
             }
 
+            // Setting color should be enabled only if files are selected
+            if (rawDataList.getSelectedValues().size() > 0) {
+              rawDataSetColorMenu.setDisable(false);
+            } else {
+              rawDataSetColorMenu.setDisable(true);
+            }
+
             if (rawDataList.getSelectedValues().size() == 1) {
               rawDataRemoveMenuItem.setText("Remove file");
               rawDataRemoveExtensionMenuItem.setText("Remove file extension");
-              rawDataSetColorMenuItem.setDisable(false);
             } else {
               rawDataRemoveMenuItem.setText("Remove files");
               rawDataRemoveExtensionMenuItem.setText("Remove files' extensions");
-              rawDataSetColorMenuItem.setDisable(true);
             }
 
             if (rawDataList.getSelectionModel().getSelectedItems().size() == 1) {
@@ -501,6 +509,20 @@ public class MainWindowController {
         });
 
     addTab(new MZmineIntroductionTab());
+
+    rawDataFileColorPicker.selectedColorProperty().addListener((observable, oldValue, newValue) -> {
+      if (rawDataList.getSelectionModel() == null) {
+        return;
+      }
+
+      ObservableList<RawDataFile> rows = rawDataList.getSelectedValues();
+      if (rows == null) {
+        return;
+      }
+      for (var row : rows) {
+        row.setColor(newValue);
+      }
+    });
   }
 
   public GroupableListView<RawDataFile> getRawDataList() {
