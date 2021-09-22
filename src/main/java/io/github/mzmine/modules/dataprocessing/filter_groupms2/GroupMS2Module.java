@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -51,13 +52,13 @@ public class GroupMS2Module implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     final FeatureList[] peakLists =
         parameters.getParameter(GroupMS2Parameters.PEAK_LISTS).getValue().getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new GroupMS2Task(project, peakList, parameters);
+      Task newTask = new GroupMS2Task(project, peakList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

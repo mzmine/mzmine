@@ -38,6 +38,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 
 class SQLExportTask extends AbstractTask {
 
@@ -51,8 +53,8 @@ class SQLExportTask extends AbstractTask {
 
   private Connection dbConnection;
 
-  SQLExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  SQLExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.featureList = parameters.getParameter(SQLExportParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];

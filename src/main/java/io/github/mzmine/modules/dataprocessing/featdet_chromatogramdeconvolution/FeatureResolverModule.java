@@ -31,6 +31,7 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FeatureResolverModule implements MZmineProcessingModule {
@@ -47,7 +48,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Collection<Task> tasks) {
+      @NotNull final Collection<Task> tasks, @NotNull Date moduleCallDate) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
@@ -81,7 +82,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
     }
 
     for (final FeatureList peakList : peakLists) {
-      tasks.add(new FeatureResolverTask(project, storage, peakList, parameters, mzCenterFunction));
+      tasks.add(new FeatureResolverTask(project, storage, peakList, parameters, mzCenterFunction, moduleCallDate));
     }
 
     return ExitCode.OK;

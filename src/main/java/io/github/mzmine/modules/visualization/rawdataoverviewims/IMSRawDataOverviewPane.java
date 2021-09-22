@@ -54,6 +54,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -204,7 +205,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     MZmineCore.getTaskController().addTask(new BuildMultipleMobilogramRanges(
         controlsPanel.getMobilogramRangesList(), Set.of(cachedFrame), rawDataFile, this,
-        rangesBinningMobilogramDataAccess));
+        rangesBinningMobilogramDataAccess, new Date()));
     if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {

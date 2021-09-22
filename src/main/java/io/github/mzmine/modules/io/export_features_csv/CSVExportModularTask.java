@@ -43,10 +43,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularTask extends AbstractTask {
 
@@ -63,8 +65,8 @@ public class CSVExportModularTask extends AbstractTask {
   private String headerSeparator = ":";
   private FeatureListRowsFilter filter;
 
-  public CSVExportModularTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public CSVExportModularTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -84,8 +86,8 @@ public class CSVExportModularTask extends AbstractTask {
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator,
-      String idSeparator, FeatureListRowsFilter filter) {
-    super(null); // no new data stored -> null
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat
           .format("Column separator cannot equal the identity separator (currently {0})",

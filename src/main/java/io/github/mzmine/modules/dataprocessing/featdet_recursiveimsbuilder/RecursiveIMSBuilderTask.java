@@ -53,6 +53,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,8 +91,8 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
 
   public RecursiveIMSBuilderTask(@Nullable MemoryMapStorage storage,
       @NotNull final IMSRawDataFile file,
-      @NotNull final ParameterSet parameters, MZmineProject project) {
-    super(storage);
+      @NotNull final ParameterSet parameters, MZmineProject project, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.file = file;
     this.parameters = parameters;

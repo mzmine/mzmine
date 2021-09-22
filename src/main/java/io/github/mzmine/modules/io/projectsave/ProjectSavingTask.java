@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -40,6 +41,7 @@ import java.util.zip.ZipOutputStream;
 import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 public class ProjectSavingTask extends AbstractTask {
@@ -65,8 +67,8 @@ public class ProjectSavingTask extends AbstractTask {
   private Hashtable<RawDataFile, String> dataFilesIDMap;
   private boolean saveStandaloneProject = true;
 
-  public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
-    super(null);
+  public ProjectSavingTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
     dataFilesIDMap = new Hashtable<RawDataFile, String>();
@@ -325,7 +327,7 @@ public class ProjectSavingTask extends AbstractTask {
 
     AtomicBoolean finished = new AtomicBoolean(false);
     rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream,
-        saveStandaloneProject);
+        saveStandaloneProject, getModuleCallDate());
     rawDataFileSaveHandler.addTaskStatusListener((task, newStatus, oldStatus) -> {
       switch (newStatus) {
         case WAITING, PROCESSING -> {

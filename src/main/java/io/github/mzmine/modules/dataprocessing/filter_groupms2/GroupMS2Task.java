@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -45,12 +44,14 @@ import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Filters out feature list rows.
@@ -80,8 +81,8 @@ public class GroupMS2Task extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
-    super(null); // no new data stored -> null
+      final ParameterSet parameterSet, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     // Initialize.
     this.project = project;

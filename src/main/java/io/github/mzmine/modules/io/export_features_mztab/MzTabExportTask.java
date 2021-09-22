@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.FeatureIdentity;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.jetbrains.annotations.NotNull;
 import uk.ac.ebi.pride.jmztab.model.Assay;
 import uk.ac.ebi.pride.jmztab.model.CVParam;
 import uk.ac.ebi.pride.jmztab.model.MZTabColumnFactory;
@@ -59,8 +61,8 @@ class MzTabExportTask extends AbstractTask {
   private FeatureList[] featureLists;
   private final boolean exportall;
 
-  MzTabExportTask(MZmineProject project, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  MzTabExportTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
     this.featureLists =
         parameters.getParameter(MzTabExportParameters.featureLists).getValue().getMatchingFeatureLists();

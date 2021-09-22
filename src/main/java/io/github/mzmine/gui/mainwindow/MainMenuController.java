@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.logging.Logger;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.MZmineGUI;
@@ -197,7 +198,7 @@ public class MainMenuController {
         File f = new File(c.getText());
         if (f.exists()) {
           // load file
-          ProjectOpeningTask newTask = new ProjectOpeningTask(f);
+          ProjectOpeningTask newTask = new ProjectOpeningTask(f, new Date());
           MZmineCore.getTaskController().addTask(newTask);
         }
       });

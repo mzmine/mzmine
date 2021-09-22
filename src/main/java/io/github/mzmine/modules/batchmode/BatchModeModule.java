@@ -20,6 +20,7 @@ package io.github.mzmine.modules.batchmode;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -59,8 +60,8 @@ public class BatchModeModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    BatchTask newTask = new BatchTask(project, parameters);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    BatchTask newTask = new BatchTask(project, parameters, moduleCallDate);
 
     /*
      * We do not add the task to the tasks collection, but instead directly submit to the task
@@ -78,7 +79,7 @@ public class BatchModeModule implements MZmineProcessingModule {
     return MZmineModuleCategory.PROJECT;
   }
 
-  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile) {
+  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile, @NotNull Date moduleCallDate) {
 
     logger.info("Running batch from file " + batchFile);
 
@@ -88,7 +89,7 @@ public class BatchModeModule implements MZmineProcessingModule {
       BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement());
       ParameterSet parameters = new BatchModeParameters();
       parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
-      Task batchTask = new BatchTask(project, parameters);
+      Task batchTask = new BatchTask(project, parameters, moduleCallDate);
       batchTask.run();
       if (batchTask.getStatus() == TaskStatus.FINISHED)
         return ExitCode.OK;

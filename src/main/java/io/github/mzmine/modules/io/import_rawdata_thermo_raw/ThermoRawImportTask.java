@@ -40,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
@@ -78,8 +79,8 @@ public class ThermoRawImportTask extends AbstractTask {
   private MzMLFileImportMethod msdkTask;
 
   public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(null); // storage in raw data file
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
     taskDescription = "Opening file " + fileToOpen;

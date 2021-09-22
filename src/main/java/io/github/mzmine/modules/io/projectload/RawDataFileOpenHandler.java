@@ -22,12 +22,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.taskcontrol.Task;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.zip.ZipFile;
+import org.jetbrains.annotations.NotNull;
 
 public interface RawDataFileOpenHandler extends Task {
 
-  public static RawDataFileOpenHandler forVersion(String versionString) {
-    return new RawDataFileOpenHandler_3_0();
+  public static RawDataFileOpenHandler forVersion(String versionString, @NotNull Date moduleCallDate) {
+    return new RawDataFileOpenHandler_3_0(moduleCallDate);
   }
 
   void setBatchFileStream(InputStream batchFileStream);

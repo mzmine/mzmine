@@ -36,7 +36,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class MultiRawDataLearnerTask extends AbstractTask {
@@ -62,8 +64,8 @@ class MultiRawDataLearnerTask extends AbstractTask {
    * Constructor to set all parameters and the project
    */
   public MultiRawDataLearnerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.featureList = featureList;
     this.parameters = parameters;

@@ -45,9 +45,11 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureResolverTask extends AbstractTask {
 
@@ -79,8 +81,8 @@ public class FeatureResolverTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public FeatureResolverTask(final MZmineProject project, MemoryMapStorage storage,
-      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
-    super(storage);
+      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     this.project = project;
@@ -129,7 +131,7 @@ public class FeatureResolverTask extends AbstractTask {
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
             GroupMS2SubParameters ms2params = parameters
                 .getParameter(GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
-            GroupMS2Task task = new GroupMS2Task(project, newPeakList, ms2params);
+            GroupMS2Task task = new GroupMS2Task(project, newPeakList, ms2params, moduleCallDate);
             // restart progress
             processedRows = 0;
             totalRows = newPeakList.getNumberOfRows();

@@ -46,6 +46,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
@@ -84,8 +85,9 @@ public class ImzMLImportTask extends AbstractTask {
   private LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
   public ImzMLImportTask(MZmineProject project, File fileToOpen, ImagingRawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(null); // storage in raw data file
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

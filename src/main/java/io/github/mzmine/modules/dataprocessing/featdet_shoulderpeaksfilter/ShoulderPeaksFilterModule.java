@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
@@ -48,13 +49,13 @@ public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     // storage for masslists
     MemoryMapStorage storage = MemoryMapStorage.forMassList();
     RawDataFile[] dataFiles = parameters.getParameter(ShoulderPeaksFilterParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet(), storage);
+      Task newTask = new ShoulderPeaksFilterTask(dataFile, parameters.cloneParameterSet(), storage, moduleCallDate);
       tasks.add(newTask);
     }
 

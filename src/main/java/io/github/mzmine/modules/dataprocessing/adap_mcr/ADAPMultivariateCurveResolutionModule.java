@@ -17,6 +17,7 @@ package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,14 +62,14 @@ public class ADAPMultivariateCurveResolutionModule implements MZmineProcessingMo
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     Map<RawDataFile, ChromatogramPeakPair> lists =
         ChromatogramPeakPair.fromParameterSet(parameters);
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (ChromatogramPeakPair pair : lists.values()) {
-      Task newTask = new ADAP3DecompositionV2Task(project, pair, parameters, storage);
+      Task newTask = new ADAP3DecompositionV2Task(project, pair, parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }
 

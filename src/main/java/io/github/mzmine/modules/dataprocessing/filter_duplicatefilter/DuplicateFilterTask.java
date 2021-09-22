@@ -30,6 +30,7 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.FeatureStatus;
@@ -43,6 +44,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -66,8 +68,8 @@ public class DuplicateFilterTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public DuplicateFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet params, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet params, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     this.project = project;

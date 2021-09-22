@@ -32,9 +32,11 @@ import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
@@ -50,8 +52,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private int totalTasks;
   private FeatureListRow[] rows;
 
-  public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
     this.rows = featureList.getRows().toArray(FeatureListRow[]::new);
     this.parameters = parameters;
@@ -142,7 +144,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
         RowsSpectralMatchTask task = new RowsSpectralMatchTask(featureList.getName(), rows, parameters,
-            alreadyProcessed + 1, list);
+            alreadyProcessed + 1, list, getModuleCallDate());
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

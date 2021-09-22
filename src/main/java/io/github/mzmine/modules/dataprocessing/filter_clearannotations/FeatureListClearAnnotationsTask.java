@@ -26,8 +26,10 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Filters out feature list rows.
@@ -53,8 +55,8 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public FeatureListClearAnnotationsTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet) {
-    super(null); // no new data stored -> null
+      final ParameterSet parameterSet, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     // Initialize.
     this.project = project;
     parameters = parameterSet;

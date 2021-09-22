@@ -50,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
@@ -197,7 +198,7 @@ public final class MZmineCore {
         }
 
         // run batch file
-        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile);
+        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile, new Date());
       }
 
       // option to keep MZmine running after the batch is finished
@@ -346,7 +347,8 @@ public final class MZmineCore {
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
     final MZmineProject currentProject = projectManager.getCurrentProject();
-    module.runModule(currentProject, parameters, newTasks);
+    final Date date = new Date();
+    module.runModule(currentProject, parameters, newTasks, date);
     taskController.addTasks(newTasks.toArray(new Task[0]));
 
     return newTasks;

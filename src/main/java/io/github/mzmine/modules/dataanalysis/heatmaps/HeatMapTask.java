@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -41,6 +42,7 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.R.Rsession.Rsession;
+import org.jetbrains.annotations.NotNull;
 
 public class HeatMapTask extends AbstractTask {
 
@@ -63,8 +65,8 @@ public class HeatMapTask extends AbstractTask {
   private final Object referenceGroup;
   private final FeatureList featureList;
 
-  public HeatMapTask(MZmineProject project, FeatureList featureList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public HeatMapTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.project = project;
     this.featureList = featureList;

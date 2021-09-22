@@ -21,6 +21,7 @@ package io.github.mzmine.modules.example;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -36,7 +37,7 @@ import io.github.mzmine.util.ExitCode;
 public class LearnerModule implements MZmineProcessingModule {
   // #################################################################
   // IMPORTANT
-  // do not forget to put your module in the MZmineModulesList
+  // do not forget to put your module in the BatchModeModulesList
   // in the package: io.github.mzmine.main
   // #################################################################
 
@@ -46,7 +47,7 @@ public class LearnerModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     // get parameters
     FeatureList featureLists[] =
@@ -55,7 +56,7 @@ public class LearnerModule implements MZmineProcessingModule {
 
     // create and start one task for each feature list
     for (final FeatureList featureList : featureLists) {
-      Task newTask = new FeatureListRowLearnerTask(project, featureList, parameters, storage);
+      Task newTask = new FeatureListRowLearnerTask(project, featureList, parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }
 

@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IonizationType;
@@ -34,6 +35,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import org.jetbrains.annotations.NotNull;
 
 public class ComplexSearchTask extends AbstractTask {
 
@@ -52,8 +54,8 @@ public class ComplexSearchTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public ComplexSearchTask(ParameterSet parameters, FeatureList peakList) {
-    super(null); // no new data stored -> null
+  public ComplexSearchTask(ParameterSet parameters, FeatureList peakList, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;

@@ -35,9 +35,11 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class StreamFeatureListRowLearnerTask extends AbstractTask {
@@ -66,8 +68,8 @@ class StreamFeatureListRowLearnerTask extends AbstractTask {
    * @param parameters
    */
   public StreamFeatureListRowLearnerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.featureList = (ModularFeatureList) featureList;
     this.parameters = parameters;

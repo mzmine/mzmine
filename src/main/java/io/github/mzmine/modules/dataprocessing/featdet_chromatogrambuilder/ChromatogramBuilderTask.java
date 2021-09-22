@@ -39,7 +39,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramBuilderTask extends AbstractTask {
@@ -68,8 +70,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
    * @param parameters
    */
   public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;

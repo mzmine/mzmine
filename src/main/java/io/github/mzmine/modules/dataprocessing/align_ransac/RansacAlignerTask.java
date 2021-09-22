@@ -39,6 +39,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +47,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
@@ -71,8 +73,8 @@ class RansacAlignerTask extends AbstractTask {
   private int newRowID = 1;
 
   public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.featureLists = (ModularFeatureList[]) featureLists;

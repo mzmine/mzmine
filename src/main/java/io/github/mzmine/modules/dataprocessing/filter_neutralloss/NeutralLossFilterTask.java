@@ -43,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -74,9 +75,8 @@ public class NeutralLossFilterTask extends AbstractTask {
   private IMolecularFormula formula;
 
   NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable
-          MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.parameters = parameters;
     this.project = project;

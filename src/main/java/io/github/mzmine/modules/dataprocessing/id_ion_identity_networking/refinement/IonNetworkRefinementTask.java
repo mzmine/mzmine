@@ -32,12 +32,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.collections.ObservableList;
-import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkRefinementTask extends AbstractTask {
   // Logger.
@@ -66,8 +66,8 @@ public class IonNetworkRefinementTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public IonNetworkRefinementTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists) {
-    super(featureLists.getMemoryMapStorage());
+      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+    super(featureLists.getMemoryMapStorage(), moduleCallDate);
 
     this.project = project;
     this.featureList = featureLists;

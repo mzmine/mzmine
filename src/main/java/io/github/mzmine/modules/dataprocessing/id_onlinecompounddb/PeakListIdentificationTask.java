@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.IonizationType;
@@ -42,6 +43,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import org.jetbrains.annotations.NotNull;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
@@ -72,8 +74,8 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
-    super(null); // no new data stored -> null
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     peakList = list;
     numItems = 0;

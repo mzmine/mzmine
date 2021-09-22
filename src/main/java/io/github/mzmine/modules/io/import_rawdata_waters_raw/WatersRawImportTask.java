@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -73,8 +74,8 @@ public class WatersRawImportTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(null); // storage in raw data file
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

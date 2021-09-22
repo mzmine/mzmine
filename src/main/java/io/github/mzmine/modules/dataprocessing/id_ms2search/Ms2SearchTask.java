@@ -31,8 +31,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 
 class Ms2SearchTask extends AbstractTask {
@@ -52,8 +54,8 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2) {
-    super(null); // no new data stored -> null
+  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList1 = peakList1;
     this.peakList2 = peakList2;

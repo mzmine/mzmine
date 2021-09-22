@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,6 +51,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RawDataFileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab.model.Assay;
 import uk.ac.ebi.pride.jmztab.model.MZTabFile;
@@ -71,8 +73,8 @@ class MzTabImportTask extends AbstractTask {
   // underlying tasks for importing raw data
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
-  MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile, @Nullable MemoryMapStorage storage) {
-    super(storage);
+  MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
     this.inputFile = inputFile;
@@ -224,7 +226,8 @@ class MzTabImportTask extends AbstractTask {
       }
 
       RawDataFileUtils.createRawDataImportTasks(MZmineCore.getProjectManager().getCurrentProject(),
-          underlyingTasks, MzTabImportModule.class, parameters, filesToImport.toArray(new File[0]));
+          underlyingTasks, MzTabImportModule.class, parameters, getModuleCallDate(),
+          filesToImport.toArray(new File[0]));
       if (underlyingTasks.size() > 0) {
         MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
       }

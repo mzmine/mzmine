@@ -17,6 +17,7 @@
 package io.github.mzmine.modules.io.export_features_mgf;
 
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -48,8 +49,8 @@ public class AdapMgfExportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    AdapMgfExportTask task = new AdapMgfExportTask(parameters);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    AdapMgfExportTask task = new AdapMgfExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

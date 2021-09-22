@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_fragmentsearch;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -36,6 +37,7 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class FragmentSearchTask extends AbstractTask {
 
@@ -54,8 +56,8 @@ public class FragmentSearchTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public FragmentSearchTask(ParameterSet parameters, FeatureList peakList) {
-    super(null); // no new data stored -> null
+  public FragmentSearchTask(ParameterSet parameters, FeatureList peakList, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;

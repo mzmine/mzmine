@@ -68,7 +68,7 @@ public class BrukerTdfTest {
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
     AbstractTask importTask = new TDFImportTask(project, file, rawDataFile, TDFImportModule.class,
-        new TDFImportParameters());
+        new TDFImportParameters(), new Date());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
     });

@@ -120,14 +120,14 @@ public class TDFImportTask extends AbstractTask {
    *                      MZmineCore#createNewIMSFile}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    this(project, file, newMZmineFile, null, module, parameters);
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    this(project, file, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @Nullable final AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(newMZmineFile.getMemoryMapStorage());
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(newMZmineFile.getMemoryMapStorage(), moduleCallDate);
     this.fileNameToOpen = file;
     this.project = project;
     this.newMZmineFile = newMZmineFile;

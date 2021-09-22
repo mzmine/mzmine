@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -65,12 +66,12 @@ public class NistMsSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {
 
-      tasks.add(new NistMsSearchTask(peakList, parameters));
+      tasks.add(new NistMsSearchTask(peakList, parameters, moduleCallDate));
     }
 
     return ExitCode.OK;
@@ -88,7 +89,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
+      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters, new Date()));
     }
   }
 }

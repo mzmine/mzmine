@@ -33,9 +33,11 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -58,8 +60,8 @@ class RawFileMergeTask extends AbstractTask {
   private MZmineProject project;
 
   RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
     this.raw = raw;

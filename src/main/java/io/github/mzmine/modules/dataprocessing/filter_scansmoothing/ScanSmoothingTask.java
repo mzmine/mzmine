@@ -34,8 +34,10 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ScanSmoothingTask extends AbstractTask {
@@ -66,8 +68,8 @@ public class ScanSmoothingTask extends AbstractTask {
    * @param storage
    */
   public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;

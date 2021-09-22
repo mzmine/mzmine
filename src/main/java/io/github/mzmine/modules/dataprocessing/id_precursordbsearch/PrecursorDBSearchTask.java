@@ -25,6 +25,7 @@ import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Search for possible precursor m/z . All rows average m/z against local spectral database
@@ -64,8 +66,8 @@ class PrecursorDBSearchTask extends AbstractTask {
   private int totalTasks;
   private AtomicInteger matches = new AtomicInteger(0);
 
-  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.peakList = peakList;
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(PrecursorDBSearchParameters.dataBaseFile).getValue();
@@ -160,7 +162,7 @@ class PrecursorDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
 
-        AbstractTask task = new AbstractTask(null) {
+        AbstractTask task = new AbstractTask(null, new Date()) {
           private int total = peakList.getNumberOfRows();
           private int done = 0;
 

@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,6 +52,7 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.file.FileSource;
 import org.graphstream.stream.file.FileSourceGraphML;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Import GNPS library matches form a graphml network file from FBMN or IIMN
@@ -67,8 +69,8 @@ public class GNPSResultsImportTask extends AbstractTask {
   private final ParameterSet parameters;
   private final FeatureListRowIdCache rowIdCache;
 
-  public GNPSResultsImportTask(ParameterSet parameters, ModularFeatureList featureList) {
-    super(null); // no new data stored -> null
+  public GNPSResultsImportTask(ParameterSet parameters, ModularFeatureList featureList, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     this.featureList = featureList;
     this.rowIdCache = new FeatureListRowIdCache(featureList);

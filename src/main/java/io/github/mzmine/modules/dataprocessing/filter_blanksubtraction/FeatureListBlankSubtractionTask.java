@@ -32,12 +32,14 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -62,8 +64,8 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private ModularFeatureList alignedFeatureList;
 
   public FeatureListBlankSubtractionTask(MZmineProject project,
-      FeatureListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      FeatureListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.parameters = parameters;

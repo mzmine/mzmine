@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class ScanSmoothingModule implements MZmineProcessingModule {
@@ -51,7 +52,7 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     // one storage for all files in the same module call
     MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
@@ -59,7 +60,7 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask = new ScanSmoothingTask(project, dataFiles[i], parameters, storage);
+      Task newTask = new ScanSmoothingTask(project, dataFiles[i], parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }
 

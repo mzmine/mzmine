@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -61,8 +62,8 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
   private AbstractTask currentTask;
   private ZipFile zipFile;
 
-  public RawDataFileOpenHandler_3_0() {
-    super(null);
+  public RawDataFileOpenHandler_3_0(@NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
   }
 
   public InputStream getBatchFileStream() {
@@ -187,7 +188,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         param.setParameter(BatchModeParameters.batchQueue, batchQueue);
         final BatchModeModule batchModule = MZmineCore.getModuleInstance(BatchModeModule.class);
         final List<Task> tasks = new ArrayList<>();
-        batchModule.runModule(project, param, tasks);
+        batchModule.runModule(project, param, tasks, new Date());
 
         List<AbstractTask> abstractTasks = tasks.stream().filter(t -> t instanceof AbstractTask)
             .map(t -> (AbstractTask) t).toList();

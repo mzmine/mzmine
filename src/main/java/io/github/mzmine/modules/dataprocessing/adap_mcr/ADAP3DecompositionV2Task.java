@@ -41,6 +41,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,8 +68,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV2Task(final MZmineProject project, final ChromatogramPeakPair lists,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     // Initialize.
     this.project = project;
     parameters = parameterSet;

@@ -41,9 +41,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -76,8 +78,8 @@ public class SingleRowPredictionTask extends AbstractTask {
   protected ResultWindowFX resultWindowFX;
 
 
-  SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow) {
-    super(null); // no new data stored -> null
+  SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();
     charge = parameters.getParameter(FormulaPredictionParameters.neutralMass).getCharge();

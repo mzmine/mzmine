@@ -38,6 +38,7 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -58,7 +59,7 @@ class ManualPickerTask extends AbstractTask {
 
   ManualPickerTask(MZmineProject project, FeatureListRow featureListRow, RawDataFile dataFiles[],
       ManualPickerParameters parameters, FeatureList featureList, FeatureTableFX table) {
-    super(null); // we get passed a flist, so it should contain a storage
+    super(null, new Date()); // we get passed a flist, so it should contain a storage
 
     this.project = project;
     this.featureListRow = featureListRow;

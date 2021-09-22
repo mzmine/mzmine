@@ -41,9 +41,11 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class SameRangeTask extends AbstractTask {
@@ -63,8 +65,8 @@ class SameRangeTask extends AbstractTask {
   private ParameterSet parameters;
 
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;

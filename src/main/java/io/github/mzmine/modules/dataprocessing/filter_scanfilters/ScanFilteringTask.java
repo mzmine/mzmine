@@ -32,8 +32,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class ScanFilteringTask extends AbstractTask {
@@ -63,8 +65,8 @@ class ScanFilteringTask extends AbstractTask {
    * @param storage
    */
   ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;

@@ -35,6 +35,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +68,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -127,8 +129,8 @@ public class CameraSearchTask extends AbstractTask {
   private REngineType rEngineType;
 
   public CameraSearchTask(final MZmineProject project, final ParameterSet parameters,
-      final FeatureList list, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final FeatureList list, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     peakList = list;

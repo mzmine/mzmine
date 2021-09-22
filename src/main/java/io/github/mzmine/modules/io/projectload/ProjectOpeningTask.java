@@ -38,6 +38,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -47,6 +48,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 public class ProjectOpeningTask extends AbstractTask {
@@ -69,13 +71,13 @@ public class ProjectOpeningTask extends AbstractTask {
 //  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
 //  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
-  public ProjectOpeningTask(ParameterSet parameters) {
-    super(null);
+  public ProjectOpeningTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
   }
 
-  public ProjectOpeningTask(File openFile) {
-    super(null);
+  public ProjectOpeningTask(File openFile, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.openFile = openFile;
   }
 
@@ -312,7 +314,7 @@ public class ProjectOpeningTask extends AbstractTask {
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);
 //    userParameterOpenHandler = new UserParameterOpenHandler_3_0_old(newProject, dataFilesIDMap);
 
-    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString);
+    rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,getModuleCallDate());
   }
 
   /**

@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.align_adap3;
 
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -28,7 +29,6 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAP3AlignerModule implements MZmineProcessingModule {
@@ -62,8 +62,9 @@ public class ADAP3AlignerModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    Task newTask = new ADAP3AlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    Task newTask = new ADAP3AlignerTask(project, parameters, MemoryMapStorage.forFeatureList(),
+        moduleCallDate);
     tasks.add(newTask);
     return ExitCode.OK;
   }

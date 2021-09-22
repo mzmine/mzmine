@@ -45,6 +45,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,14 +73,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    this(project, fileToOpen, newMZmineFile, null, module, parameters);
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
+    this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters) {
-    super(newMZmineFile.getMemoryMapStorage()); // storage in raw data file
+      @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(newMZmineFile.getMemoryMapStorage(), moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.project = project;
     this.newMZmineFile = newMZmineFile;

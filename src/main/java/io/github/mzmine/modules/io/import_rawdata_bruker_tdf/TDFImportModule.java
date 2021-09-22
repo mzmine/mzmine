@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -72,7 +73,7 @@ public class TDFImportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
 
@@ -107,7 +108,7 @@ public class TDFImportModule implements MZmineProcessingModule {
         IMSRawDataFile newMZmineFile = MZmineCore
             .createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
         Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile,
-            TDFImportModule.class, parameters);
+            TDFImportModule.class, parameters, moduleCallDate);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

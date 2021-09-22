@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.projectsave;
 
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -47,8 +48,8 @@ public class ProjectSaveAsModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    ProjectSavingTask newTask = new ProjectSavingTask(project, parameters);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    ProjectSavingTask newTask = new ProjectSavingTask(project, parameters, moduleCallDate);
     tasks.add(newTask);
     return ExitCode.OK;
   }

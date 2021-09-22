@@ -113,14 +113,14 @@ public class MzXMLImportTask extends AbstractTask {
 
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    this(project, fileToOpen, newMZmineFile, null, module, parameters);
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(null); // storage in raw data file
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.parameters = parameters;
     this.module = module;
     // 256 kilo-chars buffer

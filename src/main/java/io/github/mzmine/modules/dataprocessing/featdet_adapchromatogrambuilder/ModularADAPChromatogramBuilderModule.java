@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class ModularADAPChromatogramBuilderModule implements MZmineProcessingModule {
@@ -50,7 +51,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
@@ -59,7 +60,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask = new ModularADAPChromatogramBuilderTask(project, dataFiles[i],
-          parameters.cloneParameterSet(), storage);
+          parameters.cloneParameterSet(), storage, moduleCallDate);
       tasks.add(newTask);
     }
 
