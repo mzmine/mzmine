@@ -25,6 +25,7 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
@@ -47,7 +48,7 @@ public class MZmineTestUtil {
    * @return true if module finishes
    * @throws InterruptedException if module does not finish in time
    */
-  public static boolean callModuleWithTimeout(long timeoutSeconds,
+  public static TaskResult callModuleWithTimeout(long timeoutSeconds,
       @NotNull Class<? extends MZmineRunnableModule> moduleClass,
       @NotNull ParameterSet parameters) throws InterruptedException {
     return callModuleWithTimeout(timeoutSeconds, TimeUnit.SECONDS, moduleClass, parameters);
@@ -64,7 +65,7 @@ public class MZmineTestUtil {
    * @return true if module finishes
    * @throws InterruptedException if module does not finish in time
    */
-  public static boolean callModuleWithTimeout(long timeout, TimeUnit unit,
+  public static TaskResult callModuleWithTimeout(long timeout, TimeUnit unit,
       @NotNull Class<? extends MZmineRunnableModule> moduleClass,
       @NotNull ParameterSet parameters) throws InterruptedException {
     List<Task> tasks = MZmineCore
@@ -80,7 +81,7 @@ public class MZmineTestUtil {
     }
 
     // wait for all tasks to finish
-    List<String> errorMessage = new ArrayList<>();
+    List<String> errorMessage = Collections.synchronizedList(new ArrayList<>());
     CountDownLatch lock = new CountDownLatch(1);
     new AllTasksFinishedListener(abstractTasks, false, at -> {
       // free lock if succeeded
@@ -93,14 +94,20 @@ public class MZmineTestUtil {
     });
 
     // wait
-    boolean finished = lock.await(timeout, unit);
+    if(!lock.await(timeout, unit)) {
+      return  TaskResult.TIMEOUT;
+    } ;
 
     if (errorMessage.size() > 0) {
       throw new RuntimeException(
           "Error in task for module " + moduleClass.getName() + ".  " + errorMessage.stream()
               .collect(Collectors.joining("; ")));
     }
-    return finished;
+    if(abstractTasks.stream().allMatch(task -> task.isFinished()))
+    return TaskResult.FINISHED;
+    else {
+      return TaskResult.ERROR;
+    }
   }
 
   /**
