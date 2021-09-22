@@ -1,7 +1,6 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
@@ -20,10 +19,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +32,6 @@ public class SavingUtils {
    * Groups all queues by their mergability. Note that this list might still contain queues with
    * equal steps.
    *
-   * @param originalQueues
    * @return The grouped queues.
    */
   public static List<List<BatchQueue>> groupQueuesByMergability(List<BatchQueue> originalQueues) {
@@ -101,7 +96,7 @@ public class SavingUtils {
   }
 
   /**
-   * @see this#replaceAndMergeFileAndRawParameters(ParameterSet, ParameterSet) 
+   * @see this#replaceAndMergeFileAndRawParameters(ParameterSet, ParameterSet)
    */
   public static ParameterSet replaceAndMergeFileAndRawParameters(
       Collection<ParameterSet> parameterSets) {
@@ -174,81 +169,6 @@ public class SavingUtils {
       }
     }
     return mergedParameterSet;
-  }
-
-  /**
-   * Merges batch queues consisting of the same module calls with the same parameters.
-   *
-   * @return The merged batch queues.
-   */
-  public static List<BatchQueue> mergeBatchQueues(Map<RawDataFile, BatchQueue> rawDataSteps) {
-
-    final List<BatchQueue> originalQueues = rawDataSteps.values().stream().toList();
-    List<List<BatchQueue>> mergableQueuesList = SavingUtils
-        .groupQueuesByMergability(originalQueues);
-
-    // merge equal module calls
-    List<BatchQueue> mergedBatchQueues = new ArrayList<>();
-    for (List<BatchQueue> value : mergableQueuesList) {
-      // if we just have one queue, add id directly.
-      if (value.size() == 1) {
-        mergedBatchQueues.add(value.get(0));
-        continue;
-      }
-
-      Iterator<BatchQueue> iterator = value.iterator();
-      BatchQueue merged = iterator.next();
-      while (iterator.hasNext()) {
-        merged = SavingUtils.mergeQueues(merged, iterator.next(), true);
-      }
-      mergedBatchQueues.add(merged);
-    }
-
-    logger.finest(
-        () -> "Created " + mergedBatchQueues.size() + " batch queues for " + rawDataSteps.size()
-            + " files.");
-    return mergedBatchQueues;
-  }
-
-  public static List<BatchQueue> removeDuplicateSteps(List<BatchQueue> qs) {
-    List<BatchQueue> queues = new ArrayList<>(qs);
-    queues.sort((l1, l2) -> Integer.compare(l2.size(), l1.size())); // sort descending
-
-    logger.finest(() -> "Removing duplicate steps from " + qs.size() + " batch queues.");
-    AtomicInteger removedSteps = new AtomicInteger(0);
-
-    for (int i = 0; i < queues.size(); i++) {
-      final BatchQueue base = queues.get(i);
-      for (int j = 1; j < queues.size(); j++) {
-        if (i == j) {
-          continue;
-        }
-        final BatchQueue potentialDuplicate = queues.get(j);
-
-        AtomicBoolean differentStepFound = new AtomicBoolean(false);
-        var remove = potentialDuplicate.stream().filter(potentialDuplicateStep -> {
-          boolean found = false;
-          for (int k = potentialDuplicate.indexOf(potentialDuplicateStep);
-              k < base.size() && !found; k++) {
-            MZmineProcessingStep<MZmineProcessingModule> baseStep = base.get(k);
-            // only remove steps from the beginning of the batch queue.
-            if (processingStepEquals(potentialDuplicateStep, baseStep, false, false)
-                && !differentStepFound.get()) {
-              removedSteps.getAndIncrement();
-              found = true;
-              return true;
-            } else {
-              differentStepFound.set(true);
-            }
-          }
-          return false;
-        }).toList();
-        potentialDuplicate.removeAll(remove);
-      }
-    }
-
-    logger.finest(() -> "Removed " + removedSteps.get() + " duplicate steps ");
-    return queues;
   }
 
   /**

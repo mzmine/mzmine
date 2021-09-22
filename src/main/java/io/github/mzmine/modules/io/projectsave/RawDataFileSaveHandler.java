@@ -27,7 +27,6 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -48,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -110,6 +108,104 @@ public class RawDataFileSaveHandler extends AbstractTask {
     numSteps = 1 /*dissect + merge */ + (saveFilesInProject ? files.size() : 0) /*save files*/
         + 1 /*save batch file*/;
     stepProgress = 1 / (double) numSteps;
+  }
+
+  public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
+
+    List<BatchQueue> cleanedBatchQueues = List.of(makeBatchQueue(files));
+
+    if (saveFilesInProject) {
+      description = prefix + "Zipping raw data files.";
+      replaceRawFilePaths(cleanedBatchQueues);
+      copyRawDataFilesToZip();
+    }
+
+    zipStream.putNextEntry(new ZipEntry(RAW_DATA_IMPORT_BATCH_FILENAME));
+
+    try {
+      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      final DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
+
+      final Document batchQueueFile = dbBuilder.newDocument();
+      final Element root = batchQueueFile.createElement(ROOT_ELEMENT);
+      final Element batchRoot = batchQueueFile.createElement(BATCH_QUEUES_ROOT);
+
+      root.appendChild(batchRoot);
+      batchQueueFile.appendChild(root);
+
+      TransformerFactory transfac = TransformerFactory.newInstance();
+      Transformer transformer = transfac.newTransformer();
+      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+      for (final BatchQueue mergedBatchQueue : cleanedBatchQueues) {
+        final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
+        mergedBatchQueue.saveToXml(batchQueueEntry);
+        batchRoot.appendChild(batchQueueEntry);
+      }
+
+      final File tmpFile = File.createTempFile(TEMP_FILE_NAME, ".tmp");
+      final StreamResult result = new StreamResult(new FileOutputStream(tmpFile));
+      final DOMSource source = new DOMSource(batchQueueFile);
+      transformer.transform(source, result);
+
+      final StreamCopy copyMachine = new StreamCopy();
+      final FileInputStream fileInputStream = new FileInputStream(tmpFile);
+      copyMachine.copy(fileInputStream, zipStream);
+
+      fileInputStream.close();
+      tmpFile.delete();
+    } catch (ParserConfigurationException | TransformerException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, "Could not save batch import step.\n" + e.getMessage(), e);
+      return false;
+    }
+    progress += stepProgress;
+
+    return true;
+  }
+
+  /**
+   *
+   * @param files The raw data files to create a batch queue for.
+   * @return A single batch queue to process all files in the same order.
+   */
+  private BatchQueue makeBatchQueue(List<RawDataFile> files) {
+    // get all applied methods
+    final List<FeatureListAppliedMethod> appliedMethods = files.stream()
+        .flatMap(file -> file.getAppliedMethods().stream())
+        .sorted(Comparator.comparing(FeatureListAppliedMethod::getModuleCallDate)).toList();
+
+    // group applied methods by date
+    final Map<Date, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
+    for (FeatureListAppliedMethod method : appliedMethods) {
+      final List<FeatureListAppliedMethod> value = methodMap
+          .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());
+      value.add(method);
+    }
+    logger.finest(
+        () -> "Detected " + methodMap.size() + " individual module calls of raw data methods.");
+
+    final BatchQueue queue = new BatchQueue();
+    for (final List<FeatureListAppliedMethod> methodList : methodMap.values()) {
+      final MZmineModule module = methodList.get(0).getModule();
+      if (!(module instanceof MZmineProcessingModule procModule)) {
+        logger.warning(() -> "Cannot add module " + module.getName()
+            + " to raw file batch queue, because it is not an MZmineProcessingModule."
+            + " This could lead to problems on project import.");
+        continue;
+      }
+
+      // add a new queue step, replace raw file parameters to SPECIFIC
+      queue.add(new MZmineProcessingStepImpl<>(procModule, SavingUtils
+          .replaceAndMergeFileAndRawParameters(
+              methodList.stream().map(FeatureListAppliedMethod::getParameters).toList())));
+      logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
+    }
+
+    return queue;
   }
 
   /**
@@ -208,189 +304,6 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
       progress += stepProgress;
     }
-  }
-
-  public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
-
-    /*final Map<RawDataFile, BatchQueue> rawDataSteps = dissectRawDataMethods();
-
-    description = prefix + "Merging equal batch queues.";
-    logger.finest(() -> description);
-    final List<BatchQueue> mergedBatchQueues = SavingUtils.mergeBatchQueues(rawDataSteps);
-    progress += stepProgress;
-
-    final List<BatchQueue> cleanedBatchQueues = SavingUtils.removeDuplicateSteps(mergedBatchQueues);*/
-
-    List<BatchQueue> cleanedBatchQueues = List.of(makeBatchQueue(files));
-
-    if (saveFilesInProject) {
-      description = prefix + "Zipping raw data files.";
-      replaceRawFilePaths(cleanedBatchQueues);
-      copyRawDataFilesToZip();
-    }
-
-    zipStream.putNextEntry(new ZipEntry(RAW_DATA_IMPORT_BATCH_FILENAME));
-
-    try {
-      final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      final DocumentBuilder dbBuilder = dbFactory.newDocumentBuilder();
-
-      final Document batchQueueFile = dbBuilder.newDocument();
-      final Element root = batchQueueFile.createElement(ROOT_ELEMENT);
-      final Element batchRoot = batchQueueFile.createElement(BATCH_QUEUES_ROOT);
-
-      root.appendChild(batchRoot);
-      batchQueueFile.appendChild(root);
-
-      TransformerFactory transfac = TransformerFactory.newInstance();
-      Transformer transformer = transfac.newTransformer();
-      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-      for (final BatchQueue mergedBatchQueue : cleanedBatchQueues) {
-        final Element batchQueueEntry = batchQueueFile.createElement(BATCH_QUEUE_ELEMENT);
-        mergedBatchQueue.saveToXml(batchQueueEntry);
-        batchRoot.appendChild(batchQueueEntry);
-      }
-
-      final File tmpFile = File.createTempFile(TEMP_FILE_NAME, ".tmp");
-      final StreamResult result = new StreamResult(new FileOutputStream(tmpFile));
-      final DOMSource source = new DOMSource(batchQueueFile);
-      transformer.transform(source, result);
-
-      final StreamCopy copyMachine = new StreamCopy();
-      final FileInputStream fileInputStream = new FileInputStream(tmpFile);
-      copyMachine.copy(fileInputStream, zipStream);
-
-      fileInputStream.close();
-      tmpFile.delete();
-    } catch (ParserConfigurationException | TransformerException e) {
-      e.printStackTrace();
-      logger.log(Level.WARNING, "Could not save batch import step.\n" + e.getMessage(), e);
-      return false;
-    }
-    progress += stepProgress;
-
-    return true;
-  }
-
-  /**
-   * @return A map of every raw data file with a batch queue of the methods applied to it.
-   * Parameters are adjusted in a way that they only fit the specific raw data file.
-   */
-  private Map<RawDataFile, BatchQueue> dissectRawDataMethods() {
-
-    description = prefix + "Dissecting batch queues for " + files.size() + ".";
-    logger.finest(() -> description);
-
-    final Map<RawDataFile, BatchQueue> rawDataSteps = new LinkedHashMap<>();
-
-    for (final RawDataFile file : files) {
-      var importStep = extractImportStep(file);
-      if (importStep != null) {
-        BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
-        q.add(importStep);
-      }
-
-      var appliedMethods = file.getAppliedMethods();
-      for (FeatureListAppliedMethod appliedMethod : appliedMethods) {
-        if (importStep != null && appliedMethod.getModule() == importStep.getModule()) {
-          continue;
-        }
-        if (!(appliedMethod.getModule() instanceof MZmineProcessingModule)) {
-          logger.fine(() -> "Cannot save module " + appliedMethod.getModule().getClass().getName()
-              + " is not an MZmine processing step.");
-        }
-
-        // parameters from the applied method are a clone already
-        ParameterSet parameters = appliedMethod.getParameters();
-        /*for (Parameter<?> param : parameters.getParameters()) {
-          if (param instanceof RawDataFilesParameter rfp) {
-            rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{file});
-//            rfp.setValue(RawDataFilesSelectionType.BATCH_LAST_FILES);
-          }
-        }*/
-        BatchQueue q = rawDataSteps.computeIfAbsent(file, f -> new BatchQueue());
-        q.add(new MZmineProcessingStepImpl<>((MZmineProcessingModule) appliedMethod.getModule(),
-            parameters));
-      }
-    }
-
-    return rawDataSteps;
-  }
-
-  /**
-   * @param file The raw data file.
-   * @return An {@link MZmineProcessingStep} with the given {@link RawDataFile} as the only file in
-   * the {@link FileNamesParameter}.
-   */
-  private MZmineProcessingStep<MZmineProcessingModule> extractImportStep(
-      @NotNull final RawDataFile file) {
-    if (file.getAppliedMethods().isEmpty()) {
-      return null;
-    }
-
-    var appliedMethods = file.getAppliedMethods();
-    var step = appliedMethods.get(0);
-
-    if (!(step.getModule() instanceof MZmineProcessingModule importModule)) {
-      logger.info(
-          () -> "First module (" + step.getModule().getName() + ") applied to raw data file " + file
-              .getName() + " is not am import module.");
-      return null;
-    } else if (file.getAbsolutePath() == null) {
-      logger.fine(() -> "Cannot save raw data file " + file.getName()
-          + " since there is no path associated.");
-      return null;
-    } else {
-      final ParameterSet clone = step.getParameters().cloneParameterSet();
-      for (Parameter<?> parameter : clone.getParameters()) {
-        if (!(parameter instanceof FileNamesParameter fnp)) {
-          continue;
-        }
-        fnp.setValue(new File[]{new File(file.getAbsolutePath())});
-        return new MZmineProcessingStepImpl<>(importModule, clone);
-      }
-    }
-    return null;
-  }
-
-  private BatchQueue makeBatchQueue(List<RawDataFile> files) {
-    // get all applied methods
-    final List<FeatureListAppliedMethod> appliedMethods = files.stream()
-        .flatMap(file -> file.getAppliedMethods().stream())
-        .sorted(Comparator.comparing(FeatureListAppliedMethod::getModuleCallDate)).toList();
-
-    // group applied methods by date
-    final Map<Date, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
-    for (FeatureListAppliedMethod method : appliedMethods) {
-      final List<FeatureListAppliedMethod> value = methodMap
-          .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());
-      value.add(method);
-    }
-    logger.finest(
-        () -> "Detected " + methodMap.size() + " individual module calls of raw data methods.");
-
-    final BatchQueue queue = new BatchQueue();
-    for (final List<FeatureListAppliedMethod> methodList : methodMap.values()) {
-      final MZmineModule module = methodList.get(0).getModule();
-      if (!(module instanceof MZmineProcessingModule procModule)) {
-        logger.warning(() -> "Cannot add module " + module.getName()
-            + " to raw file batch queue, because it is not an MZmineProcessingModule."
-            + " This could lead to problems on project import.");
-        continue;
-      }
-
-      // add a new queue step, replace raw file parameters to SPECIFIC
-      queue.add(new MZmineProcessingStepImpl<>(procModule, SavingUtils
-          .replaceAndMergeFileAndRawParameters(
-              methodList.stream().map(FeatureListAppliedMethod::getParameters).toList())));
-      logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
-    }
-
-    return queue;
   }
 
   /**
