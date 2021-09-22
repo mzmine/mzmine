@@ -15,6 +15,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SavingUtils {
@@ -78,47 +80,14 @@ public class SavingUtils {
     var longerQueue = (q1.size() > q2.size()) ? q1 : q2;
     var shorterQueue = (q1.size() < q2.size()) ? q1 : q2;
     for (int i = 0; i < shorterQueue.size(); i++) {
-      var step1 = q1.get(i);
-      var step2 = q2.get(i);
+      final var step1 = q1.get(i);
+      final var step2 = q2.get(i);
 
       final var parameterSet1 = step1.getParameterSet();
       final var parameterSet2 = step2.getParameterSet();
 
-      final var mergedParameterSet = parameterSet1.cloneParameterSet();
-
-      for (int j = 0; j < mergedParameterSet.getParameters().length; j++) {
-        final Parameter<?> param1 = parameterSet1.getParameters()[j];
-        final Parameter<?> param2 = parameterSet2.getParameters()[j];
-        final Parameter<?> mergedParam = mergedParameterSet.getParameters()[j];
-
-        // merge file names and selected raw data files
-        if (mergedParam instanceof FileNamesParameter fnp) {
-          Set<File> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
-          Collections.addAll(files, ((FileNamesParameter) param1).getValue());
-          Collections.addAll(files, ((FileNamesParameter) param2).getValue());
-          logger.finest(() -> "Combined FileNamesParameter to " + Arrays.toString(files.toArray()));
-          fnp.setValue(files.toArray(new File[0]));
-        } else if (mergedParam instanceof RawDataFilesParameter rfp
-            && param1 instanceof RawDataFilesParameter rfp1
-            && param2 instanceof RawDataFilesParameter rfp2) {
-          final Set<RawDataFile> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
-          if (rfp1.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-            Collections.addAll(files, rfp1.getValue().getSpecificFilesPlaceholders());
-          } else {
-            Arrays.stream(rfp1.getValue().getEvaluationResult()).map(RawDataFilePlaceholder::new)
-                .forEach(files::add);
-          }
-          if (rfp2.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
-            Collections.addAll(files, rfp2.getValue().getSpecificFilesPlaceholders());
-          } else {
-            Arrays.stream(rfp2.getValue().getEvaluationResult()).map(RawDataFilePlaceholder::new)
-                .forEach(files::add);
-          }
-          logger.finest(
-              () -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
-          rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files.toArray(new RawDataFile[0]));
-        }
-      }
+      final ParameterSet mergedParameterSet = replaceAndMergeFileAndRawParameters(parameterSet1,
+          parameterSet2);
 
       mergedQueue.add(new MZmineProcessingStepImpl<>(q1.get(i).getModule(), mergedParameterSet));
     }
@@ -129,6 +98,82 @@ public class SavingUtils {
           longerQueue.get(j).getParameterSet().cloneParameterSet(true)));
     }
     return mergedQueue;
+  }
+
+  /**
+   * @see this#replaceAndMergeFileAndRawParameters(ParameterSet, ParameterSet) 
+   */
+  public static ParameterSet replaceAndMergeFileAndRawParameters(
+      Collection<ParameterSet> parameterSets) {
+    final Iterator<ParameterSet> iterator = parameterSets.iterator();
+    ParameterSet merged = iterator.next();
+
+    if (parameterSets.size() == 1) {
+      // dirty hack to replace the raw file selection if we only have one parameter set
+      return replaceAndMergeFileAndRawParameters(merged, merged);
+    }
+
+    while (iterator.hasNext()) {
+      merged = replaceAndMergeFileAndRawParameters(merged, iterator.next());
+    }
+
+    return merged;
+  }
+
+  /**
+   * Combines the contents of {@link RawDataFilesParameter} and {@link FileNamesParameter} for the
+   * given parameter sets. Files will not be duplicated if their {@link Object#hashCode()} method
+   * returns the same value. The {@link RawDataFilesSelectionType} of the {@link
+   * RawDataFilesParameter} will be set to {@link RawDataFilesSelectionType#SPECIFIC_FILES}.
+   *
+   * @param parameterSet1 The first parameter set.
+   * @param parameterSet2 The second paramete set.
+   * @return The merged parameter set.
+   */
+  @NotNull
+  public static ParameterSet replaceAndMergeFileAndRawParameters(
+      @NotNull final ParameterSet parameterSet1, @NotNull final ParameterSet parameterSet2) {
+
+    if (!parameterSetsEqual(parameterSet1, parameterSet2, true, true)) {
+      throw new IllegalArgumentException("Parameter sets differ in more than raw/file parameters.");
+    }
+
+    final var mergedParameterSet = parameterSet1.cloneParameterSet();
+
+    for (int j = 0; j < mergedParameterSet.getParameters().length; j++) {
+      final Parameter<?> param1 = parameterSet1.getParameters()[j];
+      final Parameter<?> param2 = parameterSet2.getParameters()[j];
+      final Parameter<?> mergedParam = mergedParameterSet.getParameters()[j];
+
+      // merge file names and selected raw data files
+      if (mergedParam instanceof FileNamesParameter fnp) {
+        Set<File> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
+        Collections.addAll(files, ((FileNamesParameter) param1).getValue());
+        Collections.addAll(files, ((FileNamesParameter) param2).getValue());
+        logger.finest(() -> "Combined FileNamesParameter to " + Arrays.toString(files.toArray()));
+        fnp.setValue(files.toArray(new File[0]));
+      } else if (mergedParam instanceof RawDataFilesParameter rfp
+          && param1 instanceof RawDataFilesParameter rfp1
+          && param2 instanceof RawDataFilesParameter rfp2) {
+        final Set<RawDataFile> files = new LinkedHashSet<>(); // set so we don't have to bother with duplicates
+        if (rfp1.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
+          Collections.addAll(files, rfp1.getValue().getSpecificFilesPlaceholders());
+        } else {
+          Arrays.stream(rfp1.getValue().getEvaluationResult()).map(RawDataFilePlaceholder::new)
+              .forEach(files::add);
+        }
+        if (rfp2.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
+          Collections.addAll(files, rfp2.getValue().getSpecificFilesPlaceholders());
+        } else {
+          Arrays.stream(rfp2.getValue().getEvaluationResult()).map(RawDataFilePlaceholder::new)
+              .forEach(files::add);
+        }
+        logger
+            .finest(() -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));
+        rfp.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, files.toArray(new RawDataFile[0]));
+      }
+    }
+    return mergedParameterSet;
   }
 
   /**
@@ -181,24 +226,23 @@ public class SavingUtils {
         final BatchQueue potentialDuplicate = queues.get(j);
 
         AtomicBoolean differentStepFound = new AtomicBoolean(false);
-        var remove = potentialDuplicate
-            .stream().filter(potentialDuplicateStep -> {
-              boolean found = false;
-              for (int k = potentialDuplicate.indexOf(potentialDuplicateStep);
-                  k < base.size() && !found; k++) {
-                MZmineProcessingStep<MZmineProcessingModule> baseStep = base.get(k);
-                // only remove steps from the beginning of the batch queue.
-                if (processingStepEquals(potentialDuplicateStep, baseStep, false, false)
-                    && !differentStepFound.get()) {
-                  removedSteps.getAndIncrement();
-                  found = true;
-                  return true;
-                } else {
-                  differentStepFound.set(true);
-                }
-              }
-              return false;
-            }).toList();
+        var remove = potentialDuplicate.stream().filter(potentialDuplicateStep -> {
+          boolean found = false;
+          for (int k = potentialDuplicate.indexOf(potentialDuplicateStep);
+              k < base.size() && !found; k++) {
+            MZmineProcessingStep<MZmineProcessingModule> baseStep = base.get(k);
+            // only remove steps from the beginning of the batch queue.
+            if (processingStepEquals(potentialDuplicateStep, baseStep, false, false)
+                && !differentStepFound.get()) {
+              removedSteps.getAndIncrement();
+              found = true;
+              return true;
+            } else {
+              differentStepFound.set(true);
+            }
+          }
+          return false;
+        }).toList();
         potentialDuplicate.removeAll(remove);
       }
     }
