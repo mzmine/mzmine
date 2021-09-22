@@ -120,7 +120,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       // Add task description to peakList
       featureList.addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod("GNPS FBMN/IIMN results import",
-              GNPSResultsImportModule.class, parameters));
+              GNPSResultsImportModule.class, parameters, getModuleCallDate()));
 
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished import of GNPS results for " + featureList.getName());

@@ -249,7 +249,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
     // Add task description to feature list
     normalizedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Standard compound normalization",
-            StandardCompoundNormalizerModule.class, parameters));
+            StandardCompoundNormalizerModule.class, parameters, getModuleCallDate()));
 
     // Remove the original feature list if requested
     if (removeOriginal)

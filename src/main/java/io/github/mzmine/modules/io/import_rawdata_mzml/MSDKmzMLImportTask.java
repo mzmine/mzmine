@@ -150,7 +150,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
 
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
   }

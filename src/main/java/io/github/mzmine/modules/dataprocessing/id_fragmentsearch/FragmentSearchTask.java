@@ -134,7 +134,7 @@ public class FragmentSearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of fragments",
-            FragmentSearchModule.class, parameters));
+            FragmentSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

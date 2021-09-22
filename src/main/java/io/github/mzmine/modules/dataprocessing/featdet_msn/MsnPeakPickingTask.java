@@ -185,7 +185,7 @@ public class MsnPeakPickingTask extends AbstractTask {
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        MsnFeatureDetectionModule.class, parameterSet));
+        MsnFeatureDetectionModule.class, parameterSet, getModuleCallDate()));
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);

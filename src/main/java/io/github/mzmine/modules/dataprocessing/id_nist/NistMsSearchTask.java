@@ -210,7 +210,7 @@ public class NistMsSearchTask extends AbstractTask {
 
         // Finished.
         peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            NistMsSearchModule.class, parameterSet));
+            NistMsSearchModule.class, parameterSet, getModuleCallDate()));
         setStatus(TaskStatus.FINISHED);
         logger.info("NIST MS Search completed");
       }

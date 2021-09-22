@@ -136,7 +136,7 @@ public class MobilogramBinningTask extends AbstractTask {
     }
 
     flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters, getModuleCallDate()));
     if (createNewFlist) {
       project.addFeatureList(flist);
     }

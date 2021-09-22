@@ -136,7 +136,7 @@ class Ms2SearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of similar MS2s",
-            Ms2SearchModule.class, parameters));
+            Ms2SearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

@@ -163,7 +163,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     result.getAppliedMethods().addAll(alignedFeatureList.getAppliedMethods());
     result.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(FeatureListBlankSubtractionModule.class, parameters));
+        new SimpleFeatureListAppliedMethod(FeatureListBlankSubtractionModule.class, parameters, getModuleCallDate()));
     project.addFeatureList(result);
 
     setStatus(TaskStatus.FINISHED);

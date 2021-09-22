@@ -457,7 +457,7 @@ public class NeutralLossFilterTask extends AbstractTask {
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("NeutralLossFilter",
-            NeutralLossFilterModule.class, parameters));
+            NeutralLossFilterModule.class, parameters, getModuleCallDate()));
   }
 
   /**

@@ -220,7 +220,7 @@ public class AlignScansTask extends AbstractTask {
         }
 
         newRDFW.getAppliedMethods()
-            .add(new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters));
+            .add(new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters, getModuleCallDate()));
         project.addFile(newRDFW);
 
         // Remove the original data file if requested

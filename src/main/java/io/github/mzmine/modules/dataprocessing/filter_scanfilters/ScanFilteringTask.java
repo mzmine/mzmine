@@ -150,7 +150,7 @@ class ScanFilteringTask extends AbstractTask {
           newFile.getAppliedMethods().add(appliedMethod);
         }
         newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, parameters));
+            BaselineCorrectionModule.class, parameters, getModuleCallDate()));
 
         project.addFile(newFile);
 

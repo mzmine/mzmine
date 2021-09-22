@@ -176,7 +176,7 @@ class PeakFinderTask extends AbstractTask {
     // Add task description to peakList
     processedPeakList
         .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
-            PeakFinderModule.class, parameters));
+            PeakFinderModule.class, parameters, getModuleCallDate()));
 
     // Remove the original peaklist if requested
     if (removeOriginal)

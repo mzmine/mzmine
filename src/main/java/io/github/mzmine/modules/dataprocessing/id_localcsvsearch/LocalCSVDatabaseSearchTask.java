@@ -128,7 +128,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     // Add task description to peakList
     peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Peak identification using database " + dataBaseFile,
-        LocalCSVDatabaseSearchModule.class, parameters));
+        LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
 
 
     setStatus(TaskStatus.FINISHED);

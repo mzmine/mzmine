@@ -155,7 +155,7 @@ public class RowsFilterTask extends AbstractTask {
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        getTaskDescription(), RowsFilterModule.class, parameters));
+        getTaskDescription(), RowsFilterModule.class, parameters, getModuleCallDate()));
 
     // Get parameters.
     final boolean onlyIdentified =

@@ -138,7 +138,7 @@ class RawFileMergeTask extends AbstractTask {
         newFile.getAppliedMethods().add(appliedMethod);
       }
       newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          RawFileMergeModule.class, parameters));
+          RawFileMergeModule.class, parameters, getModuleCallDate()));
 
       project.addFile(newFile);
 

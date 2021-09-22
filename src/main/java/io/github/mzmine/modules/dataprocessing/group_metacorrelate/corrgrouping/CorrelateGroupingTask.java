@@ -243,7 +243,7 @@ public class CorrelateGroupingTask extends AbstractTask {
 
         // Add task description to peakList.
         groupedPKL.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters));
+            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters, getModuleCallDate()));
 
         // Done.
         setStatus(TaskStatus.FINISHED);

@@ -291,7 +291,7 @@ public class MassDetectionTask extends AbstractTask {
         writer.close();
       }
       dataFile.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters, getModuleCallDate()));
     } catch (Exception e) {
       e.printStackTrace();
       setErrorMessage(e.getMessage());

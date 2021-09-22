@@ -171,7 +171,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
-            ADAPHierarchicalClusteringModule.class, parameters));
+            ADAPHierarchicalClusteringModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
     List<Peak> peaks = getPeaks(peakList,

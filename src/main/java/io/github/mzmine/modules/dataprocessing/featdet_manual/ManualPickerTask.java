@@ -160,7 +160,7 @@ class ManualPickerTask extends AbstractTask {
     }
 
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ManualFeaturePickerModule.class, parameterSet));
+        ManualFeaturePickerModule.class, parameterSet, getModuleCallDate()));
 
     logger.finest("Finished manual feature picker, " + processedScans + " scans processed");
 

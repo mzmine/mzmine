@@ -120,7 +120,7 @@ public class CropFilterTask extends AbstractTask {
         newFile.getAppliedMethods().add(appliedMethod);
       }
       newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          CropFilterModule.class, parameters));
+          CropFilterModule.class, parameters, getModuleCallDate()));
       project.addFile(newFile);
 
       // Remove the original file if requested

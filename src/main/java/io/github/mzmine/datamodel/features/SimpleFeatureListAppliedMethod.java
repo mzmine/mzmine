@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod {
 
   private final String description;
+  private final Date moduleCallDate;
   private final ParameterSet parameters;
   private final MZmineModule module;
 
@@ -37,32 +39,37 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
    * @param parameters The parameter set used to create this feature list. A clone of the parameter
    *                   set is created in the constructor and saved in this class.
    */
-  public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters) {
+  public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters,
+      @NotNull final Date moduleCallDate) {
     this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
     this.description = module.getName();
+    this.moduleCallDate = moduleCallDate;
   }
 
-  public SimpleFeatureListAppliedMethod(Class<? extends MZmineModule> moduleClass, ParameterSet parameters) {
-    this.parameters = parameters.cloneParameterSet(true);
-    this.module = MZmineCore.getModuleInstance(moduleClass);
-    this.description = this.module.getName();
+  public SimpleFeatureListAppliedMethod(Class<? extends MZmineModule> moduleClass,
+      ParameterSet parameters, @NotNull final Date moduleCallDate) {
+    this(MZmineCore.getModuleInstance(moduleClass), parameters, moduleCallDate);
   }
 
-  public SimpleFeatureListAppliedMethod(String description, MZmineModule module, ParameterSet parameters) {
+  public SimpleFeatureListAppliedMethod(String description, MZmineModule module,
+      ParameterSet parameters, @NotNull final Date moduleCallDate) {
     this.description = description;
     this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
+    this.moduleCallDate = moduleCallDate;
   }
 
-  public SimpleFeatureListAppliedMethod(String description, Class<? extends MZmineModule> moduleClass, ParameterSet parameters) {
+  public SimpleFeatureListAppliedMethod(String description,
+      Class<? extends MZmineModule> moduleClass, ParameterSet parameters,
+      @NotNull final Date moduleCallDate) {
     this.description = description;
     this.parameters = parameters.cloneParameterSet(true);
     this.module = MZmineCore.getModuleInstance(moduleClass);
+    this.moduleCallDate = moduleCallDate;
   }
 
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return description;
   }
 
@@ -70,8 +77,7 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return description;
   }
 
-  public @NotNull
-  ParameterSet getParameters() {
+  public @NotNull ParameterSet getParameters() {
     // don't return the saved parameters, return a clone so parameters cannot be altered by accident.
     return parameters.cloneParameterSet(true);
   }
@@ -81,4 +87,8 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return module;
   }
 
+  @Override
+  public Date getModuleCallDate() {
+    return moduleCallDate;
+  }
 }

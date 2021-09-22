@@ -587,7 +587,7 @@ public class CameraSearchTask extends AbstractTask {
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
-            parameters));
+            parameters, getModuleCallDate()));
 
     // ------------------------------------------------
     // Find unique isotopes belonging to the same group
@@ -749,7 +749,7 @@ public class CameraSearchTask extends AbstractTask {
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
-            parameters));
+            parameters, getModuleCallDate()));
 
     // --------------------
     // Find unique PCGroups

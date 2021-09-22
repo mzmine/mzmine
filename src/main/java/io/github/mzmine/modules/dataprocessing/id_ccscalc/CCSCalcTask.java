@@ -142,7 +142,7 @@ public class CCSCalcTask extends AbstractTask {
       }
 
       workingFeatureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters, getModuleCallDate()));
       if (workingFeatureList != featureList) {
         project.addFeatureList(workingFeatureList);
       }

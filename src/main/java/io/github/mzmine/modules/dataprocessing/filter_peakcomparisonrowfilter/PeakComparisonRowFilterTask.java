@@ -144,7 +144,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     // Add task description to peakList.
     newPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(getTaskDescription(),
-            PeakComparisonRowFilterModule.class, parameters));
+            PeakComparisonRowFilterModule.class, parameters, getModuleCallDate()));
 
     // Get parameters.
     final boolean evalutateFoldChange =

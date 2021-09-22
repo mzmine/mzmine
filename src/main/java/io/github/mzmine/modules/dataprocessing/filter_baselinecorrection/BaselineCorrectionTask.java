@@ -142,7 +142,7 @@ public class BaselineCorrectionTask extends AbstractTask {
           this.correctedDataFile.getAppliedMethods().add(appliedMethod);
         }
         this.correctedDataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, commonParameters));
+            BaselineCorrectionModule.class, commonParameters, getModuleCallDate()));
         // Add the newly created file to the project
         this.project.addFile(this.correctedDataFile);
 

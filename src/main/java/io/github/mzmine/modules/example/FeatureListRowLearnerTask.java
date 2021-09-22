@@ -158,7 +158,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
 
     // Remove the original feature list if requested
     if (removeOriginal)

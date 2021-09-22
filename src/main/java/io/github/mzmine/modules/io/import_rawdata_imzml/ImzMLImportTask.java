@@ -176,7 +176,7 @@ public class ImzMLImportTask extends AbstractTask {
 
       // set settings of image
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {

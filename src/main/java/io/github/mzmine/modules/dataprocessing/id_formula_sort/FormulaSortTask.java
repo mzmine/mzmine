@@ -94,7 +94,7 @@ public class FormulaSortTask extends AbstractTask {
 
     logger.finest("Finished formula search for all networks");
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        FormulaSortModule.class, parameterSet));
+        FormulaSortModule.class, parameterSet, getModuleCallDate()));
     setStatus(TaskStatus.FINISHED);
   }
 

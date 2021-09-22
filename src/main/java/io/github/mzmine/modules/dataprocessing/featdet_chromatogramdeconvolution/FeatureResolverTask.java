@@ -388,7 +388,7 @@ public class FeatureResolverTask extends AbstractTask {
 //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters, getModuleCallDate()));
 
     newPeakList = resolvedFeatureList;
   }
@@ -452,7 +452,7 @@ public class FeatureResolverTask extends AbstractTask {
     }
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters, getModuleCallDate()));
 
     return resolvedFeatureList;
   }

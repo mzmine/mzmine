@@ -112,7 +112,7 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
       // Add new peaklist to the project
 //      project.addFeatureList(filteredPeakList); // the origList is processed, this doesnt make sense
       origPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          FeatureListClearAnnotationsModule.class, parameters));
+          FeatureListClearAnnotationsModule.class, parameters, getModuleCallDate()));
 
       // Remove the original peaklist if requested
       /*

@@ -554,7 +554,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
     rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
     featureList.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(IonMobilityTraceBuilderModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(IonMobilityTraceBuilderModule.class, parameters, getModuleCallDate()));
 
     project.addFeatureList(featureList);
   }

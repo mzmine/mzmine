@@ -168,7 +168,8 @@ public class IcpMsCVSImportTask extends AbstractTask {
         scanNumber++;
       }
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
+          getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Exception e) {

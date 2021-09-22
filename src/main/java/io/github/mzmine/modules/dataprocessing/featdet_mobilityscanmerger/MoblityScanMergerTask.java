@@ -110,7 +110,7 @@ public class MoblityScanMergerTask extends AbstractTask {
     }
 
     rawDataFile.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(MobilityScanMergerModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(MobilityScanMergerModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
   }

@@ -206,7 +206,7 @@ public class AnnotateIsomersTask extends AbstractTask {
     });
 
     flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(AnnotateIsomersModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(AnnotateIsomersModule.class, parameters, getModuleCallDate()));
     setStatus(TaskStatus.FINISHED);
   }
 

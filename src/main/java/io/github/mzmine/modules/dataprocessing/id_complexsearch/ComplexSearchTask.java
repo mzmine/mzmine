@@ -136,7 +136,7 @@ public class ComplexSearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of complexes",
-            ComplexSearchModule.class, parameters));
+            ComplexSearchModule.class, parameters, getModuleCallDate()));
 
 
     setStatus(TaskStatus.FINISHED);

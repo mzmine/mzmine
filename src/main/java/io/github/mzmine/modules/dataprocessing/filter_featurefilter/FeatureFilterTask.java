@@ -251,7 +251,7 @@ public class FeatureFilterTask extends AbstractTask {
     }
 
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        FeatureFilterModule.class, parameters));
+        FeatureFilterModule.class, parameters, getModuleCallDate()));
     return newPeakList;
   }
 }

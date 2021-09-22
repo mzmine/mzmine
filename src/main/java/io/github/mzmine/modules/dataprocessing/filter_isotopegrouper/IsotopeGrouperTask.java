@@ -258,7 +258,7 @@ class IsotopeGrouperTask extends AbstractTask {
     // Add task description to peakList
     deisotopedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Isotopic peaks grouper",
-            IsotopeGrouperModule.class, parameters));
+            IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
     // Remove the original peakList if requested
     if (removeOriginal) {

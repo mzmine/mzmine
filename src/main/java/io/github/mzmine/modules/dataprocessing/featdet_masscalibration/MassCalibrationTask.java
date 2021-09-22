@@ -168,7 +168,7 @@ public class MassCalibrationTask extends AbstractTask {
       afterHook.run();
     }
     dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(MassCalibrationModule.class,
-        parameters));
+        parameters, getModuleCallDate()));
   }
 
   /**

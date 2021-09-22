@@ -220,7 +220,7 @@ class RTCalibrationTask extends AbstractTask {
       // Add task description to feature list
       normalizedFeatureLists[i].addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod("Retention time normalization",
-              RTCalibrationModule.class, parameters));
+              RTCalibrationModule.class, parameters, getModuleCallDate()));
 
       // Remove the original feature lists if requested
       if (removeOriginal)

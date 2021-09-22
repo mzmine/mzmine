@@ -223,7 +223,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     }
 
     featureList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(FormulaPredictionFeatureListModule.class, parameters));
+        new SimpleFeatureListAppliedMethod(FormulaPredictionFeatureListModule.class, parameters, getModuleCallDate()));
 
     logger.finest("Finished formula search for all the features");
 

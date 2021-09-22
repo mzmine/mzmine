@@ -254,7 +254,7 @@ class LinearNormalizerTask extends AbstractTask {
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Linear normalization of by " + normalizationType,
-        LinearNormalizerModule.class, parameters));
+        LinearNormalizerModule.class, parameters, getModuleCallDate()));
 
     // Remove the original feature list if requested
     if (removeOriginal)

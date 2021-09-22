@@ -195,7 +195,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     }
 
     peakListRow.getFeatureList().getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        FormulaPredictionModule.class, parameters));
+        FormulaPredictionModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

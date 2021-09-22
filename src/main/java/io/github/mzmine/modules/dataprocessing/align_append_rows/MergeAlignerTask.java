@@ -160,7 +160,7 @@ public class MergeAlignerTask extends AbstractTask {
     alignedFeatureList
         .addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod("Feature list merger", MergeAlignerModule.class,
-                parameters));
+                parameters, getModuleCallDate()));
 
     logger.info("Finished feature list merger");
 

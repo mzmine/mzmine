@@ -175,7 +175,7 @@ public class ADAP3DTask extends AbstractTask {
     }
 
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ADAP3DModule.class, parameters));
+        ADAP3DModule.class, parameters, getModuleCallDate()));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

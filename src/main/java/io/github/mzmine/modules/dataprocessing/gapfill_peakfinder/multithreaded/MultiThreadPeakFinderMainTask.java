@@ -120,7 +120,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
           // Add task description to peakList
           processedPeakList
               .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
-                  MultiThreadPeakFinderModule.class, parameters));
+                  MultiThreadPeakFinderModule.class, parameters, getModuleCallDate()));
 
           // Remove the original peaklist if requested
           if (removeOriginal) {

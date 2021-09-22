@@ -138,7 +138,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
     }
 
     dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ShoulderPeaksFilterModule.class, parameters));
+        ShoulderPeaksFilterModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

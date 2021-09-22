@@ -159,7 +159,8 @@ public class TSFImportTask extends AbstractTask {
 
     newMZmineFile.setImagingParam(
         new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
+        getModuleCallDate()));
 
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);

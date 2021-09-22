@@ -340,7 +340,7 @@ public class ImageBuilderTask extends AbstractTask {
     }
     rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ImageBuilderModule.class, parameterSet));
+        ImageBuilderModule.class, parameterSet, getModuleCallDate()));
     project.addFeatureList(featureList);
   }
 

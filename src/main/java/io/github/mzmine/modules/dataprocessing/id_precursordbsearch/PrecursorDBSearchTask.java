@@ -142,8 +142,7 @@ class PrecursorDBSearchTask extends AbstractTask {
     // Add task description to peakList
     peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Possible precursor identification using MS/MS spectral database " + dataBaseFile,
-        PrecursorDBSearchModule.class,
-        parameters));
+        PrecursorDBSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
   }

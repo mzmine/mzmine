@@ -121,7 +121,7 @@ public class IonNetworkingTask extends AbstractTask {
       library = new IonNetworkLibrary(p, mzTolerance);
       annotateGroups(library);
       featureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters, getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
     } catch (Exception t) {
       LOG.log(Level.SEVERE, "Adduct search error", t);

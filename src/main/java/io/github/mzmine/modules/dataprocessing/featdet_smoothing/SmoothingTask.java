@@ -200,7 +200,7 @@ public class SmoothingTask extends AbstractTask {
     }
 
     smoothedList.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters, getModuleCallDate()));
     project.addFeatureList(smoothedList);
 
     if(removeOriginal) {

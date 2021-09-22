@@ -252,7 +252,7 @@ public class JoinAlignerTask extends AbstractTask {
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class, parameters));
+        new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class, parameters, getModuleCallDate()));
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);
 

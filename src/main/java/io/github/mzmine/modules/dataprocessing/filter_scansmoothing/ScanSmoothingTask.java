@@ -261,7 +261,7 @@ public class ScanSmoothingTask extends AbstractTask {
           newRDF.getAppliedMethods().add(appliedMethod);
         }
         newRDF.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            ScanSmoothingModule.class, parameters));
+            ScanSmoothingModule.class, parameters, getModuleCallDate()));
 
         // Add the newly created file to the project
         project.addFile(newRDF);

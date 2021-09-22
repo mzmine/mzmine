@@ -132,7 +132,7 @@ public class GroupMS2Task extends AbstractTask {
       }
 
       list.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters, getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished adding all MS2 scans to their features in " + list.getName());
 

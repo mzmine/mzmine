@@ -300,7 +300,8 @@ public class TDFImportTask extends AbstractTask {
     }
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
+        getModuleCallDate()));
     setFinishedPercentage(1.0);
     logger.info(
         "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "

@@ -126,7 +126,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
     rowsToRemove.forEach(newFeatureList::removeRow);
 
     newFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(MobilityMzRegionExtractionModule.class, parameterSet));
+        new SimpleFeatureListAppliedMethod(MobilityMzRegionExtractionModule.class, parameterSet, getModuleCallDate()));
 
     project.addFeatureList(newFeatureList);
 

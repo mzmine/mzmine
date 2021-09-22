@@ -150,7 +150,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     }
 
     peakList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(OnlineDBSearchModule.class, parameters));
+        new SimpleFeatureListAppliedMethod(OnlineDBSearchModule.class, parameters, getModuleCallDate()));
   }
 
   /**

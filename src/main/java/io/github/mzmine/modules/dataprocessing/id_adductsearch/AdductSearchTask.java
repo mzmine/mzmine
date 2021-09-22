@@ -106,7 +106,7 @@ public class AdductSearchTask extends AbstractTask {
         // Add task description to peakList.
         peakList.addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod("Identification of adducts", AdductSearchModule.class,
-                parameters));
+                parameters, getModuleCallDate()));
 
         // Done.
         setStatus(TaskStatus.FINISHED);

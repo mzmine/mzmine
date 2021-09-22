@@ -157,7 +157,7 @@ public class CliqueMSTask extends AbstractTask {
       addFeatureIdentity(anClique, addInfos);
 
       peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(CliqueMSModule.class,
-          parameters));
+          parameters, getModuleCallDate()));
 
       // Finished.
       this.progress.setValue(1.0);

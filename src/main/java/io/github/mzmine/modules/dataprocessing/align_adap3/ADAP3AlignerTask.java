@@ -230,7 +230,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     alignedPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ADAP3AlignerModule.class, parameters));
+        ADAP3AlignerModule.class, parameters, getModuleCallDate()));
     return alignedPeakList;
   }
 

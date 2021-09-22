@@ -174,7 +174,7 @@ public class LipidSearchTask extends AbstractTask {
 
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid annotation",
-        LipidSearchModule.class, parameters));
+        LipidSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

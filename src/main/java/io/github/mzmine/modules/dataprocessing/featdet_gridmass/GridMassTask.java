@@ -575,7 +575,7 @@ public class GridMassTask extends AbstractTask {
     logger.info("Peaks on " + dataFile + " = " + newPeakList.getNumberOfRows());
 
     dataFile.getAppliedMethods().forEach(method -> newPeakList.getAppliedMethods().add(method));
-    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(GridMassModule.class, parameters));
+    newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(GridMassModule.class, parameters, getModuleCallDate()));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

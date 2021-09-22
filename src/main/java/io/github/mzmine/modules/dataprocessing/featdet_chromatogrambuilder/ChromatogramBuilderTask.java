@@ -191,7 +191,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
     dataFile.getAppliedMethods().forEach(m -> newPeakList.getAppliedMethods().add(m));
     // Add new peaklist to the project
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ChromatogramBuilderModule.class, parameters));
+        ChromatogramBuilderModule.class, parameters, getModuleCallDate()));
     project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks

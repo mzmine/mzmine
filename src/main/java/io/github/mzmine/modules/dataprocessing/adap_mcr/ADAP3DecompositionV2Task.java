@@ -164,7 +164,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
-            ADAPMultivariateCurveResolutionModule.class, parameters));
+            ADAPMultivariateCurveResolutionModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
     List<BetterPeak> chromatograms = utils.getPeaks(lists.chromatograms);
