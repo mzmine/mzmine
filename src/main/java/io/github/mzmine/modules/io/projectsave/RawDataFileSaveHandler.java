@@ -108,6 +108,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
     List<BatchQueue> cleanedBatchQueues = List.of(SavingUtils.makeBatchQueue(files));
+    progress += stepProgress;
 
     if (saveFilesInProject) {
       description = prefix + "Zipping raw data files.";
