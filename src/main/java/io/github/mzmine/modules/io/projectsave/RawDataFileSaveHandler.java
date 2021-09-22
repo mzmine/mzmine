@@ -20,12 +20,9 @@ package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
-import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.batchmode.BatchQueue;
-import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
@@ -44,12 +41,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -112,7 +107,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
-    List<BatchQueue> cleanedBatchQueues = List.of(makeBatchQueue(files));
+    List<BatchQueue> cleanedBatchQueues = List.of(SavingUtils.makeBatchQueue(files));
 
     if (saveFilesInProject) {
       description = prefix + "Zipping raw data files.";
@@ -165,47 +160,6 @@ public class RawDataFileSaveHandler extends AbstractTask {
     progress += stepProgress;
 
     return true;
-  }
-
-  /**
-   *
-   * @param files The raw data files to create a batch queue for.
-   * @return A single batch queue to process all files in the same order.
-   */
-  private BatchQueue makeBatchQueue(List<RawDataFile> files) {
-    // get all applied methods
-    final List<FeatureListAppliedMethod> appliedMethods = files.stream()
-        .flatMap(file -> file.getAppliedMethods().stream())
-        .sorted(Comparator.comparing(FeatureListAppliedMethod::getModuleCallDate)).toList();
-
-    // group applied methods by date
-    final Map<Date, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
-    for (FeatureListAppliedMethod method : appliedMethods) {
-      final List<FeatureListAppliedMethod> value = methodMap
-          .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());
-      value.add(method);
-    }
-    logger.finest(
-        () -> "Detected " + methodMap.size() + " individual module calls of raw data methods.");
-
-    final BatchQueue queue = new BatchQueue();
-    for (final List<FeatureListAppliedMethod> methodList : methodMap.values()) {
-      final MZmineModule module = methodList.get(0).getModule();
-      if (!(module instanceof MZmineProcessingModule procModule)) {
-        logger.warning(() -> "Cannot add module " + module.getName()
-            + " to raw file batch queue, because it is not an MZmineProcessingModule."
-            + " This could lead to problems on project import.");
-        continue;
-      }
-
-      // add a new queue step, replace raw file parameters to SPECIFIC
-      queue.add(new MZmineProcessingStepImpl<>(procModule, SavingUtils
-          .replaceAndMergeFileAndRawParameters(
-              methodList.stream().map(FeatureListAppliedMethod::getParameters).toList())));
-      logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
-    }
-
-    return queue;
   }
 
   /**
