@@ -274,6 +274,7 @@ public class ProjectOpeningTask extends AbstractTask {
     String projectVersionString = reader.readLine();
     String mzmineVersionString = String.valueOf(MZmineCore.getMZmineVersion());
 
+    // todo adjust for new version when project load/save is done
     /*Matcher m = versionPattern.matcher(mzmineVersionString);
     if (!m.find()) {
       throw new IOException("Invalid MZmine version " + mzmineVersionString);
@@ -312,7 +313,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
     // Default opening handler for MZmine 3 and higher
 //    peakListOpenHandler = new PeakListOpenHandler_3_0_old(dataFilesIDMap);
-//    userParameterOpenHandler = new UserParameterOpenHandler_3_0_old(newProject, dataFilesIDMap);
+//    userParameterOpenHandler = new UserParameterOpenHandler_3_0(newProject, dataFilesIDMap);
 
     rawDataFileOpenHandler = RawDataFileOpenHandler.forVersion(projectVersionString,getModuleCallDate());
   }
