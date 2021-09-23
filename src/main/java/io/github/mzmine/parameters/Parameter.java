@@ -59,11 +59,14 @@ public interface Parameter<ValueType> {
   public Parameter<ValueType> cloneParameter();
 
   public default boolean valueEquals(Parameter<?> that) {
-    if (that.getClass() == this.getClass() && getValue() == null && that.getValue() == null) {
-      return true;
-    }
-    if (that == null || !(this.getClass() == that.getClass())) {
+    if(that == null) {
       return false;
+    }
+    if (!(this.getClass() == that.getClass())) {
+      return false;
+    }
+    if (getValue() == null && that.getValue() == null) {
+      return true;
     }
     if (getValue() instanceof Double) {
       return Double.compare((Double) this.getValue(), (Double) that.getValue()) == 0;
@@ -74,8 +77,7 @@ public interface Parameter<ValueType> {
     } else if (getValue() instanceof String) {
       return this.getValue().equals(that.getValue());
     } else if (getValue() instanceof Object[]) {
-      boolean b = Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
-      return b;
+      return Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
     }
     return this.getValue().equals(that.getValue());
   }
