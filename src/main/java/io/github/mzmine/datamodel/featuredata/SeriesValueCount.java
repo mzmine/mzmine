@@ -26,6 +26,8 @@ package io.github.mzmine.datamodel.featuredata;
  */
 interface SeriesValueCount {
 
+  public static final String XML_NUM_VALUES_ATTR = "numvalues";
+
   /**
    *
    * @return The number of non-zero values in this series.

@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import java.nio.DoubleBuffer;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Stores a series of intensities.
@@ -26,6 +28,8 @@ import java.nio.DoubleBuffer;
  * @author https://github.com/SteffenHeu
  */
 public interface IntensitySeries extends SeriesValueCount {
+
+  public static String XML_ELEMENT = "intensityseries";
 
   /**
    *
@@ -63,4 +67,7 @@ public interface IntensitySeries extends SeriesValueCount {
     return getIntensityValueBuffer().capacity();
   }
 
+  default void saveValueToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeAttribute(XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+  }
 }

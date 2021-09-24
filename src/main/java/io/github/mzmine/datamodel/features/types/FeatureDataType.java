@@ -18,16 +18,24 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.ListRowBinding;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureDataType extends
     DataType<ObjectProperty<IonTimeSeries<? extends Scan>>> implements NoTextColumn, NullColumnType {
@@ -57,4 +65,16 @@ public class FeatureDataType extends
     return List.of(new ListRowBinding(new FeatureShapeType(), this));
   }
 
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value)
+      throws XMLStreamException {
+
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    return super.loadFromXML(reader, flist, row, feature, file);
+  }
 }

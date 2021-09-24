@@ -8,6 +8,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.StreamCopy;
@@ -43,18 +44,7 @@ public class FeatureListSaveTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
 
-  private static final String NUM_ROWS = "numberofrows";
-  private static final String FLIST_NAME = "featurelistname";
-  private static final String DATE_CREATED = "date";
-  private static final String DATA_TYPE_ELEMENT = "datatype";
-  private static final String DATA_TYPE_ID = "type";
-  private static final String FEATURE = "feature";
-  private static final String RAW_FILE = "msdatafile";
-  private static final String ROW = "row";
-  private static final String FEATURE_LIST_ENTRY = "featurelist";
-  private static final String ROOT_ELEMENT = "root";
-  private static final String APPLIED_METHOD = "appliedmethod";
-  private static final String APPLIED_METHODS_LIST = "appliedmethodslist";
+
   private static final String METADATA_FILE_SUFFIX = "_metadata.xml";
   private static final String DATA_FILE_SUFFIX = "_data.xml";
   private static final String FLIST_FOLDER = "featurelists/";
@@ -111,14 +101,14 @@ public class FeatureListSaveTask extends AbstractTask {
       final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
       final Document document = dBuilder.newDocument();
-      final Element root = document.createElement(ROOT_ELEMENT);
+      final Element root = document.createElement(CONST.XML_ROOT_ELEMENT);
       document.appendChild(root);
-      final Element appliedMethodsList = document.createElement(APPLIED_METHODS_LIST);
+      final Element appliedMethodsList = document.createElement(CONST.XML_APPLIED_METHODS_LIST_ELEMENT);
       root.appendChild(appliedMethodsList);
-      appliedMethodsList.setAttribute(FLIST_NAME, flist.getName());
+      appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
 
       for (FeatureListAppliedMethod appliedMethod : flist.getAppliedMethods()) {
-        Element methodElement = document.createElement(APPLIED_METHOD);
+        Element methodElement = document.createElement(CONST.XML_APPLIED_METHOD_ELEMENT);
         appliedMethod.saveValueToXML(methodElement);
         appliedMethodsList.appendChild(methodElement);
       }
@@ -171,9 +161,9 @@ public class FeatureListSaveTask extends AbstractTask {
       writer.writeStartDocument("UTF-8", "1.0");
 
       writer.writeStartElement("featurelist");
-      writer.writeAttribute(FLIST_NAME, flist.getName());
-      writer.writeAttribute(NUM_ROWS, String.valueOf(flist.getNumberOfRows()));
-      writer.writeAttribute(DATE_CREATED, flist.getDateCreated());
+      writer.writeAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
+      writer.writeAttribute(CONST.XML_NUM_ROWS_ATTR, String.valueOf(flist.getNumberOfRows()));
+      writer.writeAttribute(CONST.XML_DATE_CREATED_ATTR, flist.getDateCreated());
 
       for (FeatureListRow r : flist.getRows()) {
         if (isCanceled()) {
@@ -213,7 +203,7 @@ public class FeatureListSaveTask extends AbstractTask {
   private void writeRow(XMLStreamWriter writer, ModularFeatureListRow row)
       throws XMLStreamException {
 
-    writer.writeStartElement(ROW);
+    writer.writeStartElement(CONST.XML_ROW_ELEMENT);
 
     for (Entry<DataType, Property<?>> entry : row.getMap().entrySet()) {
       DataType<?> dataType = entry.getKey();
@@ -233,8 +223,8 @@ public class FeatureListSaveTask extends AbstractTask {
 
   private void writeDataType(XMLStreamWriter writer, DataType<?> dataType, Object value)
       throws XMLStreamException {
-    writer.writeStartElement(DATA_TYPE_ELEMENT);
-    writer.writeAttribute(DATA_TYPE_ID, dataType.getUniqueID());
+    writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+    writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, dataType.getUniqueID());
 
     try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
       dataType.saveToXML(writer, value);
@@ -248,8 +238,8 @@ public class FeatureListSaveTask extends AbstractTask {
 
   private void writeFeature(XMLStreamWriter writer, ModularFeature feature)
       throws XMLStreamException {
-    writer.writeStartElement(FEATURE);
-    writer.writeAttribute(RAW_FILE, feature.getRawDataFile().getName());
+    writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, feature.getRawDataFile().getName());
 
     for (Entry<DataType, Property<?>> entry : feature.getMap().entrySet()) {
       writeDataType(writer, entry.getKey(), entry.getValue().getValue());
@@ -259,10 +249,10 @@ public class FeatureListSaveTask extends AbstractTask {
   }
 
   private String getDataFileName(ModularFeatureList flist) {
-    return FLIST_FOLDER + FEATURE_LIST_ENTRY + "_" + flist.getName() + DATA_FILE_SUFFIX;
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flist.getName() + DATA_FILE_SUFFIX;
   }
 
   private String getMetadataFileName(ModularFeatureList flist) {
-    return FLIST_FOLDER + FEATURE_LIST_ENTRY + "_" + flist.getName() + METADATA_FILE_SUFFIX;
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flist.getName() + METADATA_FILE_SUFFIX;
   }
 }

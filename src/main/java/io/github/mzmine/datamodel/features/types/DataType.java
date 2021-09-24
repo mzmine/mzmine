@@ -44,6 +44,7 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -246,13 +247,29 @@ public abstract class DataType<T extends Property<?>> {
    * closed.
    *
    * @param writer The writer.
-   * @param value The value.
+   * @param value  The value.
    */
   public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
       throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
     writer.writeCharacters(String.valueOf(value));
+  }
+
+  /**
+   * @param reader  The xml reader. The current position is an element of this data type.
+   * @param flist   The current {@link ModularFeatureList}. Not null.
+   * @param row     The current {@link ModularFeatureListRow}. Not null.
+   * @param feature The current {@link ModularFeature}. May be null.
+   * @param file    The {@link RawDataFile} of the current feature. May be null.
+   * @return The value of the data type being read.
+   * @throws XMLStreamException
+   */
+  public Object loadFromXML(@NotNull final XMLStreamReader reader,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
+    return null;
   }
 }
