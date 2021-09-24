@@ -23,12 +23,19 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * TODO: Move to io.github.mzmine.datamodel and rename to SimpleAppliedMethod
  */
 public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod {
+
+  private static final Logger logger = Logger
+      .getLogger(SimpleFeatureListAppliedMethod.class.getName());
 
   private final String description;
   private final Date moduleCallDate;
@@ -90,5 +97,49 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
   @Override
   public Date getModuleCallDate() {
     return moduleCallDate;
+  }
+
+  /**
+   * @param element The xml element for this {@link FeatureListAppliedMethod}.
+   */
+  @Override
+  public void saveValueToXML(Element element) {
+    final Document doc = element.getOwnerDocument();
+
+    final Element descriptionElement = doc.createElement("description");
+    descriptionElement.setTextContent(description);
+    element.appendChild(descriptionElement);
+
+    final Element moduleElement = doc.createElement("module");
+    moduleElement.setAttribute("class", module.getClass().getName());
+    moduleElement.setAttribute("date", String.valueOf(moduleCallDate.getTime()));
+    element.appendChild(moduleElement);
+
+    final Element parametersElement = doc.createElement("parameters");
+    parameters.saveValuesToXML(parametersElement);
+    element.appendChild(parametersElement);
+  }
+
+  public static SimpleFeatureListAppliedMethod loadValueFromXML(Element element) {
+    final Element moduleElement = (Element) element.getElementsByTagName("module").item(0);
+    String moduleClassName = moduleElement.getAttribute("class");
+    final Element parametersElement = (Element) element.getElementsByTagName("parameters").item(0);
+    final Element descriptionElement = (Element) element.getElementsByTagName("description")
+        .item(0);
+
+    try {
+      Class<? extends MZmineModule> moduleClass = (Class<? extends MZmineModule>) Class
+          .forName(moduleClassName);
+      ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
+          .cloneParameterSet();
+      moduleParameters.loadValuesFromXML(parametersElement);
+
+      final Date date = new Date(Long.parseLong(moduleElement.getAttribute("date")));
+      return new SimpleFeatureListAppliedMethod(descriptionElement.getTextContent(), moduleClass,
+          moduleParameters, date);
+    } catch (Exception | NoClassDefFoundError e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      return null;
+    }
   }
 }

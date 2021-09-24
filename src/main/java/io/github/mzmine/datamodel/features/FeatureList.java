@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Interface for feature list
@@ -374,5 +375,7 @@ public interface FeatureList {
     public MZmineModule getModule();
 
     public Date getModuleCallDate();
+
+    public void saveValueToXML(Element element);
   }
 }
