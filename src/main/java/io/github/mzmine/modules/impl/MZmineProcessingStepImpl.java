@@ -20,7 +20,7 @@ package io.github.mzmine.modules.impl;
 
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.io.projectsave.SavingUtils;
+import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule> implement
       return false;
     }
 
-    return getModule().equals(that.getModule()) && SavingUtils
+    return getModule().equals(that.getModule()) && RawDataSavingUtils
         .parameterSetsEqual(parameters, that.getParameterSet(), false, false);
   }
 }

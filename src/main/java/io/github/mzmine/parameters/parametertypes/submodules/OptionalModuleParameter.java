@@ -18,7 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
-import io.github.mzmine.modules.io.projectsave.SavingUtils;
+import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -171,7 +171,7 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
       return false;
     }
 
-    return SavingUtils
+    return RawDataSavingUtils
         .parameterSetsEqual(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(), false, false);
   }
 }

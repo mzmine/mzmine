@@ -107,7 +107,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
 
   public boolean saveRawDataFilesAsBatch() throws IOException, ParserConfigurationException {
 
-    List<BatchQueue> cleanedBatchQueues = List.of(SavingUtils.makeBatchQueue(files));
+    List<BatchQueue> cleanedBatchQueues = List.of(RawDataSavingUtils.makeBatchQueue(files));
     progress += stepProgress;
 
     if (saveFilesInProject) {

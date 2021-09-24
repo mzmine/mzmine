@@ -31,9 +31,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SavingUtils {
+public class RawDataSavingUtils {
 
-  private static final Logger logger = Logger.getLogger(SavingUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(RawDataSavingUtils.class.getName());
 
   /**
    *
@@ -67,7 +67,7 @@ public class SavingUtils {
       }
 
       // add a new queue step, replace raw file parameters to SPECIFIC
-      queue.add(new MZmineProcessingStepImpl<>(procModule, SavingUtils
+      queue.add(new MZmineProcessingStepImpl<>(procModule, RawDataSavingUtils
           .replaceAndMergeFileAndRawParameters(
               methodList.stream().map(FeatureListAppliedMethod::getParameters).toList())));
       logger.finest(() -> "Added module " + module.getName() + " to raw file batch queue.");
@@ -90,7 +90,7 @@ public class SavingUtils {
       for (List<BatchQueue> mergableQueues : mergableQueuesList) {
         boolean found = true;
         for (BatchQueue mergableQueue : mergableQueues) {
-          if (!SavingUtils.queuesEqual(originalQueue, mergableQueue, true, true, true)) {
+          if (!RawDataSavingUtils.queuesEqual(originalQueue, mergableQueue, true, true, true)) {
             found = false;
           }
         }
@@ -111,7 +111,7 @@ public class SavingUtils {
 
   /**
    * @return The merged queue or null if queues are not equal.
-   * @see SavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean, boolean, boolean)
+   * @see RawDataSavingUtils#queuesEqual(BatchQueue, BatchQueue, boolean, boolean, boolean)
    */
   @Nullable
   public static BatchQueue mergeQueues(BatchQueue q1, BatchQueue q2, boolean mergeSubsets) {
