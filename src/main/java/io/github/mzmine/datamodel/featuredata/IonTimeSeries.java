@@ -21,6 +21,8 @@ package io.github.mzmine.datamodel.featuredata;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,4 +68,5 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
+  public void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
 }

@@ -249,7 +249,9 @@ public abstract class DataType<T extends Property<?>> {
    * @param writer The writer.
    * @param value  The value.
    */
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value)
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
     if (value == null) {
       return;

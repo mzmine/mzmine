@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -37,6 +38,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -103,7 +106,8 @@ public class FeatureListSaveTask extends AbstractTask {
       final Document document = dBuilder.newDocument();
       final Element root = document.createElement(CONST.XML_ROOT_ELEMENT);
       document.appendChild(root);
-      final Element appliedMethodsList = document.createElement(CONST.XML_APPLIED_METHODS_LIST_ELEMENT);
+      final Element appliedMethodsList = document
+          .createElement(CONST.XML_APPLIED_METHODS_LIST_ELEMENT);
       root.appendChild(appliedMethodsList);
       appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
 
@@ -211,23 +215,26 @@ public class FeatureListSaveTask extends AbstractTask {
       if (dataType instanceof FeaturesType) {
         continue;
       }
-      writeDataType(writer, dataType, valueProperty.getValue());
+      writeDataType(writer, dataType, valueProperty.getValue(), flist, row, null, null);
     }
 
     for (ModularFeature feature : row.getFeatures()) {
-      writeFeature(writer, feature);
+      writeFeature(writer, row, feature);
     }
 
     writer.writeEndElement();
   }
 
-  private void writeDataType(XMLStreamWriter writer, DataType<?> dataType, Object value)
-      throws XMLStreamException {
+  private void writeDataType(XMLStreamWriter writer, DataType<?> dataType,
+      @Nullable final Object value, @NotNull final ModularFeatureList flist,
+      @NotNull final ModularFeatureListRow row, @Nullable final ModularFeature feature,
+      @Nullable final RawDataFile file) throws XMLStreamException {
+
     writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
     writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, dataType.getUniqueID());
 
     try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-      dataType.saveToXML(writer, value);
+      dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
       logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
           + " with value " + String.valueOf(value) + " to xml.");
@@ -236,13 +243,16 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeEndElement();
   }
 
-  private void writeFeature(XMLStreamWriter writer, ModularFeature feature)
-      throws XMLStreamException {
+  private void writeFeature(XMLStreamWriter writer, ModularFeatureListRow row,
+      ModularFeature feature) throws XMLStreamException {
+    final RawDataFile rawDataFile = feature.getRawDataFile();
+
     writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
-    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, feature.getRawDataFile().getName());
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
 
     for (Entry<DataType, Property<?>> entry : feature.getMap().entrySet()) {
-      writeDataType(writer, entry.getKey(), entry.getValue().getValue());
+      writeDataType(writer, entry.getKey(), entry.getValue().getValue(), flist, row, feature,
+          rawDataFile);
     }
 
     writer.writeEndElement();
@@ -253,6 +263,7 @@ public class FeatureListSaveTask extends AbstractTask {
   }
 
   private String getMetadataFileName(ModularFeatureList flist) {
-    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flist.getName() + METADATA_FILE_SUFFIX;
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flist.getName()
+        + METADATA_FILE_SUFFIX;
   }
 }

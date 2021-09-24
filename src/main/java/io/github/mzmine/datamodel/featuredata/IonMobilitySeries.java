@@ -18,16 +18,42 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Tag interface for mobilograms.
  */
 public interface IonMobilitySeries extends IonSpectrumSeries<MobilityScan>, MobilitySeries {
 
+  public static final String XML_ION_MOBILITY_SERIES_ELEMENT = "ionmobilityseries";
+  public static final String XML_FRAME_INDEX_ELEMENT = "frame";
+
+  public static void saveMobilityScanListToXML(XMLStreamWriter writer, IonMobilitySeries series,
+      List<MobilityScan> allScans) throws XMLStreamException {
+    writer.writeStartElement(XML_ION_MOBILITY_SERIES_ELEMENT);
+    writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR,
+        String.valueOf(series.getNumberOfValues()));
+
+    final Frame frame = series.getSpectrum(0).getFrame();
+    final int frameIndex = frame.getDataFile().getScans().indexOf(frame);
+    if (frameIndex == -1) {
+      throw new IllegalArgumentException("Cannot find frame.");
+    }
+    writer.writeAttribute(XML_FRAME_INDEX_ELEMENT, String.valueOf(frameIndex));
+
+    IonSpectrumSeries.saveSpectraIndicesToXML(writer, series, allScans);
+    IntensitySeries.saveIntensityValuesToXML(writer, series);
+    MzSeries.saveMzValuesToXML(writer, series);
+
+    writer.writeEndElement();
+  }
+
   @Override
   default double getMobility(int index) {
     return getSpectrum(index).getMobility();
   }
-
 }

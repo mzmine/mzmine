@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -29,16 +30,22 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public interface IntensitySeries extends SeriesValueCount {
 
-  public static String XML_ELEMENT = "intensityseries";
+  public static final String XML_ELEMENT = "intensityseries";
+
+  static void saveIntensityValuesToXML(XMLStreamWriter writer, IntensitySeries series)
+      throws XMLStreamException {
+    writer.writeStartElement(IntensitySeries.XML_ELEMENT);
+    writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(series.getIntensityValueBuffer()));
+    writer.writeEndElement();
+  }
 
   /**
-   *
    * @return All non-zero intensities.
    */
   DoubleBuffer getIntensityValueBuffer();
 
   /**
-   *
    * @param dst results are reflected in this array
    * @return All non-zero intensities.
    */
@@ -51,7 +58,6 @@ public interface IntensitySeries extends SeriesValueCount {
   }
 
   /**
-   *
    * @param index
    * @return The intensity at the index position. Note that this
    */
@@ -60,14 +66,9 @@ public interface IntensitySeries extends SeriesValueCount {
   }
 
   /**
-   *
    * @return The number of non-zero intensity values in this series.
    */
   default int getNumberOfValues() {
     return getIntensityValueBuffer().capacity();
-  }
-
-  default void saveValueToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeAttribute(XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
   }
 }

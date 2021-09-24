@@ -19,7 +19,10 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Stores series of m/z values.
@@ -27,6 +30,16 @@ import java.nio.DoubleBuffer;
  * @author https://github.com/SteffenHeu
  */
 public interface MzSeries extends SeriesValueCount {
+
+  public static final String XML_ELEMENT = "mzseries";
+
+  static void saveMzValuesToXML(XMLStreamWriter writer, MzSeries series)
+      throws XMLStreamException {
+    writer.writeStartElement(MzSeries.XML_ELEMENT);
+    writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(series.getMZValueBuffer()));
+    writer.writeEndElement();
+  }
 
   /**
    * @return All mz values corresponding to non-0 intensities.

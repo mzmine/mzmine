@@ -20,7 +20,10 @@ package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +34,17 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
+
+  public static final String XML_SPECTRA_ELEMENT = "spectrumseries";
+
+  public static <T extends MassSpectrum> void saveSpectraIndicesToXML(XMLStreamWriter writer,
+      IonSpectrumSeries<T> series, List<T> allScans) throws XMLStreamException {
+    writer.writeStartElement(IonSpectrumSeries.XML_SPECTRA_ELEMENT);
+    writer.writeAttribute(XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    final int[] indices = ParsingUtils.getIndicesOfSubListElements(series.getSpectra(), allScans);
+    writer.writeCharacters(ParsingUtils.intArrayToString(indices, indices.length));
+    writer.writeEndElement();
+  }
 
   List<T> getSpectra();
 
@@ -76,6 +90,8 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param newIntensityValues
    * @return
    */
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @NotNull double[] newMzValues,
-      @NotNull double[] newIntensityValues);
+  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+
+
 }

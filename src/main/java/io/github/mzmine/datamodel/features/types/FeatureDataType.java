@@ -38,7 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureDataType extends
-    DataType<ObjectProperty<IonTimeSeries<? extends Scan>>> implements NoTextColumn, NullColumnType {
+    DataType<ObjectProperty<IonTimeSeries<? extends Scan>>> implements NoTextColumn,
+    NullColumnType {
 
   @NotNull
   @Override
@@ -66,15 +67,31 @@ public class FeatureDataType extends
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value)
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
+    if (!(value instanceof IonTimeSeries series)) {
+      return;
+    }
+    if (file == null) {
+      throw new IllegalArgumentException("Cannot save feature data for file = null");
+    }
+    final List<? extends Scan> selectedScans = flist.getSeletedScans(file);
+    if (selectedScans == null) {
+      throw new IllegalArgumentException("Cannot find selected scans.");
+    }
 
+    writer.writeStartElement(getUniqueID());
+    series.saveValueToXML(writer, selectedScans);
+    writer.writeEndElement();
   }
 
   @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
+  public Object loadFromXML(@NotNull final XMLStreamReader reader,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
     return super.loadFromXML(reader, flist, row, feature, file);
   }
 }

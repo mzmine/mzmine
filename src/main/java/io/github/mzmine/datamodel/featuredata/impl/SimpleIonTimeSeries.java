@@ -20,8 +20,10 @@ package io.github.mzmine.datamodel.featuredata.impl;
 
 import com.google.common.collect.Comparators;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.MzSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -29,6 +31,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
+
+  public static final String XML_ELEMENT = "simpleiontimeseries";
 
   private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
@@ -132,5 +138,16 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       @NotNull double[] newIntensityValues) {
 
     return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, this.scans);
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans) throws XMLStreamException {
+    writer.writeStartElement(SimpleIonTimeSeries.XML_ELEMENT);
+
+    IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
+    IntensitySeries.saveIntensityValuesToXML(writer, this);
+    MzSeries.saveMzValuesToXML(writer, this);
+
+    writer.writeEndElement();
   }
 }

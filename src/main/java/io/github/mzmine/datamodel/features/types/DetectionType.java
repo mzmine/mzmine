@@ -77,7 +77,9 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
   }
 
   @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value)
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
     if (!(value instanceof FeatureStatus status)) {
       return;

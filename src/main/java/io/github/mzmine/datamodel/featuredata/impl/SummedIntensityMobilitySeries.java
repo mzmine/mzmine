@@ -25,13 +25,17 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.datamodel.featuredata.SeriesValueCount;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +46,9 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
+
+  public static final String XML_ELEMENT = "summedmobilogram";
+  public static final String XML_MOBILITIES_ELEMENT = "mobilities";
 
   final DoubleBuffer intensityValues;
   final DoubleBuffer mobilityValues;
@@ -155,7 +162,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     builder.append("/");
     builder.append(getNumberOfDataPoints());
     builder.append(": ");
-    for(int i = 0; i < getNumberOfValues(); i++) {
+    for (int i = 0; i < getNumberOfValues(); i++) {
       builder.append(String.format("(%2.5f", getMobility(i)));
       builder.append(", ");
       builder.append(String.format("(%.1f", getIntensity(i)));
@@ -164,4 +171,18 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return builder.toString();
   }
 
+  public void saveValueToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer
+        .writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+
+    writer.writeStartElement(XML_MOBILITIES_ELEMENT);
+    writer
+        .writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(getMobilityValues()));
+    writer.writeEndElement();
+
+    IntensitySeries.saveIntensityValuesToXML(writer, this);
+    writer.writeEndElement();
+  }
 }

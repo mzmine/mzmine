@@ -24,7 +24,7 @@ package io.github.mzmine.datamodel.featuredata;
  *
  * @author https://github.com/SteffenHeu
  */
-interface SeriesValueCount {
+public interface SeriesValueCount {
 
   public static final String XML_NUM_VALUES_ATTR = "numvalues";
 
