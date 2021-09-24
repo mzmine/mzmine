@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
@@ -65,6 +66,7 @@ public interface SmoothingAlgorithm extends MZmineModule {
     final IonTimeSeries<? extends Scan> originalSeries = feature.getFeatureData();
     final double[] originalIntensities = new double[originalSeries.getNumberOfValues()];
     final double[] newIntensities;
+
     originalSeries.getIntensityValues(originalIntensities);
 
     if (smoothedIntensities == null) {
@@ -73,7 +75,8 @@ public interface SmoothingAlgorithm extends MZmineModule {
     } else {
       newIntensities = new double[originalSeries.getNumberOfValues()];
       int newIntensitiesIndex = 0;
-      for (int i = 0; i < dataAccess.getNumberOfValues(); i++) {
+      for (int i = 0; i < dataAccess.getNumberOfValues() && newIntensitiesIndex < originalSeries
+          .getNumberOfValues(); i++) {
         // check if we originally did have an intensity at the current index. I know that the data
         // access contains more zeros and the zeros of different indices will be matched, but the
         // newIntensitiesIndex will "catch" up, once real intensities are reached.
@@ -123,5 +126,14 @@ public interface SmoothingAlgorithm extends MZmineModule {
     }
 
     return originalSeries;
+  }
+
+  private double[] getOriginalIntensities(IntensitySeries series) {
+    if (series instanceof FeatureFullDataAccess access) {
+      return access.getIntensityValues();
+    } else {
+      double[] originalIntensities = new double[series.getNumberOfValues()];
+      return series.getIntensityValues(originalIntensities);
+    }
   }
 }
