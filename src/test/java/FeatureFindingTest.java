@@ -65,9 +65,9 @@ import java.io.File;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -86,16 +86,13 @@ import org.junit.jupiter.api.TestMethodOrder;
 @DisplayName("Test Feature Finding")
 @TestInstance(Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation.class)
-@Disabled
+//@Disabled
 public class FeatureFindingTest {
 
   private static final Logger logger = Logger.getLogger(FeatureFindingTest.class.getName());
   private static MZmineProject project;
   private final String sample1 = "DOM_a.mzML";
   private final String sample2 = "DOM_b.mzXML";
-  private ModularFeatureList lastFlistA = null;
-  private ModularFeatureList lastFlistB = null;
-
   private final String chromSuffix = "chrom";
   private final String smoothSuffix = "smooth";
   private final String deconSuffix = "decon";
@@ -104,7 +101,8 @@ public class FeatureFindingTest {
   private final String rowFilterSuffix = "rowFilter";
   private final String alignedName = "aligned";
   private final String gapFilledSuffix = "gap";
-
+  private ModularFeatureList lastFlistA = null;
+  private ModularFeatureList lastFlistB = null;
 
   /**
    * Init MZmine core in headless mode with the options -r (keep running) and -m (keep in memory)
@@ -141,11 +139,16 @@ public class FeatureFindingTest {
         .getEmbeddedParameter().setValue(createCentroidMassDetector(0));
 
     logger.info("Testing advanced data import of mzML and mzXML with direct mass detection");
-    boolean finished = MZmineTestUtil
+    TaskResult finished = MZmineTestUtil
         .callModuleWithTimeout(30, AllSpectralDataImportModule.class, paramDataImport);
 
     // should have finished by now
-    assertTrue(finished, "Time out during file read task. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during data import. Not finished in time.";
+      case ERROR -> "Error during data import.";
+      case FINISHED -> "";
+    });
+
     assertEquals(2, project.getDataFiles().length);
     // sort by name
     project.getRawDataFiles().sort(Comparator.comparing(RawDataFile::getName));
@@ -224,18 +227,22 @@ public class FeatureFindingTest {
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");
-    boolean finished = MZmineTestUtil
+    TaskResult finished = MZmineTestUtil
         .callModuleWithTimeout(30, ModularADAPChromatogramBuilderModule.class, paramChrom);
 
     // should have finished by now
-    assertTrue(finished, "Time out during ADAP chromatogram builder. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during chromatogram builder. Not finished in time.";
+      case ERROR -> "Error during chromatogram builder.";
+      case FINISHED -> "";
+    });
 
     assertEquals(project.getFeatureLists().size(), 2);
     // test feature lists
     int filesTested = 0;
     for (FeatureList flist : project.getFeatureLists()) {
       assertEquals(1, flist.getNumberOfRawDataFiles());
-      assertEquals(1, flist.getAppliedMethods().size());
+      assertEquals(2, flist.getAppliedMethods().size());
       // check default sorting of rows
       // assertTrue(MZmineTestUtil.isSorted(flist));
 
@@ -298,11 +305,15 @@ public class FeatureFindingTest {
     paramSmooth.setParameter(SmoothingParameters.suffix, smoothSuffix);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
-    boolean finished = MZmineTestUtil
+    TaskResult finished = MZmineTestUtil
         .callModuleWithTimeout(30, SmoothingModule.class, paramSmooth);
 
     // should have finished by now
-    assertTrue(finished, "Time out during chromatogram smoother. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during chromatogram smoothing. Not finished in time.";
+      case ERROR -> "Error during chromatogram smoothing.";
+      case FINISHED -> "";
+    });
 
     assertEquals(4, project.getFeatureLists().size());
     // test feature lists
@@ -396,6 +407,7 @@ public class FeatureFindingTest {
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, deconSuffix);
 
     // group ms2
+    generalParam.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
     GroupMS2SubParameters groupMS2SubParameters = generalParam
         .getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
         .getEmbeddedParameters();
@@ -404,13 +416,19 @@ public class FeatureFindingTest {
     groupMS2SubParameters
         .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(0.15f, Unit.MINUTES));
 
-    logger.info("Testing chromatogram smoothing (RT, 5 dp)");
-    boolean finished = MZmineTestUtil
-        .callModuleWithTimeout(30, MinimumSearchFeatureResolverModule.class, generalParam);
+    logger.info("Testing chromatogram deconvolution");
+    TaskResult finished = MZmineTestUtil
+        .callModuleWithTimeout(45, MinimumSearchFeatureResolverModule.class, generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during deconvolution smoother. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Time out during feature deconvolution. Not finished in time.";
+      case ERROR -> "Error during feature deconvolution.";
+      case FINISHED -> "";
+    });
 
+    logger.info("Lists after deconvolution:  " + project.getFeatureLists().stream()
+        .map(FeatureList::getName).collect(Collectors.joining(", ")));
     assertEquals(6, project.getFeatureLists().size());
     // test feature lists
     ModularFeatureList processed1 = (ModularFeatureList) project
@@ -462,11 +480,15 @@ public class FeatureFindingTest {
     generalParam.setParameter(IsotopeGrouperParameters.suffix, deisotopeSuffix);
 
     logger.info("Testing deisotoping");
-    boolean finished = MZmineTestUtil
+    TaskResult finished = MZmineTestUtil
         .callModuleWithTimeout(30, IsotopeGrouperModule.class, generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during deisotoping. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during isotope grouper. Not finished in time.";
+      case ERROR -> "Error during isotope grouper.";
+      case FINISHED -> "";
+    });
 
     assertEquals(8, project.getFeatureLists().size());
     // test feature lists
@@ -537,11 +559,15 @@ public class FeatureFindingTest {
     generalParam.setParameter(JoinAlignerParameters.peakListName, alignedName);
 
     logger.info("Testing join aligner");
-    boolean finished = MZmineTestUtil
+    TaskResult finished = MZmineTestUtil
         .callModuleWithTimeout(30, JoinAlignerModule.class, generalParam);
 
     // should have finished by now
-    assertTrue(finished, "Time out during join aligner. Not finished in time.");
+    assertEquals(TaskResult.FINISHED, finished, () -> switch (finished) {
+      case TIMEOUT -> "Timeout during feature join aligner. Not finished in time.";
+      case ERROR -> "Error during join aligner.";
+      case FINISHED -> "";
+    });
 
     assertEquals(9, project.getFeatureLists().size());
     // test feature lists
@@ -576,9 +602,10 @@ public class FeatureFindingTest {
   }
 
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {
-    CentroidMassDetector detect = new CentroidMassDetector();
+    CentroidMassDetector detect = MZmineCore.getModuleInstance(CentroidMassDetector.class);
     CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
     param.setParameter(CentroidMassDetectorParameters.noiseLevel, noise);
+    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
     return new MZmineProcessingStepImpl<>(detect, param);
   }
 
