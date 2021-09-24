@@ -68,7 +68,6 @@ jobs:
         path: build/jpackage/MZmine.app
         retention-days: 7  # store for 7 days
        
-       
     - name: Update Automatic Release Ubuntu
       if: matrix.os == 'ubuntu-latest'
       uses: marvinpinto/action-automatic-releases@latest
@@ -91,15 +90,15 @@ jobs:
         files: build/jpackage/
 
 
-    - name: Update Automatic Release MacOS
-      if: matrix.os == 'macos-latest'
-      uses: marvinpinto/action-automatic-releases@latest
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN}}"
-        automatic_release_tag: "MacOS-latest"
-        prerelease: true
-        title: "MacOS Development Build"
-        files: build/jpackage/MZmine.app
+#    - name: Update Automatic Release MacOS
+#      if: matrix.os == 'macos-latest'
+#      uses: marvinpinto/action-automatic-releases@latest
+#      with:
+#        repo_token: "${{ secrets.GITHUB_TOKEN}}"
+#        automatic_release_tag: "MacOS-latest"
+#        prerelease: true
+#        title: "MacOS Development Build"
+#        files: build/jpackage/MZmine.app
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
 
