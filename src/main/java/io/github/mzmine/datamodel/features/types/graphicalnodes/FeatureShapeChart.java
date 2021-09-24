@@ -31,12 +31,14 @@ import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.RangeUtils;
 import java.awt.Color;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.data.Range;
 
 public class FeatureShapeChart extends StackPane {
 
@@ -46,8 +48,7 @@ public class FeatureShapeChart extends StackPane {
     UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
 
     SimpleXYChart<IonTimeSeriesToXYProvider> chart = new SimpleXYChart<>(
-        uf.format("Retention time", "min"),
-        uf.format("Intensity", "a.u."));
+        uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
     chart.setRangeAxisNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
     chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
     chart.setLegendItemsVisible(false);
@@ -69,10 +70,33 @@ public class FeatureShapeChart extends StackPane {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
+    final ModularFeature bestFeature = row.getBestFeature();
+    final org.jfree.data.Range defaultRange;
+    if (bestFeature != null) {
+      final Float rt = bestFeature.getRT();
+
+      if (bestFeature.getFWHM() != null && !Float.isNaN(bestFeature.getFWHM())) {
+        final Float fwhm = bestFeature.getFWHM();
+        defaultRange = new org.jfree.data.Range(Math.max(rt - 5 * fwhm, 0),
+            Math.min(rt + 5 * fwhm, bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+
+      } else {
+        final Float length = RangeUtils.rangeLength(bestFeature.getRawDataPointsRTRange());
+        defaultRange = new org.jfree.data.Range(Math.max(rt - 3 * length, 0),
+            Math.min(rt + 3 * length,
+                bestFeature.getRawDataFile().getDataRTRange().upperEndpoint()));
+      }
+    } else {
+      defaultRange = new Range(0, 1);
+    }
+
     setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
     Platform.runLater(() -> {
       getChildren().add(chart);
       chart.addDatasets(datasets);
+
+      chart.getXYPlot().getDomainAxis().setRange(defaultRange);
+      chart.getXYPlot().getDomainAxis().setDefaultAutoRange(defaultRange);
     });
   }
 }

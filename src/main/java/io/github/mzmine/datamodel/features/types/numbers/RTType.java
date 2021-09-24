@@ -39,6 +39,13 @@ public class RTType extends FloatType implements ExpandableType {
     super(new DecimalFormat("0.00"));
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "rt";
+  }
+
   @Override
   public NumberFormat getFormatter() {
     try {

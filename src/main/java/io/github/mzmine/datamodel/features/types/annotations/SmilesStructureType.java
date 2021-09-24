@@ -26,11 +26,19 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
 public class SmilesStructureType extends DataType<StringProperty>
     implements EditableColumnType, StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "smiles";
+  }
 
   @Override
   public String getHeaderString() {

@@ -31,6 +31,13 @@ public class MsMsMultimerVerifiedType extends BooleanType implements AnnotationT
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "msms_verifies_multimer";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "MS/MS multimer";
   }

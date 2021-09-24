@@ -23,12 +23,15 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.CompressionUtils;
@@ -47,6 +50,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -56,6 +60,8 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MzXMLImportTask extends AbstractTask {
 
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private File file;
@@ -106,13 +112,17 @@ public class MzXMLImportTask extends AbstractTask {
   private SimpleScan buildingScan;
 
 
-  public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
-    this(project, fileToOpen, newMZmineFile, null);
+  public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
+    this(project, fileToOpen, newMZmineFile, null, module, parameters);
   }
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      AdvancedSpectraImportParameters advancedParam) {
+      AdvancedSpectraImportParameters advancedParam,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
     super(null); // storage in raw data file
+    this.parameters = parameters;
+    this.module = module;
     // 256 kilo-chars buffer
     charBuffer = new StringBuilder(1 << 18);
     parentStack = new LinkedList<SimpleScan>();
@@ -120,16 +130,16 @@ public class MzXMLImportTask extends AbstractTask {
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
 
-    if(advancedParam != null) {
+    if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
         this.ms1Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection)
-            .getEmbeddedParameter().getValue();
+            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+            .getValue();
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
         this.ms2Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection)
-            .getEmbeddedParameter().getValue();
+            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
+            .getValue();
       }
     }
 
@@ -163,6 +173,7 @@ public class MzXMLImportTask extends AbstractTask {
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(file, handler);
 
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -450,9 +461,8 @@ public class MzXMLImportTask extends AbstractTask {
 
           // Set the final data points to the scan
           buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-              precursorMz,
-              precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanId,
-              null);
+              precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
+              scanId, null);
         }
 
         return;

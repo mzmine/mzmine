@@ -26,6 +26,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class AreaRangeType extends IntensityRangeType {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "intensity_range";
+  }
+
   @Override
   @NotNull
   public String getHeaderString() {

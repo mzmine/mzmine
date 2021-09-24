@@ -151,4 +151,11 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
     FormulaAnnotationType.setCurrentElement(data, formula, false);
   }
 
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_identity_modular_type";
+  }
 }

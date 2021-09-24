@@ -21,12 +21,20 @@ package io.github.mzmine.datamodel.features.types.numbers;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredictionModule;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The isotope pattern score is used during molecular formula prediction ({@link
  * FormulaPredictionModule}) and is currently calculated in {@link IsotopePatternScoreCalculator#getSimilarityScore}
  */
 public class IsotopePatternScoreType extends ScoreType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "isotope_pattern_score";
+  }
 
   @Override
   public String getHeaderString() {

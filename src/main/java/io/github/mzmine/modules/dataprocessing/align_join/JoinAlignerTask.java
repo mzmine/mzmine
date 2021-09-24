@@ -218,6 +218,9 @@ public class JoinAlignerTask extends AbstractTask {
           .max(Comparator.comparingLong(e -> e.getValue())).get().getKey();
       leftoverFlists.remove(nextBaseList);
 
+      nextBaseList.getRawDataFiles().forEach(
+          file -> alignedFeatureList.setSelectedScans(file, nextBaseList.getSeletedScans(file)));
+
       // we add a new set of unaligned rows to the feature list that we can align on.
       List<FeatureListRow> nextBaseRows = new ArrayList<>(
           leftoverRows.stream().filter(row -> row.getFeatureList().equals(nextBaseList)).map(

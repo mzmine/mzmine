@@ -29,6 +29,13 @@ public class BestFeatureType extends DataType<ObjectProperty<ModularFeature>> im
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "best_feature";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Best feature";
   }

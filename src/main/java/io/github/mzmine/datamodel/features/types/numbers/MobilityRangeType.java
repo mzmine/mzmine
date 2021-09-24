@@ -38,6 +38,13 @@ public class MobilityRangeType extends FloatRangeType implements ExpandableType 
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_mobility_range";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Mobility range";
   }

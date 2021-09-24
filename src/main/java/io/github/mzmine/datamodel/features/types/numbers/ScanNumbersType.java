@@ -38,11 +38,17 @@ import org.jetbrains.annotations.Nullable;
 
 public class ScanNumbersType extends ListDataType<Scan> implements BindingsFactoryType {
 
+  @NotNull
+  @Override
+  public String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "scan_numbers";
+  }
+
   @Override
   public String getHeaderString() {
     return "Scans";
   }
-
 
   @NotNull
   @Override

@@ -110,12 +110,12 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     return ionTrace.getMobilogramIntensityValues(this);
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     return ionTrace.getMobilogramMzValues(this);
   }
 
@@ -131,7 +131,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   @Override
   public IonSpectrumSeries<MobilityScan> copy(@Nullable MemoryMapStorage storage) {
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValues(), getIntensityValues());
+        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
 
     return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
   }

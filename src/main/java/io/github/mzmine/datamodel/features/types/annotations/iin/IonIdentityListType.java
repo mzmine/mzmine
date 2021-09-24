@@ -36,4 +36,10 @@ public class IonIdentityListType extends ListDataType<IonIdentity>
     return "Ion identity";
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_identity_list";
+  }
 }

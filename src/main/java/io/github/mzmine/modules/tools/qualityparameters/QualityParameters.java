@@ -67,7 +67,7 @@ public class QualityParameters {
 
       height = peak.getHeightProperty();
       rt = peak.getRTProperty();
-      double[] intensities = DataPointUtils.getDoubleBufferAsArray(dps.getIntensityValues());
+      double[] intensities = DataPointUtils.getDoubleBufferAsArray(dps.getIntensityValueBuffer());
 
       // FWHM
       double rtValues[] =
@@ -117,7 +117,7 @@ public class QualityParameters {
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValues());
+        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValueBuffer());
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
@@ -157,7 +157,7 @@ public class QualityParameters {
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValues());
+        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValueBuffer());
 
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
@@ -197,7 +197,7 @@ public class QualityParameters {
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValues());
+        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValueBuffer());
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");

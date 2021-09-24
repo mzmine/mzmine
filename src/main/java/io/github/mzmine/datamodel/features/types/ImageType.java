@@ -39,6 +39,13 @@ public class ImageType extends LinkedDataType
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "image_map";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Images";
   }
