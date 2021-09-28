@@ -19,6 +19,7 @@
 package io.github.mzmine.util;
 
 import java.nio.DoubleBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ParsingUtils {
@@ -109,6 +110,14 @@ public class ParsingUtils {
     }
 
     return indices;
+  }
+
+  public static <T extends Object> List<T> getSublistFromIndices(List<T> list, int[] indices) {
+    List<T> sublist = new ArrayList<>();
+    for (int index : indices) {
+      sublist.add(list.get(index));
+    }
+    return sublist;
   }
 
 }
