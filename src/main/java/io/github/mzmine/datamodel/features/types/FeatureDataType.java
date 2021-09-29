@@ -21,6 +21,8 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ListRowBinding;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -92,6 +94,22 @@ public class FeatureDataType extends
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
-    return super.loadFromXML(reader, flist, row, feature, file);
+
+    assert file != null;
+
+    while (!reader.getLocalName().equals(SimpleIonTimeSeries.XML_ELEMENT) && !reader.getLocalName()
+        .equals(SimpleIonMobilogramTimeSeries.XML_ELEMENT)) {
+      reader.nextTag();
+    }
+
+    switch (reader.getLocalName()) {
+      case SimpleIonTimeSeries.XML_ELEMENT -> {
+        return SimpleIonTimeSeries.loadFromXML(reader, flist.getMemoryMapStorage(), file);
+      }
+      case SimpleIonMobilogramTimeSeries.XML_ELEMENT -> {
+
+      }
+    }
+    return null;
   }
 }
