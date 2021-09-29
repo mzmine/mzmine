@@ -29,18 +29,20 @@ public class CONST {
   public static final String XML_DATA_TYPE_ELEMENT = "datatype";
   public static final String XML_DATA_TYPE_ID_ATTR = "type";
   public static final String XML_FEATURE_ELEMENT = "feature";
-  public static final String XML_RAW_FILE_ELEMENT = "rawdatafile";
-  public static final String XML_RAW_FILE_NAME_ATTR = "name";
   public static final String XML_ROW_ELEMENT = "row";
   public static final String XML_FEATURE_LIST_ELEMENT = "featurelist";
   public static final String XML_ROOT_ELEMENT = "root";
-  public static final String XML_APPLIED_METHOD_ELEMENT = "appliedmethod";
-  public static final String XML_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
-  public static final String XML_RAW_FILES_LIST_ELEMENT = "rawdatafiles";
-  public static final String XML_SELECTED_SCANS_ELEMENT = "selectedscans";
 
   public static final String XML_FLIST_METADATA_ELEMENT = "metadata";
   public static final String XML_FLIST_DATE_CREATED_ELEMENT = "date";
   public static final String XML_FLIST_NAME_ELEMENT = "name";
+  public static final String XML_FLIST_SELECTED_SCANS_ELEMENT = "selectedscans";
+  public static final String XML_FLIST_APPLIED_METHOD_ELEMENT = "appliedmethod";
+  public static final String XML_FLIST_APPLIED_METHODS_LIST_ELEMENT = "appliedmethodslist";
+
+  public static final String XML_RAW_FILES_LIST_ELEMENT = "rawdatafiles";
+  public static final String XML_RAW_FILE_ELEMENT = "rawdatafile";
+  public static final String XML_RAW_FILE_NAME_ELEMENT = "name";
+  public static final String XML_RAW_FILE_PATH_ELEMENT = "path";
 
 }

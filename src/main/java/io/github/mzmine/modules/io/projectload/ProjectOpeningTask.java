@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.io.projectload;
 
 import com.google.common.io.CountingInputStream;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectsave.ProjectSavingTask;
 import io.github.mzmine.modules.io.projectsave.RawDataFileSaveHandler;
 import io.github.mzmine.parameters.ParameterSet;
@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.GUIUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.StreamCopy;
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,7 +43,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -177,13 +177,6 @@ public class ProjectOpeningTask extends AbstractTask {
           loadRawDataFiles(cis, zipFile);
         }
 
-        // Load a feature list
-        final Matcher peakListMatcher = peakListPattern.matcher(entryName);
-        if (peakListMatcher.matches()) {
-          final String peakListName = peakListMatcher.group(2);
-          loadFeatureList(cis, peakListName);
-        }
-
         // Close the ZIP entry
         cis.close();
 
@@ -194,6 +187,8 @@ public class ProjectOpeningTask extends AbstractTask {
         }
 
       }
+
+      loadFeatureList(zipFile);
 
       // Finish and close the project ZIP file
       zipFile.close();
@@ -343,15 +338,18 @@ public class ProjectOpeningTask extends AbstractTask {
     tempConfigFile.delete();
   }
 
-  private void loadFeatureList(InputStream is, String featureListName)
-      throws IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
-    logger.info("Loading feature list " + featureListName);
+  private void loadFeatureList(ZipFile zipFile) {
 
-    currentLoadedObjectName = featureListName;
-
-    FeatureList newFeatureList = peakListOpenHandler.readPeakList(is);
-
-    newProject.addFeatureList(newFeatureList);
+    FeatureListLoadTask task = new FeatureListLoadTask(MemoryMapStorage.forFeatureList(), newProject, zipFile);
+    MZmineCore.getTaskController().addTask(task);
+    currentLoadedObjectName = "Feature lists";
+    while(task.getStatus() != TaskStatus.FINISHED && !task.isCanceled() && ! isCanceled()) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   private void loadUserParameters(InputStream is)

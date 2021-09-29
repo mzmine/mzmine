@@ -75,7 +75,7 @@ public class ParsingUtils {
         b.append(SEPARATOR);
       }
     }
-    return b.toString();
+    return b.toString().trim();
   }
 
   public static int[] stringToIntArray(String string) {

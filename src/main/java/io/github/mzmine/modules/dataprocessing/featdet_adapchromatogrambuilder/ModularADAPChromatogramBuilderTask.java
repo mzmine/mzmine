@@ -158,11 +158,11 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     List<Float> rtListForChromCDF = new ArrayList<>();
 
-    // Check if the scans are properly ordered by RT
-    double prevRT = Double.NEGATIVE_INFINITY;
-    for (Scan s : scans) {
-      if (isCanceled()) {
-        return;
+        // Check if the scans are properly ordered by RT
+        double prevRT = Double.NEGATIVE_INFINITY;
+        for (Scan s : scans) {
+          if (isCanceled()) {
+            return;
       }
 
       if (writeChromCDF) {

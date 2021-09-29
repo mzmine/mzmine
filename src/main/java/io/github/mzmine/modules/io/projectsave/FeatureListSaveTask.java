@@ -165,7 +165,7 @@ public class FeatureListSaveTask extends AbstractTask {
 
   private void appendMetadata(Document document, Element root, ModularFeatureList flist) {
     final Element appliedMethodsList = document
-        .createElement(CONST.XML_APPLIED_METHODS_LIST_ELEMENT);
+        .createElement(CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
     root.appendChild(appliedMethodsList);
 
     // write metadata
@@ -181,7 +181,7 @@ public class FeatureListSaveTask extends AbstractTask {
     // write applied methods
     appliedMethodsList.setAttribute(CONST.XML_FLIST_NAME_ATTR, flist.getName());
     for (FeatureListAppliedMethod appliedMethod : flist.getAppliedMethods()) {
-      Element methodElement = document.createElement(CONST.XML_APPLIED_METHOD_ELEMENT);
+      Element methodElement = document.createElement(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
       appliedMethod.saveValueToXML(methodElement);
       appliedMethodsList.appendChild(methodElement);
     }
@@ -190,10 +190,16 @@ public class FeatureListSaveTask extends AbstractTask {
     Element dataFilesListElement = document.createElement(CONST.XML_RAW_FILES_LIST_ELEMENT);
     for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
       Element fileElement = document.createElement(CONST.XML_RAW_FILE_ELEMENT);
-      fileElement.setTextContent(rawDataFile.getAbsolutePath());
-      fileElement.setAttribute(CONST.XML_RAW_FILE_NAME_ATTR, rawDataFile.getName());
 
-      Element selectedScansElement = document.createElement(CONST.XML_SELECTED_SCANS_ELEMENT);
+      Element fileNameElement = document.createElement(CONST.XML_RAW_FILE_NAME_ELEMENT);
+      fileNameElement.setTextContent(rawDataFile.getName());
+      fileElement.appendChild(fileNameElement);
+
+      Element filePathElement = document.createElement(CONST.XML_RAW_FILE_PATH_ELEMENT);
+      filePathElement.setTextContent(rawDataFile.getAbsolutePath());
+      fileElement.appendChild(filePathElement);
+
+      Element selectedScansElement = document.createElement(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT);
       int[] indices = ParsingUtils
           .getIndicesOfSubListElements((List<Scan>) flist.getSeletedScans(rawDataFile),
               rawDataFile.getScans());
@@ -239,6 +245,9 @@ public class FeatureListSaveTask extends AbstractTask {
         processedRows++;
       }
       writer.writeEndElement();
+      writer.writeEndDocument();
+      writer.flush();
+      writer.close();
     } catch (IOException | XMLStreamException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
       setStatus(TaskStatus.ERROR);
@@ -259,7 +268,7 @@ public class FeatureListSaveTask extends AbstractTask {
       return false;
     }
 
-    tempFile.delete();
+//    tempFile.delete();
     return true;
   }
 

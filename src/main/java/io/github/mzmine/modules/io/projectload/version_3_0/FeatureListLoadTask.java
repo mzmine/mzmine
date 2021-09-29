@@ -107,7 +107,7 @@ public class FeatureListLoadTask extends AbstractTask {
       ZipUtils.unzipDirectory(FeatureListSaveTask.FLIST_FOLDER, zip, tempDirectory.toFile());
       logger.info(() -> "Unzipping feature lists done.");
 
-      File[] files = tempDirectory.toFile()
+      File[] files = new File(tempDirectory.toFile(), FeatureListSaveTask.FLIST_FOLDER)
           .listFiles((dir, name) -> fileNamePattern.matcher(name).matches());
 
       final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
@@ -124,10 +124,14 @@ public class FeatureListLoadTask extends AbstractTask {
                   + metadataFile.getAbsolutePath());
         }
         parseFeatureList(storage, flist, flistFile);
+
+        project.addFeatureList(flist);
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    setStatus(TaskStatus.FINISHED);
   }
 
   private void parseFeatureList(MemoryMapStorage storage, ModularFeatureList flist,
@@ -142,7 +146,10 @@ public class FeatureListLoadTask extends AbstractTask {
           case XMLEvent.START_ELEMENT -> {
             switch (reader.getLocalName()) {
               case CONST.XML_FEATURE_LIST_ELEMENT -> {
-                if (!flist.getName().equals(reader.getText())) {
+                if (!flist.getName()
+                    .equals(reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR)) || !flist
+                    .getDateCreated()
+                    .equals(reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR))) {
                   throw new IllegalArgumentException(
                       "Feature list names do not match. " + flist.getName() + " " + reader
                           .getText());
@@ -166,7 +173,7 @@ public class FeatureListLoadTask extends AbstractTask {
   private ModularFeatureList createRows(MemoryMapStorage storage, File dataFile,
       File metadataFile) {
 
-    ModularFeatureList flist = readMetadataCreateFeatureList(dataFile, storage);
+    ModularFeatureList flist = readMetadataCreateFeatureList(metadataFile, storage);
     if (flist == null) {
       throw new IllegalStateException("Cannot create feature list.");
     }
@@ -188,7 +195,7 @@ public class FeatureListLoadTask extends AbstractTask {
         }
       }
     } catch (IOException | XMLStreamException e) {
-      logger.warning(() -> "Error opening file " + dataFile.getAbsolutePath());
+      logger.log(Level.WARNING, e.getMessage(), e);
       return null;
     }
 
@@ -210,7 +217,7 @@ public class FeatureListLoadTask extends AbstractTask {
       XPathExpression metadataExpr = xpath
           .compile("//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_METADATA_ELEMENT);
       final Element metadataElement = (Element) (((NodeList) metadataExpr
-          .evaluate(file, XPathConstants.NODESET)).item(0));
+          .evaluate(configuration, XPathConstants.NODESET)).item(0));
 
       final ModularFeatureList flist = new ModularFeatureList(
           metadataElement.getElementsByTagName(CONST.XML_FLIST_NAME_ELEMENT).item(0)
@@ -220,9 +227,9 @@ public class FeatureListLoadTask extends AbstractTask {
           metadataElement.getElementsByTagName(CONST.XML_FLIST_DATE_CREATED_ELEMENT).item(0)
               .getTextContent());
 
-      XPathExpression expr = xpath
-          .compile("//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_APPLIED_METHODS_LIST_ELEMENT);
-      NodeList nodelist = (NodeList) expr.evaluate(file, XPathConstants.NODESET);
+      XPathExpression expr = xpath.compile(
+          "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_APPLIED_METHODS_LIST_ELEMENT);
+      NodeList nodelist = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
       if (nodelist.getLength() != 1) {
         throw new IllegalArgumentException(
             "XML file " + file + " does not have an applied methods element.");
@@ -230,7 +237,7 @@ public class FeatureListLoadTask extends AbstractTask {
       // set applied methods
       Element appliedMethodsList = (Element) nodelist.item(0);
       NodeList methodElements = appliedMethodsList
-          .getElementsByTagName(CONST.XML_APPLIED_METHOD_ELEMENT);
+          .getElementsByTagName(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
       for (int i = 0; i < methodElements.getLength(); i++) {
         FeatureListAppliedMethod method = SimpleFeatureListAppliedMethod
             .loadValueFromXML((Element) methodElements.item(i));
@@ -239,17 +246,19 @@ public class FeatureListLoadTask extends AbstractTask {
 
       XPathExpression rawFilesListExpr = xpath
           .compile("//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_RAW_FILES_LIST_ELEMENT);
-      nodelist = (NodeList) rawFilesListExpr.evaluate(file, XPathConstants.NODESET);
+      nodelist = (NodeList) rawFilesListExpr.evaluate(configuration, XPathConstants.NODESET);
 
       // set selected scans
       for (int i = 0; i < nodelist.getLength(); i++) {
         Element fileElement = (Element) nodelist.item(0);
-        String name = fileElement.getAttribute(CONST.XML_RAW_FILE_NAME_ATTR);
-        String path = fileElement.getTextContent();
-        Optional<RawDataFile> f = Arrays.stream(project.getDataFiles()).filter(
-            r -> r.getName().equals(name) && (
+        String name = fileElement.getElementsByTagName(CONST.XML_RAW_FILE_NAME_ELEMENT).item(0)
+            .getTextContent();
+        String path = fileElement.getElementsByTagName(CONST.XML_RAW_FILE_PATH_ELEMENT).item(0)
+            .getTextContent();
+        Optional<RawDataFile> f = Arrays.stream(project.getDataFiles())
+            .filter(r -> r.getName().equals(name) /*&& (
                 path.isEmpty() && path.equals("null") && r.getAbsolutePath() != null ? true
-                    : r.getAbsolutePath().equals(path))).findFirst();
+                    : r.getAbsolutePath().equals(path))*/).findFirst();
         if (!f.isPresent()) {
           throw new IllegalStateException("Raw data file with name " + name + " and path " + path
               + " not imported to project.");
@@ -257,26 +266,25 @@ public class FeatureListLoadTask extends AbstractTask {
         flist.getRawDataFiles().add(f.get());
 
         final Element selectedScansElement = (Element) fileElement
-            .getElementsByTagName(CONST.XML_SELECTED_SCANS_ELEMENT).item(0);
+            .getElementsByTagName(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT).item(0);
         final int[] selectedScanIndices = ParsingUtils
             .stringToIntArray(selectedScansElement.getTextContent());
-        List<Scan> selectedScans = ParsingUtils
+        final List<Scan> selectedScans = ParsingUtils
             .getSublistFromIndices(f.get().getScans(), selectedScanIndices);
         flist.setSelectedScans(f.get(), selectedScans);
 
-        return flist;
       }
+      return flist;
     } catch (XPathExpressionException | ParserConfigurationException | SAXException | IOException e) {
       e.printStackTrace();
       logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
     }
-    return null;
   }
 
   private void parseRow(XMLStreamReader reader, MemoryMapStorage storage,
       ModularFeatureList flist) {
-    if(!reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
+    if (!reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
       throw new IllegalStateException("Cannot parse row if current element is not a row element");
     }
   }
