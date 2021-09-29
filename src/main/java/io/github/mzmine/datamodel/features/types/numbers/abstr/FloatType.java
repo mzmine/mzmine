@@ -18,9 +18,13 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -31,6 +35,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class FloatType extends NumberType<Property<Float>> implements BindingsFactoryType {
 
@@ -114,5 +119,12 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
       default:
         throw new UndefinedRowBindingException(this, bind);
     }
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    return Float.parseFloat(reader.getElementText());
   }
 }

@@ -33,6 +33,9 @@ public interface MzSeries extends SeriesValueCount {
 
   public static final String XML_ELEMENT = "mzseries";
 
+  /**
+   * Appends an {@link MzSeries} element as a child to the current element.
+   */
   static void saveMzValuesToXML(XMLStreamWriter writer, MzSeries series)
       throws XMLStreamException {
     writer.writeStartElement(MzSeries.XML_ELEMENT);

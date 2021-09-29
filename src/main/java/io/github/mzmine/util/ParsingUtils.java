@@ -18,9 +18,12 @@
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ParsingUtils {
 
@@ -120,4 +123,30 @@ public class ParsingUtils {
     return sublist;
   }
 
+
+  public static String rangeToString(Range<Comparable> range) {
+    return "[" + range.lowerEndpoint() + SEPARATOR + range.upperEndpoint() + "]";
+  }
+
+  public static Range<Double> stringToDoubleRange(String str) {
+    Pattern regex = Pattern.compile("(\\d+\\.\\d+)" + SEPARATOR + "(\\d+\\.\\d+)");
+    Matcher matcher = regex.matcher(str);
+    if (matcher.matches()) {
+      double lower = Double.parseDouble(matcher.group(1));
+      double upper = Double.parseDouble(matcher.group(2));
+      return Range.closed(lower, upper);
+    }
+    return null;
+  }
+
+  public static Range<Float> stringToFloatRange(String str) {
+    Pattern regex = Pattern.compile("(\\d+\\.\\d+)" + SEPARATOR + "(\\d+\\.\\d+)");
+    Matcher matcher = regex.matcher(str);
+    if (matcher.matches()) {
+      float lower = Float.parseFloat(matcher.group(1));
+      float upper = Float.parseFloat(matcher.group(2));
+      return Range.closed(lower, upper);
+    }
+    return null;
+  }
 }

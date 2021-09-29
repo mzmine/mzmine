@@ -22,9 +22,11 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -61,6 +63,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -76,9 +79,14 @@ public class FeatureListLoadTask extends AbstractTask {
 
   private final ZipFile zip;
   private final MZmineProject project;
-  private int totalRows = 0;
+  private int totalRows = 1;
   private int processedRows = 0;
   private final AtomicInteger rowCounter = new AtomicInteger(0);
+  private String currentFlist = "";
+  private int numFlists = 1;
+  private int processingFlist;
+
+  final String idTypeUniqueID = new IDType().getUniqueID();
 
   public FeatureListLoadTask(@NotNull MemoryMapStorage storage, @NotNull MZmineProject project,
       ZipFile zip) {
@@ -89,12 +97,14 @@ public class FeatureListLoadTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return null;
+    return "Importing feature list " + currentFlist + ". Parsing row " + processedRows + "/"
+        + totalRows;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return (double) processingFlist / numFlists + ((double) 1 / numFlists) * ((double) processedRows
+        / totalRows);
   }
 
   @Override
@@ -109,15 +119,18 @@ public class FeatureListLoadTask extends AbstractTask {
 
       File[] files = new File(tempDirectory.toFile(), FeatureListSaveTask.FLIST_FOLDER)
           .listFiles((dir, name) -> fileNamePattern.matcher(name).matches());
+      numFlists = files.length;
 
       final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
       for (File flistFile : files) {
+        processingFlist++;
 
         final File metadataFile = new File(flistFile.toString()
             .replace(FeatureListSaveTask.DATA_FILE_SUFFIX,
                 FeatureListSaveTask.METADATA_FILE_SUFFIX));
         ModularFeatureList flist = createRows(storage, flistFile, metadataFile);
+
         if (flist == null) {
           logger.severe(
               () -> "Cannot load feature list from files " + flistFile.getAbsolutePath() + " and "
@@ -136,6 +149,10 @@ public class FeatureListLoadTask extends AbstractTask {
 
   private void parseFeatureList(MemoryMapStorage storage, ModularFeatureList flist,
       File flistFile) {
+    currentFlist = flist.getName();
+    processedRows = 0;
+    totalRows = flist.getNumberOfRows();
+
     try (InputStream fis = new FileInputStream(flistFile)) {
       final XMLInputFactory xif = XMLInputFactory.newInstance();
       final XMLStreamReader reader = xif.createXMLStreamReader(fis);
@@ -157,6 +174,7 @@ public class FeatureListLoadTask extends AbstractTask {
               }
               case CONST.XML_ROW_ELEMENT -> {
                 parseRow(reader, storage, flist);
+                processedRows++;
               }
             }
           }
@@ -177,8 +195,6 @@ public class FeatureListLoadTask extends AbstractTask {
     if (flist == null) {
       throw new IllegalStateException("Cannot create feature list.");
     }
-
-    final String idTypeUniqueID = new IDType().getUniqueID();
 
     try (InputStream fis = new FileInputStream(dataFile)) {
       final XMLInputFactory xif = XMLInputFactory.newInstance();
@@ -282,10 +298,83 @@ public class FeatureListLoadTask extends AbstractTask {
     }
   }
 
-  private void parseRow(XMLStreamReader reader, MemoryMapStorage storage,
-      ModularFeatureList flist) {
+  private void parseRow(XMLStreamReader reader, MemoryMapStorage storage, ModularFeatureList flist)
+      throws XMLStreamException {
     if (!reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
       throw new IllegalStateException("Cannot parse row if current element is not a row element");
     }
+
+    int id = Integer.parseInt(reader.getAttributeValue(null, idTypeUniqueID));
+    final ModularFeatureListRow row = (ModularFeatureListRow) flist.getRow(rowCounter.get());
+    if (id != row.getID()) {
+      throw new IllegalStateException("Row ids do not match.");
+    }
+
+    while (!(reader.getEventType() == XMLEvent.END_ELEMENT && reader.getLocalName()
+        .equals(CONST.XML_ROW_ELEMENT)) && reader.hasNext()) {
+      switch (reader.next()) {
+        case XMLEvent.START_ELEMENT -> {
+          if (reader.getLocalName().equals(CONST.XML_FEATURE_ELEMENT)) {
+            final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+            final RawDataFile file = project.getRawDataFiles().stream()
+                .filter(f -> f.getName().equals(fileName)).findFirst().orElse(null);
+            if (file == null) {
+              logger.warning(() -> "Cannot load feature for row id " + id + " for file " + fileName
+                  + ". File does not exist in project.");
+              continue;
+            }
+            parseFeature(reader, storage, flist, row, file);
+          } else if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+            DataType<?> type = DataTypes
+                .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+            if (type != null) {
+              Object value = type.loadFromXML(reader, flist, row, null, null);
+              if (value != null) {
+                try {
+                  row.set(type, value);
+                } catch (RuntimeException e) {
+                  // cannot set bound values. -> silent
+                }
+              }
+            } else {
+              logger.info(() -> "No data type for id " + reader
+                  .getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+            }
+          }
+        }
+      }
+    }
+    rowCounter.getAndIncrement();
+  }
+
+  private void parseFeature(@NotNull XMLStreamReader reader, @Nullable MemoryMapStorage storage,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @NotNull RawDataFile file) throws XMLStreamException {
+
+    final ModularFeature feature = new ModularFeature(flist, file, null, null);
+
+    while (!(reader.getEventType() == XMLEvent.END_ELEMENT && reader.getLocalName()
+        .equals(CONST.XML_FEATURE_ELEMENT)) && reader.hasNext()) {
+      switch (reader.next()) {
+        case XMLEvent.START_ELEMENT -> {
+          if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+            DataType<?> type = DataTypes
+                .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+            if (type != null) {
+              Object value = type.loadFromXML(reader, flist, row, feature, file);
+              if (value != null) {
+                feature.set(type, value);
+              }
+            } else {
+              logger.info(() -> "No data type for id " + reader
+                  .getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+            }
+          }
+        }
+      }
+    }
+
+//    FeatureDataUtils.recalculateIonSeriesDependingTypes(feature);
+    row.addFeature(file, feature);
   }
 }

@@ -245,6 +245,9 @@ public class FeatureDataUtils {
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
       @NotNull final CenterMeasure cm, boolean calcQuality) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+    if(featureData == null) {
+      return;
+    }
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
     final Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
