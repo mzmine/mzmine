@@ -99,7 +99,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, AnchorPane
   @Override
   public BatchQueueParameter cloneParameter() {
     final BatchQueueParameter copy = new BatchQueueParameter();
-    copy.setValue(value.clone());
+    copy.setValue(value != null ? value.clone() : null);
     return copy;
   }
 
