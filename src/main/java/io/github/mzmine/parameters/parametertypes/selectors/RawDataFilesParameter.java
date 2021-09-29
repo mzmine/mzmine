@@ -183,7 +183,8 @@ public class RawDataFilesParameter implements
     Document parentDocument = xmlElement.getOwnerDocument();
     xmlElement.setAttribute("type", value.getSelectionType().name());
 
-    if (value.getSpecificFiles() != null) {
+    if (value.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
+        && value.getSpecificFiles() != null) {
       for (RawDataFile item : value.getSpecificFilesPlaceholders()) {
         assert item != null;
         Element newElement = parentDocument.createElement("specific_file");
