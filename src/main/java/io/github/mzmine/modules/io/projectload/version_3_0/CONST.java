@@ -44,5 +44,6 @@ public class CONST {
   public static final String XML_RAW_FILE_ELEMENT = "rawdatafile";
   public static final String XML_RAW_FILE_NAME_ELEMENT = "name";
   public static final String XML_RAW_FILE_PATH_ELEMENT = "path";
-
+  public static final String XML_RAW_FILE_SCAN_INDEX_ATTR = "scanindex";
+  public static final String XML_RAW_FILE_SCAN_ELEMENT = "scan";
 }

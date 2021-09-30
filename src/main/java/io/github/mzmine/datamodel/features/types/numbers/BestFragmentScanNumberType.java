@@ -18,12 +18,24 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> implements
     NullColumnType {
@@ -45,4 +57,81 @@ public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> i
     return new SimpleObjectProperty<>();
   }
 
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    if (!(value instanceof Scan scan)) {
+      throw new IllegalArgumentException("Not a fragment scan");
+    }
+    if (scan instanceof MergedMsMsSpectrum merged) {
+      merged.saveToXML(writer);
+    } else {
+      writer.writeStartElement(CONST.XML_RAW_FILE_SCAN_ELEMENT);
+      String name = scan.getDataFile().getName();
+      writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, name);
+      writer.writeAttribute(CONST.XML_RAW_FILE_SCAN_INDEX_ATTR,
+          String.valueOf(scan.getDataFile().getScans().indexOf(scan)));
+      writer.writeEndElement();
+    }
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+
+    while (reader.hasNext()) {
+      reader.next();
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        return null;
+      }
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      if (reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT) || reader.getLocalName()
+          .equals(SimpleMergedMsMsSpectrum.XML_ELEMENT)) {
+        break;
+      }
+    }
+
+    switch (reader.getLocalName()) {
+      case CONST.XML_RAW_FILE_SCAN_ELEMENT -> {
+        final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+        final int index = Integer
+            .parseInt(reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
+
+        if (file != null && !file.getName().equals(name)) {
+          throw new IllegalArgumentException("File names don't match");
+        }
+        if (file == null) {
+          file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name)).findFirst()
+              .orElse(null);
+        }
+        if (file == null) {
+          throw new IllegalArgumentException("Raw data file not found");
+        }
+
+        return file.getScan(index);
+      }
+      case SimpleMergedMsMsSpectrum.XML_ELEMENT -> {
+        String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+        if (file != null && !file.getName().equals(name)) {
+          throw new IllegalArgumentException("File names don't match");
+        }
+        if (file == null) {
+          file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name)).findFirst()
+              .orElse(null);
+        }
+        if (file == null) {
+          throw new IllegalArgumentException("Raw data file not found");
+        }
+        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);
+      }
+    }
+    return null;
+  }
 }

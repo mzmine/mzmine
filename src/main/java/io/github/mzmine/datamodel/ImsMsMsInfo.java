@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 /**
  * Precursor information stored in IMS MS2 frames regarding their respective sub spectra.
@@ -63,4 +65,5 @@ public interface ImsMsMsInfo {
    */
   Frame getFrameNumber();
 
+  void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

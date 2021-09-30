@@ -19,11 +19,20 @@
 package io.github.mzmine.util;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.Nullable;
 
 public class ParsingUtils {
 
@@ -161,5 +170,51 @@ public class ParsingUtils {
       return Range.closed(lower, upper);
     }
     return null;
+  }
+
+  public static String mobilityScanListToString(List<MobilityScan> scans) {
+    // {frameindex}[mobilityscanindices]\\
+    StringBuilder b = new StringBuilder();
+    final Map<Frame, List<MobilityScan>> mapping = scans.stream()
+        .collect(Collectors.groupingBy(MobilityScan::getFrame));
+    for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
+        it.hasNext(); ) {
+      Entry<Frame, List<MobilityScan>> entry = it.next();
+      Frame frame = entry.getKey();
+      List<MobilityScan> mobilityScans = entry.getValue();
+      mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
+      b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
+
+      int[] indices = ParsingUtils
+          .getIndicesOfSubListElements(mobilityScans, frame.getMobilityScans());
+      b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
+
+      if (it.hasNext()) {
+        b.append(SEPARATOR).append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
+  @Nullable
+  public static List<MobilityScan> stringToMobilityScanList(String str, IMSRawDataFile file) {
+    final List<MobilityScan> mobilityScans = new ArrayList<>();
+    final String[] split = str.split(SEPARATOR + SEPARATOR);
+    final Pattern pattern = Pattern.compile("\\{([0-9]+)\\}\\[([^\\n]+)\\]");
+
+    for (final String s : split) {
+      Matcher matcher = pattern.matcher(s);
+      if (matcher.matches()) {
+        int frameIndex = Integer.parseInt(matcher.group(1));
+        Frame frame = file.getFrame(frameIndex);
+
+        int[] indices = stringToIntArray(matcher.group(2));
+        mobilityScans.addAll(ParsingUtils.getSublistFromIndices(frame.getMobilityScans(), indices));
+      } else {
+        throw new IllegalStateException("Pattern does not match");
+      }
+    }
+
+    return mobilityScans.isEmpty() ? null : mobilityScans;
   }
 }
