@@ -144,6 +144,10 @@ public abstract class DoubleType extends NumberType<Property<Double>> implements
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    return Double.parseDouble(reader.getElementText());
+    String str = reader.getElementText();
+    if(str == null || str.isEmpty()) {
+      return null;
+    }
+    return Double.parseDouble(str);
   }
 }

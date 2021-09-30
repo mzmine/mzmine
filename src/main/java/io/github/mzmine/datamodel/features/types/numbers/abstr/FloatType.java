@@ -125,6 +125,10 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    return Float.parseFloat(reader.getElementText());
+    String str = reader.getElementText();
+    if(str == null || str.isEmpty()) {
+      return null;
+    }
+    return Float.parseFloat(str);
   }
 }

@@ -132,6 +132,10 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    return Integer.parseInt(reader.getElementText());
+    String str = reader.getElementText();
+    if(str == null || str.isEmpty()) {
+      return null;
+    }
+    return Integer.parseInt(str);
   }
 }

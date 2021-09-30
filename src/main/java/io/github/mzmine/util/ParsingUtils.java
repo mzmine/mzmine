@@ -129,18 +129,18 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile("(\\d+\\.\\d+)" + SEPARATOR + "(\\d+\\.\\d+)");
+    Pattern regex = Pattern.compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       double lower = Double.parseDouble(matcher.group(1));
-      double upper = Double.parseDouble(matcher.group(2));
+      double upper = Double.parseDouble(matcher.group(3));
       return Range.closed(lower, upper);
     }
     return null;
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile("(\\d+\\.\\d+)" + SEPARATOR + "(\\d+\\.\\d+)");
+    Pattern regex = Pattern.compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       float lower = Float.parseFloat(matcher.group(1));
