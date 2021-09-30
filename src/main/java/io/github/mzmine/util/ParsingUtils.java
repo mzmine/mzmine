@@ -124,12 +124,13 @@ public class ParsingUtils {
   }
 
 
-  public static String rangeToString(Range<Comparable> range) {
+  public static String rangeToString(Range<Comparable<?>> range) {
     return "[" + range.lowerEndpoint() + SEPARATOR + range.upperEndpoint() + "]";
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern
+        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       double lower = Double.parseDouble(matcher.group(1));
@@ -140,11 +141,23 @@ public class ParsingUtils {
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern
+        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       float lower = Float.parseFloat(matcher.group(1));
-      float upper = Float.parseFloat(matcher.group(2));
+      float upper = Float.parseFloat(matcher.group(3));
+      return Range.closed(lower, upper);
+    }
+    return null;
+  }
+
+  public static Range<Integer> parseIntegerRange(String str) {
+    Pattern regex = Pattern.compile("\\[([0-9]+)" + SEPARATOR + "([0-9]+)\\]");
+    Matcher matcher = regex.matcher(str);
+    if (matcher.matches()) {
+      int lower = Integer.parseInt(matcher.group(1));
+      int upper = Integer.parseInt(matcher.group(2));
       return Range.closed(lower, upper);
     }
     return null;
