@@ -19,7 +19,14 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,5 +57,23 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
       return mt.getUnit();
     }
     return super.getFormattedString(value);
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(!(value instanceof MobilityType mt)) {
+      return;
+    }
+    writer.writeCharacters(mt.name());
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    String name = reader.getElementText();
+    return MobilityType.valueOf(name);
   }
 }
