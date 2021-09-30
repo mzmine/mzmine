@@ -64,4 +64,5 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
   public StringConverter<FeatureIdentity> getStringConverter() {
     return converter;
   }
+
 }
