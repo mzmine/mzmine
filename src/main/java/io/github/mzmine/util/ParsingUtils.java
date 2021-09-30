@@ -217,4 +217,19 @@ public class ParsingUtils {
 
     return mobilityScans.isEmpty() ? null : mobilityScans;
   }
+
+  public static String stringArrayToString(String[] array) {
+    StringBuilder b = new StringBuilder();
+    for (int i = 0; i < array.length; i++) {
+      b.append(array[i]);
+      if (i < array.length - 1) {
+        b.append(SEPARATOR);
+      }
+    }
+    return b.toString();
+  }
+
+  public static String[] stringToStringArray(String str) {
+    return str.split(SEPARATOR);
+  }
 }
