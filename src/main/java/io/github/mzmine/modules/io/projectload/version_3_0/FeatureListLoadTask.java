@@ -84,7 +84,7 @@ public class FeatureListLoadTask extends AbstractTask {
   private final AtomicInteger rowCounter = new AtomicInteger(0);
   private String currentFlist = "";
   private int numFlists = 1;
-  private int processingFlist;
+  private int processedFlists;
 
   final String idTypeUniqueID = new IDType().getUniqueID();
 
@@ -97,13 +97,13 @@ public class FeatureListLoadTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Importing feature list " + currentFlist + ". Parsing row " + processedRows + "/"
-        + totalRows;
+    return "Importing feature list " + currentFlist + (processedFlists + 1) + "/" + numFlists
+        + ". Parsing row " + processedRows + "/" + totalRows;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return (double) processingFlist / numFlists + ((double) 1 / numFlists) * ((double) processedRows
+    return (double) processedFlists / numFlists + ((double) 1 / numFlists) * ((double) processedRows
         / totalRows);
   }
 
@@ -124,7 +124,9 @@ public class FeatureListLoadTask extends AbstractTask {
       final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
       for (File flistFile : files) {
-        processingFlist++;
+        if (isCanceled()) {
+          return;
+        }
         rowCounter.set(0);
 
         final File metadataFile = new File(flistFile.toString()
@@ -139,6 +141,8 @@ public class FeatureListLoadTask extends AbstractTask {
         }
         parseFeatureList(storage, flist, flistFile);
         project.addFeatureList(flist);
+
+        processedFlists++;
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -158,6 +162,10 @@ public class FeatureListLoadTask extends AbstractTask {
       final XMLStreamReader reader = xif.createXMLStreamReader(fis);
 
       while (reader.hasNext()) {
+        if (isCanceled()) {
+          return;
+        }
+
         int type = reader.next();
         switch (type) {
           case XMLEvent.START_ELEMENT -> {
@@ -184,7 +192,7 @@ public class FeatureListLoadTask extends AbstractTask {
       }
 
     } catch (IOException | XMLStreamException e) {
-      logger.warning(() -> "Error opening file " + flistFile.getAbsolutePath());
+      logger.log(Level.WARNING, "Error opening file " + flistFile.getAbsolutePath(), e);
     }
   }
 
