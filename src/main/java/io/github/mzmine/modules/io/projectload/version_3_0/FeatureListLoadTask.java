@@ -125,6 +125,7 @@ public class FeatureListLoadTask extends AbstractTask {
 
       for (File flistFile : files) {
         processingFlist++;
+        rowCounter.set(0);
 
         final File metadataFile = new File(flistFile.toString()
             .replace(FeatureListSaveTask.DATA_FILE_SUFFIX,
@@ -137,7 +138,6 @@ public class FeatureListLoadTask extends AbstractTask {
                   + metadataFile.getAbsolutePath());
         }
         parseFeatureList(storage, flist, flistFile);
-
         project.addFeatureList(flist);
       }
     } catch (IOException e) {
@@ -188,6 +188,19 @@ public class FeatureListLoadTask extends AbstractTask {
     }
   }
 
+  /**
+   * Creates the modular feature list from the metadata file using {@link
+   * this#readMetadataCreateFeatureList(File, MemoryMapStorage)}.
+   * <p></p>
+   * Then passes the feature list data file once and creates the rows with the associated ids. No
+   * other data will be put into the rows. This is done so rows can reference each other by their id
+   * while being loaded to the feature list.
+   *
+   * @param storage      The storage for the feature list.
+   * @param dataFile     The file containing the feature list data.
+   * @param metadataFile The file containign the metadata associated with the feature list.
+   * @return The created feature list with empty rows (row ids are set)
+   */
   private ModularFeatureList createRows(MemoryMapStorage storage, File dataFile,
       File metadataFile) {
 
@@ -220,6 +233,14 @@ public class FeatureListLoadTask extends AbstractTask {
     return flist;
   }
 
+  /**
+   * Creates a feature list from the metadata xml file. Adds the selected raw data files (must be in
+   * the loaded project) and sets the selected scans.
+   *
+   * @param file    The Metadata file.
+   * @param storage The storage to use for the feature list.
+   * @return The created feature list.
+   */
   private ModularFeatureList readMetadataCreateFeatureList(File file, MemoryMapStorage storage) {
     try {
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -357,13 +378,20 @@ public class FeatureListLoadTask extends AbstractTask {
         .equals(CONST.XML_FEATURE_ELEMENT)) && reader.hasNext()) {
       switch (reader.next()) {
         case XMLEvent.START_ELEMENT -> {
+          // the data types are responsible for loading their values
           if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
             DataType<?> type = DataTypes
                 .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
             if (type != null) {
-              Object value = type.loadFromXML(reader, flist, row, feature, file);
-              if (value != null) {
-                feature.set(type, value);
+              try {
+                Object value = type.loadFromXML(reader, flist, row, feature, file);
+                if (value != null) {
+                  feature.set(type, value);
+                }
+              } catch (Exception e) {
+                logger.log(Level.WARNING,
+                    "Error loading data type " + type.getHeaderString() + " in row (id=" + row
+                        .getID() + ") feature " + file.getName() + " from XML.", e);
               }
             } else {
               logger.info(() -> "No data type for id " + reader
