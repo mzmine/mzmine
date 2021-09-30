@@ -331,7 +331,7 @@ public class SimpleIonMobilogramTimeSeries implements IonMobilogramTimeSeries {
     summedMobilogram.saveValueToXML(writer);
 
     for (IonMobilitySeries mobilogram : mobilograms) {
-      IonMobilitySeries.saveMobilityScanListToXML(writer, mobilogram,
+      IonMobilitySeries.saveMobilogramToXML(writer, mobilogram,
           mobilogram.getSpectrum(0).getFrame().getMobilityScans());
     }
 

@@ -18,9 +18,11 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ListRowBinding;
@@ -107,7 +109,8 @@ public class FeatureDataType extends
         return SimpleIonTimeSeries.loadFromXML(reader, flist.getMemoryMapStorage(), file);
       }
       case SimpleIonMobilogramTimeSeries.XML_ELEMENT -> {
-
+        return IonMobilogramTimeSeriesFactory.loadFromXML(reader, flist.getMemoryMapStorage(),
+            (IMSRawDataFile) file);
       }
     }
     return null;

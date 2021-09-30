@@ -30,9 +30,9 @@ import javax.xml.stream.XMLStreamWriter;
 public interface IonMobilitySeries extends IonSpectrumSeries<MobilityScan>, MobilitySeries {
 
   public static final String XML_ION_MOBILITY_SERIES_ELEMENT = "ionmobilityseries";
-  public static final String XML_FRAME_INDEX_ELEMENT = "frame";
+  public static final String XML_FRAME_INDEX_ELEMENT = "frameindex";
 
-  public static void saveMobilityScanListToXML(XMLStreamWriter writer, IonMobilitySeries series,
+  public static void saveMobilogramToXML(XMLStreamWriter writer, IonMobilitySeries series,
       List<MobilityScan> allScans) throws XMLStreamException {
     writer.writeStartElement(XML_ION_MOBILITY_SERIES_ELEMENT);
     writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR,

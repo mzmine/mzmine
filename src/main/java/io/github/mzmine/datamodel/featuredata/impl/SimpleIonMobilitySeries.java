@@ -19,15 +19,22 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.datamodel.featuredata.MzSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,5 +145,45 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
+  }
+
+  public static SimpleIonMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage, @NotNull IMSRawDataFile file) throws XMLStreamException {
+
+    List<MobilityScan> scans = null;
+    double[] mzs = null;
+    double[] intensities = null;
+    int frameindex = -1;
+    frameindex = Integer
+        .parseInt(reader.getAttributeValue(null, IonMobilitySeries.XML_FRAME_INDEX_ELEMENT));
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(IonMobilitySeries.XML_ION_MOBILITY_SERIES_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case IonSpectrumSeries.XML_SPECTRA_ELEMENT -> {
+          if (frameindex == -1) {
+            throw new IllegalStateException(
+                "Cannot load mobility scans without frame index being set.");
+          }
+          int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
+          scans = ParsingUtils
+              .getSublistFromIndices(file.getFrame(frameindex).getMobilityScans(), indices);
+        }
+        case MzSeries.XML_ELEMENT -> mzs = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+        case IntensitySeries.XML_ELEMENT -> intensities = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+      }
+    }
+
+    return new SimpleIonMobilitySeries(storage, mzs, intensities, scans);
   }
 }

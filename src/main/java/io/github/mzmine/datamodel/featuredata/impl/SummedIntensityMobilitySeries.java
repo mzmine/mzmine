@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -184,5 +186,31 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
 
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     writer.writeEndElement();
+  }
+
+  public static SummedIntensityMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage) throws XMLStreamException {
+
+    double[] mobilities = null;
+    double[] intensities = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(SummedIntensityMobilitySeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case IntensitySeries.XML_ELEMENT -> intensities = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+        case SummedIntensityMobilitySeries.XML_MOBILITIES_ELEMENT -> mobilities = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+      }
+    }
+    return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
   }
 }
