@@ -23,6 +23,10 @@ public class CONST {
   private CONST() {
   }
 
+  public static final String XML_MZ_VALUES_ELEMENT = "mzs";
+  public static final String XML_INTENSITY_VALUES_ELEMENT = "intensities";
+  public static final String XML_SCAN_LIST_ELEMENT = "scans";
+
   public static final String XML_NUM_ROWS_ATTR = "numberofrows";
   public static final String XML_FLIST_NAME_ATTR = "featurelistname";
   public static final String XML_DATE_CREATED_ATTR = "date";
