@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
-import io.github.mzmine.datamodel.featuredata.SeriesValueCount;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -50,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
 
   public static final String XML_ELEMENT = "summedmobilogram";
-  public static final String XML_MOBILITIES_ELEMENT = "mobilities";
 
   final DoubleBuffer intensityValues;
   final DoubleBuffer mobilityValues;
@@ -176,11 +175,11 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
   public void saveValueToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
     writer
-        .writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+        .writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
 
-    writer.writeStartElement(XML_MOBILITIES_ELEMENT);
+    writer.writeStartElement(CONST.XML_MOBILITY_VALUES_ELEMENT);
     writer
-        .writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+        .writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
     writer.writeCharacters(ParsingUtils.doubleBufferToString(getMobilityValues()));
     writer.writeEndElement();
 
@@ -205,9 +204,9 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
         continue;
       }
       switch (reader.getLocalName()) {
-        case IntensitySeries.XML_ELEMENT -> intensities = ParsingUtils
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
             .stringToDoubleArray(reader.getElementText());
-        case SummedIntensityMobilitySeries.XML_MOBILITIES_ELEMENT -> mobilities = ParsingUtils
+        case CONST.XML_MOBILITY_VALUES_ELEMENT -> mobilities = ParsingUtils
             .stringToDoubleArray(reader.getElementText());
       }
     }

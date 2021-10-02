@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -35,7 +36,7 @@ public interface IonMobilitySeries extends IonSpectrumSeries<MobilityScan>, Mobi
   public static void saveMobilogramToXML(XMLStreamWriter writer, IonMobilitySeries series,
       List<MobilityScan> allScans) throws XMLStreamException {
     writer.writeStartElement(XML_ION_MOBILITY_SERIES_ELEMENT);
-    writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR,
+    writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR,
         String.valueOf(series.getNumberOfValues()));
 
     final Frame frame = series.getSpectrum(0).getFrame();

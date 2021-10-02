@@ -21,11 +21,9 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
-import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
-import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
-import io.github.mzmine.datamodel.featuredata.MzSeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
@@ -183,13 +181,13 @@ public class IonMobilogramTimeSeriesFactory {
         case IonMobilitySeries.XML_ION_MOBILITY_SERIES_ELEMENT -> {
           mobilograms.add(SimpleIonMobilitySeries.loadFromXML(reader, null, file));
         }
-        case IonSpectrumSeries.XML_SPECTRA_ELEMENT -> {
+        case CONST.XML_SCAN_LIST_ELEMENT -> {
           int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
           scans = ParsingUtils.getSublistFromIndices((List<Frame>) file.getFrames(), indices);
         }
-        case MzSeries.XML_ELEMENT -> mzs = ParsingUtils
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
             .stringToDoubleArray(reader.getElementText());
-        case IntensitySeries.XML_ELEMENT -> intensities = ParsingUtils
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
             .stringToDoubleArray(reader.getElementText());
         case SummedIntensityMobilitySeries.XML_ELEMENT -> summedMobilogram = SummedIntensityMobilitySeries
             .loadFromXML(reader, storage);

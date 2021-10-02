@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
@@ -35,12 +36,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
 
-  public static final String XML_SPECTRA_ELEMENT = "spectrumseries";
-
   public static <T extends MassSpectrum> void saveSpectraIndicesToXML(XMLStreamWriter writer,
       IonSpectrumSeries<T> series, List<T> allScans) throws XMLStreamException {
-    writer.writeStartElement(IonSpectrumSeries.XML_SPECTRA_ELEMENT);
-    writer.writeAttribute(XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);
+    writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
     final int[] indices = ParsingUtils.getIndicesOfSubListElements(series.getSpectra(), allScans);
     writer.writeCharacters(ParsingUtils.intArrayToString(indices, indices.length));
     writer.writeEndElement();

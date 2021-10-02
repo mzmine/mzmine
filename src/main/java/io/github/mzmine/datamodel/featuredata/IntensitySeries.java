@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import javax.xml.stream.XMLStreamException;
@@ -30,12 +31,10 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public interface IntensitySeries extends SeriesValueCount {
 
-  public static final String XML_ELEMENT = "intensityseries";
-
   static void saveIntensityValuesToXML(XMLStreamWriter writer, IntensitySeries series)
       throws XMLStreamException {
-    writer.writeStartElement(IntensitySeries.XML_ELEMENT);
-    writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+    writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
     writer.writeCharacters(ParsingUtils.doubleBufferToString(series.getIntensityValueBuffer()));
     writer.writeEndElement();
   }

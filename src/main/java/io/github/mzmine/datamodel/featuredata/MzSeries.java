@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import javax.xml.stream.XMLStreamException;
@@ -31,15 +32,13 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public interface MzSeries extends SeriesValueCount {
 
-  public static final String XML_ELEMENT = "mzseries";
-
   /**
    * Appends an {@link MzSeries} element as a child to the current element.
    */
   static void saveMzValuesToXML(XMLStreamWriter writer, MzSeries series)
       throws XMLStreamException {
-    writer.writeStartElement(MzSeries.XML_ELEMENT);
-    writer.writeAttribute(SeriesValueCount.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+    writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
     writer.writeCharacters(ParsingUtils.doubleBufferToString(series.getMZValueBuffer()));
     writer.writeEndElement();
   }

@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -71,6 +72,37 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+  }
+
+  public static SimpleIonTimeSeries loadFromXML(XMLStreamReader reader, MemoryMapStorage storage,
+      RawDataFile file) throws XMLStreamException {
+
+    List<Scan> scans = null;
+    double[] mzs = null;
+    double[] intensities = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName().equals(SimpleIonTimeSeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_SCAN_LIST_ELEMENT -> {
+          int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
+          scans = ParsingUtils.getSublistFromIndices(file.getScans(), indices);
+        }
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+      }
+    }
+
+    return new SimpleIonTimeSeries(storage, mzs, intensities, scans);
   }
 
   @Override
@@ -130,8 +162,8 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public IonSpectrumSeries<Scan> copy(MemoryMapStorage storage) {
-    double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
+    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(getMZValueBuffer(),
+        getIntensityValueBuffer());
 
     return copyAndReplace(storage, data[0], data[1]);
   }
@@ -153,37 +185,5 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     MzSeries.saveMzValuesToXML(writer, this);
 
     writer.writeEndElement();
-  }
-
-  public static SimpleIonTimeSeries loadFromXML(XMLStreamReader reader, MemoryMapStorage storage,
-      RawDataFile file) throws XMLStreamException {
-
-    List<Scan> scans = null;
-    double[] mzs = null;
-    double[] intensities = null;
-
-    while (reader.hasNext()) {
-      if (reader.isEndElement() && reader.getLocalName()
-          .equals(SimpleIonTimeSeries.XML_ELEMENT)) {
-        break;
-      }
-
-      final int next = reader.next();
-      if (next != XMLEvent.START_ELEMENT) {
-        continue;
-      }
-      switch (reader.getLocalName()) {
-        case IonSpectrumSeries.XML_SPECTRA_ELEMENT -> {
-          int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
-          scans = ParsingUtils.getSublistFromIndices(file.getScans(), indices);
-        }
-        case MzSeries.XML_ELEMENT -> mzs = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case IntensitySeries.XML_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-      }
-    }
-
-    return new SimpleIonTimeSeries(storage, mzs, intensities, scans);
   }
 }
