@@ -126,7 +126,7 @@ public class FeatureDataTypeTest {
       SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, 0, 0, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
           MobilityType.TIMS, null);
-      frame.setMobilities(new double[]{1d, 2d, 3d, 4d, 5d});
+      frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
       frame.setMobilityScans(scans);
       try {
         file.addScan(frame);

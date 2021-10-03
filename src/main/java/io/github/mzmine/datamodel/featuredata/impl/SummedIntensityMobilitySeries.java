@@ -34,6 +34,7 @@ import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -211,5 +212,23 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
       }
     }
     return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SummedIntensityMobilitySeries)) {
+      return false;
+    }
+    SummedIntensityMobilitySeries that = (SummedIntensityMobilitySeries) o;
+    return Objects.equals(intensityValues, that.intensityValues) && Objects.equals(
+        getMobilityValues(), that.getMobilityValues()) && IntensitySeries.seriesEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(intensityValues, mobilityValues);
   }
 }
