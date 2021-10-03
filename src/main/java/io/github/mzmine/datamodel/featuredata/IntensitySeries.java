@@ -40,6 +40,29 @@ public interface IntensitySeries extends SeriesValueCount {
   }
 
   /**
+   * Tests a subset of intensity values of both series for equality.
+   */
+  static boolean seriesEqual(IntensitySeries s1, IntensitySeries s2) {
+    if (s1.getNumberOfValues() != s2.getNumberOfValues()) {
+      return false;
+    }
+
+    if(!s1.getIntensityValueBuffer().equals(s2.getIntensityValueBuffer())) {
+      return false;
+    }
+
+    final int max = s1.getNumberOfValues() - 1;
+
+    for (int i = 1; i < 5; i++) {
+      if (Double.compare(s1.getIntensity(max / i), s2.getIntensity(max / i)) != 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * @return All non-zero intensities.
    */
   DoubleBuffer getIntensityValueBuffer();

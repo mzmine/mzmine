@@ -33,6 +33,7 @@ import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -185,5 +186,23 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
     MzSeries.saveMzValuesToXML(writer, this);
 
     writer.writeEndElement();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleIonTimeSeries)) {
+      return false;
+    }
+    SimpleIonTimeSeries that = (SimpleIonTimeSeries) o;
+    return Objects.equals(scans, that.scans) && IntensitySeries.seriesEqual(this, that)
+        && MzSeries.seriesEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scans, intensityValues.hashCode(), mzValues.hashCode());
   }
 }

@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -30,6 +31,7 @@ import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -184,5 +186,23 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleIonMobilitySeries)) {
+      return false;
+    }
+    SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
+    return Objects.equals(scans, that.scans) && Objects.equals(intensityValues,
+        that.intensityValues) && Objects.equals(mzValues, that.mzValues) && IntensitySeries.seriesEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scans, intensityValues, mzValues);
   }
 }

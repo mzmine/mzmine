@@ -35,12 +35,33 @@ public interface MzSeries extends SeriesValueCount {
   /**
    * Appends an {@link MzSeries} element as a child to the current element.
    */
-  static void saveMzValuesToXML(XMLStreamWriter writer, MzSeries series)
-      throws XMLStreamException {
+  static void saveMzValuesToXML(XMLStreamWriter writer, MzSeries series) throws XMLStreamException {
     writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
     writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
     writer.writeCharacters(ParsingUtils.doubleBufferToString(series.getMZValueBuffer()));
     writer.writeEndElement();
+  }
+
+  /**
+   * Tests a subset of the series for equality.
+   */
+  static boolean seriesEqual(MzSeries s1, MzSeries s2) {
+    if (s1.getNumberOfValues() != s2.getNumberOfValues()) {
+      return false;
+    }
+
+    if (!s1.getMZValueBuffer().equals(s2.getMZValueBuffer())) {
+      return false;
+    }
+
+    final int max = s1.getNumberOfValues() - 1;
+    for (int i = 1; i < 5; i++) {
+      if (Double.compare(s1.getMZ(max / i), s2.getMZ(max / i)) != 0) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -49,7 +70,6 @@ public interface MzSeries extends SeriesValueCount {
   DoubleBuffer getMZValueBuffer();
 
   /**
-   *
    * @param dst results are reflected in this array
    * @return All m/z values of detected data points.
    */
