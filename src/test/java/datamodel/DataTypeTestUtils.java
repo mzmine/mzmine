@@ -83,9 +83,28 @@ public class DataTypeTestUtils {
   }
 
   /**
-   * Tests loading and saving a data type with the given parameters.
+   * Tests loading and saving a data type with the given parameters. Will automatically test the
+   * loaded value for equality via {@link Assertions#assertEquals(Object, Object)} (requires
+   * implementation of {@link Object#equals(Object)} for the given datatype.).
    */
   public static void testSaveLoad(@NotNull DataType<?> type, @NotNull Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) {
+
+    final Object loadedValue = saveAndLoad(type, value, flist, row, feature, file);
+    Assertions.assertEquals(value, loadedValue,
+        () -> "Loaded value does not equal saved value." + (feature == null ? " (row type)"
+            : " (feature type)"));
+
+  }
+
+  /**
+   * Tests saving and loads a data type with the given parameters. Can be used to manually retrieve
+   * the loaded value in case {@link Object#equals(Object)} does not work.
+   *
+   * @return The loaded value or null if an error occurred.
+   */
+  public static Object saveAndLoad(@NotNull DataType<?> type, @NotNull Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) {
 
@@ -138,20 +157,19 @@ public class DataTypeTestUtils {
       }
 
       Object loadedValue = type.loadFromXML(reader, flist, row, feature, file);
-      Assertions.assertEquals(value, loadedValue,
-          () -> "Loaded value does not equal saved value." + (feature == null ? " (row type)"
-              : " (feature type)"));
-
       reader.close();
+
+      try {
+        os.close();
+        is.close();
+      } catch (IOException e) {
+        // do nothing
+      }
+      return loadedValue;
     } catch (XMLStreamException e) {
       Assertions.fail(() -> "Failed reading data type " + type.getUniqueID());
     }
-
-    try {
-      os.close();
-      is.close();
-    } catch (IOException e) {
-      // do nothing
-    }
+    Assertions.fail(() -> "Failed reading data type " + type.getUniqueID());
+    return null;
   }
 }
