@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -294,11 +295,10 @@ public class SpectraMerging {
       return null;
     }
 
-    final CenterFunction cf = new CenterFunction(CenterMeasure.AVG,
-        CenterFunction.DEFAULT_MZ_WEIGHTING);
+    final CenterFunction cf = DEFAULT_CENTER_FUNCTION;
 
-    final List<MassList> massLists = mobilityScans.stream().map(MobilityScan::getMassList)
-        .collect(Collectors.toList());
+    final List<MassList> massLists = mobilityScans.stream().map(MobilityScan::getMassList).filter(
+            Objects::nonNull).collect(Collectors.toList());
 
     if (massLists.isEmpty()) {
       logger.info(
