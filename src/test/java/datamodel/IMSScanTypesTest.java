@@ -1,0 +1,166 @@
+/*
+ *  Copyright 2006-2020 The MZmine Development Team
+ *
+ *  This file is part of MZmine.
+ *
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
+ *
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
+ */
+
+package datamodel;
+
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
+import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.scene.paint.Color;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+
+@TestInstance(Lifecycle.PER_CLASS)
+public class IMSScanTypesTest {
+
+  IMSRawDataFile file;
+  ModularFeatureList flist;
+  ModularFeatureListRow row;
+  ModularFeature feature;
+
+  @BeforeAll
+  void initialise() {
+    MZmineCore.main(new String[]{"-r", "-m", "all"});
+
+    try {
+      file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assertions.fail("Cannot initialise data file.");
+    }
+    Assertions.assertNotNull(file);
+
+    flist = new ModularFeatureList("flist", null, file);
+    row = new ModularFeatureListRow(flist, 1);
+    feature = new ModularFeature(flist, file, null, null);
+    row.addFeature(file, feature);
+    flist.addRow(row);
+
+    // generate ms1 frames
+    for (int i = 0; i < 5; i++) {
+      List<BuildingMobilityScan> scans = new ArrayList<>();
+      for (int j = 0; j < 5; j++) {
+        scans.add(new BuildingMobilityScan(j, new double[0], new double[0]));
+      }
+      SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, 0, 0, new double[0], new double[0],
+          MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
+          MobilityType.TIMS, null);
+
+      frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
+      frame.setMobilityScans(scans);
+      try {
+        file.addScan(frame);
+      } catch (IOException e) {
+        Assertions.fail();
+      }
+    }
+
+    // generate ms2 frames
+    for (int i = 5; i < 10; i++) {
+      List<BuildingMobilityScan> scans = new ArrayList<>();
+      for (int j = 0; j < 5; j++) {
+        scans.add(new BuildingMobilityScan(j, new double[] {500, 600}, new double[] {500, 600}));
+      }
+      SimpleFrame frame = new SimpleFrame(file, i, 2, 0.1f * i, 0, 0, new double[0], new double[0],
+          MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
+          MobilityType.TIMS, null);
+      frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
+      frame.setMobilityScans(scans);
+      // set mass lists for merging
+      frame.getMobilityScans().stream().forEach(ms -> ms.addMassList(new ScanPointerMassList(ms)));
+      try {
+        file.addScan(frame);
+      } catch (IOException e) {
+        Assertions.fail();
+      }
+    }
+
+    flist.setSelectedScans(file, file.getFrames().subList(0, 4));
+  }
+
+  @Test
+  void bestScanNumberTypeTest() {
+    BestScanNumberType type = new BestScanNumberType();
+    Frame value = file.getFrame(3);
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+  }
+
+  @Test
+  void bestFragmentScanNumberTypeTest() {
+    BestFragmentScanNumberType type = new BestFragmentScanNumberType();
+    ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(4),
+        file.getFrame(6));
+
+    MergedMsMsSpectrum value = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
+        new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
+
+    Object loaded = DataTypeTestUtils.saveAndLoad(type, value, flist, row, null, null);
+
+    
+
+    loaded = DataTypeTestUtils.saveAndLoad(type, value, flist, row, feature, file);
+  }
+
+//  @Test
+  void fragmentScanNumbersTypeTest() {
+    FragmentScanNumbersType type = new FragmentScanNumbersType();
+
+    List<MergedMsMsSpectrum> value = new ArrayList<>();
+    for(int i = 5; i < 10; i++) {
+      ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i-5),
+          file.getFrame(i));
+
+      MergedMsMsSpectrum scan = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
+          new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+          RangeUtils.toFloatRange(file.getFrame(i).getMobilityRange()), null);
+      value.add(scan);
+    }
+
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+  }
+}
