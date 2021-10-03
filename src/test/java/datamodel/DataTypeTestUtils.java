@@ -40,8 +40,21 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.junit.jupiter.api.Assertions;
 
+/**
+ * Provides utility methods for loading and saving {@link DataType}s to/from an XML.
+ *
+ * @author https://github.com/SteffenHeu
+ */
 public class DataTypeTestUtils {
 
+  /**
+   * Saves and loads the data type and it's value to an ByteArrayStream. Fails the test if the
+   * loaded value does not equal the saved value. The value is processed as a row type (feature and
+   * file = null) and as a feature type.
+   *
+   * @param type  The data type.
+   * @param value The value.
+   */
   public static void simpleDataTypeSaveLoadTest(DataType<?> type, Object value) {
 
     RawDataFile file = null;
@@ -69,6 +82,9 @@ public class DataTypeTestUtils {
     file.close();
   }
 
+  /**
+   * Tests loading and saving a data type with the given parameters.
+   */
   public static void testSaveLoad(@NotNull DataType<?> type, @NotNull Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) {
@@ -122,7 +138,9 @@ public class DataTypeTestUtils {
       }
 
       Object loadedValue = type.loadFromXML(reader, flist, row, feature, file);
-      Assertions.assertEquals(value, loadedValue, "Loaded row value does not equal saved value.");
+      Assertions.assertEquals(value, loadedValue,
+          () -> "Loaded value does not equal saved value." + (feature == null ? " (row type)"
+              : " (feature type)"));
 
       reader.close();
     } catch (XMLStreamException e) {
