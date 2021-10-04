@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
@@ -101,7 +102,7 @@ public class IMSScanTypesTest {
     for (int i = 5; i < 10; i++) {
       List<BuildingMobilityScan> scans = new ArrayList<>();
       for (int j = 0; j < 5; j++) {
-        scans.add(new BuildingMobilityScan(j, new double[] {500, 600}, new double[] {500, 600}));
+        scans.add(new BuildingMobilityScan(j, new double[]{500, 600}, new double[]{500, 600}));
       }
       SimpleFrame frame = new SimpleFrame(file, i, 2, 0.1f * i, 0, 0, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
@@ -134,33 +135,86 @@ public class IMSScanTypesTest {
     ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(4),
         file.getFrame(6));
 
-    MergedMsMsSpectrum value = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
-        new MZTolerance(0.01, 10), MergingType.SUMMED, null,
-        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
+    MergedMsMsSpectrum value = SpectraMerging
+        .getMergedMsMsSpectrumForPASEF(info, new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+            RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
 
-    Object loaded = DataTypeTestUtils.saveAndLoad(type, value, flist, row, null, null);
+    MergedMsMsSpectrum loaded = (MergedMsMsSpectrum) DataTypeTestUtils
+        .saveAndLoad(type, value, flist, row, null, null);
 
-    
+    compareMergedMsMs(value, loaded);
 
-    loaded = DataTypeTestUtils.saveAndLoad(type, value, flist, row, feature, file);
+    loaded = (MergedMsMsSpectrum) DataTypeTestUtils
+        .saveAndLoad(type, value, flist, row, feature, file);
+
+    compareMergedMsMs(value, loaded);
   }
 
-//  @Test
+  @Test
   void fragmentScanNumbersTypeTest() {
     FragmentScanNumbersType type = new FragmentScanNumbersType();
 
     List<MergedMsMsSpectrum> value = new ArrayList<>();
-    for(int i = 5; i < 10; i++) {
-      ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i-5),
+    for (int i = 5; i < 10; i++) {
+      ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i - 5),
           file.getFrame(i));
 
-      MergedMsMsSpectrum scan = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
-          new MZTolerance(0.01, 10), MergingType.SUMMED, null,
-          RangeUtils.toFloatRange(file.getFrame(i).getMobilityRange()), null);
+      MergedMsMsSpectrum scan = SpectraMerging
+          .getMergedMsMsSpectrumForPASEF(info, new MZTolerance(0.01, 10), MergingType.SUMMED, null,
+              RangeUtils.toFloatRange(file.getFrame(i).getMobilityRange()), null);
       value.add(scan);
     }
 
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+    List<MergedMsMsSpectrum> loaded = (List<MergedMsMsSpectrum>) DataTypeTestUtils
+        .saveAndLoad(type, value, flist, row, null, null);
+    for (int i = 0; i < value.size(); i++) {
+      compareMergedMsMs(value.get(i), loaded.get(i));
+    }
+    loaded = (List<MergedMsMsSpectrum>) DataTypeTestUtils
+        .saveAndLoad(type, value, flist, row, feature, file);
+    for (int i = 0; i < value.size(); i++) {
+      compareMergedMsMs(value.get(i), loaded.get(i));
+    }
   }
+
+  @Test
+  void testImsMsMsInfoType() {
+    ImsMsMsInfoType type = new ImsMsMsInfoType();
+    List<ImsMsMsInfo> list = new ArrayList<>();
+    for (int i = 5; i < 10; i++) {
+      ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i - 5),
+          file.getFrame(i));
+      list.add(info);
+    }
+    DataTypeTestUtils.testSaveLoad(type, list, flist, row, feature, file);
+  }
+
+  private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
+    Assertions.assertEquals(value.getCollisionEnergy(), loaded.getCollisionEnergy());
+    Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
+    Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
+    Assertions.assertEquals(value.getCenterFunction(), loaded.getCenterFunction());
+    Assertions.assertEquals(value.getBasePeakIntensity(), loaded.getBasePeakIntensity());
+    Assertions.assertEquals(value.getDataFile(), loaded.getDataFile());
+    Assertions.assertEquals(value.getDataPointMZRange(), loaded.getDataPointMZRange());
+    Assertions.assertEquals(value.getScanningMZRange(), loaded.getScanningMZRange());
+    Assertions.assertEquals(value.getPolarity(), loaded.getPolarity());
+    Assertions.assertEquals(value.getNumberOfDataPoints(), loaded.getNumberOfDataPoints());
+    Assertions.assertEquals(value.getScanNumber(), loaded.getScanNumber());
+    Assertions.assertEquals(value.getPrecursorCharge(), loaded.getPrecursorCharge());
+    Assertions.assertEquals(value.getPrecursorMZ(), loaded.getPrecursorMZ());
+    Assertions.assertEquals(value.getRetentionTime(), loaded.getRetentionTime());
+    Assertions.assertEquals(value.getScanDefinition(), loaded.getScanDefinition());
+    Assertions.assertEquals(value.getSourceSpectra(), loaded.getSourceSpectra());
+    Assertions.assertEquals(value.getTIC(), loaded.getTIC());
+    Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
+    Assertions.assertEquals(value.getMergingType(), loaded.getMergingType());
+
+    for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
+      Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));
+      Assertions.assertEquals(value.getMzValue(i), loaded.getMzValue(i));
+    }
+  }
+
+
 }
