@@ -98,6 +98,10 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
       @Nullable RawDataFile file) throws XMLStreamException {
     while (!(reader.isStartElement() && reader.getLocalName().equals(FeatureIdentity.XML_ELEMENT))
         && reader.hasNext()) {
+        if ((reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+        // do not overshoot the current element.
+        return null;
+      }
       reader.next();
     }
 

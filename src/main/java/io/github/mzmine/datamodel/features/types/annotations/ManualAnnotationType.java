@@ -94,6 +94,10 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
     while (!(reader.isStartElement() && reader.getLocalName().equals(FeatureIdentity.XML_ELEMENT))
         && reader.hasNext()) {
       reader.next();
+      if ((reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+        // do not overshoot the current element.
+        return null;
+      }
     }
 
     List<FeatureIdentity> ids = new ArrayList<>();
