@@ -18,10 +18,12 @@ package io.github.mzmine.datamodel.impl;
 import io.github.mzmine.datamodel.FeatureInformation;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class SimpleFeatureInformation implements FeatureInformation {
@@ -71,8 +73,9 @@ public class SimpleFeatureInformation implements FeatureInformation {
   @NotNull
   public String getPropertyValue(String propertyName, String defaultValue) {
     String value = properties.get(propertyName);
-    if (value == null)
+    if (value == null) {
       value = defaultValue;
+    }
     return value;
   }
 
@@ -86,5 +89,44 @@ public class SimpleFeatureInformation implements FeatureInformation {
   @NotNull
   public synchronized SimpleFeatureInformation clone() {
     return new SimpleFeatureInformation(new HashMap<>(properties));
+  }
+
+  public static FeatureInformation loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    while (!(reader.isStartElement() && reader.getLocalName()
+        .equals(FeatureInformation.XML_PROPERTY_ELEMENT)) && reader.hasNext()) {
+      reader.next();
+    }
+
+    SimpleFeatureInformation fi = new SimpleFeatureInformation();
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(FeatureInformation.XML_ELEMENT))) {
+      if (reader.isStartElement() && reader.getLocalName()
+          .equals(FeatureInformation.XML_PROPERTY_ELEMENT)) {
+        String att = reader.getAttributeValue(null, FeatureInformation.XML_NAME_ATTR);
+        String text = reader.getElementText();
+        fi.addProperty(att, text);
+      }
+      reader.next();
+    }
+
+    return fi;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SimpleFeatureInformation that = (SimpleFeatureInformation) o;
+    return Objects.equals(properties, that.properties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(properties);
   }
 }

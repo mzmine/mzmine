@@ -18,11 +18,18 @@
 
 package io.github.mzmine.datamodel.features.types.abstr;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Use this type to store any URL
@@ -33,5 +40,25 @@ public abstract class UrlType extends DataType<ObjectProperty<UrlShortName>> {
   @Override
   public ObjectProperty<UrlShortName> createProperty() {
     return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(!(value instanceof UrlShortName url)) {
+      return;
+    }
+    writer.writeAttribute("short", url.shortName());
+    writer.writeCharacters(url.longUrl());
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    String shortName = reader.getAttributeValue(null, "short");
+    String url = reader.getElementText();
+    return new UrlShortName(url, shortName);
   }
 }
