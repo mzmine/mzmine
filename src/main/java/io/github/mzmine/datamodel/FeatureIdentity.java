@@ -19,12 +19,19 @@
 package io.github.mzmine.datamodel;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface represents an identification result.
  */
 public interface FeatureIdentity extends Cloneable {
+
+  public static final String XML_ELEMENT = "manualidentity";
+  public static final String XML_PROPERTY_ELEMENT = "property";
+  public static final String XML_NAME_ATTR = "name";
 
   /**
    * These variables define standard properties. The PROPERTY_NAME must be present in all instances
@@ -73,4 +80,20 @@ public interface FeatureIdentity extends Cloneable {
 
   @NotNull
   public Object clone();
+
+  /**
+   * Appends a feature identity to the current element.
+   */
+  public default void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    for (Entry<String, String> entry : getAllProperties().entrySet()) {
+      writer.writeStartElement(XML_PROPERTY_ELEMENT);
+      writer.writeAttribute(XML_NAME_ATTR, entry.getKey());
+      writer.writeCharacters(entry.getValue());
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
+  }
 }

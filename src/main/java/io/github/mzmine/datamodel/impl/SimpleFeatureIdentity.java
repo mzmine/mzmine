@@ -23,6 +23,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -151,5 +153,27 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
   @Override
   public synchronized @NotNull Object clone() {
     return new SimpleFeatureIdentity((Hashtable<String, String>) properties.clone());
+  }
+
+  public static FeatureIdentity loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    while (!(reader.isStartElement() && reader.getLocalName()
+        .equals(FeatureIdentity.XML_PROPERTY_ELEMENT)) && reader.hasNext()) {
+      reader.next();
+    }
+
+    SimpleFeatureIdentity fi = new SimpleFeatureIdentity();
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(FeatureIdentity.XML_ELEMENT))) {
+      if (reader.isStartElement() && reader.getLocalName()
+          .equals(FeatureIdentity.XML_PROPERTY_ELEMENT)) {
+        String att = reader.getAttributeValue(null, FeatureIdentity.XML_NAME_ATTR);
+        String text = reader.getElementText();
+        fi.setPropertyValue(att, text);
+      }
+      reader.next();
+    }
+
+    return fi;
   }
 }
