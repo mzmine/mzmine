@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.projectsave;
 
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -315,6 +316,9 @@ public class FeatureListSaveTask extends AbstractTask {
   private void writeFeature(XMLStreamWriter writer, ModularFeatureListRow row,
       ModularFeature feature) throws XMLStreamException {
     final RawDataFile rawDataFile = feature.getRawDataFile();
+    if(rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+      return;
+    }
 
     writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
