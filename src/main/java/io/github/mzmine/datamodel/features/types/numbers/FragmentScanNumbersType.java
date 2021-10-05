@@ -93,15 +93,18 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       @Nullable RawDataFile file) throws XMLStreamException {
 
     ObservableList<Scan> msmsSpectra = FXCollections.observableArrayList();
+    final RawDataFile beginFile = file;
 
     while (reader.hasNext()) {
       reader.next();
-      if(reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        break;
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        return null;
       }
-      if(!reader.isStartElement()) {
+      if (!reader.isStartElement()) {
         continue;
       }
+
+      file = beginFile; // reset the file. In case of loading the row type, this might have been set to a different file below
 
       switch (reader.getLocalName()) {
         case CONST.XML_RAW_FILE_SCAN_ELEMENT -> {
@@ -113,8 +116,8 @@ public class FragmentScanNumbersType extends ScanNumbersType {
             throw new IllegalArgumentException("File names don't match");
           }
           if (file == null) {
-            file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name)).findFirst()
-                .orElse(null);
+            file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name))
+                .findFirst().orElse(null);
           }
           if (file == null) {
             throw new IllegalArgumentException("Raw data file not found");
@@ -128,8 +131,8 @@ public class FragmentScanNumbersType extends ScanNumbersType {
             throw new IllegalArgumentException("File names don't match");
           }
           if (file == null) {
-            file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name)).findFirst()
-                .orElse(null);
+            file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name))
+                .findFirst().orElse(null);
           }
           if (file == null) {
             throw new IllegalArgumentException("Raw data file not found");
