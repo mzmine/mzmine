@@ -127,6 +127,9 @@ public class IMSScanTypesTest {
     Frame value = file.getFrame(3);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
   @Test
@@ -148,6 +151,9 @@ public class IMSScanTypesTest {
         .saveAndLoad(type, value, flist, row, feature, file);
 
     compareMergedMsMs(value, loaded);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
   @Test
@@ -175,6 +181,9 @@ public class IMSScanTypesTest {
     for (int i = 0; i < value.size(); i++) {
       compareMergedMsMs(value.get(i), loaded.get(i));
     }
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
   @Test
@@ -187,6 +196,8 @@ public class IMSScanTypesTest {
       list.add(info);
     }
     DataTypeTestUtils.testSaveLoad(type, list, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
   private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {

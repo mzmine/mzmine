@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -80,6 +81,9 @@ public class FeatureInformationType extends
     while (
         !(reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT))
             && reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        return null;
+      }
       reader.next();
     }
 

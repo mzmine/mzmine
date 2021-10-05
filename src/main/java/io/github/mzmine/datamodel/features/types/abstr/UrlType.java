@@ -59,6 +59,9 @@ public abstract class UrlType extends DataType<ObjectProperty<UrlShortName>> {
       @Nullable RawDataFile file) throws XMLStreamException {
     String shortName = reader.getAttributeValue(null, "short");
     String url = reader.getElementText();
+    if(url.isEmpty()) {
+      return null;
+    }
     return new UrlShortName(url, shortName);
   }
 }

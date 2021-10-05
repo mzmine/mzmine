@@ -74,6 +74,9 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String name = reader.getElementText();
+    if(name.isEmpty()) {
+      return null;
+    }
     return MobilityType.valueOf(name);
   }
 }

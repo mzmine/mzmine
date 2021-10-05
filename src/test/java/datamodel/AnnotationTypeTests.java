@@ -57,6 +57,7 @@ public class AnnotationTypeTests {
     FeatureIdentity id1 = new SimpleFeatureIdentity("name1", "form1", "method1", "id1", "url1");
     FeatureIdentity id2 = new SimpleFeatureIdentity("name2", "form2", "method2", "id2", "url2");
 
+    // test row load
     ManualAnnotationType type = new ManualAnnotationType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
     ModularTypeProperty value = type.createProperty();
@@ -79,6 +80,9 @@ public class AnnotationTypeTests {
     for (Entry<String, String> entry : id2.getAllProperties().entrySet()) {
       Assertions.assertEquals(entry.getValue(), loaded2.getPropertyValue(entry.getKey()));
     }
+
+    // test null value
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
   }
 
   @Test
@@ -167,6 +171,8 @@ public class AnnotationTypeTests {
     for (Entry<String, String> entry : id2.getAllProperties().entrySet()) {
       Assertions.assertEquals(entry.getValue(), loaded2.getPropertyValue(entry.getKey()));
     }
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
   }
 
   @Test

@@ -94,6 +94,9 @@ public class RegularScanTypesTest {
     Scan value = file.getScan(3);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
   @Test
@@ -102,6 +105,9 @@ public class RegularScanTypesTest {
     Scan value = file.getScan(7);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
   @Test
@@ -110,5 +116,8 @@ public class RegularScanTypesTest {
     List<Scan> value = new ArrayList<>(scans.subList(6, 9));
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 }

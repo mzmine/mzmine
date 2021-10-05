@@ -96,9 +96,12 @@ public class FeatureDataTypeTest {
         new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans);
     Assertions.assertEquals(series, series_2);
 
+    // test if equals returns false
     IonTimeSeries<Scan> series_3 = new SimpleIonTimeSeries(null,
         new double[]{150d, 150d, 120d, 130d, 150d}, new double[]{1d, 4d, 20d, 4.999d, 1d}, scans);
     Assertions.assertNotEquals(series, series_3);
+
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, flist, row, feature, file);
   }
 
   @Test
@@ -149,6 +152,8 @@ public class FeatureDataTypeTest {
 
     IonMobilogramTimeSeries series_3 = generateTrace(file, 2.005d);
     Assertions.assertNotEquals(series, series_3);
+
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, flist, row, feature, file);
   }
 
   @NotNull

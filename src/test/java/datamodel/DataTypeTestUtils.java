@@ -50,7 +50,7 @@ public class DataTypeTestUtils {
   /**
    * Saves and loads the data type and it's value to an ByteArrayStream. Fails the test if the
    * loaded value does not equal the saved value. The value is processed as a row type (feature and
-   * file = null) and as a feature type.
+   * file = null) and as a feature type. Also tests null as a value and expects null to be returned.
    *
    * @param type  The data type.
    * @param value The value.
@@ -73,11 +73,18 @@ public class DataTypeTestUtils {
     row.set(type, value);
     testSaveLoad(type, value, flist, row, null, null);
 
+    // test save/load for row null value
+    testSaveLoad(type, null, flist, row, null, null);
+
     // test load/save for features
     final ModularFeature feature = new ModularFeature(flist, file, null, null);
     feature.set(type, value);
     row.addFeature(file, feature);
     testSaveLoad(type, value, flist, row, feature, file);
+
+    // test save/load for feature null value
+    testSaveLoad(type, null, flist, row, feature, file);
+
 
     file.close();
   }
@@ -87,7 +94,7 @@ public class DataTypeTestUtils {
    * loaded value for equality via {@link Assertions#assertEquals(Object, Object)} (requires
    * implementation of {@link Object#equals(Object)} for the given datatype.).
    */
-  public static void testSaveLoad(@NotNull DataType<?> type, @NotNull Object value,
+  public static void testSaveLoad(@NotNull DataType<?> type, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) {
 
@@ -104,7 +111,7 @@ public class DataTypeTestUtils {
    *
    * @return The loaded value or null if an error occurred.
    */
-  public static Object saveAndLoad(@NotNull DataType<?> type, @NotNull Object value,
+  public static Object saveAndLoad(@NotNull DataType<?> type, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) {
 
@@ -121,10 +128,14 @@ public class DataTypeTestUtils {
 
     try {
       writer.writeStartDocument();
+      // write this element so we can test if the data type overshoots with it's reading method
+      writer.writeStartElement("atestelelement");
+
       writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
       writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, type.getUniqueID());
       type.saveToXML(writer, value, flist, row, feature, file);
-      writer.writeEndElement();
+      writer.writeEndElement(); // datatype
+      writer.writeEndElement(); // atestelement
       writer.writeEndDocument();
       writer.flush();
       writer.close();
@@ -144,6 +155,8 @@ public class DataTypeTestUtils {
     }
     Assertions.assertNotNull(reader);
 
+    final int numLines = os.toString().split("\\n").length;
+
     try {
       while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
           .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
@@ -155,8 +168,12 @@ public class DataTypeTestUtils {
           .equals(type.getUniqueID()))) {
         Assertions.fail("Did not find data type element.");
       }
-
+      final int preReadNumber = reader.getLocation().getLineNumber();
       Object loadedValue = type.loadFromXML(reader, flist, row, feature, file);
+      final int diff = reader.getLocation().getLineNumber() - preReadNumber;
+      if(diff >= numLines - preReadNumber) {
+        Assertions.fail("Data type " + type.getUniqueID() + " for overshot it's data type for value " + value + ".");
+      }
       reader.close();
 
       try {
@@ -167,6 +184,7 @@ public class DataTypeTestUtils {
       }
       return loadedValue;
     } catch (XMLStreamException e) {
+      e.printStackTrace();
       Assertions.fail(() -> "Failed reading data type " + type.getUniqueID());
     }
     Assertions.fail(() -> "Failed reading data type " + type.getUniqueID());

@@ -16,6 +16,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.FeatureInformation;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -92,15 +93,20 @@ public class SimpleFeatureInformation implements FeatureInformation {
   }
 
   public static FeatureInformation loadFromXML(XMLStreamReader reader) throws XMLStreamException {
-    while (!(reader.isStartElement() && reader.getLocalName()
-        .equals(FeatureInformation.XML_PROPERTY_ELEMENT)) && reader.hasNext()) {
+    while (
+        !(reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT))
+            && reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        return null;
+      }
       reader.next();
     }
 
     SimpleFeatureInformation fi = new SimpleFeatureInformation();
 
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(FeatureInformation.XML_ELEMENT))) {
+        .equals(FeatureInformation.XML_ELEMENT)) && !(reader.isEndElement() && reader.getLocalName()
+        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
       if (reader.isStartElement() && reader.getLocalName()
           .equals(FeatureInformation.XML_PROPERTY_ELEMENT)) {
         String att = reader.getAttributeValue(null, FeatureInformation.XML_NAME_ATTR);

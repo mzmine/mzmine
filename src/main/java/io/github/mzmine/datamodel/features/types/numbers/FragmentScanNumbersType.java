@@ -30,9 +30,8 @@ import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.ArrayList;
 import java.util.List;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -92,13 +91,13 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
 
-    ObservableList<Scan> msmsSpectra = FXCollections.observableArrayList();
+    List<Scan> msmsSpectra = new ArrayList<>();
     final RawDataFile beginFile = file;
 
     while (reader.hasNext()) {
       reader.next();
       if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        return msmsSpectra;
+        return msmsSpectra.isEmpty() ? null : msmsSpectra;
       }
       if (!reader.isStartElement()) {
         continue;

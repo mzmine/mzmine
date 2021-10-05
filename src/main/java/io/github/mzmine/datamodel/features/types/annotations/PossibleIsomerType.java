@@ -149,7 +149,11 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    int[] array = ParsingUtils.stringToIntArray(reader.getElementText());
+    final String text = reader.getElementText();
+    if(text.isEmpty()) {
+      return null;
+    }
+    int[] array = ParsingUtils.stringToIntArray(text);
     return Arrays.stream(array).boxed().toList();
   }
 }

@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -99,9 +100,17 @@ public class FeatureDataType extends
 
     assert file != null;
 
-    while (!reader.getLocalName().equals(SimpleIonTimeSeries.XML_ELEMENT) && !reader.getLocalName()
-        .equals(SimpleIonMobilogramTimeSeries.XML_ELEMENT)) {
-      reader.nextTag();
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        // nothing saved
+        return null;
+      }
+      if (reader.isStartElement() && (reader.getLocalName().equals(SimpleIonTimeSeries.XML_ELEMENT)
+          || reader.getLocalName().equals(SimpleIonMobilogramTimeSeries.XML_ELEMENT))) {
+        // found start element
+        break;
+      }
+      reader.next();
     }
 
     switch (reader.getLocalName()) {
@@ -109,8 +118,8 @@ public class FeatureDataType extends
         return SimpleIonTimeSeries.loadFromXML(reader, flist.getMemoryMapStorage(), file);
       }
       case SimpleIonMobilogramTimeSeries.XML_ELEMENT -> {
-        return IonMobilogramTimeSeriesFactory.loadFromXML(reader, flist.getMemoryMapStorage(),
-            (IMSRawDataFile) file);
+        return IonMobilogramTimeSeriesFactory
+            .loadFromXML(reader, flist.getMemoryMapStorage(), (IMSRawDataFile) file);
       }
     }
     return null;

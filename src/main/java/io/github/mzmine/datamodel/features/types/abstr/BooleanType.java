@@ -55,6 +55,10 @@ public abstract class BooleanType extends DataType<Property<Boolean>> {
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    return Boolean.parseBoolean(reader.getElementText());
+    String text = reader.getElementText();
+    if(text.isEmpty()) {
+      return null;
+    }
+    return Boolean.parseBoolean(text);
   }
 }

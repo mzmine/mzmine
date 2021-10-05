@@ -45,6 +45,9 @@ public abstract class StringType extends DataType<StringProperty> {
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(value == null) { // null shall stay null, empty strings shall stay empty.
+      writer.writeCharacters("NULL");
+    }
     if(!(value instanceof String str)) {
       return;
     }
@@ -55,6 +58,10 @@ public abstract class StringType extends DataType<StringProperty> {
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    return reader.getElementText();
+    String text = reader.getElementText();
+    if(text.equals("NULL")) {  // null shall stay null, empty strings shall stay empty.
+      return null;
+    }
+    return text;
   }
 }

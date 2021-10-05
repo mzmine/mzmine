@@ -73,8 +73,12 @@ public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implement
       @Nullable RawDataFile file) throws XMLStreamException {
 
     final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
-    final int index = Integer
-        .parseInt(reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
+    final String strIndex = reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR);
+    if(strIndex == null) {
+      return null;
+    }
+
+    final int index = Integer.parseInt(strIndex);
 
     if (file != null && !file.getName().equals(name)) {
       throw new IllegalArgumentException("File names don't match");

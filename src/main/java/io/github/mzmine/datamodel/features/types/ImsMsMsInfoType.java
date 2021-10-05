@@ -106,6 +106,6 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
         infos.add(ImsMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file));
       }
     }
-    return infos;
+    return infos.isEmpty() ? null : infos;
   }
 }

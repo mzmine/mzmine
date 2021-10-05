@@ -93,6 +93,9 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
     String elementText = reader.getElementText();
+    if(elementText.isEmpty()) {
+      return null;
+    }
     return FeatureStatus.valueOf(elementText);
   }
 }
