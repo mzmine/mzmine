@@ -37,6 +37,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
@@ -60,7 +62,7 @@ public class RawDataFileImpl implements RawDataFile {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   // Name of this raw data file - may be changed by the user
-  private String dataFileName;
+  private final StringProperty nameProperty = new SimpleStringProperty();
 
   protected final String absolutePath;
 
@@ -91,7 +93,7 @@ public class RawDataFileImpl implements RawDataFile {
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage, @NotNull Color color) throws IOException {
 
-    this.dataFileName = dataFileName;
+    this.nameProperty.set(dataFileName);
     this.storageMemoryMap = storage;
     this.absolutePath = absolutePath;
 
@@ -452,17 +454,22 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @NotNull
   public String getName() {
-    return dataFileName;
+    return nameProperty.get();
+  }
+
+  @Override
+  public @NotNull StringProperty nameProperty() {
+    return nameProperty;
   }
 
   @Override
   public void setName(@NotNull String name) {
-    this.dataFileName = name;
+    nameProperty.set(name);
   }
 
   @Override
   public String toString() {
-    return dataFileName;
+    return nameProperty.get();
   }
 
 

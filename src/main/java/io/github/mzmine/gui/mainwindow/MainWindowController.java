@@ -30,6 +30,7 @@ import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -224,8 +225,8 @@ public class MainWindowController {
             }
 
             RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
-
             setText(rawDataFile.getName());
+            rawDataFile.nameProperty().addListener((observable, oldValue, newValue) -> setText(newValue));
             setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
 
             rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
@@ -244,7 +245,7 @@ public class MainWindowController {
               return;
             }
 
-            ((ValueEntity<RawDataFile>) item).getValue().setName(getText());
+            RawDataFileRenameModule.renameFile(((ValueEntity<RawDataFile>) item).getValue(), getText());
           }
         });
 
@@ -673,7 +674,7 @@ public class MainWindowController {
 
   public void handleRemoveFileExtension(Event event) {
     for (RawDataFile file : rawDataList.getSelectedValues()) {
-      file.setName(FilenameUtils.removeExtension(file.getName()));
+      RawDataFileRenameModule.renameFile(file, FilenameUtils.removeExtension(file.getName()));
     }
     rawDataList.refresh();
   }
