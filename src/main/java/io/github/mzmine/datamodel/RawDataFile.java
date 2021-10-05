@@ -24,6 +24,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,8 @@ public interface RawDataFile {
    * file name)
    */
   @NotNull String getName();
+
+  @NotNull StringProperty nameProperty();
 
   /**
    * @return The absolute path this file was loaded from. Null if the file does not exist on the

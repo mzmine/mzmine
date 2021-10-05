@@ -18,16 +18,17 @@
 
 package io.github.mzmine.project.impl;
 
-import java.io.File;
-import java.util.Hashtable;
-import java.util.Vector;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.javafx.FxThreadUtil;
+import java.io.File;
+import java.lang.ref.WeakReference;
+import java.util.Hashtable;
+import java.util.Vector;
+import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -57,6 +58,29 @@ public class MZmineProjectImpl implements MZmineProject {
               FXCollections.observableArrayList()//
           ));
 
+  /**
+   * Synchronized map to store file names that are currently being loaded. By using a {@link
+   * WeakReference} we can check if a file with that name exists. And in case the import was started
+   * but aborted, we can remember that.
+   */
+  /*private final Map<String, WeakReference<RawDataFile>> registeredFileNames = Collections
+      .synchronizedMap(new HashMap<>());
+
+  public String getUniqueFileName(String proposedName, RawDataFile file) {
+    synchronized (registeredFileNames) {
+      WeakReference<RawDataFile> currentReference = registeredFileNames.get(proposedName);
+      if (currentReference == null) {
+        registeredFileNames.put(proposedName, new WeakReference<>(file));
+        return proposedName;
+      }
+      else {
+        for (int i = 0;; i++) {
+          String uniqueName = proposedName + "";
+        }
+      }
+    }
+  }*/
+
   @Override
   public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
     return projectParametersAndValues;
@@ -74,8 +98,9 @@ public class MZmineProjectImpl implements MZmineProject {
     ObservableList<FeatureList> lists = getFeatureLists();
     // find last with name
     for (int i = lists.size() - 1; i >= 0; i--) {
-      if(lists.get(i).getName().equals(name))
+      if (lists.get(i).getName().equals(name)) {
         return lists.get(i);
+      }
     }
     return null;
   }
@@ -88,15 +113,15 @@ public class MZmineProjectImpl implements MZmineProject {
    */
   public MZmineProjectImpl() {
 
-    projectParametersAndValues =
-        new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
+    projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
 
   }
 
   @Override
   public void addParameter(UserParameter<?, ?> parameter) {
-    if (projectParametersAndValues.containsKey(parameter))
+    if (projectParametersAndValues.containsKey(parameter)) {
       return;
+    }
 
     Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
     projectParametersAndValues.put(parameter, parameterValues);
@@ -136,19 +161,22 @@ public class MZmineProjectImpl implements MZmineProject {
   @Override
   public void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile,
       Object value) {
-    if (!(hasParameter(parameter)))
+    if (!(hasParameter(parameter))) {
       addParameter(parameter);
+    }
     Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
-    if (value == null)
+    if (value == null) {
       parameterValues.remove(rawDataFile);
-    else
+    } else {
       parameterValues.put(rawDataFile, value);
+    }
   }
 
   @Override
   public Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile) {
-    if (!(hasParameter(parameter)))
+    if (!(hasParameter(parameter))) {
       return null;
+    }
     Object value = projectParametersAndValues.get(parameter).get(rawDataFile);
 
     return value;
@@ -210,8 +238,9 @@ public class MZmineProjectImpl implements MZmineProject {
     FeatureList[] currentFeatureLists = getFeatureLists().toArray(FeatureList[]::new);
     Vector<ModularFeatureList> result = new Vector<ModularFeatureList>();
     for (FeatureList featureList : currentFeatureLists) {
-      if (featureList.hasRawDataFile(file))
+      if (featureList.hasRawDataFile(file)) {
         result.add((ModularFeatureList) featureList);
+      }
     }
     return result.toArray(new ModularFeatureList[0]);
 
@@ -234,8 +263,9 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public String toString() {
-    if (projectFile == null)
+    if (projectFile == null) {
       return "New project";
+    }
     String projectName = projectFile.getName();
     if (projectName.endsWith(".mzmine")) {
       projectName = projectName.substring(0, projectName.length() - 7);
