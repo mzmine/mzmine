@@ -85,7 +85,6 @@ public class DataTypeTestUtils {
     // test save/load for feature null value
     testSaveLoad(type, null, flist, row, feature, file);
 
-
     file.close();
   }
 

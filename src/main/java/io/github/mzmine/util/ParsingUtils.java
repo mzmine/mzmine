@@ -50,6 +50,10 @@ public class ParsingUtils {
     return values;
   }
 
+  public static String doubleArrayToString(double[] array) {
+    return doubleArrayToString(array, array.length);
+  }
+
   public static String doubleArrayToString(double[] array, int length) {
     assert length <= array.length;
 
