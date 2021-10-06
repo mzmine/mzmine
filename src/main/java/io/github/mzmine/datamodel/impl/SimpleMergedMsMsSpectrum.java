@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -49,10 +50,7 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implements
     MergedMsMsSpectrum {
 
-  public static final String XML_ELEMENT = "simplemergedmsmssprectrum";
-  protected static final String XML_MZS_ELEMENT = "mzvalues";
-  protected static final String XML_INTENSITIES_ELEMENT = "intensities";
-  protected static final String XML_SCANS_ELEMENT = "scans";
+  public static final String XML_SCAN_TYPE = "simplemergedmsmsspectrum";
 
   private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
 
@@ -109,17 +107,17 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     List<MobilityScan> scans = null;
     while (reader.hasNext()) {
       int next = reader.next();
-      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(XML_ELEMENT)) {
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)) {
         break;
       }
       if (next != XMLEvent.START_ELEMENT) {
         continue;
       }
       switch (reader.getLocalName()) {
-        case XML_MZS_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
-        case XML_INTENSITIES_ELEMENT -> intensties = ParsingUtils
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils
             .stringToDoubleArray(reader.getElementText());
-        case XML_SCANS_ELEMENT -> scans = ParsingUtils
+        case CONST.XML_SCAN_LIST_ELEMENT -> scans = ParsingUtils
             .stringToMobilityScanList(reader.getElementText(), file);
       }
     }
@@ -131,7 +129,8 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
   @Override
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
+    writer.writeStartElement(Scan.XML_SCAN_ELEMENT);
+    writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
 
     writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
     writer.writeAttribute(XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
@@ -140,11 +139,11 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
     writer.writeAttribute(XML_MERGING_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 
-    writer.writeStartElement(XML_MZS_ELEMENT);
+    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
     writer.writeCharacters(ParsingUtils.doubleBufferToString(getMzValues()));
     writer.writeEndElement();
 
-    writer.writeStartElement(XML_INTENSITIES_ELEMENT);
+    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
     writer.writeCharacters(ParsingUtils.doubleBufferToString(getIntensityValues()));
     writer.writeEndElement();
 
@@ -155,7 +154,7 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
           }
         }).toList();
 
-    writer.writeStartElement(XML_SCANS_ELEMENT);
+    writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);
     writer.writeCharacters(ParsingUtils.mobilityScanListToString(mobilityScans));
     writer.writeEndElement();
 

@@ -19,6 +19,13 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.Collection;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,11 +34,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Scan extends MassSpectrum, Comparable<Scan> {
 
+  public static final String XML_SCAN_ELEMENT = CONST.XML_RAW_FILE_SCAN_ELEMENT;
+  public static final String XML_SCAN_TYPE_ATTR = "scantype";
+
   /**
    * @return RawDataFile containing this Scan
    */
-  @NotNull
-  RawDataFile getDataFile();
+  @NotNull RawDataFile getDataFile();
 
   /**
    * @return Scan number
@@ -41,8 +50,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return Instrument-specific scan definition as String
    */
-  @NotNull
-  String getScanDefinition();
+  @NotNull String getScanDefinition();
 
   /**
    * @return MS level
@@ -57,24 +65,21 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
   /**
    * @return The actual scanning range of the instrument
    */
-  @NotNull
-  Range<Double> getScanningMZRange();
+  @NotNull Range<Double> getScanningMZRange();
 
   /**
    * @return Precursor m/z or 0 if this is not MSn scan
    */
   double getPrecursorMZ();
 
-  @NotNull
-  PolarityType getPolarity();
+  @NotNull PolarityType getPolarity();
 
   /**
    * @return Precursor charge, 0 if this is not MSn scan, -1 if charge is unknown
    */
   int getPrecursorCharge();
 
-  @Nullable
-  MassList getMassList();
+  @Nullable MassList getMassList();
 
   void addMassList(@NotNull MassList massList);
 
@@ -92,6 +97,69 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       return result;
     } else {
       return Float.compare(this.getRetentionTime(), s.getRetentionTime());
+    }
+  }
+
+  /**
+   * Appends a scan to the current xml element.
+   */
+  public static void saveScanToXML(@NotNull final XMLStreamWriter writer, @NotNull final Scan scan)
+      throws XMLStreamException {
+    if (scan instanceof SimpleScan || scan instanceof Frame) {
+      writer.writeStartElement(CONST.XML_RAW_FILE_SCAN_ELEMENT);
+
+      writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleScan.XML_SCAN_TYPE);
+      String name = scan.getDataFile().getName();
+      writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, name);
+      writer.writeAttribute(CONST.XML_RAW_FILE_SCAN_INDEX_ATTR,
+          String.valueOf(scan.getDataFile().getScans().indexOf(scan)));
+
+      writer.writeEndElement();
+    } else if (scan instanceof MergedMsMsSpectrum merged) {
+      merged.saveToXML(writer);
+    } else {
+      throw new UnsupportedOperationException(
+          "Saving of scan type " + scan.getClass().getName() + " not implemented.");
+    }
+  }
+
+  /**
+   * Loads a scan from a xml file. The current element must have {@link Scan#XML_SCAN_ELEMENT} as
+   * name.
+   *
+   * @param possibleFiles A list of possible raw data files.
+   * @return The loaded scan.
+   * @throws XMLStreamException
+   * @throws IllegalStateException    If the current element is of the wrong type.
+   * @throws IllegalArgumentException If the raw data file of the scan is not part of the
+   *                                  collection.
+   */
+  public static Scan loadScanFromXML(@NotNull final XMLStreamReader reader,
+      @NotNull final Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName()
+        .equals(CONST.XML_RAW_FILE_SCAN_ELEMENT))) {
+      throw new IllegalStateException("Current element is not a scan element.");
+    }
+
+    final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
+    final RawDataFile file = possibleFiles.stream().filter(f -> f.getName().equals(name))
+        .findFirst().orElse(null);
+    if (file == null) {
+      throw new IllegalArgumentException("Raw data file not found");
+    }
+
+    switch (reader.getAttributeValue(null, Scan.XML_SCAN_TYPE_ATTR)) {
+      case SimpleScan.XML_SCAN_TYPE -> {
+        final int index = Integer
+            .parseInt(reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
+        return file.getScan(index);
+      }
+      case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
+        return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);
+      }
+      default -> {
+        throw new IllegalArgumentException("Cannot load scan from xml. Scan type not recognized.");
+      }
     }
   }
 }

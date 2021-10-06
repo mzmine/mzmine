@@ -18,8 +18,6 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -28,7 +26,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,17 +68,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       if (!(o instanceof Scan scan)) {
         throw new IllegalArgumentException("Not a fragment scan");
       }
-      if (scan instanceof MergedMsMsSpectrum merged) {
-        merged.saveToXML(writer);
-      } else {
-        writer.writeStartElement(CONST.XML_RAW_FILE_SCAN_ELEMENT);
-        String name = scan.getDataFile().getName();
-        writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, name);
-        writer.writeAttribute(CONST.XML_RAW_FILE_SCAN_INDEX_ATTR,
-            String.valueOf(scan.getDataFile().getScans().indexOf(scan)));
-
-        writer.writeEndElement();
-      }
+      Scan.saveScanToXML(writer, scan);
     }
 
   }
@@ -92,7 +79,6 @@ public class FragmentScanNumbersType extends ScanNumbersType {
       @Nullable RawDataFile file) throws XMLStreamException {
 
     List<Scan> msmsSpectra = new ArrayList<>();
-    final RawDataFile beginFile = file;
 
     while (reader.hasNext()) {
       reader.next();
@@ -103,41 +89,8 @@ public class FragmentScanNumbersType extends ScanNumbersType {
         continue;
       }
 
-      file = beginFile; // reset the file. In case of loading the row type, this might have been set to a different file below
-
-      switch (reader.getLocalName()) {
-        case CONST.XML_RAW_FILE_SCAN_ELEMENT -> {
-          final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
-          final int index = Integer
-              .parseInt(reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
-
-          if (file != null && !file.getName().equals(name)) {
-            throw new IllegalArgumentException("File names don't match");
-          }
-          if (file == null) {
-            file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name))
-                .findFirst().orElse(null);
-          }
-          if (file == null) {
-            throw new IllegalArgumentException("Raw data file not found");
-          }
-
-          msmsSpectra.add(file.getScan(index));
-        }
-        case SimpleMergedMsMsSpectrum.XML_ELEMENT -> {
-          String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
-          if (file != null && !file.getName().equals(name)) {
-            throw new IllegalArgumentException("File names don't match");
-          }
-          if (file == null) {
-            file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name))
-                .findFirst().orElse(null);
-          }
-          if (file == null) {
-            throw new IllegalArgumentException("Raw data file not found");
-          }
-          msmsSpectra.add(SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file));
-        }
+      if(reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT)) {
+        msmsSpectra.add(Scan.loadScanFromXML(reader, flist.getRawDataFiles()));
       }
     }
 

@@ -61,10 +61,7 @@ public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implement
       return;
     }
 
-    String name = scan.getDataFile().getName();
-    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, name);
-    writer.writeAttribute(CONST.XML_RAW_FILE_SCAN_INDEX_ATTR,
-        String.valueOf(scan.getDataFile().getScans().indexOf(scan)));
+    Scan.saveScanToXML(writer, scan);
   }
 
   @Override
@@ -72,25 +69,18 @@ public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implement
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
 
-    final String name = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
-    final String strIndex = reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR);
-    if(strIndex == null) {
-      return null;
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT)) {
+        return Scan.loadScanFromXML(reader, flist.getRawDataFiles());
+      }
     }
 
-    final int index = Integer.parseInt(strIndex);
-
-    if (file != null && !file.getName().equals(name)) {
-      throw new IllegalArgumentException("File names don't match");
-    }
-    if (file == null) {
-      file = flist.getRawDataFiles().stream().filter(f -> f.getName().equals(name)).findFirst()
-          .orElse(null);
-    }
-    if (file == null) {
-      throw new IllegalArgumentException("Raw data file not found");
-    }
-
-    return file.getScan(index);
+    return null;
   }
 }
