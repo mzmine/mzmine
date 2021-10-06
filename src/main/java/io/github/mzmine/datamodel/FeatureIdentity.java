@@ -18,9 +18,12 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +32,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface FeatureIdentity extends Cloneable {
 
-  public static final String XML_ELEMENT = "manualidentity";
+  public static final String XML_IDENTITY_TYPE_ATTR = "identitytype";
+  public static final String XML_GENERAL_IDENTITY_ELEMENT = "featureidentity";
   public static final String XML_PROPERTY_ELEMENT = "property";
   public static final String XML_NAME_ATTR = "name";
 
@@ -50,16 +54,14 @@ public interface FeatureIdentity extends Cloneable {
    *
    * @return Name
    */
-  @NotNull
-  String getName();
+  @NotNull String getName();
 
   /**
    * Returns full, multi-line description of this identity, one property per line (key: value)
    *
    * @return Description
    */
-  @NotNull
-  String getDescription();
+  @NotNull String getDescription();
 
   /**
    * Returns the value for a
@@ -67,16 +69,14 @@ public interface FeatureIdentity extends Cloneable {
    * @param property
    * @return Description
    */
-  @NotNull
-  String getPropertyValue(String property);
+  @NotNull String getPropertyValue(String property);
 
   /**
    * Returns all the properties in the form of a map key --> value
    *
    * @return Description
    */
-  @NotNull
-  Map<String, String> getAllProperties();
+  @NotNull Map<String, String> getAllProperties();
 
   @NotNull
   public Object clone();
@@ -84,16 +84,19 @@ public interface FeatureIdentity extends Cloneable {
   /**
    * Appends a feature identity to the current element.
    */
-  public default void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
-    for (Entry<String, String> entry : getAllProperties().entrySet()) {
-      writer.writeStartElement(XML_PROPERTY_ELEMENT);
-      writer.writeAttribute(XML_NAME_ATTR, entry.getKey());
-      writer.writeCharacters(entry.getValue());
-      writer.writeEndElement();
+  public static FeatureIdentity loadFromXML(XMLStreamReader reader,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_GENERAL_IDENTITY_ELEMENT))) {
+      throw new IllegalStateException("Current element is not a feature identity element");
     }
 
-    writer.writeEndElement();
+    return switch (reader.getAttributeValue(null, XML_IDENTITY_TYPE_ATTR)) {
+      case SimpleFeatureIdentity.XML_IDENTITY_TYPE -> SimpleFeatureIdentity.loadFromXML(reader);
+      case SpectralDBFeatureIdentity.XML_IDENTITY_TYPE -> SpectralDBFeatureIdentity
+          .loadFromXML(reader, possibleFiles);
+      default -> null;
+    };
   }
 }

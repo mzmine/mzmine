@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,8 +90,8 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    while (!(reader.isStartElement() && reader.getLocalName().equals(FeatureIdentity.XML_ELEMENT))
-        && reader.hasNext()) {
+    while (!(reader.isStartElement() && reader.getLocalName()
+        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)) && reader.hasNext()) {
       reader.next();
       if ((reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
         // do not overshoot the current element.
@@ -103,8 +102,9 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
     List<FeatureIdentity> ids = new ArrayList<>();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
-      if (reader.isStartElement() && reader.getLocalName().equals(FeatureIdentity.XML_ELEMENT)) {
-        var id = SimpleFeatureIdentity.loadFromXML(reader);
+      if (reader.isStartElement() && reader.getLocalName()
+          .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)) {
+        var id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
         ids.add(id);
       }
       reader.next();

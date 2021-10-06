@@ -26,14 +26,26 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
+import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import io.github.mzmine.util.scans.similarity.Weights;
+import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
+import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,13 +80,15 @@ public class RegularScanTypesTest {
 
     scans = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
-      scans.add(new SimpleScan(file, i, 1, 0.1f * i, 0d, 0, new double[0], new double[0],
-          MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
+      scans.add(new SimpleScan(file, i, 1, 0.1f * i, 0d, 0, new double[]{700, 800, 900, 1000, 1100},
+          new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
+          PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
     for (int i = 5; i < 10; i++) {
-      scans.add(new SimpleScan(file, i, 2, 0.1f * i, 0d, 0, new double[0], new double[0],
-          MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
+      scans.add(new SimpleScan(file, i, 2, 0.1f * i, 0d, 0, new double[]{700, 800, 900, 1000, 1100},
+          new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
+          PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
     for (Scan scan : scans) {
@@ -118,6 +132,40 @@ public class RegularScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
 
     DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+  }
+
+  @Test
+  void spectralLibMatchSummaryTypeTest() {
+    var type = new SpectralLibMatchSummaryType();
+
+    var param = new CompositeCosineSpectralSimilarityParameters().cloneParameterSet();
+    param.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7d);
+    param.setParameter(CompositeCosineSpectralSimilarityParameters.handleUnmatched,
+        HandleUnmatchedSignalOptions.REMOVE_ALL);
+    param.setParameter(CompositeCosineSpectralSimilarityParameters.weight, Weights.MASSBANK);
+    CompositeCosineSpectralSimilarity simFunc = new CompositeCosineSpectralSimilarity();
+
+    Scan query = file.getScan(6);
+    Scan library = file.getScan(7);
+
+    Map<DBEntryField, Object> map = Map
+        .of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS, "468-531-21",
+            DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
+
+    SpectralDBEntry entry = new SpectralDBEntry(map, ScanUtils.extractDataPoints(library));
+
+    SpectralSimilarity similarity = simFunc
+        .getSimilarity(param, new MZTolerance(0.005, 15), 0, ScanUtils.extractDataPoints(library),
+            ScanUtils.extractDataPoints(query));
+
+    List<SpectralDBFeatureIdentity> value = List
+        .of(new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
+            new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
+
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 }

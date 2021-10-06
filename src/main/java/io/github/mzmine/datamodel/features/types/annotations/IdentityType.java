@@ -96,9 +96,9 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    while (!(reader.isStartElement() && reader.getLocalName().equals(FeatureIdentity.XML_ELEMENT))
-        && reader.hasNext()) {
-        if ((reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+    while (!(reader.isStartElement() && reader.getLocalName()
+        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)) && reader.hasNext()) {
+      if ((reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
         // do not overshoot the current element.
         return null;
       }
@@ -108,7 +108,10 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
     List<FeatureIdentity> ids = new ArrayList<>();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
-      if (reader.isStartElement() && reader.getLocalName().equals(FeatureIdentity.XML_ELEMENT)) {
+      if (reader.isStartElement() && reader.getLocalName()
+          .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT) && reader
+          .getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
+          .equals(SimpleFeatureIdentity.XML_IDENTITY_TYPE)) {
         var id = SimpleFeatureIdentity.loadFromXML(reader);
         ids.add(id);
       }

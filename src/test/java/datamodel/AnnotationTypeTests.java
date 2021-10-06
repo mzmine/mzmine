@@ -223,9 +223,13 @@ public class AnnotationTypeTests {
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
-  // todo SpectralLibMatchSummaryType
-  // todo SpectralLibraryMatchType
+  /**
+   * {@link io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType} in
+   * {@link RegularScanTypesTest#spectralLibMatchSummaryTypeTest()} and {@link
+   * IMSScanTypesTest#spectralLibMatchSummaryTypeTest()}
+   */
 
+  // todo SpectralLibraryMatchType
   @Test
   void ionAdductTestType() {
     IonAdductType type = new IonAdductType();

@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -193,5 +195,10 @@ public class CliqueMSTabularPeakIdentity implements FeatureIdentity {
     temp.singularProperties = (Hashtable<String, String>) this.singularProperties.clone();
     temp.multiProperties = (Hashtable<String, List<String>>) this.multiProperties.clone();
     return temp;
+  }
+
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    throw new IllegalArgumentException("Load and save not implemented yet.");
   }
 }
