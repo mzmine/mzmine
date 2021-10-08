@@ -244,6 +244,6 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
       }
     }
 
-    return property.getValue();
+    return property;
   }
 }

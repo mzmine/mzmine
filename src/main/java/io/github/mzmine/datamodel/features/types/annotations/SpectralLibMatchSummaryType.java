@@ -87,14 +87,15 @@ public class SpectralLibMatchSummaryType extends ListDataType<SpectralDBFeatureI
         continue;
       }
 
-      if (reader.getLocalName().equals(SpectralDBFeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
-          && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
+      if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT) && reader
+          .getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
           .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
         FeatureIdentity id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
         ids.add(id);
       }
     }
 
-    return ids.isEmpty() ? null : ids;
+    // never return null, if this type was saved we even need empty lists.
+    return ids;
   }
 }

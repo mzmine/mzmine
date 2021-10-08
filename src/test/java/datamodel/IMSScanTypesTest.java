@@ -55,6 +55,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.paint.Color;
@@ -250,9 +251,9 @@ public class IMSScanTypesTest {
             new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
 
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+    DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
   }
 
   private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
