@@ -63,8 +63,12 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(!(value instanceof MobilityType mt)) {
+    if(value == null) {
       return;
+    }
+    if(!(value instanceof MobilityType mt)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
     writer.writeCharacters(mt.name());
   }

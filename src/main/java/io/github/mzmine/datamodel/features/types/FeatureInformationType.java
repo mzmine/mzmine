@@ -67,8 +67,12 @@ public class FeatureInformationType extends
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof SimpleFeatureInformation info)) {
+    if(value == null) {
       return;
+    }
+    if (!(value instanceof SimpleFeatureInformation info)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
 
     info.saveToXML(writer);

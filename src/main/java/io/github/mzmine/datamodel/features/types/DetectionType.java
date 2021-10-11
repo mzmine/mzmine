@@ -81,8 +81,12 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
-    if (!(value instanceof FeatureStatus status)) {
+    if(value == null) {
       return;
+    }
+    if (!(value instanceof FeatureStatus status)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
     writer.writeCharacters(status.toString());
   }

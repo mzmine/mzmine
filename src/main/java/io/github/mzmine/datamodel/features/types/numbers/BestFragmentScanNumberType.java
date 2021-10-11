@@ -62,7 +62,8 @@ public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> i
       return;
     }
     if (!(value instanceof Scan scan)) {
-      throw new IllegalArgumentException("Not a fragment scan");
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
     Scan.saveScanToXML(writer, scan);
   }

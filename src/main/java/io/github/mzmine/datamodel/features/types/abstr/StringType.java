@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javax.xml.stream.XMLStreamException;
@@ -46,10 +47,13 @@ public abstract class StringType extends DataType<StringProperty> {
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
     if(value == null) { // null shall stay null, empty strings shall stay empty.
-      writer.writeCharacters("NULL");
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
+      return;
     }
     if(!(value instanceof String str)) {
-      return;
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + (
+              value != null ? value.getClass() : " null "));
     }
     writer.writeCharacters(str);
   }
@@ -59,7 +63,7 @@ public abstract class StringType extends DataType<StringProperty> {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String text = reader.getElementText();
-    if(text.equals("NULL")) {  // null shall stay null, empty strings shall stay empty.
+    if(text.equals(CONST.XML_NULL_VALUE)) {  // null shall stay null, empty strings shall stay empty.
       return null;
     }
     return text;

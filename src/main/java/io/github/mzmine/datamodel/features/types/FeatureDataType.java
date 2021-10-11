@@ -76,8 +76,12 @@ public class FeatureDataType extends
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
-    if (!(value instanceof IonTimeSeries series)) {
+    if(value == null) {
       return;
+    }
+    if (!(value instanceof IonTimeSeries series)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
     if (file == null) {
       throw new IllegalArgumentException("Cannot save feature data for file = null");

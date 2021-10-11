@@ -184,14 +184,13 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-
-    if (!(value instanceof Map map)) {
+    if(value == null) {
       return;
     }
-
-//    if(true) {
-//      return;
-//    }
+    if (!(value instanceof Map map)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+    }
 
     for (Object obj : map.entrySet()) {
       if (!(obj instanceof Entry entry)) {
@@ -199,8 +198,11 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
       }
       Object key = entry.getKey();
       Object val = entry.getValue();
+      if(val instanceof Property) {
+        val = ((Property<?>) val).getValue();
+      }
 
-      if (!(key instanceof DataType dt && val instanceof Property prop)) {
+      if (!(key instanceof DataType dt)) {
         return;
       }
 
@@ -208,11 +210,12 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
       writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, dt.getUniqueID());
 
       try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-        dt.saveToXML(writer, prop.getValue(), flist, row, feature, file);
+        dt.saveToXML(writer, val, flist, row, feature, file);
       } catch (XMLStreamException e) {
+        final Object finalVal = val;
         logger.warning(
             () -> "Error while writing data type " + dt.getClass().getSimpleName() + " with value "
-                + String.valueOf(prop.getValue()) + " to xml.");
+                + finalVal + " to xml.");
         e.printStackTrace();
       }
 

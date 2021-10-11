@@ -26,6 +26,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -126,6 +127,21 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
       default:
         throw new UndefinedRowBindingException(this, bind);
     }
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(value == null) {
+      return;
+    }
+    if(!(value instanceof Integer)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + (
+              value != null ? value.getClass() : " null "));
+    }
+    writer.writeCharacters(String.valueOf(value));
   }
 
   @Override

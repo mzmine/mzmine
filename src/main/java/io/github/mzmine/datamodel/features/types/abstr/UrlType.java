@@ -46,8 +46,12 @@ public abstract class UrlType extends DataType<ObjectProperty<UrlShortName>> {
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(!(value instanceof UrlShortName url)) {
+    if(value == null) {
       return;
+    }
+    if(!(value instanceof UrlShortName url)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
     writer.writeAttribute("short", url.shortName());
     writer.writeCharacters(url.longUrl());

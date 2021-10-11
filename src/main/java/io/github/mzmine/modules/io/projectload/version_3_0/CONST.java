@@ -23,6 +23,11 @@ public class CONST {
   private CONST() {
   }
 
+  /**
+   * Convenience constant to save null values that shall stay null.
+   */
+  public static final String XML_NULL_VALUE = "NULL_VALUE";
+
   public static final String XML_MZ_VALUES_ELEMENT = "mzs";
   public static final String XML_INTENSITY_VALUES_ELEMENT = "intensities";
   public static final String XML_MOBILITY_VALUES_ELEMENT = "mobilities";

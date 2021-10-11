@@ -55,8 +55,12 @@ public class SpectralLibMatchSummaryType extends ListDataType<SpectralDBFeatureI
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof List<?> list)) {
+    if(value == null) {
       return;
+    }
+    if (!(value instanceof List<?> list)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
 
     for (Object o : list) {

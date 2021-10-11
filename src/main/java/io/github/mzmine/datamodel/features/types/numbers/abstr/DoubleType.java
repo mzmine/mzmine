@@ -135,8 +135,14 @@ public abstract class DoubleType extends NumberType<Property<Double>> implements
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(value == null) {
+      return;
+    }
     if (value instanceof Double) {
       writer.writeCharacters(Double.toString((Double) value));
+    } else {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
   }
 

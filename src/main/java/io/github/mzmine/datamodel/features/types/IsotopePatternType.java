@@ -77,8 +77,12 @@ public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>>
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof IsotopePattern pattern)) {
+    if(value == null) {
       return;
+    }
+    if (!(value instanceof IsotopePattern pattern)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
     }
 
     pattern.saveToXML(writer);
