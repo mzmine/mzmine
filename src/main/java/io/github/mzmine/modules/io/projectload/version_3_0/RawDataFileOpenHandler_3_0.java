@@ -94,7 +94,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         }
       } catch (InterruptedException e) {
         setErrorMessage("Error while loading raw data files.");
-        logger.log(Level.WARNING, e.getMessage(), e);
+        logger.log(Level.SEVERE, e.getMessage(), e);
         setStatus(TaskStatus.ERROR);
         return;
       }
@@ -145,7 +145,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       }
 
     } catch (IOException | XPathExpressionException | ParserConfigurationException | SAXException e) {
-      e.printStackTrace();
+      logger.log(Level.SEVERE, "Error while opening loading raw data file batch queue.", e);
     } finally {
       if (tempFile != null) {
         tempFile.delete();
