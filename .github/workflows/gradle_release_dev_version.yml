@@ -49,7 +49,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/
+        path: build/jpackage/MZmine-3.0.msi
         retention-days: 7  # store for 7 days
 
     - name: Upload builds ubuntu
