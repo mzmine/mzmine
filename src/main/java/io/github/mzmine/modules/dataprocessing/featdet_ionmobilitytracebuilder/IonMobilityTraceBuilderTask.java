@@ -46,6 +46,7 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,6 +59,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Worker task to build ion mobility traces
@@ -91,8 +93,8 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
-      List<Frame> frames, ParameterSet parameters) {
-    super(MemoryMapStorage.forFeatureList()); // Ims files are usually big, so we create our own
+      List<Frame> frames, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(MemoryMapStorage.forFeatureList(), moduleCallDate); // Ims files are usually big, so we create our own
     this.project = project;
     this.rawDataFile = rawDataFile;
     this.mzTolerance = parameters.getParameter(IonMobilityTraceBuilderParameters.mzTolerance)
@@ -552,7 +554,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
     rawDataFile.getAppliedMethods().forEach(m -> featureList.getAppliedMethods().add(m));
     featureList.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(IonMobilityTraceBuilderModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(IonMobilityTraceBuilderModule.class, parameters, getModuleCallDate()));
 
     project.addFeatureList(featureList);
   }

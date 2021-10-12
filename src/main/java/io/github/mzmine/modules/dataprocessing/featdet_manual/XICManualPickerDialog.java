@@ -42,6 +42,7 @@ import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -209,7 +210,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     mzRange = parameters.getParameter(XICManualPickerParameters.mzRange).getValue();
     rtRange = parameters.getParameter(XICManualPickerParameters.rtRange).getValue();
     rawDataFile = parameters.getParameter(XICManualPickerParameters.rawDataFiles).getValue()
-        .getSpecificFiles()[0];
+        .getMatchingRawDataFiles()[0];
 
     ScanSelection sel = new ScanSelection(rawDataFile.getDataRTRange(), 1);
     Scan[] scans = sel.getMatchingScans(rawDataFile);
@@ -295,7 +296,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       return;
     }
 
-    Task integration = new AbstractTask(null) {
+    Task integration = new AbstractTask(null, new Date()) {
 
       @Override
       public void run() {

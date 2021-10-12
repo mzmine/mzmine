@@ -17,19 +17,18 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class FormulaSortTask extends AbstractTask {
 
@@ -46,8 +45,8 @@ public class FormulaSortTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public FormulaSortTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public FormulaSortTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     weightIsotopeScore =
         parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
     ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
@@ -55,8 +54,8 @@ public class FormulaSortTask extends AbstractTask {
     parameterSet = parameters;
   }
 
-  public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters) {
-    this(parameters);
+  public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    this(parameters, moduleCallDate);
     this.featureList = featureList;
     message = "Sorting formula lists of feature list " + featureList.getName();
   }
@@ -95,7 +94,7 @@ public class FormulaSortTask extends AbstractTask {
 
     logger.finest("Finished formula search for all networks");
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        FormulaSortModule.class, parameterSet));
+        FormulaSortModule.class, parameterSet, getModuleCallDate()));
     setStatus(TaskStatus.FINISHED);
   }
 

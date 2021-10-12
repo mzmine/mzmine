@@ -32,10 +32,12 @@ import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 //import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 
@@ -57,8 +59,8 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
   private int totalTasks;
 
   public SelectedRowsLocalSpectralDBSearchTask(FeatureListRow[] peakListRows, FeatureTableFX table,
-      ParameterSet parameters) {
-    super(null); // no new data stored -> null
+      ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.peakListRows = peakListRows;
     this.parameters = parameters;
     this.table = table;
@@ -173,7 +175,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
           if (resultWindow != null) {
             Platform.runLater(() -> resultWindow.addMatches(match));
           }
-        });
+        }, getModuleCallDate());
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

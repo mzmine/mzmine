@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -54,7 +55,7 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     final FeatureList[] peakLists =
         parameters.getParameter(FeatureListClearAnnotationsParameters.PEAK_LISTS).getValue()
@@ -62,7 +63,7 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
 
     for (FeatureList peakList : peakLists) {
 
-      Task newTask = new FeatureListClearAnnotationsTask(project, peakList, parameters);
+      Task newTask = new FeatureListClearAnnotationsTask(project, peakList, parameters, moduleCallDate);
       tasks.add(newTask);
 
     }

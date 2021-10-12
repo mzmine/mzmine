@@ -43,9 +43,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -80,8 +82,8 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
    * @param parameters
    * @param featureList
    */
-  FormulaPredictionFeatureListTask(ModularFeatureList featureList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  FormulaPredictionFeatureListTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.featureList = featureList;
     charge = parameters.getParameter(FormulaPredictionFeatureListParameters.charge).getValue();
@@ -221,7 +223,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     }
 
     featureList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(FormulaPredictionFeatureListModule.class, parameters));
+        new SimpleFeatureListAppliedMethod(FormulaPredictionFeatureListModule.class, parameters, getModuleCallDate()));
 
     logger.finest("Finished formula search for all the features");
 

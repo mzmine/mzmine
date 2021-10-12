@@ -32,6 +32,7 @@
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,10 +64,10 @@ public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
 
   @Override
   @NotNull
-  public ExitCode runModule(MZmineProject project, ParameterSet parameters,
-      Collection<Task> tasks) {
+  public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
+      @NotNull Date moduleCallDate) {
     // add gnps export task
-    GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(parameters);
+    GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(parameters, moduleCallDate);
     /*
      * We do not add the task to the tasks collection, but instead directly submit to the task
      * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the

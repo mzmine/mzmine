@@ -33,6 +33,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Point2D;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +70,7 @@ public class MobilityMzRegionExtractionModule implements MZmineProcessingModule 
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     Task task = new MobilityMzRegionExtractionTask(parameterSet, featureList,
-        MZmineCore.getProjectManager().getCurrentProject(), storage);
+        MZmineCore.getProjectManager().getCurrentProject(), storage, new Date());
     MZmineCore.getTaskController().addTask(task);
   }
 
@@ -94,14 +95,14 @@ public class MobilityMzRegionExtractionModule implements MZmineProcessingModule 
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     ModularFeatureList[] featureLists = parameters
         .getParameter(MobilityMzRegionExtractionParameters.featureLists).getValue()
         .getMatchingFeatureLists();
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList featureList : featureLists) {
-      Task task = new MobilityMzRegionExtractionTask(parameters, featureList, project, storage);
+      Task task = new MobilityMzRegionExtractionTask(parameters, featureList, project, storage, moduleCallDate);
       tasks.add(task);
     }
 

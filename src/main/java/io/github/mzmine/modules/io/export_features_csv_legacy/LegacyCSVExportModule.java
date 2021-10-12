@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.export_features_csv_legacy;
 
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -48,8 +49,8 @@ public class LegacyCSVExportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    LegacyCSVExportTask task = new LegacyCSVExportTask(parameters);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    LegacyCSVExportTask task = new LegacyCSVExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

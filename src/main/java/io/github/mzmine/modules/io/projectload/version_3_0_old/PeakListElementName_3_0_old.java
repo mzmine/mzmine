@@ -16,9 +16,9 @@
  *
  */
 
-package io.github.mzmine.modules.io.projectload.version_3_0;
+package io.github.mzmine.modules.io.projectload.version_3_0_old;
 
-public enum PeakListElementName_3_0 {
+public enum PeakListElementName_3_0_old {
 
   PEAKLIST("peaklist"), PEAKLIST_DATE("created"), QUANTITY("quantity"), RAWFILE(
       "raw_file"), PEAKLIST_NAME("pl_name"), ID("id"), RT("rt"), MZ("mz"), HEIGHT(
@@ -39,7 +39,7 @@ public enum PeakListElementName_3_0 {
 
   private String elementName;
 
-  private PeakListElementName_3_0(String itemName) {
+  private PeakListElementName_3_0_old(String itemName) {
     this.elementName = itemName;
   }
 

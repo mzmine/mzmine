@@ -34,8 +34,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import ucar.ma2.ArrayDouble;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
@@ -65,8 +67,8 @@ public class MassDetectionTask extends AbstractTask {
    * @param storageMemoryMap
    */
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storageMemoryMap) {
-    super(storageMemoryMap);
+      MemoryMapStorage storageMemoryMap, @NotNull Date moduleCallDate) {
+    super(storageMemoryMap, moduleCallDate);
 
     this.dataFile = dataFile;
 
@@ -289,7 +291,7 @@ public class MassDetectionTask extends AbstractTask {
         writer.close();
       }
       dataFile.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters, getModuleCallDate()));
     } catch (Exception e) {
       e.printStackTrace();
       setErrorMessage(e.getMessage());

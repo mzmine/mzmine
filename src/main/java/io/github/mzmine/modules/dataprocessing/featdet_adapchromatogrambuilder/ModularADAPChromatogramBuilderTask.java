@@ -48,11 +48,13 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
@@ -90,8 +92,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
    * @param parameters
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;
     this.scanSelection =
@@ -401,7 +403,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     // Add new feature list to the project
     newFeatureList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters));
+        new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters,
+            getModuleCallDate()));
     project.addFeatureList(newFeatureList);
 
     progress = 1.0;

@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,8 +60,8 @@ public class ZipImportTask extends AbstractTask {
   private Task decompressedOpeningTask = null;
 
   public ZipImportTask(@NotNull MZmineProject project, File fileToOpen, RawDataFileType fileType,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(null); // storage in raw data file
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
     this.fileType = fileType;
@@ -145,7 +146,8 @@ public class ZipImportTask extends AbstractTask {
       }
 
       List<Task> newTasks = new ArrayList<>();
-      RawDataFileUtils.createRawDataImportTasks(project, newTasks, module, parameters, tmpFile);
+      RawDataFileUtils.createRawDataImportTasks(project, newTasks, module, parameters,
+          getModuleCallDate(), tmpFile);
       // Run the import module on the decompressed file
       if (newTasks.size() != 1) {
         setErrorMessage("File type " + fileType + " of file " + newName + " is not supported.");

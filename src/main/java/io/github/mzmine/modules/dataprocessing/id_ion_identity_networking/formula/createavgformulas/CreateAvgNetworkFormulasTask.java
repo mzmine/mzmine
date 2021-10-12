@@ -31,10 +31,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class CreateAvgNetworkFormulasTask extends AbstractTask {
 
@@ -49,38 +51,38 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
   /**
    *
    */
-  public CreateAvgNetworkFormulasTask() {
-    super(null);
+/*  public CreateAvgNetworkFormulasTask() {
+    super(null, );
     sortResults = false;
     this.sorter = null;
     message = "Creation of average molecular formulas for MS annotation networks";
-  }
+  }*/
 
-  public CreateAvgNetworkFormulasTask(FormulaSortTask sorter) {
-    super(null);
+  public CreateAvgNetworkFormulasTask(FormulaSortTask sorter, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     sortResults = sorter != null;
     this.sorter = sorter;
     message = "Creation of average molecular formulas for MS annotation networks";
   }
 
-  public CreateAvgNetworkFormulasTask(FormulaSortParameters parameters) {
-    super(null);
+/*  public CreateAvgNetworkFormulasTask(FormulaSortParameters parameters) {
+    super(null, );
     sortResults = true;
     FormulaSortParameters sortingParam =
         parameters.getParameter(CreateAvgNetworkFormulasParameters.sorting).getEmbeddedParameters();
     sorter = new FormulaSortTask(sortingParam);
     message = "Creation of average molecular formulas for MS annotation networks";
-  }
+  }*/
 
-  public CreateAvgNetworkFormulasTask(ModularFeatureList featureList, ParameterSet parameters) {
-    super(featureList.getMemoryMapStorage());
+  public CreateAvgNetworkFormulasTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
 
     sortResults = parameters.getParameter(CreateAvgNetworkFormulasParameters.sorting).getValue();
     if (sortResults) {
       FormulaSortParameters sortingParam = parameters
           .getParameter(CreateAvgNetworkFormulasParameters.sorting).getEmbeddedParameters();
-      sorter = new FormulaSortTask(sortingParam);
+      sorter = new FormulaSortTask(sortingParam, getModuleCallDate());
     }
     message = "Creation of average molecular formulas for MS annotation networks";
   }

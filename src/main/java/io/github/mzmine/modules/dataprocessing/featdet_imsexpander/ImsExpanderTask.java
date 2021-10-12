@@ -42,6 +42,7 @@ import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,8 +74,8 @@ public class ImsExpanderTask extends AbstractTask {
 
   public ImsExpanderTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final ModularFeatureList flist,
-      MZmineProject project, final int allowedThreads) {
-    super(storage);
+      MZmineProject project, final int allowedThreads, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
     this.flist = flist;
@@ -194,7 +195,7 @@ public class ImsExpanderTask extends AbstractTask {
     }
 
     newFlist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters, getModuleCallDate()));
     project.addFeatureList(newFlist);
     setStatus(TaskStatus.FINISHED);
   }

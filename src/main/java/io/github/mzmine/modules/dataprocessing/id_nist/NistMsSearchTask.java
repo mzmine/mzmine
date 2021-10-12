@@ -49,12 +49,14 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Performs NIST MS Search.
@@ -140,9 +142,9 @@ public class NistMsSearchTask extends AbstractTask {
    * @param list   the feature list to search.
    * @param params search parameters.
    */
-  public NistMsSearchTask(final FeatureList list, final ParameterSet params) {
+  public NistMsSearchTask(final FeatureList list, final ParameterSet params, @NotNull Date moduleCallDate) {
 
-    this(null, list, params);
+    this(null, list, params, moduleCallDate);
   }
 
   /**
@@ -153,8 +155,8 @@ public class NistMsSearchTask extends AbstractTask {
    * @param params search parameters.
    */
   public NistMsSearchTask(final FeatureListRow row, final FeatureList list,
-      final ParameterSet params) {
-    super(null); // no new data stored -> null
+      final ParameterSet params, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     // Initialize.
     peakList = list;
@@ -208,7 +210,7 @@ public class NistMsSearchTask extends AbstractTask {
 
         // Finished.
         peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            NistMsSearchModule.class, parameterSet));
+            NistMsSearchModule.class, parameterSet, getModuleCallDate()));
         setStatus(TaskStatus.FINISHED);
         logger.info("NIST MS Search completed");
       }

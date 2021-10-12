@@ -27,6 +27,7 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +45,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 
 public class SingleRowIdentificationTask extends AbstractTask {
@@ -72,8 +74,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param peakListRow peak-list row to identify.
    */
-  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
-    super(null); // no new data stored -> null
+  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakListRow = peakListRow;
 

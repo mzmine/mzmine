@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.DataPoint;
@@ -33,6 +34,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -53,8 +55,8 @@ public class AdapMspExportTask extends AbstractTask {
   private final boolean integerMZ;
   private final IntegerMode roundMode;
 
-  AdapMspExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  AdapMspExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
 

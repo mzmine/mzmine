@@ -30,10 +30,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MergeAlignerTask extends AbstractTask {
@@ -51,8 +53,8 @@ public class MergeAlignerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public MergeAlignerTask(MZmineProject project, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.parameters = parameters;
@@ -158,7 +160,7 @@ public class MergeAlignerTask extends AbstractTask {
     alignedFeatureList
         .addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod("Feature list merger", MergeAlignerModule.class,
-                parameters));
+                parameters, getModuleCallDate()));
 
     logger.info("Finished feature list merger");
 

@@ -96,6 +96,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     RawDataFile selectedFiles[] = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
+    getParameter(dataFiles).getValue().resetSelection(); // reset selection after evaluation.
 
     // If no file selected (e.g. in batch mode setup), just return
     if ((selectedFiles == null) || (selectedFiles.length == 0)) {

@@ -26,6 +26,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class CsvImportModule implements MZmineProcessingModule {
@@ -43,9 +44,9 @@ public class CsvImportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull
-  ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
-    CsvImportTask task = new CsvImportTask(project, parameters, MemoryMapStorage.forFeatureList());
+  ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    CsvImportTask task = new CsvImportTask(project, parameters, MemoryMapStorage.forFeatureList(), moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

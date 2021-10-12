@@ -28,8 +28,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -52,8 +54,8 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
    * @param storage
    */
   public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.dataFile = dataFile;
     this.parameters = parameters;
   }
@@ -136,7 +138,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
     }
 
     dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ShoulderPeaksFilterModule.class, parameters));
+        ShoulderPeaksFilterModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

@@ -44,6 +44,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import org.jetbrains.annotations.NotNull;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
@@ -85,8 +86,8 @@ public class MzMLImportTask extends AbstractTask {
   private SimpleFrame buildingFrame;
   private Map<Integer, Double> buildingMobilities;
 
-  public MzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
-    super(null); // storage in raw data file
+  public MzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;

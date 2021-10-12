@@ -21,6 +21,7 @@ package io.github.mzmine.modules.io.import_features_mztabm;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import com.google.common.collect.Range;
@@ -55,6 +56,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RawDataFileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
@@ -72,8 +74,8 @@ public class MzTabmImportTask extends AbstractTask {
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
   MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
     this.inputFile = inputFile;
@@ -227,7 +229,8 @@ public class MzTabmImportTask extends AbstractTask {
 
       // import files
       RawDataFileUtils.createRawDataImportTasks(MZmineCore.getProjectManager().getCurrentProject(),
-          underlyingTasks, MZTabmImportModule.class, parameters, filesToImport.toArray(new File[0]));
+          underlyingTasks, MZTabmImportModule.class, parameters, moduleCallDate,
+          filesToImport.toArray(new File[0]));
       if (underlyingTasks.size() > 0) {
         MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
       }
@@ -270,7 +273,7 @@ public class MzTabmImportTask extends AbstractTask {
 
       // if no data file of that name exist, create a new one
       if (rawDataFile == null) {
-        rawDataFile = MZmineCore.createNewFile(rawFileName, storage);
+        rawDataFile = MZmineCore.createNewFile(rawFileName, null, storage);
         project.addFile(rawDataFile);
       }
 

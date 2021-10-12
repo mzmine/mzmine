@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_merge;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import io.github.msdk.MSDKRuntimeException;
@@ -56,7 +57,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     // one storage for all files in the same module call
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
@@ -65,7 +66,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
         .equals(MODE.MERGE_SELECTED)) {
       RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
           .getMatchingRawDataFiles();
-      RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw, storage);
+      RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw, storage, moduleCallDate);
       tasks.add(task);
     } else {
       // sort files into merge groups
@@ -95,7 +96,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
         // run task
         if (current.size() > 1) {
           RawFileMergeTask task = new RawFileMergeTask(project, parameters,
-              current.toArray(new RawDataFile[current.size()]), storage);
+              current.toArray(new RawDataFile[current.size()]), storage, moduleCallDate);
           tasks.add(task);
         }
       } while (!current.isEmpty());

@@ -39,7 +39,9 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ChromatogramBuilderTask extends AbstractTask {
@@ -68,8 +70,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
    * @param parameters
    */
   public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -189,7 +191,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
     dataFile.getAppliedMethods().forEach(m -> newPeakList.getAppliedMethods().add(m));
     // Add new peaklist to the project
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ChromatogramBuilderModule.class, parameters));
+        ChromatogramBuilderModule.class, parameters, getModuleCallDate()));
     project.addFeatureList(newPeakList);
 
     // Add quality parameters to peaks

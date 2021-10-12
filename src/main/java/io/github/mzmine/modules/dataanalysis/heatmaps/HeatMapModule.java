@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataanalysis.heatmaps;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -48,12 +49,12 @@ public class HeatMapModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList selectedDataset =
         parameters.getParameter(HeatMapParameters.featureLists).getValue().getMatchingFeatureLists()[0];
 
-    HeatMapTask heatMapTask = new HeatMapTask(project, selectedDataset, parameters);
+    HeatMapTask heatMapTask = new HeatMapTask(project, selectedDataset, parameters, moduleCallDate);
 
     tasks.add(heatMapTask);
 

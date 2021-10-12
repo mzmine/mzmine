@@ -37,11 +37,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 public class LegacyCSVExportTask extends AbstractTask {
 
@@ -57,8 +59,8 @@ public class LegacyCSVExportTask extends AbstractTask {
   private final FeatureListRowsFilter filter;
   private int processedRows = 0, totalRows = 0;
 
-  public LegacyCSVExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public LegacyCSVExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -98,8 +100,9 @@ public class LegacyCSVExportTask extends AbstractTask {
   public LegacyCSVExportTask(FeatureList[] featureLists, File fileName, String fieldSeparator,
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements,
-      Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter) {
-    super(null); // no new data stored -> null
+      Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter,
+      @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;
     this.fieldSeparator = fieldSeparator;

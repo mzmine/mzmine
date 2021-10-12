@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.mzhistogram;
 
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,14 +50,14 @@ public class MZDistributionHistoModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MZDistributionHistoParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask =
-          new MZDistributionHistoTask(project, dataFiles[i], parameters.cloneParameterSet());
+          new MZDistributionHistoTask(project, dataFiles[i], parameters.cloneParameterSet(), moduleCallDate);
       tasks.add(newTask);
     }
 

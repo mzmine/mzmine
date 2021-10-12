@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -371,5 +372,7 @@ public interface FeatureList {
     public ParameterSet getParameters();
 
     public MZmineModule getModule();
+
+    public Date getModuleCallDate();
   }
 }

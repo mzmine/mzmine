@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.image;
 
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
@@ -52,7 +53,7 @@ public class ImageVisualizerModule implements MZmineRunnableModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     RawDataFile[] files = parameters.getParameter(ImageVisualizerParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles();

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import io.github.mzmine.datamodel.DataPoint;
@@ -35,6 +36,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Export of a feature cluster (ADAP) to mgf. Used in GC-GNPS
@@ -42,6 +44,7 @@ import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 public class AdapMgfExportTask extends AbstractTask {
+
   private final String newLine = System.lineSeparator();
   //
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -59,13 +62,14 @@ public class AdapMgfExportTask extends AbstractTask {
   private final int totalRows;
   private int finishedRows = 0;
 
-  public AdapMgfExportTask(ParameterSet parameters) {
+  public AdapMgfExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
     this(parameters, parameters.getParameter(AdapMgfExportParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists());
+        .getMatchingFeatureLists(), moduleCallDate);
   }
 
-  public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists) {
-    super(null); // no new data stored -> null
+  public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists,
+      @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     totalRows = (int) Stream.of(featureLists).map(FeatureList::getRows).count();
 
@@ -74,8 +78,8 @@ public class AdapMgfExportTask extends AbstractTask {
     this.fractionalMZ = parameters.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).getValue();
 
     this.roundMode = parameters.getParameter(AdapMgfExportParameters.ROUND_MODE).getValue();
-    this.representativeMZ =
-        parameters.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).getValue();
+    this.representativeMZ = parameters.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ)
+        .getValue();
   }
 
   @Override
@@ -104,8 +108,8 @@ public class AdapMgfExportTask extends AbstractTask {
         // Cleanup from illegal filename characters
         String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+        String newFilename = fileName.getPath()
+            .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
 
@@ -143,19 +147,22 @@ public class AdapMgfExportTask extends AbstractTask {
 
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
-      if (!substitute)
+      if (!substitute) {
         break;
+      }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
   }
 
   private void exportFeatureList(FeatureList featureList, FileWriter writer) throws IOException {
     for (FeatureListRow row : featureList.getRows()) {
       IsotopePattern ip = row.getBestIsotopePattern();
-      if (ip == null)
+      if (ip == null) {
         continue;
+      }
 
       exportRow(writer, row, ip);
 
@@ -167,8 +174,9 @@ public class AdapMgfExportTask extends AbstractTask {
       throws IOException {
     // data points of this cluster
     DataPoint dataPoints[] = ScanUtils.extractDataPoints(ip);
-    if (!fractionalMZ)
+    if (!fractionalMZ) {
       dataPoints = ScanUtils.integerDataPoints(dataPoints, roundMode);
+    }
     // get m/z and rt
     double mz = getRepresentativeMZ(row, dataPoints);
     String retTimeInSeconds = rtsForm.format(row.getAverageRT() * 60);

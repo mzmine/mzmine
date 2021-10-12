@@ -40,8 +40,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkMSMSCheckTask extends AbstractTask {
 
@@ -64,8 +66,8 @@ public class IonNetworkMSMSCheckTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public IonNetworkMSMSCheckTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists) {
-    super(featureLists.getMemoryMapStorage());
+      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+    super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureLists;
 
     finishedRows = 0;

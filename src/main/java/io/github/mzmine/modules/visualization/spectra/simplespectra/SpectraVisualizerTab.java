@@ -57,6 +57,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -217,32 +218,32 @@ public class SpectraVisualizerTab extends MZmineTab {
     dbOnlineButton = new Button(null, new ImageView(dbOnlineIcon));
     dbOnlineButton.setTooltip(new Tooltip("Select online database for annotation"));
     dbOnlineButton.setOnAction(e -> {
-      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
     });
 
     dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
     dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
     dbCustomButton.setOnAction(e -> {
-      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
     });
 
     dbLipidsButton = new Button(null, new ImageView(dbLipidsIcon));
     dbLipidsButton.setTooltip(new Tooltip("Select target lipid classes for annotation"));
     dbLipidsButton.setOnAction(e -> {
-      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
     });
 
     dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
     dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral database"));
     dbSpectraButton.setOnAction(e -> {
       SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
-          spectrumPlot);
+          spectrumPlot, new Date());
     });
 
     sumFormulaButton = new Button(null, new ImageView(sumFormulaIcon));
     sumFormulaButton.setTooltip(new Tooltip("Predict sum formulas for annotation"));
     sumFormulaButton.setOnAction(e -> {
-      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
     });
 
     toolBar.getItems().addAll(centroidContinuousButton, dataPointsButton, annotationsButton,

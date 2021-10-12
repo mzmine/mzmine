@@ -120,14 +120,14 @@ public class TDFImportTask extends AbstractTask {
    *                      MZmineCore#createNewIMSFile}.
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    this(project, file, newMZmineFile, null, module, parameters);
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    this(project, file, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @Nullable final AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(newMZmineFile.getMemoryMapStorage());
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(newMZmineFile.getMemoryMapStorage(), moduleCallDate);
     this.fileNameToOpen = file;
     this.project = project;
     this.newMZmineFile = newMZmineFile;
@@ -221,7 +221,7 @@ public class TDFImportTask extends AbstractTask {
     if (isMaldi) {
       try {
         newMZmineFile = new IMSImagingRawDataFileImpl(newMZmineFile.getName(),
-            newMZmineFile.getMemoryMapStorage());
+            newMZmineFile.getAbsolutePath(), newMZmineFile.getMemoryMapStorage());
         ((IMSImagingRawDataFile) newMZmineFile).setImagingParam(
             new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
       } catch (IOException e) {
@@ -300,7 +300,8 @@ public class TDFImportTask extends AbstractTask {
     }
 
     setDescription("Importing " + rawDataFileName + ": Writing raw data file...");
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
+        getModuleCallDate()));
     setFinishedPercentage(1.0);
     logger.info(
         "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "
