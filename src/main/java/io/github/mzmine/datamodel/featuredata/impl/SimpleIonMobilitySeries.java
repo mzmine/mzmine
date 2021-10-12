@@ -19,15 +19,23 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +76,46 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
     this.scans = scans;
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+  }
+
+  public static SimpleIonMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage, @NotNull IMSRawDataFile file) throws XMLStreamException {
+
+    List<MobilityScan> scans = null;
+    double[] mzs = null;
+    double[] intensities = null;
+    int frameindex = -1;
+    frameindex = Integer.parseInt(
+        reader.getAttributeValue(null, IonMobilitySeries.XML_FRAME_INDEX_ELEMENT));
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(IonMobilitySeries.XML_ION_MOBILITY_SERIES_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_SCAN_LIST_ELEMENT -> {
+          if (frameindex == -1) {
+            throw new IllegalStateException(
+                "Cannot load mobility scans without frame index being set.");
+          }
+          int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
+          scans = ParsingUtils.getSublistFromIndices(file.getFrame(frameindex).getMobilityScans(),
+              indices);
+        }
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+      }
+    }
+
+    return new SimpleIonMobilitySeries(storage, mzs, intensities, scans);
   }
 
   @Override
@@ -123,8 +171,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
 
   @Override
   public IonSpectrumSeries<MobilityScan> copy(@Nullable MemoryMapStorage storage) {
-    double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
+    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(getMZValueBuffer(),
+        getIntensityValueBuffer());
 
     return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
   }
@@ -138,5 +186,24 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleIonMobilitySeries)) {
+      return false;
+    }
+    SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
+    return Objects.equals(scans, that.scans) && Objects.equals(intensityValues,
+        that.intensityValues) && Objects.equals(mzValues, that.mzValues)
+        && IntensitySeries.seriesSubsetEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scans, intensityValues, mzValues);
   }
 }

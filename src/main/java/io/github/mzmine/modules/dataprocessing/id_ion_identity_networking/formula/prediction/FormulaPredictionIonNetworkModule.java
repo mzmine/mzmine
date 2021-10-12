@@ -19,7 +19,6 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formu
 
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -27,6 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
@@ -60,14 +60,14 @@ public class FormulaPredictionIonNetworkModule implements MZmineProcessingModule
 
   @Override
   public @NotNull
-  ExitCode runModule(@NotNull MZmineProject project,
-                     @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
+  ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     ModularFeatureList featureLists[] =
         parameters.getParameter(FormulaPredictionIonNetworkParameters.PEAK_LISTS).getValue()
             .getMatchingFeatureLists();
 
     for (ModularFeatureList featureList : featureLists) {
-      Task newTask = new FormulaPredictionIonNetworkTask(featureList, parameters);
+      Task newTask = new FormulaPredictionIonNetworkTask(featureList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

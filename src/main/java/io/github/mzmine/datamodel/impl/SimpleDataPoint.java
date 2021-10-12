@@ -60,10 +60,12 @@ public class SimpleDataPoint implements DataPoint {
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof DataPoint))
+    if (!(obj instanceof DataPoint)) {
       return false;
+    }
     DataPoint dp = (DataPoint) obj;
-    return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
+    return (Double.compare(this.mz, dp.getMZ()) == 0
+        && Double.compare(this.intensity, dp.getIntensity()) == 0);
   }
 
   @Override

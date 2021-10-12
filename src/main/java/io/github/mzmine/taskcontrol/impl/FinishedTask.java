@@ -20,6 +20,7 @@ package io.github.mzmine.taskcontrol.impl;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
+import java.util.Date;
 
 /**
  * This class serves as a replacement for Task within the task controller queue, after the Task is
@@ -32,7 +33,7 @@ public class FinishedTask extends AbstractTask {
   private double finishedPercentage;
 
   public FinishedTask(Task task) {
-    super(null);
+    super(null, new Date()); // date is irrelevant
     setStatus(task.getStatus());
     setErrorMessage(task.getErrorMessage());
     description = task.getTaskDescription();

@@ -30,6 +30,7 @@ import io.github.mzmine.util.TextUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.Immutable;
 
@@ -274,4 +275,28 @@ public class ScanSelection {
     return true;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ScanSelection that = (ScanSelection) o;
+    return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects
+        .equals(getScanMobilityRange(), that.getScanMobilityRange()) && Objects
+        .equals(getScanRTRange(), that.getScanRTRange()) && getPolarity() == that.getPolarity()
+        && getSpectrumType() == that.getSpectrumType() && Objects
+        .equals(getMsLevel(), that.getMsLevel()) && Objects
+        .equals(getBaseFilteringInteger(), that.getBaseFilteringInteger()) && Objects
+        .equals(getScanDefinition(), that.getScanDefinition());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+        .hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(), getPolarity(),
+            getSpectrumType(), getMsLevel(), getBaseFilteringInteger(), getScanDefinition());
+  }
 }

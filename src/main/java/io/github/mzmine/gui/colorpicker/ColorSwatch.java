@@ -18,6 +18,9 @@
 
 package io.github.mzmine.gui.colorpicker;
 
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import java.util.List;
 import java.util.function.Consumer;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
@@ -30,10 +33,10 @@ public class ColorSwatch extends GridPane {
 
   private static final double MIN_TILE_SIZE = 18;
   private static final double PREF_TILE_SIZE = 24;
-  private static final Color[] BASIC_COLORS = {
+  private static final List<Color> BASIC_COLORS = List.of(
       Color.CYAN, Color.TEAL, Color.BLUE, Color.NAVY, Color.MAGENTA, Color.PURPLE, Color.RED,
-      Color.MAROON, Color.YELLOW, Color.OLIVE, Color.GREEN, Color.LIME
-  };
+      Color.MAROON, Color.YELLOW, Color.OLIVE, Color.GREEN, Color.LIME);
+
   private final int nColumns;
   private final int nRows;
   Consumer<Color> onColorSelected = (clr) -> {
@@ -50,12 +53,15 @@ public class ColorSwatch extends GridPane {
     getStylesheets().add(getClass().getResource("ColorSwatch.css").toExternalForm());
     getStyleClass().add("color-grid");
 
-    nColumns = BASIC_COLORS.length;
-    nRows = (BASIC_COLORS.length + extraColors.length) / nColumns;
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    List<Color> colors = palette != null ? palette : BASIC_COLORS;
+
+    nColumns = colors.size();
+    nRows = (colors.size() + extraColors.length) / nColumns;
 
     // create button controls for color selection.
-    for (int i = 0; i < BASIC_COLORS.length; i++) {
-      addColorButton(BASIC_COLORS[i], 0, i);
+    for (int i = 0; i < colors.size(); i++) {
+      addColorButton(colors.get(i), 0, i);
     }
     for (int i = 0; i < extraColors.length; i++) {
       addColorButton(extraColors[i], (i / nColumns) + 1, i % nColumns);

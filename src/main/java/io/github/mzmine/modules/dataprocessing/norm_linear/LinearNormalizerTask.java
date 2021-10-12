@@ -34,10 +34,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class LinearNormalizerTask extends AbstractTask {
@@ -58,8 +60,8 @@ class LinearNormalizerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage); // no new data stored -> null
+      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate); // no new data stored -> null
 
     this.project = project;
     this.originalFeatureList = (ModularFeatureList) featureList;
@@ -252,7 +254,7 @@ class LinearNormalizerTask extends AbstractTask {
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Linear normalization of by " + normalizationType,
-        LinearNormalizerModule.class, parameters));
+        LinearNormalizerModule.class, parameters, getModuleCallDate()));
 
     // Remove the original feature list if requested
     if (removeOriginal)

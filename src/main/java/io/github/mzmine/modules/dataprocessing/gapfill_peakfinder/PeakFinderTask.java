@@ -34,11 +34,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
 class PeakFinderTask extends AbstractTask {
 
@@ -58,8 +60,8 @@ class PeakFinderTask extends AbstractTask {
   private int masterSample = 0;
   private boolean useParallelStream = false;
 
-  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, MemoryMapStorage storage) {
-    super(storage);
+  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
@@ -174,7 +176,7 @@ class PeakFinderTask extends AbstractTask {
     // Add task description to peakList
     processedPeakList
         .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
-            PeakFinderModule.class, parameters));
+            PeakFinderModule.class, parameters, getModuleCallDate()));
 
     // Remove the original peaklist if requested
     if (removeOriginal)

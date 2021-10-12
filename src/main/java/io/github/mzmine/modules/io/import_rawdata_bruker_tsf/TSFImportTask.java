@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,8 +63,8 @@ public class TSFImportTask extends AbstractTask {
   private int processedScans = 0;
 
   public TSFImportTask(MZmineProject project, File fileName, ImagingRawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters) {
-    super(null);
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
 
     this.project = project;
     this.dirPath = fileName;
@@ -158,7 +159,8 @@ public class TSFImportTask extends AbstractTask {
 
     newMZmineFile.setImagingParam(
         new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters));
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
+        getModuleCallDate()));
 
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);

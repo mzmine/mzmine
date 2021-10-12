@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataanalysis.bubbleplots.logratioplot;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.awt.Color;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -51,7 +52,7 @@ public class LogratioPlotModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList featureLists[] =
         parameters.getParameter(CVParameters.featureLists).getValue().getMatchingFeatureLists();

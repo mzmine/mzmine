@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.IonizationType;
@@ -71,7 +72,7 @@ public class FormulaPredictionModule implements MZmineModule {
     }
 
     SingleRowPredictionTask newTask =
-        new SingleRowPredictionTask(parameters.cloneParameterSet(), row);
+        new SingleRowPredictionTask(parameters.cloneParameterSet(), row, new Date());
 
     // execute the sequence
     MZmineCore.getTaskController().addTask(newTask);

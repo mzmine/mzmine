@@ -35,9 +35,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class RTCalibrationTask extends AbstractTask {
@@ -58,8 +60,8 @@ class RTCalibrationTask extends AbstractTask {
   private ParameterSet parameters;
 
   public RTCalibrationTask(MZmineProject project, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.originalFeatureLists = (ModularFeatureList[]) parameters.getParameter(RTCalibrationParameters.featureLists).getValue()
@@ -218,7 +220,7 @@ class RTCalibrationTask extends AbstractTask {
       // Add task description to feature list
       normalizedFeatureLists[i].addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod("Retention time normalization",
-              RTCalibrationModule.class, parameters));
+              RTCalibrationModule.class, parameters, getModuleCallDate()));
 
       // Remove the original feature lists if requested
       if (removeOriginal)

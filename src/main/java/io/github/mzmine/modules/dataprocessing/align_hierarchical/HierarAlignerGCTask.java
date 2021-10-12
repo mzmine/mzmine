@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.gnf.clustering.DataSource;
 import org.gnf.clustering.DistanceMatrix;
@@ -127,8 +129,8 @@ public class HierarAlignerGCTask extends AbstractTask {
   //// public static final double MIN_SCORE_ABSOLUTE = Double.MIN_VALUE;
   public static final double MIN_SCORE_ABSOLUTE = 0.0;
 
-  HierarAlignerGCTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+  HierarAlignerGCTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.parameters = parameters;
@@ -670,7 +672,7 @@ public class HierarAlignerGCTask extends AbstractTask {
     // Add task description to peakList
     alignedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(HierarAlignerGCTask.TASK_NAME,
-            HierarAlignerGcModule.class, parameters));
+            HierarAlignerGcModule.class, parameters, getModuleCallDate()));
 
     logger.info("Finished join aligner GC");
     setStatus(TaskStatus.FINISHED);

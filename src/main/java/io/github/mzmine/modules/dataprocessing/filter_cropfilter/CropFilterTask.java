@@ -34,7 +34,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CropFilterTask extends AbstractTask {
@@ -55,8 +57,8 @@ public class CropFilterTask extends AbstractTask {
   private final MemoryMapStorage storage;
 
   CropFilterTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -91,7 +93,7 @@ public class CropFilterTask extends AbstractTask {
 
     try {
 
-      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, storage);
+      RawDataFile newFile = MZmineCore.createNewFile(dataFile.getName() + " " + suffix, null, storage);
 
       for (Scan scan : scans) {
 
@@ -118,7 +120,7 @@ public class CropFilterTask extends AbstractTask {
         newFile.getAppliedMethods().add(appliedMethod);
       }
       newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          CropFilterModule.class, parameters));
+          CropFilterModule.class, parameters, getModuleCallDate()));
       project.addFile(newFile);
 
       // Remove the original file if requested

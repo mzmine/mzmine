@@ -18,8 +18,12 @@
 
 package io.github.mzmine.datamodel;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 public interface MergedMsMsSpectrum extends MergedMassSpectrum {
 
   float getCollisionEnergy();
 
+  void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

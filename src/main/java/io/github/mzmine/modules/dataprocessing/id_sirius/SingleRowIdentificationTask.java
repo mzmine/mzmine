@@ -28,6 +28,7 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -39,6 +40,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
@@ -102,8 +104,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param peakListRow peak-list row to identify.
    */
-  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
-    super(null); // no new data stored -> null
+  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.peakListRow = peakListRow;
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
     fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
@@ -236,7 +238,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
           FingerIdWebMethodTask task =
-              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, resultWindowFX);
+              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, resultWindowFX, getModuleCallDate());
           task.setLatch(latch);
           fingerTasks.add(task);
           MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);

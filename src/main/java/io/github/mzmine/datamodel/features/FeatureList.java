@@ -26,12 +26,14 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Interface for feature list
@@ -371,5 +373,9 @@ public interface FeatureList {
     public ParameterSet getParameters();
 
     public MZmineModule getModule();
+
+    public Date getModuleCallDate();
+
+    public void saveValueToXML(Element element);
   }
 }

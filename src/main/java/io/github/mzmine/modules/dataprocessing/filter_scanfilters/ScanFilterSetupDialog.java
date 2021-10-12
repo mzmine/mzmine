@@ -49,7 +49,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
     try {
       this.rawDataFilter = filterClass.getDeclaredConstructor().newInstance();
-      this.tmpFile = MZmineCore.createNewFile("tmp", null);
+      this.tmpFile = MZmineCore.createNewFile("tmp", null, null);
     } catch (Exception e) {
       e.printStackTrace();
     }

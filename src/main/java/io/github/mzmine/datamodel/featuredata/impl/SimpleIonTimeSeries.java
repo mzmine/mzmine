@@ -19,16 +19,26 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import com.google.common.collect.Comparators;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.MzSeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +48,8 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
+
+  public static final String XML_ELEMENT = "simpleiontimeseries";
 
   private static final Logger logger = Logger.getLogger(SimpleIonTimeSeries.class.getName());
 
@@ -61,6 +73,37 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
     this.mzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzValues);
     this.intensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensityValues);
+  }
+
+  public static SimpleIonTimeSeries loadFromXML(XMLStreamReader reader, MemoryMapStorage storage,
+      RawDataFile file) throws XMLStreamException {
+
+    List<Scan> scans = null;
+    double[] mzs = null;
+    double[] intensities = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName().equals(SimpleIonTimeSeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_SCAN_LIST_ELEMENT -> {
+          int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
+          scans = ParsingUtils.getSublistFromIndices(file.getScans(), indices);
+        }
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+      }
+    }
+
+    return new SimpleIonTimeSeries(storage, mzs, intensities, scans);
   }
 
   @Override
@@ -120,17 +163,46 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
 
   @Override
   public IonSpectrumSeries<Scan> copy(MemoryMapStorage storage) {
-    double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
+    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(getMZValueBuffer(),
+        getIntensityValueBuffer());
 
     return copyAndReplace(storage, data[0], data[1]);
   }
 
   @Override
   public IonTimeSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @NotNull double[] newMzValues,
-      @NotNull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
 
     return new SimpleIonTimeSeries(storage, newMzValues, newIntensityValues, this.scans);
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans)
+      throws XMLStreamException {
+    writer.writeStartElement(SimpleIonTimeSeries.XML_ELEMENT);
+
+    IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
+    IntensitySeries.saveIntensityValuesToXML(writer, this);
+    MzSeries.saveMzValuesToXML(writer, this);
+
+    writer.writeEndElement();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleIonTimeSeries)) {
+      return false;
+    }
+    SimpleIonTimeSeries that = (SimpleIonTimeSeries) o;
+    return Objects.equals(scans, that.scans) && IntensitySeries.seriesSubsetEqual(this, that)
+        && MzSeries.seriesSubsetEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scans, intensityValues.hashCode(), mzValues.hashCode());
   }
 }

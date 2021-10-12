@@ -37,6 +37,7 @@ import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -94,7 +95,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       }
 
       myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(), p,
-          new ArrayList<Task>());
+          new ArrayList<Task>(), new Date()); // date is irrelevant
     }
 
   }
@@ -219,7 +220,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     final RawDataFile[] dataFiles = parameters.getParameter(TICVisualizerParameters.DATA_FILES)
         .getValue().getMatchingRawDataFiles();
     final Range<Double> mzRange =

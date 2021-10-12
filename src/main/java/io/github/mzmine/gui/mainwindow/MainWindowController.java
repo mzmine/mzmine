@@ -30,6 +30,7 @@ import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
 import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerParameters;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -117,10 +118,10 @@ import org.controlsfx.control.StatusBar;
 
 public class MainWindowController {
 
-  private static final Image featureListSingleIcon =
-      FxIconUtil.loadImageFromResources("icons/peaklisticon_single.png");
-  private static final Image featureListAlignedIcon =
-      FxIconUtil.loadImageFromResources("icons/peaklisticon_aligned.png");
+  private static final Image featureListSingleIcon = FxIconUtil
+      .loadImageFromResources("icons/peaklisticon_single.png");
+  private static final Image featureListAlignedIcon = FxIconUtil
+      .loadImageFromResources("icons/peaklisticon_aligned.png");
   private static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   @FXML
@@ -205,8 +206,7 @@ public class MainWindowController {
 
     featureListsList.setEditable(false);
     featureListsList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    featureListsList.setGrouping(featureList -> featureList.isAligned()
-        ? "Aligned feature lists"
+    featureListsList.setGrouping(featureList -> featureList.isAligned() ? "Aligned feature lists"
         : featureList.getRawDataFile(0).getName());
 
     rawDataList
@@ -225,8 +225,8 @@ public class MainWindowController {
             }
 
             RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
-
             setText(rawDataFile.getName());
+            rawDataFile.nameProperty().addListener((observable, oldValue, newValue) -> setText(newValue));
             setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
 
             rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
@@ -245,7 +245,7 @@ public class MainWindowController {
               return;
             }
 
-            ((ValueEntity<RawDataFile>) item).getValue().setName(getText());
+            RawDataFileRenameModule.renameFile(((ValueEntity<RawDataFile>) item).getValue(), getText());
           }
         });
 
@@ -276,8 +276,8 @@ public class MainWindowController {
 
         if (event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
           timer.playFromStart();
-        } else if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED)
-            || event.getEventType().equals(MouseEvent.MOUSE_DRAGGED)) {
+        } else if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED) || event.getEventType()
+            .equals(MouseEvent.MOUSE_DRAGGED)) {
           timer.stop();
         }
       }
@@ -334,10 +334,9 @@ public class MainWindowController {
         change.next();
 
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected()
-              && ((MZmineTab) tab).isUpdateOnSelection()
-              && !(CollectionUtils.isEqualCollection(
-              ((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
+          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
+              .isUpdateOnSelection() && !(CollectionUtils
+              .isEqualCollection(((MZmineTab) tab).getRawDataFiles(), change.getList()))) {
             ((MZmineTab) tab).onRawDataFileSelectionChanged(change.getList());
           }
         }
@@ -348,10 +347,9 @@ public class MainWindowController {
       MZmineCore.runLater(() -> {
         change.next();
         for (Tab tab : MZmineCore.getDesktop().getAllTabs()) {
-          if (tab instanceof MZmineTab && tab.isSelected()
-              && ((MZmineTab) tab).isUpdateOnSelection()
-              && !(CollectionUtils.isEqualCollection(
-              ((MZmineTab) tab).getFeatureLists(), change.getList()))) {
+          if (tab instanceof MZmineTab && tab.isSelected() && ((MZmineTab) tab)
+              .isUpdateOnSelection() && !(CollectionUtils
+              .isEqualCollection(((MZmineTab) tab).getFeatureLists(), change.getList()))) {
             ((MZmineTab) tab).onFeatureListSelectionChanged(change.getList());
           }
         }
@@ -374,8 +372,8 @@ public class MainWindowController {
     // taskNameColumn.setMinWidth(600.0);
     // taskNameColumn.setMinWidth(100.0);
 
-    ObservableList<WrappedTask> tasksQueue =
-        MZmineCore.getTaskController().getTaskQueue().getTasks();
+    ObservableList<WrappedTask> tasksQueue = MZmineCore.getTaskController().getTaskQueue()
+        .getTasks();
     tasksView.setItems(tasksQueue);
 
     taskNameColumn.setCellValueFactory(
@@ -444,8 +442,8 @@ public class MainWindowController {
      */
 
     // Update rawDataList context menu depending on selected items
-    rawDataList.getSelectionModel().getSelectedItems().addListener(
-        (ListChangeListener<GroupableListViewEntity>) change -> {
+    rawDataList.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<GroupableListViewEntity>) change -> {
           while (change.next()) {
             if (change.getList() == null) {
               return;
@@ -480,8 +478,8 @@ public class MainWindowController {
           }
         });
 
-    featureListsList.getSelectionModel().getSelectedItems().addListener(
-        (ListChangeListener<GroupableListViewEntity>) change -> {
+    featureListsList.getSelectionModel().getSelectedItems()
+        .addListener((ListChangeListener<GroupableListViewEntity>) change -> {
           while (change.next()) {
             if (change.getList() == null) {
               return;
@@ -509,8 +507,7 @@ public class MainWindowController {
               featureListsRenameMenuItem.setDisable(true);
             }
           }
-        }
-    );
+        });
 
     addTab(new MZmineIntroductionTab());
 
@@ -552,10 +549,11 @@ public class MainWindowController {
   public void handleShowChromatogram(Event event) {
     logger.finest("Activated Show chromatogram menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(ChromatogramVisualizerModule.class);
-    parameters.getParameter(TICVisualizerParameters.DATA_FILES).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(ChromatogramVisualizerModule.class);
+    parameters.getParameter(TICVisualizerParameters.DATA_FILES)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(ChromatogramVisualizerModule.class, parameters);
@@ -565,30 +563,33 @@ public class MainWindowController {
   public void handleShowRawDataOverview(Event event) {
     logger.finest("Activated Show raw data overview menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(RawDataOverviewModule.class);
-    parameters.getParameter(RawDataOverviewParameters.rawDataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(RawDataOverviewModule.class);
+    parameters.getParameter(RawDataOverviewParameters.rawDataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     MZmineCore.runMZmineModule(RawDataOverviewModule.class, parameters);
   }
 
   public void handleShowIMSDataOverview(Event event) {
     logger.finest("Activated Show ion mobility raw data overview");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(IMSRawDataOverviewModule.class);
-    parameters.getParameter(RawDataOverviewParameters.rawDataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(IMSRawDataOverviewModule.class);
+    parameters.getParameter(RawDataOverviewParameters.rawDataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     MZmineCore.runMZmineModule(IMSRawDataOverviewModule.class, parameters);
   }
 
   public void handleShowImageViewer(Event event) {
     logger.finest("Activated Show image viewer");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class);
-    parameters.getParameter(RawDataOverviewParameters.rawDataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(ImageVisualizerModule.class);
+    parameters.getParameter(RawDataOverviewParameters.rawDataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
   }
 
@@ -596,10 +597,11 @@ public class MainWindowController {
   public void handleShowMsSpectrum(Event event) {
     logger.finest("Activated Show MS spectrum menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
-    parameters.getParameter(SpectraVisualizerParameters.dataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraVisualizerModule.class);
+    parameters.getParameter(SpectraVisualizerParameters.dataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(SpectraVisualizerModule.class, parameters);
@@ -609,10 +611,11 @@ public class MainWindowController {
   public void handleShow2DPlot(Event event) {
     logger.finest("Activated Show 2D plot menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(TwoDVisualizerModule.class);
-    parameters.getParameter(TwoDVisualizerParameters.dataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(TwoDVisualizerModule.class);
+    parameters.getParameter(TwoDVisualizerParameters.dataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(TwoDVisualizerModule.class, parameters);
@@ -622,10 +625,11 @@ public class MainWindowController {
   public void handleShow3DPlot(Event event) {
     logger.finest("Activated Show 3D plot menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(Fx3DVisualizerModule.class);
-    parameters.getParameter(Fx3DVisualizerParameters.dataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(Fx3DVisualizerModule.class);
+    parameters.getParameter(Fx3DVisualizerParameters.dataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(Fx3DVisualizerModule.class, parameters);
@@ -635,10 +639,11 @@ public class MainWindowController {
   public void handleShowImage(Event event) {
     logger.finest("Activated Show image menu item");
     var selectedFiles = MZmineGUI.getSelectedRawDataFiles();
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(ImageVisualizerModule.class);
-    parameters.getParameter(ImageVisualizerParameters.rawDataFiles).setValue(
-        RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles.toArray(new RawDataFile[0]));
+    ParameterSet parameters = MZmineCore.getConfiguration()
+        .getModuleParameters(ImageVisualizerModule.class);
+    parameters.getParameter(ImageVisualizerParameters.rawDataFiles)
+        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
+            selectedFiles.toArray(new RawDataFile[0]));
     ExitCode exitCode = parameters.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.runMZmineModule(ImageVisualizerModule.class, parameters);
@@ -647,12 +652,13 @@ public class MainWindowController {
 
   public void handleShowMsMsPlot(Event event) {
     MsMsVisualizerModule module = MZmineCore.getModuleInstance(MsMsVisualizerModule.class);
-    ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
+    ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(MsMsVisualizerModule.class);
     logger.info("Setting parameters for module " + module.getName());
     ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK)
+    if (exitCode != ExitCode.OK) {
       return;
+    }
     ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
     logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
     MZmineCore.runMZmineModule(MsMsVisualizerModule.class, parametersCopy);
@@ -668,7 +674,7 @@ public class MainWindowController {
 
   public void handleRemoveFileExtension(Event event) {
     for (RawDataFile file : rawDataList.getSelectedValues()) {
-      file.setName(FilenameUtils.removeExtension(file.getName()));
+      RawDataFileRenameModule.renameFile(file, FilenameUtils.removeExtension(file.getName()));
     }
     rawDataList.refresh();
   }
@@ -714,8 +720,8 @@ public class MainWindowController {
       return;
     }
 
-    ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+    ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(moduleJavaClass);
 
     logger.info("Setting parameters for module " + module.getName());
 
@@ -735,9 +741,9 @@ public class MainWindowController {
     }
 
     // Show alert window
-    Alert alert =
-        new Alert(AlertType.CONFIRMATION, "Are you sure you want to remove selected files?",
-            ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+    Alert alert = new Alert(AlertType.CONFIRMATION,
+        "Are you sure you want to remove selected files?", ButtonType.YES, ButtonType.NO,
+        ButtonType.CANCEL);
     Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
     stage.getIcons().add(new Image("MZmineIcon.png"));
     alert.setHeaderText("Remove file");
@@ -770,25 +776,43 @@ public class MainWindowController {
     FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
 
     ObservableList<FeatureList> selectedValues = featureListsList.getSelectedValues();
-    if (selectedValues.isEmpty()) {
-      return;
+    for (FeatureList selectedValue : selectedValues) {
+      try {
+        AnchorPane pane = loader.load();
+        Stage stage = new Stage();
+        stage.setTitle("Feature list summary - " + selectedValue.getName());
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.setScene(new Scene(pane));
+        stage.getScene().getStylesheets()
+            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+        FeatureListSummaryController controller = loader.getController();
+        controller.setFeatureList((ModularFeatureList) selectedValue);
+        stage.show();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
+  }
 
-    ModularFeatureList selectedFeatureList = (ModularFeatureList) selectedValues.get(0);
+  public void handleShowFileSummary(Event event) {
+    FXMLLoader loader = new FXMLLoader(getClass().getResource("FeatureListSummary.fxml"));
 
-    try {
-      AnchorPane pane = loader.load();
-      Stage stage = new Stage();
-      stage.setTitle("Feature list summary - " + selectedFeatureList.getName());
-      stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
-      stage.setScene(new Scene(pane));
-      stage.getScene().getStylesheets()
-          .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
-      FeatureListSummaryController controller = loader.getController();
-      controller.setFeatureList(selectedFeatureList);
-      stage.show();
-    } catch (IOException e) {
-      e.printStackTrace();
+    ObservableList<RawDataFile> selectedValues = getRawDataList().getSelectedValues();
+    for (RawDataFile selectedValue : selectedValues) {
+      try {
+        AnchorPane pane = loader.load();
+        Stage stage = new Stage();
+        stage.setTitle("MS data file list summary - " + selectedValue.getName());
+        stage.getIcons().add(FxIconUtil.loadImageFromResources("MZmineIcon.png"));
+        stage.setScene(new Scene(pane));
+        stage.getScene().getStylesheets()
+            .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+        FeatureListSummaryController controller = loader.getController();
+        controller.setRawDataFile(selectedValue);
+        stage.show();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -877,20 +901,18 @@ public class MainWindowController {
         if (val) {
           if (((MZmineTab) tab).getRawDataFiles() != null && !((MZmineTab) tab).getRawDataFiles()
               .equals(rawDataList.getSelectionModel().getSelectedItems())) {
-            ((MZmineTab) tab)
-                .onRawDataFileSelectionChanged(rawDataList.getSelectedValues());
+            ((MZmineTab) tab).onRawDataFileSelectionChanged(rawDataList.getSelectedValues());
           }
 
           if (((MZmineTab) tab).getFeatureLists() != null && !((MZmineTab) tab).getFeatureLists()
               .equals(featureListsList.getSelectionModel().getSelectedItems())) {
-            ((MZmineTab) tab)
-                .onFeatureListSelectionChanged(featureListsList.getSelectedValues());
+            ((MZmineTab) tab).onFeatureListSelectionChanged(featureListsList.getSelectedValues());
           }
         }
       }));
     }
 
-    if(getMainTabPane().getTabs().contains(tab)) {
+    if (getMainTabPane().getTabs().contains(tab)) {
       // sometimes we have duplicate tabs, which leads to exceptions. This is a dirty fix for now.
       getMainTabPane().getTabs().remove(tab);
     }
@@ -912,10 +934,8 @@ public class MainWindowController {
     // Creating new popup window
     Stage popup = new Stage();
     VBox box = new VBox(5);
-    Label label = new Label("Please choose a color for \""
-        + rows.get(0) + "\":");
-    ColorPicker picker =
-        new ColorPicker(rows.get(0).getColor());
+    Label label = new Label("Please choose a color for \"" + rows.get(0) + "\":");
+    ColorPicker picker = new ColorPicker(rows.get(0).getColor());
 
     BooleanProperty apply = new SimpleBooleanProperty(false);
 

@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,8 +73,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV1_5Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     // Initialize.
     this.project = project;
     parameters = parameterSet;
@@ -170,7 +171,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
-            ADAPHierarchicalClusteringModule.class, parameters));
+            ADAPHierarchicalClusteringModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
     List<Peak> peaks = getPeaks(peakList,

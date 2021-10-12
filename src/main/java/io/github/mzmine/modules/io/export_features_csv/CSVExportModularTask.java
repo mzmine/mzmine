@@ -43,13 +43,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   public static final String DATAFILE_PREFIX = "DATAFILE";
 
   private ModularFeatureList[] featureLists;
@@ -63,8 +68,8 @@ public class CSVExportModularTask extends AbstractTask {
   private String headerSeparator = ":";
   private FeatureListRowsFilter filter;
 
-  public CSVExportModularTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public CSVExportModularTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -84,8 +89,8 @@ public class CSVExportModularTask extends AbstractTask {
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator,
-      String idSeparator, FeatureListRowsFilter filter) {
-    super(null); // no new data stored -> null
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat
           .format("Column separator cannot equal the identity separator (currently {0})",
@@ -286,7 +291,15 @@ public class CSVExportModularTask extends AbstractTask {
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
-        b.append(escapeStringForCSV(type.getFormattedString(property)));
+        String str;
+        try{
+          str = type.getFormattedString(property);
+        } catch (Exception e) {
+          logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
+              + " value: " + property.getValue(), e);
+          str = "";
+        }
+        b.append(escapeStringForCSV(str));
       }
     }
   }

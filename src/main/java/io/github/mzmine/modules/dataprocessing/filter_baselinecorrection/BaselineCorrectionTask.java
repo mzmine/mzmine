@@ -37,7 +37,9 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -80,8 +82,8 @@ public class BaselineCorrectionTask extends AbstractTask {
    * @param storage
    */
   public BaselineCorrectionTask(MZmineProject project, final RawDataFile dataFile,
-      final ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     this.project = project;
@@ -140,7 +142,7 @@ public class BaselineCorrectionTask extends AbstractTask {
           this.correctedDataFile.getAppliedMethods().add(appliedMethod);
         }
         this.correctedDataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, commonParameters));
+            BaselineCorrectionModule.class, commonParameters, getModuleCallDate()));
         // Add the newly created file to the project
         this.project.addFile(this.correctedDataFile);
 

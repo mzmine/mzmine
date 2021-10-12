@@ -53,12 +53,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class JoinAlignerTask extends AbstractTask {
@@ -99,8 +101,8 @@ public class JoinAlignerTask extends AbstractTask {
   private final boolean compareMobility;
 
   public JoinAlignerTask(MZmineProject project, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.parameters = parameters;
@@ -250,7 +252,7 @@ public class JoinAlignerTask extends AbstractTask {
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class, parameters));
+        new SimpleFeatureListAppliedMethod("Join aligner", JoinAlignerModule.class, parameters, getModuleCallDate()));
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);
 

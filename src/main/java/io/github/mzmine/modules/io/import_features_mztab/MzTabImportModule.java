@@ -22,6 +22,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -59,11 +60,12 @@ public class MzTabImportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Date moduleCallDate) {
     File inputFiles[] = parameters.getParameter(MzTabImportParameters.file).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {
-      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile, storage);
+      MzTabImportTask task = new MzTabImportTask(project, parameters, inputFile, storage, moduleCallDate);
       tasks.add(task);
     }
     return ExitCode.OK;

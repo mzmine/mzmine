@@ -19,6 +19,8 @@
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
 import java.util.Collection;
+import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -57,8 +59,8 @@ public class GraphicsExportModule implements MZmineRunnableModule {
   }
 
   @Override
-  public ExitCode runModule(MZmineProject project, ParameterSet parameters,
-      Collection<Task> tasks) {
+  public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
+      @NotNull Date moduleCallDate) {
     return null;
   }
 

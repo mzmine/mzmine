@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -37,8 +38,7 @@ import javafx.application.Platform;
 public class OnlineDBSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Online database search";
-  private static final String MODULE_DESCRIPTION =
-      "This module attepts to find those peaks in a feature list, which form an isotope pattern.";
+  private static final String MODULE_DESCRIPTION = "This module attepts to find those peaks in a feature list, which form an isotope pattern.";
 
   @Override
   public @NotNull String getName() {
@@ -53,12 +53,13 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
-    final FeatureList[] featureLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
-        .getValue().getMatchingFeatureLists();
+    final FeatureList[] featureLists = parameters
+        .getParameter(PeakListIdentificationParameters.peakLists).getValue()
+        .getMatchingFeatureLists();
     for (final FeatureList featureList : featureLists) {
-      Task newTask = new PeakListIdentificationTask(parameters, featureList);
+      Task newTask = new PeakListIdentificationTask(parameters, featureList, moduleCallDate);
       tasks.add(newTask);
     }
 
@@ -70,7 +71,8 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
    *
    * @param row the feature list row.
    */
-  public static void showSingleRowIdentificationDialog(final FeatureListRow row) {
+  public static void showSingleRowIdentificationDialog(final FeatureListRow row,
+      @NotNull Date moduleCallDate) {
 
     assert Platform.isFxApplicationThread();
 
@@ -90,8 +92,8 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
     // Run task.
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController()
-          .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row));
+      MZmineCore.getTaskController().addTask(
+          new SingleRowIdentificationTask(parameters.cloneParameterSet(), row, moduleCallDate));
     }
   }
 

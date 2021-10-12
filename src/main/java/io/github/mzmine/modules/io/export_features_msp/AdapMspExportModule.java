@@ -17,6 +17,7 @@
 package io.github.mzmine.modules.io.export_features_msp;
 
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,8 +50,8 @@ public class AdapMspExportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    AdapMspExportTask task = new AdapMspExportTask(parameters);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    AdapMspExportTask task = new AdapMspExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 

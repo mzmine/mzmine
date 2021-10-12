@@ -57,10 +57,12 @@ import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS GC-MS workflow
@@ -83,8 +85,8 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   private boolean submit;
   private boolean openFolder;
 
-  GnpsGcExportAndSubmitTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
 
     this.featureList = parameters.getParameter(GnpsGcExportAndSubmitParameters.FEATURE_LISTS)
@@ -203,7 +205,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     mgfParam.getParameter(AdapMgfExportParameters.FILENAME).setValue(full);
     mgfParam.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).setValue(true);
     mgfParam.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).setValue(representativeMZ);
-    return new AdapMgfExportTask(mgfParam, new FeatureList[]{featureList});
+    return new AdapMgfExportTask(mgfParam, new FeatureList[]{featureList}, getModuleCallDate()); // todo: this will be inconsistent for batch modes, because the task will add it's own applied method.
   }
 
   /**
@@ -243,7 +245,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
         parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
 
     CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
-        filter);
+        filter, getModuleCallDate());
 
     if (tasks != null) {
       tasks.add(quanExportModular);
@@ -273,8 +275,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(new FeatureList[]{featureList}, full,
-        ",", common,
-        rawdata, false, ";", FeatureListRowsFilter.ALL);
+        ",", common, rawdata, false, ";", FeatureListRowsFilter.ALL, getModuleCallDate());
     if (tasks != null) {
       tasks.add(quanExport);
     }

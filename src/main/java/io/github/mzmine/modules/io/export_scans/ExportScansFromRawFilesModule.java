@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -52,7 +53,7 @@ public class ExportScansFromRawFilesModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     ScanSelection select =
         parameters.getParameter(ExportScansFromRawFilesParameters.scanSelect).getValue();

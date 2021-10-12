@@ -18,11 +18,22 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.ArrayList;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FragmentScanNumbersType extends ScanNumbersType {
 
@@ -44,4 +55,47 @@ public class FragmentScanNumbersType extends ScanNumbersType {
     return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));
   }
 
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(value == null) {
+      return;
+    }
+    if (!(value instanceof List<?> list)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+    }
+    for (Object o : list) {
+      if (!(o instanceof Scan scan)) {
+        throw new IllegalArgumentException("Not a fragment scan");
+      }
+      Scan.saveScanToXML(writer, scan);
+    }
+
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+
+    List<Scan> msmsSpectra = new ArrayList<>();
+
+    while (reader.hasNext()) {
+      reader.next();
+      if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        return msmsSpectra.isEmpty() ? null : msmsSpectra;
+      }
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if(reader.getLocalName().equals(CONST.XML_RAW_FILE_SCAN_ELEMENT)) {
+        msmsSpectra.add(Scan.loadScanFromXML(reader, flist.getRawDataFiles()));
+      }
+    }
+
+    return msmsSpectra;
+  }
 }

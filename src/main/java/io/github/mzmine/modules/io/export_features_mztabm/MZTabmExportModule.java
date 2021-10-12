@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
@@ -44,9 +45,9 @@ public class MZTabmExportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull
-  ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
-    MZTabmExportTask task = new MZTabmExportTask(project, parameters);
+  ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    MZTabmExportTask task = new MZTabmExportTask(project, parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
   }

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.tools.sortdatafiles;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +54,7 @@ public class SortDataFilesModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     List<RawDataFile> dataFiles = Arrays.asList(parameters
         .getParameter(SortDataFilesParameters.dataFiles).getValue().getMatchingRawDataFiles());

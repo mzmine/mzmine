@@ -121,7 +121,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
       progressMap.put(origDataFile, new int[] {0, 0, 0});
 
     // Create a new temporary file to write in.
-    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix, storage);
+    RawDataFile newFile = MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix, null, storage);
 
     // Determine number of bins.
     final double mzLen = origDataFile.getDataMZRange().upperEndpoint()

@@ -69,6 +69,7 @@ import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -174,7 +175,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem exportToSirius =
         new ConditionalMenuItem("Export to Sirius", () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(e -> SiriusExportModule
-        .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0])));
+        .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]), new Date()));
 
     final MenuItem exportMS1Library =
         new ConditionalMenuItem("Export to MS1 library", () -> !selectedRows.isEmpty());
@@ -196,7 +197,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
         () -> !selectedRows.isEmpty() && selectedRows.get(0).hasFeatureType(ImageType.class));
-    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows));
+    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows, new Date()));
 
     // export menu
     exportMenu.getItems().addAll(exportIsotopesItem, exportMSMSItem, exportToSirius,
@@ -208,13 +209,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem onlineDbSearchItem =
         new ConditionalMenuItem("Online compound database search", () -> selectedRows.size() == 1);
     onlineDbSearchItem.setOnAction(
-        e -> OnlineDBSearchModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
+        e -> OnlineDBSearchModule.showSingleRowIdentificationDialog(selectedRows.get(0), new Date()));
 
     final MenuItem spectralDbSearchItem =
         new ConditionalMenuItem("Local spectral database search", () -> selectedRows.size() >= 1);
     spectralDbSearchItem
         .setOnAction(e -> LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(
-            selectedRows.toArray(new ModularFeatureListRow[0]), table));
+            selectedRows.toArray(new ModularFeatureListRow[0]), table, new Date()));
 
     final MenuItem nistSearchItem =
         new ConditionalMenuItem("NIST MS search", () -> selectedRows.size() == 1);
@@ -227,7 +228,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem siriusItem =
         new ConditionalMenuItem("Sirius structure prediction", () -> selectedRows.size() == 1);
     siriusItem.setOnAction(
-        e -> SiriusIdentificationModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
+        e -> SiriusIdentificationModule.showSingleRowIdentificationDialog(selectedRows.get(0), new Date()));
 
     final MenuItem formulaPredictionItem =
         new ConditionalMenuItem("Predict molecular formula", () -> selectedRows.size() == 1);

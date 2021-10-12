@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -54,7 +55,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     RawDataFile dataFile = parameters.getParameter(SpectraVisualizerParameters.dataFiles)
         .getValue().getMatchingRawDataFiles()[0];
 

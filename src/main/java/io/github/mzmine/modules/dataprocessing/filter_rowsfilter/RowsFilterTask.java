@@ -40,12 +40,14 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -71,8 +73,8 @@ public class RowsFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public RowsFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     this.project = project;
@@ -153,7 +155,7 @@ public class RowsFilterTask extends AbstractTask {
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        getTaskDescription(), RowsFilterModule.class, parameters));
+        getTaskDescription(), RowsFilterModule.class, parameters, getModuleCallDate()));
 
     // Get parameters.
     final boolean onlyIdentified =

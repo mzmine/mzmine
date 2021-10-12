@@ -44,11 +44,13 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -85,8 +87,8 @@ public class LipidSearchTask extends AbstractTask {
    * @param parameters
    * @param featureList
    */
-  public LipidSearchTask(ParameterSet parameters, FeatureList featureList) {
-    super(null);
+  public LipidSearchTask(ParameterSet parameters, FeatureList featureList, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameters;
 
@@ -172,7 +174,7 @@ public class LipidSearchTask extends AbstractTask {
 
     // Add task description to featureList
     (featureList).addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Lipid annotation",
-        LipidSearchModule.class, parameters));
+        LipidSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

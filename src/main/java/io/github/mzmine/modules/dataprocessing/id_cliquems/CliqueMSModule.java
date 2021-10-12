@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class CliqueMSModule implements MZmineProcessingModule {
@@ -51,13 +52,13 @@ public class CliqueMSModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList peakLists[] = parameters.getParameter(CliqueMSParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new CliqueMSTask(parameters, peakList);
+      Task newTask = new CliqueMSTask(parameters, peakList, moduleCallDate);
       tasks.add(newTask);
     }
 

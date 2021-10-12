@@ -22,7 +22,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -88,8 +90,8 @@ public class KendrickMassPlotTask extends AbstractTask {
   private FeatureListRow[] rows;
   private int totalSteps = 3, appliedSteps = 0;
 
-  public KendrickMassPlotTask(ParameterSet parameters) {
-    super(null);
+  public KendrickMassPlotTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];
 

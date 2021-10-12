@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.elements;
 
+import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -134,4 +135,23 @@ public class ElementsParameter implements UserParameter<List<Element>, ElementsC
     return copy;
   }
 
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if(!(that instanceof ElementsParameter elementsParameter)) {
+      return false;
+    }
+
+    final List<Element> thatElements = elementsParameter.getValue();
+    if(thatElements.size() != value.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < value.size(); i++) {
+      var element = value.get(i);
+      if(!element.compare(thatElements.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

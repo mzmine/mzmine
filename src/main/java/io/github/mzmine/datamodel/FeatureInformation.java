@@ -19,6 +19,9 @@
 package io.github.mzmine.datamodel;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,6 +30,10 @@ import org.jetbrains.annotations.NotNull;
  * @author aleksandrsmirnov
  */
 public interface FeatureInformation {
+
+  String XML_PROPERTY_ELEMENT = "property";
+  String XML_ELEMENT = "featureinformation";
+  String XML_NAME_ATTR = "name";
 
   /**
    * Returns the value of a property
@@ -50,4 +57,16 @@ public interface FeatureInformation {
   @NotNull
   Map<String, String> getAllProperties();
 
+  default void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    for (Entry<String, String> entry : getAllProperties().entrySet()) {
+      writer.writeStartElement(XML_PROPERTY_ELEMENT);
+      writer.writeAttribute(XML_NAME_ATTR, entry.getKey());
+      writer.writeCharacters(entry.getValue());
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
+  }
 }

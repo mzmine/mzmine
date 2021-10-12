@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.util.DataPointUtils;
@@ -27,6 +28,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,8 +50,7 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   protected final SimpleIonMobilogramTimeSeries ionTrace;
 
   protected StorableIonMobilitySeries(final SimpleIonMobilogramTimeSeries ionTrace,
-      final int offset,
-      final int numValues, @NotNull List<MobilityScan> scans) {
+      final int offset, final int numValues, @NotNull List<MobilityScan> scans) {
     if (numValues != scans.size()) {
       throw new IllegalArgumentException("numPoints and number of scans scans does not match.");
     }
@@ -130,8 +131,8 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
 
   @Override
   public IonSpectrumSeries<MobilityScan> copy(@Nullable MemoryMapStorage storage) {
-    double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(getMZValueBuffer(), getIntensityValueBuffer());
+    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(getMZValueBuffer(),
+        getIntensityValueBuffer());
 
     return new SimpleIonMobilitySeries(storage, data[0], data[1], scans);
   }
@@ -154,5 +155,23 @@ public class StorableIonMobilitySeries implements IonMobilitySeries,
   public IonSpectrumSeries<MobilityScan> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     return new SimpleIonMobilitySeries(storage, newMzValues, newIntensityValues, scans);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof StorableIonMobilitySeries)) {
+      return false;
+    }
+    StorableIonMobilitySeries that = (StorableIonMobilitySeries) o;
+    return numValues == that.numValues && Objects.equals(scans, that.scans)
+        && IntensitySeries.seriesSubsetEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(scans, numValues);
   }
 }
