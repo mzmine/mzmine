@@ -18,24 +18,24 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.NotNull;
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.text.NumberFormat;
+import java.util.Arrays;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class FloatType extends NumberType<Property<Float>> implements BindingsFactoryType {
@@ -47,8 +47,9 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
   @Override
   @NotNull
   public String getFormattedString(@NotNull Property<Float> value) {
-    if (value.getValue() == null)
+    if (value.getValue() == null) {
       return "";
+    }
     return getFormatter().format(value.getValue().floatValue());
   }
 
@@ -60,9 +61,8 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
   @Override
   public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
-    @SuppressWarnings("unchecked")
-    Property<Float>[] prop = row.streamFeatures().map(f -> (ModularFeature) f)
-        .map(f -> f.get(this)).toArray(Property[]::new);
+    @SuppressWarnings("unchecked") Property<Float>[] prop = row.streamFeatures()
+        .map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case AVERAGE:
         return Bindings.createObjectBinding(() -> {
@@ -79,25 +79,31 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
       case MIN:
         return Bindings.createObjectBinding(() -> {
           float min = Float.POSITIVE_INFINITY;
-          for (Property<Float> p : prop)
-            if (p.getValue() != null && p.getValue() < min)
+          for (Property<Float> p : prop) {
+            if (p.getValue() != null && p.getValue() < min) {
               min = p.getValue();
+            }
+          }
           return min;
         }, prop);
       case MAX:
         return Bindings.createObjectBinding(() -> {
           float max = Float.NEGATIVE_INFINITY;
-          for (Property<Float> p : prop)
-            if (p.getValue() != null && p.getValue() > max)
+          for (Property<Float> p : prop) {
+            if (p.getValue() != null && p.getValue() > max) {
               max = p.getValue();
+            }
+          }
           return max;
         }, prop);
       case SUM:
         return Bindings.createObjectBinding(() -> {
           float sum = 0;
-          for (Property<Float> p : prop)
-            if (p.getValue() != null)
+          for (Property<Float> p : prop) {
+            if (p.getValue() != null) {
               sum += p.getValue();
+            }
+          }
           return sum;
         }, prop);
       case COUNT:
@@ -109,10 +115,11 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
           Range<Float> result = null;
           for (Property<Float> p : prop) {
             if (p.getValue() != null) {
-              if (result == null)
+              if (result == null) {
                 result = Range.singleton(p.getValue());
-              else
+              } else {
                 result = result.span(Range.singleton(p.getValue()));
+              }
             }
           }
           return result;
@@ -126,13 +133,13 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
-    if(!(value instanceof Float)) {
+    if (!(value instanceof Float)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + (
-              value != null ? value.getClass() : " null "));
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
     writer.writeCharacters(String.valueOf(value));
   }
@@ -142,7 +149,7 @@ public abstract class FloatType extends NumberType<Property<Float>> implements B
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String str = reader.getElementText();
-    if(str == null || str.isEmpty()) {
+    if (str == null || str.isEmpty()) {
       return null;
     }
     return Float.parseFloat(str);

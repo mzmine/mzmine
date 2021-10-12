@@ -46,14 +46,14 @@ public abstract class StringType extends DataType<StringProperty> {
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) { // null shall stay null, empty strings shall stay empty.
+    if (value == null) { // null shall stay null, empty strings shall stay empty.
       writer.writeCharacters(CONST.XML_NULL_VALUE);
       return;
     }
-    if(!(value instanceof String str)) {
+    if (!(value instanceof String str)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + (
-              value != null ? value.getClass() : " null "));
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
     writer.writeCharacters(str);
   }
@@ -63,7 +63,8 @@ public abstract class StringType extends DataType<StringProperty> {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String text = reader.getElementText();
-    if(text.equals(CONST.XML_NULL_VALUE)) {  // null shall stay null, empty strings shall stay empty.
+    if (text.equals(
+        CONST.XML_NULL_VALUE)) {  // null shall stay null, empty strings shall stay empty.
       return null;
     }
     return text;
