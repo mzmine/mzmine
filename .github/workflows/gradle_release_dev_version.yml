@@ -87,7 +87,7 @@ jobs:
         automatic_release_tag: "Windows-latest"
         prerelease: true
         title: "Windows Development Build"
-        files: build/jpackage/
+        files: build/jpackage/MZmine-3.0.msi
 
 
 #    - name: Update Automatic Release MacOS
