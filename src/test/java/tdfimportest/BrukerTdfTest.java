@@ -28,6 +28,8 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -60,12 +62,13 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(),
+    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), null,
         MemoryMapStorage.forRawDataFile(), Color.BLACK);
 
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
-    AbstractTask importTask = new TDFImportTask(project, file, rawDataFile);
+    AbstractTask importTask = new TDFImportTask(project, file, rawDataFile, TDFImportModule.class,
+        new TDFImportParameters(), new Date());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
     });
@@ -138,12 +141,12 @@ public class BrukerTdfTest {
     List<Frame> frames = (List<Frame>) selection.getMatchingScans(file.getFrames());
     MobilityScanDataAccess access = EfficientDataAccess
         .of(file, MobilityScanDataType.RAW, selection);
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
       final Frame realFrame = frames.get(i);
       final Frame accessFrame = access.nextFrame();
       Assertions.assertEquals(realFrame, accessFrame);
 
-      for(int j = 0; j < realFrame.getNumberOfMobilityScans(); j++) {
+      for (int j = 0; j < realFrame.getNumberOfMobilityScans(); j++) {
         Assertions.assertEquals(realFrame.getMobilityScan(j), accessFrame.getMobilityScan(j));
 
         MobilityScan realMScan = realFrame.getMobilityScan(j);
@@ -152,7 +155,7 @@ public class BrukerTdfTest {
         Assertions.assertEquals(realMScan.getNumberOfDataPoints(), access.getNumberOfDataPoints());
         Assertions.assertEquals(realMScan.getMobility(), access.getMobility());
 
-        for(int m = 0; m < realMScan.getNumberOfDataPoints(); m++) {
+        for (int m = 0; m < realMScan.getNumberOfDataPoints(); m++) {
           Assertions.assertEquals(realMScan.getMzValue(m), access.getMzValue(m));
           Assertions.assertEquals(realMScan.getIntensityValue(m), access.getIntensityValue(m));
         }

@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The number of matched signals, e.g., during spectral library matching
@@ -27,6 +28,13 @@ public class MatchingSignalsType extends IntegerType {
 
   public MatchingSignalsType() {
     super();
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "n_matching_signals";
   }
 
   @Override

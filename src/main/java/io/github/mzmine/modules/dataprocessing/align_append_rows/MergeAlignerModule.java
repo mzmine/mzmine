@@ -26,6 +26,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class MergeAlignerModule implements MZmineProcessingModule {
@@ -49,8 +50,8 @@ public class MergeAlignerModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    Task newTask = new MergeAlignerTask(project, parameters, MemoryMapStorage.forFeatureList());
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    Task newTask = new MergeAlignerTask(project, parameters, MemoryMapStorage.forFeatureList(), moduleCallDate);
     tasks.add(newTask);
     return ExitCode.OK;
   }

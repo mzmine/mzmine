@@ -28,13 +28,13 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class ADAP3DModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "ADAP3D feature detection (experimental)";
-  private static final String MODULE_DESCRIPTION =
-      "This module detect peaks from profile spectra using the ADAP3D algorithm developed by the Xiuxia Du lab. The module requires no parameter settings. Note that it will not work with centroid spectra.";
+  private static final String MODULE_DESCRIPTION = "This module detect peaks from profile spectra using the ADAP3D algorithm developed by the Xiuxia Du lab. The module requires no parameter settings. Note that it will not work with centroid spectra.";
 
   @Override
   public @NotNull String getName() {
@@ -49,15 +49,14 @@ public class ADAP3DModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
-    RawDataFile[] dataFiles =
-        parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
+    RawDataFile[] dataFiles = parameters.getParameter(new RawDataFilesParameter()).getValue()
+        .getMatchingRawDataFiles();
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask = new ADAP3DTask(project, dataFiles[i], parameters.cloneParameterSet(),
-          MemoryMapStorage
-              .forFeatureList());
+          MemoryMapStorage.forFeatureList(), moduleCallDate);
       tasks.add(newTask);
     }
 

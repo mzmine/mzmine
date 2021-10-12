@@ -20,6 +20,7 @@ package io.github.mzmine.modules;
 
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -56,13 +57,14 @@ public interface MZmineRunnableModule extends MZmineModule {
    *        need to perform these checks again.
    * @param tasks A collection where the module should add its newly created Tasks, if it creates
    *        any.
+   * @param moduleCallDate
    * @return Exit code of the operation. ExitCode.OK means the module was started properly, however
    *         it does not guarantee that the Tasks will finish without error. ExitCode.ERROR means
    *         there was a problem starting the module.
    */
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate);
 
   /**
    * Returns the category of the module (e.g. raw data processing, peak picking etc.). A menu item

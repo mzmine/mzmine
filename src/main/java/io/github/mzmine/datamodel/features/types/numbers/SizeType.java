@@ -28,6 +28,13 @@ public class SizeType extends IntegerType {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "number_of_elements";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Size";
   }

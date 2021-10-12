@@ -24,7 +24,7 @@ package io.github.mzmine.datamodel.featuredata;
  *
  * @author https://github.com/SteffenHeu
  */
-interface SeriesValueCount {
+public interface SeriesValueCount {
 
   /**
    *

@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
@@ -50,12 +51,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureDataUtils {
 
-  private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
-
   /**
    * The default {@link CenterMeasure} for weighting and calculating feature m/z values.
    */
   public static final CenterMeasure DEFAULT_CENTER_MEASURE = CenterMeasure.AVG;
+  private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
 
   /**
    * The Rt range of the series.
@@ -197,7 +197,7 @@ public class FeatureDataUtils {
       return 0f;
     }
     float area = 0f;
-    DoubleBuffer intensities = series.getIntensityValues();
+    DoubleBuffer intensities = series.getIntensityValueBuffer();
     List<? extends Scan> scans = series.getSpectra();
     double lastIntensity = intensities.get(0);
     float lastRT = scans.get(0).getRetentionTime();
@@ -222,7 +222,7 @@ public class FeatureDataUtils {
       @NotNull final CenterMeasure cm) {
     CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
     double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(series.getMZValues(), series.getIntensityValues());
+        .getDataPointsAsDoubleArray(series.getMZValueBuffer(), series.getIntensityValueBuffer());
     return cf.calcCenter(data[0], data[1]);
   }
 
@@ -245,6 +245,9 @@ public class FeatureDataUtils {
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
       @NotNull final CenterMeasure cm, boolean calcQuality) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
+    if(featureData == null) {
+      return;
+    }
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
     final Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
@@ -260,11 +263,12 @@ public class FeatureDataUtils {
     feature.setRT(mostIntenseSpectrum != null ? mostIntenseSpectrum.getRetentionTime() : Float.NaN);
     feature.setMZ(calculateMz(featureData, cm));
 
-    if (featureData instanceof IonMobilogramTimeSeries) {
-      final SummedIntensityMobilitySeries summedMobilogram = ((IonMobilogramTimeSeries) featureData)
-          .getSummedMobilogram();
+    if (featureData instanceof IonMobilogramTimeSeries imts) {
+      final SummedIntensityMobilitySeries summedMobilogram = imts.getSummedMobilogram();
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
+      feature
+          .setMobilityUnit(((IMSRawDataFile)feature.getRawDataFile()).getMobilityType());
     }
 
     if (calcQuality) {

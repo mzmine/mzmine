@@ -47,6 +47,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -61,6 +62,7 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS
@@ -96,8 +98,8 @@ public class LibrarySubmitTask extends AbstractTask {
   private final MSMSLibrarySubmissionWindow window;
 
   public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
-      Map<LibrarySubmitIonParameters, DataPoint[]> map) {
-    super(null);
+      Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.window = window;
     this.map = map;
     // get file, user and pass
@@ -125,8 +127,8 @@ public class LibrarySubmitTask extends AbstractTask {
     }
   }
 
-  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
-    this(null, map);
+  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Date moduleCallDate) {
+    this(null, map, moduleCallDate);
   }
 
   @Override

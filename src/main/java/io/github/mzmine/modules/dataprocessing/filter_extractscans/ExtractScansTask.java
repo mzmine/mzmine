@@ -25,6 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import com.google.common.collect.Range;
@@ -36,6 +37,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import org.jetbrains.annotations.NotNull;
 
 class ExtractScansTask extends AbstractTask {
 
@@ -50,8 +52,8 @@ class ExtractScansTask extends AbstractTask {
   private double minTime, maxTime;
   private boolean useCenterTime;
 
-  ExtractScansTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  ExtractScansTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     dataFiles = Arrays.asList(parameters.getParameter(ExtractScansParameters.dataFiles).getValue()
         .getMatchingRawDataFiles());

@@ -36,7 +36,7 @@ import org.w3c.dom.NodeList;
  * individually
  */
 public class ModuleComboParameter<ModuleType extends MZmineModule> implements
-    UserParameter<MZmineProcessingStep<ModuleType>, ModuleComboComponent> {
+    UserParameter<MZmineProcessingStep<ModuleType>, ModuleComboComponent>, EmbeddedParameterSet {
 
   private static final Logger logger = Logger.getLogger(ModuleComboParameter.class.getName());
 
@@ -138,7 +138,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
     // also copy the parameter set to our internal parameter set
     for (int i = 0; i < modulesWithParams.length; i++) {
       if (modulesWithParams[i].getModule().equals(value.getModule())) {
-        modulesWithParams[i] = new MZmineProcessingStepImpl<>(value.getModule(),
+        modulesWithParams[i] = new MZmineProcessingStepImpl<>(modulesWithParams[i].getModule(),
             value.getParameterSet().cloneParameterSet());
       }
     }
@@ -231,4 +231,8 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
     return moduleParameters == null || moduleParameters.checkParameterValues(errorMessages);
   }
 
+  @Override
+  public ParameterSet getEmbeddedParameters() {
+    return value.getParameterSet();
+  }
 }

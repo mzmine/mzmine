@@ -26,13 +26,25 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.visualization.MultiImsTraceVisualizerTab;
+import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.ListProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PossibleIsomerType extends ListDataType<Integer> implements AnnotationType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "possible_isomers";
+  }
 
   @Override
   public @NotNull String getHeaderString() {
@@ -119,5 +131,29 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
         MZmineCore.getDesktop().addTab(tab);
       });
     };
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if(!(value instanceof List<?> list)) {
+      return;
+    }
+    int[] objects = list.stream().filter(i -> i instanceof Integer).mapToInt(i -> (Integer) i).toArray();
+    String str = ParsingUtils.intArrayToString(objects, objects.length);
+    writer.writeCharacters(str);
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    final String text = reader.getElementText();
+    if(text.isEmpty()) {
+      return null;
+    }
+    int[] array = ParsingUtils.stringToIntArray(text);
+    return Arrays.stream(array).boxed().toList();
   }
 }

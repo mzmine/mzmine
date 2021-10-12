@@ -1,0 +1,58 @@
+.color-picker {
+  -fx-padding: 20;
+}
+
+.color-swatch {
+  -fx-padding: 0;
+}
+
+#color-bar-indicator {
+  -fx-border-radius: 0.333333em;
+  -fx-border-color: white;
+  -fx-effect: dropshadow(three-pass-box, black, 2, 0.0, 0, 1);
+  -fx-pref-height: 2em;
+  -fx-pref-width: 0.833333em;
+  -fx-translate-y: -0.1666667em;
+  -fx-translate-x: -0.4166667em;
+}
+
+.color-rect {
+  -fx-min-width: 16.666667em;
+  -fx-min-height: 16.666667em;
+}
+
+.color-sv-picker {
+  -fx-min-width: 16.666667em;
+  -fx-min-height: 16.666667em;
+}
+
+#color-rect-indicator {
+  -fx-border-color: white;
+  -fx-border-radius: 0.4166667em;
+  -fx-translate-x: -0.4166667em;
+  -fx-translate-y: -0.4166667em;
+  -fx-min-width: 0.833333em;
+  -fx-min-height: 0.833333em;
+  -fx-pref-width: 0.833333em;
+  -fx-pref-height: 0.833333em;
+  -fx-effect: dropshadow(three-pass-box, black, 2, 0.0, 0, 1);
+}
+
+.color-bar {
+  -fx-min-height: 1.666667em;
+  -fx-min-width: 16.666667em;
+  -fx-max-height: 1.666667em;
+  -fx-border-color: derive(#ececec, -20%);
+}
+
+.color-result {
+  -fx-border-width: 1px;
+  -fx-border-color: gray;
+  -fx-border-style: solid;
+  -fx-min-height: 1.666667em;
+  -fx-min-width: 16.666667em;
+}
+
+.set-color-menu-item:hover, .set-color-menu-item:pressed, .set-color-menu-item {
+  -fx-background-color: inherit;
+}

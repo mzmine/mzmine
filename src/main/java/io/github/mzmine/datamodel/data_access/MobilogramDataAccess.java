@@ -130,7 +130,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }
@@ -141,7 +141,7 @@ public class MobilogramDataAccess implements IonMobilitySeries, Iterator<IonMobi
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     throw new IllegalArgumentException(
         "MobilogramDataAccess shall be used to iterate over the mzs and intensities.");
   }

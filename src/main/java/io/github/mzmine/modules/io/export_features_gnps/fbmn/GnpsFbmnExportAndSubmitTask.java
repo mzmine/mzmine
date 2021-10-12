@@ -40,6 +40,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,6 +56,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS
@@ -70,8 +72,8 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private AtomicDouble progress = new AtomicDouble(0);
   private FeatureMeasurementType featureMeasure;
 
-  GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
   }
 
@@ -107,7 +109,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
 
     List<AbstractTask> list = new ArrayList<>(4);
-    GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
+    GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
     list.add(task);
 
     // add old csv quant table for old FBMN support
@@ -210,7 +212,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
 
     CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
-        filter);
+        filter, getModuleCallDate());
 
     if (tasks != null) {
       tasks.add(quanExportModular);
@@ -252,7 +254,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         .getMatchingFeatureLists();
 
     LegacyCSVExportTask quanExport = new LegacyCSVExportTask(flist, full, ",", common, rawdata,
-        false, ";", filter);
+        false, ";", filter, getModuleCallDate());
 
     if (tasks != null) {
       tasks.add(quanExport);
@@ -283,7 +285,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
         .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
 
-    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false);
+    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false, getModuleCallDate());
 
     if (tasks != null)
       tasks.add(extraEdgeExport);

@@ -35,14 +35,12 @@ import java.util.Random;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
 
   private static Logger logger = Logger.getLogger(MobilityScanTest.class.getName());
 
-  @Disabled
   @Test
   public void doubleBufferTest() {
     Random rnd = new Random(System.currentTimeMillis());
@@ -92,7 +90,7 @@ public class MobilityScanTest {
     logger.info("Creating raw data file.");
     RawDataFile rawDataFile = null;
     try {
-      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, Color.WHITE);
+      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
     } catch (IOException e) {
       e.printStackTrace();
       Assert.fail();

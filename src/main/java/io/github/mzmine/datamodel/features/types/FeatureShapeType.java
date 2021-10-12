@@ -46,6 +46,13 @@ public class FeatureShapeType extends LinkedDataType implements GraphicalColumTy
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "feature_shape";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Shapes";
   }

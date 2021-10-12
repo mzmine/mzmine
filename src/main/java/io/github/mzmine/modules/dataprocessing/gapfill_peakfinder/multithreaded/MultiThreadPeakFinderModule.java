@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,7 +50,7 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList[] peakLists = parameters.getParameter(MultiThreadPeakFinderParameters.peakLists)
         .getValue().getMatchingFeatureLists();
@@ -57,7 +58,7 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
 
     for (FeatureList peakList : peakLists) {
       // start tasks
-      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters, tasks, storage);
+      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters, tasks, storage, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

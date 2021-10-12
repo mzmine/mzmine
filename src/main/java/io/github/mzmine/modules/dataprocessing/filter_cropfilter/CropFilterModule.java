@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_cropfilter;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -50,13 +51,13 @@ public class CropFilterModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     // one storage for all files in the same module call
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (RawDataFile dataFile : parameters.getParameter(CropFilterParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()) {
-      Task newTask = new CropFilterTask(project, dataFile, parameters, storage);
+      Task newTask = new CropFilterTask(project, dataFile, parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }
 

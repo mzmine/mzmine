@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +59,9 @@ public class MobilogramBinningTask extends AbstractTask {
   public MobilogramBinningTask(@Nullable MemoryMapStorage storage,
       @NotNull final ModularFeatureList originalFeatureList,
       @NotNull final ParameterSet parameters,
-      @NotNull final MZmineProject project) {
-    super(storage);
+      @NotNull final MZmineProject project,
+      @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.parameters = parameters;
     this.originalFeatureList = originalFeatureList;
     suffix = parameters.getParameter(MobilogramBinningParameters.suffix).getValue();
@@ -134,7 +136,7 @@ public class MobilogramBinningTask extends AbstractTask {
     }
 
     flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters, getModuleCallDate()));
     if (createNewFlist) {
       project.addFeatureList(flist);
     }

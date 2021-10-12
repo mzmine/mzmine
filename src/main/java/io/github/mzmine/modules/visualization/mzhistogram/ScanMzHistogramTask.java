@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.mzhistogram;
 
 import io.github.mzmine.main.MZmineCore;
+import java.util.Date;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -27,6 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class ScanMzHistogramTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -43,8 +45,8 @@ public class ScanMzHistogramTask extends AbstractTask {
    * @param parameters
    */
   public ScanMzHistogramTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters) {
-    super(null); // no new data stored -> null
+      ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
     this.dataFile = dataFile;
     this.parameters = parameters;

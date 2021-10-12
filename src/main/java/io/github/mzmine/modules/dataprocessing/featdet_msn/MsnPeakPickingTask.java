@@ -33,7 +33,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -53,9 +55,8 @@ public class MsnPeakPickingTask extends AbstractTask {
   private int processedScans, totalScans;
 
   public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable
-          MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -184,7 +185,7 @@ public class MsnPeakPickingTask extends AbstractTask {
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
     newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        MsnFeatureDetectionModule.class, parameterSet));
+        MsnFeatureDetectionModule.class, parameterSet, getModuleCallDate()));
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);

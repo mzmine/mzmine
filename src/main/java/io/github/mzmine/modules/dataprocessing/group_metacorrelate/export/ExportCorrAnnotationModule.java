@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
@@ -60,10 +61,10 @@ public class ExportCorrAnnotationModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-                            @NotNull final Collection<Task> tasks) {
+      @NotNull final Collection<Task> tasks, @NotNull Date moduleCallDate) {
     tasks.add(new ExportCorrAnnotationTask(parameters,
         parameters.getParameter(ExportCorrAnnotationParameters.featureLists).getValue()
-            .getMatchingFeatureLists()));
+            .getMatchingFeatureLists(), moduleCallDate));
     return ExitCode.OK;
   }
 

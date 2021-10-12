@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
+import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
@@ -30,9 +31,8 @@ import org.w3c.dom.Element;
 /**
  * Parameter represented by check box with additional sub-module
  */
-public class OptionalModuleParameter<T extends ParameterSet>
-    implements UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer,
-    EmbeddedParameterSet {
+public class OptionalModuleParameter<T extends ParameterSet> implements
+    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer, EmbeddedParameterSet {
 
   private String name, description;
   private T embeddedParameters;
@@ -88,8 +88,9 @@ public class OptionalModuleParameter<T extends ParameterSet>
         if (p instanceof UserParameter) {
           UserParameter<?, ?> up = (UserParameter<?, ?>) p;
           Object upValue = up.getValue();
-          if (upValue == null)
+          if (upValue == null) {
             return null;
+          }
         }
       }
     }
@@ -104,8 +105,8 @@ public class OptionalModuleParameter<T extends ParameterSet>
   @Override
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
-    final OptionalModuleParameter<T> copy =
-        new OptionalModuleParameter<>(name, description, embeddedParametersClone);
+    final OptionalModuleParameter<T> copy = new OptionalModuleParameter<>(name, description,
+        embeddedParametersClone);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -129,8 +130,9 @@ public class OptionalModuleParameter<T extends ParameterSet>
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null)
+    if (value != null) {
       xmlElement.setAttribute("selected", value.toString());
+    }
     embeddedParameters.saveValuesToXML(xmlElement);
   }
 
@@ -157,5 +159,19 @@ public class OptionalModuleParameter<T extends ParameterSet>
    */
   public BooleanProperty embeddedParametersChangeProperty() {
     return embeddedParameters.parametersChangeProperty();
+  }
+
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if (!(that instanceof OptionalModuleParameter thatOpt)) {
+      return false;
+    }
+
+    if (value != thatOpt.getValue()) {
+      return false;
+    }
+
+    return RawDataSavingUtils
+        .parameterSetsEqual(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(), false, false);
   }
 }

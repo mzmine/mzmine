@@ -30,6 +30,13 @@ public class GNPSLibraryUrlType extends UrlType {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "gnps_library_url";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "GNPS library";
   }

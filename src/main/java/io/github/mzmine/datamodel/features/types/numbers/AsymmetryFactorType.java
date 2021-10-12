@@ -22,11 +22,19 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class AsymmetryFactorType extends FloatType {
 
   public AsymmetryFactorType() {
     super(new DecimalFormat("0.00"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "asymmetry_factor";
   }
 
   @Override

@@ -24,8 +24,10 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.ui.TextAnchor;
@@ -80,8 +82,8 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
    * @param parameters task parameters.
    */
   public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
-    super(null);
+      SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;

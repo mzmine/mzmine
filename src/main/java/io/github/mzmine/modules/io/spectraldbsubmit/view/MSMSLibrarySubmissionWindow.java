@@ -49,6 +49,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -563,7 +564,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
           // start task
           logger.info(
               "Added task to export library entries: " + ions + " MS/MS spectra were selected");
-          LibrarySubmitTask task = new LibrarySubmitTask(this, map);
+          LibrarySubmitTask task = new LibrarySubmitTask(this, map, new Date());
           MZmineCore.getTaskController().addTask(task);
         }
       }

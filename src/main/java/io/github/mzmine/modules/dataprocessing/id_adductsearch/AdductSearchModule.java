@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -64,11 +65,11 @@ public class AdductSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Collection<Task> tasks) {
+      @NotNull final Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     for (final FeatureList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {
-      tasks.add(new AdductSearchTask(parameters, peakList));
+      tasks.add(new AdductSearchTask(parameters, peakList, moduleCallDate));
     }
 
     return ExitCode.OK;

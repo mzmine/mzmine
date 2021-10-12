@@ -34,7 +34,9 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AlignScansTask extends AbstractTask {
@@ -62,8 +64,8 @@ public class AlignScansTask extends AbstractTask {
    * @param storage
    */
   public AlignScansTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -115,7 +117,7 @@ public class AlignScansTask extends AbstractTask {
 
     RawDataFile newRDFW = null;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, getMemoryMapStorage());
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, null, getMemoryMapStorage());
 
       DataPoint[][] mzValues = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, shift, ks;
@@ -218,7 +220,7 @@ public class AlignScansTask extends AbstractTask {
         }
 
         newRDFW.getAppliedMethods()
-            .add(new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters));
+            .add(new SimpleFeatureListAppliedMethod(AlignScansModule.class, parameters, getModuleCallDate()));
         project.addFile(newRDFW);
 
         // Remove the original data file if requested

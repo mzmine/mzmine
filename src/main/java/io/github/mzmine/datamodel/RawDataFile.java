@@ -18,16 +18,17 @@
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import com.google.common.collect.Range;
-import io.github.mzmine.util.MemoryMapStorage;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface RawDataFile {
 
@@ -35,8 +36,15 @@ public interface RawDataFile {
    * Returns the name of this data file (can be a descriptive name, not necessarily the original
    * file name)
    */
-  @NotNull
-  String getName();
+  @NotNull String getName();
+
+  @NotNull StringProperty nameProperty();
+
+  /**
+   * @return The absolute path this file was loaded from. Null if the file does not exist on the
+   * file space or was created as a dummy file by mzTab-m import.
+   */
+  @Nullable String getAbsolutePath();
 
   /**
    * Change the name of this data file
@@ -66,8 +74,7 @@ public interface RawDataFile {
   /**
    * Returns sorted array of all MS levels in this file
    */
-  @NotNull
-  int[] getMSLevels();
+  @NotNull int[] getMSLevels();
 
   /**
    * Returns sorted array of all scan numbers in given MS level
@@ -75,8 +82,7 @@ public interface RawDataFile {
    * @param msLevel MS level (0 for all scans)
    * @return Sorted array of scan numbers, never returns null
    */
-  @NotNull
-  List<Scan> getScanNumbers(int msLevel);
+  @NotNull List<Scan> getScanNumbers(int msLevel);
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
@@ -85,35 +91,30 @@ public interface RawDataFile {
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
    */
-  @NotNull
-  Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
+  @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
-   * @param rt The rt
+   * @param rt      The rt
    * @param mslevel The ms level
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   *         the rt range of this file.
+   * the rt range of this file.
    */
   Scan getScanNumberAtRT(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   *         the rt range of this file.
+   * the rt range of this file.
    */
   Scan getScanNumberAtRT(float rt);
 
-  @NotNull
-  Range<Double> getDataMZRange();
+  @NotNull Range<Double> getDataMZRange();
 
-  @NotNull
-  Range<Float> getDataRTRange();
+  @NotNull Range<Float> getDataRTRange();
 
-  @NotNull
-  Range<Double> getDataMZRange(int msLevel);
+  @NotNull Range<Double> getDataMZRange(int msLevel);
 
-  @NotNull
-  Range<Float> getDataRTRange(Integer msLevel);
+  @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);
 
@@ -124,8 +125,7 @@ public interface RawDataFile {
    *
    * @return Scan polarity types.
    */
-  @NotNull
-  List<PolarityType> getDataPolarity();
+  @NotNull List<PolarityType> getDataPolarity();
 
   java.awt.Color getColorAWT();
 
@@ -140,8 +140,7 @@ public interface RawDataFile {
    */
   void close();
 
-  @NotNull
-  MemoryMapStorage getMemoryMapStorage();
+  @NotNull MemoryMapStorage getMemoryMapStorage();
 
   void addScan(Scan newScan) throws IOException;
 
@@ -183,6 +182,5 @@ public interface RawDataFile {
     return getScans().get(i);
   }
 
-  @NotNull
-  ObservableList<FeatureListAppliedMethod> getAppliedMethods();
+  @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods();
 }

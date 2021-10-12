@@ -36,6 +36,13 @@ public class RTRangeType extends FloatRangeType implements ExpandableType {
     super(new DecimalFormat("0.00"));
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "rt_range";
+  }
+
   @Override
   public NumberFormat getFormatter() {
     try {

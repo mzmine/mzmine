@@ -148,16 +148,25 @@ public class SimpleParameterSet implements ParameterSet {
     return s.toString();
   }
 
+  @Override
+  public ParameterSet cloneParameterSet() {
+    return cloneParameterSet(false);
+  }
+
   /**
    * Make a deep copy
    */
   @Override
-  public ParameterSet cloneParameterSet() {
+  public ParameterSet cloneParameterSet(boolean keepSelection) {
 
     // Make a deep copy of the parameters
     Parameter<?> newParameters[] = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      newParameters[i] = parameters[i].cloneParameter();
+      if(keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+        newParameters[i] = rfp.cloneParameter(keepSelection);
+      } else {
+        newParameters[i] = parameters[i].cloneParameter();
+      }
     }
 
     try {
@@ -209,9 +218,10 @@ public class SimpleParameterSet implements ParameterSet {
       if (!pOK) {
         allParametersOK = false;
       }
-      if (p instanceof RawDataFilesParameter) {
-        pOK = checkRawDataFileIonMobilitySupport(
-            ((RawDataFilesParameter) p).getValue().getMatchingRawDataFiles(), errorMessages);
+      if (p instanceof RawDataFilesParameter rfp) {
+        pOK = checkRawDataFileIonMobilitySupport(rfp.getValue().getMatchingRawDataFiles(),
+            errorMessages);
+        rfp.getValue().resetSelection(); // has to be reset after evaluation
       } else if (p instanceof FeatureListsParameter) {
         FeatureList[] lists = ((FeatureListsParameter) p).getValue().getMatchingFeatureLists();
         Set<RawDataFile> files = new HashSet<>();

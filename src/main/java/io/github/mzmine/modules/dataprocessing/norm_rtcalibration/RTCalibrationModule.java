@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,9 +50,9 @@ public class RTCalibrationModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     RTCalibrationTask newTask = new RTCalibrationTask(project, parameters,
-        MemoryMapStorage.forFeatureList());
+        MemoryMapStorage.forFeatureList(), moduleCallDate);
     tasks.add(newTask);
     return ExitCode.OK;
 

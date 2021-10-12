@@ -36,6 +36,13 @@ public class MZType extends DoubleType implements ExpandableType {
     super(new DecimalFormat("0.0000"));
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "mz";
+  }
+
   @Override
   public NumberFormat getFormatter() {
     try {

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -29,15 +30,14 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
@@ -100,6 +100,18 @@ public class FeatureListSummaryController {
     lvAppliedMethods.setItems(featureList.getAppliedMethods());
   }
 
+  public void setRawDataFile(@Nullable RawDataFile file) {
+    clear();
+    if (file == null) {
+      return;
+    }
+
+    lbFeatureListName.setText(file.getName());
+    tfNumRows.setText(String.valueOf(file.getNumOfScans()));
+    tfCreated.setText(file.getAbsolutePath());
+    lvAppliedMethods.setItems(file.getAppliedMethods());
+  }
+
   public void clear() {
     lbFeatureListName.setText("None selected");
     tfNumRows.setText("");
@@ -114,11 +126,8 @@ public class FeatureListSummaryController {
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
     sb.append(value.toString());
-    if (parameter instanceof ParameterSetParameter
-        || parameter instanceof OptionalModuleParameter) {
-      ParameterSet parameterSet =
-          parameter instanceof ParameterSetParameter ? ((ParameterSetParameter) parameter)
-              .getValue() : ((OptionalModuleParameter<?>) parameter).getEmbeddedParameters();
+    if (parameter instanceof EmbeddedParameterSet embedded) {
+      ParameterSet parameterSet = embedded.getEmbeddedParameters();
       for (Parameter<?> parameter1 : parameterSet.getParameters()) {
         sb.append("\n\t");
         sb.append(parameterToString(parameter1));

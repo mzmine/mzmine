@@ -32,8 +32,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class ScanFilteringTask extends AbstractTask {
@@ -63,8 +65,8 @@ class ScanFilteringTask extends AbstractTask {
    * @param storage
    */
   ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -119,7 +121,7 @@ class ScanFilteringTask extends AbstractTask {
       // Create new raw data file
 
       String newName = dataFile.getName() + " " + suffix;
-      newFile = MZmineCore.createNewFile(newName, getMemoryMapStorage());
+      newFile = MZmineCore.createNewFile(newName, null, getMemoryMapStorage());
 
       for (int i = 0; i < totalScans; i++) {
 
@@ -148,7 +150,7 @@ class ScanFilteringTask extends AbstractTask {
           newFile.getAppliedMethods().add(appliedMethod);
         }
         newFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, parameters));
+            BaselineCorrectionModule.class, parameters, getModuleCallDate()));
 
         project.addFile(newFile);
 

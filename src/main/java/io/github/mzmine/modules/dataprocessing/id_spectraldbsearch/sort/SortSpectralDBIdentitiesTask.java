@@ -24,12 +24,14 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 public class SortSpectralDBIdentitiesTask extends AbstractTask {
 
@@ -44,8 +46,8 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  SortSpectralDBIdentitiesTask(FeatureList featureList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  SortSpectralDBIdentitiesTask(FeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
     this.parameters = parameters;
     filterByMinScore =
@@ -95,7 +97,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Sorted spectral database identities of DB search ",
-        SortSpectralDBIdentitiesModule.class,  parameters));
+        SortSpectralDBIdentitiesModule.class,  parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
   }

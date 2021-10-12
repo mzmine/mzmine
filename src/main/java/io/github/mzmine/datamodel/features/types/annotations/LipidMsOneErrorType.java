@@ -28,11 +28,19 @@ import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
+import org.jetbrains.annotations.NotNull;
 
 public class LipidMsOneErrorType extends DoubleType implements ExpandableType {
 
   public LipidMsOneErrorType() {
     super(new DecimalFormat("0.0"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "lipid_ms_error";
   }
 
   @Override

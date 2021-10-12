@@ -27,6 +27,7 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -44,6 +45,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ADAP3DTask extends AbstractTask {
@@ -62,8 +64,8 @@ public class ADAP3DTask extends AbstractTask {
    * @param parameters
    */
   public ADAP3DTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -173,7 +175,7 @@ public class ADAP3DTask extends AbstractTask {
     }
 
     newPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ADAP3DModule.class, parameters));
+        ADAP3DModule.class, parameters, getModuleCallDate()));
     // Add new peaklist to the project
     project.addFeatureList(newPeakList);
 

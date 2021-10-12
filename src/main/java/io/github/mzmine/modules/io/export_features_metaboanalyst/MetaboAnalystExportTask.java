@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -34,6 +35,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.jetbrains.annotations.NotNull;
 
 class MetaboAnalystExportTask extends AbstractTask {
 
@@ -48,8 +50,8 @@ class MetaboAnalystExportTask extends AbstractTask {
   private File fileName;
   private UserParameter<?, ?> groupParameter;
 
-  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.project = project;
     this.featureLists = parameters.getParameter(MetaboAnalystExportParameters.featureLists).getValue()

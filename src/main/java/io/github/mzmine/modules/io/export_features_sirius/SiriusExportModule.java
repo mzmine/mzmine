@@ -32,6 +32,7 @@ package io.github.mzmine.modules.io.export_features_sirius;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -60,14 +61,14 @@ public class SiriusExportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
-    SiriusExportTask task = new SiriusExportTask(parameters);
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+    SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 
   }
 
-  public static void exportSingleFeatureList(FeatureListRow row) {
+  public static void exportSingleFeatureList(FeatureListRow row, @NotNull Date moduleCallDate) {
 
     try {
       ParameterSet parameters =
@@ -77,7 +78,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       if (exitCode != ExitCode.OK)
         return;
       // Open file
-      final SiriusExportTask task = new SiriusExportTask(parameters);
+      final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
       task.runSingleRow(row);
     } catch (Exception e) {
       e.printStackTrace();
@@ -87,7 +88,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   }
 
-  public static void exportSingleRows(FeatureListRow[] row) {
+  public static void exportSingleRows(FeatureListRow[] row, @NotNull Date moduleCallDate) {
     try {
       ParameterSet parameters =
           MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
@@ -96,7 +97,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
       if (exitCode != ExitCode.OK)
         return;
       // Open file
-      final SiriusExportTask task = new SiriusExportTask(parameters);
+      final SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
       task.runSingleRows(row);
     } catch (Exception e) {
       e.printStackTrace();

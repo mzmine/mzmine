@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -65,7 +66,7 @@ public class TSFImportModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
 
     if (Arrays.asList(fileNames).contains(null)) {
@@ -96,8 +97,10 @@ public class TSFImportModule implements MZmineProcessingModule {
       try {
         // IMS files are big, reserve a single storage for each file
         final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
-        ImagingRawDataFile newMZmineFile = MZmineCore.createNewImagingFile(newName, storage);
-        Task newTask = new TSFImportTask(project, fileNames[i], newMZmineFile);
+        ImagingRawDataFile newMZmineFile = MZmineCore
+            .createNewImagingFile(newName, fileNames[i].getAbsolutePath(), storage);
+        Task newTask = new TSFImportTask(project, fileNames[i], newMZmineFile,
+            TSFImportModule.class, parameters, moduleCallDate);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

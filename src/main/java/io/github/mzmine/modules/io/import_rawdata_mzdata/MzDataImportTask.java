@@ -18,33 +18,40 @@
 
 package io.github.mzmine.modules.io.import_rawdata_mzdata;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Base64;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class read 1.04 and 1.05 MZDATA files.
  */
 public class MzDataImportTask extends AbstractTask {
 
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private File file;
@@ -92,8 +99,11 @@ public class MzDataImportTask extends AbstractTask {
    */
   private LinkedList<SimpleScan> parentStack;
 
-  public MzDataImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
-    super(null); // storage in raw data file
+  public MzDataImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
+    this.parameters = parameters;
+    this.module = module;
     // 256 kilo-chars buffer
     charBuffer = new StringBuilder(1 << 18);
     parentStack = new LinkedList<SimpleScan>();
@@ -127,6 +137,7 @@ public class MzDataImportTask extends AbstractTask {
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(file, handler);
 
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -188,8 +199,8 @@ public class MzDataImportTask extends AbstractTask {
       }
 
       // <spectrumInstrument> 1.05 version, <acqInstrument> 1.04 version
-      if ((qName.equalsIgnoreCase("spectrumInstrument"))
-          || (qName.equalsIgnoreCase("acqInstrument"))) {
+      if ((qName.equalsIgnoreCase("spectrumInstrument")) || (qName
+          .equalsIgnoreCase("acqInstrument"))) {
         msLevel = Integer.parseInt(attrs.getValue("msLevel"));
         spectrumInstrumentFlag = true;
       }
@@ -200,8 +211,8 @@ public class MzDataImportTask extends AbstractTask {
        */
       if (qName.equalsIgnoreCase("cvParam")) {
         if (spectrumInstrumentFlag) {
-          if ((attrs.getValue("accession").equals("PSI:1000037"))
-              || (attrs.getValue("name").equals("Polarity"))) {
+          if ((attrs.getValue("accession").equals("PSI:1000037")) || (attrs.getValue("name")
+              .equals("Polarity"))) {
             if (attrs.getValue("value").toLowerCase().equals("positive")) {
               polarity = PolarityType.POSITIVE;
             } else if (attrs.getValue("value").toLowerCase().equals("negative")) {
@@ -210,19 +221,19 @@ public class MzDataImportTask extends AbstractTask {
               polarity = PolarityType.UNKNOWN;
             }
           }
-          if ((attrs.getValue("accession").equals("PSI:1000038"))
-              || (attrs.getValue("name").equals("time.min"))) {
+          if ((attrs.getValue("accession").equals("PSI:1000038")) || (attrs.getValue("name")
+              .equals("time.min"))) {
             retentionTime = (float) Double.parseDouble(attrs.getValue("value"));
           }
 
-          if ((attrs.getValue("accession").equals("PSI:1000039"))
-              || (attrs.getValue("name").equals("time.sec"))) {
+          if ((attrs.getValue("accession").equals("PSI:1000039")) || (attrs.getValue("name")
+              .equals("time.sec"))) {
             retentionTime = (float) (Double.parseDouble(attrs.getValue("value")) / 60d);
           }
         }
         if (precursorFlag) {
-          if ((attrs.getValue("accession").equals("PSI:1000040"))
-              || (attrs.getValue("name").equals("mz"))) {
+          if ((attrs.getValue("accession").equals("PSI:1000040")) || (attrs.getValue("name")
+              .equals("mz"))) {
             precursorMz = Double.parseDouble(attrs.getValue("value"));
           }
           if (attrs.getValue("accession").equals("PSI:1000041")) {
@@ -301,8 +312,8 @@ public class MzDataImportTask extends AbstractTask {
         spectrumInstrumentFlag = false;
 
         // Auto-detect whether this scan is centroided
-        MassSpectrumType spectrumType =
-            ScanUtils.detectSpectrumType(mzDataPoints, intensityDataPoints);
+        MassSpectrumType spectrumType = ScanUtils
+            .detectSpectrumType(mzDataPoints, intensityDataPoints);
 
         buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
             precursorMz, precursorCharge, mzDataPoints, intensityDataPoints, spectrumType, polarity,

@@ -34,8 +34,10 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Find relationships between {@link IonNetwork}s
@@ -59,8 +61,8 @@ public class IonNetRelationsTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public IonNetRelationsTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists) {
-    super(featureLists.getMemoryMapStorage());
+      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+    super(featureLists.getMemoryMapStorage(), moduleCallDate);
 
     this.project = project;
     this.featureList = featureLists;

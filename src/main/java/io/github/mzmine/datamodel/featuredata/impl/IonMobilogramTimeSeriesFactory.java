@@ -19,13 +19,19 @@
 package io.github.mzmine.datamodel.featuredata.impl;
 
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -150,5 +156,44 @@ public class IonMobilogramTimeSeriesFactory {
       weightedMzs[i] = weightedMz;
     }
     return new double[][]{weightedMzs, summedIntensities};
+  }
+
+  public static IonMobilogramTimeSeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage, @NotNull IMSRawDataFile file) throws XMLStreamException {
+
+    List<Frame> scans = null;
+    double[] mzs = null;
+    double[] intensities = null;
+    List<IonMobilitySeries> mobilograms = new ArrayList<>();
+    SummedIntensityMobilitySeries summedMobilogram = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(SimpleIonMobilogramTimeSeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case IonMobilitySeries.XML_ION_MOBILITY_SERIES_ELEMENT -> {
+          mobilograms.add(SimpleIonMobilitySeries.loadFromXML(reader, null, file));
+        }
+        case CONST.XML_SCAN_LIST_ELEMENT -> {
+          int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
+          scans = ParsingUtils.getSublistFromIndices((List<Frame>) file.getFrames(), indices);
+        }
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+        case SummedIntensityMobilitySeries.XML_ELEMENT -> summedMobilogram = SummedIntensityMobilitySeries
+            .loadFromXML(reader, storage);
+      }
+    }
+
+    return IonMobilogramTimeSeriesFactory.of(storage, mzs, intensities, mobilograms, summedMobilogram);
   }
 }

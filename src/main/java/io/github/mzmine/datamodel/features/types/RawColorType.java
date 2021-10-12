@@ -41,6 +41,13 @@ import javafx.scene.paint.Color;
 public class RawColorType extends DataType<ObjectProperty<Color>>
     implements GraphicalColumType<ObjectProperty<Color>> {
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "datafile_color";
+  }
+
   @Override
   @NotNull
   public String getHeaderString() {
