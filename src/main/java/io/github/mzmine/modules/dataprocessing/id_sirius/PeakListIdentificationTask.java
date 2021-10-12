@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
@@ -64,8 +65,8 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
-    super(null); // no new data stored -> null
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     peakList = list;
     numItems = 0;
     currentRow = null;

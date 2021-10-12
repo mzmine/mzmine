@@ -19,6 +19,7 @@
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
@@ -32,6 +33,7 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
@@ -47,13 +49,13 @@ public class TmpFileCleanup implements Runnable {
 
     logger.fine("Checking for old temporary files...");
     try {
-
       // Find all temporary files with the mask mzmine*.scans
       File tempDir = new File(System.getProperty("java.io.tmpdir"));
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-          if (name.matches("mzmine.*\\.tmp")) {
+          if (name.matches("mzmine.*\\.tmp") || name
+              .matches("(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*")) {
             return true;
           }
           return false;
@@ -65,6 +67,12 @@ public class TmpFileCleanup implements Runnable {
 
           // Skip files created by someone else
           if (!remainingTmpFile.canWrite()) {
+            continue;
+          }
+
+          if (remainingTmpFile.isDirectory()) {
+            // delete directory we used to store raw files on project import.
+            FileUtils.deleteDirectory(remainingTmpFile);
             continue;
           }
 
@@ -111,14 +119,14 @@ public class TmpFileCleanup implements Runnable {
       return;
     }
 
-    if(theUnsafe == null) {
+    if (theUnsafe == null) {
       theUnsafe = initUnsafe();
-      if(theUnsafe == null) {
+      if (theUnsafe == null) {
         return;
       }
     }
 
-    for(final MemoryMapStorage storage : MZmineCore.getStorageList()) {
+    for (final MemoryMapStorage storage : MZmineCore.getStorageList()) {
       try {
         storage.discard(theUnsafe);
       } catch (IOException e) {
@@ -147,8 +155,7 @@ public class TmpFileCleanup implements Runnable {
 
       return (Unsafe) theUnsafe;
 
-    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-        NoSuchFieldException | ClassCastException e) {
+    } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException | ClassCastException e) {
       // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
       // but that method should be added if sun.misc.Unsafe is removed.
       e.printStackTrace();

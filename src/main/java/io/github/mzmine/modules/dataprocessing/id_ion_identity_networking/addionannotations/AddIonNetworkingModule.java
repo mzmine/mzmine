@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addio
 
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -28,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
@@ -61,13 +61,12 @@ public class AddIonNetworkingModule implements MZmineProcessingModule {
 
   @NotNull
   @Override
-  public ExitCode runModule(@NotNull MZmineProject project,
-                            @NotNull ParameterSet parameters,
-                            @NotNull Collection<Task> tasks) {
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     ModularFeatureList[] pkl = parameters.getParameter(AddIonNetworkingParameters.PEAK_LISTS).getValue()
         .getMatchingFeatureLists();
     for (ModularFeatureList p : pkl)
-      tasks.add(new AddIonNetworkingTask(project, parameters, p));
+      tasks.add(new AddIonNetworkingTask(project, parameters, p, moduleCallDate));
 
     return ExitCode.OK;
   }

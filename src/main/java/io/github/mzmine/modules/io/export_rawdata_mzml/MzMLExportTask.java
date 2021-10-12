@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
 import java.io.File;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import io.github.msdk.MSDKMethod;
@@ -29,6 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.jetbrains.annotations.NotNull;
 
 public class MzMLExportTask extends AbstractTask {
 
@@ -44,8 +46,8 @@ public class MzMLExportTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public MzMLExportTask(RawDataFile dataFile, File outFilename) {
-    super(null); // no new data stored -> null
+  public MzMLExportTask(RawDataFile dataFile, File outFilename, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;
   }

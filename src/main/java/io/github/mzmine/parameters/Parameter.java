@@ -18,9 +18,9 @@
 
 package io.github.mzmine.parameters;
 
-import org.w3c.dom.Element;
-
+import java.util.Arrays;
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
@@ -29,7 +29,7 @@ public interface Parameter<ValueType> {
 
   /**
    * Returns this parameter's name. The name must be unique within one ParameterSet.
-   * 
+   *
    * @return Parameter name
    */
   public String getName();
@@ -58,4 +58,27 @@ public interface Parameter<ValueType> {
    */
   public Parameter<ValueType> cloneParameter();
 
+  public default boolean valueEquals(Parameter<?> that) {
+    if(that == null) {
+      return false;
+    }
+    if (!(this.getClass() == that.getClass())) {
+      return false;
+    }
+    if (getValue() == null && that.getValue() == null) {
+      return true;
+    }
+    if (getValue() instanceof Double) {
+      return Double.compare((Double) this.getValue(), (Double) that.getValue()) == 0;
+    } else if (getValue() instanceof Float) {
+      return Float.compare((Float) this.getValue(), (Float) that.getValue()) == 0;
+    } else if (getValue() instanceof Integer) {
+      return ((Integer) getValue()).equals((Integer) that.getValue());
+    } else if (getValue() instanceof String) {
+      return this.getValue().equals(that.getValue());
+    } else if (getValue() instanceof Object[]) {
+      return Arrays.deepEquals((Object[]) getValue(), (Object[]) that.getValue());
+    }
+    return this.getValue().equals(that.getValue());
+  }
 }

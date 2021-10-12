@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 
 public class QualityParametersTask extends AbstractTask {
 
@@ -30,8 +32,8 @@ public class QualityParametersTask extends AbstractTask {
   private final ParameterSet parameterSet;
 
   private double finishedPercentage;
-  public QualityParametersTask(FeatureList featureList, ParameterSet parameterSet) {
-    super(null); // no new data stored -> null
+  public QualityParametersTask(FeatureList featureList, ParameterSet parameterSet, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.parameterSet = parameterSet;
     this.featureList = featureList;
     setStatus(TaskStatus.WAITING);

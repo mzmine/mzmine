@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -73,7 +74,7 @@ public class MzMLImportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     File fileNames[] = parameters.getParameter(MzMLImportParameters.fileNames).getValue();
 
@@ -113,11 +114,11 @@ public class MzMLImportModule implements MZmineProcessingModule {
         logger.finest("File " + fileNames[i] + " type detected as " + fileType);
         RawDataFile newMZmineFile;
         if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore.createNewIMSFile(newName, storage);
+          newMZmineFile = MZmineCore.createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
         } else {
-          newMZmineFile = MZmineCore.createNewFile(newName, storage);
+          newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
         }
-        Task newTask = new MzMLImportTask(project, fileNames[i], newMZmineFile);
+        Task newTask = new MzMLImportTask(project, fileNames[i], newMZmineFile, moduleCallDate);
         tasks.add(newTask);
 
       } catch (IOException e) {

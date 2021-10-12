@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.parameters.Parameter;
 import java.util.Collection;
 import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
@@ -133,4 +134,16 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
     return true;
   }
 
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if(!(that instanceof OptionalParameter thatOpt)) {
+      return false;
+    }
+
+    if(value != thatOpt.getValue()) {
+      return false;
+    }
+
+    return getEmbeddedParameter().valueEquals(((OptionalParameter<?>) that).embeddedParameter);
+  }
 }

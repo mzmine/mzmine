@@ -18,23 +18,29 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Arrays;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class IntegerType extends NumberType<Property<Integer>>
-    implements BindingsFactoryType {
+public abstract class IntegerType extends NumberType<Property<Integer>> implements
+    BindingsFactoryType {
 
   protected IntegerType() {
     super(new DecimalFormat("0"));
@@ -48,8 +54,9 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
   @Override
   @NotNull
   public String getFormattedString(@NotNull Property<Integer> value) {
-    if (value.getValue() == null)
+    if (value.getValue() == null) {
       return "";
+    }
     return getFormatter().format(value.getValue().intValue());
   }
 
@@ -62,8 +69,8 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
   @Override
   public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
-    @SuppressWarnings("unchecked")
-    Property<Integer>[] prop = row.streamFeatures().map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
+    @SuppressWarnings("unchecked") Property<Integer>[] prop = row.streamFeatures()
+        .map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case AVERAGE:
         return Bindings.createObjectBinding(() -> {
@@ -80,25 +87,31 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
       case MIN:
         return Bindings.createObjectBinding(() -> {
           int min = Integer.MAX_VALUE;
-          for (Property<Integer> p : prop)
-            if (p.getValue() != null && p.getValue() < min)
+          for (Property<Integer> p : prop) {
+            if (p.getValue() != null && p.getValue() < min) {
               min = p.getValue();
+            }
+          }
           return min;
         }, prop);
       case MAX:
         return Bindings.createObjectBinding(() -> {
           int max = Integer.MIN_VALUE;
-          for (Property<Integer> p : prop)
-            if (p.getValue() != null && p.getValue() > max)
+          for (Property<Integer> p : prop) {
+            if (p.getValue() != null && p.getValue() > max) {
               max = p.getValue();
+            }
+          }
           return max;
         }, prop);
       case SUM:
         return Bindings.createObjectBinding(() -> {
           int sum = 0;
-          for (Property<Integer> p : prop)
-            if (p.getValue() != null)
+          for (Property<Integer> p : prop) {
+            if (p.getValue() != null) {
               sum += p.getValue();
+            }
+          }
           return sum;
         }, prop);
       case COUNT:
@@ -110,10 +123,11 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
           Range<Integer> result = null;
           for (Property<Integer> p : prop) {
             if (p.getValue() != null) {
-              if (result == null)
+              if (result == null) {
                 result = Range.singleton(p.getValue());
-              else
+              } else {
                 result = result.span(Range.singleton(p.getValue()));
+              }
             }
           }
           return result;
@@ -121,5 +135,31 @@ public abstract class IntegerType extends NumberType<Property<Integer>>
       default:
         throw new UndefinedRowBindingException(this, bind);
     }
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    if (!(value instanceof Integer)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
+    }
+    writer.writeCharacters(String.valueOf(value));
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    String str = reader.getElementText();
+    if (str == null || str.isEmpty()) {
+      return null;
+    }
+    return Integer.parseInt(str);
   }
 }

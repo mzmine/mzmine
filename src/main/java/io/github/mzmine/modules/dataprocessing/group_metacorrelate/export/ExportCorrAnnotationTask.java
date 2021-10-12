@@ -47,6 +47,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +85,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public ExportCorrAnnotationTask(final ParameterSet parameterSet,
-      final ModularFeatureList[] featureLists) {
-    super(null);
+      final ModularFeatureList[] featureLists, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.featureLists = featureLists;
 
     // tolerances
@@ -106,8 +107,8 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    */
   public ExportCorrAnnotationTask(FeatureList[] featureLists, File filename, double minR,
       FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean exportIinRelationships,
-      boolean mergeLists, boolean allInOneFile) {
-    super(null);
+      boolean mergeLists, boolean allInOneFile, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.featureLists = featureLists;
     this.filename = filename;
     this.allInOneFile = allInOneFile;

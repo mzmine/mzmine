@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,23 +45,23 @@ public class QualityParametersModule implements MZmineRunnableModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     for (FeatureList featureList : parameters.getParameter(QualityParametersParameters.peakLists)
         .getValue().getMatchingFeatureLists()) {
-      runModule(featureList, parameters);
+      runModule(featureList, parameters, moduleCallDate);
     }
     return ExitCode.OK;
   }
 
-  public ExitCode runModule(FeatureList[] featureLists, ParameterSet parameters) {
+  public ExitCode runModule(FeatureList[] featureLists, ParameterSet parameters, @NotNull Date moduleCallDate) {
     for(FeatureList featureList : featureLists){
-      runModule(featureList, parameters);
+      runModule(featureList, parameters, moduleCallDate);
     }
     return ExitCode.OK;
   }
 
-  public ExitCode runModule(FeatureList featureList, ParameterSet parameters) {
-    MZmineCore.getTaskController().addTask(new QualityParametersTask(featureList, parameters));
+  public ExitCode runModule(FeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    MZmineCore.getTaskController().addTask(new QualityParametersTask(featureList, parameters, moduleCallDate));
     return ExitCode.OK;
   }
 

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.Scan;
@@ -52,7 +53,7 @@ public class SpectraIdentificationSpectralDatabaseModule implements MZmineModule
    * 
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
-      final SpectraPlot spectraPlot) {
+      final SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
 
     final SpectraIdentificationSpectralDatabaseParameters parameters =
         (SpectraIdentificationSpectralDatabaseParameters) MZmineCore.getConfiguration()
@@ -62,7 +63,7 @@ public class SpectraIdentificationSpectralDatabaseModule implements MZmineModule
     if (parameters.showSetupDialog(scan, null, true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationSpectralDatabaseTask(
-          parameters.cloneParameterSet(), scan, spectraPlot));
+          parameters.cloneParameterSet(), scan, spectraPlot, moduleCallDate));
     }
   }
 

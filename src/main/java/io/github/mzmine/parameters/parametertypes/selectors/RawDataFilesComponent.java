@@ -107,7 +107,9 @@ public class RawDataFilesComponent extends GridPane {
   }
 
   public RawDataFilesSelection getValue() {
-    return currentValue;
+    RawDataFilesSelection clone = currentValue.clone();
+    clone.resetSelection();
+    return clone;
   }
 
   public void setToolTipText(String toolTip) {
@@ -115,6 +117,7 @@ public class RawDataFilesComponent extends GridPane {
   }
 
   private void updateNumFiles() {
+    currentValue.resetSelection();
     if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
       numFilesLabel.setText("");
       numFilesLabel.setTooltip(null);

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -52,9 +53,9 @@ public class VanKrevelenDiagramModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
-    Task newTask = new VanKrevelenDiagramTask(parameters);
+    Task newTask = new VanKrevelenDiagramTask(parameters, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;

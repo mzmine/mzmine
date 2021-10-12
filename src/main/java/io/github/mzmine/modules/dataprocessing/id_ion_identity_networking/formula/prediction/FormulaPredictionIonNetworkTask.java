@@ -47,6 +47,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,6 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -89,8 +91,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public FormulaPredictionIonNetworkTask(ModularFeatureList featureList, ParameterSet parameters) {
-    super(featureList.getMemoryMapStorage());
+  public FormulaPredictionIonNetworkTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
     mzTolerance =
         parameters.getParameter(FormulaPredictionIonNetworkParameters.mzTolerance).getValue();
@@ -144,11 +146,11 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     if (sortResults) {
       FormulaSortParameters sortingParam = parameters
           .getParameter(FormulaPredictionIonNetworkParameters.sorting).getEmbeddedParameters();
-      sorter = new FormulaSortTask(sortingParam);
+      sorter = new FormulaSortTask(sortingParam, getModuleCallDate());
     }
 
     // merger to create avg formulas
-    netFormulaMerger = new CreateAvgNetworkFormulasTask(sorter);
+    netFormulaMerger = new CreateAvgNetworkFormulasTask(sorter, moduleCallDate);
     message = "Formula Prediction (MS annotation networks)";
   }
 

@@ -22,14 +22,23 @@ import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * TODO: Move to io.github.mzmine.datamodel and rename to SimpleAppliedMethod
  */
 public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod {
 
+  private static final Logger logger = Logger
+      .getLogger(SimpleFeatureListAppliedMethod.class.getName());
+
   private final String description;
+  private final Date moduleCallDate;
   private final ParameterSet parameters;
   private final MZmineModule module;
 
@@ -37,32 +46,37 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
    * @param parameters The parameter set used to create this feature list. A clone of the parameter
    *                   set is created in the constructor and saved in this class.
    */
-  public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters) {
-    this.parameters = parameters.cloneParameterSet();
+  public SimpleFeatureListAppliedMethod(MZmineModule module, ParameterSet parameters,
+      @NotNull final Date moduleCallDate) {
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
     this.description = module.getName();
+    this.moduleCallDate = moduleCallDate;
   }
 
-  public SimpleFeatureListAppliedMethod(Class<? extends MZmineModule> moduleClass, ParameterSet parameters) {
-    this.parameters = parameters.cloneParameterSet();
-    this.module = MZmineCore.getModuleInstance(moduleClass);
-    this.description = this.module.getName();
+  public SimpleFeatureListAppliedMethod(Class<? extends MZmineModule> moduleClass,
+      ParameterSet parameters, @NotNull final Date moduleCallDate) {
+    this(MZmineCore.getModuleInstance(moduleClass), parameters, moduleCallDate);
   }
 
-  public SimpleFeatureListAppliedMethod(String description, MZmineModule module, ParameterSet parameters) {
+  public SimpleFeatureListAppliedMethod(String description, MZmineModule module,
+      ParameterSet parameters, @NotNull final Date moduleCallDate) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = module;
+    this.moduleCallDate = moduleCallDate;
   }
 
-  public SimpleFeatureListAppliedMethod(String description, Class<? extends MZmineModule> moduleClass, ParameterSet parameters) {
+  public SimpleFeatureListAppliedMethod(String description,
+      Class<? extends MZmineModule> moduleClass, ParameterSet parameters,
+      @NotNull final Date moduleCallDate) {
     this.description = description;
-    this.parameters = parameters.cloneParameterSet();
+    this.parameters = parameters.cloneParameterSet(true);
     this.module = MZmineCore.getModuleInstance(moduleClass);
+    this.moduleCallDate = moduleCallDate;
   }
 
-  public @NotNull
-  String getDescription() {
+  public @NotNull String getDescription() {
     return description;
   }
 
@@ -70,10 +84,9 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return description;
   }
 
-  public @NotNull
-  ParameterSet getParameters() {
+  public @NotNull ParameterSet getParameters() {
     // don't return the saved parameters, return a clone so parameters cannot be altered by accident.
-    return parameters.cloneParameterSet();
+    return parameters.cloneParameterSet(true);
   }
 
   @Override
@@ -81,4 +94,52 @@ public class SimpleFeatureListAppliedMethod implements FeatureListAppliedMethod 
     return module;
   }
 
+  @Override
+  public Date getModuleCallDate() {
+    return moduleCallDate;
+  }
+
+  /**
+   * @param element The xml element for this {@link FeatureListAppliedMethod}.
+   */
+  @Override
+  public void saveValueToXML(Element element) {
+    final Document doc = element.getOwnerDocument();
+
+    final Element descriptionElement = doc.createElement("description");
+    descriptionElement.setTextContent(description);
+    element.appendChild(descriptionElement);
+
+    final Element moduleElement = doc.createElement("module");
+    moduleElement.setAttribute("class", module.getClass().getName());
+    moduleElement.setAttribute("date", String.valueOf(moduleCallDate.getTime()));
+    element.appendChild(moduleElement);
+
+    final Element parametersElement = doc.createElement("parameters");
+    parameters.saveValuesToXML(parametersElement);
+    element.appendChild(parametersElement);
+  }
+
+  public static SimpleFeatureListAppliedMethod loadValueFromXML(Element element) {
+    final Element moduleElement = (Element) element.getElementsByTagName("module").item(0);
+    String moduleClassName = moduleElement.getAttribute("class");
+    final Element parametersElement = (Element) element.getElementsByTagName("parameters").item(0);
+    final Element descriptionElement = (Element) element.getElementsByTagName("description")
+        .item(0);
+
+    try {
+      Class<? extends MZmineModule> moduleClass = (Class<? extends MZmineModule>) Class
+          .forName(moduleClassName);
+      ParameterSet moduleParameters = MZmineCore.getConfiguration().getModuleParameters(moduleClass)
+          .cloneParameterSet();
+      moduleParameters.loadValuesFromXML(parametersElement);
+
+      final Date date = new Date(Long.parseLong(moduleElement.getAttribute("date")));
+      return new SimpleFeatureListAppliedMethod(descriptionElement.getTextContent(), moduleClass,
+          moduleParameters, date);
+    } catch (Exception | NoClassDefFoundError e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      return null;
+    }
+  }
 }

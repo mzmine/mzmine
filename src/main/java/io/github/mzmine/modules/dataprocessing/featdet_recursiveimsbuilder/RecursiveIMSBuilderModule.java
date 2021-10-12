@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,13 +55,13 @@ public class RecursiveIMSBuilderModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile rawDataFile : parameters
         .getParameter(RecursiveIMSBuilderParameters.rawDataFiles).getValue().getMatchingRawDataFiles()) {
       if (rawDataFile instanceof IMSRawDataFile) {
-        tasks.add(new RecursiveIMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project));
+        tasks.add(new RecursiveIMSBuilderTask(storage, (IMSRawDataFile) rawDataFile, parameters, project, moduleCallDate));
       }
     }
     return ExitCode.OK;

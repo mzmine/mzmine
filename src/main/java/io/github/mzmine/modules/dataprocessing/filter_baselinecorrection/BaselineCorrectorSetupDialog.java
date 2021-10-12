@@ -25,9 +25,11 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -156,8 +158,8 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     private boolean userCanceled;
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
-        Range<Float> rtRange, Range<Double> mzRange) {
-      super(null); // no new data stored -> null
+        Range<Float> rtRange, Range<Double> mzRange, @NotNull Date moduleCallDate) {
+      super(null, moduleCallDate); // no new data stored -> null
 
       this.dialog = dialog;
       this.ticPlot = ticPlot;
@@ -417,7 +419,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     if (ready && (previewTask == null || previewTask.getStatus() != TaskStatus.PROCESSING)) {
 
       baselineCorrector.initProgress(dataFile);
-      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange);
+      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange, new Date()); // date does not matter for preview
       previewThread = new Thread(previewTask);
       logger.info("Launch preview task.");
       previewThread.start();

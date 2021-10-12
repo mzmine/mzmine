@@ -28,6 +28,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,7 +53,7 @@ public class MzMLExportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     String extension = "mzML";
 
@@ -65,7 +66,7 @@ public class MzMLExportModule implements MZmineProcessingModule {
 
     for (RawDataFile r : dataFile) {
       File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);
-      Task newTask = new MzMLExportTask(r, fullName);
+      Task newTask = new MzMLExportTask(r, fullName, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

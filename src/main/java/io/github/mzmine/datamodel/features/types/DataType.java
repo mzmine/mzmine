@@ -43,6 +43,9 @@ import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,8 +117,7 @@ public abstract class DataType<T extends Property<?>> {
    */
   @Nullable
   public TreeTableColumn<ModularFeatureListRow, Object> createColumn(
-      final @Nullable RawDataFile raw,
-      final @Nullable ModularType modularParentType) {
+      final @Nullable RawDataFile raw, final @Nullable ModularType modularParentType) {
     if (this instanceof NullColumnType) {
       return null;
     }
@@ -126,8 +128,8 @@ public abstract class DataType<T extends Property<?>> {
     if (this instanceof SubColumnsFactory) {
       col.setSortable(false);
       // add sub columns
-      List<TreeTableColumn<ModularFeatureListRow, ?>> children =
-          ((SubColumnsFactory) this).createSubColumns(raw);
+      List<TreeTableColumn<ModularFeatureListRow, ?>> children = ((SubColumnsFactory) this)
+          .createSubColumns(raw);
       col.getColumns().addAll(children);
       return col;
     } else {
@@ -158,16 +160,16 @@ public abstract class DataType<T extends Property<?>> {
               model = model.get(modularParentType);
             }
             if (this instanceof ListDataType) {
-              if (this instanceof AddElementDialog && data instanceof String &&
-                  AddElementDialog.BUTTON_TEXT.equals(data)) {
+              if (this instanceof AddElementDialog && data instanceof String
+                  && AddElementDialog.BUTTON_TEXT.equals(data)) {
                 ((AddElementDialog) this).createNewElementDialog(model, this);
               } else {
                 try {
                   ((ListProperty) model.get(this)).remove(data);
                   ((ListProperty) model.get(this)).add(0, data);
                 } catch (Exception ex) {
-                  logger.log(Level.SEVERE, "Cannot set value from table cell to data type: "
-                                           + this.getHeaderString());
+                  logger.log(Level.SEVERE,
+                      "Cannot set value from table cell to data type: " + this.getHeaderString());
                   logger.log(Level.SEVERE, ex.getMessage(), ex);
                 }
               }
@@ -183,18 +185,17 @@ public abstract class DataType<T extends Property<?>> {
     return col;
   }
 
-  protected Callback<TreeTableColumn<ModularFeatureListRow, Object>,
-      TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
-      TreeTableColumn<ModularFeatureListRow, Object> col,
-      RawDataFile raw, ModularType modularParentType) {
+  protected Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
+      TreeTableColumn<ModularFeatureListRow, Object> col, RawDataFile raw,
+      ModularType modularParentType) {
     if (this instanceof ListDataType) {
       return new EditComboCellFactory(raw, this, modularParentType);
     } else if (this instanceof StringParser<?>) {
       return new EditableDataTypeCellFactory(raw, this);
     } else {
-      throw new UnsupportedOperationException("Programming error: No edit CellFactory for "
-                                              + "data type: " + this.getHeaderString() + " class "
-                                              + this.getClass().toString());
+      throw new UnsupportedOperationException(
+          "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
+              + " class " + this.getClass().toString());
     }
   }
 
@@ -237,5 +238,40 @@ public abstract class DataType<T extends Property<?>> {
   @Override
   public String toString() {
     return getHeaderString();
+  }
+
+  /**
+   * Writes the given value of this data type to an XML using the given writer. An element for the
+   * data type will have been created by the calling method and will be closed by the calling
+   * method. Attributes may be set in this method. Additional elements may be created, but must be
+   * closed.
+   *
+   * @param writer The writer.
+   * @param value  The value.
+   */
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    writer.writeCharacters(String.valueOf(value));
+  }
+
+  /**
+   * @param reader  The xml reader. The current position is an element of this data type.
+   * @param flist   The current {@link ModularFeatureList}. Not null.
+   * @param row     The current {@link ModularFeatureListRow}. Not null.
+   * @param feature The current {@link ModularFeature}. May be null.
+   * @param file    The {@link RawDataFile} of the current feature. May be null.
+   * @return The value of the data type being read.
+   * @throws XMLStreamException
+   */
+  public Object loadFromXML(@NotNull final XMLStreamReader reader,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
+    return null;
   }
 }

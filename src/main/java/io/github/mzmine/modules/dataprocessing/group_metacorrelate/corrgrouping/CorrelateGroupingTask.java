@@ -49,10 +49,12 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
 public class CorrelateGroupingTask extends AbstractTask {
 
@@ -103,8 +105,8 @@ public class CorrelateGroupingTask extends AbstractTask {
    * @param featureList  feature list.
    */
   public CorrelateGroupingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureList) {
-    super(featureList.getMemoryMapStorage());
+      final ModularFeatureList featureList, @NotNull Date moduleCallDate) {
+    super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureList;
     parameters = parameterSet;
@@ -241,7 +243,7 @@ public class CorrelateGroupingTask extends AbstractTask {
 
         // Add task description to peakList.
         groupedPKL.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters));
+            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters, getModuleCallDate()));
 
         // Done.
         setStatus(TaskStatus.FINISHED);

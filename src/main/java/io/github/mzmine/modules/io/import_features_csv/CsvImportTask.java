@@ -36,6 +36,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CsvImportTask extends AbstractTask {
@@ -45,9 +47,9 @@ public class CsvImportTask extends AbstractTask {
   private final File fileName;
   private double percent = 0.0;
 
-  CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
-    this.project = project;
+  CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate); this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
@@ -72,7 +74,8 @@ public class CsvImportTask extends AbstractTask {
     try {
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage, rawDataFile);
+      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage,
+          rawDataFile);
       String[] dataLine;
       int counter = 0;
       while ((dataLine = csvReader.readNext()) != null) {
@@ -83,8 +86,7 @@ public class CsvImportTask extends AbstractTask {
           continue;
         }
         double feature_mz = 0.0, mzMin = 0.0, mzMax = 0.0;
-        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f,
-            abundance = 0f;
+        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f, abundance = 0f;
         Range<Float> finalRTRange;
         Range<Double> finalMZRange;
         Range<Float> finalIntensityRange;
@@ -138,7 +140,7 @@ public class CsvImportTask extends AbstractTask {
         }
 
         Scan fragmentScan = null;
-        Scan[] allFragmentScans = new Scan[] {};
+        Scan[] allFragmentScans = new Scan[]{};
 
         Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt,
             feature_height, abundance, scanNumbers, finalDataPoint, status, representativeScan,
@@ -147,8 +149,9 @@ public class CsvImportTask extends AbstractTask {
         newFeatureList.addRow(newRow);
       }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       fileReader.close();
       project.addFeatureList(newFeatureList);

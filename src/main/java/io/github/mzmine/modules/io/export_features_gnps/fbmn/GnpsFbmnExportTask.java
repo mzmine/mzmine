@@ -48,8 +48,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.regex.Pattern;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS
@@ -64,8 +66,8 @@ public class GnpsFbmnExportTask extends AbstractTask {
   private int currentIndex = 0;
   private final MsMsSpectraMergeParameters mergeParameters;
 
-  GnpsFbmnExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  GnpsFbmnExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 

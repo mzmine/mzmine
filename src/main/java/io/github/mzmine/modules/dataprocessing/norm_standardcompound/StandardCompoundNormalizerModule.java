@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -53,14 +54,14 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList featureLists[] = parameters.getParameter(StandardCompoundNormalizerParameters.featureList)
         .getValue().getMatchingFeatureLists();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new StandardCompoundNormalizerTask(project, featureList, parameters, storage);
+      Task newTask = new StandardCompoundNormalizerTask(project, featureList, parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }
 

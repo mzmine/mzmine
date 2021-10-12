@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_sirius;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
-import java.util.List;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -50,12 +50,12 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     final FeatureList[] peakLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
         .getValue().getMatchingFeatureLists();
     for (final FeatureList peakList : peakLists) {
-      Task newTask = new PeakListIdentificationTask(parameters, peakList);
+      Task newTask = new PeakListIdentificationTask(parameters, peakList, moduleCallDate);
       tasks.add(newTask);
     }
 
@@ -67,7 +67,7 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
    *
    * @param row the feature list row.
    */
-  public static void showSingleRowIdentificationDialog(final FeatureListRow row) {
+  public static void showSingleRowIdentificationDialog(final FeatureListRow row, @NotNull Date moduleCallDate) {
 
     assert Platform.isFxApplicationThread();
 
@@ -90,7 +90,7 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
       }
       else { // Run task.
         MZmineCore.getTaskController()
-            .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row));
+            .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row, moduleCallDate));
       }
     }
   }

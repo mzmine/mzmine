@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Collection;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -49,13 +50,13 @@ public class LocalCSVDatabaseSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList peakLists[] = parameters.getParameter(LocalCSVDatabaseSearchParameters.peakLists)
         .getValue().getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new LocalCSVDatabaseSearchTask(peakList, parameters);
+      Task newTask = new LocalCSVDatabaseSearchTask(peakList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
 

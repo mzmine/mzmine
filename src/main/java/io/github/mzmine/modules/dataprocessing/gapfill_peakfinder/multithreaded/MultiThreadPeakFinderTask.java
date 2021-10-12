@@ -41,9 +41,11 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 class MultiThreadPeakFinderTask extends AbstractTask {
 
@@ -63,8 +65,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private int taskIndex;
 
   MultiThreadPeakFinderTask(ModularFeatureList peakList, ModularFeatureList processedPeakList,
-      ParameterSet parameters, int start, int endexcl, int taskIndex) {
-    super(null);
+      ParameterSet parameters, int start, int endexcl, int taskIndex, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
 
     this.taskIndex = taskIndex;
 

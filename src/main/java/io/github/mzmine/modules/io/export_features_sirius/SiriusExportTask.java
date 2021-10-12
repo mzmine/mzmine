@@ -61,12 +61,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class SiriusExportTask extends AbstractTask {
 
@@ -116,8 +118,8 @@ public class SiriusExportTask extends AbstractTask {
   private int nextID = 1;
   private boolean renumberID;
 
-  SiriusExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  SiriusExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
     this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME).getValue();

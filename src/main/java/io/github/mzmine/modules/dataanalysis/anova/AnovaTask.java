@@ -29,6 +29,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +56,8 @@ public class AnovaTask extends AbstractTask {
   private final FeatureListRow[] featureListRows;
   private final UserParameter userParameter;
 
-  public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters) {
-    super(null);
+  public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.featureListRows = featureListRows;
     this.userParameter = parameters.getParameter(AnovaParameters.selectionData).getValue();
   }

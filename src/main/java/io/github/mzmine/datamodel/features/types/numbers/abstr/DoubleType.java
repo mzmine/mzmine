@@ -18,22 +18,28 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.text.NumberFormat;
+import java.util.Arrays;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class DoubleType extends NumberType<Property<Double>>
-    implements BindingsFactoryType {
+public abstract class DoubleType extends NumberType<Property<Double>> implements
+    BindingsFactoryType {
 
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -42,8 +48,9 @@ public abstract class DoubleType extends NumberType<Property<Double>>
   @Override
   @NotNull
   public String getFormattedString(@NotNull Property<Double> value) {
-    if (value.getValue() == null)
+    if (value.getValue() == null) {
       return "";
+    }
     return getFormatter().format(value.getValue().doubleValue());
   }
 
@@ -56,9 +63,8 @@ public abstract class DoubleType extends NumberType<Property<Double>>
   @Override
   public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
     // get all properties of all features
-    @SuppressWarnings("unchecked")
-    Property<Double>[] prop = row.streamFeatures().map(f -> (ModularFeature) f)
-        .map(f -> f.get(this)).toArray(Property[]::new);
+    @SuppressWarnings("unchecked") Property<Double>[] prop = row.streamFeatures()
+        .map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
     switch (bind) {
       case AVERAGE:
         return Bindings.createObjectBinding(() -> {
@@ -75,25 +81,31 @@ public abstract class DoubleType extends NumberType<Property<Double>>
       case MIN:
         return Bindings.createObjectBinding(() -> {
           double min = Double.POSITIVE_INFINITY;
-          for (Property<Double> p : prop)
-            if (p.getValue() != null && p.getValue() < min)
+          for (Property<Double> p : prop) {
+            if (p.getValue() != null && p.getValue() < min) {
               min = p.getValue();
+            }
+          }
           return min;
         }, prop);
       case MAX:
         return Bindings.createObjectBinding(() -> {
           double max = Double.NEGATIVE_INFINITY;
-          for (Property<Double> p : prop)
-            if (p.getValue() != null && p.getValue() > max)
+          for (Property<Double> p : prop) {
+            if (p.getValue() != null && p.getValue() > max) {
               max = p.getValue();
+            }
+          }
           return max;
         }, prop);
       case SUM:
         return Bindings.createObjectBinding(() -> {
           double sum = 0;
-          for (Property<Double> p : prop)
-            if (p.getValue() != null)
+          for (Property<Double> p : prop) {
+            if (p.getValue() != null) {
               sum += p.getValue();
+            }
+          }
           return sum;
         }, prop);
       case COUNT:
@@ -105,10 +117,11 @@ public abstract class DoubleType extends NumberType<Property<Double>>
           Range<Double> result = null;
           for (Property<Double> p : prop) {
             if (p.getValue() != null) {
-              if (result == null)
+              if (result == null) {
                 result = Range.singleton(p.getValue());
-              else
+              } else {
                 result = result.span(Range.singleton(p.getValue()));
+              }
             }
           }
           return result;
@@ -116,5 +129,32 @@ public abstract class DoubleType extends NumberType<Property<Double>>
       default:
         throw new UndefinedRowBindingException(this, bind);
     }
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    if (value instanceof Double dbl) {
+      writer.writeCharacters(Double.toString(dbl));
+    } else {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
+    }
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+    String str = reader.getElementText();
+    if (str == null || str.isEmpty()) {
+      return null;
+    }
+    return Double.parseDouble(str);
   }
 }

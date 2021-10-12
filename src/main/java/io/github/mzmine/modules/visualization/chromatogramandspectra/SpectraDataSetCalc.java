@@ -21,17 +21,15 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.color.SimpleColorPalette;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -51,7 +49,7 @@ public class SpectraDataSetCalc extends AbstractTask {
       final ChromatogramCursorPosition pos, final ScanSelection scanSelection,
       boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot,
       BooleanProperty showMassListProperty) {
-    super(null);
+    super(null, new Date());
     filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;
     this.pos = pos;

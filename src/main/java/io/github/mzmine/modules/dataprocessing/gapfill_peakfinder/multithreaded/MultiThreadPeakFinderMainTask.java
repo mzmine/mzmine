@@ -34,9 +34,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -61,8 +63,8 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
   public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
-      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
     this.parameters = parameters;
@@ -118,7 +120,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
           // Add task description to peakList
           processedPeakList
               .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
-                  MultiThreadPeakFinderModule.class, parameters));
+                  MultiThreadPeakFinderModule.class, parameters, getModuleCallDate()));
 
           // Remove the original peaklist if requested
           if (removeOriginal) {
@@ -210,7 +212,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
       // create task
       tasks.add(
           new MultiThreadPeakFinderTask(peakList, processedPeakList, parameters, start, endexcl,
-              i));
+              i, getModuleCallDate()));
     }
     return tasks;
   }

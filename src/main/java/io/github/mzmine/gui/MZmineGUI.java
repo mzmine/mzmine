@@ -51,6 +51,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -288,7 +289,7 @@ public class MZmineGUI extends Application implements Desktop {
             .getModuleInstance(AllSpectralDataImportModule.class);
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
-          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks);
+          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks, new Date());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
       }

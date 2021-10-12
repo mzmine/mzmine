@@ -45,6 +45,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
@@ -71,8 +72,8 @@ public class SmoothingTask extends AbstractTask {
   private final boolean removeOriginal;
 
   public SmoothingTask(@NotNull MZmineProject project, @NotNull ModularFeatureList flist,
-      @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.flist = flist;
     this.parameters = parameters;
@@ -199,7 +200,7 @@ public class SmoothingTask extends AbstractTask {
     }
 
     smoothedList.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters, getModuleCallDate()));
     project.addFeatureList(smoothedList);
 
     if(removeOriginal) {

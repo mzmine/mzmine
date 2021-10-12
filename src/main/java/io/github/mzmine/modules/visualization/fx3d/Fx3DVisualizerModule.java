@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,8 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Date moduleCallDate) {
 
     final RawDataFile[] currentDataFiles = parameters
         .getParameter(Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
@@ -123,7 +125,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     if (myParameters.showSetupDialog(true) == ExitCode.OK) {
       myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
-          myParameters.cloneParameterSet(), new ArrayList<Task>());
+          myParameters.cloneParameterSet(), new ArrayList<Task>(), new Date());
     }
   }
 

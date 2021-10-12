@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -97,6 +98,18 @@ public class FeatureListSummaryController {
     tfNumRows.setText(String.valueOf(featureList.getNumberOfRows()));
     tfCreated.setText(featureList.getDateCreated());
     lvAppliedMethods.setItems(featureList.getAppliedMethods());
+  }
+
+  public void setRawDataFile(@Nullable RawDataFile file) {
+    clear();
+    if (file == null) {
+      return;
+    }
+
+    lbFeatureListName.setText(file.getName());
+    tfNumRows.setText(String.valueOf(file.getNumOfScans()));
+    tfCreated.setText(file.getAbsolutePath());
+    lvAppliedMethods.setItems(file.getAppliedMethods());
   }
 
   public void clear() {

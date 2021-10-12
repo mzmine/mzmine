@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
@@ -47,12 +48,12 @@ public class TargetedFeatureDetectionModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     RawDataFile[] dataFiles = parameters.getParameter(TargetedPeakDetectionParameters.rawDataFile)
         .getValue().getMatchingRawDataFiles();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new TargetedPeakDetectionModuleTask(project, parameters, dataFile, storage);
+      Task newTask = new TargetedPeakDetectionModuleTask(project, parameters, dataFile, storage, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

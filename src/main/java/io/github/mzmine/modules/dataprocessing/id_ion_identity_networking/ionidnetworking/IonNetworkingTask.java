@@ -36,10 +36,12 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkingTask extends AbstractTask {
 
@@ -71,8 +73,8 @@ public class IonNetworkingTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists, MinimumFeatureFilter minFeaturesFilter) {
-    super(featureLists.getMemoryMapStorage());
+      final ModularFeatureList featureLists, MinimumFeatureFilter minFeaturesFilter, @NotNull Date moduleCallDate) {
+    super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;
@@ -90,8 +92,8 @@ public class IonNetworkingTask extends AbstractTask {
   }
 
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists) {
-    this(project, parameterSet, featureLists, null);
+      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+    this(project, parameterSet, featureLists, null, moduleCallDate);
   }
 
   @Override
@@ -119,7 +121,7 @@ public class IonNetworkingTask extends AbstractTask {
       library = new IonNetworkLibrary(p, mzTolerance);
       annotateGroups(library);
       featureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(IonNetworkingModule.class, parameters, getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
     } catch (Exception t) {
       LOG.log(Level.SEVERE, "Adduct search error", t);
@@ -197,7 +199,7 @@ public class IonNetworkingTask extends AbstractTask {
     if (performAnnotationRefinement) {
       LOG.info("Corr: Refine annotations");
       IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam,
-          featureList);
+          featureList, getModuleCallDate());
       ref.refine();
     }
     if (isCanceled()) {

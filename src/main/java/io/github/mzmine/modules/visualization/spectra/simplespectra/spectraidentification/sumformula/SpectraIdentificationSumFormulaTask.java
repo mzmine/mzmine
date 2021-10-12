@@ -44,9 +44,11 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.ui.TextAnchor;
@@ -92,8 +94,8 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
    * @param parameters task parameters.
    */
   public SpectraIdentificationSumFormulaTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
-    super(null);
+      SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
 
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;

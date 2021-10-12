@@ -47,6 +47,7 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -102,14 +103,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private int minMatchedIsoSignals;
 
   public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
-      ParameterSet parameters, int startEntry, List<SpectralDBEntry> list) {
-    this(description, rows, parameters, startEntry, list, null);
+      ParameterSet parameters, int startEntry, List<SpectralDBEntry> list, @NotNull Date moduleCallDate) {
+    this(description, rows, parameters, startEntry, list, null, moduleCallDate);
   }
 
   public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
-      Consumer<SpectralDBFeatureIdentity> matchListener) {
-    super(null); // no new data stored -> null
+      Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.description = description;
     this.rows = rows;
     this.parameters = parameters;
