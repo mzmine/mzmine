@@ -103,7 +103,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public @NotNull MemoryMapStorage getMemoryMapStorage() {
+  public @Nullable MemoryMapStorage getMemoryMapStorage() {
     return storageMemoryMap;
   }
 

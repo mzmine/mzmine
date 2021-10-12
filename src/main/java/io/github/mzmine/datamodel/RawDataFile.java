@@ -140,7 +140,7 @@ public interface RawDataFile {
    */
   void close();
 
-  @NotNull MemoryMapStorage getMemoryMapStorage();
+  @Nullable MemoryMapStorage getMemoryMapStorage();
 
   void addScan(Scan newScan) throws IOException;
 
