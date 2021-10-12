@@ -18,24 +18,24 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.NotNull;
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.text.NumberFormat;
+import java.util.Arrays;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class DoubleType extends NumberType<Property<Double>> implements
@@ -135,14 +135,15 @@ public abstract class DoubleType extends NumberType<Property<Double>> implements
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
-    if (value instanceof Double) {
-      writer.writeCharacters(Double.toString((Double) value));
+    if (value instanceof Double dbl) {
+      writer.writeCharacters(Double.toString(dbl));
     } else {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
   }
 
@@ -151,7 +152,7 @@ public abstract class DoubleType extends NumberType<Property<Double>> implements
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String str = reader.getElementText();
-    if(str == null || str.isEmpty()) {
+    if (str == null || str.isEmpty()) {
       return null;
     }
     return Double.parseDouble(str);
