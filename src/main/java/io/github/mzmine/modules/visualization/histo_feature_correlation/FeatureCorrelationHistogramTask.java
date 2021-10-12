@@ -29,8 +29,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import java.util.Date;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureCorrelationHistogramTask extends AbstractTask {
 
@@ -40,8 +42,9 @@ public class FeatureCorrelationHistogramTask extends AbstractTask {
   private final double startBinWidth;
   private FeatureCorrelationHistogramTab tab;
 
-  public FeatureCorrelationHistogramTask(ModularFeatureList flist, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public FeatureCorrelationHistogramTask(ModularFeatureList flist, ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.flist = flist;
     startBinWidth = parameters.getParameter(FeatureCorrelationHistogramParameters.binWidth)
         .getValue();

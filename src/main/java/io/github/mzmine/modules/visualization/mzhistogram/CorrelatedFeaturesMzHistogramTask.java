@@ -36,9 +36,11 @@ import io.github.mzmine.util.io.TxtWriter;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
 
@@ -55,8 +57,8 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
   private MzDeltaCorrelationHistogramTab tab;
   private final ParameterSet parameters;
 
-  public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.flist = flist;
     this.parameters = parameters;
     minScore = parameters.getParameter(CorrelatedFeaturesMzHistogramParameters.minCorr).getValue();
