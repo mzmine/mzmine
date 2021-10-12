@@ -241,7 +241,7 @@ public class RawDataFilePlaceholder implements RawDataFile {
   }
 
   @Override
-  public @NotNull MemoryMapStorage getMemoryMapStorage() {
+  public @Nullable MemoryMapStorage getMemoryMapStorage() {
     throw new UnsupportedOperationException(
         "This class is only to be used in the RawDataFilesSelection and does not support the required operation.");
   }
