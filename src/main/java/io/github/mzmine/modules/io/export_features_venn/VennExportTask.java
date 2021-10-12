@@ -32,7 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -49,12 +51,16 @@ public class VennExportTask extends AbstractTask {
   private final File path;
   private final boolean manualAsDetected = true;
 
-  protected VennExportTask(@Nullable MemoryMapStorage storage, ModularFeatureList flist,
-      ParameterSet parameterSet) {
-    super(storage);
+  private final int maxRows;
+  private int processedRows;
+
+
+  protected VennExportTask(@Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate,
+      ModularFeatureList flist, ParameterSet parameterSet) {
+    super(storage, moduleCallDate);
     this.flist = flist;
-//    this.file
     this.parameterSet = parameterSet;
+    maxRows = flist.getNumberOfRows();
     path = parameterSet.getParameter(VennExportParameters.directory).getValue();
   }
 
@@ -65,7 +71,7 @@ public class VennExportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return processedRows / (double) maxRows;
   }
 
   @Override
@@ -125,6 +131,7 @@ public class VennExportTask extends AbstractTask {
         }
 
         writer.newLine();
+        processedRows++;
       }
 
       writer.flush();

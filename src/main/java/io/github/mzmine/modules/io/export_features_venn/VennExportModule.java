@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,13 +49,13 @@ public class VennExportModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
-
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Date moduleCallDate) {
     ModularFeatureList[] matchingFeatureLists = parameters.getParameter(VennExportParameters.flists)
         .getValue().getMatchingFeatureLists();
 
     for (ModularFeatureList matchingFeatureList : matchingFeatureLists) {
-      tasks.add(new VennExportTask(null, matchingFeatureList, parameters));
+      tasks.add(new VennExportTask(null, moduleCallDate, matchingFeatureList, parameters));
     }
 
     return ExitCode.OK;
