@@ -45,6 +45,8 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.beans.property.Property;
@@ -52,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   public static final String DATAFILE_PREFIX = "DATAFILE";
 
   private ModularFeatureList[] featureLists;
@@ -288,7 +291,15 @@ public class CSVExportModularTask extends AbstractTask {
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
-        b.append(escapeStringForCSV(type.getFormattedString(property)));
+        String str;
+        try{
+          str = type.getFormattedString(property);
+        } catch (Exception e) {
+          logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
+              + " value: " + property.getValue(), e);
+          str = "";
+        }
+        b.append(escapeStringForCSV(str));
       }
     }
   }

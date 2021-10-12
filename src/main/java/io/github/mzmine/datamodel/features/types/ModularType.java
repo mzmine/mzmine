@@ -152,9 +152,11 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
   public String getFormattedSubColValue(int subcolumn,
       TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
+
     if (value == null) {
       return "";
     }
+
     DataType sub = getSubTypeAt(subcolumn);
     if (sub == null) {
       return "";
@@ -184,12 +186,13 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
     if (!(value instanceof Map map)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
 
     for (Object obj : map.entrySet()) {
@@ -198,7 +201,7 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
       }
       Object key = entry.getKey();
       Object val = entry.getValue();
-      if(val instanceof Property) {
+      if (val instanceof Property) {
         val = ((Property<?>) val).getValue();
       }
 
@@ -239,8 +242,8 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
         break;
       }
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        DataType<?> type = DataTypes
-            .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        DataType<?> type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
         Object o = type.loadFromXML(reader, flist, row, feature, file);
         property.set(type, o);
         parsed++;
