@@ -30,6 +30,13 @@ public class GNPSNetworkUrlType extends UrlType {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "gnps_network_url";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "GNPS network";
   }

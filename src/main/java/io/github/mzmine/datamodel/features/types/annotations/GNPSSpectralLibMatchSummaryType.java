@@ -34,6 +34,13 @@ public class GNPSSpectralLibMatchSummaryType extends ListDataType<GNPSLibraryMat
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "gnps_library_match_list";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "GNPS";
   }

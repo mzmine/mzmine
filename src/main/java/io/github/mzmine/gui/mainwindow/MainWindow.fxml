@@ -38,6 +38,7 @@
   ~
   -->
 
+<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
 <Scene xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
   fx:id="mainScene"
   fx:controller="io.github.mzmine.gui.mainwindow.MainWindowController">
@@ -107,9 +108,9 @@
                                     onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem fx:id="rawDataSetColorMenuItem"
-                                    onAction="#handleSetRawDataFileColor" text="Set color"/>
-
+                                  <Menu text="Set color" fx:id="rawDataSetColorMenu">
+                                    <ColorPickerMenuItem fx:id="rawDataFileColorPicker" />
+                                  </Menu>
                                 </items>
                               </ContextMenu>
                             </contextMenu>

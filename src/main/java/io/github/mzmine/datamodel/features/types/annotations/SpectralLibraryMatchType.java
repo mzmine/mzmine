@@ -53,6 +53,13 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "spectral_lib_match_annotation";
+  }
+
+  @NotNull
+  @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }

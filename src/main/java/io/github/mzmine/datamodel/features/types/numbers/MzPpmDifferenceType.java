@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationTy
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Relative m/z difference in ppm (parts-per-million: 10^-6), e.g., used in {@link
@@ -32,6 +33,13 @@ public class MzPpmDifferenceType extends FloatType {
 
   public MzPpmDifferenceType() {
     super(new DecimalFormat("0.000"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "mz_diff_ppm";
   }
 
   @Override

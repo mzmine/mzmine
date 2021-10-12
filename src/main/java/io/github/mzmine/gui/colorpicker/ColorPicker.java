@@ -16,26 +16,37 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.gui.colorpicker;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import javafx.beans.property.ListProperty;
-import javafx.collections.ObservableList;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Consumer;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.paint.Color;
 
-public class AnnotationType extends ListDataType<FeatureIdentity> {
+/**
+ * Custom ColorPicker controller.
+ */
+public class ColorPicker {
 
-  @Override
-  public String getHeaderString() {
-    return "Identity";
+  @FXML
+  private ColorSwatch colorSwatch;
+  @FXML
+  private ColorMixer colorMixer;
+
+  private Consumer<Color> onColorSelected = (color) -> {
+  };
+
+  public void setOnColorSelected(Consumer<Color> onColorSelected) {
+    this.onColorSelected = onColorSelected;
+    colorSwatch.onColorSelected = onColorSelected;
   }
 
-  @Override
-  @NotNull
-  public String getFormattedString(@NotNull ListProperty<FeatureIdentity> value) {
-    ObservableList<FeatureIdentity> list = value.getValue();
-    return list == null || list.isEmpty() ? "" : list.get(0).toString();
+  public void initialize() {
+    colorSwatch.onColorSelected = onColorSelected;
   }
 
+  @FXML
+  private void onCustomColorConfirm(ActionEvent actionEvent) {
+    onColorSelected.accept(colorMixer.selectedColor.get());
+  }
 }

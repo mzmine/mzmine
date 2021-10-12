@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing.weightedaverage;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
@@ -72,12 +73,19 @@ public class LoessSmoothing implements SmoothingAlgorithm {
     final double rtBandwidth = (((double) this.rtWidth) / series.getNumberOfValues());
     final LoessInterpolator interpolator = new LoessInterpolator(rtBandwidth, 0);
 
-    double[] intensities = new double[series.getNumberOfValues()];
+    double[] intensities;
+    if(series instanceof FeatureFullDataAccess access) {
+      intensities = access.getIntensityValues();
+    } else {
+      intensities = new double[series.getNumberOfValues()];
+      intensities = series.getIntensityValues(intensities);
+    }
     double[] rts = new double[series.getNumberOfValues()];
     for (int i = 0; i < rts.length; i++) {
-      intensities[i] = series.getIntensity(i);
       rts[i] = series.getRetentionTime(i);
     }
+
+    assert intensities.length == rts.length;
 
     double[] smoothed = interpolator.smooth(rts, intensities);
     for (int i = 0; i < intensities.length; i++) {

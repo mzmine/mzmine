@@ -27,6 +27,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -40,6 +41,13 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
       new LipidMsOneErrorType(), //
       new LipidAnnotationMsMsScoreType(), //
       new LipidSpectrumType());
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "lipid_annotation";
+  }
 
   @Override
   public List<DataType> getSubDataTypes() {

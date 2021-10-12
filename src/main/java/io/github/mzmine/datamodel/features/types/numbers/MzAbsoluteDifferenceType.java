@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Absolute m/z difference, e.g., used in {@link FormulaAnnotationType} to describe the difference
@@ -32,6 +33,13 @@ public class MzAbsoluteDifferenceType extends DoubleType {
 
   public MzAbsoluteDifferenceType() {
     super(new DecimalFormat("0.0000"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "mz_diff_absolute";
   }
 
   @Override

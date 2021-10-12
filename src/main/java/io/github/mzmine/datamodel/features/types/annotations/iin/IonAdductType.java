@@ -26,6 +26,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The ion adduct is used in different {@link AnnotationType}s to represent the ion species.
@@ -55,5 +56,11 @@ public class IonAdductType extends DataType<StringProperty>
     return new SimpleStringProperty("");
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_adduct";
+  }
 
 }

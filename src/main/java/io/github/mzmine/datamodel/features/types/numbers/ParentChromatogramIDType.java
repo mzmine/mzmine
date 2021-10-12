@@ -19,8 +19,16 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import org.jetbrains.annotations.NotNull;
 
 public class ParentChromatogramIDType extends IntegerType {
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "parent_chromatogram_id";
+  }
 
   @Override
   public String getHeaderString() {

@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import javafx.util.StringConverter;
+import org.jetbrains.annotations.NotNull;
 
 public class IdentityType extends ListDataType<FeatureIdentity> implements AnnotationType,
     EditableColumnType, AddElementDialog, StringParser<FeatureIdentity> {
@@ -41,6 +42,13 @@ public class IdentityType extends ListDataType<FeatureIdentity> implements Annot
       return new SimpleFeatureIdentity(name);
     }
   };
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "identity";
+  }
 
   @Override
   public String getHeaderString() {
