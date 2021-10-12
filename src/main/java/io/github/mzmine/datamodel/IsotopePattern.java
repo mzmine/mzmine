@@ -18,6 +18,8 @@
 
 package io.github.mzmine.datamodel;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,13 +44,16 @@ public interface IsotopePattern extends MassSpectrum {
   /**
    * Returns the isotope pattern status.
    */
-  @NotNull
-  IsotopePatternStatus getStatus();
+  @NotNull IsotopePatternStatus getStatus();
 
   /**
    * Returns a description of this isotope pattern (formula, etc.)
    */
-  @NotNull
-  String getDescription();
+  @NotNull String getDescription();
+
+  /**
+   * Appends a new isotope pattern xml element to the current element.
+   */
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
 }

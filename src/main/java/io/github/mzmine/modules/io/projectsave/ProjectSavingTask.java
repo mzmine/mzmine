@@ -20,6 +20,8 @@ package io.github.mzmine.modules.io.projectsave;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -67,7 +69,8 @@ public class ProjectSavingTask extends AbstractTask {
   private Hashtable<RawDataFile, String> dataFilesIDMap;
   private boolean saveStandaloneProject = true;
 
-  public ProjectSavingTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public ProjectSavingTask(MZmineProject project, ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
     super(null, moduleCallDate);
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
@@ -159,8 +162,8 @@ public class ProjectSavingTask extends AbstractTask {
             "Would you like to save a standalone project?\n\nIf yes, raw data files will be "
                 + "copied into the project file. Otherwise the project will require that all raw "
                 + "files stay in the same directories.\n<b>WARNING</b> If this is an existing "
-                + "project, it is recommended to save it in the same way.",
-            ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+                + "project, it is recommended to save it in the same way.", ButtonType.YES,
+            ButtonType.NO, ButtonType.CANCEL);
         if (btn == ButtonType.CANCEL) {
           setStatus(TaskStatus.FINISHED);
           return;
@@ -316,7 +319,6 @@ public class ProjectSavingTask extends AbstractTask {
       e.printStackTrace();
       logger.warning("Could not save configuration" + ExceptionUtils.exceptionToString(e));
     }
-
   }
 
   /**
@@ -366,28 +368,34 @@ public class ProjectSavingTask extends AbstractTask {
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    return;
+    for (FeatureList featureList : savedProject.getFeatureLists()) {
+      FeatureListSaveTask saveTask = new FeatureListSaveTask((ModularFeatureList) featureList,
+          zipStream);
 
-    /*FeatureList peakLists[] = savedProject.getFeatureLists().toArray(new FeatureList[0]);
+      AtomicBoolean finished = new AtomicBoolean(false);
+      saveTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+        switch (newStatus) {
+          case WAITING, PROCESSING -> {
+          }
+          case FINISHED, ERROR, CANCELED -> {
+            finished.set(true);
+          }
+        }
+      });
+      MZmineCore.getTaskController().addTask(saveTask);
 
-    for (int i = 0; i < peakLists.length; i++) {
-
-      if (isCanceled()) {
-        return;
+      while (!finished.get()) {
+        try {
+          Thread.sleep(50);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
       }
 
-      logger.info("Saving feature list: " + peakLists[i].getName());
-
-      String peakListSavedName = "Peak list #" + (i + 1) + " " + peakLists[i].getName();
-
-      zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
-
-      peakListSaveHandler = new PeakListSaveHandler(zipStream, dataFilesIDMap);
-
-      currentSavedObjectName = peakLists[i].getName();
-      peakListSaveHandler.savePeakList(peakLists[i]);
-      finishedSaveItems++;
-    }*/
+      if (isCanceled()) {
+        break;
+      }
+    }
   }
 
   /**

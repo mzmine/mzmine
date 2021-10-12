@@ -99,7 +99,7 @@ public class ZipUtils {
     }
   }
 
-  public static void unzipEntry(String folder, ZipFile zipFile, File destinationFolder)
+  public static void unzipDirectory(String folder, ZipFile zipFile, File destinationFolder)
       throws IOException {
     int readLen;
     byte readBuffer[] = new byte[10000000];

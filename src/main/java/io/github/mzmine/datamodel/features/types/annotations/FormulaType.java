@@ -18,12 +18,10 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Simple column to display formulas
  */
-public class FormulaType extends DataType<StringProperty>
+public class FormulaType extends StringType
     implements EditableColumnType, StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
@@ -58,11 +56,5 @@ public class FormulaType extends DataType<StringProperty>
   public StringConverter<String> getStringConverter() {
     return converter;
   }
-
-  @Override
-  public StringProperty createProperty() {
-    return new SimpleStringProperty("");
-  }
-
 
 }

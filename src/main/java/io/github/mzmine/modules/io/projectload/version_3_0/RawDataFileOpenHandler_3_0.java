@@ -248,7 +248,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
             Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN.matcher(path);
             if (matcher.matches()) {
               path = matcher.group(2);
-              ZipUtils.unzipEntry(path.replaceAll("\\\\", "/"), zipFile, tempDir.toFile());
+              ZipUtils.unzipDirectory(path.replaceAll("\\\\", "/"), zipFile, tempDir.toFile());
               newFiles[i] = new File(tempDir.toFile(), path);
             } else {
               newFiles[i] = files[i];

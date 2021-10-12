@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
+  public static final String XML_SCAN_TYPE = "simplescan";
+
   @NotNull
   private final RawDataFile dataFile;
   private int scanNumber;
