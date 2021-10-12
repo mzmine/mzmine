@@ -198,7 +198,8 @@ public class SimpleIonMobilitySeries implements IonMobilitySeries, ModifiableSpe
     }
     SimpleIonMobilitySeries that = (SimpleIonMobilitySeries) o;
     return Objects.equals(scans, that.scans) && Objects.equals(intensityValues,
-        that.intensityValues) && Objects.equals(mzValues, that.mzValues) && IntensitySeries.seriesEqual(this, that);
+        that.intensityValues) && Objects.equals(mzValues, that.mzValues)
+        && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override

@@ -224,7 +224,8 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     }
     SummedIntensityMobilitySeries that = (SummedIntensityMobilitySeries) o;
     return Objects.equals(intensityValues, that.intensityValues) && Objects.equals(
-        getMobilityValues(), that.getMobilityValues()) && IntensitySeries.seriesEqual(this, that);
+        getMobilityValues(), that.getMobilityValues())
+        && IntensitySeries.seriesSubsetEqual(this, that);
   }
 
   @Override

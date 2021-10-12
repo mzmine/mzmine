@@ -43,9 +43,11 @@ public interface MzSeries extends SeriesValueCount {
   }
 
   /**
-   * Tests a subset of the series for equality.
+   * Tests a subset of the series for equality. Note that the number of values and the underlying
+   * buffer is checked for equality. However, of the actual series values, only a subset of five
+   * points is compared.
    */
-  static boolean seriesEqual(MzSeries s1, MzSeries s2) {
+  static boolean seriesSubsetEqual(MzSeries s1, MzSeries s2) {
     if (s1.getNumberOfValues() != s2.getNumberOfValues()) {
       return false;
     }
