@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_smoothing.weightedaverage;
+package io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.FeatureFullDataAccess;

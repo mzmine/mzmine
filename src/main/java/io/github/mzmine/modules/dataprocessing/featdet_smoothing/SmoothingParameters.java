@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SGIntensitySmoothing;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.weightedaverage.LoessSmoothing;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess.LoessSmoothing;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
