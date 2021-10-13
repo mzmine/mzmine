@@ -18,39 +18,29 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.github.mzmine.datamodel.features.types.DataType;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public abstract class ListDataType<T> extends DataType<ListProperty<T>> {
+public abstract class ListDataType<T> extends DataType<List<T>> {
 
   @Override
-  public ListProperty<T> createProperty() {
-    return new SimpleListProperty<>(FXCollections.observableList(new ArrayList<>()));
+  public Property<List<T>> createProperty() {
+    return new SimpleObjectProperty<>(FXCollections.observableList(new ArrayList<>()));
+  }
+
+  @Override
+  public Class<List<T>> getValueClass() {
+    return (Class) List.class;
   }
 
   @NotNull
   @Override
-  public String getFormattedString(@Nullable Object value) {
-    if(value==null)
-      return "";
-    if(value instanceof List)
-      return (String) ((List)value).stream().map(Object::toString).findFirst().orElse("");
-    if(value instanceof ListProperty)
-      return (String) ((ListProperty)value).stream().map(Object::toString).findFirst().orElse("");
-    return value.toString();
-  }
-
-  @NotNull
-  @Override
-  public String getFormattedString(@NotNull ListProperty<T> property) {
+  public String getFormattedString(@NotNull List<T> property) {
     return property.stream().map(Object::toString).findFirst().orElse("");
   }
 }

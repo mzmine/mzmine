@@ -258,9 +258,9 @@ public interface Feature {
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached
+   * @return
    */
-  @Nullable
-  IsotopePattern getIsotopePattern();
+  Object getIsotopePattern();
 
   /**
    * Sets the isotope pattern of this feature

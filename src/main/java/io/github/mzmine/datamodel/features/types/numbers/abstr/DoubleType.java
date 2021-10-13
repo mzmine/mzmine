@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -38,22 +37,11 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class DoubleType extends NumberType<Property<Double>> implements
-    BindingsFactoryType {
+public abstract class DoubleType extends NumberType<Double> {
 
   protected DoubleType(NumberFormat defaultFormat) {
     super(defaultFormat);
   }
-
-  @Override
-  @NotNull
-  public String getFormattedString(@NotNull Property<Double> value) {
-    if (value.getValue() == null) {
-      return "";
-    }
-    return getFormatter().format(value.getValue().doubleValue());
-  }
-
 
   @Override
   public Property<Double> createProperty() {
@@ -61,74 +49,17 @@ public abstract class DoubleType extends NumberType<Property<Double>> implements
   }
 
   @Override
-  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
-    // get all properties of all features
-    @SuppressWarnings("unchecked") Property<Double>[] prop = row.streamFeatures()
-        .map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
-    switch (bind) {
-      case AVERAGE:
-        return Bindings.createObjectBinding(() -> {
-          double sum = 0;
-          int n = 0;
-          for (Property<Double> p : prop) {
-            if (p.getValue() != null) {
-              sum += p.getValue();
-              n++;
-            }
-          }
-          return n == 0 ? 0 : sum / n;
-        }, prop);
-      case MIN:
-        return Bindings.createObjectBinding(() -> {
-          double min = Double.POSITIVE_INFINITY;
-          for (Property<Double> p : prop) {
-            if (p.getValue() != null && p.getValue() < min) {
-              min = p.getValue();
-            }
-          }
-          return min;
-        }, prop);
-      case MAX:
-        return Bindings.createObjectBinding(() -> {
-          double max = Double.NEGATIVE_INFINITY;
-          for (Property<Double> p : prop) {
-            if (p.getValue() != null && p.getValue() > max) {
-              max = p.getValue();
-            }
-          }
-          return max;
-        }, prop);
-      case SUM:
-        return Bindings.createObjectBinding(() -> {
-          double sum = 0;
-          for (Property<Double> p : prop) {
-            if (p.getValue() != null) {
-              sum += p.getValue();
-            }
-          }
-          return sum;
-        }, prop);
-      case COUNT:
-        return Bindings.createObjectBinding(() -> {
-          return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
-        }, prop);
-      case RANGE:
-        return Bindings.createObjectBinding(() -> {
-          Range<Double> result = null;
-          for (Property<Double> p : prop) {
-            if (p.getValue() != null) {
-              if (result == null) {
-                result = Range.singleton(p.getValue());
-              } else {
-                result = result.span(Range.singleton(p.getValue()));
-              }
-            }
-          }
-          return result;
-        }, prop);
-      default:
-        throw new UndefinedRowBindingException(this, bind);
-    }
+  public Class<Double> getValueClass() {
+    return Double.class;
+  }
+
+  @Override
+  public @NotNull String getFormattedString(Double value) {
+    return getFormatter().format(value);
+  }
+
+  public @NotNull String getFormattedString(double value) {
+    return getFormatter().format(value);
   }
 
   @Override
@@ -143,7 +74,7 @@ public abstract class DoubleType extends NumberType<Property<Double>> implements
     } else {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
   }
 

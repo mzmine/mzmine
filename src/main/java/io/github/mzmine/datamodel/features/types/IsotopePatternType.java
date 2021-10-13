@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The detected isotope pattern
  */
-public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>> {
+public class IsotopePatternType extends DataType<IsotopePattern> {
 
   @NotNull
   @Override
@@ -53,18 +53,9 @@ public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>>
 
   @Override
   @NotNull
-  public String getFormattedString(@NotNull ObjectProperty<IsotopePattern> property) {
-    return property.getValue() != null ? String.valueOf(property.getValue().getNumberOfDataPoints())
+  public String getFormattedString(@NotNull IsotopePattern value) {
+    return value.getValue() != null ? String.valueOf(value.getNumberOfDataPoints())
         : "";
-  }
-
-  @NotNull
-  @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value == null || !(value instanceof IsotopePattern)) {
-      return "";
-    }
-    return String.valueOf(((IsotopePattern) value).getNumberOfDataPoints());
   }
 
   @Override
@@ -72,6 +63,10 @@ public class IsotopePatternType extends DataType<ObjectProperty<IsotopePattern>>
     return new SimpleObjectProperty<>();
   }
 
+  @Override
+  public Class<IsotopePattern> getValueClass() {
+    return IsotopePattern.class;
+  }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,

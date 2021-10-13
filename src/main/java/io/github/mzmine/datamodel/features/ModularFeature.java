@@ -81,7 +81,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModularFeature implements Feature, ModularDataModel {
 
-  private final ObservableMap<DataType, Property<?>> map = FXCollections
+  private final ObservableMap<DataType, Object> map = FXCollections
       .observableMap(new HashMap<>());
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
@@ -91,22 +91,15 @@ public class ModularFeature implements Feature, ModularDataModel {
   public ModularFeature(@NotNull ModularFeatureList flist) {
     this.flist = flist;
 
-    // add type property columns to maps
-    flist.getFeatureTypes().values().forEach(type -> {
-      this.setProperty(type, type.createProperty());
-    });
-
     // register listener to types map to automatically generate default properties for new DataTypes
     flist.getFeatureTypes().addListener(
         (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
           if (change.wasAdded()) {
-            // add type columns to maps
-            DataType type = change.getValueAdded();
-            this.setProperty(type, type.createProperty());
+            // do nothing for now
           } else if (change.wasRemoved()) {
             // remove type columns to maps
-            DataType<Property<?>> type = change.getValueRemoved();
-            this.removeProperty((Class<DataType<Property<?>>>) type.getClass());
+            DataType type = change.getValueRemoved();
+            this.remove((Class) type.getClass());
           }
         });
   }
@@ -282,14 +275,13 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
+  public <T> void set(Class<? extends DataType<T>> tclass, T value) {
     // type in defined columns?
     if (!getTypes().containsKey(tclass)) {
       try {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = (ModularFeatureList) getFeatureList();
         flist.addFeatureType(newType);
-        setProperty(newType, newType.createProperty());
       } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return;
@@ -307,7 +299,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   // todo make this private?
   @Override
-  public ObservableMap<DataType, Property<?>> getMap() {
+  public ObservableMap<DataType, Object> getMap() {
     return map;
   }
 
@@ -378,8 +370,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Nullable
   @Override
   public IsotopePattern getIsotopePattern() {
-    Property<IsotopePattern> v = get(IsotopePatternType.class);
-    return v == null ? null : v.getValue();
+    return get(IsotopePatternType.class);
   }
 
   @Override

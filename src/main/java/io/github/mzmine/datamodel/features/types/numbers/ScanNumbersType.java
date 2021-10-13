@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.List;
@@ -36,7 +35,7 @@ import javafx.collections.FXCollections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ScanNumbersType extends ListDataType<Scan> implements BindingsFactoryType {
+public class ScanNumbersType extends ListDataType<Scan> {
 
   @NotNull
   @Override
@@ -52,79 +51,8 @@ public class ScanNumbersType extends ListDataType<Scan> implements BindingsFacto
 
   @NotNull
   @Override
-  public String getFormattedString(@NotNull ListProperty<Scan> property) {
-    return property.getValue() != null ? String.valueOf(property.getValue().size()) : "";
+  public String getFormattedString(@NotNull List<Scan> list) {
+    return list != null ? String.valueOf(list.size()) : "";
   }
 
-  @NotNull
-  @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value == null || !(value instanceof List)) {
-      return "";
-    }
-    return String.valueOf(((List) value).size());
-  }
-
-
-  @Override
-  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
-    // get all properties of all features
-    @SuppressWarnings("unchecked")
-    ListProperty[] prop = row.streamFeatures().map(f -> (ModularFeature) f)
-        .map(f -> f.get(this)).toArray(ListProperty[]::new);
-    switch (bind) {
-      case AVERAGE:
-        return Bindings.createObjectBinding(() -> {
-          float sum = 0;
-          int n = 0;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null) {
-              sum += p.size();
-              n++;
-            }
-          }
-          return n == 0 ? 0 : sum / n;
-        }, prop);
-      case MIN:
-        return Bindings.createObjectBinding(() -> {
-          int min = Integer.MAX_VALUE;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null && p.size() < min) {
-              min = p.size();
-            }
-          }
-          return min;
-        }, prop);
-      case MAX:
-        return Bindings.createObjectBinding(() -> {
-          int max = Integer.MIN_VALUE;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null && p.size() > max) {
-              max = p.size();
-            }
-          }
-          return max;
-        }, prop);
-      case SUM:
-        return Bindings.createObjectBinding(() -> {
-          int sum = 0;
-          for (ListProperty p : prop) {
-            if (p.getValue() != null) {
-              sum += p.size();
-            }
-          }
-          return sum;
-        }, prop);
-      case CONSENSUS:
-        return Bindings.createObjectBinding(() -> {
-          List collect = (List) Stream.of(prop).filter(Objects::nonNull)
-              .flatMap(ListProperty::stream).collect(Collectors.toList());
-          return FXCollections.observableList(collect);
-        }, prop);
-      case COUNT:
-      case RANGE:
-      default:
-        throw new UndefinedRowBindingException(this, bind);
-    }
-  }
 }

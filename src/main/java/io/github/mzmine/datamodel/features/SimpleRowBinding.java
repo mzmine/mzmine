@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import javafx.beans.binding.ObjectBinding;
 
@@ -32,14 +31,14 @@ import javafx.beans.binding.ObjectBinding;
 public class SimpleRowBinding implements RowBinding {
 
   private final DataType rowType;
-  private final BindingsFactoryType featureType;
+  private final DataType featureType;
   private final BindingsType bindingType;
 
-  public SimpleRowBinding(BindingsFactoryType featureAndRowType, BindingsType bindingType) {
+  public SimpleRowBinding(DataType<?> featureAndRowType, BindingsType bindingType) {
     this((DataType) featureAndRowType, featureAndRowType, bindingType);
   }
 
-  public SimpleRowBinding(DataType rowType, BindingsFactoryType featureType,
+  public SimpleRowBinding(DataType rowType, DataType<?> featureType,
       BindingsType bindingType) {
     super();
     assert featureType instanceof DataType : "feature type needs to be a DataType";
@@ -51,8 +50,7 @@ public class SimpleRowBinding implements RowBinding {
   @Override
   public void apply(ModularFeatureListRow row) {
     if (row.get(rowType) != null) {
-      ObjectBinding<?> binding = featureType.createBinding(bindingType, row);
-      row.get(rowType).bind(binding);
+      // TODO recreate binding
     }
   }
 
@@ -63,6 +61,6 @@ public class SimpleRowBinding implements RowBinding {
 
   @Override
   public DataType getFeatureType() {
-    return (DataType) featureType;
+    return featureType;
   }
 }

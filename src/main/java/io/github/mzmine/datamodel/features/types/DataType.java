@@ -38,7 +38,6 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -55,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T extends Property<?>> {
+public abstract class DataType<T> {
 
   private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
@@ -78,17 +77,7 @@ public abstract class DataType<T extends Property<?>> {
    * @return the formatted representation of the value (or an empty String)
    */
   @NotNull
-  public String getFormattedString(T property) {
-    return property == null ? "" : getFormattedString(property.getValue());
-  }
-
-  /**
-   * A formatted string representation of the value
-   *
-   * @return the formatted representation of the value (or an empty String)
-   */
-  @NotNull
-  public String getFormattedString(@Nullable Object value) {
+  public String getFormattedString(T value) {
     if (value != null) {
       return value.toString();
     } else {
@@ -165,8 +154,8 @@ public abstract class DataType<T extends Property<?>> {
                 ((AddElementDialog) this).createNewElementDialog(model, this);
               } else {
                 try {
-                  ((ListProperty) model.get(this)).remove(data);
-                  ((ListProperty) model.get(this)).add(0, data);
+                  ((List) model.get(this)).remove(data);
+                  ((List) model.get(this)).add(0, data);
                 } catch (Exception ex) {
                   logger.log(Level.SEVERE,
                       "Cannot set value from table cell to data type: " + this.getHeaderString());
@@ -195,7 +184,7 @@ public abstract class DataType<T extends Property<?>> {
     } else {
       throw new UnsupportedOperationException(
           "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
-              + " class " + this.getClass().toString());
+          + " class " + this.getClass().toString());
     }
   }
 
@@ -215,7 +204,7 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return
    */
-  public abstract T createProperty();
+  public abstract Property<T> createProperty();
 
 
   /**
@@ -274,4 +263,11 @@ public abstract class DataType<T extends Property<?>> {
       throws XMLStreamException {
     return null;
   }
+
+  /**
+   *
+   * @return The value class
+   */
+  public abstract Class<T> getValueClass();
+
 }

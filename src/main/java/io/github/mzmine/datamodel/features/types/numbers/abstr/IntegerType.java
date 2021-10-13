@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -39,8 +38,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class IntegerType extends NumberType<Property<Integer>> implements
-    BindingsFactoryType {
+public abstract class IntegerType extends NumberType<Integer> {
 
   protected IntegerType() {
     super(new DecimalFormat("0"));
@@ -52,89 +50,22 @@ public abstract class IntegerType extends NumberType<Property<Integer>> implemen
   }
 
   @Override
-  @NotNull
-  public String getFormattedString(@NotNull Property<Integer> value) {
-    if (value.getValue() == null) {
-      return "";
-    }
-    return getFormatter().format(value.getValue().intValue());
+  public Class<Integer> getValueClass() {
+    return Integer.class;
+  }
+
+  @Override
+  public @NotNull String getFormattedString(Integer value) {
+    return value==null? "" : getFormatter().format(value);
+  }
+
+  public @NotNull String getFormattedString(int value) {
+    return getFormatter().format(value);
   }
 
   @Override
   public Property<Integer> createProperty() {
     return new SimpleObjectProperty<>();
-  }
-
-
-  @Override
-  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
-    // get all properties of all features
-    @SuppressWarnings("unchecked") Property<Integer>[] prop = row.streamFeatures()
-        .map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
-    switch (bind) {
-      case AVERAGE:
-        return Bindings.createObjectBinding(() -> {
-          float sum = 0;
-          int n = 0;
-          for (Property<Integer> p : prop) {
-            if (p.getValue() != null) {
-              sum += p.getValue();
-              n++;
-            }
-          }
-          return n == 0 ? 0 : sum / n;
-        }, prop);
-      case MIN:
-        return Bindings.createObjectBinding(() -> {
-          int min = Integer.MAX_VALUE;
-          for (Property<Integer> p : prop) {
-            if (p.getValue() != null && p.getValue() < min) {
-              min = p.getValue();
-            }
-          }
-          return min;
-        }, prop);
-      case MAX:
-        return Bindings.createObjectBinding(() -> {
-          int max = Integer.MIN_VALUE;
-          for (Property<Integer> p : prop) {
-            if (p.getValue() != null && p.getValue() > max) {
-              max = p.getValue();
-            }
-          }
-          return max;
-        }, prop);
-      case SUM:
-        return Bindings.createObjectBinding(() -> {
-          int sum = 0;
-          for (Property<Integer> p : prop) {
-            if (p.getValue() != null) {
-              sum += p.getValue();
-            }
-          }
-          return sum;
-        }, prop);
-      case COUNT:
-        return Bindings.createObjectBinding(() -> {
-          return Arrays.stream(prop).filter(p -> p.getValue() != null).count();
-        }, prop);
-      case RANGE:
-        return Bindings.createObjectBinding(() -> {
-          Range<Integer> result = null;
-          for (Property<Integer> p : prop) {
-            if (p.getValue() != null) {
-              if (result == null) {
-                result = Range.singleton(p.getValue());
-              } else {
-                result = result.span(Range.singleton(p.getValue()));
-              }
-            }
-          }
-          return result;
-        }, prop);
-      default:
-        throw new UndefinedRowBindingException(this, bind);
-    }
   }
 
   @Override

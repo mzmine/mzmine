@@ -23,13 +23,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.exceptions.UndefinedRowBindingException;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.Property;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -43,42 +38,24 @@ public abstract class FloatRangeType extends NumberRangeType<Float> {
   }
 
   @Override
-  public ObjectBinding<?> createBinding(BindingsType bind, ModularFeatureListRow row) {
-    // get all properties of all features
-    @SuppressWarnings("unchecked") Property<Range<Float>>[] prop = row.streamFeatures()
-        .map(f -> (ModularFeature) f).map(f -> f.get(this)).toArray(Property[]::new);
-    return switch (bind) {
-      case RANGE -> Bindings.createObjectBinding(() -> {
-        Range<Float> result = null;
-        for (Property<Range<Float>> p : prop) {
-          if (p.getValue() != null) {
-            if (result == null) {
-              result = p.getValue();
-            } else {
-              result = result.span(p.getValue());
-            }
-          }
-        }
-        return result;
-      }, prop);
-      case AVERAGE, MIN, MAX, SUM, COUNT, CONSENSUS, LIST -> throw new UndefinedRowBindingException(
-          this, bind);
-    };
-  }
-
-  @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
     if (value instanceof Range r) {
       writer.writeCharacters(ParsingUtils.rangeToString(r));
     } else {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
+  }
+
+  @Override
+  public Class<Range<Float>> getValueClass() {
+    return (Class)Range.class;
   }
 
   @Override

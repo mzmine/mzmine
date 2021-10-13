@@ -88,10 +88,10 @@ import org.jetbrains.annotations.Nullable;
  * Map of all feature related data.
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *         <p>
- *         TODO: I think the RawFileType should also be in the map and not just accessible via the
- *         key set of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list
- *         creation in the chromatogram builder ~SteffenHeu
+ * <p>
+ * TODO: I think the RawFileType should also be in the map and not just accessible via the key set
+ * of {@link ModularFeatureListRow#getFilesFeatures}. -> add during fueature list creation in the
+ * chromatogram builder ~SteffenHeu
  */
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow {
@@ -100,7 +100,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
    */
-  private final ObservableMap<DataType, Property<?>> map =
+  private final ObservableMap<DataType, Object> map =
       FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   // buffert col charts and nodes
@@ -112,7 +112,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    * Creates an empty row
    *
    * @param flist the feature list
-   * @param id the row id
+   * @param id    the row id
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
     this.flist = flist;
@@ -132,7 +132,7 @@ public class ModularFeatureListRow implements FeatureListRow {
           } else if (change.wasRemoved()) {
             // remove type columns to maps
             DataType<Property<?>> type = change.getValueRemoved();
-            this.removeProperty((Class<DataType<Property<?>>>) type.getClass());
+            this.remove((Class<DataType<Property<?>>>) type.getClass());
           }
         });
 
@@ -158,8 +158,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   /**
    * Constructor for row with only one feature.
    *
-   * @param flist the feature list
-   * @param id the row id
+   * @param flist   the feature list
+   * @param id      the row id
    * @param feature a feature to add to the row
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, Feature feature) {
@@ -170,8 +170,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   /**
    * Create a row based on another row. Uses the old row ID
    *
-   * @param flist the new feature list
-   * @param row a row to copy (uses the row.getID() as the new ID)
+   * @param flist        the new feature list
+   * @param row          a row to copy (uses the row.getID() as the new ID)
    * @param copyFeatures true also copy features, false leave features empty
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, ModularFeatureListRow row,
@@ -182,9 +182,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   /**
    * Create a row based on another row
    *
-   * @param flist the new feature list
-   * @param id the row id
-   * @param row a row to copy
+   * @param flist        the new feature list
+   * @param id           the row id
+   * @param row          a row to copy
    * @param copyFeatures true also copy features, false leave features empty
    */
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id, ModularFeatureListRow row,
@@ -194,7 +194,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     // copy all but features and id
     if (row != null) {
       row.stream().filter(e -> !(e.getKey() instanceof FeaturesType)
-          && !(e.getKey() instanceof IDType))
+                               && !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     }
 
@@ -213,13 +213,13 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   // todo make private?
   @Override
-  public ObservableMap<DataType, Property<?>> getMap() {
+  public ObservableMap<DataType, Object> getMap() {
     return map;
   }
 
 
   @Override
-  public <T extends Property<?>> void set(Class<? extends DataType<T>> tclass, Object value) {
+  public <T> void set(Class<? extends DataType<T>> tclass, T value) {
     // type in defined columns?
     if (!getTypes().containsKey(tclass)) {
       try {
@@ -285,7 +285,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-          + "row. Create feature with the correct feature list as an argument.");
+                                         + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -432,7 +432,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public RowGroup getGroup() {
     ObjectProperty<RowGroup> groupProperty = get(FeatureGroupType.class);
-    return groupProperty == null? null : groupProperty.getValue();
+    return groupProperty == null ? null : groupProperty.getValue();
   }
 
   @Override
@@ -470,8 +470,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * Checks if typeClass was added as a FeatureType - does not check nested types in a
-   * {@link ModularType}
+   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
+   * ModularType}
    *
    * @param typeClass class of a DataType
    * @return true if feature type is available
@@ -481,8 +481,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * Checks if typeClass was added as a row type - does not check nested types in a
-   * {@link ModularType}
+   * Checks if typeClass was added as a row type - does not check nested types in a {@link
+   * ModularType}
    *
    * @param typeClass class of a DataType
    * @return true if row type is available

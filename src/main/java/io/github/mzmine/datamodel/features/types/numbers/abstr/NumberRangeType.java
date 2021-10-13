@@ -18,26 +18,25 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class NumberRangeType<T extends Comparable<?>>
-    extends NumberType<ObjectProperty<Range<T>>>
-    implements SubColumnsFactory<ObjectProperty<Range<T>>>, BindingsFactoryType {
+    extends NumberType<Range<T>>
+    implements SubColumnsFactory<Range<T>> {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -48,26 +47,10 @@ public abstract class NumberRangeType<T extends Comparable<?>>
 
   @Override
   @NotNull
-  public String getFormattedString(@NotNull ObjectProperty<Range<T>> value) {
-    return value.getValue() == null ? ""
-        : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
-            + getFormatter().format(value.getValue().upperEndpoint());
-  }
-
-  /**
-   * A formatted string representation of the value
-   *
-   * @return the formatted representation of the value (or an empty String)
-   */
-  @Override
-  @NotNull
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof Range) {
-      Range r = (Range) value;
-      return getFormatter().format(r.lowerEndpoint()) + "-"
-          + getFormatter().format(r.upperEndpoint());
-    } else
-      return "";
+  public String getFormattedString(@NotNull Range<T> value) {
+    return value == null ? ""
+        : getFormatter().format(value.lowerEndpoint()) + "-"
+          + getFormatter().format(value.upperEndpoint());
   }
 
   @Override
@@ -90,11 +73,12 @@ public abstract class NumberRangeType<T extends Comparable<?>>
       case 1:
         return "max";
     }
-    if (subcolumn < getNumberOfSubColumns())
+    if (subcolumn < getNumberOfSubColumns()) {
       throw new IllegalArgumentException("Sub column index is not handled: " + subcolumn);
-    else
+    } else {
       throw new IndexOutOfBoundsException(
           "Sub column index " + subcolumn + " is out of range " + getNumberOfSubColumns());
+    }
   }
 
   @Override
@@ -120,8 +104,9 @@ public abstract class NumberRangeType<T extends Comparable<?>>
   public String getFormattedSubColValue(int subcolumn,
       TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
-    if (value == null)
+    if (value == null) {
       return "";
+    }
     switch (subcolumn) {
       case 0:
         return getFormatter().format(((Range) value).lowerEndpoint());
