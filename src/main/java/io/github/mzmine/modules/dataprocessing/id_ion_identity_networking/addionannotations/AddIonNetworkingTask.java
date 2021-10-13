@@ -38,10 +38,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Add row/ionidentites to existing networks
@@ -68,8 +70,8 @@ public class AddIonNetworkingTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public AddIonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists) {
-    super(featureLists.getMemoryMapStorage());
+      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+    super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;
@@ -221,7 +223,7 @@ public class AddIonNetworkingTask extends AbstractTask {
     if (performAnnotationRefinement) {
       LOG.info("Corr: Refine annotations");
       IonNetworkRefinementTask ref = new IonNetworkRefinementTask(project, refineParam,
-          featureList);
+          featureList, getModuleCallDate());
       ref.refine();
     }
     if (isCanceled()) {

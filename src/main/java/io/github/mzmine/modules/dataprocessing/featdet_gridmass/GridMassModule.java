@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class GridMassModule implements MZmineProcessingModule {
@@ -49,14 +50,14 @@ public class GridMassModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     RawDataFile[] dataFiles =
         parameters.getParameter(new RawDataFilesParameter()).getValue().getMatchingRawDataFiles();
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (int i = 0; i < dataFiles.length; i++) {
-      Task newTask = new GridMassTask(project, dataFiles[i], parameters.cloneParameterSet(), storage);
+      Task newTask = new GridMassTask(project, dataFiles[i], parameters.cloneParameterSet(), storage, moduleCallDate);
       tasks.add(newTask);
     }
 

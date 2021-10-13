@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Describes the full-width-at-half-maximum of a feature (or other peaks)
@@ -30,6 +31,13 @@ public class FwhmType extends FloatType {
 
   public FwhmType() {
     super(new DecimalFormat("0.00"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "full_width_at_half_maximum";
   }
 
   @Override

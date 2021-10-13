@@ -24,10 +24,10 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAPHierarchicalClusteringModule implements MZmineProcessingModule {
@@ -59,14 +59,15 @@ public class ADAPHierarchicalClusteringModule implements MZmineProcessingModule 
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
     FeatureList[] peakLists = parameters.getParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
     for (FeatureList peakList : peakLists) {
-      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters, storage);
+      Task newTask = new ADAP3DecompositionV1_5Task(project, peakList, parameters, storage,
+          moduleCallDate);
       tasks.add(newTask);
     }
 

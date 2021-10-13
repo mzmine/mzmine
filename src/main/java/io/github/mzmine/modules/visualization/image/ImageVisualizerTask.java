@@ -38,6 +38,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -66,7 +67,7 @@ public class ImageVisualizerTask extends AbstractTask {
 
 
   public ImageVisualizerTask(RawDataFile rawDataFile, ParameterSet parameters) {
-    super(null);
+    super(null, new Date());// date irrelevant
     this.parameters = parameters;
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();

@@ -24,15 +24,15 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureUtils;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class ClearIonIdentitiesTask extends AbstractTask {
 
@@ -51,8 +51,8 @@ public class ClearIonIdentitiesTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public ClearIonIdentitiesTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists) {
-    super(featureLists.getMemoryMapStorage());
+      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+    super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureLists;
     parameters = parameterSet;

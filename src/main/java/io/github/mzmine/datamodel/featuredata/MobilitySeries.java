@@ -41,4 +41,5 @@ public interface MobilitySeries extends SeriesValueCount {
    * @see io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries#getSpectra()
    */
   double getMobility(int index);
+
 }

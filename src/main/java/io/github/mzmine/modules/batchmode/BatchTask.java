@@ -40,8 +40,10 @@ import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Batch mode task
@@ -58,8 +60,8 @@ public class BatchTask extends AbstractTask {
   private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
   private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
 
-  BatchTask(MZmineProject project, ParameterSet parameters) {
-    super(null); // we don't create any new data here.
+  BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // we don't create any new data here, date is irrelevant, too.
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     totalSteps = queue.size();
@@ -148,7 +150,9 @@ public class BatchTask extends AbstractTask {
     }
 
     List<Task> currentStepTasks = new ArrayList<Task>();
-    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks);
+    Date moduleCallDate = new Date();
+    ExitCode exitCode = method
+        .runModule(project, batchStepParameters, currentStepTasks, moduleCallDate);
 
     if (exitCode != ExitCode.OK) {
       setStatus(TaskStatus.ERROR);

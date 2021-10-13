@@ -18,15 +18,16 @@
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import com.google.common.collect.ImmutableList;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import com.google.common.collect.ImmutableList;
-import io.github.mzmine.parameters.UserParameter;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  *
@@ -125,4 +126,21 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
     return true;
   }
 
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if(that == null) {
+      return false;
+    }
+    if(!(that instanceof FileNamesParameter thatParam)) {
+      return false;
+    }
+
+    File[] thatValue = thatParam.getValue();
+    if(thatValue.length != value.length) {
+      return false;
+    }
+
+    boolean b = List.of(value).containsAll(List.of(thatValue));
+    return b;
+  }
 }

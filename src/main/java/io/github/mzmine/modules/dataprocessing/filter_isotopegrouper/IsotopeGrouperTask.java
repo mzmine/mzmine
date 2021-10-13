@@ -41,9 +41,11 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -80,8 +82,8 @@ class IsotopeGrouperTask extends AbstractTask {
    *
    */
   IsotopeGrouperTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.featureList = featureList;
@@ -256,7 +258,7 @@ class IsotopeGrouperTask extends AbstractTask {
     // Add task description to peakList
     deisotopedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Isotopic peaks grouper",
-            IsotopeGrouperModule.class, parameters));
+            IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
     // Remove the original peakList if requested
     if (removeOriginal) {

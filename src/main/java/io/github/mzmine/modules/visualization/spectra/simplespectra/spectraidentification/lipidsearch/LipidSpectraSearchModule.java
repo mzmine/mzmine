@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch;
 
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.Scan;
@@ -52,7 +53,7 @@ public class LipidSpectraSearchModule implements MZmineModule {
    * 
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
-      final SpectraPlot spectraPlot) {
+      final SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
 
     final SpectraIdentificationLipidSearchParameters parameters =
         (SpectraIdentificationLipidSearchParameters) MZmineCore.getConfiguration()
@@ -62,7 +63,7 @@ public class LipidSpectraSearchModule implements MZmineModule {
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationLipidSearchTask(
-          parameters.cloneParameterSet(), scan, spectraPlot));
+          parameters.cloneParameterSet(), scan, spectraPlot, moduleCallDate));
     }
   }
 

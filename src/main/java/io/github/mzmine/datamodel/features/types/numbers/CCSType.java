@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -33,11 +34,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CCSType extends FloatType {
 
-  private final String headerString = MZmineCore.getConfiguration().getUnitFormat()
-      .format("CCS", "\u212B\u00B2");
+  private final String headerString = UnitFormat.DIVIDE.format("CCS", "\u212B\u00B2");
 
   public CCSType() {
     super(new DecimalFormat("0.0"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "collisional_cross_section";
   }
 
   @NotNull

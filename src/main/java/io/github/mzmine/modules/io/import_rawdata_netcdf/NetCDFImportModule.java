@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public class NetCDFImportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     File fileNames[] = parameters.getParameter(NetCDFImportParameters.fileNames).getValue();
 
@@ -104,8 +105,9 @@ public class NetCDFImportModule implements MZmineProcessingModule {
       }
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, storage);
-        Task newTask = new NetCDFImportTask(project, fileNames[i], newMZmineFile);
+        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
+        Task newTask = new NetCDFImportTask(project, fileNames[i], newMZmineFile,
+            NetCDFImportModule.class, parameters, moduleCallDate);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

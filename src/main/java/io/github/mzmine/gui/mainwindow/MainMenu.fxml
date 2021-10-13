@@ -267,6 +267,8 @@
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule"/>
+      <MenuItem text="Venn diagram export" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="MetaboAnalyst" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
       <MenuItem text="mzTab" onAction="#runModule"
@@ -539,7 +541,9 @@
   <!-- HELP -->
   <Menu text="Help">
     <MenuItem text="About MZmine" onAction="#showAbout"/>
-    <MenuItem text="Tutorials" onAction="#openLink"
+    <MenuItem text="Open documentation (MZmine 3)" onAction="#openLink"
+      userData="https://mzmine.github.io/mzmine_documentation/"/>
+    <MenuItem text="Open documentation (MZmine 2)" onAction="#openLink"
       userData="http://mzmine.github.io/documentation.html"/>
     <MenuItem text="Support" onAction="#openLink"
       userData="http://mzmine.github.io/support.html"/>

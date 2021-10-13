@@ -53,6 +53,13 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "spectral_lib_match_annotation";
+  }
+
+  @NotNull
+  @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
@@ -107,7 +114,7 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
       data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE).orElse(""));
       data.set(SmilesStructureType.class, entry.getField(DBEntryField.SMILES).orElse(""));
       data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI).orElse(""));
-      data.set(CosineScoreType.class, score.getScore());
+      data.set(CosineScoreType.class, (float) score.getScore());
       data.set(MatchingSignalsType.class, score.getOverlap());
       if (entry.getField(DBEntryField.MZ).isPresent()) {
         data.set(PrecursorMZType.class, entry.getField(DBEntryField.MZ).get());

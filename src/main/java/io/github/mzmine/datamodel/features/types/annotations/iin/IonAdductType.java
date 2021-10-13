@@ -18,19 +18,18 @@
 
 package io.github.mzmine.datamodel.features.types.annotations.iin;
 
-import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The ion adduct is used in different {@link AnnotationType}s to represent the ion species.
  */
-public class IonAdductType extends DataType<StringProperty>
+public class IonAdductType extends StringType
     implements EditableColumnType, StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
@@ -50,10 +49,11 @@ public class IonAdductType extends DataType<StringProperty>
     return converter;
   }
 
+  @NotNull
   @Override
-  public StringProperty createProperty() {
-    return new SimpleStringProperty("");
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_adduct";
   }
-
 
 }

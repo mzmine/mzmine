@@ -28,6 +28,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 /*
@@ -52,7 +53,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles();
@@ -63,7 +64,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
       if (!(file instanceof ImagingRawDataFile)) {
         continue;
       }
-      ImageBuilderTask task = new ImageBuilderTask(project, file, parameters, storage);
+      ImageBuilderTask task = new ImageBuilderTask(project, file, parameters, storage, moduleCallDate);
       tasks.add(task);
     }
 

@@ -25,9 +25,12 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.MzMLFileImportMethod;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLMsScan;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
@@ -37,9 +40,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -53,6 +58,8 @@ public class ThermoRawImportTask extends AbstractTask {
   private File fileToOpen;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
 
   private Process dumper = null;
 
@@ -71,12 +78,15 @@ public class ThermoRawImportTask extends AbstractTask {
 
   private MzMLFileImportMethod msdkTask;
 
-  public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile) {
-    super(null); // storage in raw data file
+  public ThermoRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
     taskDescription = "Opening file " + fileToOpen;
     this.newMZmineFile = newMZmineFile;
+    this.parameters = parameters;
+    this.module = module;
   }
 
   /**
@@ -107,16 +117,13 @@ public class ThermoRawImportTask extends AbstractTask {
 
       if (Platform.isWindows()) {
         thermoRawFileParserCommand =
-            thermoRawFileParserDir + File.separator
-                + "ThermoRawFileParser.exe";
+            thermoRawFileParserDir + File.separator + "ThermoRawFileParser.exe";
       } else if (Platform.isLinux()) {
         thermoRawFileParserCommand =
-            thermoRawFileParserDir + File.separator
-                + "ThermoRawFileParserLinux";
+            thermoRawFileParserDir + File.separator + "ThermoRawFileParserLinux";
       } else if (Platform.isMac()) {
         thermoRawFileParserCommand =
-            thermoRawFileParserDir + File.separator
-                + "ThermoRawFileParserMac";
+            thermoRawFileParserDir + File.separator + "ThermoRawFileParserMac";
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Unsupported platform: JNA ID " + Platform.getOSType());
@@ -178,10 +185,12 @@ public class ThermoRawImportTask extends AbstractTask {
       }
 
       if (parsedScans != totalScans) {
-        throw (new Exception("ThermoRawFileParser process crashed before all scans were extracted ("
-            + parsedScans + " out of " + totalScans + ")"));
+        throw (new Exception(
+            "ThermoRawFileParser process crashed before all scans were extracted (" + parsedScans
+                + " out of " + totalScans + ")"));
       }
 
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {

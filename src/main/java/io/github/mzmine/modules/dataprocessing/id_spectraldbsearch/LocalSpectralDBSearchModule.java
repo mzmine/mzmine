@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -51,13 +52,13 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     FeatureList featureLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
         .getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new LocalSpectralDBSearchTask(featureList, parameters);
+      Task newTask = new LocalSpectralDBSearchTask(featureList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
 
@@ -71,14 +72,14 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
    * @param row the feature list row.
    */
   public static void showSelectedRowsIdentificationDialog(final FeatureListRow[] rows,
-      FeatureTableFX table) {
+      FeatureTableFX table, @NotNull Date moduleCallDate) {
 
     final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
 
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(
-          new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet()));
+          new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet(), moduleCallDate));
     }
   }
 

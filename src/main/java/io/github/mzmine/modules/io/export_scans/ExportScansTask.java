@@ -18,13 +18,6 @@
 
 package io.github.mzmine.modules.io.export_scans;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.FileType;
 import io.github.msdk.datamodel.MsScan;
@@ -40,6 +33,14 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Exports a spectrum to a file.
@@ -59,7 +60,7 @@ public class ExportScansTask extends AbstractTask {
   private boolean useMassList;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+    super(null, new Date()); // no new data stored -> null, date irrelevant (not used in batch)
     progress = 0;
     progressMax = 0;
     this.scans = scans;

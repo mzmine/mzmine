@@ -40,6 +40,13 @@ public class AreaBarType extends DataType<MapProperty<RawDataFile, ModularFeatur
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "area_bar";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Area Bars";
   }

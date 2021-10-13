@@ -27,16 +27,17 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ScanSmoothingTask extends AbstractTask {
@@ -67,8 +68,8 @@ public class ScanSmoothingTask extends AbstractTask {
    * @param storage
    */
   public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dataFile = dataFile;
@@ -125,7 +126,7 @@ public class ScanSmoothingTask extends AbstractTask {
     int timepassed = 0;
     int mzpassed = 0;
     try {
-      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, storage);
+      newRDFW = MZmineCore.createNewFile(dataFile.getName() + ' ' + suffix, null, storage);
 
       DataPoint mzValues[][] = null; // [relative scan][j value]
       int i, j, si, sj, ii, k, ssi, ssj;
@@ -255,12 +256,12 @@ public class ScanSmoothingTask extends AbstractTask {
       }
 
       if (!isCanceled()) {
-
+        newRDF = newRDFW;
         for (FeatureListAppliedMethod appliedMethod : dataFile.getAppliedMethods()) {
           newRDF.getAppliedMethods().add(appliedMethod);
         }
         newRDF.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-            BaselineCorrectionModule.class, parameters));
+            ScanSmoothingModule.class, parameters, getModuleCallDate()));
 
         // Add the newly created file to the project
         project.addFile(newRDF);

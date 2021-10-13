@@ -18,19 +18,25 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
-import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.util.StringConverter;
 import javafx.util.converter.DefaultStringConverter;
+import org.jetbrains.annotations.NotNull;
 
-public class SmilesStructureType extends DataType<StringProperty>
+public class SmilesStructureType extends StringType
     implements EditableColumnType, StringParser<String>, AnnotationType {
 
   private StringConverter<String> converter = new DefaultStringConverter();
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "smiles";
+  }
 
   @Override
   public String getHeaderString() {
@@ -46,11 +52,5 @@ public class SmilesStructureType extends DataType<StringProperty>
   public StringConverter<String> getStringConverter() {
     return converter;
   }
-
-  @Override
-  public StringProperty createProperty() {
-    return new SimpleStringProperty("");
-  }
-
 
 }

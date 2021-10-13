@@ -25,13 +25,20 @@ import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class SummedIntensityMobilitySeries implements IntensitySeries, MobilitySeries {
+
+  public static final String XML_ELEMENT = "summedmobilogram";
 
   final DoubleBuffer intensityValues;
   final DoubleBuffer mobilityValues;
@@ -110,7 +119,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
   }
 
   public double getIntensity(int index) {
-    return getIntensityValues().get(index);
+    return getIntensityValueBuffer().get(index);
   }
 
   /**
@@ -126,7 +135,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return getMobilityValues().get(index);
   }
 
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     return intensityValues;
   }
 
@@ -155,7 +164,7 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     builder.append("/");
     builder.append(getNumberOfDataPoints());
     builder.append(": ");
-    for(int i = 0; i < getNumberOfValues(); i++) {
+    for (int i = 0; i < getNumberOfValues(); i++) {
       builder.append(String.format("(%2.5f", getMobility(i)));
       builder.append(", ");
       builder.append(String.format("(%.1f", getIntensity(i)));
@@ -164,4 +173,63 @@ public class SummedIntensityMobilitySeries implements IntensitySeries, MobilityS
     return builder.toString();
   }
 
+  public void saveValueToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer
+        .writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+
+    writer.writeStartElement(CONST.XML_MOBILITY_VALUES_ELEMENT);
+    writer
+        .writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(getNumberOfValues()));
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(getMobilityValues()));
+    writer.writeEndElement();
+
+    IntensitySeries.saveIntensityValuesToXML(writer, this);
+    writer.writeEndElement();
+  }
+
+  public static SummedIntensityMobilitySeries loadFromXML(@NotNull XMLStreamReader reader,
+      @Nullable MemoryMapStorage storage) throws XMLStreamException {
+
+    double[] mobilities = null;
+    double[] intensities = null;
+
+    while (reader.hasNext()) {
+      if (reader.isEndElement() && reader.getLocalName()
+          .equals(SummedIntensityMobilitySeries.XML_ELEMENT)) {
+        break;
+      }
+
+      final int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MOBILITY_VALUES_ELEMENT -> mobilities = ParsingUtils
+            .stringToDoubleArray(reader.getElementText());
+      }
+    }
+    return new SummedIntensityMobilitySeries(storage, mobilities, intensities);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SummedIntensityMobilitySeries)) {
+      return false;
+    }
+    SummedIntensityMobilitySeries that = (SummedIntensityMobilitySeries) o;
+    return Objects.equals(intensityValues, that.intensityValues) && Objects.equals(
+        getMobilityValues(), that.getMobilityValues())
+        && IntensitySeries.seriesSubsetEqual(this, that);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(intensityValues, mobilityValues);
+  }
 }

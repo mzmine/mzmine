@@ -31,6 +31,13 @@ public class PartnerIdsType extends StringType implements AnnotationType {
 
   @NotNull
   @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "partner_row_ids";
+  }
+
+  @NotNull
+  @Override
   public String getHeaderString() {
     return "Partner IDs";
   }

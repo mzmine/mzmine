@@ -50,9 +50,11 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS
@@ -81,8 +83,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
   private FeatureListRowsFilter filter;
 
-  GnpsFbmnMgfExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
 

@@ -22,8 +22,10 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -84,8 +86,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private int totalSteps = 3, appliedSteps = 0;
   private ParameterSet parameters;
 
-  public VanKrevelenDiagramTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public VanKrevelenDiagramTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];

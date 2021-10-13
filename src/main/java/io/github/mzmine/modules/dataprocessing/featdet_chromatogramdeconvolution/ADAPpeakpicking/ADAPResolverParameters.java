@@ -22,16 +22,22 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parameters used by CentWaveDetector.
@@ -73,7 +79,7 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
 
   public ADAPResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
+        dimension, SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
         RT_FOR_CWT_SCALES_DURATION});
   }
 
@@ -95,6 +101,16 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
 
   @Override
   public FeatureResolver getResolver() {
-    return new ADAPResolver();
+    throw new UnsupportedOperationException("Legacy resolving is not supported by ADAPResolver.");
+  }
+
+  @Override
+  public @Nullable Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
+    return new ADAPResolver(parameterSet, flist);
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

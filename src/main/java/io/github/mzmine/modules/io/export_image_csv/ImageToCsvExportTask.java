@@ -39,9 +39,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports imaging data from a {@link io.github.mzmine.datamodel.featuredata.IonTimeSeries<ImagingScan>}
@@ -69,8 +71,8 @@ public class ImageToCsvExportTask extends AbstractTask {
   private int processed;
 
   public ImageToCsvExportTask(ParameterSet param,
-      Collection<ModularFeature> features) {
-    super(null);
+      Collection<ModularFeature> features, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
     this.dir = param.getParameter(ImageToCsvExportParameters.dir).getValue();
     this.sep = param.getParameter(ImageToCsvExportParameters.delimiter).getValue().trim();
     handleMissingSpectra = param

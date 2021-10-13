@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import org.jetbrains.annotations.NotNull;
 import uk.ac.ebi.pride.jmztab2.model.*;
 
 import java.io.File;
@@ -46,8 +47,8 @@ public class MZTabmExportTask extends AbstractTask {
   private FeatureList[] featureLists;
   private final boolean exportAll;
 
-  MZTabmExportTask(MZmineProject project, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  MZTabmExportTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
     this.featureLists =
         parameters.getParameter(MZTabmExportParameters.featureLists).getValue().getMatchingFeatureLists();

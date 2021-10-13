@@ -62,7 +62,7 @@ class UserParameterSaveHandler {
     StreamResult streamResult = new StreamResult(finalStream);
     SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
 
-    TransformerHandler hd = tf.newTransformerHandler();
+    TransformerHandler hd =tf.newTransformerHandler();
 
     Transformer serializer = hd.getTransformer();
     serializer.setOutputProperty(OutputKeys.INDENT, "yes");

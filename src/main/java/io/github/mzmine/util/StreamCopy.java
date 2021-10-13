@@ -85,7 +85,7 @@ public class StreamCopy {
       return 0;
     if (copiedLength >= totalLength)
       return 1.0;
-    return copiedLength / totalLength;
+    return copiedLength / (double)totalLength;
   }
 
   /**

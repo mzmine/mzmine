@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionModule implements MZmineProcessingModule {
@@ -48,7 +49,7 @@ public class MassDetectionModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(MassDetectionParameters.dataFiles).getValue()
         .getMatchingRawDataFiles();
@@ -58,7 +59,7 @@ public class MassDetectionModule implements MZmineProcessingModule {
     final MemoryMapStorage storageMemoryMap = MemoryMapStorage.forMassList();
 
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MassDetectionTask(dataFile, parameters, storageMemoryMap);
+      Task newTask = new MassDetectionTask(dataFile, parameters, storageMemoryMap, moduleCallDate);
       tasks.add(newTask);
     }
 

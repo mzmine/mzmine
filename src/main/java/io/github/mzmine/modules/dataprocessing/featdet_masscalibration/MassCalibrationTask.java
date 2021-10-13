@@ -49,9 +49,11 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
@@ -104,8 +106,8 @@ public class MassCalibrationTask extends AbstractTask {
    * @param previewRun
    */
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun) {
-    super(storageMemoryMap);
+      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun, @NotNull Date moduleCallDate) {
+    super(storageMemoryMap, moduleCallDate);
     this.dataFile = dataFile;
     this.parameters = parameters;
     this.storageMemoryMap = storageMemoryMap;
@@ -114,8 +116,8 @@ public class MassCalibrationTask extends AbstractTask {
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storageMemoryMap) {
-    this(dataFile, parameters, storageMemoryMap, false);
+      MemoryMapStorage storageMemoryMap, @NotNull Date moduleCallDate) {
+    this(dataFile, parameters, storageMemoryMap, false, moduleCallDate);
   }
 
   /**
@@ -166,7 +168,7 @@ public class MassCalibrationTask extends AbstractTask {
       afterHook.run();
     }
     dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(MassCalibrationModule.class,
-        parameters));
+        parameters, getModuleCallDate()));
   }
 
   /**

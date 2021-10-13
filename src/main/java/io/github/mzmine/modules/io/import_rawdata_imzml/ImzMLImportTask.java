@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.io.import_rawdata_imzml;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.alanmrace.jimzmlparser.imzml.ImzML;
 import com.alanmrace.jimzmlparser.mzml.BinaryDataArray;
 import com.alanmrace.jimzmlparser.mzml.BinaryDataArrayList;
@@ -43,12 +35,25 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class reads mzML 1.0 and 1.1.0 files (http://www.psidev.info/index.php?q=node/257) using the
@@ -61,6 +66,8 @@ public class ImzMLImportTask extends AbstractTask {
   private File file;
   private MZmineProject project;
   private ImagingRawDataFile newMZmineFile;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private int totalScans = 0, parsedScans;
 
   private int lastScanNumber = 0;
@@ -77,16 +84,17 @@ public class ImzMLImportTask extends AbstractTask {
   private static final int PARENT_STACK_SIZE = 20;
   private LinkedList<SimpleScan> parentStack = new LinkedList<>();
 
-  public ImzMLImportTask(MZmineProject project, File fileToOpen, ImagingRawDataFile newMZmineFile) {
-    super(null); // storage in raw data file
+  public ImzMLImportTask(MZmineProject project, File fileToOpen, ImagingRawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
+    this.parameters = parameters;
+    this.module = module;
   }
 
-  /**
-   * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
@@ -101,7 +109,6 @@ public class ImzMLImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Started parsing file " + file);
 
-
     ImzML imzml;
     try {
       imzml = ImzMLHandler.parseimzML(file.getAbsolutePath());
@@ -110,8 +117,9 @@ public class ImzMLImportTask extends AbstractTask {
       totalScans = spectra.size();
       for (int i = 0; i < totalScans; i++) {
 
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         Spectrum spectrum = spectra.get(i);
 
@@ -168,6 +176,7 @@ public class ImzMLImportTask extends AbstractTask {
 
       // set settings of image
       newMZmineFile.setImagingParam(new ImagingParameters(imzml));
+      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -190,8 +199,9 @@ public class ImzMLImportTask extends AbstractTask {
 
   private int convertScanIdToScanNumber(String scanId) {
 
-    if (scanIdTable.containsKey(scanId))
+    if (scanIdTable.containsKey(scanId)) {
       return scanIdTable.get(scanId);
+    }
 
     final Pattern pattern = Pattern.compile("scan=([0-9]+)");
     final Matcher matcher = pattern.matcher(scanId);
@@ -223,15 +233,17 @@ public class ImzMLImportTask extends AbstractTask {
 
   private float extractRetentionTime(Spectrum spectrum) {
     ScanList scanListElement = spectrum.getScanList();
-    if (scanListElement == null)
+    if (scanListElement == null) {
       return 0;
+    }
 
     for (Scan scan : scanListElement) {
       try {
         // scan start time correct?
         CVParam param = scan.getCVParam(Scan.SCAN_START_TIME_ID);
-        if (param != null)
+        if (param != null) {
           return (float) param.getValueAsDouble();
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -279,10 +291,11 @@ public class ImzMLImportTask extends AbstractTask {
           int x = xValue.getValueAsInteger() - 1;
           int y = yValue.getValueAsInteger() - 1;
 
-          if (zValue != null)
+          if (zValue != null) {
             return new Coordinates(x, y, zValue.getValueAsInteger() - 1);
-          else
+          } else {
             return new Coordinates(x, y, 0);
+          }
         }
       }
     }
@@ -292,8 +305,9 @@ public class ImzMLImportTask extends AbstractTask {
 
   private int extractParentScanNumber(Spectrum spectrum) {
     PrecursorList precursorListElement = spectrum.getPrecursorList();
-    if ((precursorListElement == null) || (precursorListElement.size() == 0))
+    if ((precursorListElement == null) || (precursorListElement.size() == 0)) {
       return -1;
+    }
 
     for (Precursor parent : precursorListElement) {
       // Get the precursor scan number
@@ -310,25 +324,29 @@ public class ImzMLImportTask extends AbstractTask {
   private double extractPrecursorMz(Spectrum spectrum) {
 
     PrecursorList precursorListElement = spectrum.getPrecursorList();
-    if ((precursorListElement == null) || (precursorListElement.size() == 0))
+    if ((precursorListElement == null) || (precursorListElement.size() == 0)) {
       return 0;
+    }
 
     for (Precursor parent : precursorListElement) {
 
       SelectedIonList selectedIonListElement = parent.getSelectedIonList();
-      if ((selectedIonListElement == null) || (selectedIonListElement.size() == 0))
+      if ((selectedIonListElement == null) || (selectedIonListElement.size() == 0)) {
         return 0;
+      }
 
       // MS:1000040 is used in mzML 1.0,
       // MS:1000744 is used in mzML 1.1.0
       for (SelectedIon sion : selectedIonListElement) {
         CVParam param = sion.getCVParam("MS:1000040");
-        if (param != null)
+        if (param != null) {
           return param.getValueAsDouble();
+        }
 
         param = sion.getCVParam("MS:1000744");
-        if (param != null)
+        if (param != null) {
           return param.getValueAsDouble();
+        }
       }
     }
     return 0;
@@ -336,20 +354,23 @@ public class ImzMLImportTask extends AbstractTask {
 
   private int extractPrecursorCharge(Spectrum spectrum) {
     PrecursorList precursorList = spectrum.getPrecursorList();
-    if ((precursorList == null) || (precursorList.size() == 0))
+    if ((precursorList == null) || (precursorList.size() == 0)) {
       return 0;
+    }
 
     for (Precursor parent : precursorList) {
       SelectedIonList selectedIonListElement = parent.getSelectedIonList();
-      if ((selectedIonListElement == null) || (selectedIonListElement.size() == 0))
+      if ((selectedIonListElement == null) || (selectedIonListElement.size() == 0)) {
         return 0;
+      }
 
       for (SelectedIon sion : selectedIonListElement) {
 
         // precursor charge
         CVParam param = sion.getCVParam("MS:1000041");
-        if (param != null)
+        if (param != null) {
           return param.getValueAsInteger();
+        }
       }
     }
     return 0;
@@ -357,20 +378,22 @@ public class ImzMLImportTask extends AbstractTask {
 
   private PolarityType extractPolarity(Spectrum spectrum) {
     CVParam cv = spectrum.getCVParam(Spectrum.SCAN_POLARITY_ID);
-    if (spectrum.getCVParam("MS:1000130") != null)
+    if (spectrum.getCVParam("MS:1000130") != null) {
       return PolarityType.POSITIVE;
-    else if (spectrum.getCVParam("MS:1000129") != null)
+    } else if (spectrum.getCVParam("MS:1000129") != null) {
       return PolarityType.NEGATIVE;
+    }
 
     ScanList scanListElement = spectrum.getScanList();
     if (scanListElement != null) {
       for (int i = 0; i < scanListElement.size(); i++) {
         Scan scan = scanListElement.get(i);
 
-        if (scan.getCVParam("MS:1000130") != null)
+        if (scan.getCVParam("MS:1000130") != null) {
           return PolarityType.POSITIVE;
-        else if (scan.getCVParam("MS:1000129") != null)
+        } else if (scan.getCVParam("MS:1000129") != null) {
           return PolarityType.NEGATIVE;
+        }
       }
     }
     return PolarityType.UNKNOWN;
@@ -378,8 +401,9 @@ public class ImzMLImportTask extends AbstractTask {
 
   private String extractScanDefinition(Spectrum spectrum) {
     CVParam cvParams = spectrum.getCVParam("MS:1000512");
-    if (cvParams != null)
+    if (cvParams != null) {
       return cvParams.getValueAsString();
+    }
 
     ScanList scanListElement = spectrum.getScanList();
     if (scanListElement != null) {
@@ -387,8 +411,9 @@ public class ImzMLImportTask extends AbstractTask {
         Scan scan = scanListElement.get(i);
 
         cvParams = scan.getCVParam("MS:1000512");
-        if (cvParams != null)
+        if (cvParams != null) {
           return cvParams.getValueAsString();
+        }
       }
     }
     return spectrum.getID();

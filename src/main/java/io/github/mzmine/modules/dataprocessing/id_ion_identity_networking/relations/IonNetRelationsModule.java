@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class IonNetRelationsModule implements MZmineProcessingModule {
@@ -62,12 +63,12 @@ public class IonNetRelationsModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Collection<Task> tasks) {
+      @NotNull final Collection<Task> tasks, @NotNull Date moduleCallDate) {
     ModularFeatureList[] pkl = parameters.getParameter(IonNetRelationsParameters.PEAK_LISTS)
         .getValue()
         .getMatchingFeatureLists();
     for (ModularFeatureList p : pkl) {
-      tasks.add(new IonNetRelationsTask(project, parameters, p));
+      tasks.add(new IonNetRelationsTask(project, parameters, p, moduleCallDate));
     }
 
     return ExitCode.OK;

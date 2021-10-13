@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.RangeUtils;
 import java.io.File;
@@ -41,7 +40,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDataFileOpenHandler {
+public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -78,7 +77,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * @throws SAXException
    * @throws ParserConfigurationException
    */
-  @Override
   public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile,
       boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException,
       UnsupportedOperationException {
@@ -95,7 +93,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     charBuffer = new StringBuffer();
     massLists = new ArrayList<>();
 
-    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
+    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null, null);
     // newRawDataFile.openDataPointsFile(scansFile);
 
     // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
@@ -112,7 +110,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   }
 
-  @Override
   public void cancel() {
     canceled = true;
   }

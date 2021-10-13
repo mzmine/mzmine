@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * This class represents m/z tolerance. Tolerance is set using absolute (m/z) and relative (ppm)
@@ -94,5 +95,23 @@ public class MZTolerance {
   @Override
   public String toString() {
     return mzTolerance + " m/z or " + ppmTolerance + " ppm";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MZTolerance that = (MZTolerance) o;
+    return Double.compare(that.getMzTolerance(), getMzTolerance()) == 0
+        && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getMzTolerance(), getPpmTolerance());
   }
 }

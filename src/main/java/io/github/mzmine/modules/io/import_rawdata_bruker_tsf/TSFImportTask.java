@@ -22,11 +22,14 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
@@ -34,7 +37,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class TSFImportTask extends AbstractTask {
 
@@ -48,6 +53,8 @@ public class TSFImportTask extends AbstractTask {
   private final File dirPath;
   private final ImagingRawDataFile newMZmineFile;
   private final String rawDataFileName;
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private boolean isMaldi = false;
   private String description;
   private File tsf;
@@ -55,13 +62,16 @@ public class TSFImportTask extends AbstractTask {
   private int totalScans = 1;
   private int processedScans = 0;
 
-  public TSFImportTask(MZmineProject project, File fileName, ImagingRawDataFile newMZmineFile) {
-    super(null);
+  public TSFImportTask(MZmineProject project, File fileName, ImagingRawDataFile newMZmineFile,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate);
 
     this.project = project;
     this.dirPath = fileName;
     this.newMZmineFile = newMZmineFile;
     rawDataFileName = newMZmineFile.getName();
+    this.parameters = parameters;
+    this.module = module;
 
     metaDataTable = new TDFMetaDataTable();
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
@@ -121,8 +131,7 @@ public class TSFImportTask extends AbstractTask {
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
     final MassSpectrumType importSpectrumType =
-        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED
-            : MassSpectrumType.PROFILE;
+        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
 
     for (int i = 0; i < numScans; i++) {
       final long frameId = frameTable.getFrameIdColumn().get(i);
@@ -150,6 +159,8 @@ public class TSFImportTask extends AbstractTask {
 
     newMZmineFile.setImagingParam(
         new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
+    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
+        getModuleCallDate()));
 
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
@@ -222,8 +233,8 @@ public class TSFImportTask extends AbstractTask {
     }
 
     File[] files = dir.listFiles(pathname -> {
-      if (pathname.getAbsolutePath().endsWith(".tsf")
-          || pathname.getAbsolutePath().endsWith(".tsf_bin")) {
+      if (pathname.getAbsolutePath().endsWith(".tsf") || pathname.getAbsolutePath()
+          .endsWith(".tsf_bin")) {
         return true;
       }
       return false;

@@ -85,8 +85,8 @@ public class XICManualPickerModule implements MZmineModule {
     }
     if (dataFile != null) {
       RawDataFilesSelection selection = new RawDataFilesSelection();
-      selection.setSpecificFiles(new RawDataFile[] {dataFile});
       selection.setSelectionType(RawDataFilesSelectionType.SPECIFIC_FILES);
+      selection.setSpecificFiles(new RawDataFile[] {dataFile});
       parameters.getParameter(XICManualPickerParameters.rawDataFiles).setValue(selection);
     }
 

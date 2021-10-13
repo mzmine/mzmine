@@ -41,9 +41,9 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
   private Scan[][][] xyzScanNumbers;
 
 
-  public IMSImagingRawDataFileImpl(String dataFileName, @Nullable MemoryMapStorage storage)
-      throws IOException {
-    super(dataFileName, storage);
+  public IMSImagingRawDataFileImpl(String dataFileName, @Nullable final String absPath,
+      @Nullable MemoryMapStorage storage) throws IOException {
+    super(dataFileName, absPath, storage);
   }
 
   @Override

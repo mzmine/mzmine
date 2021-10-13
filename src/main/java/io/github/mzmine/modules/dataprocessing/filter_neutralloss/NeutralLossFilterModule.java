@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class NeutralLossFilterModule implements MZmineProcessingModule {
@@ -55,13 +56,14 @@ public class NeutralLossFilterModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks) {
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Date moduleCallDate) {
     FeatureList peakLists[] = parameters.getParameter(NeutralLossFilterParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists();
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (FeatureList peakList : peakLists) {
-      Task newTask = new NeutralLossFilterTask(project, peakList, parameters, storage);
+      Task newTask = new NeutralLossFilterTask(project, peakList, parameters, storage, moduleCallDate);
       tasks.add(newTask);
     }
     return ExitCode.OK;

@@ -108,3 +108,7 @@
   -fx-font-weight: bold;
   -fx-text-fill: white;
 }
+
+.set-color-menu-item:hover, .set-color-menu-item:pressed, .set-color-menu-item {
+  -fx-background-color: inherit;
+}

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.kendrickmassplot;
 
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -50,9 +51,9 @@ public class KendrickMassPlotModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
-    Task newTask = new KendrickMassPlotTask(parameters);
+    Task newTask = new KendrickMassPlotTask(parameters, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;

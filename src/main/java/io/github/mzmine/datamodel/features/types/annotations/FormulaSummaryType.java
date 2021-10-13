@@ -22,12 +22,21 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A list of molecular formulas
  */
 public class FormulaSummaryType extends ListDataType<ResultFormula>
     implements AnnotationType, EditableColumnType {
+
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "formula_list";
+  }
 
   @Override
   public String getHeaderString() {

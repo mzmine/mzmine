@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class LipidAnnotationMsMsScoreType extends DoubleType {
 
@@ -39,4 +40,10 @@ public class LipidAnnotationMsMsScoreType extends DoubleType {
     return "MS/MS Score";
   }
 
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "lipid_msms_score";
+  }
 }

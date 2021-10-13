@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,14 +56,14 @@ public class SmoothingModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     final ModularFeatureList[] flists = parameters.getParameter(SmoothingParameters.featureLists)
         .getValue().getMatchingFeatureLists();
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList flist : flists) {
-      tasks.add(new SmoothingTask(project, flist, storage, parameters));
+      tasks.add(new SmoothingTask(project, flist, storage, parameters, moduleCallDate));
     }
 
     return ExitCode.OK;

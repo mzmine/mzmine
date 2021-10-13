@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +57,7 @@ public class MobilogramBinningModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     final ModularFeatureList[] flists = parameters
         .getParameter(MobilogramBinningParameters.featureLists).getValue()
@@ -64,7 +65,7 @@ public class MobilogramBinningModule implements MZmineProcessingModule {
 
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (ModularFeatureList flist : flists) {
-      tasks.add(new MobilogramBinningTask(storage, flist, parameters, project));
+      tasks.add(new MobilogramBinningTask(storage, flist, parameters, project, moduleCallDate));
     }
 
     return ExitCode.OK;

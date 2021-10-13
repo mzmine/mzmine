@@ -30,8 +30,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Date;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -54,13 +56,13 @@ public class CCSCalcTask extends AbstractTask {
   private int processedRows;
   private int annotatedFeatures;
 
-  public CCSCalcTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
+  public CCSCalcTask(MZmineProject project, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
     this.assumeChargeState = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
         .getValue();
     this.rangeChargeMap = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
-        .getEmbeddedParameter()
-        .getValue();
+        .getEmbeddedParameter().getValue();
     this.featureLists = parameters.getParameter(CCSCalcParameters.featureLists).getValue()
         .getMatchingFeatureLists();
     this.createNewFeatureList = parameters.getParameter(CCSCalcParameters.createNewFeatureList)
@@ -92,8 +94,8 @@ public class CCSCalcTask extends AbstractTask {
     ModularFeatureList workingFeatureList = null;
     for (ModularFeatureList featureList : featureLists) {
       if (createNewFeatureList) {
-        workingFeatureList = featureList.createCopy(featureList.getName() + " CCS",
-            getMemoryMapStorage(), false);
+        workingFeatureList = featureList
+            .createCopy(featureList.getName() + " CCS", getMemoryMapStorage(), false);
       } else {
         workingFeatureList = featureList;
       }
@@ -140,7 +142,7 @@ public class CCSCalcTask extends AbstractTask {
       }
 
       workingFeatureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters));
+          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters, getModuleCallDate()));
       if (workingFeatureList != featureList) {
         project.addFeatureList(workingFeatureList);
       }

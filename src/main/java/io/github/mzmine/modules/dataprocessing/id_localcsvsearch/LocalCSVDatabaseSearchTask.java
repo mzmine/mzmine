@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 class LocalCSVDatabaseSearchTask extends AbstractTask {
 
@@ -70,8 +71,8 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
   private int finishedLines = 0;
   private FeatureList peakList;
 
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -144,9 +145,9 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
-            LocalCSVDatabaseSearchModule.class, parameters));
+    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
+        "Peak identification using database " + dataBaseFile,
+        LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

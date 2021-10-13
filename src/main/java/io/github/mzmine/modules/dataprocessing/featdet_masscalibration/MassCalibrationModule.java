@@ -27,6 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Collection;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class MassCalibrationModule implements MZmineProcessingModule {
@@ -49,7 +50,7 @@ public class MassCalibrationModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks) {
+      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
     // create a single storage map for all mass lists that were created with the same parameters
     final MemoryMapStorage storageMemoryMap = MemoryMapStorage.forMassList();
@@ -57,7 +58,7 @@ public class MassCalibrationModule implements MZmineProcessingModule {
     RawDataFile[] dataFiles = parameters.getParameter(MassCalibrationParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();
     for (RawDataFile dataFile : dataFiles) {
-      Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet(), storageMemoryMap);
+      Task newTask = new MassCalibrationTask(dataFile, parameters.cloneParameterSet(), storageMemoryMap, moduleCallDate);
       tasks.add(newTask);
     }
 

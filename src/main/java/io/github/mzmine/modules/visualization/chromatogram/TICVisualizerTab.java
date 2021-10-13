@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -486,7 +487,7 @@ public class TICVisualizerTab extends MZmineTab {
       final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
-        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));
+        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile, new Date()));
       }
     }
   }

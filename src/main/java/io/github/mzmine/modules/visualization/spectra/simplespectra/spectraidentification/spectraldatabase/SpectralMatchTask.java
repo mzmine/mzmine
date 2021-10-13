@@ -46,10 +46,12 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Spectral match task to compare single spectra with spectral databases
@@ -109,8 +111,8 @@ public class SpectralMatchTask extends AbstractTask {
 
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan,
-      SpectraIdentificationResultsWindowFX resultWindow) {
-    super(null); // no new data stored -> null
+      SpectraIdentificationResultsWindowFX resultWindow, @NotNull Date moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.startEntry = startEntry;
     this.list = list;

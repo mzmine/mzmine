@@ -34,7 +34,7 @@ public interface IonSeries extends Iterable<DataPoint>, IntensitySeries, MzSerie
 
   @Override
   default int getNumberOfValues() {
-    return getMZValues().capacity();
+    return getMZValueBuffer().capacity();
   }
 
   @Override

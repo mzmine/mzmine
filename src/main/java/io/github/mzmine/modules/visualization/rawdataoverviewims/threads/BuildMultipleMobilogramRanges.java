@@ -36,6 +36,7 @@ import io.github.mzmine.util.IonMobilityUtils.MobilogramType;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import javafx.application.Platform;
@@ -53,8 +54,8 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
 
   public BuildMultipleMobilogramRanges(@NotNull List<Range<Double>> mzRanges,
       @NotNull Set<Frame> frames, @NotNull IMSRawDataFile file,
-      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning) {
-    super(null); // no new data stored -> null
+      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning, @NotNull Date moduleCallDate) {
+    super(null, new Date()); // no new data stored -> null, date is irrelevant (not used in batch mode)
     this.binning = binning;
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
