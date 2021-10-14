@@ -180,6 +180,9 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final FeatureIdentity identity = row.getPreferredFeatureIdentity();
 
       for (final Feature feature : row.getFeatures()) {
+        if(feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
 
         allFeatures.add(feature);
         if (feature.getRawDataFile() == selectedFile) {
