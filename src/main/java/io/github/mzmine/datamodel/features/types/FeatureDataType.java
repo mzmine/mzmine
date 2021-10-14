@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureDataType extends
-    DataType<ObjectProperty<IonTimeSeries<? extends Scan>>> implements NoTextColumn,
+    DataType<IonTimeSeries<? extends Scan>> implements NoTextColumn,
     NullColumnType {
 
   @NotNull
@@ -62,6 +62,11 @@ public class FeatureDataType extends
   @Override
   public ObjectProperty<IonTimeSeries<? extends Scan>> createProperty() {
     return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<IonTimeSeries<? extends Scan>> getValueClass() {
+    return (Class) IonTimeSeries.class;
   }
 
   @NotNull

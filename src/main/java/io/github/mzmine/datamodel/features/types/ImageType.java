@@ -51,6 +51,11 @@ public class ImageType extends LinkedDataType
   }
 
   @Override
+  public Class<TypeListenerProperty> getValueClass() {
+    return TypeListenerProperty.class;
+  }
+
+  @Override
   public Node getCellNode(
       TreeTableCell<ModularFeatureListRow, Boolean> cell,
       TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {

@@ -54,7 +54,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.FeatureSorter;
@@ -71,11 +70,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.MapProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -117,22 +111,15 @@ public class ModularFeatureListRow implements FeatureListRow {
   public ModularFeatureListRow(@NotNull ModularFeatureList flist, int id) {
     this.flist = flist;
 
-    // add type property columns to maps
-    flist.getRowTypes().values().forEach(type -> {
-      this.setProperty(type, type.createProperty());
-    });
-
     // register listener to types map to automatically generate default properties for new DataTypes
     flist.getRowTypes().addListener(
         (MapChangeListener<? super Class<? extends DataType>, ? super DataType>) change -> {
           if (change.wasAdded()) {
-            // add type columns to maps
-            DataType type = change.getValueAdded();
-            this.setProperty(type, type.createProperty());
+            // do nothing for now
           } else if (change.wasRemoved()) {
             // remove type columns to maps
-            DataType<Property<?>> type = change.getValueRemoved();
-            this.remove((Class<DataType<Property<?>>>) type.getClass());
+            DataType type = change.getValueRemoved();
+            this.remove((Class) type.getClass());
           }
         });
 
@@ -237,10 +224,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     //
     if (tclass.equals(FeaturesType.class)) {
-      get(FeaturesType.class)
-          .addListener((MapChangeListener<RawDataFile, ModularFeature>) change -> {
-            flist.getRowBindings().forEach(b -> b.apply(this));
-          });
+      // TODO new features set -> use bindings?
     }
   }
 
@@ -252,13 +236,12 @@ public class ModularFeatureListRow implements FeatureListRow {
   // Helper methods
   @Override
   public Range<Double> getMZRange() {
-    ObjectProperty<Range<Double>> v = get(MZRangeType.class);
-    return v == null || v.getValue() == null ? Range.singleton(0d) : v.getValue();
+    Range<Double> v = get(MZRangeType.class);
+    return v == null ? Range.singleton(0d) : v;
   }
 
-  public ObservableMap<RawDataFile, ModularFeature> getFilesFeatures() {
-    MapProperty<RawDataFile, ModularFeature> v = get(FeaturesType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+  public Map<RawDataFile, ModularFeature> getFilesFeatures() {
+    return get(FeaturesType.class);
   }
 
   @Override
@@ -267,10 +250,6 @@ public class ModularFeatureListRow implements FeatureListRow {
     // FeaturesType creates an empty ListProperty for that
     // return FXCollections.observableArrayList(get(FeaturesType.class).getValue().values());
     return new ArrayList<>(features.values());
-  }
-
-  public MapProperty<RawDataFile, ModularFeature> getFeaturesProperty() {
-    return get(FeaturesType.class);
   }
 
   /**
@@ -303,10 +282,9 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   @Override
   public Integer getID() {
-    Property<Integer> idProp = get(IDType.class);
-    return idProp == null || idProp.getValue() == null ? -1 : idProp.getValue();
+    Integer idProp = get(IDType.class);
+    return idProp == null ? -1 : idProp;
   }
-
 
   @Override
   public int getNumberOfFeatures() {
@@ -321,8 +299,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Double getAverageMZ() {
-    Property<Double> v = get(MZType.class);
-    return v == null || v.getValue() == null ? Double.NaN : v.getValue();
+    return get(MZType.class);
   }
 
   @Override
@@ -332,8 +309,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Float getAverageRT() {
-    Property<Float> v = get(RTType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(RTType.class);
   }
 
   @Override
@@ -343,32 +319,28 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Float getAverageMobility() {
-    Property<Float> v = get(MobilityType.class);
-    return v == null || v.getValue() == null ? null : v.getValue();
+    return get(MobilityType.class);
   }
 
   @Override
   public Float getAverageCCS() {
-    Property<Float> v = get(CCSType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(CCSType.class);
   }
 
   @Override
   public Float getAverageHeight() {
-    Property<Float> v = get(HeightType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(HeightType.class);
   }
 
   @Override
   public Integer getRowCharge() {
-    Property<Integer> v = get(ChargeType.class);
-    return v == null || v.getValue() == null ? 0 : v.getValue();
+    Integer v = get(ChargeType.class);
+    return v == null ? 0 : v;
   }
 
   @Override
   public Float getAverageArea() {
-    Property<Float> v = get(AreaType.class);
-    return v == null || v.getValue() == null ? Float.NaN : v.getValue();
+    return get(AreaType.class);
   }
 
   @Override
@@ -431,8 +403,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public RowGroup getGroup() {
-    ObjectProperty<RowGroup> groupProperty = get(FeatureGroupType.class);
-    return groupProperty == null ? null : groupProperty.getValue();
+    return get(FeatureGroupType.class);
   }
 
   @Override
@@ -441,7 +412,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * The list of ion identities
+   * The list of ion identities. An empty list might be immutable. Lists with elements are mutable
    *
    * @return null or the current list. First element is the "preferred" element
    */
@@ -449,9 +420,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   public List<IonIdentity> getIonIdentities() {
     if (get(IonIdentityModularType.class) == null) {
-      return null;
+      return List.of();
     } else {
-      return get(IonIdentityModularType.class).get(IonIdentityListType.class).getValue();
+      return get(IonIdentityModularType.class).get(IonIdentityListType.class);
     }
   }
 
@@ -495,10 +466,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   public String getComment() {
     ModularTypeProperty manual = getManualAnnotation();
     if (manual != null) {
-      return manual.get(CommentType.class).getValue();
+      return manual.get(CommentType.class);
     } else {
-      StringProperty v = get(CommentType.class);
-      return v == null || v.getValue() == null ? "" : v.getValue();
+      return get(CommentType.class);
     }
   }
 
@@ -519,13 +489,13 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public ObservableList<FeatureIdentity> getPeakIdentities() {
+  public List<FeatureIdentity> getPeakIdentities() {
     ModularTypeProperty manual = getManualAnnotation();
     if (manual != null) {
-      return manual.get(IdentityType.class).getValue();
+      return manual.get(IdentityType.class);
     } else {
-      ListProperty<FeatureIdentity> prop = get(IdentityType.class);
-      return prop == null || prop.getValue() == null ? null
+      List<FeatureIdentity> prop = get(IdentityType.class);
+      return prop != null ? prop
           : FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
     }
   }
@@ -551,7 +521,7 @@ public class ModularFeatureListRow implements FeatureListRow {
       return;
     }
     // Verify if exists already an identity with the same name
-    ObservableList<FeatureIdentity> peakIdentities = getPeakIdentities();
+    List<FeatureIdentity> peakIdentities = getPeakIdentities();
     for (FeatureIdentity testId : peakIdentities) {
       if (testId.getName().equals(identity.getName())) {
         return;
@@ -576,16 +546,18 @@ public class ModularFeatureListRow implements FeatureListRow {
   public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
     ModularTypeProperty matchProperty = get(SpectralLibraryMatchType.class);
     if (matchProperty != null) {
-      return matchProperty.get(SpectralLibMatchSummaryType.class).getValue();
+      return matchProperty.get(SpectralLibMatchSummaryType.class);
     } else {
-      return FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
+      return List.of();
     }
   }
 
   @Override
   public void removeFeatureIdentity(FeatureIdentity identity) {
-    ObservableList<FeatureIdentity> identities = getPeakIdentities();
-    identities.remove(identity);
+    List<FeatureIdentity> identities = getPeakIdentities();
+    if (identities != null && !identities.isEmpty()) {
+      identities.remove(identity);
+    }
   }
 
   @Override
@@ -595,15 +567,16 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setPreferredFeatureIdentity(FeatureIdentity preferredIdentity) {
-    ObservableList<FeatureIdentity> identities = getPeakIdentities();
-    identities.remove(preferredIdentity);
+    List<FeatureIdentity> identities = getPeakIdentities();
+    if (identities != null && !identities.isEmpty()) {
+      identities.remove(preferredIdentity);
+    }
     identities.add(0, preferredIdentity);
   }
 
   @Override
   public FeatureInformation getFeatureInformation() {
-    ObjectProperty<SimpleFeatureInformation> v = get(FeatureInformationType.class);
-    return v == null ? null : v.getValue();
+    return get(FeatureInformationType.class);
   }
 
   @Override
@@ -613,16 +586,15 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Float getMaxDataPointIntensity() {
-    ObjectProperty<Range<Float>> rangeObjectProperty = get(IntensityRangeType.class);
-    return rangeObjectProperty != null && rangeObjectProperty.getValue() != null
-        ? rangeObjectProperty.getValue().upperEndpoint()
-        : Float.NaN;
+    Range<Float> intensityRange = get(IntensityRangeType.class);
+    return intensityRange != null ? intensityRange.upperEndpoint()
+        : null;
   }
 
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(f -> f.get(DetectionType.class).get() != FeatureStatus.UNKNOWN)
+    return streamFeatures().filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN)
         .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }
@@ -653,11 +625,10 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @NotNull
   @Override
-  public ObservableList<Scan> getAllFragmentScans() {
-    ObservableList<Scan> allMS2ScansList = FXCollections.observableArrayList();
+  public List<Scan> getAllFragmentScans() {
+    List<Scan> allMS2ScansList = new ArrayList<>();
     for (Feature feature : getFeatures()) {
-      RawDataFile rawData = feature.getRawDataFile();
-      ObservableList<Scan> scans = feature.getAllMS2FragmentScans();
+      List<Scan> scans = feature.getAllMS2FragmentScans();
       if (scans != null) {
         for (Scan scan : scans) {
           allMS2ScansList.add(scan);
@@ -686,7 +657,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   public List<ResultFormula> getFormulas() {
     ModularTypeProperty formulaType = get(FormulaAnnotationType.class);
-    return formulaType == null ? null : formulaType.get(FormulaSummaryType.class).getValue();
+    return formulaType == null ? null : formulaType.get(FormulaSummaryType.class);
   }
 
   public void setFormulas(List<ResultFormula> formulas) {

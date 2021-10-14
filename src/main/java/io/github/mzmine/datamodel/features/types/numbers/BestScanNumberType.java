@@ -34,7 +34,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implements NullColumnType {
+public class BestScanNumberType extends DataType<Scan> implements NullColumnType {
 
   @NotNull
   @Override
@@ -51,6 +51,11 @@ public class BestScanNumberType extends DataType<ObjectProperty<Scan>> implement
   @Override
   public ObjectProperty<Scan> createProperty() {
     return new SimpleObjectProperty<Scan>();
+  }
+
+  @Override
+  public Class<Scan> getValueClass() {
+    return Scan.class;
   }
 
   @Override

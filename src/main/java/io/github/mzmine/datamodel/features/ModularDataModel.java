@@ -91,15 +91,6 @@ public interface ModularDataModel {
     return getEntry(type);
   }
 
-  /**
-   * Value for this datatype
-   *
-   * @param type
-   * @return
-   */
-  default <T> T getValue(DataType<T> type) {
-    return (T) getMap().get(type);
-  }
 
   /**
    * Value for this datatype
@@ -107,10 +98,11 @@ public interface ModularDataModel {
    * @param tclass
    * @return
    */
-  default <T> T getValue(Class<? extends DataType<T>> tclass) {
+  default <T> T get(Class<? extends DataType<T>> tclass) {
     DataType<T> type = getTypeColumn(tclass);
     return get(type);
   }
+
 
   /**
    * Value for this datatype
@@ -196,4 +188,5 @@ public interface ModularDataModel {
   default Stream<Entry<DataType, Object>> stream() {
     return getMap().entrySet().stream();
   }
+
 }

@@ -20,15 +20,14 @@ package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.List;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,26 +97,26 @@ public interface Feature {
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
    *
-   * @param i
+   * @param i index
    * @return
    */
   @Nullable
   default Scan getScanAtIndex(int i) {
     List<Scan> scans = getScanNumbers();
-    return scans == null ? null : scans.get(i);
+    return scans.get(i);
   }
 
   /**
    * Used to loop over retention time, scans, and data points in combination with ({@link
    * #getDataPointAtIndex(int)}
    *
-   * @param i
+   * @param i index
    * @return
    */
   @Nullable
   default float getRetentionTimeAtIndex(int i) {
     List<Scan> scans = getScanNumbers();
-    return scans == null ? null : scans.get(i).getRetentionTime();
+    return scans.get(i).getRetentionTime();
   }
 
   /**
@@ -188,14 +187,14 @@ public interface Feature {
   /**
    * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
    */
-  ObservableList<Scan> getAllMS2FragmentScans();
+  List<Scan> getAllMS2FragmentScans();
 
   /**
    * Set all fragment scan numbers
    *
    * @param allMS2FragmentScanNumbers
    */
-  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
+  void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers);
 
   /**
    * @return The mobility or null if no mobility was set. Note that mobility can have different units.
@@ -310,9 +309,9 @@ public interface Feature {
   // dulab Edit
   void outputChromToFile();
 
-  SimpleFeatureInformation getFeatureInformation();
+  FeatureInformation getFeatureInformation();
 
-  void setFeatureInformation(SimpleFeatureInformation featureInfo);
+  void setFeatureInformation(FeatureInformation featureInfo);
   // End dulab Edit
 
   @Nullable
@@ -334,7 +333,6 @@ public interface Feature {
   /**
    * The detected data points of this feature/chromatogram
    *
-   * @return
    */
   default IonTimeSeries<? extends Scan> getFeatureData() {
     throw new UnsupportedOperationException(

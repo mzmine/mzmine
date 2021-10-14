@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,17 +44,17 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Return raw data with features on this row
    */
-  public ObservableList<RawDataFile> getRawDataFiles();
+  List<RawDataFile> getRawDataFiles();
 
   /**
    * Returns ID of this row
    */
-  public Integer getID();
+  Integer getID();
 
   /**
    * Returns number of features assigned to this row
    */
-  public int getNumberOfFeatures();
+  int getNumberOfFeatures();
 
   // Helper methods
   Range<Double> getMZRange();
@@ -63,28 +62,28 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Return features assigned to this row
    */
-  public List<ModularFeature> getFeatures();
+  List<ModularFeature> getFeatures();
 
   /**
    * Returns feature for given raw data file
    */
   @Nullable
-  public Feature getFeature(RawDataFile rawData);
+  Feature getFeature(RawDataFile rawData);
 
   /**
    * Add a feature
    */
-  public void addFeature(RawDataFile rawData, Feature feature);
+  void addFeature(RawDataFile rawData, Feature feature);
 
   /**
    * Thread safe addition of a feature, if this row does not have a feature of the given raw data
    * file.
    *
    * @param rawDataFile The data file.
-   * @param feature The feature.
+   * @param feature     The feature.
    * @return true if the feature was added, false if this row already had a feature.
    */
-  public default boolean addFeatureIfAbsent(RawDataFile rawDataFile, Feature feature) {
+  default boolean addFeatureIfAbsent(RawDataFile rawDataFile, Feature feature) {
     synchronized (this) {
       if (!hasFeature(rawDataFile)) {
         addFeature(rawDataFile, feature);
@@ -97,37 +96,37 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Remove a feature
    */
-  public void removeFeature(RawDataFile file);
+  void removeFeature(RawDataFile file);
 
   /**
    * Has a feature?
    */
-  public boolean hasFeature(Feature feature);
+  boolean hasFeature(Feature feature);
 
   /**
    * Has a feature?
    */
-  public boolean hasFeature(RawDataFile rawData);
+  boolean hasFeature(RawDataFile rawData);
 
   /**
    * Returns average M/Z for features on this row
    */
-  public Double getAverageMZ();
+  Double getAverageMZ();
 
   /**
    * Sets average mz for this row
    */
-  public void setAverageMZ(Double averageMZ);
+  void setAverageMZ(Double averageMZ);
 
   /**
    * Returns average RT for features on this row
    */
-  public Float getAverageRT();
+  Float getAverageRT();
 
   /**
    * Sets average rt for this row
    */
-  public void setAverageRT(Float averageRT);
+  void setAverageRT(Float averageRT);
 
   /**
    * Returns average mobility for features on this row
@@ -139,27 +138,27 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns average height for features on this row
    */
-  public Float getAverageHeight();
+  Float getAverageHeight();
 
   /**
    * Returns the charge for feature on this row. If more charges are found 0 is returned
    */
-  public Integer getRowCharge();
+  Integer getRowCharge();
 
   /**
    * Returns average area for features on this row
    */
-  public Float getAverageArea();
+  Float getAverageArea();
 
   /**
    * Returns comment for this row
    */
-  public String getComment();
+  String getComment();
 
   /**
    * Sets comment for this row
    */
-  public void setComment(String comment);
+  void setComment(String comment);
 
   /**
    * Add a new identity candidate (result of identification method)
@@ -167,35 +166,35 @@ public interface FeatureListRow extends ModularDataModel {
    * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
    */
-  public void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
+  void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
 
   /**
    * Remove identity candidate
    *
    * @param identity Feature identity
    */
-  public void removeFeatureIdentity(FeatureIdentity identity);
+  void removeFeatureIdentity(FeatureIdentity identity);
 
   /**
    * Returns all candidates for this feature's identity
    *
    * @return Identity candidates
    */
-  public ObservableList<FeatureIdentity> getPeakIdentities();
+  List<FeatureIdentity> getPeakIdentities();
 
   /**
    * Returns preferred feature identity among candidates
    *
    * @return Preferred identity
    */
-  public FeatureIdentity getPreferredFeatureIdentity();
+  FeatureIdentity getPreferredFeatureIdentity();
 
   /**
    * Sets a preferred feature identity among candidates
    *
    * @param identity Preferred identity
    */
-  public void setPreferredFeatureIdentity(FeatureIdentity identity);
+  void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
    * Returns FeatureInformation
@@ -203,7 +202,7 @@ public interface FeatureListRow extends ModularDataModel {
    * @return
    */
 
-  public FeatureInformation getFeatureInformation();
+  FeatureInformation getFeatureInformation();
 
   /**
    * Adds a new FeatureInformation object.
@@ -214,36 +213,35 @@ public interface FeatureListRow extends ModularDataModel {
    * @param featureInformation object
    */
 
-  public void setFeatureInformation(FeatureInformation featureInformation);
+  void setFeatureInformation(FeatureInformation featureInformation);
 
   /**
    * Returns maximum raw data point intensity among all features in this row
    *
    * @return Maximum intensity
    */
-  public Float getMaxDataPointIntensity();
+  Float getMaxDataPointIntensity();
 
   /**
    * Returns the most intense feature in this row
    */
-  public Feature getBestFeature();
+  Feature getBestFeature();
 
   /**
    * Returns the most intense fragmentation scan in this row
    */
-  public Scan getMostIntenseFragmentScan();
+  Scan getMostIntenseFragmentScan();
 
   /**
    * Returns all fragmentation scans of this row
    */
-  @NotNull
-  public ObservableList<Scan> getAllFragmentScans();
+  @NotNull List<Scan> getAllFragmentScans();
 
   /**
    * Returns the most intense isotope pattern in this row. If there are no isotope patterns present
    * in the row, returns null.
    */
-  public IsotopePattern getBestIsotopePattern();
+  IsotopePattern getBestIsotopePattern();
 
   @Nullable FeatureList getFeatureList();
 
@@ -258,14 +256,14 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @return
    */
-  public RowGroup getGroup();
+  RowGroup getGroup();
 
   /**
    * Correlated features grouped
    *
    * @param group
    */
-  public void setGroup(RowGroup group);
+  void setGroup(RowGroup group);
 
   /**
    * The list of ion identities
@@ -418,6 +416,6 @@ public interface FeatureListRow extends ModularDataModel {
   void addLipidAnnotation(MatchedLipid matchedLipid);
 
   // -- ModularFeatureListRow additions
-  public Stream<ModularFeature> streamFeatures();
+  Stream<ModularFeature> streamFeatures();
 
 }

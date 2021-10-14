@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
-import javafx.beans.property.ListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javax.xml.stream.XMLStreamException;
@@ -52,34 +51,23 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
     return "ImsMsMsInfo";
   }
 
-  @NotNull
-  @Override
-  public String getFormattedString(@NotNull ListProperty<ImsMsMsInfo> property) {
-    return property.get() != null ? String.valueOf(property.get().size()) : "0";
-  }
 
-  @NotNull
   @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof ListProperty) {
-      return String.valueOf(((ListProperty) value).size());
-    }
-    if (value instanceof List) {
-      return String.valueOf(((List) value).size());
-    }
-    return "0";
+  public @NotNull String getFormattedString(@NotNull List<ImsMsMsInfo> property) {
+    return property != null ? String.valueOf(property.size()) : "0";
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
     if (!(value instanceof List list)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
 
     for (Object o : list) {

@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -27,7 +29,7 @@ public abstract class LinkedDataType extends DataType<TypeListenerProperty> impl
     NoTextColumn {
 
   @Override
-  public TypeListenerProperty createProperty() {
+  public Property<Boolean> createProperty() {
     return new TypeListenerProperty();
   }
 }

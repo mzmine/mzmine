@@ -35,11 +35,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class StringType extends DataType<StringProperty> {
+public abstract class StringType extends DataType<String> {
 
   @Override
   public StringProperty createProperty() {
     return new SimpleStringProperty("");
+  }
+
+  @Override
+  public Class<String> getValueClass() {
+    return String.class;
   }
 
   @Override

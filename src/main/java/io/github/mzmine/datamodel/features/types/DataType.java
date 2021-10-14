@@ -163,7 +163,8 @@ public abstract class DataType<T> {
                 }
               }
             } else {
-              model.set(this, data);
+              // TODO check if this cast is safe
+              model.set(DataType.this, (T) data);
             }
           }
         });

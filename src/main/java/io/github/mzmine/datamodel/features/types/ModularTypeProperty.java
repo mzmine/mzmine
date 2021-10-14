@@ -19,8 +19,10 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.features.ModularDataModel;
+import java.util.HashMap;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
 /**
@@ -29,12 +31,16 @@ import javafx.collections.ObservableMap;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class ModularTypeProperty extends SimpleMapProperty<DataType, Property<?>> implements ModularDataModel {
+public class ModularTypeProperty implements ModularDataModel {
+
+    private final ObservableMap<DataType, Object> map =
+        FXCollections.observableMap(new HashMap<>());
 
     protected ModularType parentType;
 
     public ModularTypeProperty(ObservableMap<DataType, Property<?>> map, ModularType parentType) {
-        super(map);
+        super();
+        this.map.putAll(map);
         this.parentType = parentType;
     }
 
@@ -48,7 +54,7 @@ public class ModularTypeProperty extends SimpleMapProperty<DataType, Property<?>
     }
 
     @Override
-    public ObservableMap<DataType, Property<?>> getMap() {
-        return this;
+    public ObservableMap<DataType, Object> getMap() {
+        return map;
     }
 }

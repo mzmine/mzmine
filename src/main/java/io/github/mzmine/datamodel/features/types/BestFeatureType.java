@@ -24,7 +24,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
-public class BestFeatureType extends DataType<ObjectProperty<ModularFeature>> implements
+public class BestFeatureType extends DataType<ModularFeature> implements
     NullColumnType {
 
   @NotNull
@@ -38,6 +38,11 @@ public class BestFeatureType extends DataType<ObjectProperty<ModularFeature>> im
   @Override
   public String getHeaderString() {
     return "Best feature";
+  }
+
+  @Override
+  public Class<ModularFeature> getValueClass() {
+    return ModularFeature.class;
   }
 
   @Override

@@ -34,7 +34,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> implements
+public class BestFragmentScanNumberType extends DataType<Scan> implements
     NullColumnType {
 
   @NotNull
@@ -55,6 +55,11 @@ public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> i
   }
 
   @Override
+  public Class<Scan> getValueClass() {
+    return Scan.class;
+  }
+
+  @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
@@ -63,7 +68,8 @@ public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> i
     }
     if (!(value instanceof Scan scan)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
     Scan.saveScanToXML(writer, scan);
   }

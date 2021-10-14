@@ -36,7 +36,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> implements
+public class DetectionType extends DataType<FeatureStatus> implements
     GraphicalColumType<FeatureStatus> {
 
   @NotNull
@@ -50,6 +50,11 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
   @NotNull
   public String getHeaderString() {
     return "State";
+  }
+
+  @Override
+  public Class<FeatureStatus> getValueClass() {
+    return FeatureStatus.class;
   }
 
   @Override
@@ -73,7 +78,7 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
 
   @Override
   public ObjectProperty<FeatureStatus> createProperty() {
-    return new SimpleObjectProperty<FeatureStatus>(FeatureStatus.UNKNOWN);
+    return new SimpleObjectProperty<>(FeatureStatus.UNKNOWN);
   }
 
   @Override

@@ -54,7 +54,7 @@ public class IsotopePatternType extends DataType<IsotopePattern> {
   @Override
   @NotNull
   public String getFormattedString(@NotNull IsotopePattern value) {
-    return value.getValue() != null ? String.valueOf(value.getNumberOfDataPoints())
+    return value != null ? String.valueOf(value.getNumberOfDataPoints())
         : "";
   }
 

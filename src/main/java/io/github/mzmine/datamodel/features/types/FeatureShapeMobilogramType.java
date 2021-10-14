@@ -93,4 +93,9 @@ public class FeatureShapeMobilogramType extends LinkedDataType
       @Nullable RawDataFile file) throws XMLStreamException {
     return false;
   }
+
+  @Override
+  public Class<TypeListenerProperty> getValueClass() {
+    return TypeListenerProperty.class;
+  }
 }

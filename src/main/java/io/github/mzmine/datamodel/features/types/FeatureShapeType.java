@@ -97,4 +97,9 @@ public class FeatureShapeType extends LinkedDataType implements GraphicalColumTy
     };
   }
 
+  @Override
+  public Class<TypeListenerProperty> getValueClass() {
+    return TypeListenerProperty.class;
+  }
+
 }
