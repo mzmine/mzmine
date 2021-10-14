@@ -94,7 +94,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       switch (reader.getLocalName()) {
         case CONST.XML_SCAN_LIST_ELEMENT -> {
           int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
-          scans = ParsingUtils.getSublistFromIndices(file.getScans(), indices);
+          scans = ParsingUtils.getSublistFromIndices(file.getScans(), indices); // use all scans
         }
         case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
             reader.getElementText());
@@ -181,7 +181,7 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
       throws XMLStreamException {
     writer.writeStartElement(SimpleIonTimeSeries.XML_ELEMENT);
 
-    IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans);
+    IonSpectrumSeries.saveSpectraIndicesToXML(writer, this, allScans); // use all scans
     IntensitySeries.saveIntensityValuesToXML(writer, this);
     MzSeries.saveMzValuesToXML(writer, this);
 
