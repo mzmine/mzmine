@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.io.projectsave;
@@ -48,7 +47,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javafx.beans.property.Property;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -68,12 +66,10 @@ import org.w3c.dom.Element;
 
 public class FeatureListSaveTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
-
-
   public static final String METADATA_FILE_SUFFIX = "_metadata.xml";
   public static final String DATA_FILE_SUFFIX = "_data.xml";
   public static final String FLIST_FOLDER = "featurelists/";
+  private static final Logger logger = Logger.getLogger(FeatureListSaveTask.class.getName());
   private static final IDType idType = new IDType();
 
   private final ModularFeatureList flist;
@@ -88,6 +84,14 @@ public class FeatureListSaveTask extends AbstractTask {
     this.zos = zos;
     rows = flist.getNumberOfRows();
     copy = new StreamCopy();
+  }
+
+  public static String getDataFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + DATA_FILE_SUFFIX;
+  }
+
+  public static String getMetadataFileName(String flistname) {
+    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + METADATA_FILE_SUFFIX;
   }
 
   @Override
@@ -279,13 +283,13 @@ public class FeatureListSaveTask extends AbstractTask {
     writer.writeStartElement(CONST.XML_ROW_ELEMENT);
     writer.writeAttribute(idType.getUniqueID(), String.valueOf(row.getID()));
 
-    for (Entry<DataType, Property<?>> entry : row.getMap().entrySet()) {
-      DataType<?> dataType = entry.getKey();
-      Property<?> valueProperty = entry.getValue();
+    for (Entry<DataType, Object> entry : row.getMap().entrySet()) {
+      DataType dataType = entry.getKey();
+      Object value = entry.getValue();
       if (dataType instanceof FeaturesType) {
         continue;
       }
-      writeDataType(writer, dataType, valueProperty.getValue(), flist, row, null, null);
+      writeDataType(writer, dataType, value, flist, row, null, null);
     }
 
     for (ModularFeature feature : row.getFeatures()) {
@@ -307,7 +311,7 @@ public class FeatureListSaveTask extends AbstractTask {
       dataType.saveToXML(writer, value, flist, row, feature, file);
     } catch (XMLStreamException e) {
       logger.warning(() -> "Error while writing data type " + dataType.getClass().getSimpleName()
-          + " with value " + String.valueOf(value) + " to xml.");
+                           + " with value " + String.valueOf(value) + " to xml.");
       e.printStackTrace();
     }
     writer.writeEndElement();
@@ -316,26 +320,18 @@ public class FeatureListSaveTask extends AbstractTask {
   private void writeFeature(XMLStreamWriter writer, ModularFeatureListRow row,
       ModularFeature feature) throws XMLStreamException {
     final RawDataFile rawDataFile = feature.getRawDataFile();
-    if(rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+    if (rawDataFile == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
       return;
     }
 
     writer.writeStartElement(CONST.XML_FEATURE_ELEMENT);
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, rawDataFile.getName());
 
-    for (Entry<DataType, Property<?>> entry : feature.getMap().entrySet()) {
-      writeDataType(writer, entry.getKey(), entry.getValue().getValue(), flist, row, feature,
+    for (Entry<DataType, Object> entry : feature.getMap().entrySet()) {
+      writeDataType(writer, entry.getKey(), entry.getValue(), flist, row, feature,
           rawDataFile);
     }
 
     writer.writeEndElement();
-  }
-
-  public static String getDataFileName(String flistname) {
-    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + DATA_FILE_SUFFIX;
-  }
-
-  public static String getMetadataFileName(String flistname) {
-    return FLIST_FOLDER + CONST.XML_FEATURE_LIST_ELEMENT + "_" + flistname + METADATA_FILE_SUFFIX;
   }
 }

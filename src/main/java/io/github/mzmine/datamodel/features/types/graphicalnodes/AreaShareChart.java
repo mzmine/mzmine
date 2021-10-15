@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,32 +8,31 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import org.jetbrains.annotations.NotNull;
 
 public class AreaShareChart extends StackPane {
 
@@ -47,7 +46,7 @@ public class AreaShareChart extends StackPane {
       Property<Float> areaProperty = entry.getValue().get(AreaType.class);
       if (areaProperty.getValue() != null) {
         // color from sample
-        // Color color = entry.getValue().get(RawColorType.class).getValue();
+        // Color color = entry.getValue().get(RawColorType.class);
         Color fileColor = entry.getKey().getColor();
         if (fileColor == null) {
           fileColor = Color.DARKORANGE;

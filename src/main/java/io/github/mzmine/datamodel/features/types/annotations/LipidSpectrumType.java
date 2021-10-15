@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -48,7 +47,7 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Matched Lipid Signals";
   }
 
@@ -69,7 +68,7 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
     StackPane pane = new StackPane();
 
     List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
+        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       Task task =
           new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row, coll.getText());
@@ -88,7 +87,7 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
   public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
       @Nonnull List<RawDataFile> file) {
     List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
+        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class);
     MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
         matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
         new LipidSpectrumChart(row, null));

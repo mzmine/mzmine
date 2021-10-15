@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.io.export_features_csv;
@@ -49,7 +48,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularTask extends AbstractTask {
@@ -268,16 +266,15 @@ public class CSVExportModularTask extends AbstractTask {
    */
   private void joinData(StringBuilder b, ModularDataModel data, List<DataType> types) {
     for (DataType type : types) {
-      if (type instanceof ModularType) {
-        ModularType modType = (ModularType) type;
+      if (type instanceof ModularType modType) {
+        // needs to be checked before SubColumnFactory
         ModularTypeProperty modProp = data.get(modType);
         // join all the sub types of a modular data type
         List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
             .filter(this::filterType).collect(Collectors.toList());
         joinData(b, modProp, filteredSubTypes);
       } else if (type instanceof SubColumnsFactory subCols) {
-        Property property = data.get(type);
-        Object value = property == null ? null : property.getValue();
+        Object value = data.get(type);
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
           String field = subCols.getFormattedSubColValue(i, null, null, value, null);
@@ -287,16 +284,16 @@ public class CSVExportModularTask extends AbstractTask {
           b.append(field == null ? "" : field);
         }
       } else {
-        Property property = data.get(type);
+        Object value = data.get(type);
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
         String str;
         try{
-          str = type.getFormattedString(property);
+          str = type.getFormattedString(value);
         } catch (Exception e) {
           logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
-              + " value: " + property.getValue(), e);
+                                 + " value: " + value, e);
           str = "";
         }
         b.append(escapeStringForCSV(str));

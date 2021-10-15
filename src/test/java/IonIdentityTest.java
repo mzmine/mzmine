@@ -26,12 +26,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
+import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -145,7 +145,7 @@ public class IonIdentityTest {
     // setting the formula should have updated the sub properties
     // test properties in ion identity
     assertEquals(4.5f,
-        rowProtonated.get(IonIdentityModularType.class).get(RdbeType.class).getValue(),
+        rowProtonated.get(IonIdentityModularType.class).get(RdbeType.class),
         "Cannot access formula specific types from sub types of IonIdentityModularType.class");
     assertEquals(0.9f,
         rowProtonated.get(IonIdentityModularType.class).get(IsotopePatternScoreType.class)

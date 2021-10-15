@@ -1,3 +1,20 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package datamodel;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
@@ -29,7 +46,6 @@ import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
-import javafx.beans.property.ListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
@@ -65,11 +81,11 @@ public class AnnotationTypeTests {
     final ModularTypeProperty loaded = (ModularTypeProperty) DataTypeTestUtils
         .saveAndLoad(type, value, flist, row, null, null);
 
-    ListProperty<FeatureIdentity> featureIdentities = loaded.get(new IdentityType());
+    List<FeatureIdentity> featureIdentities = loaded.get(new IdentityType());
     Assertions.assertEquals(list.size(), featureIdentities.size());
 
-    FeatureIdentity loaded1 = featureIdentities.get().get(0);
-    FeatureIdentity loaded2 = featureIdentities.get().get(1);
+    FeatureIdentity loaded1 = featureIdentities.get(0);
+    FeatureIdentity loaded2 = featureIdentities.get(1);
 
     Assertions.assertEquals(id1.getAllProperties().size(), loaded1.getAllProperties().size());
     for (Entry<String, String> entry : id1.getAllProperties().entrySet()) {
@@ -88,14 +104,14 @@ public class AnnotationTypeTests {
   @Test
   void commentTypeTest() {
     CommentType type = new CommentType();
-    Object value = "comment";
+    String value = "comment";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
   @Test
   void compoundNameTypeTest() {
     CompoundNameType type = new CompoundNameType();
-    Object value = "name";
+    String value = "name";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
@@ -106,7 +122,7 @@ public class AnnotationTypeTests {
   @Test
   void formulaTypeTest() {
     FormulaType type = new FormulaType();
-    Object value = "C5H6O4F3";
+    String value = "C5H6O4F3";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
@@ -179,7 +195,7 @@ public class AnnotationTypeTests {
   void inchiStructureTypeTest() {
     InChIStructureType type = new InChIStructureType();
     String value = "1S/C18H24I3N3O8/c1-24(4-9(28)6-26)18(31)12-13(19)11(17(30)22-3-8(27)5-25)14"
-        + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
+                   + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 

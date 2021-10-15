@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.fx;
@@ -27,9 +26,8 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import java.util.List;
 import java.util.logging.Logger;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.Property;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -47,10 +45,10 @@ import javafx.util.Callback;
 public class EditComboCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
+  private final DataType modularParentType;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private RawDataFile raw;
   private DataType<?> type;
-  private final DataType modularParentType;
   private int subcolumn = -1;
 
 
@@ -87,10 +85,10 @@ public class EditComboCellFactory implements
           model = (ModularDataModel) model.get(modularParentType);
         }
 
-        Property<?> list = model.get(type);
-        if (list instanceof ListProperty) {
+        Object value = model.get(type);
+        if (value instanceof List list) {
           getItems().clear();
-          getItems().addAll(((ListProperty) list).getValue());
+          getItems().addAll(list);
           // create element that triggers the add element dialog on selection
           if (type instanceof AddElementDialog) {
             getItems().add(AddElementDialog.BUTTON_TEXT);
@@ -135,10 +133,11 @@ public class EditComboCellFactory implements
             getTableColumn().setMinWidth(((GraphicalColumType<?>) type).getColumnWidth());
             setGraphic(node);
             setText(null);
-            setTooltip(new Tooltip(type.getFormattedString(item)));
+            setTooltip(new Tooltip(type.getFormattedStringCheckType(item)));
           } else {
-            setTooltip(new Tooltip(type.getFormattedString(item)));
-            setText(type.getFormattedString(item));
+            String formatted = type.getFormattedStringCheckType(item);
+            setTooltip(new Tooltip(formatted));
+            setText(formatted);
             setGraphic(null);
           }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
@@ -37,7 +36,6 @@ import java.text.Format;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -89,8 +87,9 @@ public class FeatureUtils {
    */
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
-    if ((row1 == null) || (row2 == null))
+    if ((row1 == null) || (row2 == null)) {
       return false;
+    }
 
     // If both have preferred identity available, then compare only those
     FeatureIdentity row1PreferredIdentity = row1.getPreferredFeatureIdentity();
@@ -100,15 +99,17 @@ public class FeatureUtils {
     }
 
     // If no identities at all for both rows, then return true
-    ObservableList<FeatureIdentity> row1Identities = row1.getPeakIdentities();
-    ObservableList<FeatureIdentity> row2Identities = row2.getPeakIdentities();
-    if ((row1Identities.isEmpty()) && (row2Identities.isEmpty()))
+    List<FeatureIdentity> row1Identities = row1.getPeakIdentities();
+    List<FeatureIdentity> row2Identities = row2.getPeakIdentities();
+    if ((row1Identities.isEmpty()) && (row2Identities.isEmpty())) {
       return true;
+    }
 
     // Otherwise compare all against all and require that each identity has
     // a matching identity on the other row
-    if (row1Identities.size() != row2Identities.size())
+    if (row1Identities.size() != row2Identities.size()) {
       return false;
+    }
     boolean sameID = false;
     for (FeatureIdentity row1Identity : row1Identities) {
       sameID = false;
@@ -161,7 +162,7 @@ public class FeatureUtils {
   /**
    * Finds a combined m/z range that covers all given features
    */
-  public static Range<Double> findMZRange(Feature features[]) {
+  public static Range<Double> findMZRange(Feature[] features) {
 
     Range<Double> mzRange = null;
 
@@ -263,7 +264,7 @@ public class FeatureUtils {
    * @return A copy of row.
    */
   public static ModularFeatureListRow copyFeatureRow(final ModularFeatureListRow row) {
-    return copyFeatureRow((ModularFeatureList)row.getFeatureList(), row, true);
+    return copyFeatureRow(row.getFeatureList(), row, true);
   }
 
   /**

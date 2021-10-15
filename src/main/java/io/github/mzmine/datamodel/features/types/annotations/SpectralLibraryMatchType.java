@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -109,18 +108,20 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
       SpectralSimilarity score = match.getSimilarity();
 
       // update selected values
-      data.set(CompoundNameType.class, entry.getField(DBEntryField.NAME).orElse(""));
-      data.set(FormulaType.class, entry.getField(DBEntryField.FORMULA).orElse(""));
-      data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE).orElse(""));
-      data.set(SmilesStructureType.class, entry.getField(DBEntryField.SMILES).orElse(""));
-      data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI).orElse(""));
+      data.set(CompoundNameType.class, entry.getField(DBEntryField.NAME).orElse("").toString());
+      data.set(FormulaType.class, entry.getField(DBEntryField.FORMULA).orElse("").toString());
+      data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE).orElse("").toString());
+      data.set(SmilesStructureType.class,
+          entry.getField(DBEntryField.SMILES).orElse("").toString());
+      data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI).orElse("").toString());
       data.set(CosineScoreType.class, (float) score.getScore());
       data.set(MatchingSignalsType.class, score.getOverlap());
       if (entry.getField(DBEntryField.MZ).isPresent()) {
-        data.set(PrecursorMZType.class, entry.getField(DBEntryField.MZ).get());
+        data.set(PrecursorMZType.class, (double) entry.getField(DBEntryField.MZ).orElse(null));
       }
       if (entry.getField(DBEntryField.EXACT_MASS).isPresent()) {
-        data.set(NeutralMassType.class, entry.getField(DBEntryField.EXACT_MASS).get());
+        data.set(NeutralMassType.class,
+            (double) entry.getField(DBEntryField.EXACT_MASS).orElse(null));
       }
     }
   }
