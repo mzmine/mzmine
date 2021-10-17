@@ -8,21 +8,37 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA.
  *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.util.ParsingUtils;
 
 public class CustomLipidClass implements ILipidClass {
+
+  private static final String XML_ELEMENT = "lipidclass";
+  private static final String XML_LIPID_CLASS_NAME = "lipidclassname";
+  private static final String XML_LIPID_CLASS_ABBR = "lipidclassabbr";
+  private static final String XML_LIPID_CLASS_BACKBONE_FORMULA = "lipidclassbackboneformula";
+  private static final String XML_LIPID_CLASS_CHAIN_TYPE = "lipidclasschaintypes";
+  private static final String XML_LIPID_CLASS_FRAGMENTATION_RULES = "lipidclassfragmentationrules";
+
 
   private String name;
   private String abbr;
@@ -62,6 +78,125 @@ public class CustomLipidClass implements ILipidClass {
   @Override
   public String toString() {
     return this.abbr + " " + this.name;
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    writer.writeStartElement(XML_LIPID_CLASS_NAME);
+    writer.writeCharacters(name);
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CLASS_ABBR);
+    writer.writeCharacters(abbr);
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CLASS_BACKBONE_FORMULA);
+    writer.writeCharacters(backBoneFormula);
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CLASS_CHAIN_TYPE);
+    if (chainTypes != null) {
+      for (LipidChainType lipidChainType : chainTypes) {
+        writer.writeCharacters(lipidChainType.getName());
+      }
+    } else {
+      writer.writeCharacters(StringUtils.EMPTY);
+    }
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CLASS_FRAGMENTATION_RULES);
+    if (fragmentationRules != null) {
+      for (LipidFragmentationRule lipidFragmentationRule : fragmentationRules) {
+        lipidFragmentationRule.saveToXML(writer);
+      }
+    } else {
+      writer.writeCharacters(StringUtils.EMPTY);
+    }
+    writer.writeEndElement();
+
+    writer.writeEndElement();
+
+  }
+
+  public static ILipidClass loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Cannot load lipid class from the current element. Wrong name.");
+    }
+
+    String name = null;
+    String abbr = null;
+    String backBoneFormula = null;
+    LipidChainType[] chainTypes = null;
+    LipidFragmentationRule[] fragmentationRules = null;
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(XML_LIPID_CLASS_NAME)) {
+        return ParsingUtils.lipidClassNameToLipidClass(reader.getElementText());
+      }
+
+      switch (reader.getLocalName()) {
+        case XML_LIPID_CLASS_NAME:
+          break;
+        case XML_LIPID_CLASS_ABBR:
+          abbr = reader.getElementText();
+          break;
+        case XML_LIPID_CLASS_BACKBONE_FORMULA:
+          backBoneFormula = reader.getElementText();
+          break;
+        case XML_LIPID_CLASS_CHAIN_TYPE:
+          chainTypes = loadLipidChainTypesFromXML(reader);
+          break;
+        case XML_LIPID_CLASS_FRAGMENTATION_RULES:
+          fragmentationRules = loadLipidFragmentationRulesFromXML(reader);
+          break;
+        default:
+          break;
+      }
+    }
+    return new CustomLipidClass(name, abbr, backBoneFormula, chainTypes, fragmentationRules);
+  }
+
+  private static LipidChainType[] loadLipidChainTypesFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_LIPID_CLASS_CHAIN_TYPE))) {
+      throw new IllegalStateException(
+          "Cannot load matched lipid fragments from the current element. Wrong name.");
+    }
+
+    List<LipidChainType> lipidChainTypes = new ArrayList<>();
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_LIPID_CLASS_CHAIN_TYPE))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      lipidChainTypes.add(ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText()));
+    }
+
+    return lipidChainTypes.toArray(new LipidChainType[0]);
+  }
+
+  private static LipidFragmentationRule[] loadLipidFragmentationRulesFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_LIPID_CLASS_CHAIN_TYPE))) {
+      throw new IllegalStateException(
+          "Cannot load matched lipid fragments from the current element. Wrong name.");
+    }
+
+    List<LipidFragmentationRule> lipidFragmentationRules = new ArrayList<>();
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_LIPID_CLASS_CHAIN_TYPE))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      lipidFragmentationRules.add(LipidFragmentationRule.loadFromXML(reader));
+    }
+
+    return lipidFragmentationRules.toArray(new LipidFragmentationRule[0]);
   }
 
 }

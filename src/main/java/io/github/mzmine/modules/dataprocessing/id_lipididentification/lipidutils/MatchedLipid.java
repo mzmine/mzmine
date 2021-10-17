@@ -8,22 +8,41 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA.
  *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
+import io.github.mzmine.util.ParsingUtils;
 
 public class MatchedLipid {
+
+  private static final String XML_ELEMENT = "matchedlipid";
+  private static final String XML_LIPID_ANNOTATION_ELEMENT = "lipidannotation";
+  private static final String XML_ACCURATE_MZ = "accuratemz";
+  private static final String XML_IONIZATION_TYPE = "ionizationtype";
+  private static final String XML_MATCHED_FRAGMENTS = "matchedfragments";
+  private static final String XML_MSMS_SCORE = "msmsscore";
+  private static final String XML_COMMENT = "comment";
 
   private ILipidAnnotation lipidAnnotation;
   private Double accurateMz;
@@ -92,6 +111,118 @@ public class MatchedLipid {
   @Override
   public String toString() {
     return lipidAnnotation.getAnnotation();
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    writer.writeStartElement(XML_LIPID_ANNOTATION_ELEMENT);
+    writer.writeCharacters(lipidAnnotation.getAnnotation());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_ACCURATE_MZ);
+    writer.writeCharacters(accurateMz.toString());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_IONIZATION_TYPE);
+    writer.writeCharacters(ionizationType.name());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_MATCHED_FRAGMENTS);
+    if (matchedFragments != null) {
+      for (LipidFragment lipidFragment : matchedFragments) {
+        lipidFragment.saveToXML(writer);
+      }
+    } else {
+      writer.writeCharacters(StringUtils.EMPTY);
+    }
+    writer.writeEndElement();
+    writer.writeStartElement(XML_MSMS_SCORE);
+    writer.writeCharacters(msMsScore.toString());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_COMMENT);
+    if (comment != null) {
+      writer.writeCharacters(comment);
+    } else {
+      writer.writeCharacters(StringUtils.EMPTY);
+    }
+    writer.writeEndElement();
+
+    writer.writeEndElement();
+
+  }
+
+  public static MatchedLipid loadFromXML(XMLStreamReader reader,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Cannot load matched lipid from the current element. Wrong name.");
+    }
+
+
+    ILipidAnnotation lipidAnnotation = null;
+    Double accurateMz = null;
+    IonizationType ionizationType = null;
+    Set<LipidFragment> lipidFragments = null;
+    Double msMsScore = null;
+    String comment = null;
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case XML_LIPID_ANNOTATION_ELEMENT:
+          lipidAnnotation = SpeciesLevelAnnotation.loadFromXML(reader);
+          if (lipidAnnotation == null) {
+            lipidAnnotation = MolecularSpeciesLevelAnnotation.loadFromXML(reader);
+          }
+          break;
+        case XML_ACCURATE_MZ:
+          accurateMz = Double.parseDouble(reader.getElementText());
+          break;
+        case XML_IONIZATION_TYPE:
+          ionizationType = ParsingUtils.ionizationNameToIonizationType(reader.getElementText());
+          break;
+        case XML_MATCHED_FRAGMENTS:
+          lipidFragments = loadLipidFragmentsFromXML(reader, possibleFiles);
+          break;
+        case XML_MSMS_SCORE:
+          msMsScore = Double.parseDouble(reader.getElementText());
+          break;
+        case XML_COMMENT:
+          comment = reader.getElementText();
+          break;
+        default:
+          break;
+      }
+    }
+
+    MatchedLipid matchedLipid =
+        new MatchedLipid(lipidAnnotation, accurateMz, ionizationType, lipidFragments, msMsScore);
+    if (comment != null) {
+      matchedLipid.setComment(comment);
+    }
+    return matchedLipid;
+  }
+
+  private static Set<LipidFragment> loadLipidFragmentsFromXML(XMLStreamReader reader,
+      Collection<RawDataFile> possibleFiles) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_MATCHED_FRAGMENTS))) {
+      throw new IllegalStateException(
+          "Cannot load matched lipid fragments from the current element. Wrong name.");
+    }
+
+    Set<LipidFragment> lipidFragments = new HashSet<>();
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_MATCHED_FRAGMENTS))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      lipidFragments.add(LipidFragment.loadFromXML(reader, possibleFiles));
+
+    }
+    return lipidFragments;
   }
 
   @Override

@@ -8,25 +8,44 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA.
  *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import java.util.ArrayList;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.apache.commons.lang.StringUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AcylLipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AlkylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 
 public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
+  private static final String XML_ELEMENT = "lipidannotation";
+  private static final String XML_LIPID_CLASS = "lipidclass";
+  private static final String XML_NAME = "name";
+  private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
+  private static final String XML_LIPID_FORMULA = "molecularformula";
+  private static final String XML_LIPID_CHAINS = "lipidchains";
+
   private ILipidClass lipidClass;
   private String annotation;
-  private static final LipidAnnotationLevel lipidAnnotationLevel =
+  private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL =
       LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL;
   private IMolecularFormula molecularFormula;
   private List<ILipidChain> lipidChains;
@@ -61,7 +80,7 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
   @Override
   public LipidAnnotationLevel getLipidAnnotationLevel() {
-    return lipidAnnotationLevel;
+    return LIPID_ANNOTATION_LEVEL;
   }
 
   @Override
@@ -106,6 +125,105 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
     } else if (!lipidChains.equals(other.lipidChains))
       return false;
     return true;
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeStartElement(XML_LIPID_CLASS);
+    writer.writeCharacters(lipidClass.getName());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_NAME);
+    writer.writeCharacters(annotation);
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_ANNOTAION_LEVEL);
+    writer.writeCharacters(LIPID_ANNOTATION_LEVEL.name());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_FORMULA);
+    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_CHAINS);
+    if (lipidChains != null) {
+      for (ILipidChain lipidChain : lipidChains) {
+        lipidChain.saveToXML(writer);
+      }
+    } else {
+      writer.writeCharacters(StringUtils.EMPTY);
+    }
+    writer.writeEndElement();
+    writer.writeEndElement();
+
+  }
+
+  public static ILipidAnnotation loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Cannot load lipid class from the current element. Wrong name.");
+    }
+
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      ILipidClass lipidClass = null;
+      String annotation = null;
+      LipidAnnotationLevel lipidAnnotationLevel = null;
+      IMolecularFormula molecularFormula = null;
+      List<ILipidChain> lipidChains = null;
+
+      switch (reader.getLocalName()) {
+        case XML_LIPID_CLASS:
+          lipidClass = LipidClasses.loadFromXML(reader);
+          if (lipidClass == null) {
+            lipidClass = CustomLipidClass.loadFromXML(reader);
+          }
+          break;
+        case XML_NAME:
+          annotation = reader.getElementText();
+          break;
+        case XML_LIPID_ANNOTAION_LEVEL:
+          lipidAnnotationLevel =
+              ParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+          break;
+        case XML_LIPID_FORMULA:
+          molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          break;
+        case XML_LIPID_CHAINS:
+          lipidChains = loadLipidChainsFromXML(reader);
+          break;
+        default:
+          break;
+      }
+      if (lipidAnnotationLevel != null
+          && lipidAnnotationLevel.equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+        return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
+            lipidChains);
+      }
+    }
+    return null;
+  }
+
+  private static List<ILipidChain> loadLipidChainsFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_LIPID_CHAINS))) {
+      throw new IllegalStateException(
+          "Cannot load lipid chains from the current element. Wrong name.");
+    }
+
+    List<ILipidChain> lipidChains = new ArrayList<>();
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_LIPID_CHAINS))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      lipidChains.add(AcylLipidChain.loadFromXML(reader));
+      lipidChains.add(AlkylLipidChain.loadFromXML(reader));
+
+    }
+    return lipidChains;
   }
 
 }

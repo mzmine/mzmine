@@ -1,27 +1,23 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package io.github.mzmine.util;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MobilityScan;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,6 +29,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCategories;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 
 public class ParsingUtils {
 
@@ -112,8 +120,8 @@ public class ParsingUtils {
     indices[subListIndex] = rawIndex;
 
     while (subListIndex < sublist.size() && rawIndex < fullList.size()) {
-      if (sublist.get(subListIndex)
-          .equals(fullList.get(rawIndex))) { // don't compare identity to make robin happy
+      if (sublist.get(subListIndex).equals(fullList.get(rawIndex))) { // don't compare identity to
+                                                                      // make robin happy
         indices[subListIndex] = rawIndex;
         subListIndex++;
       }
@@ -179,18 +187,18 @@ public class ParsingUtils {
   public static String mobilityScanListToString(List<MobilityScan> scans) {
     // {frameindex}[mobilityscanindices]\\
     StringBuilder b = new StringBuilder();
-    final Map<Frame, List<MobilityScan>> mapping = scans.stream()
-        .collect(Collectors.groupingBy(MobilityScan::getFrame));
-    for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator();
-        it.hasNext(); ) {
+    final Map<Frame, List<MobilityScan>> mapping =
+        scans.stream().collect(Collectors.groupingBy(MobilityScan::getFrame));
+    for (Iterator<Entry<Frame, List<MobilityScan>>> it = mapping.entrySet().iterator(); it
+        .hasNext();) {
       Entry<Frame, List<MobilityScan>> entry = it.next();
       Frame frame = entry.getKey();
       List<MobilityScan> mobilityScans = entry.getValue();
       mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
       b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
 
-      int[] indices = ParsingUtils
-          .getIndicesOfSubListElements(mobilityScans, frame.getMobilityScans());
+      int[] indices =
+          ParsingUtils.getIndicesOfSubListElements(mobilityScans, frame.getMobilityScans());
       b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
 
       if (it.hasNext()) {
@@ -235,5 +243,89 @@ public class ParsingUtils {
 
   public static String[] stringToStringArray(String str) {
     return str.split(SEPARATOR);
+  }
+
+  public static IonizationType ionizationNameToIonizationType(String ionizationName) {
+    IonizationType[] ionizationTypes = IonizationType.class.getEnumConstants();
+    for (IonizationType ionizationType : ionizationTypes) {
+      if (ionizationType.name().equals(ionizationName)) {
+        return ionizationType;
+      }
+    }
+    return null;
+  }
+
+  public static PolarityType polarityNameToPolarityType(String polarityName) {
+    PolarityType[] polarityTypes = PolarityType.class.getEnumConstants();
+    for (PolarityType polarityType : polarityTypes) {
+      if (polarityType.name().equals(polarityName)) {
+        return polarityType;
+      }
+    }
+    return null;
+  }
+
+  public static LipidFragmentationRuleType lipidFragmentationRuleNameToLipidFragmentationRuleType(
+      String lipidFragmentationRuleName) {
+    LipidFragmentationRuleType[] lipidFragmentationRuleTypes =
+        LipidFragmentationRuleType.class.getEnumConstants();
+    for (LipidFragmentationRuleType lipidFragmentationRuleType : lipidFragmentationRuleTypes) {
+      if (lipidFragmentationRuleType.name().equals(lipidFragmentationRuleName)) {
+        return lipidFragmentationRuleType;
+      }
+    }
+    return null;
+  }
+
+  public static LipidAnnotationLevel lipidAnnotationLevelNameToLipidAnnotationLevel(
+      String lipidAnnotationLevelName) {
+    LipidAnnotationLevel[] lipidAnnotationLevels = LipidAnnotationLevel.class.getEnumConstants();
+    for (LipidAnnotationLevel lipidAnnotationLevel : lipidAnnotationLevels) {
+      if (lipidAnnotationLevel.name().equals(lipidAnnotationLevelName)) {
+        return lipidAnnotationLevel;
+      }
+    }
+    return null;
+  }
+
+  public static LipidCategories lipidCategoryNameToLipidLipidCategory(String lipidCategoryName) {
+    LipidCategories[] lipidCategories = LipidCategories.class.getEnumConstants();
+    for (LipidCategories lipidCategory : lipidCategories) {
+      if (lipidCategory.name().equals(lipidCategoryName)) {
+        return lipidCategory;
+      }
+    }
+    return null;
+  }
+
+  public static LipidMainClasses lipidMainClassNameToLipidLipidMainClass(
+      String lipidMainClassName) {
+    LipidMainClasses[] lipidMainClasses = LipidMainClasses.class.getEnumConstants();
+    for (LipidMainClasses lipidMainClass : lipidMainClasses) {
+      if (lipidMainClass.name().equals(lipidMainClassName)) {
+        return lipidMainClass;
+      }
+    }
+    return null;
+  }
+
+  public static LipidChainType lipidChainTypeNameToLipidChainType(String lipidChainTypeName) {
+    LipidChainType[] lipidChainTypes = LipidChainType.class.getEnumConstants();
+    for (LipidChainType lipidChainType : lipidChainTypes) {
+      if (lipidChainType.name().equals(lipidChainTypeName)) {
+        return lipidChainType;
+      }
+    }
+    return null;
+  }
+
+  public static LipidClasses lipidClassNameToLipidClass(String lipidClassName) {
+    LipidClasses[] lipidClasses = LipidClasses.class.getEnumConstants();
+    for (LipidClasses lipidClass : lipidClasses) {
+      if (lipidClass.getName().equals(lipidClassName)) {
+        return lipidClass;
+      }
+    }
+    return null;
   }
 }
