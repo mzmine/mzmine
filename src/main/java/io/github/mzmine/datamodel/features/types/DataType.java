@@ -23,17 +23,20 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.ModularDataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -282,4 +285,39 @@ public abstract class DataType<T> {
    */
   public abstract Class<T> getValueClass();
 
+  /**
+   * Evaluate a binding for a list of data models (calc the mean value, etc). Used in {@link
+   * SimpleRowBinding} to bind a row type to its feautre types.
+   *
+   * @param bindingType type of binding
+   * @param models
+   * @return
+   */
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    // general cases here - special cases handled in other classes
+    switch (bindingType) {
+      case COUNT: {
+        int c = 0;
+        for (var model : models) {
+          if (model.get(this) != null) {
+            c++;
+          }
+        }
+        return c;
+      }
+      case LIST: {
+        List<T> list = new ArrayList<>();
+        for (var model : models) {
+          T value = model.get(this);
+          if (value != null) {
+            list.add(value);
+          }
+        }
+        return list;
+      }
+      default:
+        return null;
+    }
+  }
 }

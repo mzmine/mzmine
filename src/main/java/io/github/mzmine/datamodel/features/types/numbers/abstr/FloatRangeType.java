@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,23 +8,25 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.util.ParsingUtils;
 import java.text.NumberFormat;
+import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -55,7 +57,7 @@ public abstract class FloatRangeType extends NumberRangeType<Float> {
 
   @Override
   public Class<Range<Float>> getValueClass() {
-    return (Class)Range.class;
+    return (Class) Range.class;
   }
 
   @Override
@@ -63,5 +65,48 @@ public abstract class FloatRangeType extends NumberRangeType<Float> {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     return ParsingUtils.stringToFloatRange(reader.getElementText());
+  }
+
+  @Override
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    Object result = super.evaluateBindings(bindingType, models);
+    if (result == null) {
+      // general cases here - special cases handled in other classes
+      switch (bindingType) {
+        case AVERAGE: {
+          // calc average center of ranges
+          float mean = 0f;
+          int c = 0;
+          for (var model : models) {
+            Range<Float> range = model.get(this);
+            if (range != null) {
+              float center = (range.upperEndpoint() - range.lowerEndpoint()) / 2f;
+              mean += center;
+            }
+          }
+          return c == 0 ? 0f : mean / c;
+        }
+        case SUM, CONSENSUS, RANGE: {
+          // calc average center of ranges
+          Range<Float> sum = null;
+          for (var model : models) {
+            Range<Float> range = model.get(this);
+            if (range != null) {
+              if (sum == null) {
+                sum = range;
+              } else {
+                sum.span(range);
+              }
+            }
+          }
+          return sum;
+        }
+        case MIN, MAX: {
+          throw new UnsupportedOperationException("min max bindings are undefined for Ranges");
+        }
+      }
+    }
+    return result;
   }
 }

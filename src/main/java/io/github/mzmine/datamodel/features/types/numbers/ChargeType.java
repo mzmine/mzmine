@@ -17,11 +17,14 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.RowBinding;
 import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -45,5 +48,39 @@ public class ChargeType extends IntegerType {
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));
+  }
+
+  /**
+   * The consensus charge will be the lowest charge with the maximum count in the feature list row
+   *
+   * @param bindingType
+   * @param models
+   * @return
+   */
+  @Override
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    switch (bindingType) {
+      case CONSENSUS: {
+        Map<Integer, Integer> max = new HashMap<>();
+        for (ModularDataModel model : models) {
+          if (model != null) {
+            Integer charge = model.get(this);
+            max.merge(charge, 1, Integer::sum);
+          }
+        }
+        Integer maxCharge = 0;
+        Integer maxCount = 0;
+        for (var entry : max.entrySet()) {
+          if (entry.getValue() > maxCount) {
+            maxCount = entry.getValue();
+            maxCharge = entry.getKey();
+          }
+        }
+        return maxCharge;
+      }
+      default:
+        return super.evaluateBindings(bindingType, models);
+    }
   }
 }

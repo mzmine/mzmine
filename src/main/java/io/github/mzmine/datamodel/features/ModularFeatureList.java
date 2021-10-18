@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
@@ -67,9 +66,14 @@ public class ModularFeatureList implements FeatureList {
   private final MemoryMapStorage memoryMapStorage;
   // bindings for values
   private final List<RowBinding> rowBindings = new ArrayList<>();
+  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
+  private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
+
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
+  @NotNull
+  private final StringProperty nameProperty;
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
@@ -83,9 +87,6 @@ public class ModularFeatureList implements FeatureList {
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
-  @NotNull
-  private final StringProperty nameProperty;
-
   // grouping
   private List<RowGroup> groups;
 
@@ -168,10 +169,6 @@ public class ModularFeatureList implements FeatureList {
       // apply to all rows
       modularStream().forEach(b::apply);
     }
-  }
-
-  public void addRowBinding(@NotNull RowBinding... bindings) {
-    addRowBinding(Arrays.asList(bindings));
   }
 
   /**
@@ -494,11 +491,11 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public FeatureListRow findRowByID(int id) {
     List<FeatureListRow> featureListRows = stream().filter(r -> r.getID() == id).toList();
-    if(featureListRows.isEmpty()) {
+    if (featureListRows.isEmpty()) {
       return null;
     }
 
-    if(featureListRows.size() > 1) {
+    if (featureListRows.size() > 1) {
       logger.info("more than one row with id " + id);
     }
 
@@ -574,6 +571,16 @@ public class ModularFeatureList implements FeatureList {
   @NotNull
   public Map<Type, R2RMap<RowsRelationship>> getRowMaps() {
     return r2rMaps;
+  }
+
+  @Override
+  public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners() {
+    return featureTypeListeners;
+  }
+
+  @Override
+  public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners() {
+    return rowTypeListeners;
   }
 
   @Override

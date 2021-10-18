@@ -15,19 +15,24 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import java.text.NumberFormat;
 
-public abstract class NumberType<T> extends DataType<T> {
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public interface DataTypeValueChangeListener<T> {
 
-  protected final NumberFormat DEFAULT_FORMAT;
-
-  protected NumberType(NumberFormat defaultFormat) {
-    DEFAULT_FORMAT = defaultFormat;
-  }
-
-  public abstract NumberFormat getFormatter();
-
+  /**
+   * Changed value event
+   *
+   * @param dataModel the data model that was changed (e.g., {@link Feature} or {@link
+   *                  FeatureListRow})
+   * @param type      the changed type
+   * @param oldValue  the old value
+   * @param newValue  the new value
+   */
+  void valueChanged(ModularDataModel dataModel,
+      DataType<T> type, T oldValue, T newValue);
 }

@@ -196,7 +196,8 @@ public interface Feature {
   void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers);
 
   /**
-   * @return The mobility or null if no mobility was set. Note that mobility can have different units.
+   * @return The mobility or null if no mobility was set. Note that mobility can have different
+   * units.
    * @see Feature#getMobilityUnit()
    */
   @Nullable
@@ -332,10 +333,23 @@ public interface Feature {
 
   /**
    * The detected data points of this feature/chromatogram
-   *
    */
   default IonTimeSeries<? extends Scan> getFeatureData() {
     throw new UnsupportedOperationException(
         "Get feature data is not implemented for this sub class. Use ModularFeature or implement");
   }
+
+  /**
+   * The FeatureListRow that contains this feature
+   *
+   * @return a feature list row or null if not assigned to a row
+   */
+  @Nullable FeatureListRow getRow();
+
+  /**
+   * Set the parent row
+   *
+   * @param row parent row
+   */
+  void setRow(@Nullable FeatureListRow row);
 }

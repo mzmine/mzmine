@@ -17,19 +17,30 @@
 
 package io.github.mzmine.datamodel.features;
 
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.types.DataType;
 
 /**
- * A RowBinding automatically creates a {@link ModularFeatureListRow} column that is based on {@link
- * DataType}s in all {@link ModularFeature}s
- *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public interface RowBinding extends DataTypeValueChangeListener {
+public class FeatureDataBinding implements
+    DataTypeValueChangeListener<IonTimeSeries<? extends Scan>> {
 
-  void apply(FeatureListRow row);
+  @Override
+  public void valueChanged(ModularDataModel dataModel, DataType<IonTimeSeries<? extends Scan>> type,
+      IonTimeSeries<? extends Scan> oldValue, IonTimeSeries<? extends Scan> newValue) {
+    final FeatureListRow row;
+    if (dataModel instanceof Feature f) {
+      row = f.getRow();
+    } else if (dataModel instanceof FeatureListRow dataRow) {
+      row = dataRow;
+    } else {
+      throw new UnsupportedOperationException(String.format(
+          "Cannot apply this binding to a non Feature or FeatureListRow data model %s of class %s",
+          dataModel, dataModel.getClass()));
+    }
 
-  DataType getRowType();
-
-  DataType getFeatureType();
+    row
+  }
 }

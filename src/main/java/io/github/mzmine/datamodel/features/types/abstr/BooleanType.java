@@ -70,4 +70,5 @@ public abstract class BooleanType extends DataType<Boolean> {
     }
     return Boolean.parseBoolean(text);
   }
+
 }

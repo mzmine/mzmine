@@ -203,6 +203,10 @@ public class ModularFeatureListRow implements FeatureListRow {
     return map;
   }
 
+  @Override
+  public @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
+    return getFeatureList().getRowTypeChangeListeners();
+  }
 
   @Override
   public <T> void set(Class<? extends DataType<T>> tclass, T value) {
@@ -272,6 +276,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     features.put(raw, modularFeature);
     modularFeature.setFeatureList(flist);
+    modularFeature.setRow(this);
   }
 
   /**

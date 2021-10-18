@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
@@ -21,10 +20,14 @@ package io.github.mzmine.datamodel.features;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.exceptions.TypeColumnUndefinedException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javafx.beans.property.Property;
 import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ModularDataModel {
@@ -164,20 +167,41 @@ public interface ModularDataModel {
     }
 
     DataType<T> realType = getTypeColumn(tclass);
-    getMap().put(realType, value);
+    Object old = getMap().put(realType, value);
+    // send changes to all listeners for this data type
+    List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(realType);
+    if (listeners != null && !Objects.equals(old, value)) {
+      for (DataTypeValueChangeListener listener : listeners) {
+        listener.valueChanged(this, realType, old, value);
+      }
+    }
   }
 
   /**
-   * Should only be called whenever a DataType column is removed from this model. To remove the
-   * value of the underlying Property<?> call {@link ModularDataModel#set(DataType, Object)}
+   * Should only be called whenever a DataType column is removed from this model.
    *
-   * @param tclass
+   * @param tclass the data type class to be removed
    */
   default <T> void remove(Class<? extends DataType<T>> tclass) {
     DataType type = getTypeColumn(tclass);
     if (type != null) {
-      getMap().remove(type);
+      Object old = getMap().remove(type);
+      if (old != null) {
+        List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(type);
+        if (listeners != null) {
+          for (DataTypeValueChangeListener listener : listeners) {
+            listener.valueChanged(this, type, old, null);
+          }
+        }
+      }
     }
+  }
+
+  /**
+   * Maps listeners to their {@link DataType}s. Default returns an empty list.
+   */
+  default @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getValueChangeListeners() {
+    return Map.of();
   }
 
   /**
