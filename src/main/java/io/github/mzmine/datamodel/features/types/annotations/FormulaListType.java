@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A list of molecular formulas
  */
-public class FormulaSummaryType extends ListDataType<ResultFormula>
+public class FormulaListType extends ListDataType<ResultFormula>
     implements AnnotationType, EditableColumnType {
 
 

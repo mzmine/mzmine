@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -35,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -49,17 +49,32 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ModularType offers a main column for multiple sub columns (DataTypes) that are stored in a {@link
- * ModularTypeProperty} An example implementation is given by {@link SpectralLibraryMatchType},
- * which is extending the scope with one column (type) that defines all the other columns.
+ * ModularTypeMap} An example implementation is given by {@link SpectralLibraryMatchType}, which is
+ * extending the scope with one column (type) that defines all the other columns.
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class ModularType extends DataType<ModularTypeProperty> implements
-    SubColumnsFactory<ModularTypeProperty> {
+public abstract class ModularType extends DataType<ModularTypeMap> implements
+    SubColumnsFactory<ModularTypeMap> {
 
   private static final Logger logger = Logger.getLogger(ModularType.class.getName());
 
   private ObservableMap<Class<? extends DataType>, DataType> subTypeMap;
+
+
+  @Override
+  public Class<ModularTypeMap> getValueClass() {
+    return ModularTypeMap.class;
+  }
+
+  /**
+   * Create the empty value map
+   *
+   * @return
+   */
+  public ModularTypeMap createMap() {
+    return new ModularTypeMap(this);
+  }
 
   /**
    * The unmodifiable list of sub data types. Order reflects the initial order of columns.
@@ -85,21 +100,16 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
+  public Property<ModularTypeMap> createProperty() {
     // create map of datatype -> property for all sub types
-    LinkedHashMap<DataType, Property<?>> map = new LinkedHashMap<>();
-    getSubDataTypes().stream().forEach(t -> map.put(t, t.createProperty()));
-    return new ModularTypeProperty(
-        FXCollections.unmodifiableObservableMap(FXCollections.observableMap(map)), this);
+    return new SimpleObjectProperty<>();
   }
 
   @Override
   @NotNull
-  public String getFormattedString(@NotNull ModularTypeProperty value) {
-    ObservableMap<DataType, Property<?>> map = value.getValue();
-    return map == null || map.isEmpty() ? ""
-        : map.entrySet().stream().map(e -> e.getKey().getFormattedString(e.getValue()))
-            .collect(Collectors.joining(";"));
+  public String getFormattedString(@NotNull ModularTypeMap value) {
+    return value.stream().map(e -> e.getKey().getFormattedString(e.getValue()))
+        .collect(Collectors.joining(";"));
   }
 
   @Override
@@ -192,7 +202,7 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
     if (!(value instanceof Map map)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
 
     for (Object obj : map.entrySet()) {
@@ -218,7 +228,7 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
         final Object finalVal = val;
         logger.warning(
             () -> "Error while writing data type " + dt.getClass().getSimpleName() + " with value "
-                + finalVal + " to xml.");
+                  + finalVal + " to xml.");
         e.printStackTrace();
       }
 
@@ -233,23 +243,24 @@ public abstract class ModularType extends DataType<ModularTypeProperty> implemen
 
     int parsed = 0;
 
-    ModularTypeProperty property = createProperty();
-    while (reader.hasNext() && parsed < property.size()) {
+    ModularTypeMap dataMap = createMap();
+    while (reader.hasNext()) {
       int next = reader.next();
 
-      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
-          && parsed == property.size() - 1) {
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
+          .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        // TODO check if end element is from parent type
         break;
       }
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        DataType<?> type = DataTypes.getTypeForId(
+        DataType type = DataTypes.getTypeForId(
             reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
         Object o = type.loadFromXML(reader, flist, row, feature, file);
-        property.set(type, o);
+        dataMap.set(type, o);
         parsed++;
       }
     }
 
-    return property;
+    return dataMap;
   }
 }

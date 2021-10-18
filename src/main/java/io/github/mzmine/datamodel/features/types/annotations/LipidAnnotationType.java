@@ -19,7 +19,7 @@ package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -59,8 +59,8 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
-    ModularTypeProperty property = super.createProperty();
+  public ModularTypeMap createProperty() {
+    ModularTypeMap property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on
     // this object
@@ -83,11 +83,11 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
 
   /**
    * On change of the first list element, change all the other sub types.
-   * 
+   *
    * @param data
    * @param match
    */
-  private void setCurrentElement(ModularTypeProperty data, MatchedLipid match,
+  private void setCurrentElement(ModularTypeMap data, MatchedLipid match,
       int numberOfAnnotations) {
     if (match == null) {
       for (DataType type : this.getSubDataTypes()) {

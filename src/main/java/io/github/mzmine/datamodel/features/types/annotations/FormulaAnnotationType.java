@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,19 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A collection of annotation types related to a list of molecular formulas stored in the {@link
- * FormulaSummaryType}. Includes scores, neutral mass, etc.
+ * FormulaListType}. Includes scores, neutral mass, etc.
  */
 public class FormulaAnnotationType extends ModularType implements AnnotationType {
 
@@ -50,7 +49,7 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
 
   // Unmodifiable list of all subtypes
   private final List<DataType> subTypes = List
-      .of(new FormulaSummaryType(), new FormulaMassType(), new RdbeType(),
+      .of(new FormulaListType(), new FormulaMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
@@ -61,12 +60,12 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
    * @param formula    the new preferred formula (first element)
    * @param removeNull remove all entries if formula is null
    */
-  public static void setCurrentElement(ModularTypeProperty data, ResultFormula formula,
+  public static void setCurrentElement(ModularTypeMap data, ResultFormula formula,
       boolean removeNull) {
     if (formula == null) {
       if (removeNull) {
         for (DataType type : data.getTypes().values()) {
-          if (!(type instanceof FormulaSummaryType)) {
+          if (!(type instanceof FormulaListType)) {
             data.set(type, null);
           }
         }
@@ -101,11 +100,11 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
-    ModularTypeProperty property = super.createProperty();
+  public ModularTypeMap createProperty() {
+    ModularTypeMap property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
-    Objects.requireNonNull(property.get(FormulaSummaryType.class))
+    Objects.requireNonNull(property.get(FormulaListType.class))
         .addListener((ListChangeListener<ResultFormula>) change -> {
           ObservableList<? extends ResultFormula> summaryProperty = change.getList();
           boolean firstElementChanged = false;

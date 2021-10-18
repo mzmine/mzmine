@@ -19,7 +19,7 @@ package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
@@ -70,8 +70,8 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
-    ModularTypeProperty property = super.createProperty();
+  public ModularTypeMap createProperty() {
+    ModularTypeMap property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
     property.get(SpectralLibMatchSummaryType.class)
@@ -96,7 +96,7 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
    * @param data  the data property
    * @param match the current element
    */
-  private void setCurrentElement(ModularTypeProperty data, SpectralDBFeatureIdentity match) {
+  private void setCurrentElement(ModularTypeMap data, SpectralDBFeatureIdentity match) {
     if (match == null) {
       for (DataType type : this.getSubDataTypes()) {
         if (!(type instanceof SpectralLibMatchSummaryType)) {

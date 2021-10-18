@@ -30,10 +30,10 @@ import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
@@ -468,7 +468,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public String getComment() {
-    ModularTypeProperty manual = getManualAnnotation();
+    ModularTypeMap manual = getManualAnnotation();
     if (manual != null) {
       return manual.get(CommentType.class);
     } else {
@@ -478,7 +478,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setComment(String comment) {
-    ModularTypeProperty manual = getManualAnnotation();
+    ModularTypeMap manual = getManualAnnotation();
     if (manual == null) {
       // add type
       flist.addRowType(new ManualAnnotationType());
@@ -488,13 +488,13 @@ public class ModularFeatureListRow implements FeatureListRow {
     manual.set(CommentType.class, comment);
   }
 
-  public ModularTypeProperty getManualAnnotation() {
+  public ModularTypeMap getManualAnnotation() {
     return get(ManualAnnotationType.class);
   }
 
   @Override
   public List<FeatureIdentity> getPeakIdentities() {
-    ModularTypeProperty manual = getManualAnnotation();
+    ModularTypeMap manual = getManualAnnotation();
     if (manual != null) {
       return manual.get(IdentityType.class);
     } else {
@@ -505,7 +505,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   public void setPeakIdentities(ObservableList<FeatureIdentity> identities) {
-    ModularTypeProperty manual = getManualAnnotation();
+    ModularTypeMap manual = getManualAnnotation();
     if (manual == null) {
       // add type
       flist.addRowType(new ManualAnnotationType());
@@ -517,7 +517,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    ModularTypeProperty manual = getManualAnnotation();
+    ModularTypeMap manual = getManualAnnotation();
     if (manual == null) {
       // add type
       flist.addRowType(new ManualAnnotationType());
@@ -548,7 +548,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   @NotNull
   public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
-    ModularTypeProperty matchProperty = get(SpectralLibraryMatchType.class);
+    ModularTypeMap matchProperty = get(SpectralLibraryMatchType.class);
     if (matchProperty != null) {
       return matchProperty.get(SpectralLibMatchSummaryType.class);
     } else {
@@ -660,15 +660,15 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   public List<ResultFormula> getFormulas() {
-    ModularTypeProperty formulaType = get(FormulaAnnotationType.class);
-    return formulaType == null ? null : formulaType.get(FormulaSummaryType.class);
+    ModularTypeMap formulaType = get(FormulaAnnotationType.class);
+    return formulaType == null ? null : formulaType.get(FormulaListType.class);
   }
 
   public void setFormulas(List<ResultFormula> formulas) {
     if (get(FormulaAnnotationType.class) == null) {
       flist.addRowType(new FormulaAnnotationType());
     }
-    get(FormulaAnnotationType.class).set(FormulaSummaryType.class, formulas);
+    get(FormulaAnnotationType.class).set(FormulaListType.class, formulas);
   }
 
   @Override

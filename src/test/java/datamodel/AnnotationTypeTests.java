@@ -21,7 +21,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -76,9 +76,9 @@ public class AnnotationTypeTests {
     // test row load
     ManualAnnotationType type = new ManualAnnotationType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
-    ModularTypeProperty value = type.createProperty();
+    ModularTypeMap value = type.createProperty();
     value.set(IdentityType.class, list);
-    final ModularTypeProperty loaded = (ModularTypeProperty) DataTypeTestUtils
+    final ModularTypeMap loaded = (ModularTypeMap) DataTypeTestUtils
         .saveAndLoad(type, value, flist, row, null, null);
 
     List<FeatureIdentity> featureIdentities = loaded.get(new IdentityType());

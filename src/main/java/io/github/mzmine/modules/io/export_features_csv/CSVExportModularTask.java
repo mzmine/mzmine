@@ -26,7 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedDataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -260,7 +260,7 @@ public class CSVExportModularTask extends AbstractTask {
   /**
    * @param b
    * @param data  {@link ModularFeatureListRow}, {@link ModularFeature}, {@link
-   *              ModularTypeProperty}
+   *              ModularTypeMap}
    * @param types
    * @return
    */
@@ -268,7 +268,7 @@ public class CSVExportModularTask extends AbstractTask {
     for (DataType type : types) {
       if (type instanceof ModularType modType) {
         // needs to be checked before SubColumnFactory
-        ModularTypeProperty modProp = data.get(modType);
+        ModularTypeMap modProp = data.get(modType);
         // join all the sub types of a modular data type
         List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
             .filter(this::filterType).collect(Collectors.toList());

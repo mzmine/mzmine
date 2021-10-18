@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,19 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
@@ -42,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 public class GNPSSpectralLibraryMatchType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new GNPSSpectralLibMatchSummaryType(),
+  private static final List<DataType> subTypes = List.of(new GNPSSpectralLibMatchSummaryType(),
       new CompoundNameType(), new IonAdductType(),
       new SmilesStructureType(), new InChIStructureType(),
       new CosineScoreType(), new MatchingSignalsType(), new GNPSLibraryUrlType(),
@@ -69,8 +68,8 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
-    ModularTypeProperty property = super.createProperty();
+  public ModularTypeMap createProperty() {
+    ModularTypeMap property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
     property.get(GNPSSpectralLibMatchSummaryType.class)
@@ -95,7 +94,7 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
    * @param data  the data property
    * @param match the current element
    */
-  private void setCurrentElement(ModularTypeProperty data, GNPSLibraryMatch match) {
+  private void setCurrentElement(ModularTypeMap data, GNPSLibraryMatch match) {
     if (match == null) {
       for (DataType type : this.getSubDataTypes()) {
         if (!(type instanceof GNPSSpectralLibMatchSummaryType)) {

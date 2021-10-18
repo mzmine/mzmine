@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,32 +8,31 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations.iin;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaConsensusSummaryType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaListType;
+import io.github.mzmine.datamodel.features.types.annotations.FormulaMassType;
+import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -57,7 +56,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
           // list of IIN consensus formulas
           new FormulaConsensusSummaryType(),
           // List of formulas for this row and all related types
-          new FormulaSummaryType(), new FormulaMassType(), new RdbeType(),
+          new FormulaListType(), new FormulaMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
@@ -73,8 +72,8 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
-    final ModularTypeProperty property = super.createProperty();
+  public ModularTypeMap createProperty() {
+    final ModularTypeMap property = super.createProperty();
 
     // add bindings: If first element in summary column changes - update all other columns based on this object
     property.get(IonIdentityListType.class)
@@ -90,7 +89,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
           }
         });
 
-    property.get(FormulaSummaryType.class)
+    property.get(FormulaListType.class)
         .addListener((ListChangeListener<ResultFormula>) change -> {
           ObservableList<? extends ResultFormula> summaryProperty = change.getList();
           boolean firstElementChanged = false;
@@ -112,7 +111,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
    * @param data data property
    * @param ion  the new preferred ion (first element)
    */
-  private void setCurrentElement(@NotNull ModularTypeProperty data, @Nullable IonIdentity ion) {
+  private void setCurrentElement(@NotNull ModularTypeMap data, @Nullable IonIdentity ion) {
     if (ion == null) {
       for (DataType type : this.getSubDataTypes()) {
         if (!(type instanceof IonIdentityListType)) {
@@ -137,7 +136,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
           ion.getMSMSMultimerCount() > 0 ? ion.getMSMSMultimerCount() : null);
 
       // set all formulas and update the shown "best" formula
-      data.set(FormulaSummaryType.class, ion.getMolFormulas());
+      data.set(FormulaListType.class, ion.getMolFormulas());
       setCurrentFormula(data, ion.getBestMolFormula());
     }
   }
@@ -145,7 +144,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
   /**
    *
    */
-  private void setCurrentFormula(@NotNull ModularTypeProperty data,
+  private void setCurrentFormula(@NotNull ModularTypeMap data,
       @Nullable ResultFormula formula) {
     // do not override all field if formula is none
     FormulaAnnotationType.setCurrentElement(data, formula, false);
