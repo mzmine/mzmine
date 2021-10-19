@@ -241,7 +241,9 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
 
+    // stop if ended==parsed+1 (reached end of this ModularType)
     int parsed = 0;
+    int ended = 0;
 
     ModularTypeMap dataMap = createMap();
     while (reader.hasNext()) {
@@ -249,8 +251,10 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
 
       if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
           .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        // TODO check if end element is from parent type
-        break;
+        ended++;
+        if (ended == parsed + 1) {
+          break;
+        }
       }
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         DataType type = DataTypes.getTypeForId(
