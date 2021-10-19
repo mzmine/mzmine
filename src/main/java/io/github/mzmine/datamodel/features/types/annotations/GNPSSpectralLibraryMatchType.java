@@ -27,8 +27,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import java.util.List;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -67,27 +65,6 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
     return "GNPS library match";
   }
 
-  @Override
-  public ModularTypeMap createProperty() {
-    ModularTypeMap property = super.createProperty();
-
-    // add bindings: If first element in summary column changes - update all other columns based on this object
-    property.get(GNPSSpectralLibMatchSummaryType.class)
-        .addListener((ListChangeListener<GNPSLibraryMatch>) change -> {
-          ObservableList<? extends GNPSLibraryMatch> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next()) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0));
-          }
-        });
-
-    return property;
-  }
-
   /**
    * On change of the first list element, change all the other sub types.
    *
@@ -103,12 +80,12 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
       }
     } else {
       // update selected values
-      data.set(CompoundNameType.class, match.getResultOr(ATT.COMPOUND_NAME, "NONAME"));
-      data.set(IonAdductType.class, match.getResultOr(ATT.ADDUCT, ""));
-      data.set(SmilesStructureType.class, match.getResultOr(ATT.SMILES, ""));
-      data.set(InChIStructureType.class, match.getResultOr(ATT.INCHI, ""));
-      data.set(CosineScoreType.class, match.getResultOr(ATT.LIBRARY_MATCH_SCORE, -1));
-      data.set(MatchingSignalsType.class, match.getResultOr(ATT.SHARED_SIGNALS, -1));
+      data.set(CompoundNameType.class, match.getResultOr(ATT.COMPOUND_NAME, "NONAME").toString());
+      data.set(IonAdductType.class, match.getResultOr(ATT.ADDUCT, "").toString());
+      data.set(SmilesStructureType.class, match.getResultOr(ATT.SMILES, "").toString());
+      data.set(InChIStructureType.class, match.getResultOr(ATT.INCHI, "").toString());
+      data.set(CosineScoreType.class, match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null));
+      data.set(MatchingSignalsType.class, match.getResultOr(ATT.SHARED_SIGNALS, null));
       data.set(GNPSLibraryUrlType.class, match.getResultOr(ATT.GNPS_LIBRARY_URL, null));
       data.set(GNPSClusterUrlType.class, match.getResultOr(ATT.GNPS_CLUSTER_URL, null));
       data.set(GNPSNetworkUrlType.class, match.getResultOr(ATT.GNPS_NETWORK_URL, null));

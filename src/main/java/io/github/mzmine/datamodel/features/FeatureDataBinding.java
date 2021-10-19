@@ -41,6 +41,6 @@ public class FeatureDataBinding implements
           dataModel, dataModel.getClass()));
     }
 
-    row
+    // todo changes to charts etc
   }
 }

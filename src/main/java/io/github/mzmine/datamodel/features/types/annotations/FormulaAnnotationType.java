@@ -29,9 +29,6 @@ import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceTyp
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.util.List;
-import java.util.Objects;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -97,28 +94,6 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
   @Override
   public String getHeaderString() {
     return "Formula";
-  }
-
-  @Override
-  public ModularTypeMap createProperty() {
-    ModularTypeMap property = super.createProperty();
-
-    // add bindings: If first element in summary column changes - update all other columns based on this object
-    Objects.requireNonNull(property.get(FormulaListType.class))
-        .addListener((ListChangeListener<ResultFormula>) change -> {
-          ObservableList<? extends ResultFormula> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next()) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0),
-                true);
-          }
-        });
-
-    return property;
   }
 
 }

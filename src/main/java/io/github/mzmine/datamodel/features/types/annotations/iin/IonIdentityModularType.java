@@ -37,8 +37,6 @@ import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.util.List;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 public class IonIdentityModularType extends ModularType implements AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List
+  private static final List<DataType> subTypes = List
       .of(new IonIdentityListType(), new IonNetworkIDType(), new SizeType(), new NeutralMassType(),
           new PartnerIdsType(), new MsMsMultimerVerifiedType(),
           // all formula types
@@ -69,40 +67,6 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
   @Override
   public String getHeaderString() {
     return "Ion identity";
-  }
-
-  @Override
-  public ModularTypeMap createProperty() {
-    final ModularTypeMap property = super.createProperty();
-
-    // add bindings: If first element in summary column changes - update all other columns based on this object
-    property.get(IonIdentityListType.class)
-        .addListener((ListChangeListener<IonIdentity>) change -> {
-          ObservableList<? extends IonIdentity> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next() && !firstElementChanged) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0));
-          }
-        });
-
-    property.get(FormulaListType.class)
-        .addListener((ListChangeListener<ResultFormula>) change -> {
-          ObservableList<? extends ResultFormula> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next() && !firstElementChanged) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentFormula(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0));
-          }
-        });
-
-    return property;
   }
 
   /**
@@ -132,8 +96,7 @@ public class IonIdentityModularType extends ModularType implements AnnotationTyp
         data.set(SizeType.class, null);
       }
       data.set(PartnerIdsType.class, ion.getPartnerRowsString(";"));
-      data.set(MsMsMultimerVerifiedType.class,
-          ion.getMSMSMultimerCount() > 0 ? ion.getMSMSMultimerCount() : null);
+      data.set(MsMsMultimerVerifiedType.class, ion.getMSMSMultimerCount() > 0);
 
       // set all formulas and update the shown "best" formula
       data.set(FormulaListType.class, ion.getMolFormulas());

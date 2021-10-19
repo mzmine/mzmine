@@ -31,8 +31,6 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -69,26 +67,6 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
     return "Spectral library match";
   }
 
-  @Override
-  public ModularTypeMap createProperty() {
-    ModularTypeMap property = super.createProperty();
-
-    // add bindings: If first element in summary column changes - update all other columns based on this object
-    property.get(SpectralLibMatchSummaryType.class)
-        .addListener((ListChangeListener<SpectralDBFeatureIdentity>) change -> {
-          ObservableList<? extends SpectralDBFeatureIdentity> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next()) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0));
-          }
-        });
-
-    return property;
-  }
 
   /**
    * On change of the first list element, change all the other sub types.

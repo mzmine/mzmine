@@ -24,8 +24,6 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import java.util.List;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -56,29 +54,6 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
   @Override
   public @NotNull String getHeaderString() {
     return "Lipid Annotation";
-  }
-
-  @Override
-  public ModularTypeMap createProperty() {
-    ModularTypeMap property = super.createProperty();
-
-    // add bindings: If first element in summary column changes - update all other columns based on
-    // this object
-    property.get(LipidAnnotationSummaryType.class)
-        .addListener((ListChangeListener<MatchedLipid>) change -> {
-          ObservableList<? extends MatchedLipid> summaryProperty = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next()) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, summaryProperty.isEmpty() ? null : summaryProperty.get(0),
-                summaryProperty.size());
-          }
-        });
-
-    return property;
   }
 
   /**

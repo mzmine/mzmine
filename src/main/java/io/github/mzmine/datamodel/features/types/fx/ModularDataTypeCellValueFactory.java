@@ -37,25 +37,27 @@ import org.jetbrains.annotations.NotNull;
  * Cell type factory for ModularType
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class ModularDataTypeCellValueFactory implements
     Callback<CellDataFeatures<ModularFeatureListRow, Object>, ObservableValue<Object>>,
     Function<ModularFeatureListRow, ModularDataModel> {
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private RawDataFile raw;
-  private ModularType modularParentType;
-  private DataType<?> subType;
+  private final RawDataFile raw;
+  private final ModularType modularParentType;
+  private final DataType<?> subType;
 
   private final @NotNull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
 
-  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType, DataType<?> subType) {
+  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType,
+      DataType<?> subType) {
     this(raw, modularParentType, subType, null);
   }
 
-  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType, DataType<?> subType,
-                                         Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier) {
+  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType,
+      DataType<?> subType,
+      Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier) {
     this.modularParentType = modularParentType;
     this.subType = subType;
     this.raw = raw;
@@ -67,14 +69,18 @@ public class ModularDataTypeCellValueFactory implements
     final ModularDataModel map = dataMapSupplier.apply(param.getValue().getValue());
     if (map == null) {
       logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
-          + modularParentType.getClass().toString() + "and sub type " +subType.getClass().toString()+" and raw file " + (raw == null ? "NONE" : raw.getName()));
+                                + modularParentType.getClass().toString() + "and sub type "
+                                + subType.getClass().toString() + " and raw file " + (raw == null
+          ? "NONE" : raw.getName()));
       return null;
     }
     try {
-      Map<DataType, Object> parentMap = map.get(modularParentType);
+      Map<DataType, Object> parentMap = map.get(modularParentType).getMap();
       return (ObservableValue<Object>) parentMap.get(subType);
-    }catch (Exception ex) {
-      logger.log(Level.WARNING, MessageFormat.format("Cannot get sub type {0} of ModularType {1}", subType.getClass().toString(), map.getClass().toString()), ex);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, MessageFormat
+          .format("Cannot get sub type {0} of ModularType {1}", subType.getClass().toString(),
+              map.getClass().toString()), ex);
 //      throw ex;
     }
     return null;
@@ -90,8 +96,9 @@ public class ModularDataTypeCellValueFactory implements
       // find data type map for feature for this raw file
       Map<RawDataFile, ModularFeature> features = row.getFilesFeatures();
       // no features
-      if (features.get(raw) == null)
+      if (features.get(raw) == null) {
         return null;
+      }
       return features.get(raw);
     } else {
       // use feature list row DataTypeMap

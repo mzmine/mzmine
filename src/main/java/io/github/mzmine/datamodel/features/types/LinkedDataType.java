@@ -24,16 +24,16 @@ import javafx.beans.property.SimpleObjectProperty;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class LinkedDataType extends DataType<TypeListenerProperty> implements
+public abstract class LinkedDataType extends DataType<Boolean> implements
     NoTextColumn {
 
   @Override
-  public Property<TypeListenerProperty> createProperty() {
+  public Property<Boolean> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<TypeListenerProperty> getValueClass() {
-    return TypeListenerProperty.class;
+  public Class<Boolean> getValueClass() {
+    return Boolean.class;
   }
 }
