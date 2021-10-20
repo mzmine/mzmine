@@ -48,8 +48,10 @@ public class SimpleRowBinding implements RowBinding {
 
   @Override
   public void apply(FeatureListRow row) {
-    if (row.get(rowType) != null) {
-      featureType.evaluateBindings(bindingType, row.getFeatures());
+    // row might be null if the feature was not yet added
+    if (row != null) {
+      Object value = featureType.evaluateBindings(bindingType, row.getFeatures());
+      row.set(rowType, value);
     }
   }
 

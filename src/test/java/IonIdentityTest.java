@@ -148,8 +148,7 @@ public class IonIdentityTest {
         rowProtonated.get(IonIdentityModularType.class).get(RdbeType.class),
         "Cannot access formula specific types from sub types of IonIdentityModularType.class");
     assertEquals(0.9f,
-        rowProtonated.get(IonIdentityModularType.class).get(IsotopePatternScoreType.class)
-            .getValue(),
+        rowProtonated.get(IonIdentityModularType.class).get(IsotopePatternScoreType.class),
         "Cannot access formula specific types from sub types of IonIdentityModularType.class");
 
   }

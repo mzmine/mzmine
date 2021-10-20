@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -89,6 +90,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements FeatureListRow {
 
+  private static final Logger logger = Logger.getLogger(ModularFeatureListRow.class.getName());
   /**
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
@@ -274,9 +276,14 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     ModularFeature modularFeature = (ModularFeature) feature;
 
-    features.put(raw, modularFeature);
+    ModularFeature oldFeature = features.put(raw, modularFeature);
     modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
+
+    if (!Objects.equals(oldFeature, modularFeature)) {
+      // reflect changes by updating all row bindings
+      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw);
+    }
   }
 
   /**
@@ -598,7 +605,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public ModularFeature getBestFeature() {
-    return streamFeatures().filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN)
+    return streamFeatures().filter(Objects::nonNull)
+        .filter(f -> f.get(DetectionType.class) != FeatureStatus.UNKNOWN)
         .sorted(new FeatureSorter(SortingProperty.Height, SortingDirection.Descending)).findFirst()
         .orElse(null);
   }

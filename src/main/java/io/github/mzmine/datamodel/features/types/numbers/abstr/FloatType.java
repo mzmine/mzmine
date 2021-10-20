@@ -100,6 +100,7 @@ public abstract class FloatType extends NumberType<Float> {
             Float value = model.get(this);
             if (value != null) {
               mean += value;
+              c++;
             }
           }
           return c == 0 ? 0f : mean / c;

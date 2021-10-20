@@ -76,7 +76,7 @@ public class AnnotationTypeTests {
     // test row load
     ManualAnnotationType type = new ManualAnnotationType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
-    ModularTypeMap value = type.createProperty();
+    ModularTypeMap value = type.createMap();
     value.set(IdentityType.class, list);
     final ModularTypeMap loaded = (ModularTypeMap) DataTypeTestUtils
         .saveAndLoad(type, value, flist, row, null, null);

@@ -33,6 +33,5 @@ public interface DataTypeValueChangeListener<T> {
    * @param oldValue  the old value
    * @param newValue  the new value
    */
-  void valueChanged(ModularDataModel dataModel,
-      DataType<T> type, T oldValue, T newValue);
+  void valueChanged(ModularDataModel dataModel, DataType<T> type, T oldValue, T newValue);
 }

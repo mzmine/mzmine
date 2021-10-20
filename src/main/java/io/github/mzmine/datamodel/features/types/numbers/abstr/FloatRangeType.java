@@ -83,6 +83,7 @@ public abstract class FloatRangeType extends NumberRangeType<Float> {
             if (range != null) {
               float center = (range.upperEndpoint() - range.lowerEndpoint()) / 2f;
               mean += center;
+              c++;
             }
           }
           return c == 0 ? 0f : mean / c;

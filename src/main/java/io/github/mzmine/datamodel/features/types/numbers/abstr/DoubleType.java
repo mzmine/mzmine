@@ -101,6 +101,7 @@ public abstract class DoubleType extends NumberType<Double> {
             Double value = model.get(this);
             if (value != null) {
               mean += value;
+              c++;
             }
           }
           return c == 0 ? 0f : mean / c;

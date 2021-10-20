@@ -83,6 +83,7 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
             if (range != null) {
               Double center = (range.upperEndpoint() - range.lowerEndpoint()) / 2f;
               mean += center;
+              c++;
             }
           }
           return c == 0 ? 0f : mean / c;

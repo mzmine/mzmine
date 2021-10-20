@@ -65,7 +65,6 @@ public class ModularFeatureList implements FeatureList {
   @Nullable
   private final MemoryMapStorage memoryMapStorage;
   // bindings for values
-  private final List<RowBinding> rowBindings = new ArrayList<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
 
@@ -163,21 +162,90 @@ public class ModularFeatureList implements FeatureList {
    */
   public void addRowBinding(@NotNull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
-      rowBindings.add(b);
+      addFeatureTypeListener(b.getFeatureType(), b);
       // add missing row types, that are based on RowBindings
       addRowType(b.getRowType());
       // apply to all rows
-      modularStream().forEach(b::apply);
+      for (FeatureListRow row : getRows()) {
+        b.apply(row);
+      }
     }
   }
 
   /**
-   * Apply all bindings to all this row
+   * Add a listener for a feature DataType
    *
-   * @param row
+   * @param featureType data type that is present in the feature types
+   * @param listener    the listener for value changes
    */
-  private void applyRowBindings(ModularFeatureListRow row) {
-    rowBindings.forEach(bind -> bind.apply(row));
+  public void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener) {
+    featureTypeListeners.compute(featureType, (key, list) -> {
+      if (list == null) {
+        list = new ArrayList<>();
+      }
+      list.add(listener);
+      return list;
+    });
+  }
+
+  /**
+   * Add a listener for a FeatureListRow DataType
+   *
+   * @param rowType  data type that is present in the FeatureListRow types
+   * @param listener the listener for value changes
+   */
+  public void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowTypeListeners.compute(rowType, (key, list) -> {
+      if (list == null) {
+        list = new ArrayList<>();
+      }
+      list.add(listener);
+      return list;
+    });
+  }
+
+  /**
+   * Removes a listener for a FeatureListRow DataType
+   *
+   * @param rowType  data type that is present in the FeatureListRow types
+   * @param listener the listener for value changes
+   */
+  public void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
+    rowTypeListeners.compute(rowType, (key, list) -> {
+      if (list == null || list.isEmpty()) {
+        return null;
+      }
+      list.remove(listener);
+      return list.isEmpty() ? null : list;
+    });
+  }
+
+  /**
+   * Removes a listener for a Feature DataType
+   *
+   * @param featureType data type that is present in the Feature types
+   * @param listener    the listener for value changes
+   */
+  public void removeFeatureTypeListener(DataType featureType,
+      DataTypeValueChangeListener listener) {
+    featureTypeListeners.compute(featureType, (key, list) -> {
+      if (list == null || list.isEmpty()) {
+        return null;
+      }
+      list.remove(listener);
+      return list.isEmpty() ? null : list;
+    });
+  }
+
+  @Override
+  public void applyRowBindings(FeatureListRow row) {
+    for (var listeners : featureTypeListeners.values()) {
+      for (var listener : listeners) {
+        if (listener instanceof RowBinding bind) {
+          bind.apply(row);
+        }
+      }
+    }
   }
 
   /**
@@ -192,7 +260,7 @@ public class ModularFeatureList implements FeatureList {
   public void addFeatureType(@NotNull List<DataType<?>> types) {
     for (DataType<?> type : types) {
       if (!featureTypes.containsKey(type.getClass())) {
-        // all {@link ModularFeature} will automatically add a default property to their data map
+        // all {@link ModularFeature} will automatically add a default data map
         featureTypes.put(type.getClass(), type);
         // add row bindings
         addRowBinding(type.createDefaultRowBindings());
@@ -645,10 +713,6 @@ public class ModularFeatureList implements FeatureList {
 
     selectedScans.forEach(flist::setSelectedScans);
     return flist;
-  }
-
-  public List<RowBinding> getRowBindings() {
-    return rowBindings;
   }
 
   @Nullable

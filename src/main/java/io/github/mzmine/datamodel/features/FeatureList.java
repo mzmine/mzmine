@@ -55,6 +55,13 @@ public interface FeatureList {
   public void setName(@NotNull String name);
 
   /**
+   * Apply all row bindings to row (e.g., calculating the average m/z etc)
+   *
+   * @param row
+   */
+  void applyRowBindings(FeatureListRow row);
+
+  /**
    * Returns number of raw data files participating in the feature list
    */
   public int getNumberOfRawDataFiles();
@@ -368,6 +375,15 @@ public interface FeatureList {
    * @return map of feature DataType listeners
    */
   @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+
+  /**
+   * @param row
+   * @param newFeature
+   * @param raw
+   */
+  default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw) {
+    applyRowBindings(row);
+  }
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
