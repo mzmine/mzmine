@@ -145,16 +145,16 @@ public class TDFUtils {
     }
     if (path.isFile()) {
       logger.finest(() -> "Opening tdf file " + path.getAbsolutePath());
-      final long handle = tdfLib
-          .tims_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = " + tdfLib
-          .tims_has_recalibrated_state(handle));
+      final long handle = tdfLib.tims_open(path.getParentFile().getAbsolutePath(),
+          useRecalibratedState);
+      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
+          + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     } else {
       logger.finest(() -> "Opening tdf path " + path.getAbsolutePath());
       final long handle = tdfLib.tims_open(path.getAbsolutePath(), useRecalibratedState);
-      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = " + tdfLib
-          .tims_has_recalibrated_state(handle));
+      logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
+          + tdfLib.tims_has_recalibrated_state(handle));
       return handle;
     }
   }
@@ -204,8 +204,8 @@ public class TDFUtils {
       final long end = Math.min((start + SCAN_PACKAGE_SIZE), scanEnd);
       final int numScans = (int) (end - start);
 
-      final long lastError = tdfLib
-          .tims_read_scans_v2(handle, frameId, start, end, buffer, buffer.length);
+      final long lastError = tdfLib.tims_read_scans_v2(handle, frameId, start, end, buffer,
+          buffer.length);
 
       // check if the buffer size was enough
       if (printLastError(lastError)) {
@@ -232,8 +232,8 @@ public class TDFUtils {
         final int numPeaks = scanBuffer[i];
         final int[] indices = Arrays.copyOfRange(scanBuffer, d, d + numPeaks);
         d += numPeaks;
-        final double[] intensities = ConversionUtils
-            .convertIntsToDoubles(Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
+        final double[] intensities = ConversionUtils.convertIntsToDoubles(
+            Arrays.copyOfRange(scanBuffer, d, d + numPeaks));
         d += numPeaks;
         final double[] masses = convertIndicesToMZ(handle, frameId, indices);
 
@@ -257,8 +257,8 @@ public class TDFUtils {
    * @return List of scans for the given frame id. Empty scans have been filtered out.
    */
   @Nullable
-  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long handle,
-      final long frameId, @NotNull final TDFFrameTable frameTable) {
+  public List<BuildingMobilityScan> loadSpectraForTIMSFrame(final long handle, final long frameId,
+      @NotNull final TDFFrameTable frameTable) {
     return loadSpectraForTIMSFrame(handle, frameId, frameTable, null, null);
   }
 
@@ -308,9 +308,8 @@ public class TDFUtils {
       final int startScanNum, final int endScanNum) {
 
     final CentroidData data = new CentroidData();
-    final long error = tdfLib
-        .tims_extract_centroided_spectrum_for_frame(handle, frameId, startScanNum, endScanNum, data,
-            Pointer.NULL);
+    final long error = tdfLib.tims_extract_centroided_spectrum_for_frame(handle, frameId,
+        startScanNum, endScanNum, data, Pointer.NULL);
 
     if (error == 0) {
       logger.warning(() -> "Could not extract centroid scan for frame " + frameId + " for scans "
@@ -357,12 +356,13 @@ public class TDFUtils {
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
     final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
 
-    final String scanDefinition = metaDataTable.getInstrumentType() + " - " + BrukerScanMode
-        .fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue());
     final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    final PolarityType polarity = PolarityType
-        .fromSingleChar((String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
 
     double[][] data = extractCentroidsForFrame(handle, frameId, 0, numScans);
 
@@ -403,8 +403,8 @@ public class TDFUtils {
       final long startScanNum, final long endScanNum) {
 
     final ProfileData data = new ProfileData();
-    final long error = tdfLib
-        .tims_extract_profile_for_frame(handle, frameId, startScanNum, endScanNum, data, null);
+    final long error = tdfLib.tims_extract_profile_for_frame(handle, frameId, startScanNum,
+        endScanNum, data, null);
 
     if (error == 0) {
       logger.warning(() -> "Could not extract profile for frame " + frameId + ".");
@@ -453,8 +453,8 @@ public class TDFUtils {
   public double[][] loadMsMsDataPointsForPrecursor_v2(final long handle, final long precursorId) {
 
     final CentroidData data = new CentroidData();
-    final long error = tdfLib
-        .tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data, Pointer.NULL);
+    final long error = tdfLib.tims_read_pasef_msms_v2(handle, new long[]{precursorId}, 1, data,
+        Pointer.NULL);
     if (error == 0) {
       logger.warning(() -> "Could not extract MS/MS for precursor " + precursorId + ".");
       return new double[][]{{0}, {0}};
@@ -468,9 +468,8 @@ public class TDFUtils {
   private double[] convertIndicesToMZ(final long handle, final long frameId, final int[] indices) {
 
     final double[] buffer = new double[indices.length];
-    final long error = tdfLib
-        .tims_index_to_mz(handle, frameId, Arrays.stream(indices).asDoubleStream().toArray(),
-            buffer, indices.length);
+    final long error = tdfLib.tims_index_to_mz(handle, frameId,
+        Arrays.stream(indices).asDoubleStream().toArray(), buffer, indices.length);
     if (error == 0) {
       logger.warning(() -> "Could not convert indices to mzs for frame " + frameId);
     }
@@ -563,10 +562,10 @@ public class TDFUtils {
    * @param numThreads
    */
   public static void setDefaultNumThreads(int numThreads) {
-    if (numThreads >= 1) {
-      logger.finest(() -> "Setting number of threads per file to " + numThreads);
-      DEFAULT_NUMTHREADS = numThreads;
-    }
+    numThreads = Math.max(numThreads, 1);
+    final int finalNumThreads = numThreads;
+    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
+    DEFAULT_NUMTHREADS = numThreads;
   }
 
   public void setNumThreads(int numThreads) {
