@@ -85,7 +85,7 @@ public class FeatureListLoadTask extends AbstractTask {
   private int numFlists = 1;
   private int processedFlists;
 
-  public FeatureListLoadTask(@NotNull MemoryMapStorage storage, @NotNull MZmineProject project,
+  public FeatureListLoadTask(@Nullable MemoryMapStorage storage, @NotNull MZmineProject project,
       ZipFile zip) {
     super(storage, new Date());
     this.project = project;
