@@ -71,41 +71,42 @@ public class DataTypeCellFactory implements
       protected void updateItem(Object item, boolean empty) {
         super.updateItem(item, empty);
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
-        if (!empty && type instanceof LinkedGraphicalType lgType) {
+        if (type instanceof LinkedGraphicalType lgType) {
           Node node = lgType.getCellNode(this, param, null, raw);
           getTableColumn().setMinWidth(lgType.getColumnWidth());
           setGraphic(node);
           setText(null);
-        }
-        if (item == null) {
-          item = type.getDefaultValue();
-        }
-        if (item == null || empty) {
-          setGraphic(null);
-          setText(null);
         } else {
-          // sub columns provide values
-          if (type instanceof SubColumnsFactory sub) {
-            // get sub column value
-            Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
-            setGraphic(n);
-            setText(
-                n != null ? null
-                    : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
-          } else if (type instanceof GraphicalColumType graphicalColumType) {
-            Node node = graphicalColumType.getCellNode(this, param, item, raw);
-            getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
-            setGraphic(node);
+          if (item == null) {
+            item = type.getDefaultValue();
+          }
+          if (item == null || empty) {
+            setGraphic(null);
             setText(null);
           } else {
-            setText(type.getFormattedString(item));
-            setGraphic(null);
+            // sub columns provide values
+            if (type instanceof SubColumnsFactory sub) {
+              // get sub column value
+              Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
+              setGraphic(n);
+              setText(
+                  n != null ? null
+                      : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
+            } else if (type instanceof GraphicalColumType graphicalColumType) {
+              Node node = graphicalColumType.getCellNode(this, param, item, raw);
+              getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
+              setGraphic(node);
+              setText(null);
+            } else {
+              setText(type.getFormattedString(item));
+              setGraphic(null);
+            }
           }
-        }
-        if (type instanceof NumberType) {
-          setAlignment(Pos.CENTER_RIGHT);
-        } else {
-          setAlignment(Pos.CENTER);
+          if (type instanceof NumberType) {
+            setAlignment(Pos.CENTER_RIGHT);
+          } else {
+            setAlignment(Pos.CENTER);
+          }
         }
       }
     };
