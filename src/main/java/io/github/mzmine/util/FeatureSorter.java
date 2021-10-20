@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
@@ -34,16 +33,18 @@ public class FeatureSorter implements Comparator<Feature> {
     this.direction = direction;
   }
 
-  public int compare(Feature feature1, Feature feature2) {
+  public int compare(Feature a, Feature b) {
+    if (a == null && b == null) {
+      return 0;
+    } else if (a == null) {
+      return -1 * direction.getFactor();
+    } else if (b == null) {
+      return 1 * direction.getFactor();
+    }
+    Double peak1Value = getValue(a);
+    Double peak2Value = getValue(b);
 
-    Double peak1Value = getValue(feature1);
-    Double peak2Value = getValue(feature2);
-
-    if (direction == SortingDirection.Ascending)
-      return peak1Value.compareTo(peak2Value);
-    else
-      return peak2Value.compareTo(peak1Value);
-
+    return peak1Value.compareTo(peak2Value) * direction.getFactor();
   }
 
   private double getValue(Feature peak) {
