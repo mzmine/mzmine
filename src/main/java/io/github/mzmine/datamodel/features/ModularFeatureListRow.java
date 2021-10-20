@@ -129,9 +129,6 @@ public class ModularFeatureListRow implements FeatureListRow {
     if (!raws.isEmpty()) {
       // init FeaturesType map (is final)
       HashMap<RawDataFile, ModularFeature> fmap = new HashMap<>(raws.size());
-      for (RawDataFile r : raws) {
-        fmap.put(r, new ModularFeature(flist));
-      }
       features = (FXCollections.observableMap(fmap));
       // set
       set(FeaturesType.class, features);
@@ -423,7 +420,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * The list of ion identities. An empty list might be immutable. Lists with elements are mutable
+   * The immutable list of ion identities.
    *
    * @return null or the current list. First element is the "preferred" element
    */
@@ -446,7 +443,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   public void setIonIdentities(@Nullable List<IonIdentity> ions) {
     if (get(IonIdentityModularType.class) == null) {
       // add row type if not available
-      flist.addRowType(new IonIdentityModularType());
+      IonIdentityModularType mtype = new IonIdentityModularType();
+      flist.addRowType(mtype);
+      set(IonIdentityModularType.class, mtype.createMap());
     }
     get(IonIdentityModularType.class).set(IonIdentityListType.class, ions);
   }
@@ -489,6 +488,9 @@ public class ModularFeatureListRow implements FeatureListRow {
     if (manual == null) {
       // add type
       flist.addRowType(new ManualAnnotationType());
+      ManualAnnotationType mtype = new ManualAnnotationType();
+      flist.addRowType(mtype);
+      set(ManualAnnotationType.class, mtype.createMap());
       setComment(comment);
       return;
     }
@@ -511,11 +513,13 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
   }
 
-  public void setPeakIdentities(ObservableList<FeatureIdentity> identities) {
+  public void setPeakIdentities(List<FeatureIdentity> identities) {
     ModularTypeMap manual = getManualAnnotation();
     if (manual == null) {
       // add type
-      flist.addRowType(new ManualAnnotationType());
+      ManualAnnotationType mtype = new ManualAnnotationType();
+      flist.addRowType(mtype);
+      set(ManualAnnotationType.class, mtype.createMap());
       setPeakIdentities(identities);
       return;
     }
@@ -528,6 +532,9 @@ public class ModularFeatureListRow implements FeatureListRow {
     if (manual == null) {
       // add type
       flist.addRowType(new ManualAnnotationType());
+      ManualAnnotationType mtype = new ManualAnnotationType();
+      flist.addRowType(mtype);
+      set(ManualAnnotationType.class, mtype.createMap());
       addFeatureIdentity(identity, preferred);
       return;
     }
@@ -549,7 +556,24 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     // add column first if needed
-    get(SpectralLibraryMatchType.class).get(SpectralLibMatchSummaryType.class).add(id);
+    ModularTypeMap parent = get(SpectralLibraryMatchType.class);
+    if (parent == null) {
+      SpectralLibraryMatchType mtype = new SpectralLibraryMatchType();
+      flist.addRowType(mtype);
+      set(SpectralLibraryMatchType.class, mtype.createMap());
+      addSpectralLibraryMatch(id);
+      return;
+    } else {
+      // unmodifiable list of matches
+      List<SpectralDBFeatureIdentity> matches = parent.get(SpectralLibMatchSummaryType.class);
+      if (matches == null) {
+        matches = List.of(id);
+      } else {
+        matches = new ArrayList<>(matches);
+        matches.add(id);
+      }
+      parent.set(SpectralLibMatchSummaryType.class, matches);
+    }
   }
 
   @Override
@@ -567,7 +591,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   public void removeFeatureIdentity(FeatureIdentity identity) {
     List<FeatureIdentity> identities = getPeakIdentities();
     if (identities != null && !identities.isEmpty()) {
+      identities = new ArrayList<>(identities);
       identities.remove(identity);
+      setPeakIdentities(identities.isEmpty() ? null : identities);
     }
   }
 
@@ -578,11 +604,15 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void setPreferredFeatureIdentity(FeatureIdentity preferredIdentity) {
+    // unmodifiable list
     List<FeatureIdentity> identities = getPeakIdentities();
-    if (identities != null && !identities.isEmpty()) {
-      identities.remove(preferredIdentity);
+    if (identities == null || identities.isEmpty()) {
+      setPeakIdentities(List.of(preferredIdentity));
     }
+    identities = new ArrayList<>(identities);
+    identities.remove(preferredIdentity);
     identities.add(0, preferredIdentity);
+    setPeakIdentities(identities);
   }
 
   @Override
@@ -674,7 +704,9 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   public void setFormulas(List<ResultFormula> formulas) {
     if (get(FormulaAnnotationType.class) == null) {
-      flist.addRowType(new FormulaAnnotationType());
+      FormulaAnnotationType mtype = new FormulaAnnotationType();
+      flist.addRowType(mtype);
+      set(FormulaAnnotationType.class, mtype.createMap());
     }
     get(FormulaAnnotationType.class).set(FormulaListType.class, formulas);
   }
@@ -682,7 +714,24 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void addLipidAnnotation(MatchedLipid matchedLipid) {
     // add column first if needed
-    get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).add(matchedLipid);
+    ModularTypeMap parent = get(LipidAnnotationType.class);
+    if (parent == null) {
+      LipidAnnotationType mtype = new LipidAnnotationType();
+      flist.addRowType(mtype);
+      set(LipidAnnotationType.class, mtype.createMap());
+      addLipidAnnotation(matchedLipid);
+      return;
+    } else {
+      // unmodifiable list of matches
+      List<MatchedLipid> matches = parent.get(LipidAnnotationSummaryType.class);
+      if (matches == null) {
+        matches = List.of(matchedLipid);
+      } else {
+        matches = new ArrayList<>(matches);
+        matches.add(matchedLipid);
+      }
+      parent.set(LipidAnnotationSummaryType.class, matches);
+    }
   }
 
 }

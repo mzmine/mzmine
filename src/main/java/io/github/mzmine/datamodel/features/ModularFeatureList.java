@@ -34,6 +34,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
@@ -160,6 +161,7 @@ public class ModularFeatureList implements FeatureList {
    *
    * @param bindings list of bindings
    */
+  @Override
   public void addRowBinding(@NotNull List<RowBinding> bindings) {
     for (RowBinding b : bindings) {
       addFeatureTypeListener(b.getFeatureType(), b);
@@ -178,6 +180,7 @@ public class ModularFeatureList implements FeatureList {
    * @param featureType data type that is present in the feature types
    * @param listener    the listener for value changes
    */
+  @Override
   public void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener) {
     featureTypeListeners.compute(featureType, (key, list) -> {
       if (list == null) {
@@ -194,6 +197,7 @@ public class ModularFeatureList implements FeatureList {
    * @param rowType  data type that is present in the FeatureListRow types
    * @param listener the listener for value changes
    */
+  @Override
   public void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
     rowTypeListeners.compute(rowType, (key, list) -> {
       if (list == null) {
@@ -210,6 +214,7 @@ public class ModularFeatureList implements FeatureList {
    * @param rowType  data type that is present in the FeatureListRow types
    * @param listener the listener for value changes
    */
+  @Override
   public void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener) {
     rowTypeListeners.compute(rowType, (key, list) -> {
       if (list == null || list.isEmpty()) {
@@ -226,6 +231,7 @@ public class ModularFeatureList implements FeatureList {
    * @param featureType data type that is present in the Feature types
    * @param listener    the listener for value changes
    */
+  @Override
   public void removeFeatureTypeListener(DataType featureType,
       DataTypeValueChangeListener listener) {
     featureTypeListeners.compute(featureType, (key, list) -> {
@@ -253,11 +259,13 @@ public class ModularFeatureList implements FeatureList {
    *
    * @return
    */
+  @Override
   public ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes() {
     return featureTypes;
   }
 
-  public void addFeatureType(@NotNull List<DataType<?>> types) {
+  @Override
+  public void addFeatureType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!featureTypes.containsKey(type.getClass())) {
         // all {@link ModularFeature} will automatically add a default data map
@@ -268,11 +276,13 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
+  @Override
   public void addFeatureType(@NotNull DataType<?>... types) {
     addFeatureType(Arrays.asList(types));
   }
 
-  public void addRowType(@NotNull List<DataType<?>> types) {
+  @Override
+  public void addRowType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!rowTypes.containsKey(type.getClass())) {
         // add row type - all rows will automatically generate a default property for this type in
@@ -282,6 +292,7 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
+  @Override
   public void addRowType(@NotNull DataType<?>... types) {
     addRowType(Arrays.asList(types));
   }
@@ -291,6 +302,7 @@ public class ModularFeatureList implements FeatureList {
    *
    * @return
    */
+  @Override
   public ObservableMap<Class<? extends DataType>, DataType> getRowTypes() {
     return rowTypes;
   }
@@ -302,6 +314,7 @@ public class ModularFeatureList implements FeatureList {
    * @param typeClass class of a DataType
    * @return true if feature type is available
    */
+  @Override
   public boolean hasFeatureType(Class typeClass) {
     return getFeatureTypes().containsKey(typeClass);
   }
@@ -313,6 +326,7 @@ public class ModularFeatureList implements FeatureList {
    * @param typeClass class of a DataType
    * @return true if row type is available
    */
+  @Override
   public boolean hasRowType(Class typeClass) {
     return getRowTypes().containsKey(typeClass);
   }

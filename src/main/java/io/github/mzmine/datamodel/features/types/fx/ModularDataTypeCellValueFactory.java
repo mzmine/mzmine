@@ -23,11 +23,13 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ModularType;
+import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
@@ -66,8 +68,8 @@ public class ModularDataTypeCellValueFactory implements
 
   @Override
   public ObservableValue<Object> call(CellDataFeatures<ModularFeatureListRow, Object> param) {
-    final ModularDataModel map = dataMapSupplier.apply(param.getValue().getValue());
-    if (map == null) {
+    final ModularDataModel model = dataMapSupplier.apply(param.getValue().getValue());
+    if (model == null) {
       logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
                                 + modularParentType.getClass().toString() + "and sub type "
                                 + subType.getClass().toString() + " and raw file " + (raw == null
@@ -75,12 +77,21 @@ public class ModularDataTypeCellValueFactory implements
       return null;
     }
     try {
-      Map<DataType, Object> parentMap = map.get(modularParentType).getMap();
-      return (ObservableValue<Object>) parentMap.get(subType);
+      ModularTypeMap parentMap = model.get(modularParentType);
+      if (parentMap == null) {
+        return null;
+      }
+      Object value = parentMap.get(subType);
+      if (value == null) {
+        return null;
+      }
+      Property property = subType.createProperty();
+      property.setValue(value);
+      return (ObservableValue<Object>) property;
     } catch (Exception ex) {
       logger.log(Level.WARNING, MessageFormat
           .format("Cannot get sub type {0} of ModularType {1}", subType.getClass().toString(),
-              map.getClass().toString()), ex);
+              model.getClass().toString()), ex);
 //      throw ex;
     }
     return null;

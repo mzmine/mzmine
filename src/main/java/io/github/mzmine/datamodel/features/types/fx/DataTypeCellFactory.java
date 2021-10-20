@@ -33,9 +33,8 @@ import javafx.util.Callback;
 
 /**
  * Default cell factory for a DataType
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class DataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
@@ -77,7 +76,11 @@ public class DataTypeCellFactory implements
           getTableColumn().setMinWidth(lgType.getColumnWidth());
           setGraphic(node);
           setText(null);
-        } else if (item == null || empty) {
+        }
+        if (item == null) {
+          item = type.getDefaultValue();
+        }
+        if (item == null || empty) {
           setGraphic(null);
           setText(null);
         } else {
@@ -99,10 +102,11 @@ public class DataTypeCellFactory implements
             setGraphic(null);
           }
         }
-        if(type instanceof NumberType)
+        if (type instanceof NumberType) {
           setAlignment(Pos.CENTER_RIGHT);
-        else
+        } else {
           setAlignment(Pos.CENTER);
+        }
       }
     };
   }

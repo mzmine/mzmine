@@ -26,11 +26,13 @@ import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -54,12 +56,39 @@ public interface FeatureList {
    */
   public void setName(@NotNull String name);
 
+  void addRowBinding(@NotNull List<RowBinding> bindings);
+
+  void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+
+  void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeFeatureTypeListener(DataType featureType,
+      DataTypeValueChangeListener listener);
+
   /**
    * Apply all row bindings to row (e.g., calculating the average m/z etc)
    *
    * @param row
    */
   void applyRowBindings(FeatureListRow row);
+
+  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+
+  void addFeatureType(Collection<DataType> types);
+
+  void addFeatureType(@NotNull DataType<?>... types);
+
+  void addRowType(Collection<DataType> types);
+
+  void addRowType(@NotNull DataType<?>... types);
+
+  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+
+  boolean hasFeatureType(Class typeClass);
+
+  boolean hasRowType(Class typeClass);
 
   /**
    * Returns number of raw data files participating in the feature list

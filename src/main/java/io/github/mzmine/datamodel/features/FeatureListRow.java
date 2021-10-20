@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
@@ -29,10 +28,10 @@ import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javafx.collections.FXCollections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,24 +73,6 @@ public interface FeatureListRow extends ModularDataModel {
    * Add a feature
    */
   void addFeature(RawDataFile rawData, Feature feature);
-
-  /**
-   * Thread safe addition of a feature, if this row does not have a feature of the given raw data
-   * file.
-   *
-   * @param rawDataFile The data file.
-   * @param feature     The feature.
-   * @return true if the feature was added, false if this row already had a feature.
-   */
-  default boolean addFeatureIfAbsent(RawDataFile rawDataFile, Feature feature) {
-    synchronized (this) {
-      if (!hasFeature(rawDataFile)) {
-        addFeature(rawDataFile, feature);
-        return true;
-      }
-      return false;
-    }
-  }
 
   /**
    * Remove a feature
@@ -295,33 +276,31 @@ public interface FeatureListRow extends ModularDataModel {
    * @param markAsBest true: add as first element; false add as last element
    */
   default void addIonIdentity(IonIdentity ion, boolean markAsBest) {
+    // unmodifiable list
     List<IonIdentity> ionIdentities = getIonIdentities();
 
-    if (ionIdentities == null) {
-      ionIdentities = FXCollections.observableArrayList();
-      setIonIdentities(ionIdentities);
+    if (ionIdentities == null || ionIdentities.isEmpty()) {
+      setIonIdentities(List.of(ion));
+      return;
     }
 
     // remove first
-    if (!ionIdentities.isEmpty()) {
-      ionIdentities.remove(ion);
-    }
+    ArrayList<IonIdentity> newList = new ArrayList<>(ionIdentities);
+    newList.remove(ion);
 
     if (markAsBest) {
-      ionIdentities.add(0, ion);
+      newList.add(0, ion);
     } else {
-      ionIdentities.add(ion);
+      newList.add(ion);
     }
+    setIonIdentities(newList);
   }
 
   /**
    * Clear all ion identities
    */
   default void clearIonIdentites() {
-    List<IonIdentity> ionIdentities = getIonIdentities();
-    if (ionIdentities != null) {
-      ionIdentities.clear();
-    }
+    setIonIdentities(null);
   }
 
   /**
@@ -360,7 +339,12 @@ public interface FeatureListRow extends ModularDataModel {
   default boolean removeIonIdentity(IonIdentity ion) {
     List<IonIdentity> ionIdentities = getIonIdentities();
     if (ionIdentities != null) {
-      return ionIdentities.remove(ion);
+      ionIdentities = new ArrayList<>(ionIdentities);
+      boolean removed = ionIdentities.remove(ion);
+      if (removed) {
+        setIonIdentities(ionIdentities.isEmpty() ? null : ionIdentities);
+      }
+      return removed;
     }
     return false;
   }
