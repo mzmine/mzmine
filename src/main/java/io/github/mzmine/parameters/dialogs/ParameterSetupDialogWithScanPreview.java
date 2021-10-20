@@ -60,18 +60,15 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
   // XYPlot
   protected SpectraPlot spectrumPlot;
-  protected RawDataFile[] dataFiles;
-  protected RawDataFile previewDataFile;
 
   /**
    * @param valueCheckRequired
    * @param parameters
    */
   public ParameterSetupDialogWithScanPreview(boolean valueCheckRequired, ParameterSet parameters) {
-
     super(valueCheckRequired, parameters);
 
-    dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
     // if no data files, return the dialog without preview functions
     if (dataFiles.length == 0) {
@@ -84,7 +81,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 //          "Please load a raw data file before selecting a mass detector.");
 //    }
 
-    RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
+    final RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
+    final RawDataFile previewDataFile;
 
     if (selectedFiles.length > 0) {
       previewDataFile = selectedFiles[0];
@@ -126,15 +124,15 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     });
     comboScan.getSelectionModel().select(0);
 
-    comboDataFileName = new ComboBox<RawDataFile>(
+    comboDataFileName = new ComboBox<>(
         MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
-      var previewDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
-      if (previewDataFile == null) {
+      var newDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
+      if (newDataFile == null) {
         return;
       }
-      ObservableList<Scan> scanNumbers2 = previewDataFile.getScans();
+      ObservableList<Scan> scanNumbers2 = newDataFile.getScans();
       comboScan.setItems(scanNumbers2);
       comboScan.getSelectionModel().select(0);
     });
@@ -206,7 +204,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     // Set window and plot titles
-    String title = "[" + previewDataFile.getName() + "] scan #" + currentScan.getScanNumber();
+    String title = "[" + currentScan.getDataFile().getName() + "] scan #" + currentScan.getScanNumber();
 
     String subTitle = ScanUtils.scanToString(lastChangedScan.get());
 
