@@ -19,10 +19,7 @@
 package io.github.mzmine.parameters.dialogs;
 
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -55,22 +52,6 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
   public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters,
       String message) {
     super(valueCheckRequired, parameters, message);
-
-    // Iterate over all OptionalModuleParameter's and add listeners to detect changes in their
-    // embedded parameters. In case of any change call this.parametersChanged()
-    for (Parameter<?> parameter : parameters.getParameters()) {
-      if (parameter instanceof OptionalModuleParameter) {
-        final ChangeListener<Boolean> listener = (observable, oldValue, newValue) -> parametersChanged();
-        // since this listener is added directly to the parameter set stored in the MZmine
-        // configuration, everything that is preview dialog contains cannot be garbage-collected
-        // therefore, we have to manually delete the listener when this preview closes.
-        // this lead to all raw data files still being referenced after a project was closed.
-        ((OptionalModuleParameter<?>) parameter).embeddedParametersChangeProperty()
-            .addListener(listener);
-        setOnHiding(e -> ((OptionalModuleParameter<?>) parameter).embeddedParametersChangeProperty()
-            .removeListener(listener));
-      }
-    }
 
     paramPreviewSplit = new SplitPane();
     paramPreviewSplit.getItems().add(mainScrollPane);

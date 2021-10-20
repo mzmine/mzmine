@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -105,8 +103,6 @@ public class ParameterSetupDialog extends Stage {
    */
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
-  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty(false);
-
 
   /**
    * Constructor
@@ -452,13 +448,6 @@ public class ParameterSetupDialog extends Stage {
         addToolTipToControls(child, toolTipText);
       }
     }
-  }
-
-  /**
-   * @see ParameterSet#parametersChangeProperty()
-   */
-  public BooleanProperty parametersChangeProperty() {
-    return parametersChangeProperty;
   }
 
   public GridPane getParamsPane() {
