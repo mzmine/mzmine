@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
@@ -81,7 +80,8 @@ public class FeatureResolverTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public FeatureResolverTask(final MZmineProject project, MemoryMapStorage storage,
-      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction, @NotNull Date moduleCallDate) {
+      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction,
+      @NotNull Date moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.
@@ -122,7 +122,7 @@ public class FeatureResolverTask extends AbstractTask {
       } else {
         try {
           if (((GeneralResolverParameters) parameters)
-              .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
+                  .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
           } else {
             legacyResolve();
@@ -143,7 +143,6 @@ public class FeatureResolverTask extends AbstractTask {
           }
 
           if (!isCanceled()) {
-
             // Add new featurelist to the project.
             project.addFeatureList(newPeakList);
 
@@ -340,7 +339,7 @@ public class FeatureResolverTask extends AbstractTask {
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
     final Resolver resolver = ((GeneralResolverParameters) parameters)
         .getResolver(parameters, originalFeatureList);
-    if(resolver == null) {
+    if (resolver == null) {
       setErrorMessage("Resolver could not be initialised.");
       setStatus(TaskStatus.ERROR);
       return;
@@ -384,11 +383,12 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-        + " have less than 4 scans (frames for IMS data)");
+                + " have less than 4 scans (frames for IMS data)");
 //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
+            getModuleCallDate()));
 
     newPeakList = resolvedFeatureList;
   }
@@ -452,7 +452,8 @@ public class FeatureResolverTask extends AbstractTask {
     }
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
+            getModuleCallDate()));
 
     return resolvedFeatureList;
   }
@@ -468,6 +469,10 @@ public class FeatureResolverTask extends AbstractTask {
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+
+    // copy all Row and Feature types over
+    DataTypeUtils.copyTypes(originalFeatureList, resolvedFeatureList, true, true);
+
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 

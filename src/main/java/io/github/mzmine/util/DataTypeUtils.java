@@ -20,6 +20,7 @@ package io.github.mzmine.util;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
@@ -52,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 public class DataTypeUtils {
 
   public static final @NotNull
-  List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
+  List<DataType> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
       new RTType(), new RTRangeType(),
       // needed next to each other for switching between RTType and RTRangeType
       new MZType(), new MZRangeType(), //
@@ -60,19 +61,19 @@ public class DataTypeUtils {
       new FeatureShapeType(), new FeaturesType());
 
   public static final @NotNull
-  List<DataType<?>> DEFAULT_CHROMATOGRAPHIC_FEATURE =
+  List<DataType> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
           new BestScanNumberType(), new FeatureDataType(), new IntensityRangeType(), new FwhmType(),
           new TailingFactorType(), new AsymmetryFactorType());
 
   @NotNull
-  public static final List<DataType<?>> DEFAULT_ION_MOBILITY_COLUMNS_ROW = List
+  public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_ROW = List
       .of(new MobilityType(), new MobilityRangeType(),
           new FeatureShapeMobilogramType());
 
   @NotNull
-  public static final List<DataType<?>> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE = List
+  public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE = List
       .of(new MobilityType(), new MobilityRangeType());
 
   /**
@@ -99,8 +100,18 @@ public class DataTypeUtils {
     Optional<RawDataFile> lcIMS = flist.getRawDataFiles().stream()
         .filter(file -> file instanceof IMSRawDataFile && !(file instanceof IMSImagingRawDataFile))
         .findFirst();
-    if(lcIMS.isPresent()) {
+    if (lcIMS.isPresent()) {
       flist.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+    }
+  }
+
+  public static void copyTypes(FeatureList source, FeatureList target, boolean featureTypes,
+      boolean rowTypes) {
+    if (featureTypes) {
+      target.addFeatureType(source.getFeatureTypes().values());
+    }
+    if (rowTypes) {
+      target.addRowType(source.getRowTypes().values());
     }
   }
 }
