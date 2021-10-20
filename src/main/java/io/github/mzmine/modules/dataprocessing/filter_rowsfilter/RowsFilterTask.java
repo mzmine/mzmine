@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -149,13 +149,15 @@ public class RowsFilterTask extends AbstractTask {
 
     // Copy previous applied methods.
     for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-
       newFeatureList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         getTaskDescription(), RowsFilterModule.class, parameters, getModuleCallDate()));
+
+    featureList.getRawDataFiles()
+        .forEach(file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
 
     // Get parameters.
     final boolean onlyIdentified =
