@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -33,8 +32,7 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 
-public class ImageType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class ImageType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -50,9 +48,8 @@ public class ImageType extends LinkedDataType
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object nullData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null || row.getFeature(raw) == null || !(raw instanceof ImagingRawDataFile)) {
       return null;

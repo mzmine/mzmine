@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -37,8 +36,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureShapeMobilogramType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeMobilogramType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -54,10 +52,8 @@ public class FeatureShapeMobilogramType extends LinkedDataType
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object nullData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null || row.getRawDataFiles().stream()
         .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {

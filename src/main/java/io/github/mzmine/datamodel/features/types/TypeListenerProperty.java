@@ -21,8 +21,8 @@ import java.util.List;
 import javafx.beans.property.SimpleBooleanProperty;
 
 /**
- * Holds no value but makes fireChangedEvent public. Used by {@link LinkedDataType} to listen to
- * multiple feature DataTypes
+ * Holds no value but makes fireChangedEvent public. Used by {@link LinkedGraphicalType} to listen
+ * to multiple feature DataTypes
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */

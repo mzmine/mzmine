@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedDataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -212,7 +212,7 @@ public class CSVExportModularTask extends AbstractTask {
 
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
-             || type instanceof LinkedDataType);
+             || type instanceof LinkedGraphicalType);
   }
 
   private String joinRowData(ModularFeatureListRow row,

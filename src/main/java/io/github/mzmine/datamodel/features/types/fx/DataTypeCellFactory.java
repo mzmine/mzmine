@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types.fx;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
@@ -71,22 +72,26 @@ public class DataTypeCellFactory implements
       protected void updateItem(Object item, boolean empty) {
         super.updateItem(item, empty);
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
-        if (item == null || empty) {
+        if (!empty && type instanceof LinkedGraphicalType lgType) {
+          Node node = lgType.getCellNode(this, param, null, raw);
+          getTableColumn().setMinWidth(lgType.getColumnWidth());
+          setGraphic(node);
+          setText(null);
+        } else if (item == null || empty) {
           setGraphic(null);
           setText(null);
         } else {
           // sub columns provide values
-          if (type instanceof SubColumnsFactory) {
+          if (type instanceof SubColumnsFactory sub) {
             // get sub column value
-            SubColumnsFactory sub = (SubColumnsFactory) type;
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
             setGraphic(n);
             setText(
                 n != null ? null
                     : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
-          } else if (type instanceof GraphicalColumType) {
-            Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
-            getTableColumn().setMinWidth(((GraphicalColumType<?>) type).getColumnWidth());
+          } else if (type instanceof GraphicalColumType graphicalColumType) {
+            Node node = graphicalColumType.getCellNode(this, param, item, raw);
+            getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
             setGraphic(node);
             setText(null);
           } else {

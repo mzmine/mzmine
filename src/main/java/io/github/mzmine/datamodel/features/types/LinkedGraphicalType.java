@@ -17,23 +17,26 @@
 
 package io.github.mzmine.datamodel.features.types;
 
+import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
+ * This graphical type is linked to another datatype and creates charts/graphics for it
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class LinkedDataType extends DataType<Boolean> implements
-    NoTextColumn {
+public abstract class LinkedGraphicalType extends DataType<Object> implements
+    NoTextColumn, GraphicalColumType<Object> {
 
   @Override
-  public Property<Boolean> createProperty() {
+  public Property<Object> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<Boolean> getValueClass() {
-    return Boolean.class;
+  public Class<Object> getValueClass() {
+    return Object.class;
   }
 }

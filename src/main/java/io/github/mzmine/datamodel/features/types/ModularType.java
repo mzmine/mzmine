@@ -180,16 +180,15 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
   @Override
   public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    if (cellData == null) {
-      return null;
-    }
     DataType sub = getSubTypeAt(subcolumn);
-    if (sub == null || !(sub instanceof GraphicalColumType)) {
+    if (sub instanceof LinkedGraphicalType lgType) {
+      return lgType.getCellNode(cell, coll, null, raw);
+    }
+    if (cellData == null || sub == null || !(sub instanceof GraphicalColumType gcType)) {
       return null;
     }
 
-    Map<DataType, Property<?>> map = (Map<DataType, Property<?>>) cellData;
-    return ((GraphicalColumType) sub).getCellNode(cell, coll, cellData, raw);
+    return gcType.getCellNode(cell, coll, cellData, raw);
   }
 
   @Override

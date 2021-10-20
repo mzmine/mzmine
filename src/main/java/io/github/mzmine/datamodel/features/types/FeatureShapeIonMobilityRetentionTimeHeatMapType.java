@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonMobilityRetentionTimeHeatMapChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
@@ -45,8 +44,7 @@ import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType implements
-    GraphicalColumType<Boolean> {
+public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -62,8 +60,8 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Object> cell,
+      TreeTableColumn<ModularFeatureListRow, Object> coll, Object nullData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
         || raw instanceof ImagingRawDataFile) {
@@ -74,7 +72,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
       return null;
     }
 
-    if(!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+    if (!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       Label label = new Label("Processed with\nLC-MS workflow");
       StackPane pane = new StackPane(label);
       label.setTextAlignment(TextAlignment.CENTER);
