@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.tools.isotopepatternscore;
@@ -49,7 +48,7 @@ public class IsotopePatternScoreCalculator {
    * Returns a calculated similarity score of two isotope patterns in the range of 0 (not similar at
    * all) to 1 (100% same).
    */
-  public static double getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2,
+  public static float getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2,
       ParameterSet parameters) {
 
     assert ip1 != null;
@@ -118,7 +117,7 @@ public class IsotopePatternScoreCalculator {
 
     // Calculate the resulting score. Ideal score is 1, in case the final
     // data point array is empty.
-    double result = 1;
+    float result = 1f;
 
     for (DataPoint dp : mergedDPArray) {
       if (dp == null)

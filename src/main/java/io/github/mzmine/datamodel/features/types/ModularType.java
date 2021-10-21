@@ -172,7 +172,7 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
       return "";
     }
 
-    Map<DataType, Property<?>> map = (Map<DataType, Property<?>>) value;
+    ModularTypeMap map = (ModularTypeMap) value;
     return sub.getFormattedString(map.get(sub));
   }
 
@@ -210,8 +210,8 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
       }
       Object key = entry.getKey();
       Object val = entry.getValue();
-      if (val instanceof Property) {
-        val = ((Property<?>) val).getValue();
+      if (val instanceof Property prop) {
+        val = prop.getValue();
       }
 
       if (!(key instanceof DataType dt)) {

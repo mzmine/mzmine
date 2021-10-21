@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
 
@@ -57,19 +56,25 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaPredictionFeatureListTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private Range<Double> massRange;
-  private MolecularFormulaRange elementCounts;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;
-  private IonizationType ionType;
-  private int charge;
-  private ModularFeatureList featureList;
-  private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
-  private ParameterSet isotopeParameters, msmsParameters, ratiosParameters, rdbeParameters, parameters;
-  private MZTolerance mzTolerance;
+  private final IonizationType ionType;
+  private final int charge;
+  private final ModularFeatureList featureList;
+  private final boolean checkIsotopes;
+  private final boolean checkMSMS;
+  private final boolean checkRatios;
+  private final boolean checkRDBE;
+  private final ParameterSet isotopeParameters;
+  private final ParameterSet msmsParameters;
+  private final ParameterSet ratiosParameters;
+  private final ParameterSet rdbeParameters;
+  private final ParameterSet parameters;
+  private final MZTolerance mzTolerance;
   private String message;
   private int totalRows, finishedRows;
-  private int maxBestFormulasPerFeature;
+  private final int maxBestFormulasPerFeature;
   private final double minScore;
   private final double minMSMSScore;
   private Boolean isSorting;
@@ -179,7 +184,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
       message = "Formula prediction for " + MZmineCore.getConfiguration().getMZFormat()
           .format(searchedMass);
 
-      massRange = mzTolerance.getToleranceRange(searchedMass);
+      Range<Double> massRange = mzTolerance.getToleranceRange(searchedMass);
 
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
@@ -259,7 +264,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     // Calculate isotope similarity score
     IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
     IsotopePattern predictedIsotopePattern = null;
-    Double isotopeScore = null;
+    Float isotopeScore = null;
     if ((checkIsotopes) && (detectedPattern != null)) {
 
       String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
@@ -290,7 +295,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     }
 
     // MS/MS evaluation is slowest, so let's do it last
-    Double msmsScore = null;
+    Float msmsScore = null;
     Map<Double, String> msmsAnnotations = null;
 
     if (checkMSMS) {

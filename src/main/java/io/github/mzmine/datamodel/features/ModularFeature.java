@@ -272,7 +272,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
-  public <T> void set(Class<? extends DataType<T>> tclass, T value) {
+  public <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
     // type in defined columns?
     if (!getTypes().containsKey(tclass)) {
       try {
@@ -281,11 +281,11 @@ public class ModularFeature implements Feature, ModularDataModel {
         flist.addFeatureType(newType);
       } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
-        return;
+        return false;
       }
     }
     // access default method
-    ModularDataModel.super.set(tclass, value);
+    return ModularDataModel.super.set(tclass, value);
   }
 
   /**

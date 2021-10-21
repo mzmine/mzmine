@@ -149,8 +149,8 @@ public interface ModularDataModel {
    * @param type
    * @param value
    */
-  default <T> void set(DataType<T> type, T value) {
-    set((Class) type.getClass(), value);
+  default <T> boolean set(DataType<T> type, T value) {
+    return set((Class) type.getClass(), value);
   }
 
   /**
@@ -160,7 +160,7 @@ public interface ModularDataModel {
    * @param tclass
    * @param value
    */
-  default <T> void set(Class<? extends DataType<T>> tclass, T value) {
+  default <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
     // type in defined columns?
     if (!getTypes().containsKey(tclass)) {
       throw new TypeColumnUndefinedException(this, tclass);
@@ -170,11 +170,15 @@ public interface ModularDataModel {
     Object old = getMap().put(realType, value);
     // send changes to all listeners for this data type
     List<DataTypeValueChangeListener<?>> listeners = getValueChangeListeners().get(realType);
-    if (listeners != null && !Objects.equals(old, value)) {
-      for (DataTypeValueChangeListener listener : listeners) {
-        listener.valueChanged(this, realType, old, value);
+    if (!Objects.equals(old, value)) {
+      if (listeners != null) {
+        for (DataTypeValueChangeListener listener : listeners) {
+          listener.valueChanged(this, realType, old, value);
+        }
       }
+      return true;
     }
+    return false;
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
@@ -53,21 +52,23 @@ public class FormulaUtils {
    * @param weightIsotopeScore
    * @param weightMSMSscore
    */
-  public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list, double ppmMax,
-      double weightIsotopeScore, double weightMSMSscore) {
+  public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list, float ppmMax,
+      float weightIsotopeScore, float weightMSMSscore) {
     if (list == null) {
       return;
     }
 
     list.sort((a, b) -> {
-      double scoreA = a.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
-      double scoreB = b.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
+      float scoreA = a.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
+      float scoreB = b.getScore(ppmMax, weightIsotopeScore, weightMSMSscore);
       // best to position 0 (therefore change A B)
       return Double.compare(scoreB, scoreA);
     });
   }
-  public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list, double neutralMassOverride, double ppmMax,
-      double weightIsotopeScore, double weightMSMSscore) {
+
+  public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list,
+      double neutralMassOverride, float ppmMax,
+      float weightIsotopeScore, float weightMSMSscore) {
     if (list == null) {
       return;
     }

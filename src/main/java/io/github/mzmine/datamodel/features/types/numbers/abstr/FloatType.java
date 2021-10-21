@@ -42,7 +42,7 @@ public abstract class FloatType extends NumberType<Float> {
 
   @Override
   public @NotNull String getFormattedString(Float value) {
-    return getFormatter().format(value);
+    return value == null ? "" : getFormatter().format(value);
   }
 
   public @NotNull String getFormattedString(float value) {

@@ -714,8 +714,7 @@ public class ModularFeatureList implements FeatureList {
     for (FeatureListRow row : this.getRows()) {
       id = renumberIDs ? id + 1 : row.getID();
       ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
-          (ModularFeatureListRow) row,
-          true);
+          (ModularFeatureListRow) row, true);
       flist.addRow(copyRow);
       mapCopied.put(row, copyRow);
     }

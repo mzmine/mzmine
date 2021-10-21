@@ -41,7 +41,6 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationTyp
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityModularType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -208,7 +207,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public <T> void set(Class<? extends DataType<T>> tclass, T value) {
+  public <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
     // type in defined columns?
     if (!getTypes().containsKey(tclass)) {
       try {
@@ -218,16 +217,17 @@ public class ModularFeatureListRow implements FeatureListRow {
       } catch (NullPointerException | InstantiationException | NoSuchMethodException
           | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
-        return;
+        return false;
       }
     }
     // access default method
-    FeatureListRow.super.set(tclass, value);
+    boolean changed = FeatureListRow.super.set(tclass, value);
 
     //
-    if (tclass.equals(FeaturesType.class)) {
+    if (changed && tclass.equals(FeaturesType.class)) {
       // TODO new features set -> use bindings?
     }
+    return changed;
   }
 
   @Override
@@ -427,11 +427,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   @Nullable
   public List<IonIdentity> getIonIdentities() {
-    if (get(IonIdentityModularType.class) == null) {
-      return List.of();
-    } else {
-      return get(IonIdentityModularType.class).get(IonIdentityListType.class);
-    }
+    List<IonIdentity> ions = get(IonIdentityListType.class);
+    return ions == null ? List.of() : ions;
   }
 
   /**
@@ -441,13 +438,11 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   @Override
   public void setIonIdentities(@Nullable List<IonIdentity> ions) {
-    if (get(IonIdentityModularType.class) == null) {
+    if (get(IonIdentityListType.class) == null) {
       // add row type if not available
-      IonIdentityModularType mtype = new IonIdentityModularType();
-      flist.addRowType(mtype);
-      set(IonIdentityModularType.class, mtype.createMap());
+      flist.addRowType(new IonIdentityListType());
     }
-    get(IonIdentityModularType.class).set(IonIdentityListType.class, ions);
+    set(IonIdentityListType.class, ions);
   }
 
   /**
@@ -458,7 +453,8 @@ public class ModularFeatureListRow implements FeatureListRow {
    * @return true if feature type is available
    */
   public boolean hasFeatureType(Class typeClass) {
-    return getFeatureList().hasFeatureType(typeClass);
+    ModularFeatureList flist = getFeatureList();
+    return flist != null && flist.hasFeatureType(typeClass);
   }
 
   /**
@@ -469,7 +465,8 @@ public class ModularFeatureListRow implements FeatureListRow {
    * @return true if row type is available
    */
   public boolean hasRowType(Class typeClass) {
-    return getFeatureList().hasRowType(typeClass);
+    ModularFeatureList flist = getFeatureList();
+    return flist != null && flist.hasRowType(typeClass);
   }
 
   @Override
@@ -672,9 +669,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     for (Feature feature : getFeatures()) {
       List<Scan> scans = feature.getAllMS2FragmentScans();
       if (scans != null) {
-        for (Scan scan : scans) {
-          allMS2ScansList.add(scan);
-        }
+        allMS2ScansList.addAll(scans);
       }
     }
 
