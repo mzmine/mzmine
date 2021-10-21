@@ -49,12 +49,12 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CSVExportModularTask extends AbstractTask {
 
-  private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   public static final String DATAFILE_PREFIX = "DATAFILE";
-
+  private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   private ModularFeatureList[] featureLists;
   private int processedRows = 0, totalRows = 0;
 
@@ -249,32 +249,35 @@ public class CSVExportModularTask extends AbstractTask {
       } else if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
-            b.append(fieldSeparator);
+          b.append(fieldSeparator);
         }
       } else {
-          b.append(fieldSeparator);
+        b.append(fieldSeparator);
       }
     }
   }
 
   /**
    * @param b
-   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature}, {@link
-   *              ModularTypeMap}
+   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature}, {@link ModularTypeMap}
+   *              might be null if not set
    * @param types
    * @return
    */
-  private void joinData(StringBuilder b, ModularDataModel data, List<DataType> types) {
+  private void joinData(StringBuilder b, @Nullable ModularDataModel data, List<DataType> types) {
     for (DataType type : types) {
       if (type instanceof ModularType modType) {
         // needs to be checked before SubColumnFactory
-        ModularTypeMap modProp = data.get(modType);
         // join all the sub types of a modular data type
         List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
             .filter(this::filterType).collect(Collectors.toList());
+        ModularTypeMap modProp = data == null ? null : data.get(modType);
         joinData(b, modProp, filteredSubTypes);
       } else if (type instanceof SubColumnsFactory subCols) {
-        Object value = data.get(type);
+        Object value = data == null ? null : data.get(type);
+        if (value == null) {
+          value = type.getDefaultValue();
+        }
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
           String field = subCols.getFormattedSubColValue(i, null, null, value, null);
@@ -284,12 +287,15 @@ public class CSVExportModularTask extends AbstractTask {
           b.append(field == null ? "" : field);
         }
       } else {
-        Object value = data.get(type);
+        Object value = data == null ? null : data.get(type);
+        if (value == null) {
+          value = type.getDefaultValue();
+        }
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
         String str;
-        try{
+        try {
           str = type.getFormattedString(value);
         } catch (Exception e) {
           logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
