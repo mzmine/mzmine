@@ -19,12 +19,15 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
 
 import io.github.mzmine.datamodel.ImagingRawDataFile;
-import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameLaserInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
@@ -32,14 +35,17 @@ import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TSFImportTask extends AbstractTask {
 
@@ -47,11 +53,11 @@ public class TSFImportTask extends AbstractTask {
 
   private final TDFMetaDataTable metaDataTable;
   private final TDFMaldiFrameInfoTable maldiFrameInfoTable;
+  private final TDFFrameMsMsInfoTable frameMsMsInfoTable;
   private final TDFMaldiFrameLaserInfoTable maldiFrameLaserInfoTable;
   private final TSFFrameTable frameTable;
   private final MZmineProject project;
   private final File dirPath;
-  private final ImagingRawDataFile newMZmineFile;
   private final String rawDataFileName;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
@@ -62,14 +68,14 @@ public class TSFImportTask extends AbstractTask {
   private int totalScans = 1;
   private int processedScans = 0;
 
-  public TSFImportTask(MZmineProject project, File fileName, ImagingRawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
-    super(null, moduleCallDate);
+  public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.dirPath = fileName;
-    this.newMZmineFile = newMZmineFile;
-    rawDataFileName = newMZmineFile.getName();
+    rawDataFileName = fileName.getName();
     this.parameters = parameters;
     this.module = module;
 
@@ -77,6 +83,7 @@ public class TSFImportTask extends AbstractTask {
     maldiFrameInfoTable = new TDFMaldiFrameInfoTable();
     frameTable = new TSFFrameTable();
     maldiFrameLaserInfoTable = new TDFMaldiFrameLaserInfoTable();
+    frameMsMsInfoTable = new TDFFrameMsMsInfoTable();
 
     setDescription("Importing " + rawDataFileName + ": Waiting.");
   }
@@ -128,19 +135,46 @@ public class TSFImportTask extends AbstractTask {
     setDescription("Importing " + rawDataFileName + ": Reading metadata");
     readMetadata();
 
+    final RawDataFile newMZmineFile;
+    try {
+      if (isMaldi) {
+        newMZmineFile = MZmineCore.createNewImagingFile(rawDataFileName, dirPath.getAbsolutePath(),
+            getMemoryMapStorage());
+      } else {
+        newMZmineFile = MZmineCore.createNewFile(rawDataFileName, dirPath.getAbsolutePath(),
+            getMemoryMapStorage());
+      }
+    } catch (IOException e) {
+      setErrorMessage("Error creating raw data file.");
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
     final MassSpectrumType importSpectrumType =
         metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
 
+    if (!importTSF(tsfUtils, handle, numScans, newMZmineFile, importSpectrumType)) {
+      return;
+    }
+    newMZmineFile.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+
+    project.addFile(newMZmineFile);
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private boolean importTSF(TSFUtils tsfUtils, long handle, int numScans, RawDataFile newMZmineFile,
+      MassSpectrumType importSpectrumType) {
     for (int i = 0; i < numScans; i++) {
       final long frameId = frameTable.getFrameIdColumn().get(i);
 
       setDescription("Importing " + rawDataFileName + ": Scan " + frameId + "/" + numScans);
 
-      final ImagingScan scan = tsfUtils
-          .loadMaldiScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
-              maldiFrameInfoTable, importSpectrumType);
+      final Scan scan = tsfUtils.loadScan(newMZmineFile, handle, frameId, metaDataTable, frameTable,
+          frameMsMsInfoTable, maldiFrameInfoTable, importSpectrumType);
 
       try {
         newMZmineFile.addScan(scan);
@@ -148,22 +182,20 @@ public class TSFImportTask extends AbstractTask {
         e.printStackTrace();
         setErrorMessage("Could not add scan " + frameId + " to raw data file.");
         setStatus(TaskStatus.ERROR);
-        return;
+        return true;
       }
 
       if (isCanceled()) {
-        return;
+        return false;
       }
       processedScans++;
     }
 
-    newMZmineFile.setImagingParam(
-        new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters,
-        getModuleCallDate()));
-
-    project.addFile(newMZmineFile);
-    setStatus(TaskStatus.FINISHED);
+    if (newMZmineFile instanceof ImagingRawDataFile imgFile) {
+      imgFile.setImagingParam(
+          new ImagingParameters(metaDataTable, maldiFrameInfoTable, maldiFrameLaserInfoTable));
+    }
+    return true;
   }
 
   private void readMetadata() {
@@ -180,39 +212,41 @@ public class TSFImportTask extends AbstractTask {
       return;
     }
 
-    setDescription("Establishing SQL connection to " + tsf.getName());
-    Connection connection;
-    try {
-      connection = DriverManager.getConnection("jdbc:sqlite:" + tsf.getAbsolutePath());
+    synchronized (org.sqlite.JDBC.class) {
+      setDescription("Establishing SQL connection to " + tsf.getName());
+      Connection connection;
+      try {
+        connection = DriverManager.getConnection("jdbc:sqlite:" + tsf.getAbsolutePath());
 
-      setDescription("Reading metadata for " + tsf.getName());
-      metaDataTable.executeQuery(connection);
-      // metaDataTable.print();
+        setDescription("Reading metadata for " + tsf.getName());
+        metaDataTable.executeQuery(connection);
+        // metaDataTable.print();
 
-      setDescription("Reading frame data for " + tsf.getName());
-      frameTable.executeQuery(connection);
-      // frameTable.print();
+        setDescription("Reading frame data for " + tsf.getName());
+        frameTable.executeQuery(connection);
+        // frameTable.print();
 
-      isMaldi = frameTable.getScanModeColumn()
-          .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
+        isMaldi = frameTable.getScanModeColumn()
+            .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
 
-      if (!isMaldi) {
-        throw new IllegalStateException("The tsf file to import is not a MALDI file.");
-      } else {
-        setDescription("MALDI info for " + tsf.getName());
-        maldiFrameInfoTable.executeQuery(connection);
-        maldiFrameInfoTable.process();
-        maldiFrameLaserInfoTable.executeQuery(connection);
+        setDescription("Reading frame msms data for " + tsf.getName());
+        frameMsMsInfoTable.executeQuery(connection);
+
+        if (isMaldi) {
+          setDescription("MALDI info for " + tsf.getName());
+          maldiFrameInfoTable.executeQuery(connection);
+          maldiFrameInfoTable.process();
+          maldiFrameLaserInfoTable.executeQuery(connection);
+        }
+
+        connection.close();
+      } catch (Throwable t) {
+        t.printStackTrace();
+        logger.info("If stack trace contains \"out of memory\" the file was not found.");
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage(t.toString());
       }
-
-      connection.close();
-    } catch (Throwable t) {
-      t.printStackTrace();
-      logger.info("If stack trace contains \"out of memory\" the file was not found.");
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(t.toString());
     }
-
     logger.info("Metadata read successfully for " + rawDataFileName);
   }
 

@@ -25,10 +25,13 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
+import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameMsMsInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFFrameTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMaldiFrameInfoTable;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMetaDataTable;
@@ -42,6 +45,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class to load Bruker TSF spectra (Maldi acquired on timsTOF FleX, but without tims
@@ -95,16 +99,16 @@ public class TSFUtils {
   public double[][] loadCentroidSpectrum(final long handle, final long frameId) {
     long numDataPoints = 0;
     do {
-      numDataPoints = tsfdata
-          .tsf_read_line_spectrum(handle, frameId, centroidIndexArray, centroidIntensityArray,
-              centroidIndexArray.length);
+      numDataPoints = tsfdata.tsf_read_line_spectrum(handle, frameId, centroidIndexArray,
+          centroidIntensityArray, centroidIndexArray.length);
 
       // check if the buffer size was enough
       // bug: if there are no data points, the return is 0 as well. -> just check for size
       if (/*printLastError(numDataPoints) ||*/ numDataPoints > centroidIndexArray.length) {
         BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
-        logger.fine(() -> "Could not read scan " + frameId
-            + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+        logger.fine(
+            () -> "Could not read scan " + frameId + ". Increasing buffer size to " + BUFFER_SIZE
+                + " and reloading.");
         centroidIntensityArray = new float[BUFFER_SIZE];
         centroidIndexArray = new double[BUFFER_SIZE];
         centroidMzArray = new double[BUFFER_SIZE]; // double array -> twice the size
@@ -115,23 +119,23 @@ public class TSFUtils {
 
     double[][] mzIntensities = new double[2][];
     mzIntensities[0] = Arrays.copyOfRange(centroidMzArray, 0, (int) numDataPoints);
-    mzIntensities[1] = ConversionUtils
-        .convertFloatsToDoubles(centroidIntensityArray, (int) numDataPoints);
+    mzIntensities[1] = ConversionUtils.convertFloatsToDoubles(centroidIntensityArray,
+        (int) numDataPoints);
     return mzIntensities;
   }
 
   public double[][] loadProfileSpectrum(long handle, final long frameId) {
     long numDataPoints = 0;
     do {
-      numDataPoints = tsfdata
-          .tsf_read_profile_spectrum(handle, frameId, profileIntensityBufferArray,
-              BUFFER_SIZE);
+      numDataPoints = tsfdata.tsf_read_profile_spectrum(handle, frameId,
+          profileIntensityBufferArray, BUFFER_SIZE);
 
       // check if the buffer size was enough
       if (printLastError(numDataPoints) || numDataPoints > profileIndexArray.length) {
         BUFFER_SIZE += BUFFER_SIZE_INCREMENT;
-        logger.fine(() -> "Could not read scan " + frameId
-            + ". Increasing buffer size to " + BUFFER_SIZE + " and reloading.");
+        logger.fine(
+            () -> "Could not read scan " + frameId + ". Increasing buffer size to " + BUFFER_SIZE
+                + " and reloading.");
         profileIntensityBufferArray = new byte[BUFFER_SIZE * 4];
         profileIntensityArray = new long[BUFFER_SIZE];
         profileIndexArray = createPopulatedArray(BUFFER_SIZE);
@@ -163,17 +167,18 @@ public class TSFUtils {
    * @param spectrumType  The spectrum type to load.
    * @return
    */
-  public ImagingScan loadMaldiScan(RawDataFile file, final long handle, final long frameId, @NotNull
-      TDFMetaDataTable metaDataTable, @NotNull TSFFrameTable frameTable, @NotNull
-      TDFMaldiFrameInfoTable maldiTable, MassSpectrumType spectrumType) {
+  public ImagingScan loadMaldiScan(RawDataFile file, final long handle, final long frameId,
+      @NotNull TDFMetaDataTable metaDataTable, @NotNull TSFFrameTable frameTable,
+      @NotNull TDFMaldiFrameInfoTable maldiTable, MassSpectrumType spectrumType) {
 
     final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
-    final String scanDefinition = metaDataTable.getInstrumentType() + " - "
-        + BrukerScanMode.fromScanMode(frameTable.getScanModeColumn().get(frameIndex).intValue());
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue());
     final int msLevel = TDFUtils.getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    final PolarityType polarity = PolarityType
-        .fromSingleChar((String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
 
     final Coordinates coords = new Coordinates(
@@ -190,8 +195,53 @@ public class TSFUtils {
         mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange, coords);
   }
 
-  private boolean loadLibrary()
-      throws IOException, UnsupportedOperationException {
+  public Scan loadScan(RawDataFile file, final long handle, final long frameId,
+      @NotNull TDFMetaDataTable metaDataTable, @NotNull TSFFrameTable frameTable,
+      @NotNull TDFFrameMsMsInfoTable msMsInfoTable, @Nullable TDFMaldiFrameInfoTable maldiTable,
+      @NotNull final MassSpectrumType spectrumType) {
+
+    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
+    final String scanDefinition =
+        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
+            frameTable.getScanModeColumn().get(frameIndex).intValue());
+    final int msLevel = TDFUtils.getMZmineMsLevelFromBrukerMsMsType(
+        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
+    final float rt = frameTable.getTimeColumn().get(frameIndex).floatValue();
+    final PolarityType polarity = PolarityType.fromSingleChar(
+        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
+    final Range<Double> mzRange = metaDataTable.getMzRange();
+
+    double[][] mzIntensities =
+        spectrumType == MassSpectrumType.CENTROIDED ? loadCentroidSpectrum(handle, frameId)
+            : loadProfileSpectrum(handle, frameId);
+
+    double ce = 0d;
+    double precursor = 0d;
+    int precursorCharge = 0;
+    /*if (msLevel > 1) {
+      ce = (double) Objects.requireNonNullElse(
+          msMsInfoTable.getColumn(TDFFrameMsMsInfoTable.COLLISION_ENERGY).get(frameIndex), 0d);
+      precursor = (double) Objects.requireNonNullElse(
+          msMsInfoTable.getColumn(TDFFrameMsMsInfoTable.TRIGGER_MASS).get(frameIndex), 0d);
+      precursorCharge = (int)(long) Objects.requireNonNullElse(
+          msMsInfoTable.getColumn(TDFFrameMsMsInfoTable.PRECURSOR_CHARGE).get(frameIndex), 0);
+    }*/
+
+    if(maldiTable == null || maldiTable.getFrameIdColumn().isEmpty()) {
+      return new SimpleScan(file, (int) frameId, msLevel, rt, precursor, precursorCharge,
+          mzIntensities[0], mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange);
+    } else {
+      final Coordinates coords = new Coordinates(
+          maldiTable.getTransformedXIndexPos((int) (frameIndex)),
+          maldiTable.getTransformedYIndexPos((int) (frameIndex)), 0);
+
+      return new SimpleImagingScan(file, Math.toIntExact(frameId), msLevel,
+          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), 0, 0, mzIntensities[0],
+          mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange, coords);
+    }
+  }
+
+  private boolean loadLibrary() throws IOException, UnsupportedOperationException {
     logger.finest("Initialising tdf library.");
     File timsdataLib = null;
     String libraryFileName;
@@ -208,14 +258,13 @@ public class TSFUtils {
       throw new UnsupportedOperationException(
           "MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
     } else {
-      throw new UnsupportedOperationException(
-          "Unsupported OS. Cannot initialise timsdata library.");
+      throw new UnsupportedOperationException("Unsupported OS. Cannot initialise tsfdata library.");
     }
     timsdataLib = Native.extractFromResourcePath("/vendorlib/bruker/" + libraryFileName,
         TDFUtils.class.getClassLoader());
     if (timsdataLib == null) {
       throw new FileNotFoundException(
-          "File " + libraryFileName + " not found. Cannot initialise timsdata library.");
+          "File " + libraryFileName + " not found. Cannot initialise tsfsdata library.");
     }
     tsfdata = Native.load(timsdataLib.getAbsolutePath(), TSFData.class);
     return tsfdata != null;
@@ -232,15 +281,15 @@ public class TSFUtils {
    */
   public long openFile(final File path, final long useRecalibratedState) {
     if (tsfdata == null) {
-      logger
-          .warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because timsdata "
+      logger.warning(
+          () -> "File + " + path.getAbsolutePath() + " cannot be loaded because timsdata "
               + "library could not be initialised.");
       return 0L;
     }
     if (path.isFile()) {
       logger.finest(() -> "Opening tsf file " + path.getAbsolutePath());
-      final long handle =
-          tsfdata.tsf_open(path.getParentFile().getAbsolutePath(), useRecalibratedState);
+      final long handle = tsfdata.tsf_open(path.getParentFile().getAbsolutePath(),
+          useRecalibratedState);
       logger.finest(() -> "File " + path.getName() + " hasReacalibratedState = "
           + tsfdata.tsf_has_recalibrated_state(handle));
       return handle;
@@ -292,8 +341,7 @@ public class TSFUtils {
   }
 
   public double[][] deleteZeroIntensities(@NotNull final double[] mzs,
-      @NotNull final long[] intensities,
-      @NotNull AtomicInteger outNumValues) {
+      @NotNull final long[] intensities, @NotNull AtomicInteger outNumValues) {
     // if they are assigned after the first spectrum has been loaded, we should have enough space since the scan range should not change
     if (profileDeletedZeroMzs == null || profileDeletedZeroIntensities == null) {
       profileDeletedZeroMzs = new double[mzs.length];
@@ -340,10 +388,8 @@ public class TSFUtils {
     assert dst.length == uint32t.length / 4;
     final byte zeroByte = 0;
     for (int i = 0; i < uint32t.length / 4; i++) {
-      dst[i] = Longs
-          .fromBytes(zeroByte, zeroByte, zeroByte, zeroByte, uint32t[i * 4 + 3], uint32t[i * 4 + 2],
-              uint32t[i * 4 + 1],
-              uint32t[i * 4]);
+      dst[i] = Longs.fromBytes(zeroByte, zeroByte, zeroByte, zeroByte, uint32t[i * 4 + 3],
+          uint32t[i * 4 + 2], uint32t[i * 4 + 1], uint32t[i * 4]);
     }
   }
 }

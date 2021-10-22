@@ -69,7 +69,6 @@ public class TDFFrameMsMsInfoTable extends TDFDataTable<Long> {
     super(FRAME_MSMS_INFO_TABLE, FRAME_ID);
 
     columns.addAll(Arrays.asList(
-
         new TDFDataColumn<Long>(PARENT_ID),
         new TDFDataColumn<Double>(TRIGGER_MASS),
         new TDFDataColumn<Double>(ISOLATION_WIDTH),

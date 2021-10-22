@@ -30,6 +30,7 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportTask;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImzMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportTask;
@@ -193,6 +194,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile, module,
           parameters, moduleCallDate);
+      // imaging, maldi, or LC-MS
+      case BRUKER_TSF -> new TSFImportTask(project, file, MemoryMapStorage.forRawDataFile(),
+          module, parameters, moduleCallDate);
       // IMS
       case MZML_IMS -> new MSDKmzMLImportTask(project, file, (IMSRawDataFile) newMZmineFile, module,
           parameters, moduleCallDate);
@@ -253,6 +257,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           .createNewFile(newName, absPath, storage);
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
       case BRUKER_TDF, MZML_IMS -> MZmineCore.createNewIMSFile(newName, absPath, storage);
+      case BRUKER_TSF -> null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }
