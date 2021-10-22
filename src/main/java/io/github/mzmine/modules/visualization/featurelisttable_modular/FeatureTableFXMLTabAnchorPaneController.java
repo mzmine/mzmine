@@ -60,6 +60,10 @@ public class FeatureTableFXMLTabAnchorPaneController {
   @FXML
   private FeatureTableFX featureTable;
 
+  public void setFeatureTable(FeatureTableFX featureTable) {
+    this.featureTable = featureTable;
+  }
+
   private TextField mzSearchField;
   private TextField rtSearchField;
   private TextField anySearchField;
@@ -269,5 +273,9 @@ public class FeatureTableFXMLTabAnchorPaneController {
     if (selectedRow == null) {
       return;
     }
+  }
+
+  public void close() {
+    featureTable.closeTable();
   }
 }

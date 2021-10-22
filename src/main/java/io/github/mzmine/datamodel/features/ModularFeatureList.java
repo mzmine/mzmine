@@ -491,6 +491,8 @@ public class ModularFeatureList implements FeatureList {
    */
   @Override
   public void removeRow(FeatureListRow row) {
+    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
+    ((ModularFeatureListRow) row).clearBufferedColCharts();
     featureListRows.remove(row);
     updateMaxIntensity();
   }

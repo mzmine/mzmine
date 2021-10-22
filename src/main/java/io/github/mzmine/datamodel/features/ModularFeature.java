@@ -66,6 +66,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -269,6 +270,16 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   public void addBufferedColChart(String colname, Node node) {
     buffertColCharts.put(colname, node);
+  }
+
+  public void clearBufferedColCharts() {
+    buffertColCharts.forEach((k, v) -> {
+      if (v instanceof Pane p && p.getParent() instanceof Pane pane) {
+        // remove the node from the parent so there is no more reference and it can be GC'ed
+        pane.getChildren().remove(v);
+      }
+    });
+    buffertColCharts.clear();
   }
 
   @Override

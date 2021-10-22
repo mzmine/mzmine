@@ -37,8 +37,9 @@ import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureTableTab extends MZmineTab {
-  private final Image SELECTION_ICON =
-      FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
+
+  private final Image SELECTION_ICON = FxIconUtil.loadImageFromResources(
+      "icons/propertiesicon.png");
 
   private final BorderPane mainPane;
   private final ToolBar toolBar;
@@ -51,8 +52,8 @@ public class FeatureTableTab extends MZmineTab {
     toolBar = new ToolBar();
 
     // Setup feature table
-    FXMLLoader loader =
-        new FXMLLoader((FeatureTableFX.class.getResource("FeatureTableFXMLTabAnchorPane.fxml")));
+    FXMLLoader loader = new FXMLLoader(
+        (FeatureTableFX.class.getResource("FeatureTableFXMLTabAnchorPane.fxml")));
 
     AnchorPane root = null;
     try {
@@ -83,6 +84,11 @@ public class FeatureTableTab extends MZmineTab {
     mainPane.setRight(toolBar);
 
     setContent(mainPane);
+
+    setOnClosed(e -> {
+      controller.close();
+      setOnClosed(null);
+    });
   }
 
   public FeatureList getFeatureList() {
@@ -92,22 +98,20 @@ public class FeatureTableTab extends MZmineTab {
   @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return getFeatureList()==null? Collections.emptyList() : getFeatureList().getRawDataFiles();
+    return getFeatureList() == null ? Collections.emptyList() : getFeatureList().getRawDataFiles();
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return !getFeatureList().isAligned()
-        ? Collections.singletonList(getFeatureList())
+    return !getFeatureList().isAligned() ? Collections.singletonList(getFeatureList())
         : Collections.emptyList();
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return getFeatureList().isAligned()
-        ? Collections.singletonList(getFeatureList())
+    return getFeatureList().isAligned() ? Collections.singletonList(getFeatureList())
         : Collections.emptyList();
   }
 
@@ -118,7 +122,7 @@ public class FeatureTableTab extends MZmineTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    if(featureLists == null || featureLists.isEmpty()) {
+    if (featureLists == null || featureLists.isEmpty()) {
       return;
     }
 
@@ -129,8 +133,7 @@ public class FeatureTableTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
     onFeatureListSelectionChanged(featureLists);
   }
 }
