@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleImagingScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -38,49 +39,48 @@ import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFMe
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class to load Bruker TSF spectra (Maldi acquired on timsTOF FleX, but without tims
- * dimension.) In Contrast to {@link TDFUtils} this class needs to be instantiated for usage,
- * because buffers are reused.
+ * dimension.).
  */
 public class TSFUtils {
 
   public static final int BUFFER_SIZE_INCREMENT = 50_000;
-  private static Logger logger = Logger.getLogger(TSFUtils.class.getName());
-  private TSFData tsfdata = null;
-  private int BUFFER_SIZE = 50_000;
 
+  private static int DEFAULT_NUMTHREADS = MZmineCore.getConfiguration().getPreferences()
+      .getParameter(MZminePreferences.numOfThreads).getValue();
+  private static Logger logger = Logger.getLogger(TSFUtils.class.getName());
+  private final int numThreads;
+  private TSFLibrary tsfdata = null;
+  private int BUFFER_SIZE = 50_000;
   // centroid
   private double[] centroidIndexArray = new double[BUFFER_SIZE]; // a double array -> twice the size
   private float[] centroidIntensityArray = new float[BUFFER_SIZE]; // a float array
   private double[] centroidMzArray = new double[BUFFER_SIZE];
-
   // profile
   private byte[] profileIntensityBufferArray = new byte[BUFFER_SIZE * 4]; // unit32_t
   private long[] profileIntensityArray = new long[BUFFER_SIZE]; // unit32_t
   private double[] profileIndexArray = createPopulatedArray(BUFFER_SIZE);
   private double[] profileMzArray = new double[BUFFER_SIZE];
-
   private double[] profileDeletedZeroMzs;
   private double[] profileDeletedZeroIntensities;
 
+  public TSFUtils() throws IOException {
+    this(DEFAULT_NUMTHREADS);
+  }
 
-  public TSFUtils() throws IOException, UnsupportedOperationException {
-    try {
-      loadLibrary();
-    } catch (IOException | UnsupportedOperationException e) {
-      e.printStackTrace();
-      throw e;
-    }
+  public TSFUtils(int numThreads) throws UnsupportedOperationException {
+    this.numThreads = numThreads;
+    loadLibrary();
   }
 
   public static double[] createPopulatedArray(final int size) {
@@ -227,7 +227,7 @@ public class TSFUtils {
           msMsInfoTable.getColumn(TDFFrameMsMsInfoTable.PRECURSOR_CHARGE).get(frameIndex), 0);
     }*/
 
-    if(maldiTable == null || maldiTable.getFrameIdColumn().isEmpty()) {
+    if (maldiTable == null || maldiTable.getFrameIdColumn().isEmpty()) {
       return new SimpleScan(file, (int) frameId, msLevel, rt, precursor, precursorCharge,
           mzIntensities[0], mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange);
     } else {
@@ -241,33 +241,43 @@ public class TSFUtils {
     }
   }
 
-  private boolean loadLibrary() throws IOException, UnsupportedOperationException {
+  private boolean loadLibrary() {
     logger.finest("Initialising tdf library.");
     File timsdataLib = null;
     String libraryFileName;
-    if (com.sun.jna.Platform.isWindows() && com.sun.jna.Platform.is64Bit()) {
-      libraryFileName = "timsdata_x64.dll";
-    } else if (com.sun.jna.Platform.isWindows() && !com.sun.jna.Platform.is64Bit()) {
-      libraryFileName = "timsdata_x32.dll";
-    } else if (com.sun.jna.Platform.isLinux()) {
-      libraryFileName = "libtimsdata.so";
-    } else if (com.sun.jna.Platform.isMac()) {
-      logger.info("MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
-      MZmineCore.getDesktop().displayMessage(
-          "MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
-      throw new UnsupportedOperationException(
-          "MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
-    } else {
-      throw new UnsupportedOperationException("Unsupported OS. Cannot initialise tsfdata library.");
+    try {
+      if (com.sun.jna.Platform.isWindows() && com.sun.jna.Platform.is64Bit()) {
+        libraryFileName = "timsdata_x64.dll";
+      } else if (com.sun.jna.Platform.isWindows() && !com.sun.jna.Platform.is64Bit()) {
+        libraryFileName = "timsdata_x32.dll";
+      } else if (com.sun.jna.Platform.isLinux()) {
+        libraryFileName = "libtimsdata.so";
+      } else if (com.sun.jna.Platform.isMac()) {
+        logger.info("MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
+        MZmineCore.getDesktop().displayMessage(
+            "MacOS is not supported by Bruker Daltonics. Please contact Bruker Daltonics.");
+        return false;
+      } else {
+        return false;
+      }
+      timsdataLib = Native.extractFromResourcePath("/vendorlib/bruker/" + libraryFileName,
+          TDFUtils.class.getClassLoader());
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.SEVERE, "Failed to load/extract timsdata library", e);
+      return false;
     }
-    timsdataLib = Native.extractFromResourcePath("/vendorlib/bruker/" + libraryFileName,
-        TDFUtils.class.getClassLoader());
+
     if (timsdataLib == null) {
-      throw new FileNotFoundException(
-          "File " + libraryFileName + " not found. Cannot initialise tsfsdata library.");
+      logger.warning("TIMS data library could not be loaded.");
+      return false;
     }
-    tsfdata = Native.load(timsdataLib.getAbsolutePath(), TSFData.class);
-    return tsfdata != null;
+
+    tsfdata = Native.load(timsdataLib.getAbsolutePath(), TSFLibrary.class);
+    logger.info("Native TDF library initialised " + tsfdata.toString());
+    setNumThreads(numThreads);
+
+    return true;
   }
 
   /**
@@ -280,10 +290,9 @@ public class TSFUtils {
    * @return 0 on error, the handle otherwise.
    */
   public long openFile(final File path, final long useRecalibratedState) {
-    if (tsfdata == null) {
-      logger.warning(
-          () -> "File + " + path.getAbsolutePath() + " cannot be loaded because timsdata "
-              + "library could not be initialised.");
+    if (!loadLibrary() || tsfdata == null) {
+      logger.warning(() -> "File + " + path.getAbsolutePath() + " cannot be loaded because tdf "
+          + "library could not be initialised.");
       return 0L;
     }
     if (path.isFile()) {
@@ -390,6 +399,31 @@ public class TSFUtils {
     for (int i = 0; i < uint32t.length / 4; i++) {
       dst[i] = Longs.fromBytes(zeroByte, zeroByte, zeroByte, zeroByte, uint32t[i * 4 + 3],
           uint32t[i * 4 + 2], uint32t[i * 4 + 1], uint32t[i * 4]);
+    }
+  }
+
+  /**
+   * Sets the default number of threads to use for each raw file across all {@link TDFUtils}
+   * instances.
+   *
+   * @param numThreads
+   */
+  public static void setDefaultNumThreads(int numThreads) {
+    numThreads = Math.max(numThreads, 1);
+    final int finalNumThreads = numThreads;
+    logger.finest(() -> "Setting number of threads per file to " + finalNumThreads);
+    DEFAULT_NUMTHREADS = numThreads;
+  }
+
+  public void setNumThreads(int numThreads) {
+    if (tsfdata == null) {
+      if (!loadLibrary()) {
+        return;
+      }
+    }
+    if (numThreads >= 1) {
+      logger.finest(() -> "Setting number of threads per file to " + numThreads);
+      tsfdata.tsf_set_num_threads(numThreads);
     }
   }
 }

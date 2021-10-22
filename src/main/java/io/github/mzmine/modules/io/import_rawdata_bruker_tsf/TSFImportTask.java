@@ -154,7 +154,7 @@ public class TSFImportTask extends AbstractTask {
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
     final MassSpectrumType importSpectrumType =
-        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
+        metaDataTable.hasLineSpectra() ? MassSpectrumType.PROFILE : MassSpectrumType.PROFILE;
 
     if (!importTSF(tsfUtils, handle, numScans, newMZmineFile, importSpectrumType)) {
       return;
