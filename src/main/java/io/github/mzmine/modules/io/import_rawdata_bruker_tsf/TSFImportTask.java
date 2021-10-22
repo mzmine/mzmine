@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
@@ -42,6 +43,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -154,11 +156,13 @@ public class TSFImportTask extends AbstractTask {
     final int numScans = frameTable.getFrameIdColumn().size();
     totalScans = numScans;
     final MassSpectrumType importSpectrumType =
-        metaDataTable.hasLineSpectra() ? MassSpectrumType.PROFILE : MassSpectrumType.PROFILE;
+        metaDataTable.hasLineSpectra() ? MassSpectrumType.CENTROIDED : MassSpectrumType.PROFILE;
 
     if (!importTSF(tsfUtils, handle, numScans, newMZmineFile, importSpectrumType)) {
       return;
     }
+    addMsMsInfo(newMZmineFile);
+
     newMZmineFile.getAppliedMethods()
         .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
 
@@ -292,5 +296,44 @@ public class TSFImportTask extends AbstractTask {
     }).findAny().orElse(null);
 
     return new File[]{tsf, tsf_bin};
+  }
+
+  private void addMsMsInfo(RawDataFile file) {
+    setDescription("Assigning MS/MS precursor info for " + rawDataFileName + ".");
+
+    Date start = new Date();
+    int constructed = 0;
+    for (Scan scan : file.getScans()) {
+      if (scan.getMSLevel() == 1) {
+        continue;
+      }
+
+      final int scanId = scan.getScanNumber();
+      final int scanInfo = frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.FRAME_ID)
+          .indexOf((long)scanId);
+
+      if (scanInfo == -1) {
+        continue;
+      }
+
+      double ce = 0d;
+      double precursor = 0d;
+      int precursorCharge = 0;
+
+      ce = (double) Objects.requireNonNullElse(
+          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.COLLISION_ENERGY).get(scanInfo), 0d);
+      precursor = (double) Objects.requireNonNullElse(
+          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.TRIGGER_MASS).get(scanInfo), 0d);
+      precursorCharge = (int) (long) Objects.requireNonNullElse(
+          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.PRECURSOR_CHARGE).get(scanInfo), 0);
+
+      ((SimpleScan) scan).setPrecursorCharge(precursorCharge);
+      ((SimpleScan) scan).setPrecursorMZ(precursor);
+    }
+
+    Date end = new Date();
+    logger.info(
+        "Construced " + constructed + " DDAMsMsInfos for " + file.getScans().size() + " in " + (
+            end.getTime() - start.getTime()) + " ms");
   }
 }
