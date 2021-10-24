@@ -31,6 +31,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.cus
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AcylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.AlkylLipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.ParsingUtils;
 
@@ -129,9 +130,8 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
-    writer.writeStartElement(XML_LIPID_CLASS);
-    writer.writeCharacters(lipidClass.getName());
-    writer.writeEndElement();
+    writer.writeAttribute(XML_ELEMENT, LIPID_ANNOTATION_LEVEL.name());
+    lipidClass.saveToXML(writer);
     writer.writeStartElement(XML_NAME);
     writer.writeCharacters(annotation);
     writer.writeEndElement();
@@ -160,18 +160,17 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
           "Cannot load lipid class from the current element. Wrong name.");
     }
 
+    ILipidClass lipidClass = null;
+    String annotation = null;
+    LipidAnnotationLevel lipidAnnotationLevel = null;
+    IMolecularFormula molecularFormula = null;
+    List<ILipidChain> lipidChains = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
       }
-
-      ILipidClass lipidClass = null;
-      String annotation = null;
-      LipidAnnotationLevel lipidAnnotationLevel = null;
-      IMolecularFormula molecularFormula = null;
-      List<ILipidChain> lipidChains = null;
 
       switch (reader.getLocalName()) {
         case XML_LIPID_CLASS:
@@ -196,11 +195,11 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
         default:
           break;
       }
-      if (lipidAnnotationLevel != null
-          && lipidAnnotationLevel.equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-        return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
-            lipidChains);
-      }
+    }
+    if (lipidAnnotationLevel != null
+        && lipidAnnotationLevel.equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+      return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
+          lipidChains);
     }
     return null;
   }
@@ -219,8 +218,11 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
       if (!reader.isStartElement()) {
         continue;
       }
-      lipidChains.add(AcylLipidChain.loadFromXML(reader));
-      lipidChains.add(AlkylLipidChain.loadFromXML(reader));
+      if (reader.getLocalName().equals(LipidChainType.ACYL_CHAIN.name())) {
+        lipidChains.add(AcylLipidChain.loadFromXML(reader));
+      } else if (reader.getLocalName().equals(LipidChainType.ALKYL_CHAIN.name())) {
+        lipidChains.add(AlkylLipidChain.loadFromXML(reader));
+      }
 
     }
     return lipidChains;

@@ -26,7 +26,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -36,7 +35,6 @@ import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 
 public class LipidAnnotationSummaryType extends ListDataType<MatchedLipid>
     implements AnnotationType, EditableColumnType {
@@ -84,7 +82,7 @@ public class LipidAnnotationSummaryType extends ListDataType<MatchedLipid>
       throw new IllegalStateException("Wrong element");
     }
 
-    List<FeatureIdentity> ids = new ArrayList<>();
+    List<MatchedLipid> ids = new ArrayList<>();
 
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
@@ -93,10 +91,8 @@ public class LipidAnnotationSummaryType extends ListDataType<MatchedLipid>
         continue;
       }
 
-      if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
-          && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
-              .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
-        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
+      if (reader.getLocalName().equals(MatchedLipid.XML_ELEMENT)) {
+        MatchedLipid id = MatchedLipid.loadFromXML(reader, flist.getRawDataFiles());
         ids.add(id);
       }
     }

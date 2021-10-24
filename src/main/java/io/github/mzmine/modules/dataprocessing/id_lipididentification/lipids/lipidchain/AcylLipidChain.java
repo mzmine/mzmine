@@ -101,18 +101,17 @@ public class AcylLipidChain implements ILipidChain {
           "Cannot load acyl chain from the current element. Wrong name.");
     }
 
+    String chainAnnotation = null;
+    IMolecularFormula molecularFormula = null;
+    Integer numberOfCarbons = null;
+    Integer numberOfDBEs = null;
+    LipidChainType lipidChainType = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
       }
-
-      String chainAnnotation = null;
-      IMolecularFormula molecularFormula = null;
-      Integer numberOfCarbons = null;
-      Integer numberOfDBEs = null;
-      LipidChainType lipidChainType = null;
 
       switch (reader.getLocalName()) {
         case XML_CHAIN_ANNOTATION:
@@ -133,9 +132,9 @@ public class AcylLipidChain implements ILipidChain {
         default:
           break;
       }
-      if (lipidChainType != null && lipidChainType.equals(LipidChainType.ACYL_CHAIN)) {
-        return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs);
-      }
+    }
+    if (lipidChainType != null && lipidChainType.equals(LipidChainType.ACYL_CHAIN)) {
+      return new AcylLipidChain(chainAnnotation, molecularFormula, numberOfCarbons, numberOfDBEs);
     }
     return null;
   }

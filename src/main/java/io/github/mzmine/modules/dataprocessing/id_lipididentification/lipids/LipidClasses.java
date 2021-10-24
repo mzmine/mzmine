@@ -733,6 +733,7 @@ public enum LipidClasses implements ILipidClass {
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(XML_ELEMENT, LipidClasses.class.getSimpleName());
     writer.writeStartElement(XML_LIPID_CLASS_NAME);
     writer.writeCharacters(name);
     writer.writeEndElement();

@@ -134,9 +134,8 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
-    writer.writeStartElement(XML_LIPID_CLASS);
-    writer.writeCharacters(lipidClass.getName());
-    writer.writeEndElement();
+    writer.writeAttribute(XML_ELEMENT, LIPID_ANNOTATION_LEVEL.name());
+    lipidClass.saveToXML(writer);
     writer.writeStartElement(XML_NAME);
     writer.writeCharacters(annotation);
     writer.writeEndElement();
@@ -161,6 +160,12 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
           "Cannot load lipid class from the current element. Wrong name.");
     }
 
+    ILipidClass lipidClass = null;
+    String annotation = null;
+    LipidAnnotationLevel lipidAnnotationLevel = null;
+    IMolecularFormula molecularFormula = null;
+    Integer numberOfCarbons = null;
+    Integer numberOfDBEs = null;
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -168,17 +173,13 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
         continue;
       }
 
-      ILipidClass lipidClass = null;
-      String annotation = null;
-      LipidAnnotationLevel lipidAnnotationLevel = null;
-      IMolecularFormula molecularFormula = null;
-      Integer numberOfCarbons = null;
-      Integer numberOfDBEs = null;
-
       switch (reader.getLocalName()) {
         case XML_LIPID_CLASS:
-          lipidClass = LipidClasses.loadFromXML(reader);
-          if (lipidClass == null) {
+          if (reader.getAttributeValue(null, XML_LIPID_CLASS)
+              .equals(LipidClasses.class.getSimpleName())) {
+            lipidClass = LipidClasses.loadFromXML(reader);
+          } else if (reader.getAttributeValue(null, XML_LIPID_CLASS)
+              .equals(CustomLipidClass.class.getSimpleName())) {
             lipidClass = CustomLipidClass.loadFromXML(reader);
           }
           break;
@@ -201,11 +202,12 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
         default:
           break;
       }
-      if (lipidAnnotationLevel != null
-          && lipidAnnotationLevel.equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
-        return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
-            numberOfDBEs);
-      }
+    }
+
+    if (lipidAnnotationLevel != null
+        && lipidAnnotationLevel.equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
+      return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
+          numberOfDBEs);
     }
     return null;
   }

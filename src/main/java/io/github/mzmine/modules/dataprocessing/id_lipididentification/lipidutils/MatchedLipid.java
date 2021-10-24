@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
@@ -36,7 +37,7 @@ import io.github.mzmine.util.ParsingUtils;
 
 public class MatchedLipid {
 
-  private static final String XML_ELEMENT = "matchedlipid";
+  public static final String XML_ELEMENT = "matchedlipid";
   private static final String XML_LIPID_ANNOTATION_ELEMENT = "lipidannotation";
   private static final String XML_ACCURATE_MZ = "accuratemz";
   private static final String XML_IONIZATION_TYPE = "ionizationtype";
@@ -115,10 +116,7 @@ public class MatchedLipid {
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
-
-    writer.writeStartElement(XML_LIPID_ANNOTATION_ELEMENT);
-    writer.writeCharacters(lipidAnnotation.getAnnotation());
-    writer.writeEndElement();
+    lipidAnnotation.saveToXML(writer);
     writer.writeStartElement(XML_ACCURATE_MZ);
     writer.writeCharacters(accurateMz.toString());
     writer.writeEndElement();
@@ -156,7 +154,6 @@ public class MatchedLipid {
           "Cannot load matched lipid from the current element. Wrong name.");
     }
 
-
     ILipidAnnotation lipidAnnotation = null;
     Double accurateMz = null;
     IonizationType ionizationType = null;
@@ -172,8 +169,11 @@ public class MatchedLipid {
 
       switch (reader.getLocalName()) {
         case XML_LIPID_ANNOTATION_ELEMENT:
-          lipidAnnotation = SpeciesLevelAnnotation.loadFromXML(reader);
-          if (lipidAnnotation == null) {
+          if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
+              .equals(LipidAnnotationLevel.SPECIES_LEVEL.name())) {
+            lipidAnnotation = SpeciesLevelAnnotation.loadFromXML(reader);
+          } else if (reader.getAttributeValue(null, XML_LIPID_ANNOTATION_ELEMENT)
+              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL.name())) {
             lipidAnnotation = MolecularSpeciesLevelAnnotation.loadFromXML(reader);
           }
           break;

@@ -27,9 +27,11 @@ import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
 
 public class LipidFragment {
@@ -38,11 +40,12 @@ public class LipidFragment {
   private static final String XML_LIPID_FRAGMENTATION_RULE_TYPE = "ruletype";
   private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
   private static final String XML_MZ_EXACT = "mzexact";
+  private static final String XML_DATA_POINT_INTENSITY = "datapointintensity";
+  private static final String XML_DATA_POINT_MZ = "datapointmz";
   private static final String XML_LIPID_CLASS = "lipidclass";
   private static final String XML_CHAIN_LENGTH = "chainlength";
   private static final String XML_NUMBER_OF_DBES = "numberofdbes";
   private static final String XML_LIPID_CHAIN_TYPE = "lipidchaintype";
-  private static final String XML_MSMS_SCAN_NUMBER = "msmsscannumber";
 
   private LipidFragmentationRuleType ruleType;
   private LipidAnnotationLevel lipidFragmentInformationLevelType;
@@ -107,6 +110,7 @@ public class LipidFragment {
 
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(XML_ELEMENT, lipidFragmentInformationLevelType.name());
     writer.writeStartElement(XML_LIPID_FRAGMENTATION_RULE_TYPE);
     writer.writeCharacters(ruleType.name());
     writer.writeEndElement();
@@ -116,9 +120,14 @@ public class LipidFragment {
     writer.writeStartElement(XML_MZ_EXACT);
     writer.writeCharacters(mzExact.toString());
     writer.writeEndElement();
-    writer.writeStartElement(XML_LIPID_CLASS);
-    lipidClass.saveToXML(writer);
+    writer.writeStartElement(XML_DATA_POINT_INTENSITY);
+    writer.writeCharacters(String.valueOf(dataPoint.getIntensity()));
     writer.writeEndElement();
+    writer.writeStartElement(XML_DATA_POINT_MZ);
+    writer.writeCharacters(String.valueOf(dataPoint.getMZ()));
+    writer.writeEndElement();
+
+    lipidClass.saveToXML(writer);
     writer.writeStartElement(XML_CHAIN_LENGTH);
     if (chainLength != null) {
       writer.writeCharacters(chainLength.toString());
@@ -140,13 +149,9 @@ public class LipidFragment {
       writer.writeCharacters(StringUtils.EMPTY);
     }
     writer.writeEndElement();
-    writer.writeStartElement(XML_MSMS_SCAN_NUMBER);
     if (msMsScan != null) {
       Scan.saveScanToXML(writer, msMsScan);
-    } else {
-      writer.writeCharacters(StringUtils.EMPTY);
     }
-    writer.writeEndElement();
 
     writer.writeEndElement();
 
@@ -162,13 +167,21 @@ public class LipidFragment {
     LipidFragmentationRuleType ruleType = null;
     LipidAnnotationLevel lipidFragmentInformationLevelType = null;
     Double mzExact = null;
-    DataPoint dataPoint = null;
+    Double intensity = null;
+    Double mz = null;
     ILipidClass lipidClass = null;
     Integer chainLength = null;
     Integer numberOfDBEs = null;
     LipidChainType lipidChainType = null;
     Scan msMsScan = null;
 
+    if (reader.getAttributeValue(null, XML_ELEMENT)
+        .equals(LipidAnnotationLevel.SPECIES_LEVEL.name())) {
+      lipidFragmentInformationLevelType = LipidAnnotationLevel.SPECIES_LEVEL;
+    } else if (reader.getAttributeValue(null, XML_ELEMENT)
+        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL.name())) {
+      lipidFragmentInformationLevelType = LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL;
+    }
     while (reader.hasNext()
         && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       reader.next();
@@ -188,22 +201,41 @@ public class LipidFragment {
         case XML_MZ_EXACT:
           mzExact = Double.parseDouble(reader.getElementText());
           break;
+        case XML_DATA_POINT_INTENSITY:
+          intensity = Double.parseDouble(reader.getElementText());
+          break;
+        case XML_DATA_POINT_MZ:
+          mz = Double.parseDouble(reader.getElementText());
+          break;
         case XML_LIPID_CLASS:
-          lipidClass = LipidClasses.loadFromXML(reader);
-          if (lipidClass == null) {
+          if (reader.getAttributeValue(null, XML_LIPID_CLASS)
+              .equals(LipidClasses.class.getSimpleName())) {
+            lipidClass = LipidClasses.loadFromXML(reader);
+          } else if (reader.getAttributeValue(null, XML_LIPID_CLASS)
+              .equals(CustomLipidClass.class.getSimpleName())) {
             lipidClass = CustomLipidClass.loadFromXML(reader);
           }
           break;
         case XML_CHAIN_LENGTH:
-          chainLength = Integer.parseInt(reader.getElementText());
+          if (lipidFragmentInformationLevelType
+              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+            chainLength = Integer.parseInt(reader.getElementText());
+          }
           break;
         case XML_NUMBER_OF_DBES:
-          numberOfDBEs = Integer.parseInt(reader.getElementText());
+          if (lipidFragmentInformationLevelType
+              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+            numberOfDBEs = Integer.parseInt(reader.getElementText());
+          }
           break;
         case XML_LIPID_CHAIN_TYPE:
-          lipidChainType = ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+          if (lipidFragmentInformationLevelType
+              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+            lipidChainType =
+                ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+          }
           break;
-        case XML_MSMS_SCAN_NUMBER:
+        case CONST.XML_RAW_FILE_SCAN_ELEMENT:
           msMsScan = Scan.loadScanFromXML(reader, possibleFiles);
           break;
         default:
@@ -211,8 +243,9 @@ public class LipidFragment {
       }
     }
 
-    return new LipidFragment(ruleType, lipidFragmentInformationLevelType, mzExact, dataPoint,
-        lipidClass, chainLength, numberOfDBEs, lipidChainType, msMsScan);
+    return new LipidFragment(ruleType, lipidFragmentInformationLevelType, mzExact,
+        new SimpleDataPoint(mz, intensity), lipidClass, chainLength, numberOfDBEs, lipidChainType,
+        msMsScan);
   }
 
 }
