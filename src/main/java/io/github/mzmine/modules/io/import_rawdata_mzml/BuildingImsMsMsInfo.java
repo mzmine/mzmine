@@ -20,7 +20,7 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 
 public class BuildingImsMsMsInfo {
 
@@ -87,8 +87,8 @@ public class BuildingImsMsMsInfo {
     return fragmentFrameNumber;
   }
 
-  public ImsMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
-    return new ImsMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
+  public PasefMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
+    return new PasefMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
         collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame);
   }
 }

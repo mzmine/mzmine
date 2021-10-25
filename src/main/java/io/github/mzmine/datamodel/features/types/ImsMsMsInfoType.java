@@ -19,13 +19,13 @@
 package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.List;
 import javafx.beans.property.ListProperty;
@@ -37,7 +37,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
+public class ImsMsMsInfoType extends ListDataType<PasefMsMsInfo> {
 
   @NotNull
   @Override
@@ -49,12 +49,12 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
   @NotNull
   @Override
   public String getHeaderString() {
-    return "ImsMsMsInfo";
+    return "PasefMsMsInfo";
   }
 
   @NotNull
   @Override
-  public String getFormattedString(@NotNull ListProperty<ImsMsMsInfo> property) {
+  public String getFormattedString(@NotNull ListProperty<PasefMsMsInfo> property) {
     return property.get() != null ? String.valueOf(property.get().size()) : "0";
   }
 
@@ -83,7 +83,7 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
     }
 
     for (Object o : list) {
-      if (o instanceof ImsMsMsInfo info) {
+      if (o instanceof PasefMsMsInfo info) {
         info.writeToXML(writer);
       }
     }
@@ -95,7 +95,7 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
 
-    ObservableList<ImsMsMsInfo> infos = FXCollections.observableArrayList();
+    ObservableList<PasefMsMsInfo> infos = FXCollections.observableArrayList();
 
     while (reader.hasNext()) {
       reader.next();
@@ -106,8 +106,8 @@ public class ImsMsMsInfoType extends ListDataType<ImsMsMsInfo> {
         continue;
       }
 
-      if (reader.getLocalName().equals(ImsMsMsInfoImpl.XML_ELEMENT)) {
-        infos.add(ImsMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file));
+      if (reader.getLocalName().equals(PasefMsMsInfoImpl.XML_ELEMENT)) {
+        infos.add(PasefMsMsInfoImpl.loadFromXML(reader, (IMSRawDataFile) file));
       }
     }
     return infos.isEmpty() ? null : infos;

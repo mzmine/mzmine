@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,7 @@ public interface MobilityScan extends MassSpectrum, Scan {
    */
   int getMobilityScanNumber();
 
-  @Nullable ImsMsMsInfo getMsMsInfo();
+  @Nullable PasefMsMsInfo getMsMsInfo();
 
   @Nullable MassList getMassList();
 
@@ -105,7 +106,7 @@ public interface MobilityScan extends MassSpectrum, Scan {
 
   @Override
   default double getPrecursorMZ() {
-    return getMsMsInfo() != null ? getMsMsInfo().getLargestPeakMz() : 0d;
+    return getMsMsInfo() != null ? getMsMsInfo().getIsolationMz() : 0d;
   }
 
   @NotNull

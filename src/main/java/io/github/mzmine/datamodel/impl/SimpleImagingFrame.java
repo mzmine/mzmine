@@ -20,11 +20,11 @@ package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingFrame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ public class SimpleImagingFrame extends SimpleFrame implements ImagingFrame {
       PolarityType polarity, String scanDefinition,
       @NotNull Range<Double> scanMZRange,
       MobilityType mobilityType,
-      @Nullable Set<ImsMsMsInfo> precursorInfos) {
+      @Nullable Set<PasefMsMsInfo> precursorInfos) {
     super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, mzValues,
         intensityValues, spectrumType, polarity, scanDefinition, scanMZRange, mobilityType,
         precursorInfos);

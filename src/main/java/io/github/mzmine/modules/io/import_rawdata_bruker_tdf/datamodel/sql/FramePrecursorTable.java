@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * As this is not a "real" table of the tdf format, it does not share the TDF prefix.
  * <p>
  * Maps precursor info (isolation m/z, precursor id and charge) to the respective scan numbers.
- * Returns {@link ImsMsMsInfo} for each frame.
+ * Returns {@link PasefMsMsInfo} for each frame.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -55,7 +55,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   /**
    * Key = FrameId of the MS2 Frame
    * <p></p>
-   * Value = Collection of ImsMsMsInfo on all precursors in the frame.
+   * Value = Collection of PasefMsMsInfo on all precursors in the frame.
    */
   private final Map<Integer, Set<BuildingPASEFMsMsInfo>> info;
 

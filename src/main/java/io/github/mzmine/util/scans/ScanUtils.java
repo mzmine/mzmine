@@ -23,7 +23,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -35,6 +34,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -709,14 +709,14 @@ public class ScanUtils {
   }
 
   @Nullable
-  public static List<ImsMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
+  public static List<PasefMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
       Range<Double> mzRange, Range<Float> rtRange) {
-    List<ImsMsMsInfo> featureMsMsInfos = new ArrayList<>();
+    List<PasefMsMsInfo> featureMsMsInfos = new ArrayList<>();
     Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
     for (Frame frame : ms2Frames) {
-      Set<ImsMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
-      for (ImsMsMsInfo msmsInfo : frameMsMsInfos) {
-        if (mzRange.contains(msmsInfo.getLargestPeakMz())) {
+      Set<PasefMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
+      for (PasefMsMsInfo msmsInfo : frameMsMsInfos) {
+        if (mzRange.contains(msmsInfo.getIsolationMz())) {
           featureMsMsInfos.add(msmsInfo);
         }
       }

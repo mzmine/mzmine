@@ -26,7 +26,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -41,6 +40,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleMergedMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -264,7 +264,7 @@ public class SpectraMerging {
   }
 
   /**
-   * Creates a merged MS/MS spectrum for a PASEF {@link ImsMsMsInfo}.
+   * Creates a merged MS/MS spectrum for a PASEF {@link PasefMsMsInfo}.
    *
    * @param info             The MS/MS info to create a merged spectrum for
    * @param tolerance        The m/z tolerence to merge peaks from separate mobility scans with.
@@ -277,15 +277,15 @@ public class SpectraMerging {
    * @return A {@link MergedMsMsSpectrum} or null the spectrum would not have any data points.
    */
   @Nullable
-  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@NotNull final ImsMsMsInfo info,
+  public static MergedMsMsSpectrum getMergedMsMsSpectrumForPASEF(@NotNull final PasefMsMsInfo info,
       @NotNull final MZTolerance tolerance, @NotNull final MergingType mergingType,
       @Nullable final MemoryMapStorage storage, @Nullable Range<Float> mobilityRange,
       @Nullable final Double outputNoiseLevel) {
 
     final Range<Integer> spectraNumbers = info.getSpectrumNumberRange();
     final Frame frame = info.getFrameNumber();
-    final float collisionEnergy = info.getCollisionEnergy();
-    final double precursorMz = info.getLargestPeakMz();
+    final float collisionEnergy = info.getActivationEnergy();
+    final double precursorMz = info.getIsolationMz();
 
     List<MobilityScan> mobilityScans = frame.getMobilityScans().stream().filter(
         ms -> spectraNumbers.contains(ms.getMobilityScanNumber()) && (mobilityRange == null

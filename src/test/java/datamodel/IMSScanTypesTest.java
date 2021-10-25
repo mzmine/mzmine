@@ -21,7 +21,6 @@ package datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -35,9 +34,10 @@ import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberT
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
-import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
@@ -148,7 +148,7 @@ public class IMSScanTypesTest {
   @Test
   void bestFragmentScanNumberTypeTest() {
     BestFragmentScanNumberType type = new BestFragmentScanNumberType();
-    ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(4),
+    PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(4),
         file.getFrame(6));
 
     MergedMsMsSpectrum value = SpectraMerging
@@ -175,7 +175,7 @@ public class IMSScanTypesTest {
 
     List<MergedMsMsSpectrum> value = new ArrayList<>();
     for (int i = 5; i < 10; i++) {
-      ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i - 5),
+      PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i - 5),
           file.getFrame(i));
 
       MergedMsMsSpectrum scan = SpectraMerging
@@ -202,9 +202,9 @@ public class IMSScanTypesTest {
   @Test
   void testImsMsMsInfoType() {
     ImsMsMsInfoType type = new ImsMsMsInfoType();
-    List<ImsMsMsInfo> list = new ArrayList<>();
+    List<PasefMsMsInfo> list = new ArrayList<>();
     for (int i = 5; i < 10; i++) {
-      ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i - 5),
+      PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(i - 5),
           file.getFrame(i));
       list.add(info);
     }
@@ -224,13 +224,13 @@ public class IMSScanTypesTest {
     param.setParameter(CompositeCosineSpectralSimilarityParameters.weight, Weights.MASSBANK);
     CompositeCosineSpectralSimilarity simFunc = new CompositeCosineSpectralSimilarity();
 
-    ImsMsMsInfo info = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(2),
+    PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(2),
         file.getFrame(6));
     MergedMsMsSpectrum query = SpectraMerging
         .getMergedMsMsSpectrumForPASEF(info, new MZTolerance(0.01, 10), MergingType.SUMMED, null,
             RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
 
-    ImsMsMsInfo info2 = new ImsMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(3),
+    PasefMsMsInfo info2 = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(3),
         file.getFrame(7));
     MergedMsMsSpectrum library = SpectraMerging
         .getMergedMsMsSpectrumForPASEF(info2, new MZTolerance(0.01, 10), MergingType.SUMMED, null,

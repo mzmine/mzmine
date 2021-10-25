@@ -20,13 +20,13 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import io.github.msdk.datamodel.MsScan;
 import io.github.msdk.datamodel.MsSpectrumType;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
@@ -247,9 +247,9 @@ public class ConversionUtils {
         }
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(isolationMz,
-              Objects.requireNonNullElse(colissionEnergy, ImsMsMsInfo.UNKNOWN_COLISSIONENERGY)
+              Objects.requireNonNullElse(colissionEnergy, PasefMsMsInfo.UNKNOWN_COLISSIONENERGY)
                   .floatValue(),
-              Objects.requireNonNullElse(charge, ImsMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
+              Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
               currentScanNumber);
           buildingInfos.add(info);
         }

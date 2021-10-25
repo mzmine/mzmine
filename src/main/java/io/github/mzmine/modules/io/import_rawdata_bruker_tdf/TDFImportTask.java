@@ -22,14 +22,14 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.IMSImagingRawDataFileImpl;
-import io.github.mzmine.datamodel.impl.ImsMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -510,7 +510,7 @@ public class TDFImportTask extends AbstractTask {
             .filter(f -> f.getFrameId() == parentFrameNumber).findFirst();
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
-        ImsMsMsInfo info = new ImsMsMsInfoImpl(building.getLargestPeakMz(), Range
+        PasefMsMsInfo info = new PasefMsMsInfoImpl(building.getLargestPeakMz(), Range
             .closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
                 building.getSpectrumNumberRange().upperEndpoint() - 1),
             building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame);

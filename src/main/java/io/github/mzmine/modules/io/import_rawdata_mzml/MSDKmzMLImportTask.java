@@ -21,7 +21,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -31,6 +30,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -217,7 +217,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     final List<Double> mobilities = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
-    Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
+    Set<PasefMsMsInfo> finishedImsMsMsInfos = null;
     final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
     Integer lastScanId = null;

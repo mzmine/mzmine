@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Set;
@@ -85,14 +86,13 @@ public interface Frame extends Scan {
    *         precursors were fragmented or assigned.
    */
   @NotNull
-  Set<ImsMsMsInfo> getImsMsMsInfos();
+  Set<PasefMsMsInfo> getImsMsMsInfos();
 
   /**
    * @param mobilityScanNumber The sub scan number of the given sub scan.
-   * @return ImsMsMsInfo or null if no precursor was fragmented at that scan.
+   * @return PasefMsMsInfo or null if no precursor was fragmented at that scan.
    */
-  @Nullable
-  ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
+  @Nullable PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber);
 
   /**
    * @return Always 0.0

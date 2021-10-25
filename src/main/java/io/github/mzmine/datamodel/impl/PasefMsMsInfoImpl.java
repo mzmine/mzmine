@@ -21,28 +21,30 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
- * @see io.github.mzmine.datamodel.ImsMsMsInfo
+ * @see PasefMsMsInfo
  */
-public class ImsMsMsInfoImpl implements ImsMsMsInfo {
+public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
   private final double precursorMz;
   private final Range<Integer> spectrumNumberRange;
-  private final float collisionEnergy;
-  private final int precursorCharge;
+  private final Float collisionEnergy;
+  private final Integer precursorCharge;
   private final Frame parentFrameNumber;
   private final Frame fragmentFrameNumber;
 
-  public ImsMsMsInfoImpl(double precursorMz, Range<Integer> spectrumNumberRange,
-      float collisionEnergy, int precursorCharge, Frame parentFrameNumber,
+  public PasefMsMsInfoImpl(double precursorMz, Range<Integer> spectrumNumberRange,
+      Float collisionEnergy, Integer precursorCharge, Frame parentFrameNumber,
       Frame fragmentFrameNumber) {
 
     if(parentFrameNumber.getMSLevel() != 1) {
@@ -61,7 +63,7 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   }
 
   @Override
-  public double getLargestPeakMz() {
+  public double getIsolationMz() {
     return precursorMz;
   }
 
@@ -71,12 +73,22 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   }
 
   @Override
-  public float getCollisionEnergy() {
+  public Float getActivationEnergy() {
     return collisionEnergy;
   }
 
   @Override
-  public int getPrecursorCharge() {
+  public @Nullable Integer getMsLevel() {
+    return 2;
+  }
+
+  @Override
+  public @Nullable ActivationMethod getActivationMethod() {
+    return ActivationMethod.CID;
+  }
+
+  @Override
+  public Integer getPrecursorCharge() {
     return precursorCharge;
   }
 
@@ -104,45 +116,45 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
   private static final String XML_SPECTRUM_NUMBER_RANGE_ATTR = "spectrumnumberrange";
 
   /**
-   * Appends a new element for an {@link ImsMsMsInfoImpl} at the current position. Start and close
-   * tag for this {@link ImsMsMsInfoImpl} are created in this method.
+   * Appends a new element for an {@link PasefMsMsInfoImpl} at the current position. Start and close
+   * tag for this {@link PasefMsMsInfoImpl} are created in this method.
    *
    * @param writer The writer to use.
    */
   @Override
   public void writeToXML(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(XML_ELEMENT);
-    writer.writeAttribute(XML_PRECURSOR_MZ_ATTR, String.valueOf(getLargestPeakMz()));
+    writer.writeAttribute(XML_PRECURSOR_MZ_ATTR, String.valueOf(getIsolationMz()));
     writer.writeAttribute(XML_PRECURSOR_CHARGE_ATTR, String.valueOf(getPrecursorCharge()));
     writer.writeAttribute(XML_FRAGMENT_FRAME_ATTR,
         String.valueOf(getFrameNumber().getDataFile().getScans().indexOf(getFrameNumber())));
     writer.writeAttribute(XML_PARENT_FRAME_ATTR, String
         .valueOf(getParentFrameNumber().getDataFile().getScans().indexOf(getParentFrameNumber())));
-    writer.writeAttribute(XML_COLLISION_ENERGY_ATTR, String.valueOf(getCollisionEnergy()));
+    writer.writeAttribute(XML_COLLISION_ENERGY_ATTR, String.valueOf(this.getActivationEnergy()));
     writer.writeAttribute(XML_SPECTRUM_NUMBER_RANGE_ATTR,
         ParsingUtils.rangeToString((Range) getSpectrumNumberRange()));
     writer.writeEndElement();
   }
 
   /**
-   * @param reader A reader at an {@link ImsMsMsInfoImpl} element.
-   * @return A loaded {@link ImsMsMsInfoImpl}.
+   * @param reader A reader at an {@link PasefMsMsInfoImpl} element.
+   * @return A loaded {@link PasefMsMsInfoImpl}.
    */
-  public static ImsMsMsInfoImpl loadFromXML(XMLStreamReader reader, IMSRawDataFile file) {
-    final double precursorMz = Double
+  public static PasefMsMsInfoImpl loadFromXML(XMLStreamReader reader, IMSRawDataFile file) {
+    final Double precursorMz = Double
         .parseDouble(reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-    final int precursorCharge = Integer
+    final Integer precursorCharge = Integer
         .parseInt(reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR));
     final int frameIndex = Integer
         .parseInt(reader.getAttributeValue(null, XML_FRAGMENT_FRAME_ATTR));
     final int parentFrameIndex = Integer
         .parseInt(reader.getAttributeValue(null, XML_PARENT_FRAME_ATTR));
-    final float collisionEnergy = Float
+    final Float collisionEnergy = Float
         .parseFloat(reader.getAttributeValue(null, XML_COLLISION_ENERGY_ATTR));
     Range<Integer> spectrumRange = ParsingUtils
         .parseIntegerRange(reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
 
-    return new ImsMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
+    return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
         file.getFrame(parentFrameIndex), file.getFrame(frameIndex));
   }
 
@@ -151,22 +163,21 @@ public class ImsMsMsInfoImpl implements ImsMsMsInfo {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof PasefMsMsInfoImpl)) {
       return false;
     }
-    ImsMsMsInfoImpl that = (ImsMsMsInfoImpl) o;
-    return Double.compare(that.precursorMz, precursorMz) == 0
-        && Float.compare(that.getCollisionEnergy(), getCollisionEnergy()) == 0
-        && getPrecursorCharge() == that.getPrecursorCharge() && Objects
-        .equals(getSpectrumNumberRange(), that.getSpectrumNumberRange()) && Objects
-        .equals(getParentFrameNumber(), that.getParentFrameNumber()) && Objects
-        .equals(fragmentFrameNumber, that.fragmentFrameNumber);
+    PasefMsMsInfoImpl that = (PasefMsMsInfoImpl) o;
+    return Objects.equals(precursorMz, that.precursorMz) && Objects.equals(getSpectrumNumberRange(),
+        that.getSpectrumNumberRange()) && Objects.equals(this.getActivationEnergy(),
+        that.getActivationEnergy()) && Objects.equals(getPrecursorCharge(),
+        that.getPrecursorCharge()) && Objects.equals(getParentFrameNumber(),
+        that.getParentFrameNumber()) && Objects.equals(fragmentFrameNumber,
+        that.fragmentFrameNumber);
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hash(precursorMz, getSpectrumNumberRange(), getCollisionEnergy(), getPrecursorCharge(),
-            getParentFrameNumber(), fragmentFrameNumber);
+    return Objects.hash(precursorMz, getSpectrumNumberRange(), this.getActivationEnergy(),
+        getPrecursorCharge(), getParentFrameNumber(), fragmentFrameNumber);
   }
 }

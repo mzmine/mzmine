@@ -21,7 +21,6 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
@@ -29,6 +28,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -138,13 +138,13 @@ public class CachedFrame implements Frame {
 
   @NotNull
   @Override
-  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+  public Set<PasefMsMsInfo> getImsMsMsInfos() {
     return originalFrame.getImsMsMsInfos();
   }
 
   @Nullable
   @Override
-  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     return originalFrame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
   }
 

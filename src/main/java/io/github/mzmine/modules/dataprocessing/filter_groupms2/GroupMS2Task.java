@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -34,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -196,10 +196,10 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     final List<Frame> frames = (List<Frame>) scans;
-    final List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
+    final List<PasefMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
     for (Frame frame : frames) {
       frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
-        if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
+        if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
           // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
           if (mobility != null) {
             // todo: maybe revisit this for a more sophisticated range check
@@ -226,7 +226,7 @@ public class GroupMS2Task extends AbstractTask {
 
     final MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
-    for (ImsMsMsInfo info : eligibleMsMsInfos) {
+    for (PasefMsMsInfo info : eligibleMsMsInfos) {
       MergedMsMsSpectrum spectrum = SpectraMerging
           .getMergedMsMsSpectrumForPASEF(info, mergeTol, MergingType.SUMMED,
               ((ModularFeatureList) list).getMemoryMapStorage(),
