@@ -70,7 +70,7 @@ public class TDFUtils {
 
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
-  private int numThreads;
+  private final int numThreads;
 
   public TDFUtils() {
     this(DEFAULT_NUMTHREADS);
