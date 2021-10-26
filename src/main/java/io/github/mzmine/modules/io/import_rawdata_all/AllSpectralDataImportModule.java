@@ -132,7 +132,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
     }
-    if (numTdf > 0) {
+    if (numTsf > 0) {
       TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
     }
