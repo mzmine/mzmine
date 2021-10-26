@@ -327,13 +327,13 @@ public class ScanSelectPanel extends BorderPane {
 
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
-      double mz = scan.getPrecursorMZ();
+      double mz = scan.getPrecursorMz() != null ? scan.getPrecursorMz() : 0;
       if (mz == 0) {
         if (row != null) {
           mz = row.getAverageMZ();
         }
       }
-      int charge = scan.getPrecursorCharge();
+      int charge = scan.getPrecursorCharge() != null ? scan.getPrecursorCharge() : 0;
       if (charge == 0 && row != null) {
         charge = row.getRowCharge();
       }

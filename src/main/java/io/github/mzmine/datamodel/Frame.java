@@ -98,16 +98,16 @@ public interface Frame extends Scan {
    * @return Always 0.0
    */
   @Override
-  default double getPrecursorMZ() {
-    return 0.0d;
+  default Double getPrecursorMz() {
+    return null;
   }
 
   /**
    * @return Always 0
    */
   @Override
-  default int getPrecursorCharge() {
-    return 0;
+  default Integer getPrecursorCharge() {
+    return null;
   }
 
   int getMaxMobilityScanDataPoints();

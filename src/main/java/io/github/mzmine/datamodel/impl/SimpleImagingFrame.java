@@ -35,14 +35,14 @@ public class SimpleImagingFrame extends SimpleFrame implements ImagingFrame {
   private Coordinates coordinates;
 
   public SimpleImagingFrame(@NotNull RawDataFile dataFile,
-      int scanNumber, int msLevel, float retentionTime, double precursorMZ, int precursorCharge,
+      int scanNumber, int msLevel, float retentionTime,
       double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType,
       PolarityType polarity, String scanDefinition,
       @NotNull Range<Double> scanMZRange,
       MobilityType mobilityType,
       @Nullable Set<PasefMsMsInfo> precursorInfos) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, mzValues,
+    super(dataFile, scanNumber, msLevel, retentionTime, mzValues,
         intensityValues, spectrumType, polarity, scanDefinition, scanMZRange, mobilityType,
         precursorInfos);
   }

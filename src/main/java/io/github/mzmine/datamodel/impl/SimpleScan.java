@@ -36,13 +36,10 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   public static final String XML_SCAN_TYPE = "simplescan";
 
-  @NotNull
-  private final RawDataFile dataFile;
+  @NotNull private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
 
-  private double precursorMZ;
-  private int precursorCharge;
   private float retentionTime;
   private PolarityType polarity;
   private String scanDefinition;
@@ -76,11 +73,11 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.scanNumber = scanNumber;
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
-    this.msMsInfo = msMsInfo;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
     setSpectrumType(spectrumType);
+    setMsMsInfo(msMsInfo);
   }
 
 
@@ -120,21 +117,11 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   public void setMsMsInfo(@Nullable MsMsInfo info) {
-    msMsInfo = info;
-  }
-
-  /**
-   * @param precursorMZ The precursorMZ to set.
-   */
-  public void setPrecursorMZ(double precursorMZ) {
-    this.precursorMZ = precursorMZ;
-  }
-
-  /**
-   * @param precursorCharge The precursorCharge to set.
-   */
-  public void setPrecursorCharge(int precursorCharge) {
-    this.precursorCharge = precursorCharge;
+    msMsInfo = info; // in case its null
+    if (info != null) {
+      msMsInfo = info.createCopy();
+      msMsInfo.setMsMsScan(this);
+    }
   }
 
   /**

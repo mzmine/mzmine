@@ -18,25 +18,24 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Hashtable;
-import java.util.Map.Entry;
-import java.util.Vector;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Chromatogram implementing ChromatographicPeak.
@@ -259,7 +258,7 @@ public class Chromatogram{
         ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
       if (precursorCharge > 0)
         this.charge = precursorCharge;
     }

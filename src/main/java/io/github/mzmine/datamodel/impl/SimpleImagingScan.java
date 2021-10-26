@@ -34,13 +34,18 @@ public class SimpleImagingScan extends SimpleScan implements ImagingScan {
       double precursorMZ, int precursorCharge, double mzValues[], double intensityValues[],
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, Coordinates coordinates) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, mzValues,
-        intensityValues, spectrumType, polarity, scanDefinition, scanMZRange);
+    super(dataFile, scanNumber, msLevel, retentionTime,
+        null, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
+        scanMZRange);
+    if(Double.compare(precursorMZ, 0d) != 0) {
+      setMsMsInfo(new DDAMsMsInfoImpl(precursorMZ, precursorCharge != 0 ? precursorCharge : null, null, this,
+          null, msLevel, null));
+    }
+
     this.setCoordinates(coordinates);
   }
 
   /**
-   *
    * @return the xyz coordinates. null if no coordinates were specified
    */
   @Override

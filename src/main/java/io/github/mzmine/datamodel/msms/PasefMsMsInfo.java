@@ -20,10 +20,8 @@ package io.github.mzmine.datamodel.msms;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.Scan;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -33,8 +31,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface PasefMsMsInfo extends DDAMsMsInfo {
 
+  String XML_SPECTRUM_NUMBER_RANGE_ATTR = "spectrumnumberrange";
+
   public final int UNKNOWN_CHARGE = 0;
   public final double UNKNOWN_COLISSIONENERGY = -1d;
+
+  public Frame getMsMsFrame();
+
+  public Frame getParentFrame();
 
   /**
    * @return The most intense m/z of the detected precursor.
@@ -56,28 +60,6 @@ public interface PasefMsMsInfo extends DDAMsMsInfo {
    * @return The charge of the precursor. 0 = unknown.
    */
   Integer getPrecursorCharge();
-
-  /**
-   * @return The ms 1 frame this precursor was initially detected in.
-   */
-  Frame getParentFrameNumber();
-
-  /**
-   * @return The ms 2 frame number this belongs to.
-   */
-  Frame getFrameNumber();
-
-  @Override
-  @Nullable
-  default Scan getParentScan() {
-    return getParentFrameNumber();
-  }
-
-  @Override
-  @NotNull
-  default Scan getMsMsScan() {
-    return getFrameNumber();
-  }
 
   void writeToXML(XMLStreamWriter writer) throws XMLStreamException;
 }

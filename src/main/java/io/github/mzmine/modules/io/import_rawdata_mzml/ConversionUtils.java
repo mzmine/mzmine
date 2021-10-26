@@ -25,7 +25,10 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
@@ -161,8 +164,13 @@ public class ConversionUtils {
       }
     }
 
+    final DDAMsMsInfo info =
+        scan.getMsLevel() != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz,
+            precursorCharge,null, null, null, scan.getMsLevel(),
+            ActivationMethod.UNKNOWN) : null;
+
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, precursorMz, precursorCharge, mzs, intensities,
+        scan.getRetentionTime() / 60, info, mzs, intensities,
         spectrumType, ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
         scan.getScanDefinition(), scan.getScanningRange());
 

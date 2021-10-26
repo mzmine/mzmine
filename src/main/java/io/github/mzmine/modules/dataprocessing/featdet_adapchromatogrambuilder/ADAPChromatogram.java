@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -431,7 +432,7 @@ public class ADAPChromatogram {
         dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }

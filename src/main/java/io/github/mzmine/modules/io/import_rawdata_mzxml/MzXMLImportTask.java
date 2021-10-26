@@ -24,9 +24,12 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -317,7 +320,8 @@ public class MzXMLImportTask extends AbstractTask {
         if (precursorChargeStr != null) {
           precursorCharge = Integer.parseInt(precursorChargeStr);
           if (buildingScan != null) {
-            buildingScan.setPrecursorCharge(precursorCharge);
+//            buildingScan.setPrecursorCharge(precursorCharge);
+            logger.info("blub");
           }
         }
       }
@@ -380,7 +384,8 @@ public class MzXMLImportTask extends AbstractTask {
         }
 
         if (buildingScan != null) {
-          buildingScan.setPrecursorMZ(precursorMz);
+//          buildingScan.setPrecursorMZ(precursorMz);
+          logger.info("blub");
         }
         return;
       }
@@ -443,9 +448,12 @@ public class MzXMLImportTask extends AbstractTask {
           }
 
           if (mzIntensities != null) {
+            final DDAMsMsInfo info =
+                msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
+                    null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
             // Set the centroided / thresholded data points to the scan
             buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-                precursorMz, precursorCharge, mzIntensities[0], mzIntensities[1],
+                info, mzIntensities[0], mzIntensities[1],
                 MassSpectrumType.CENTROIDED, polarity, scanId, null);
 
             // create mass list and scan. Override data points and spectrum type
@@ -459,9 +467,13 @@ public class MzXMLImportTask extends AbstractTask {
           // Auto-detect whether this scan is centroided
           MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
+          final DDAMsMsInfo info =
+              msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
+                  null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+
           // Set the final data points to the scan
           buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-              precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
+              info, mzValues, intensityValues, spectrumType, polarity,
               scanId, null);
         }
 

@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -217,7 +218,9 @@ public class ResolvedPeak implements PlotXYDataProvider {
         ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = fragmentScan.getMsMsInfo() != null &&
+          fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda && dda.getPrecursorCharge() != null
+          ? dda.getPrecursorCharge() : 0;
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }

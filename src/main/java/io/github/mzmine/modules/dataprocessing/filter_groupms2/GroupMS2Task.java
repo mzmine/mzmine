@@ -32,7 +32,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -174,9 +175,16 @@ public class GroupMS2Task extends AbstractTask {
   }
 
   private boolean filterScan(Scan scan, float frt, double fmz, Range<Float> rtRange) {
+
+    DDAMsMsInfo info = scan.getMsMsInfo() != null &&
+        scan.getMsMsInfo() instanceof DDAMsMsInfo dda ? dda : null;
+    if(info == null) {
+      return false;
+    }
+
     return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime())) && rtTol
-        .checkWithinTolerance(frt, scan.getRetentionTime()) && scan.getPrecursorMZ() != 0 && mzTol
-        .checkWithinTolerance(fmz, scan.getPrecursorMZ());
+        .checkWithinTolerance(frt, scan.getRetentionTime()) && info.getIsolationMz() != 0 && mzTol
+        .checkWithinTolerance(fmz, info.getIsolationMz());
   }
 
   private void processTimsFeature(ModularFeature feature) {
@@ -222,7 +230,7 @@ public class GroupMS2Task extends AbstractTask {
     if (eligibleMsMsInfos.isEmpty()) {
       return;
     }
-    feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
+    feature.set(MsMsInfoType.class, eligibleMsMsInfos);
 
     final MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();

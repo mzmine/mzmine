@@ -23,7 +23,10 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.RangeUtils;
@@ -252,8 +255,12 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
 
     if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
+      final DDAMsMsInfo info =
+          msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
+              null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+
       Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
-          precursorMZ, precursorCharge, /* fragmentScan, */ null, null, null, polarity,
+          info, /* fragmentScan, */ null, null, null, polarity,
           scanDescription, scanMZRange);
 
       try {

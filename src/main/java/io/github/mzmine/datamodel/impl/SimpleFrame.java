@@ -61,11 +61,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
   protected int maxMobilityScanDataPoints = -1;
 
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
-      float retentionTime, double precursorMZ, int precursorCharge, @Nullable double[] mzValues,
+      float retentionTime, @Nullable double[] mzValues,
       @Nullable double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
       String scanDefinition, @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
       @Nullable Set<PasefMsMsInfo> precursorInfos) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
+    super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
         mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange);

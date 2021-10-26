@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.Collection;
@@ -136,6 +137,22 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
    * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
    */
   @Nullable MsMsInfo getMsMsInfo();
+
+  /**
+   *
+   * @return The charge or null.
+   */
+  default Integer getPrecursorCharge() {
+    return getMsMsInfo() instanceof DDAMsMsInfo info ? info.getPrecursorCharge() : null;
+  }
+
+  /**
+   *
+   * @return The precursor mz or null.
+   */
+  default Double getPrecursorMz() {
+    return getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : null;
+  }
 
   @NotNull PolarityType getPolarity();
 

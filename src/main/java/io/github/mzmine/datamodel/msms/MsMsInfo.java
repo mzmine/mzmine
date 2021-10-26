@@ -18,15 +18,21 @@
 
 package io.github.mzmine.datamodel.msms;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.Nullable;
 
-public interface MsMsInfo {
+public interface MsMsInfo extends Cloneable {
+
+  String XML_ELEMENT = "msmsinfo";
+  String XML_TYPE_ATTRIBUTE = "type";
 
   /**
    * @return The energy used to activate this fragmentation or null if unknown;
@@ -34,17 +40,24 @@ public interface MsMsInfo {
   @Nullable Float getActivationEnergy();
 
   /**
-   * @return The scan this MS/MS event was executed in.
+   * @return The scan this MS/MS event was executed in or null if it has not been set.
    */
-  @NotNull Scan getMsMsScan();
+  @Nullable Scan getMsMsScan();
+
+  /**
+   *
+   * @param scan The scan this event took place.
+   * @return false if the msms scan was already set.
+   */
+  boolean setMsMsScan(Scan scan);
 
   /**
    * @return The MS level of this fragmentation.
    */
-  @Nullable Integer getMsLevel();
+  int getMsLevel();
 
   /**
-   * @return The activation mehtod of this fragmentation. {@link ActivationMethod#UNKNOWN} if
+   * @return The activation method of this fragmentation. {@link ActivationMethod#UNKNOWN} if
    * unknown.
    */
   @NotNull ActivationMethod getActivationMethod();
@@ -66,6 +79,21 @@ public interface MsMsInfo {
    * @return The {@link MsMsInfo}.
    */
   static MsMsInfo loadFromXML(XMLStreamReader reader, RawDataFile file) {
-    return null;
+    if(!reader.isStartElement()) {
+      throw new IllegalStateException("Wrong element.");
+    }
+
+    return switch(reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
+      case PasefMsMsInfoImpl.XML_TYPE_NAME -> PasefMsMsInfoImpl.loadFromXML(reader,
+          (IMSRawDataFile) file);
+      case DDAMsMsInfoImpl.XML_TYPE_NAME -> DDAMsMsInfoImpl.loadFromXML(reader, file);
+      default -> throw new IllegalStateException("Unknown msms info type");
+    };
   }
+
+  /**
+   *
+   * @return A copy without setting the MsMsScan.
+   */
+  MsMsInfo createCopy();
 }

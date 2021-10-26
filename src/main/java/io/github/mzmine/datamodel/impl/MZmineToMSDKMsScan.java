@@ -28,8 +28,10 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Simple implementation of the Scan interface.
@@ -44,10 +46,15 @@ public class MZmineToMSDKMsScan implements MsScan {
    */
   public MZmineToMSDKMsScan(Scan mzmineScan) {
     this.mzmineScan = mzmineScan;
-    if (mzmineScan.getPrecursorMZ() != 0) {
-      Range<Double> isolationMzRange = Range.singleton(mzmineScan.getPrecursorMZ());
-      double precursorMz = mzmineScan.getPrecursorMZ();
-      int precursorCharge = mzmineScan.getPrecursorCharge();
+
+    final int precursorCharge = mzmineScan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        Objects.requireNonNullElse(info.getPrecursorCharge(), -1) : -1;
+    final double precursorMz = mzmineScan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
+
+
+    if (precursorMz != 0) {
+      Range<Double> isolationMzRange = Range.singleton(precursorMz);
       ActivationInfo activationInfo = null;
       isolations.add(new SimpleIsolationInfo(isolationMzRange, 0f, precursorMz, precursorCharge,
           activationInfo, null));

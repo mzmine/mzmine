@@ -24,6 +24,15 @@ import org.jetbrains.annotations.Nullable;
 
 public interface DDAMsMsInfo extends MsMsInfo {
 
+  String XML_PRECURSOR_MZ_ATTR = "precursormz";
+  String XML_PRECURSOR_CHARGE_ATTR = "charge";
+  String XML_FRAGMENT_SCAN_ATTR = "fragmentscan";
+  String XML_PARENT_SCAN_ATTR = "parentscan";
+  String XML_ACTIVATION_ENERGY_ATTR = "energy";
+  String XML_ACTIVATION_TYPE_ATTR = "activationtype";
+  String XML_MSLEVEL_ATTR = "mslevel";
+
+
   @Nullable Float getActivationEnergy();
 
   double getIsolationMz();
@@ -32,5 +41,5 @@ public interface DDAMsMsInfo extends MsMsInfo {
 
   @Nullable Scan getParentScan();
 
-  @NotNull Scan getMsMsScan();
+  @NotNull @Nullable Scan getMsMsScan();
 }

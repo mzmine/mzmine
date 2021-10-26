@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import java.nio.DoubleBuffer;
@@ -250,6 +251,11 @@ public class CachedFrame implements Frame {
   @Override
   public Range<Double> getScanningMZRange() {
     return originalFrame.getScanningMZRange();
+  }
+
+  @Override
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return null;
   }
 
   @NotNull

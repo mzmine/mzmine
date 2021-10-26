@@ -381,12 +381,12 @@ public class TDFUtils {
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
       frame = new SimpleFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
           MobilityType.TIMS, null);
     } else {
       frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          0.d, 0, data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
+          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
           MobilityType.TIMS, null);
       Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
           maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);

@@ -70,7 +70,7 @@ public class FeatureDataTypeTest {
 
     List<Scan> scans = new ArrayList<>();
     for (int i = 0; i < 20; i++) {
-      scans.add(new SimpleScan(file, i, 1, 0.1f * i, 0d, 0, new double[0], new double[0],
+      scans.add(new SimpleScan(file, i, 1, 0.1f * i, null, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
@@ -126,7 +126,7 @@ public class FeatureDataTypeTest {
       for (int j = 0; j < 5; j++) {
         scans.add(new BuildingMobilityScan(j, new double[0], new double[0]));
       }
-      SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, 0, 0, new double[0], new double[0],
+      SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
           MobilityType.TIMS, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
