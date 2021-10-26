@@ -273,7 +273,15 @@ public class TSFUtils {
       return false;
     }
 
-    tsfdata = Native.load(timsdataLib.getAbsolutePath(), TSFLibrary.class);
+    try {
+      tsfdata = Native.load(timsdataLib.getAbsolutePath(), TSFLibrary.class);
+    } catch (UnsatisfiedLinkError e) {
+      logger.severe("Cannot load tsf library. Is VC++ 2017 Redist installed?");
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      MZmineCore.getDesktop()
+          .displayErrorMessage("Cannot load tsf library. Is VC++ 2017 Redist installed?");
+      return false;
+    }
     logger.info("Native TDF library initialised " + tsfdata.toString());
     setNumThreads(numThreads);
 

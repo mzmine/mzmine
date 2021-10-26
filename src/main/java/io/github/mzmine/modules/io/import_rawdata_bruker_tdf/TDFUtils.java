@@ -117,7 +117,15 @@ public class TDFUtils {
       return false;
     }
 
-    tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);
+    try {
+      tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);
+    } catch (UnsatisfiedLinkError e) {
+      logger.severe("Cannot load tdf library. Is VC++ 2017 Redist installed?");
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      MZmineCore.getDesktop()
+          .displayErrorMessage("Cannot load tdf library. Is VC++ 2017 Redist installed?");
+      return false;
+    }
     logger.info("Native TDF library initialised " + tdfLib.toString());
     setNumThreads(numThreads);
 
