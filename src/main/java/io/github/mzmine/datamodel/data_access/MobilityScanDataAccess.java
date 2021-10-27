@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
-import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -140,7 +140,7 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   @Nullable
   @Override
-  public PasefMsMsInfo getMsMsInfo() {
+  public MsMsInfo getMsMsInfo() {
     return currentMobilityScan.getMsMsInfo();
   }
 

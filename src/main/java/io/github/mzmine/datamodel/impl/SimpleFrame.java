@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,11 +46,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  /**
-   * key = scan num, value = mobility scan
-   */
   private final List<MobilityScan> mobilitySubScans = new ArrayList<>();
   private final MobilityType mobilityType;
+
+  @NotNull
   private Set<PasefMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
@@ -72,7 +71,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>());
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
   }
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
@@ -244,7 +243,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {
-    this.precursorInfos = precursorInfos;
+    this.precursorInfos = precursorInfos != null ? precursorInfos : Collections.emptySet();
   }
 
   void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
