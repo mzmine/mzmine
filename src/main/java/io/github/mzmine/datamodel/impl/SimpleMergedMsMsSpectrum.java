@@ -32,6 +32,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -69,7 +70,12 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
   @Override
   public float getCollisionEnergy() {
-    return msMsInfo != null ? msMsInfo.getActivationEnergy() : 0f;
+    return msMsInfo != null ? Objects.requireNonNullElse(msMsInfo.getActivationEnergy(), 0f) : 0f;
+  }
+
+  @Override
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
   protected static final String XML_MSLEVEL_ATTR = "mslevel";
