@@ -70,7 +70,7 @@ public class TDFUtils {
 
   public int BUFFER_SIZE = 300000; // start with 300 kb of buffer size
   private TDFLibrary tdfLib = null;
-  private int numThreads;
+  private final int numThreads;
 
   public TDFUtils() {
     this(DEFAULT_NUMTHREADS);
@@ -117,7 +117,15 @@ public class TDFUtils {
       return false;
     }
 
-    tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);
+    try {
+      tdfLib = Native.load(timsdataLib.getAbsolutePath(), TDFLibrary.class);
+    } catch (UnsatisfiedLinkError e) {
+      logger.severe("Cannot load tdf library. Is VC++ 2017 Redist installed?");
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      MZmineCore.getDesktop()
+          .displayErrorMessage("Cannot load tdf library. Is VC++ 2017 Redist installed?");
+      return false;
+    }
     logger.info("Native TDF library initialised " + tdfLib.toString());
     setNumThreads(numThreads);
 

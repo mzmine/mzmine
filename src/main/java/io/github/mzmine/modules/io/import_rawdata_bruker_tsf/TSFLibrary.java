@@ -27,7 +27,7 @@ import com.sun.jna.Library;
  *
  * @author Bruker Daltonik GmbH - copied from the SDK by SteffenHeu.
  */
-public interface TSFData extends Library {
+public interface TSFLibrary extends Library {
 
   /**
    * @param analysis_directory_name analysis_directory_name the name of the directory in the file
@@ -137,4 +137,6 @@ public interface TSFData extends Library {
   long tsf_index_to_mz(long handle, long frame_id, double[] index, double[] mz, long cnt);
 
   long tsf_mz_to_index(long handle, long frame_id, double[] index, double[] mz, long cnt);
+
+  long tsf_set_num_threads(int numThreads);
 }
