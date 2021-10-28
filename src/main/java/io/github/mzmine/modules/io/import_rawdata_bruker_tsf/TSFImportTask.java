@@ -43,7 +43,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -310,25 +309,14 @@ public class TSFImportTask extends AbstractTask {
 
       final int scanId = scan.getScanNumber();
       final int scanInfo = frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.FRAME_ID)
-          .indexOf((long)scanId);
+          .indexOf((long) scanId);
 
       if (scanInfo == -1) {
         continue;
       }
 
-      double ce = 0d;
-      double precursor = 0d;
-      int precursorCharge = 0;
-
-      ce = (double) Objects.requireNonNullElse(
-          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.COLLISION_ENERGY).get(scanInfo), 0d);
-      precursor = (double) Objects.requireNonNullElse(
-          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.TRIGGER_MASS).get(scanInfo), 0d);
-      precursorCharge = (int) (long) Objects.requireNonNullElse(
-          frameMsMsInfoTable.getColumn(TDFFrameMsMsInfoTable.PRECURSOR_CHARGE).get(scanInfo), 0);
-
-      ((SimpleScan) scan).setPrecursorCharge(precursorCharge);
-      ((SimpleScan) scan).setPrecursorMZ(precursor);
+      ((SimpleScan) scan).setMsMsInfo(
+          frameMsMsInfoTable.getDDAMsMsInfo(scanInfo, scan.getMSLevel(), scan, null));
     }
 
     Date end = new Date();

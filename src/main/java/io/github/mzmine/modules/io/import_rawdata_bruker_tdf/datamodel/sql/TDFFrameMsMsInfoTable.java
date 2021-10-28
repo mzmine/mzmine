@@ -18,6 +18,11 @@
 
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import java.util.Arrays;
 
 /**
@@ -65,20 +70,38 @@ public class TDFFrameMsMsInfoTable extends TDFDataTable<Long> {
    */
   public static final String COLLISION_ENERGY = "CollisionEnergy";
 
+  TDFDataColumn<Long> frameId;
+  TDFDataColumn<Long> parentId;
+  TDFDataColumn<Double> precursorMz;
+  TDFDataColumn<Double> isolationWidth;
+  TDFDataColumn<Long> charge;
+  TDFDataColumn<Double> ce;
+
   public TDFFrameMsMsInfoTable() {
     super(FRAME_MSMS_INFO_TABLE, FRAME_ID);
 
-    columns.addAll(Arrays.asList(
-        new TDFDataColumn<Long>(PARENT_ID),
-        new TDFDataColumn<Double>(TRIGGER_MASS),
-        new TDFDataColumn<Double>(ISOLATION_WIDTH),
-        new TDFDataColumn<Long>(PRECURSOR_CHARGE),
-        new TDFDataColumn<Double>(COLLISION_ENERGY)
-    ));
+    parentId = new TDFDataColumn<>(PARENT_ID);
+    precursorMz = new TDFDataColumn<>(TRIGGER_MASS);
+    isolationWidth = new TDFDataColumn<>(ISOLATION_WIDTH);
+    charge = new TDFDataColumn<>(PRECURSOR_CHARGE);
+    ce = new TDFDataColumn<>(COLLISION_ENERGY);
+
+    columns.addAll(Arrays.asList(parentId, precursorMz, isolationWidth, charge, ce));
+
+    frameId = (TDFDataColumn<Long>) getColumn(FRAME_ID);
   }
 
   @Override
   public boolean isValid() {
     return true;
+  }
+
+  public DDAMsMsInfo getDDAMsMsInfo(int index, int msLevel, Scan msmsScan, Scan parentScan) {
+    double precursor = precursorMz.get(index).doubleValue();
+    double width = isolationWidth.get(index).doubleValue();
+    DDAMsMsInfoImpl ddaMsMsInfo = new DDAMsMsInfoImpl(precursor, charge.get(index).intValue(),
+        ce.get(index).floatValue(), msmsScan, parentScan, msLevel, ActivationMethod.CID,
+        Range.closed(precursor - width / 2, precursor + width / 2));
+    return ddaMsMsInfo;
   }
 }
