@@ -172,7 +172,7 @@ public class MzMLImportTask extends AbstractTask {
 
         final DDAMsMsInfo info =
             msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
-                null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+                null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
         // if (mobility == null) {
         scan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info, mzValues,
             intensityValues, spectrumType, polarity, scanDefinition, null);

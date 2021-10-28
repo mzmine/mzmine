@@ -318,7 +318,7 @@ public class WatersRawImportTask extends AbstractTask {
 
         final DDAMsMsInfo info =
             msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
-                null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+                null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
         SimpleScan newScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
             info, mzValues, intensityValues, spectrumType, polarity, scanId,

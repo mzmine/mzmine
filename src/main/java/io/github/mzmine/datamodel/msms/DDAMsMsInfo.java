@@ -18,8 +18,8 @@
 
 package io.github.mzmine.datamodel.msms;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
-import javax.validation.constraints.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface DDAMsMsInfo extends MsMsInfo {
@@ -31,7 +31,7 @@ public interface DDAMsMsInfo extends MsMsInfo {
   String XML_ACTIVATION_ENERGY_ATTR = "energy";
   String XML_ACTIVATION_TYPE_ATTR = "activationtype";
   String XML_MSLEVEL_ATTR = "mslevel";
-
+  String XML_ISOLATION_WINDOW_ATTR = "isolationwindow";
 
   @Nullable Float getActivationEnergy();
 
@@ -41,5 +41,7 @@ public interface DDAMsMsInfo extends MsMsInfo {
 
   @Nullable Scan getParentScan();
 
-  @NotNull @Nullable Scan getMsMsScan();
+  @Nullable Scan getMsMsScan();
+
+  @Nullable Range<Double> getIsolationWindow();
 }

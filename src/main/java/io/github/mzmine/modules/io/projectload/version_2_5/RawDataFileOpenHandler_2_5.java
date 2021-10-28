@@ -257,7 +257,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
 
       final DDAMsMsInfo info =
           msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
-              null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+              null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
       Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
           info, /* fragmentScan, */ null, null, null, polarity,

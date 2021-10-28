@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,7 +71,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, Collections.emptySet());
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>(0));
   }
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
@@ -243,7 +243,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {
-    this.precursorInfos = precursorInfos != null ? precursorInfos : Collections.emptySet();
+    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>();
   }
 
   void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {

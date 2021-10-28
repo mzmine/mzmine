@@ -149,7 +149,7 @@ public class IMSScanTypesTest {
   void bestFragmentScanNumberTypeTest() {
     BestFragmentScanNumberType type = new BestFragmentScanNumberType();
     PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(4),
-        file.getFrame(6));
+        file.getFrame(6), Range.closed(299d, 301d));
 
     MergedMsMsSpectrum value = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
         new MZTolerance(0.01, 10), MergingType.SUMMED, null,
@@ -176,7 +176,7 @@ public class IMSScanTypesTest {
     List<MergedMsMsSpectrum> value = new ArrayList<>();
     for (int i = 5; i < 10; i++) {
       PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1,
-          file.getFrame(i - 5), file.getFrame(i));
+          file.getFrame(i - 5), file.getFrame(i), Range.closed(299d,301d));
 
       MergedMsMsSpectrum scan = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
           new MZTolerance(0.01, 10), MergingType.SUMMED, null,
@@ -205,7 +205,7 @@ public class IMSScanTypesTest {
     List<PasefMsMsInfo> list = new ArrayList<>();
     for (int i = 5; i < 10; i++) {
       PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1,
-          file.getFrame(i - 5), file.getFrame(i));
+          file.getFrame(i - 5), file.getFrame(i), Range.closed(299d, 301d));
       list.add(info);
     }
 
@@ -225,13 +225,13 @@ public class IMSScanTypesTest {
     CompositeCosineSpectralSimilarity simFunc = new CompositeCosineSpectralSimilarity();
 
     PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(2),
-        file.getFrame(6));
+        file.getFrame(6), null);
     MergedMsMsSpectrum query = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
         new MZTolerance(0.01, 10), MergingType.SUMMED, null,
         RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
 
     PasefMsMsInfo info2 = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(3),
-        file.getFrame(7));
+        file.getFrame(7), null);
     MergedMsMsSpectrum library = SpectraMerging.getMergedMsMsSpectrumForPASEF(info2,
         new MZTolerance(0.01, 10), MergingType.SUMMED, null,
         RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);

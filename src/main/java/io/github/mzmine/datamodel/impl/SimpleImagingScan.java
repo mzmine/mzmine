@@ -39,7 +39,7 @@ public class SimpleImagingScan extends SimpleScan implements ImagingScan {
         scanMZRange);
     if(Double.compare(precursorMZ, 0d) != 0) {
       setMsMsInfo(new DDAMsMsInfoImpl(precursorMZ, precursorCharge != 0 ? precursorCharge : null, null, this,
-          null, msLevel, null));
+          null, msLevel, null, null));
     }
 
     this.setCoordinates(coordinates);

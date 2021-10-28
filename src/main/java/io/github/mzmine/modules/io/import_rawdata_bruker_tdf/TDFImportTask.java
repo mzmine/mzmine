@@ -511,9 +511,10 @@ public class TDFImportTask extends AbstractTask {
         Frame parentFrame = optionalFrame.orElseGet(() -> null);
 
         PasefMsMsInfo info = new PasefMsMsInfoImpl(building.getLargestPeakMz(), Range
-            .closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1,
+            .closedOpen(building.getSpectrumNumberRange().lowerEndpoint() - 1, // -1 bc we work with indices later on
                 building.getSpectrumNumberRange().upperEndpoint() - 1),
-            building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame);
+            building.getCollisionEnergy(), building.getPrecursorCharge(), parentFrame, frame,
+            building.getIsolationWindow());
 
         frame.getImsMsMsInfos().add(info);
         constructed++;

@@ -320,7 +320,7 @@ public class MzDataImportTask extends AbstractTask {
 
         final DDAMsMsInfo info =
             msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
-                null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+                null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
         buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
             info, mzDataPoints, intensityDataPoints, spectrumType, polarity,

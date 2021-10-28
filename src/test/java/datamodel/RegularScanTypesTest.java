@@ -90,7 +90,7 @@ public class RegularScanTypesTest {
 
     for (int i = 5; i < 10; i++) {
       scans.add(new SimpleScan(file, i, 2, 0.1f * i,
-          new DDAMsMsInfoImpl(0, null, null, null, null, 2, ActivationMethod.UNKNOWN),
+          new DDAMsMsInfoImpl(0, null, null, null, null, 2, ActivationMethod.UNKNOWN, null),
           new double[]{700, 800, 900, 1000, 1100}, new double[]{1700, 1800, 1900, 11000, 11100},
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }

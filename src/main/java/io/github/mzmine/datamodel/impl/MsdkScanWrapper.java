@@ -58,7 +58,7 @@ public class MsdkScanWrapper implements Scan {
 
       msMsInfo = new DDAMsMsInfoImpl(isolationInfo.getPrecursorMz(),
           isolationInfo.getPrecursorCharge(), energy, this, null, scan.getMsLevel(),
-          activationMethod);
+          activationMethod, null);
     } else {
       msMsInfo = null;
     }

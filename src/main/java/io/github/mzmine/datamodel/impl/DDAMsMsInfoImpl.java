@@ -18,12 +18,21 @@
 
 package io.github.mzmine.datamodel.impl;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
+import io.github.mzmine.util.ParsingUtils;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -41,10 +50,11 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   @Nullable private Scan parentScan;
   private final int msLevel;
   @NotNull private final ActivationMethod method;
+  @Nullable private final Range<Double> isolationWindow;
 
   public DDAMsMsInfoImpl(double isolationMz, @Nullable Integer charge,
       @Nullable Float activationEnergy, @Nullable Scan msMsScan, @Nullable Scan parentScan,
-      int msLevel, @NotNull ActivationMethod method) {
+      int msLevel, @NotNull ActivationMethod method, @Nullable Range<Double> isolationWindow) {
     this.isolationMz = isolationMz;
     this.charge = charge;
     this.activationEnergy = activationEnergy;
@@ -52,7 +62,57 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     this.parentScan = parentScan;
     this.msLevel = msLevel;
     this.method = method;
+    this.isolationWindow = isolationWindow;
   }
+
+  public static DDAMsMsInfo fromMzML(MzMLPrecursorElement precursorElement, int msLevel) {
+    Optional<MzMLPrecursorSelectedIonList> list = precursorElement.getSelectedIonList();
+    if (!list.isPresent()) {
+      return null;
+    }
+
+    Double precursorMz = null;
+    Integer charge = null;
+    Float energy = null;
+    ActivationMethod method = null;
+
+    MzMLPrecursorActivation activation = precursorElement.getActivation();
+    for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
+          .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
+          .equals(MzMLCV.cvActivationEnergy2)) {
+        energy = Float.parseFloat(mzMLCVParam.getValue().get());
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
+        method = ActivationMethod.CID;
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvElectronCaptureDissociation)) {
+        method = ActivationMethod.ECD;
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvHighEnergyCID)) {
+        method = ActivationMethod.HCD;
+      }
+      if (mzMLCVParam.getAccession().equals(MzMLCV.cvLowEnergyCID)) {
+        method = ActivationMethod.CID;
+      }
+    }
+
+    List<MzMLCVParam> cvParamsList = list.get().getSelectedIonList().get(0).getCVParamsList();
+    for (MzMLCVParam param : cvParamsList) {
+      if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
+        precursorMz = Double.parseDouble(param.getValue().get());
+      }
+      if (param.getAccession().equals(MzMLCV.cvChargeState)) {
+        charge = Integer.parseInt(param.getValue().get());
+      }
+    }
+
+    if(precursorMz == null) {
+      return null;
+    }
+    return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, null);
+  }
+
 
   @Override
   public @Nullable Float getActivationEnergy() {
@@ -78,6 +138,11 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
   @Override
   public @Nullable Scan getMsMsScan() {
     return msMsScan;
+  }
+
+  @Override
+  public @Nullable Range<Double> getIsolationWindow() {
+    return isolationWindow;
   }
 
   public boolean setMsMsScan(Scan scan) {
@@ -115,8 +180,10 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       writer.writeAttribute(XML_PRECURSOR_CHARGE_ATTR, String.valueOf(getPrecursorCharge()));
     }
 
-    writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
-        String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
+    if (getMsMsScan() != null) {
+      writer.writeAttribute(XML_FRAGMENT_SCAN_ATTR,
+          String.valueOf(getMsMsScan().getDataFile().getScans().indexOf(getMsMsScan())));
+    }
 
     if (getParentScan() != null) {
       writer.writeAttribute(XML_PARENT_SCAN_ATTR,
@@ -129,6 +196,11 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     writer.writeAttribute(XML_ACTIVATION_TYPE_ATTR, this.getActivationMethod().name());
     writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMsLevel()));
 
+    if (getIsolationWindow() != null) {
+      writer.writeAttribute(XML_ISOLATION_WINDOW_ATTR,
+          ParsingUtils.rangeToString((Range) getIsolationWindow()));
+    }
+
     writer.writeEndElement();
   }
 
@@ -138,13 +210,14 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
    */
   public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
 
-
     final Double precursorMz = Double.parseDouble(
         reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
     final Integer precursorCharge =
         reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR) != null ? Integer.parseInt(
             reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR)) : null;
-    final int scanIndex = Integer.parseInt(reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR));
+    final Integer scanIndex =
+        reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR) != null ? Integer.parseInt(
+            reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR)) : null;
     final Integer parentScanIndex =
         reader.getAttributeValue(null, XML_PARENT_SCAN_ATTR) != null ? Integer.parseInt(
             reader.getAttributeValue(null, XML_PARENT_SCAN_ATTR)) : null;
@@ -154,10 +227,15 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
     final ActivationMethod method = ActivationMethod.valueOf(
         reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
+    final Range<Double> isolationWindow =
+        reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR) != null
+            ? ParsingUtils.stringToDoubleRange(
+            reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR)) : null;
 
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
-        file.getScan(scanIndex), parentScanIndex != null ? file.getScan(parentScanIndex) : null,
-        msLevel, method);
+        scanIndex != null ? file.getScan(scanIndex) : null,
+        parentScanIndex != null ? file.getScan(parentScanIndex) : null, msLevel, method,
+        isolationWindow);
   }
 
   @Override
@@ -173,18 +251,18 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
         && getMsLevel() == that.getMsLevel() && Objects.equals(charge, that.charge)
         && Objects.equals(getActivationEnergy(), that.getActivationEnergy()) && Objects.equals(
         getMsMsScan(), that.getMsMsScan()) && Objects.equals(getParentScan(), that.getParentScan())
-        && method == that.method;
+        && method == that.method && Objects.equals(getIsolationWindow(), that.getIsolationWindow());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getIsolationMz(), charge, getActivationEnergy(), getMsMsScan(),
-        getParentScan(), getMsLevel(), method);
+        getParentScan(), getMsLevel(), method, getIsolationWindow());
   }
 
   @Override
   public MsMsInfo createCopy() {
     return new DDAMsMsInfoImpl(isolationMz, charge, activationEnergy, null, parentScan, msLevel,
-        method);
+        method, getIsolationWindow());
   }
 }

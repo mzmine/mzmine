@@ -450,7 +450,7 @@ public class MzXMLImportTask extends AbstractTask {
           if (mzIntensities != null) {
             final DDAMsMsInfo info =
                 msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
-                    null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+                    null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
             // Set the centroided / thresholded data points to the scan
             buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
                 info, mzIntensities[0], mzIntensities[1],
@@ -469,7 +469,7 @@ public class MzXMLImportTask extends AbstractTask {
 
           final DDAMsMsInfo info =
               msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
-                  null, null, null, msLevel, ActivationMethod.UNKNOWN) : null;
+                  null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
           // Set the final data points to the scan
           buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,

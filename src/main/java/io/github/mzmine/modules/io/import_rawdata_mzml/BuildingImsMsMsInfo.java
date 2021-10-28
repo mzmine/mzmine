@@ -89,6 +89,6 @@ public class BuildingImsMsMsInfo {
 
   public PasefMsMsInfoImpl build(Frame parentFrame, Frame thisFragmentFrame) {
     return new PasefMsMsInfoImpl(precursorMz, Range.closed(firstSpectrumNumber, lastSpectrumNumber),
-        collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame);
+        collisionEnergy, precursorCharge, parentFrame, thisFragmentFrame, null);
   }
 }

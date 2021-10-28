@@ -44,12 +44,14 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   private final Range<Integer> spectrumNumberRange;
   private final Float collisionEnergy;
   private final Integer precursorCharge;
+  private final Range<Double> isolationWindow;
   private Frame parentFrame;
   private Frame fragmentFrame;
 
   public PasefMsMsInfoImpl(double precursorMz, Range<Integer> spectrumNumberRange,
       @Nullable Float collisionEnergy, @Nullable Integer precursorCharge,
-      @Nullable Frame parentScan, @Nullable Frame fragmentFrameNumber) {
+      @Nullable Frame parentScan, @Nullable Frame fragmentFrameNumber,
+      @Nullable Range<Double> isolationWindow) {
 
     if (parentScan != null && parentScan.getMSLevel() != 1) {
       throw new IllegalArgumentException("Parent frame is not of ms level 1");
@@ -64,6 +66,7 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     this.precursorCharge = precursorCharge;
     this.parentFrame = parentScan;
     this.fragmentFrame = fragmentFrameNumber;
+    this.isolationWindow = isolationWindow;
   }
 
   @Override
@@ -109,6 +112,11 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
   @Override
   public @Nullable ActivationMethod getActivationMethod() {
     return ActivationMethod.CID;
+  }
+
+  @Override
+  public @Nullable Range<Double> getIsolationWindow() {
+    return isolationWindow;
   }
 
   @Override
@@ -166,6 +174,12 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
     writer.writeAttribute(XML_SPECTRUM_NUMBER_RANGE_ATTR,
         ParsingUtils.rangeToString((Range) getSpectrumNumberRange()));
+
+    if (getIsolationWindow() != null) {
+      writer.writeAttribute(XML_ISOLATION_WINDOW_ATTR,
+          ParsingUtils.rangeToString((Range) getIsolationWindow()));
+    }
+
     writer.writeEndElement();
   }
 
@@ -200,9 +214,14 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
         reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
 
+    final Range<Double> isolationWindow =
+        reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR) != null
+            ? ParsingUtils.stringToDoubleRange(
+            reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR)) : null;
+
     return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
         parentFrameIndex != null ? file.getFrame(parentFrameIndex) : null,
-        frameIndex != null ? file.getFrame(frameIndex) : null);
+        frameIndex != null ? file.getFrame(frameIndex) : null, isolationWindow);
   }
 
   @Override
@@ -210,26 +229,27 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof PasefMsMsInfoImpl)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
     PasefMsMsInfoImpl that = (PasefMsMsInfoImpl) o;
-    return Objects.equals(precursorMz, that.precursorMz) && Objects.equals(getSpectrumNumberRange(),
-        that.getSpectrumNumberRange()) && Objects.equals(this.getActivationEnergy(),
-        that.getActivationEnergy()) && Objects.equals(getPrecursorCharge(),
-        that.getPrecursorCharge()) && Objects.equals(getParentFrame(), that.getParentFrame())
-        && Objects.equals(fragmentFrame, that.fragmentFrame);
+    return Double.compare(that.precursorMz, precursorMz) == 0 && Objects.equals(
+        getSpectrumNumberRange(), that.getSpectrumNumberRange()) && Objects.equals(collisionEnergy,
+        that.collisionEnergy) && Objects.equals(getPrecursorCharge(), that.getPrecursorCharge())
+        && Objects.equals(getIsolationWindow(), that.getIsolationWindow()) && Objects.equals(
+        getParentFrame(), that.getParentFrame()) && Objects.equals(fragmentFrame,
+        that.fragmentFrame);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(precursorMz, getSpectrumNumberRange(), this.getActivationEnergy(),
-        getPrecursorCharge(), getParentFrame(), fragmentFrame);
+    return Objects.hash(precursorMz, getSpectrumNumberRange(), collisionEnergy,
+        getPrecursorCharge(), getIsolationWindow(), getParentFrame(), fragmentFrame);
   }
 
   @Override
   public MsMsInfo createCopy() {
     return new PasefMsMsInfoImpl(precursorMz, spectrumNumberRange, collisionEnergy, precursorCharge,
-        parentFrame, null);
+        parentFrame, null, isolationWindow);
   }
 }

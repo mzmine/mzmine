@@ -137,9 +137,8 @@ public class CachedFrame implements Frame {
     return originalFrame.getMobilities();
   }
 
-  @NotNull
   @Override
-  public Set<PasefMsMsInfo> getImsMsMsInfos() {
+  public @NotNull Set<PasefMsMsInfo> getImsMsMsInfos() {
     return originalFrame.getImsMsMsInfos();
   }
 
