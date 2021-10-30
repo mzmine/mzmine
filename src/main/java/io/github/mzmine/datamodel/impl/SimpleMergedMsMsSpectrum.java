@@ -126,8 +126,6 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
     writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
     writer.writeAttribute(XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-//    writer.writeAttribute(XML_PRECURSOR_MZ_ATTR, String.valueOf(getPrecursorMZ()));
-//    writer.writeAttribute(XML_PRECURSOR_CHARGE_ATTR, String.valueOf(getPrecursorCharge()));
     writer.writeAttribute(XML_MERGING_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
 

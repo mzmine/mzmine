@@ -319,7 +319,7 @@ public class MzDataImportTask extends AbstractTask {
             .detectSpectrumType(mzDataPoints, intensityDataPoints);
 
         final DDAMsMsInfo info =
-            msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
+            msLevel != 1 && Double.compare(precursorMz, 0d) != 0 ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
                 null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
         buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,

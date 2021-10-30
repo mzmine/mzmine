@@ -43,7 +43,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
 
   public static final String XML_TYPE_NAME = "ddamsmsinfo";
 
-  @NotNull private final double isolationMz;
+  private final double isolationMz;
   @Nullable private final Integer charge;
   @Nullable private final Float activationEnergy;
   @Nullable private Scan msMsScan;
@@ -74,7 +74,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     Double precursorMz = null;
     Integer charge = null;
     Float energy = null;
-    ActivationMethod method = null;
+    ActivationMethod method = ActivationMethod.UNKNOWN;
 
     MzMLPrecursorActivation activation = precursorElement.getActivation();
     for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
@@ -107,7 +107,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       }
     }
 
-    if(precursorMz == null) {
+    if (precursorMz == null) {
       return null;
     }
     return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, null);
@@ -210,27 +210,28 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
    */
   public static DDAMsMsInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
 
-    final Double precursorMz = Double.parseDouble(
+    final double precursorMz = Double.parseDouble(
         reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-    final Integer precursorCharge =
-        reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR) != null ? Integer.parseInt(
-            reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR)) : null;
-    final Integer scanIndex =
-        reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR) != null ? Integer.parseInt(
-            reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR)) : null;
-    final Integer parentScanIndex =
-        reader.getAttributeValue(null, XML_PARENT_SCAN_ATTR) != null ? Integer.parseInt(
-            reader.getAttributeValue(null, XML_PARENT_SCAN_ATTR)) : null;
-    final Float activationEnergy =
-        reader.getAttributeValue(null, XML_ACTIVATION_ENERGY_ATTR) != null ? Float.parseFloat(
-            reader.getAttributeValue(null, XML_ACTIVATION_ENERGY_ATTR)) : null;
+
+    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
+
+    final Integer scanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Integer parentScanIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Float activationEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+
     final int msLevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
+
     final ActivationMethod method = ActivationMethod.valueOf(
         reader.getAttributeValue(null, XML_ACTIVATION_TYPE_ATTR));
-    final Range<Double> isolationWindow =
-        reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR) != null
-            ? ParsingUtils.stringToDoubleRange(
-            reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR)) : null;
+
+    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
     return new DDAMsMsInfoImpl(precursorMz, precursorCharge, activationEnergy,
         scanIndex != null ? file.getScan(scanIndex) : null,

@@ -47,17 +47,18 @@ public class MZmineToMSDKMsScan implements MsScan {
   public MZmineToMSDKMsScan(Scan mzmineScan) {
     this.mzmineScan = mzmineScan;
 
-    final int precursorCharge = mzmineScan.getMsMsInfo() instanceof DDAMsMsInfo info ?
-        Objects.requireNonNullElse(info.getPrecursorCharge(), -1) : -1;
-    final double precursorMz = mzmineScan.getMsMsInfo() instanceof DDAMsMsInfo info ?
-        info.getIsolationMz() : 0d;
+    int precursorCharge = -1;
+    double precursorMz = 0d;
 
+    if(mzmineScan.getMsMsInfo() instanceof DDAMsMsInfo info) {
+      precursorCharge =  Objects.requireNonNullElse(info.getPrecursorCharge(), -1);
+      precursorMz = info.getIsolationMz();
+    }
 
-    if (precursorMz != 0) {
+    if (precursorMz != 0d) {
       Range<Double> isolationMzRange = Range.singleton(precursorMz);
-      ActivationInfo activationInfo = null;
       isolations.add(new SimpleIsolationInfo(isolationMzRange, 0f, precursorMz, precursorCharge,
-          activationInfo, null));
+          null, null));
     }
   }
 

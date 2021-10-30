@@ -195,29 +195,24 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
     final double precursorMz = Double.parseDouble(
         reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-    final Integer precursorCharge =
-        reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR) != null ? Integer.parseInt(
-            reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR)) : null;
 
-    final Integer frameIndex =
-        reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR) != null ? Integer.parseInt(
-            reader.getAttributeValue(null, XML_FRAGMENT_SCAN_ATTR)) : null;
+    final Integer precursorCharge = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PRECURSOR_CHARGE_ATTR, null, Integer::parseInt);
 
-    final Integer parentFrameIndex =
-        reader.getAttributeValue(null, XML_PARENT_SCAN_ATTR) != null ? Integer.parseInt(
-            reader.getAttributeValue(null, XML_PARENT_SCAN_ATTR)) : null;
+    final Integer frameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_FRAGMENT_SCAN_ATTR, null, Integer::parseInt);
 
-    final Float collisionEnergy =
-        reader.getAttributeValue(null, XML_ACTIVATION_ENERGY_ATTR) != null ? Float.parseFloat(
-            reader.getAttributeValue(null, XML_ACTIVATION_ENERGY_ATTR)) : null;
+    final Integer parentFrameIndex = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_PARENT_SCAN_ATTR, null, Integer::parseInt);
+
+    final Float collisionEnergy = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ACTIVATION_ENERGY_ATTR, null, Float::parseFloat);
+
+    final Range<Double> isolationWindow = ParsingUtils.readAttributeValueOrDefault(reader,
+        XML_ISOLATION_WINDOW_ATTR, null, ParsingUtils::stringToDoubleRange);
 
     Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
         reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
-
-    final Range<Double> isolationWindow =
-        reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR) != null
-            ? ParsingUtils.stringToDoubleRange(
-            reader.getAttributeValue(null, XML_ISOLATION_WINDOW_ATTR)) : null;
 
     return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
         parentFrameIndex != null ? file.getFrame(parentFrameIndex) : null,

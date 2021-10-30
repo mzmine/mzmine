@@ -116,13 +116,15 @@ public class MzXMLImportTask extends AbstractTask {
 
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
     this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.parameters = parameters;
     this.module = module;
@@ -135,14 +137,12 @@ public class MzXMLImportTask extends AbstractTask {
 
     if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-        this.ms1Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-            .getValue();
+        this.ms1Detector = advancedParam.getParameter(
+            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-        this.ms2Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-            .getValue();
+        this.ms2Detector = advancedParam.getParameter(
+            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
       }
     }
 
@@ -176,7 +176,8 @@ public class MzXMLImportTask extends AbstractTask {
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(file, handler);
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -319,10 +320,6 @@ public class MzXMLImportTask extends AbstractTask {
         String precursorChargeStr = attrs.getValue("precursorCharge");
         if (precursorChargeStr != null) {
           precursorCharge = Integer.parseInt(precursorChargeStr);
-          if (buildingScan != null) {
-//            buildingScan.setPrecursorCharge(precursorCharge);
-            logger.info("blub");
-          }
         }
       }
 
@@ -383,10 +380,6 @@ public class MzXMLImportTask extends AbstractTask {
           precursorMz = Double.parseDouble(textContent);
         }
 
-        if (buildingScan != null) {
-//          buildingScan.setPrecursorMZ(precursorMz);
-          logger.info("blub");
-        }
         return;
       }
 
@@ -449,12 +442,13 @@ public class MzXMLImportTask extends AbstractTask {
 
           if (mzIntensities != null) {
             final DDAMsMsInfo info =
-                msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
-                    null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
+                msLevel != 1 && Double.compare(precursorMz, 0d) != 0 ? new DDAMsMsInfoImpl(
+                    precursorMz, precursorCharge, null, null, null, msLevel,
+                    ActivationMethod.UNKNOWN, null) : null;
             // Set the centroided / thresholded data points to the scan
-            buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-                info, mzIntensities[0], mzIntensities[1],
-                MassSpectrumType.CENTROIDED, polarity, scanId, null);
+            buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
+                mzIntensities[0], mzIntensities[1], MassSpectrumType.CENTROIDED, polarity, scanId,
+                null);
 
             // create mass list and scan. Override data points and spectrum type
             ScanPointerMassList newMassList = new ScanPointerMassList(buildingScan);
@@ -472,9 +466,8 @@ public class MzXMLImportTask extends AbstractTask {
                   null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
           // Set the final data points to the scan
-          buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-              info, mzValues, intensityValues, spectrumType, polarity,
-              scanId, null);
+          buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
+              mzValues, intensityValues, spectrumType, polarity, scanId, null);
         }
 
         return;
