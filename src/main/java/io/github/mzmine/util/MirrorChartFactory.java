@@ -298,12 +298,12 @@ public class MirrorChartFactory {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
 
-    double scanPrecursor = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
-        info.getIsolationMz() : 0d;
-    double mirrorPrecursor = mirror.getMsMsInfo() instanceof DDAMsMsInfo info ?
-        info.getIsolationMz() : 0d;
-
     if (scan != null && mirror != null) {
+      double scanPrecursor = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          info.getIsolationMz() : 0d;
+      double mirrorPrecursor = mirror.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          info.getIsolationMz() : 0d;
+
       String label1 = MessageFormat.format("MSMS for m/z={0} RT={1}",
           mzForm.format(scanPrecursor), rtForm.format(scan.getRetentionTime()));
       String label2 = MessageFormat.format("MSMS for m/z={0} RT={1}",
