@@ -174,10 +174,10 @@ public class MZmineGUI extends Application implements Desktop {
       MZmineCore.getProjectManager().setCurrentProject(project);
 
       GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-      rawDataList.setValues(project.getRawDataFiles());
+      rawDataList.setValues(project.rawDataFilesProperty().getValue());
 
       GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
-      featureListsList.setValues(project.getFeatureLists());
+      featureListsList.setValues(project.featureListsProperty().getValue());
 
     });
 
@@ -185,19 +185,15 @@ public class MZmineGUI extends Application implements Desktop {
 
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
-
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
     return ImmutableList.copyOf(rawDataListView.getSelectedValues());
-
   }
 
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-
     final GroupableListView<FeatureList> featureListView = mainWindowController
         .getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
-
   }
 
   @NotNull

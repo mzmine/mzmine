@@ -18,16 +18,15 @@
 
 package io.github.mzmine.datamodel;
 
-import java.io.File;
-import java.util.Hashtable;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.UserParameter;
+import java.io.File;
+import java.util.Hashtable;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 /**
- *
  * MZmineProject collects all items user has opened or created during an MZmine session. This
  * includes
  * <ul>
@@ -44,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
  * @see UserParameter
  * @see RawDataFile
  * @see FeatureList
- *
  */
 public interface MZmineProject {
 
@@ -84,13 +82,11 @@ public interface MZmineProject {
    * <p>
    * If the parameter does not exists in the project, it is added to the project. If parameter
    * already has a value corresponding the given file, previous value is replaced.
-   *
    */
   void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
 
   /**
    * Returns experimental parameter's value corresponding to a RawDataFile.
-   *
    */
   Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
 
@@ -106,7 +102,6 @@ public interface MZmineProject {
 
   /**
    * Returns all RawDataFiles of the project.
-   *
    */
   RawDataFile[] getDataFiles();
 
@@ -120,9 +115,6 @@ public interface MZmineProject {
    */
   void removeFeatureList(FeatureList featureList);
 
-  /**
-   * Returns all feature lists of the project
-   */
   ObservableList<FeatureList> getFeatureLists();
 
   ObservableList<RawDataFile> getRawDataFiles();
@@ -143,11 +135,11 @@ public interface MZmineProject {
 
   /**
    * Feature list for name
+   *
    * @param name the exact name of the feature list
    * @return the last feature list with that name or null
    */
-  @Nullable
-  FeatureList getFeatureList(String name);
+  @Nullable FeatureList getFeatureList(String name);
 
   // void notifyObjectChanged(Object object, boolean structureChanged);
 

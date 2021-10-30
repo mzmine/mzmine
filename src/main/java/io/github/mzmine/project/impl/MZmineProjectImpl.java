@@ -27,6 +27,7 @@ import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
@@ -41,22 +42,40 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
-
   private final SimpleListProperty<RawDataFile> rawDataFilesProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
           ));
-
-
   private final SimpleListProperty<FeatureList> featureListsProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
           ));
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
+  private File projectFile;
+
+  /*
+   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
+   * LinkedList<MZmineProjectListener>());
+   */
+  public MZmineProjectImpl() {
+
+    projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
+
+  }
+
+  public static String getUniqueFeatureListName(final String proposedName,
+      List<String> existingNames) {
+    int i = 1;
+    String unique = proposedName + " (" + i + ")";
+    while (existingNames.contains(unique)) {
+      i++;
+      unique = proposedName + " (" + i + ")";
+    }
+    return unique;
+  }
 
   /**
    * Synchronized map to store file names that are currently being loaded. By using a {@link
@@ -80,7 +99,6 @@ public class MZmineProjectImpl implements MZmineProject {
       }
     }
   }*/
-
   @Override
   public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
     return projectParametersAndValues;
@@ -103,18 +121,6 @@ public class MZmineProjectImpl implements MZmineProject {
       }
     }
     return null;
-  }
-
-  private File projectFile;
-
-  /*
-   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
-   * LinkedList<MZmineProjectListener>());
-   */
-  public MZmineProjectImpl() {
-
-    projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
-
   }
 
   @Override
@@ -215,12 +221,21 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public void addFeatureList(final FeatureList featureList) {
-
     assert featureList != null;
-    FxThreadUtil.runOnFxThreadAndWait(() -> {
-      featureListsProperty.get().add(featureList);
-    });
+    if (featureList == null) {
+      return;
+    }
 
+    synchronized (featureListsProperty.get()) {
+      final List<String> names = featureListsProperty.get().stream().map(f -> f.getName()).toList();
+      if (names.contains(featureList.getName())) {
+        featureList.setName(getUniqueFeatureListName(featureList.getName(), names));
+      }
+
+    }
+    FxThreadUtil.runOnFxThreadAndWait(() -> {
+          featureListsProperty.get().add(featureList);
+    });
   }
 
   @Override
@@ -228,9 +243,11 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert featureList != null;
 
-    FxThreadUtil.runOnFxThreadAndWait(() -> {
-      featureListsProperty.get().remove(featureList);
-    });
+    synchronized (featureListsProperty) {
+      FxThreadUtil.runOnFxThreadAndWait(() -> {
+        featureListsProperty.get().remove(featureList);
+      });
+    }
   }
 
   @Override
@@ -261,6 +278,14 @@ public class MZmineProjectImpl implements MZmineProject {
     projectFile.delete();
   }
 
+  /*
+   * @Override public void addProjectListener(MZmineProjectListener newListener) {
+   * listeners.add(newListener); }
+   *
+   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
+   * listeners.remove(newListener); }
+   */
+
   @Override
   public String toString() {
     if (projectFile == null) {
@@ -272,14 +297,6 @@ public class MZmineProjectImpl implements MZmineProject {
     }
     return projectName;
   }
-
-  /*
-   * @Override public void addProjectListener(MZmineProjectListener newListener) {
-   * listeners.add(newListener); }
-   *
-   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
-   * listeners.remove(newListener); }
-   */
 
   @Override
   public ObservableList<RawDataFile> getRawDataFiles() {
@@ -300,5 +317,4 @@ public class MZmineProjectImpl implements MZmineProject {
   public ListProperty<FeatureList> featureListsProperty() {
     return featureListsProperty;
   }
-
 }
