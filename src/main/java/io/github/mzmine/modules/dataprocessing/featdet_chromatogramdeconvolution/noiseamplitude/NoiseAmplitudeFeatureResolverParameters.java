@@ -43,7 +43,7 @@ public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverPara
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public NoiseAmplitudeFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, MIN_PEAK_HEIGHT,
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, AUTO_REMOVE, groupMS2Parameters, MIN_PEAK_HEIGHT,
         PEAK_DURATION, NOISE_AMPLITUDE});
   }
 
