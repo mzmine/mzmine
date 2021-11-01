@@ -103,6 +103,6 @@ public class TSFImportModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public MZmineModuleCategory getModuleCategory() {
-    return null;
+    return MZmineModuleCategory.RAWDATAIMPORT;
   }
 }

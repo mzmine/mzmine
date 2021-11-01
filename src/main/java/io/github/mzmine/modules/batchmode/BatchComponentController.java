@@ -40,9 +40,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
@@ -75,7 +77,7 @@ public class BatchComponentController implements LastFilesComponent {
   private static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
 
   // by using linked hash map, the items will be added to the tree view as specified in the modules list
-  private final Map<MainCategory, TreeItem<Object>> mainCategoryItems = new LinkedHashMap<>();
+  private final Map<MainCategory, TreeItem<Object>> mainCategoryItems = new TreeMap<>(Comparator.comparingInt(MainCategory::ordinal));
   private final Map<MZmineModuleCategory, TreeItem<Object>> categoryItems = new LinkedHashMap<>();
 
   @FXML
@@ -134,7 +136,7 @@ public class BatchComponentController implements LastFilesComponent {
         });
     currentStepsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
-    for (Class<? extends MZmineProcessingModule> moduleClass : BatchModeModulesList.MODULES) {
+    for (Class<? extends MZmineProcessingModule> moduleClass : BatchModeModulesList.MODULES_DYNAMIC) {
       final MZmineProcessingModule module = MZmineCore.getModuleInstance(moduleClass);
       final MZmineModuleCategory category = module.getModuleCategory();
       final TreeItem<Object> categoryItem = categoryItems

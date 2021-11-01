@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.dialogs;
 import com.google.common.base.Strings;
 import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.batchmode.BatchQueueParameter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -179,7 +180,7 @@ public class ParameterSetupDialog extends Stage {
 
       Node comp = up.createEditingComponent();
       addToolTipToControls(comp, up.getDescription());
-      if (comp instanceof Region) {
+      if (comp instanceof Region && !(up instanceof BatchQueueParameter)) {
         double minWidth = ((Region) comp).getMinWidth();
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
         // paramsPane.setMinWidth(minWidth + 200);
