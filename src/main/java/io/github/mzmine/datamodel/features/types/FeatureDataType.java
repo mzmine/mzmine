@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
+import io.github.mzmine.datamodel.featuredata.impl.ReducedIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ListRowBinding;
@@ -76,12 +77,13 @@ public class FeatureDataType extends
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
       @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
       throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
     if (!(value instanceof IonTimeSeries series)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
     if (file == null) {
       throw new IllegalArgumentException("Cannot save feature data for file = null");
@@ -111,7 +113,8 @@ public class FeatureDataType extends
         return null;
       }
       if (reader.isStartElement() && (reader.getLocalName().equals(SimpleIonTimeSeries.XML_ELEMENT)
-          || reader.getLocalName().equals(SimpleIonMobilogramTimeSeries.XML_ELEMENT))) {
+          || reader.getLocalName().equals(SimpleIonMobilogramTimeSeries.XML_ELEMENT)
+          || reader.getLocalName().equals(ReducedIonMobilogramTimeSeries.XML_ELEMENT))) {
         // found start element
         break;
       }
@@ -123,10 +126,16 @@ public class FeatureDataType extends
         return SimpleIonTimeSeries.loadFromXML(reader, flist.getMemoryMapStorage(), file);
       }
       case SimpleIonMobilogramTimeSeries.XML_ELEMENT -> {
-        return IonMobilogramTimeSeriesFactory
-            .loadFromXML(reader, flist.getMemoryMapStorage(), (IMSRawDataFile) file);
+        return IonMobilogramTimeSeriesFactory.loadFromXML(reader, flist.getMemoryMapStorage(),
+            (IMSRawDataFile) file);
+      }
+      case ReducedIonMobilogramTimeSeries.XML_ELEMENT -> {
+        return ReducedIonMobilogramTimeSeries.loadFromXML(reader, flist.getMemoryMapStorage(),
+            (IMSRawDataFile) file);
+      }
+      default -> {
+        return null;
       }
     }
-    return null;
   }
 }

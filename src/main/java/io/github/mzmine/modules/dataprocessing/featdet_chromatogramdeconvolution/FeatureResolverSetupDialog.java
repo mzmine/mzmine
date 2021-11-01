@@ -174,25 +174,30 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
       if (newValue.getFeatureList() instanceof ModularFeatureList flist) {
         if (dimension == ResolvingDimension.RETENTION_TIME) {
-          // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
-          final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(IonTimeSeriesUtils
-              .remapRtAxis(newValue.getFeatureData(),
-                  flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
+          try {
+            // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
+            final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(IonTimeSeriesUtils.remapRtAxis(newValue.getFeatureData(),
+                flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
 
-          for (IonTimeSeries<? extends Scan> series : resolved) {
-            ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, "",
-                new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-            MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+            for (IonTimeSeries<? extends Scan> series : resolved) {
+              ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series, "",
+                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+              MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+            }
+          } catch (UnsupportedOperationException e) {
+            MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
           }
         } else {
           // for mobility dimension we don't need to remap RT
-          final List<IonTimeSeries<? extends Scan>> resolved = resolver
-              .resolve(newValue.getFeatureData(), null);
-          for (IonTimeSeries<? extends Scan> series : resolved) {
-            ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(
-                ((IonMobilogramTimeSeries) series).getSummedMobilogram(),
-                new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
-            MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+          try {
+            final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(newValue.getFeatureData(), null);
+            for (IonTimeSeries<? extends Scan> series : resolved) {
+              ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(((IonMobilogramTimeSeries) series).getSummedMobilogram(),
+                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)), ""));
+              MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+            }
+          } catch (UnsupportedOperationException e) {
+            MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
           }
         }
       }

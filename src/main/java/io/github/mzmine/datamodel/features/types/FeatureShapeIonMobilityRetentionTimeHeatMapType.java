@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.ReducedIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -76,8 +78,16 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
       return null;
     }
 
-    if(!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+    if (!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       Label label = new Label("Processed with\nLC-MS workflow");
+      StackPane pane = new StackPane(label);
+      label.setTextAlignment(TextAlignment.CENTER);
+      pane.setAlignment(Pos.CENTER);
+      return pane;
+    }
+
+    if (!(feature.getFeatureData() instanceof SimpleIonMobilogramTimeSeries)) {
+      Label label = new Label("Reduced ion mobility trace.");
       StackPane pane = new StackPane(label);
       label.setTextAlignment(TextAlignment.CENTER);
       pane.setAlignment(Pos.CENTER);
@@ -110,8 +120,17 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
   @Override
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file) {
-    return () -> MZmineCore.runLater(() -> MZmineCore.getDesktop()
-        .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
+
+    final ModularFeature feature = row.getFeature(file.get(0));
+
+    if (feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN
+        || !(feature.getFeatureData() instanceof IonMobilogramTimeSeries)
+        || (feature.getFeatureData() instanceof ReducedIonMobilogramTimeSeries)) {
+      return null;
+    }
+
+    return () -> MZmineCore.runLater(
+        () -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(feature)));
   }
 
   @Override
