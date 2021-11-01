@@ -38,7 +38,6 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.RangeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -85,8 +84,8 @@ public class ADAPResolver extends AbstractResolver {
 
     final Range<Double> peakDuration = parameters.getParameter(PEAK_DURATION).getValue();
 
-    final MZmineProcessingStep<SNEstimatorChoice> signalNoiseEstimator = parameters.getParameter(
-        SN_ESTIMATORS).getValue();
+    final MZmineProcessingStep<SNEstimatorChoice> signalNoiseEstimator = parameters
+        .getParameter(SN_ESTIMATORS).getValue();
     String SNCode = signalNoiseEstimator.getModule().getSNCode();
 
     double signalNoiseWindowMult = -1.0;
@@ -120,8 +119,8 @@ public class ADAPResolver extends AbstractResolver {
     final double rtLow = rtRangeForCWTScales.lowerEndpoint();
     final double rtHigh = rtRangeForCWTScales.upperEndpoint();
     final int numScansRTLow = Math.max((int) Math.round(rtLow / avgRTInterval), 1);
-    final int numScansRTHigh = Math.min((int) Math.round(rtHigh / avgRTInterval),
-        retentionTimes.length);
+    final int numScansRTHigh = Math
+        .min((int) Math.round(rtHigh / avgRTInterval), retentionTimes.length);
 
     final List<PeakInfo> ADAPPeaks = DeconvoluteSignal(retentionTimes, intensities, 0d,
         parameters.getParameter(SN_THRESHOLD).getValue(),
@@ -142,56 +141,7 @@ public class ADAPResolver extends AbstractResolver {
     for (int i = 0; i < ADAPPeaks.size(); i++) {
       final PeakInfo curPeak = ADAPPeaks.get(i);
 
-      Range<Double> newRange = Range.closed(curPeak.retTimeStart, curPeak.retTimeEnd);
-
-      for (int j = 0; j < ranges.size(); j++) {
-        Range<Double> range = ranges.get(j);
-
-        // are they connected? if not, continue
-        if (!range.isConnected(newRange)) {
-          continue;
-        }
-
-        // are they the same? if yes, delete and break.
-        if (newRange.equals(range)) {
-          newRange = null;
-          break;
-        }
-
-        // if they only have one point in common, continue
-        if (RangeUtils.rangeLength(range.intersection(newRange)) < 0.001) {
-          continue;
-        }
-
-        // which range is the bigger one?
-        final Range<Double> biggerRange =
-            RangeUtils.rangeLength(newRange) >= RangeUtils.rangeLength(range) ? newRange : range;
-        final Range<Double> smallerRange =
-            RangeUtils.rangeLength(newRange) < RangeUtils.rangeLength(range) ? newRange : range;
-
-        // if the big range starts before the small range, use the original start point
-        // if the big range has the same or higher start point, start after the small range
-        final double newStart =
-            biggerRange.lowerEndpoint() < smallerRange.lowerEndpoint() ? biggerRange.lowerEndpoint()
-                : smallerRange.upperEndpoint();
-
-        // if the big range ends after the small range, use the original end
-        // if the big range ends with or before the small range, stop at the small range start point
-        final double newEnd =
-            biggerRange.upperEndpoint() > smallerRange.upperEndpoint() ? biggerRange.upperEndpoint()
-                : smallerRange.lowerEndpoint();
-
-        final Range<Double> newBiggerRange = Range.closed(newStart, newEnd);
-
-        if (biggerRange == newRange) {
-          newRange = newBiggerRange;
-        } else {
-          ranges.set(j, newBiggerRange);
-        }
-      }
-      if (newRange != null) {
-        ranges.add(newRange);
-      }
+      ranges.add(Range.closed(curPeak.retTimeStart, curPeak.retTimeEnd));
     }
     return ranges;
   }
