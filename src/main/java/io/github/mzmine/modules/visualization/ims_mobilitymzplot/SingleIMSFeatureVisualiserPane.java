@@ -138,12 +138,12 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
           != TaskStatus.FINISHED)) {
         return;
       }
-      heatmapChart.getXYPlot().getDomainAxis().setRange(
-          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getDomainValueRange()), false,
-          true);
-      heatmapChart.getXYPlot().getRangeAxis().setRange(
-          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getRangeValueRange()), false,
-          true);
+      heatmapChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getDomainValueRange(),
+              0.0001d)), false, true);
+      heatmapChart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getRangeValueRange(),
+              0.0001d)), false, true);
     });
     NumberAxis axis = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
     axis.setAutoRange(true);

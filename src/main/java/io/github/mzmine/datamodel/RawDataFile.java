@@ -110,10 +110,20 @@ public interface RawDataFile {
 
   @NotNull Range<Double> getDataMZRange();
 
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
   @NotNull Range<Float> getDataRTRange();
 
   @NotNull Range<Double> getDataMZRange(int msLevel);
 
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
   @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);

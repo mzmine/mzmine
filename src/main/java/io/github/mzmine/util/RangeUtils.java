@@ -38,14 +38,13 @@ public class RangeUtils {
   /**
    * [-inf, +inf] range.
    */
-  public static final Range<Double> DOUBLE_INFINITE_RANGE
-      = Range.closed(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+  public static final Range<Double> DOUBLE_INFINITE_RANGE = Range.closed(Double.NEGATIVE_INFINITY,
+      Double.POSITIVE_INFINITY);
 
   /**
    * [NaN, NaN] range.
    */
-  public static final Range<Double> DOUBLE_NAN_RANGE
-      = Range.singleton(Double.NaN);
+  public static final Range<Double> DOUBLE_NAN_RANGE = Range.singleton(Double.NaN);
 
   /**
    * Parses a range from String where upper and lower bounds are delimited by a dash, e.g.
@@ -78,8 +77,7 @@ public class RangeUtils {
     final double num = parsed + Math.pow(10, (decimalPlaces + 1) * -1);
     final double lower = new BigDecimal(num).setScale(decimalPlaces, RoundingMode.DOWN)
         .doubleValue();
-    final double upper = new BigDecimal(num).setScale(decimalPlaces, RoundingMode.UP)
-        .doubleValue();
+    final double upper = new BigDecimal(num).setScale(decimalPlaces, RoundingMode.UP).doubleValue();
     return Range.closedOpen(lower, upper);
   }
 
@@ -117,8 +115,9 @@ public class RangeUtils {
       N value) {
     N rangeLength = rangeLength(range);
     N valueDistanceFromStart = ArithmeticUtils.subtract(value, range.lowerEndpoint());
-    return (int) Math.round(ArithmeticUtils.multiply(ArithmeticUtils
-        .divide(valueDistanceFromStart, rangeLength), (numOfBins - 1)).doubleValue());
+    return (int) Math.round(
+        ArithmeticUtils.multiply(ArithmeticUtils.divide(valueDistanceFromStart, rangeLength),
+            (numOfBins - 1)).doubleValue());
   }
 
   /**
@@ -138,8 +137,8 @@ public class RangeUtils {
    * @return Range center
    */
   public static <N extends Number & Comparable<N>> N rangeCenter(Range<N> range) {
-    return ArithmeticUtils.divide(
-        ArithmeticUtils.add(range.upperEndpoint(), range.lowerEndpoint()), (N) (Number) 2.0f);
+    return ArithmeticUtils.divide(ArithmeticUtils.add(range.upperEndpoint(), range.lowerEndpoint()),
+        (N) (Number) 2.0f);
   }
 
   /**
@@ -172,19 +171,16 @@ public class RangeUtils {
    * @param r2 Second range
    * @return The connected range. Null if there is no connected range.
    */
-  public static @Nullable
-  <N extends Number & Comparable<N>> Range<N> getConnected(@NotNull Range<N> r1,
-      @NotNull Range<N> r2) {
+  public static @Nullable <N extends Number & Comparable<N>> Range<N> getConnected(
+      @NotNull Range<N> r1, @NotNull Range<N> r2) {
 
     if (!r1.isConnected(r2)) {
       return null;
     }
 
-    N lower = (r1.lowerEndpoint().compareTo(r2.lowerEndpoint()) > 0)
-        ? r1.lowerEndpoint()
+    N lower = (r1.lowerEndpoint().compareTo(r2.lowerEndpoint()) > 0) ? r1.lowerEndpoint()
         : r2.lowerEndpoint();
-    N upper = (r1.upperEndpoint().compareTo(r2.upperEndpoint()) > 0)
-        ? r2.upperEndpoint()
+    N upper = (r1.upperEndpoint().compareTo(r2.upperEndpoint()) > 0) ? r2.upperEndpoint()
         : r1.upperEndpoint();
 
     return Range.closed(lower, upper);
@@ -197,8 +193,8 @@ public class RangeUtils {
    * @return True if the range equals to [NaN, NaN], false otherwise
    */
   public static <N extends Number & Comparable<N>> boolean isNaNRange(@NotNull Range<N> range) {
-    return Double.isNaN(range.lowerEndpoint().doubleValue())
-        && Double.isNaN(range.upperEndpoint().doubleValue());
+    return Double.isNaN(range.lowerEndpoint().doubleValue()) && Double.isNaN(
+        range.upperEndpoint().doubleValue());
   }
 
   public static boolean isJFreeRangeConnectedToGuavaRange(org.jfree.data.Range jfreeRange,
@@ -206,12 +202,40 @@ public class RangeUtils {
     if (jfreeRange == null || guavaRange == null) {
       return false;
     }
-    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange
-        .contains(guavaRange.upperEndpoint().doubleValue());
+    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) || jfreeRange.contains(
+        guavaRange.upperEndpoint().doubleValue());
   }
 
   public static org.jfree.data.Range guavaToJFree(Range<? extends Number> range) {
     return new org.jfree.data.Range(range.lowerEndpoint().doubleValue(),
         range.upperEndpoint().doubleValue());
+  }
+
+  /**
+   * Creates a range that does not have equal start and end points. Does not check for closed or
+   * open bounds, compares the boundaries via {@link Comparable#compareTo(Object)}.
+   *
+   * @param range     The range.
+   * @param minLength The min length of the range.
+   * @return A range that does not have equal start and end points (can be the original range).
+   */
+  public static <T extends Number & Comparable> Range<T> getPositiveRange(Range<T> range,
+      T minLength) {
+    if (range.lowerEndpoint().compareTo(range.upperEndpoint()) == 0) {
+      if (range.lowerEndpoint() instanceof Double) {
+        return (Range<T>) Range.closed((Double) range.lowerEndpoint(),
+            ((Double) range.upperEndpoint()) + (Double) minLength);
+      }
+      if (range.lowerEndpoint() instanceof Float) {
+        return (Range<T>) Range.closed((Float) range.lowerEndpoint(),
+            ((Float) range.upperEndpoint()) + (Float) minLength);
+      }
+      if (range.lowerEndpoint() instanceof Integer) {
+        return (Range<T>) Range.closed((Integer) range.lowerEndpoint(),
+            ((Integer) range.upperEndpoint()) + (Integer) minLength);
+      }
+      throw new IllegalArgumentException("The method has not been implemented for this type yet.");
+    }
+    return range;
   }
 }
