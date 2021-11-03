@@ -206,6 +206,9 @@
       <MenuItem onAction="#runModule"
         text="Ims expander"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
+      <MenuItem onAction="#runModule"
+        text="Reduce ion mobility traces"
+        userData="io.github.mzmine.modules.dataprocessing.filter_tracereducer.IonMobilityTraceReducerModule"/>
     </Menu>
     <Menu text="Imaging" disable="true">
       <MenuItem onAction="#runModule"
@@ -299,9 +302,6 @@
       <MenuItem onAction="#runModule"
         text="Calculate CCS values"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
-      <MenuItem onAction="#runModule"
-        text="Reduce ion mobility traces"
-        userData="io.github.mzmine.modules.dataprocessing.filter_tracereducer.IonMobilityTraceReducerModule"/>
     </Menu>
 
     <Menu text="Isotopes">

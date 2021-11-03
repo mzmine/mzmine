@@ -45,7 +45,8 @@ public class IonMobilityTraceReducerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
-    return "Removes the individual mobilograms for each rt data point from an ion mobility trace.\nSummed mobilograms and EICs are retained.";
+    return "Removes the individual mobilograms for each rt data point from an ion mobility trace.\n"
+        + "Summed mobilograms and EICs are retained.\nThis will prohibit further resolving of features in any dimension.";
   }
 
   @Override
@@ -69,6 +70,6 @@ public class IonMobilityTraceReducerModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.FEATURELISTFILTERING;
+    return MZmineModuleCategory.EIC_DETECTION;
   }
 }
