@@ -66,9 +66,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
   }
 
-  public static String getUniqueFeatureListName(final String proposedName,
+  public static String getUniqueFeatureListName(String proposedName,
       List<String> existingNames) {
     int i = 1;
+
+    proposedName = proposedName.trim().replaceAll("\\([\\d]+\\)$", "").trim();
+
     String unique = proposedName + " (" + i + ")";
     while (existingNames.contains(unique)) {
       i++;
@@ -300,7 +303,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public ObservableList<RawDataFile> getRawDataFiles() {
-    return rawDataFilesProperty.get();
+    return FXCollections.unmodifiableObservableList(rawDataFilesProperty.get());
   }
 
   @Override
@@ -310,7 +313,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public ObservableList<FeatureList> getFeatureLists() {
-    return featureListsProperty.get();
+    return FXCollections.unmodifiableObservableList(featureListsProperty.get());
   }
 
   @Override

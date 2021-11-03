@@ -130,9 +130,9 @@ public class ModularFeatureList implements FeatureList {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      synchronized (project.featureListsProperty().get()) {
+      synchronized (project.getFeatureLists()) {
         final List<String> names = new ArrayList<>(
-            project.getFeatureLists().stream().map(f -> f.getName()).toList());
+            project.getFeatureLists().stream().map(FeatureList::getName).toList());
         names.remove(getName());
         name =
             names.contains(name) ? MZmineProjectImpl.getUniqueFeatureListName(name, names) : name;
