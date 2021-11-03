@@ -202,6 +202,9 @@ public class ImsExpanderTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
             getModuleCallDate()));
     project.addFeatureList(newFlist);
+    if(parameters.getParameter(ImsExpanderParameters.removeOriginalFeatureList).getValue()) {
+      project.removeFeatureList(flist);
+    }
     setStatus(TaskStatus.FINISHED);
   }
 
