@@ -25,6 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -57,8 +58,12 @@ public class ImsExpanderParameters extends SimpleParameterSet {
               + "in TIMS might require a higher bin width to achieve a constant ion current for a "
               + "mobilogram.", 1, true));
 
+  public static final BooleanParameter removeOriginalFeatureList = new BooleanParameter(
+      "Remove original feature list",
+      "If checked, the original feature list will be removed.\nUseful to minimize ram consumption.", false);
+
   public ImsExpanderParameters() {
-    super(new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth});
+    super(new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth, removeOriginalFeatureList});
   }
 
   @Override
