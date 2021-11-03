@@ -111,8 +111,7 @@ public class IMSImagingRawDataFileImpl extends IMSRawDataFileImpl implements IMS
   public Scan[][][] getXYZScanNumbers() {
     if (xyzScanNumbers == null) {
       // sort all scan numbers to xyz location
-      xyzScanNumbers = new Scan[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param
-          .getMaxNumberOfPixelZ()];
+      xyzScanNumbers = new Scan[param.getMaxNumberOfPixelX()][param.getMaxNumberOfPixelY()][param.getMaxNumberOfPixelZ()];
       for (int x = 0; x < xyzScanNumbers.length; x++) {
         for (int y = 0; y < xyzScanNumbers[x].length; y++) {
           for (int z = 0; z < xyzScanNumbers[x][y].length; z++) {
