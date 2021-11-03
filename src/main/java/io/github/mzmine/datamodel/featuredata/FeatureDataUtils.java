@@ -55,6 +55,10 @@ public class FeatureDataUtils {
    * The default {@link CenterMeasure} for weighting and calculating feature m/z values.
    */
   public static final CenterMeasure DEFAULT_CENTER_MEASURE = CenterMeasure.AVG;
+  public static final Weighting DEFAULT_WEIGHTING = Weighting.LINEAR;
+  public static final CenterFunction DEFAULT_CENTER_FUNCTION = new CenterFunction(
+      DEFAULT_CENTER_MEASURE, DEFAULT_WEIGHTING);
+
   private static final Logger logger = Logger.getLogger(FeatureDataUtils.class.getName());
 
   /**
@@ -66,8 +70,8 @@ public class FeatureDataUtils {
   @Nullable
   public static Range<Float> getRtRange(IonTimeSeries<? extends Scan> series) {
     final List<? extends Scan> scans = series.getSpectra();
-    return scans.isEmpty() ? null : Range
-        .closed(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime());
+    return scans.isEmpty() ? null : Range.closed(scans.get(0).getRetentionTime(),
+        scans.get(scans.size() - 1).getRetentionTime());
   }
 
   /**
@@ -215,14 +219,13 @@ public class FeatureDataUtils {
    * Calculates the m/z of the given series.
    *
    * @param series The series.
-   * @param cm     The center measure ({{@link CenterMeasure#AVG} default}
+   * @param cf     The center function ({@link #DEFAULT_CENTER_FUNCTION} default)
    * @return The m/z value
    */
   public static double calculateMz(@NotNull final IonSeries series,
-      @NotNull final CenterMeasure cm) {
-    CenterFunction cf = new CenterFunction(cm, Weighting.LINEAR);
-    double[][] data = DataPointUtils
-        .getDataPointsAsDoubleArray(series.getMZValueBuffer(), series.getIntensityValueBuffer());
+      @NotNull final CenterFunction cf) {
+    double[][] data = DataPointUtils.getDataPointsAsDoubleArray(series.getMZValueBuffer(),
+        series.getIntensityValueBuffer());
     return cf.calcCenter(data[0], data[1]);
   }
 
@@ -232,20 +235,20 @@ public class FeatureDataUtils {
    * @param feature The feature.
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature) {
-    recalculateIonSeriesDependingTypes(feature, DEFAULT_CENTER_MEASURE, true);
+    recalculateIonSeriesDependingTypes(feature, DEFAULT_CENTER_FUNCTION, true);
   }
 
   /**
-   * @param feature     The feature
-   * @param cm          Center measure for m/z calculation. Default = {@link
-   *                    FeatureDataUtils#DEFAULT_CENTER_MEASURE}
-   * @param calcQuality specifies if quality parameters (FWHM, asymmetry, tailing) shall be
-   *                    calculated.
+   * @param feature          The feature
+   * @param mzCenterFunction Center function for m/z calculation. Default = {@link
+   *                         FeatureDataUtils#DEFAULT_CENTER_FUNCTION}
+   * @param calcQuality      specifies if quality parameters (FWHM, asymmetry, tailing) shall be
+   *                         calculated.
    */
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
-      @NotNull final CenterMeasure cm, boolean calcQuality) {
+      @NotNull final CenterFunction mzCenterFunction, boolean calcQuality) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
-    if(featureData == null) {
+    if (featureData == null) {
       return;
     }
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
@@ -261,14 +264,13 @@ public class FeatureDataUtils {
     feature.setRepresentativeScan(mostIntenseSpectrum);
     feature.setHeight(intensityRange != null ? intensityRange.upperEndpoint() : 0f);
     feature.setRT(mostIntenseSpectrum != null ? mostIntenseSpectrum.getRetentionTime() : Float.NaN);
-    feature.setMZ(calculateMz(featureData, cm));
+    feature.setMZ(calculateMz(featureData, mzCenterFunction));
 
     if (featureData instanceof IonMobilogramTimeSeries imts) {
       final SummedIntensityMobilitySeries summedMobilogram = imts.getSummedMobilogram();
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
-      feature
-          .setMobilityUnit(((IMSRawDataFile)feature.getRawDataFile()).getMobilityType());
+      feature.setMobilityUnit(((IMSRawDataFile) feature.getRawDataFile()).getMobilityType());
     }
 
     if (calcQuality) {
