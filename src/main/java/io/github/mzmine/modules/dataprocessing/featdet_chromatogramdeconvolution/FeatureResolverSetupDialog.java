@@ -28,8 +28,10 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -50,25 +52,35 @@ import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.util.StringConverter;
 
 public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview {
 
   protected final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
+  protected final SimpleXYChart<IonTimeSeriesToXYProvider> previewChartBadFeature;
   protected final UnitFormat uf;
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
   protected final NumberFormat mobilityFormat;
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
+  protected ComboBox<ModularFeature> fBoxBadFeature;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess mobilogramBinning;
   protected Resolver resolver;
@@ -81,10 +93,16 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
 
-    previewChart = new SimpleXYChart<>(uf.format("Retention time", "min"),
-        uf.format("Intensity", "a.u."));
+    previewChart = new SimpleXYChart<>("Please select a good EIC",
+        uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
+
+    previewChartBadFeature = new SimpleXYChart<>("Please select a noisy EIC",
+        uf.format("Retention time", "min"), uf.format("Intensity", "a.u."));
+    previewChartBadFeature.setDomainAxisNumberFormatOverride(rtFormat);
+    previewChartBadFeature.setRangeAxisNumberFormatOverride(intensityFormat);
+
     ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
         .getCurrentProject().getFeatureLists();
 
@@ -95,8 +113,15 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
           if (newValue != null) {
             fBox.setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
+            fBoxBadFeature.setItems(FXCollections.observableArrayList(
+                newValue.getFeatures(newValue.getRawDataFile(0))));
+            fBox.setValue(findGoodEIC(
+                (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) newValue.getRows()));
+            fBoxBadFeature.setValue(findBadFeature(
+                (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) newValue.getRows()));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
+            fBoxBadFeature.setItems(FXCollections.emptyObservableList());
           }
         }));
 
@@ -114,25 +139,65 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         return null;
       }
     });
-    fBox.getSelectionModel().selectedItemProperty()
-        .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
+    fBox.getSelectionModel().selectedItemProperty().addListener(
+        ((observable, oldValue, newValue) -> onSelectedFeatureChanged(previewChart, newValue)));
 
+    fBoxBadFeature = new ComboBox<>();
+    fBoxBadFeature.setConverter(new StringConverter<>() {
+      @Override
+      public String toString(ModularFeature object) {
+        if (object == null) {
+          return null;
+        }
+        return FeatureUtils.featureToString(object) + " (height / area = "
+            + String.format("%.3f", object.getHeight() / object.getArea()) + ")";
+      }
+
+      @Override
+      public ModularFeature fromString(String string) {
+        return null;
+      }
+    });
+    fBoxBadFeature.getSelectionModel().selectedItemProperty().addListener(
+        ((observable, oldValue, newValue) -> onSelectedFeatureChanged(previewChartBadFeature,
+            newValue)));
+
+    final BorderPane pnBadFeaturePreview = new BorderPane();
+    previewChartBadFeature.setMinHeight(200);
+    pnBadFeaturePreview.setCenter(previewChartBadFeature);
+    pnBadFeaturePreview.setBottom(new HBox(new Label("Feature "), fBoxBadFeature));
+
+    final BorderPane pnFeaturePreview = new BorderPane();
+    previewChart.setMinHeight(200);
     GridPane pnControls = new GridPane();
-    pnControls.add(new Label("Feature list"), 0, 0);
+    pnControls.add(new Label("Feature list "), 0, 0);
     pnControls.add(flistBox, 1, 0);
-    pnControls.add(new Label("Feature"), 0, 1);
+    pnControls.add(new Label("Feature "), 0, 1);
     pnControls.add(fBox, 1, 1);
-    previewWrapperPane.setBottom(pnControls);
-    previewWrapperPane.setCenter(previewChart);
+    pnFeaturePreview.setCenter(previewChart);
+    pnFeaturePreview.setBottom(pnControls);
+
+    GridPane preview = new GridPane();
+    preview.add(pnBadFeaturePreview, 0, 0, 2, 1);
+    preview.add(pnFeaturePreview, 0, 1, 2, 1);
+    preview.getRowConstraints()
+        .add(new RowConstraints(200, -1, -1, Priority.ALWAYS, VPos.CENTER, true));
+    preview.getRowConstraints()
+        .add(new RowConstraints(200, -1, -1, Priority.ALWAYS, VPos.CENTER, true));
+    preview.getColumnConstraints()
+        .add(new ColumnConstraints(200, -1, -1, Priority.ALWAYS, HPos.LEFT, true));
+    previewWrapperPane.setCenter(preview);
+
     shapeRenderer.setDefaultItemLabelPaint(
         MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
   }
 
-  protected void onSelectedFeatureChanged(ModularFeature newValue) {
+  protected void onSelectedFeatureChanged(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
+      ModularFeature newValue) {
     if (newValue == null) {
       return;
     }
-    previewChart.removeAllDatasets();
+    chart.removeAllDatasets();
 
     ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
     try {
@@ -145,22 +210,21 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     // add preview depending on which dimension is selected.
     if (dimension == ResolvingDimension.RETENTION_TIME) {
       MZmineCore.runLater(() -> {
-        previewChart.addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(newValue)));
-        previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
-        previewChart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
+        chart.addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(newValue)));
+        chart.setDomainAxisLabel(uf.format("Retention time", "min"));
+        chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });
     } else if (dimension == ResolvingDimension.MOBILITY
         && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
       IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
       MZmineCore.runLater(() -> {
-        previewChart.addDataset(new ColoredXYDataset(
+        chart.addDataset(new ColoredXYDataset(
             new SummedMobilogramXYProvider(data.getSummedMobilogram(),
                 new SimpleObjectProperty<>(newValue.getRawDataFile().getColor()), "")));
         IMSRawDataFile file = (IMSRawDataFile) newValue.getRawDataFile();
-        previewChart.setDomainAxisLabel(
+        chart.setDomainAxisLabel(
             uf.format(file.getMobilityType().getAxisLabel(), file.getMobilityType().getUnit()));
-        previewChart.setDomainAxisNumberFormatOverride(
-            MZmineCore.getConfiguration().getMobilityFormat());
+        chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
       });
     } else {
       MZmineCore.getDesktop().displayErrorMessage(
@@ -223,7 +287,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       for (ResolvedPeak rp : resolved) {
         ColoredXYDataset ds = new ColoredXYDataset(rp);
         ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-        MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+        MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
       }
     }
   }
@@ -274,7 +338,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
     List<String> errors = new ArrayList<>();
     if (parameterSet.checkParameterValues(errors)) {
-      onSelectedFeatureChanged(fBox.getValue());
+      onSelectedFeatureChanged(previewChart, fBox.getValue());
+      onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getValue());
     }
   }
 
@@ -283,4 +348,26 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     super.setOnPreviewShown(onPreviewShown);
   }
 
+
+  private ModularFeature findBadFeature(List<ModularFeatureListRow> rows) {
+    final List<ModularFeatureListRow> sortedByArea = rows.stream()
+        .sorted((r1, r2) -> Double.compare(r2.getAverageArea(), r1.getAverageArea())).toList();
+    final List<ModularFeatureListRow> top20 = new ArrayList<>(
+        sortedByArea.subList(0, Math.min(sortedByArea.size() - 1, 20)));
+
+    // we a looking for a feature with a low height to area ratio -> big area but low height could
+    // be a noisy chromatogram
+    top20.sort(Comparator.comparingDouble(r -> r.getAverageHeight() / r.getAverageArea()));
+    return top20.get(0).getBestFeature();
+  }
+
+  private ModularFeature findGoodEIC(List<ModularFeatureListRow> rows) {
+    final List<ModularFeatureListRow> sortedByArea = rows.stream()
+        .sorted((r1, r2) -> Double.compare(r2.getAverageArea(), r1.getAverageArea())).toList();
+    final List<ModularFeatureListRow> top30 = new ArrayList<>(
+        sortedByArea.subList(0, Math.min(sortedByArea.size() - 1, 30)));
+
+    top30.sort(Comparator.comparingDouble(ModularFeatureListRow::getAverageHeight));
+    return top30.get(top30.size() - 1).getBestFeature();
+  }
 }

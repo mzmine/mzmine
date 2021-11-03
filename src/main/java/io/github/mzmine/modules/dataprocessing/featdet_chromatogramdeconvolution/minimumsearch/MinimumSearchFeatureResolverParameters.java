@@ -71,9 +71,9 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
 
   public MinimumSearchFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
-        MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, AUTO_REMOVE, groupMS2Parameters, dimension,
+        CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT,
+        MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override
