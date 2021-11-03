@@ -18,21 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Collection;
-
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.batchmode.DeprecatedModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
+import java.util.Collection;
+import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 
-public class PeakFinderModule implements MZmineProcessingModule {
+@Deprecated
+public class PeakFinderModule implements MZmineProcessingModule, DeprecatedModule {
 
   private static final String MODULE_NAME = "Peak finder";
   private static final String MODULE_DESCRIPTION =

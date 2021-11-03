@@ -24,6 +24,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,23 +32,44 @@ import java.util.logging.Logger;
 
 public class BatchModeModulesList {
 
-  private static final Logger logger = Logger.getLogger(BatchModeModulesList.class.getName());
   public static final List<Class<? extends MZmineProcessingModule>> MODULES_DYNAMIC;
+  private static final Logger logger = Logger.getLogger(BatchModeModulesList.class.getName());
 
   static {
     List<Class<? extends MZmineProcessingModule>> modulesList = new ArrayList<>();
+
     try {
       ClassPath path = ClassPath.from(MZmineModule.class.getClassLoader());
       for (ClassInfo classInfo : path.getTopLevelClassesRecursive("io.github.mzmine.modules")) {
         if (classInfo.getSimpleName().contains("Module")) {
-          try {
-            final Object module = classInfo.load().getDeclaredConstructor().newInstance();
-            if (module instanceof MZmineProcessingModule mod) {
-              logger.finest(() -> "Adding module " + mod.getName() + " to batch mode modules list");
-              modulesList.add(mod.getClass());
+          final Class<?> clazz = classInfo.load();
+
+          // skip abstract classes and interfaces
+          if (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(
+              clazz.getModifiers())) {
+            continue;
+          }
+
+          for (Class<?> anInterface : clazz.getInterfaces()) {
+            // check if the correct interface is implemented
+            if (anInterface.equals(MZmineProcessingModule.class)) {
+              try {
+                final Object o = clazz.getDeclaredConstructor().newInstance();
+
+                // don't add deprecated modules
+                if (o instanceof DeprecatedModule) {
+                  logger.finest(() -> "Not adding deprecated module " + clazz.getName()
+                      + " to batch mode modules list.");
+                  break;
+                }
+                logger.finest(
+                    () -> "Adding module " + clazz.getName() + " to batch mode modules list");
+                modulesList.add((Class<? extends MZmineProcessingModule>) o.getClass());
+              } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                // silent
+              }
+              break;
             }
-          } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            // silent
           }
         }
       }
