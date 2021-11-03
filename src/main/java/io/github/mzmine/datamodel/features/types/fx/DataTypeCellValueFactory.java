@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
@@ -65,11 +65,13 @@ public class DataTypeCellValueFactory implements
       //    + type.getClass().toString() + " and raw file " + (raw == null ? "NONE" : raw.getName()));
       return null;
     }
-    Property property = type.createProperty();
-    property.setValue(map.get(type));
-    return (ObservableValue<Object>) property;
+    // todo try read only wrapper
+    Object value = map.get(type);
+    return value == null ? null : new ReadOnlyObjectWrapper<>(value);
+//    Property property = type.createProperty();
+//    property.setValue(map.get(type));
+//    return (ObservableValue<Object>) property;
   }
-
 
   /**
    * The default way to get the DataMap. FeatureListRow (for raw==null), Feature for raw!=null.

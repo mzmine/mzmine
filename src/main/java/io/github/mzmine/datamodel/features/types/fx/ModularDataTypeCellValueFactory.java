@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
@@ -85,9 +85,12 @@ public class ModularDataTypeCellValueFactory implements
       if (value == null) {
         return null;
       }
-      Property property = subType.createProperty();
-      property.setValue(value);
-      return (ObservableValue<Object>) property;
+      // todo try read only wrapper
+      return new ReadOnlyObjectWrapper<>(value);
+//
+//      Property property = subType.createProperty();
+//      property.setValue(value);
+//      return (ObservableValue<Object>) property;
     } catch (Exception ex) {
       logger.log(Level.WARNING, MessageFormat
           .format("Cannot get sub type {0} of ModularType {1}", subType.getClass().toString(),
