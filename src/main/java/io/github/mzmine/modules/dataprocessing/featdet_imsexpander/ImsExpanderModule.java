@@ -47,7 +47,7 @@ public class ImsExpanderModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull String getDescription() {
-    return "Expands rt chromatograms in mobility dimension";
+    return "Expands rt chromatograms in mobility dimension.";
   }
 
   @Override
