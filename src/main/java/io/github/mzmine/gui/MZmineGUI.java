@@ -63,6 +63,7 @@ import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -78,7 +79,9 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.commons.io.FilenameUtils;
@@ -93,11 +96,10 @@ public class MZmineGUI extends Application implements Desktop {
   public static final int MAX_TABS = 7;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
-
+  private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
-  private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -191,8 +193,7 @@ public class MZmineGUI extends Application implements Desktop {
 
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-    final GroupableListView<FeatureList> featureListView = mainWindowController
-        .getFeatureListsList();
+    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
   }
 
@@ -273,19 +274,19 @@ public class MZmineGUI extends Application implements Desktop {
       }
 
       if (!rawDataFiles.isEmpty()) {
-        logger.finest(
-            () -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: " + Arrays
-                .toString(rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
+        logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
+            + Arrays.toString(rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
         param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
         param.getParameter(AllSpectralDataImportParameters.fileNames)
             .setValue(rawDataFiles.toArray(File[]::new));
-        AllSpectralDataImportModule module = MZmineCore
-            .getModuleInstance(AllSpectralDataImportModule.class);
+        AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
+            AllSpectralDataImportModule.class);
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
-          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks, new Date());
+          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
+              new Date());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
       }
@@ -471,14 +472,22 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void displayMessage(String title, String msg) {
     MZmineCore.runLater(() -> {
+
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
-      dialog.setContentText(msg);
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+
+      final Text text = new Text();
+      text.setWrappingWidth(300);
+      text.setText(msg);
+      StackPane pane = new StackPane(text);
+      pane.setPadding(new Insets(5));
+      dialog.getDialogPane().setContent(pane);
+
       dialog.showAndWait();
     });
   }
