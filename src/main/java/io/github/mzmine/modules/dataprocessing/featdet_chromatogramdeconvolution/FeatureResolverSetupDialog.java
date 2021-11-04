@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
@@ -81,7 +80,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ComboBox<ModularFeature> fBoxBadFeature;
-  protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess mobilogramBinning;
   protected Resolver resolver;
 
@@ -187,9 +185,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     preview.getColumnConstraints()
         .add(new ColumnConstraints(200, -1, -1, Priority.ALWAYS, HPos.LEFT, true));
     previewWrapperPane.setCenter(preview);
-
-    shapeRenderer.setDefaultItemLabelPaint(
-        MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
   }
 
   protected void onSelectedFeatureChanged(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
@@ -255,7 +250,10 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                       + rtFormat.format(
                       series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime())
                       + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-              MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+              final var shapeRenderer = new ColoredXYShapeRenderer();
+              shapeRenderer.setDefaultItemLabelPaint(
+                  MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
+              MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
             }
           } catch (UnsupportedOperationException e) {
             MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
@@ -272,7 +270,10 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                   mobilityFormat.format(mobilogram.getMobility(0)) + " - " + mobilityFormat.format(
                       mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
                       + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
-              MZmineCore.runLater(() -> previewChart.addDataset(ds, shapeRenderer));
+              final var shapeRenderer = new ColoredXYShapeRenderer();
+              shapeRenderer.setDefaultItemLabelPaint(
+                  MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
+              MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
             }
           } catch (UnsupportedOperationException e) {
             MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
@@ -287,6 +288,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       for (ResolvedPeak rp : resolved) {
         ColoredXYDataset ds = new ColoredXYDataset(rp);
         ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
+        final var shapeRenderer = new ColoredXYShapeRenderer();
+        shapeRenderer.setDefaultItemLabelPaint(
+            MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
         MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
       }
     }
@@ -337,7 +341,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
 
     List<String> errors = new ArrayList<>();
-    if (parameterSet.checkParameterValues(errors)) {
+    boolean check = parameterSet.checkParameterValues(errors);
+    if (check || (!check && errors.size() == 1 && errors.get(0).matches(
+        "At least ([\\d]+) feature lists must be selected"))) {
       onSelectedFeatureChanged(previewChart, fBox.getValue());
       onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getValue());
     }
@@ -370,4 +376,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     top30.sort(Comparator.comparingDouble(ModularFeatureListRow::getAverageHeight));
     return top30.get(top30.size() - 1).getBestFeature();
   }
+
+
 }

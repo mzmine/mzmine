@@ -75,8 +75,8 @@ import org.jfree.data.xy.XYDataset;
  * @see ColoredXYDataset
  * @see PlotXYDataProvider
  */
-public class SimpleXYChart<T extends PlotXYDataProvider> extends
-    EChartViewer implements SimpleChart<T> {
+public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer implements
+    SimpleChart<T> {
 
   private static final double AXIS_MARGINS = 0.01;
   private static Logger logger = Logger.getLogger(SimpleXYChart.class.getName());
@@ -109,19 +109,16 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
     this(title, "x", "y");
   }
 
-  public SimpleXYChart(@NamedArg("xlabel") String xLabel,
-      @NamedArg("ylabel") String yLabel) {
+  public SimpleXYChart(@NamedArg("xlabel") String xLabel, @NamedArg("ylabel") String yLabel) {
     this("", xLabel, yLabel);
   }
 
-  public SimpleXYChart(@NamedArg("title") @NotNull String title,
-      @NamedArg("xlabel") String xLabel,
+  public SimpleXYChart(@NamedArg("title") @NotNull String title, @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel) {
     this(title, xLabel, yLabel, PlotOrientation.VERTICAL, true, true);
   }
 
-  public SimpleXYChart(@NamedArg("title") @NotNull String title,
-      @NamedArg("xlabel") String xLabel,
+  public SimpleXYChart(@NamedArg("title") @NotNull String title, @NamedArg("xlabel") String xLabel,
       @NamedArg("ylabel") String yLabel, @NamedArg("orientation") PlotOrientation orientation,
       @NamedArg("legend") boolean createLegend, @NamedArg("tooltips") boolean showTooltips) {
     super(ChartFactory.createXYLineChart(title, xLabel, yLabel, null, orientation, createLegend,
@@ -238,11 +235,9 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
   }
 
   /**
-   *
-   * @param index The dataset index
+   * @param index  The dataset index
    * @param notify If listeners shall be notified.
    * @return The dataset or null
-   *
    * @see XYPlot#indexOf(XYDataset)
    */
   @Nullable
@@ -307,7 +302,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
       }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
-      if(ds != null) {
+      if (ds != null) {
         ds.removeChangeListener(getXYPlot());
       }
     }
@@ -444,9 +439,8 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
       }
     }
 
-    return (index != -1) ?
-        new PlotCursorPosition(domainValue, rangeValue, index,
-            plot.getDataset(datasetIndex)) : null;
+    return (index != -1) ? new PlotCursorPosition(domainValue, rangeValue, index,
+        plot.getDataset(datasetIndex)) : null;
   }
 
   @Override
@@ -485,5 +479,13 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends
 
   public BooleanProperty itemLabelsVisibleProperty() {
     return itemLabelsVisible;
+  }
+
+  @Override
+  public String toString() {
+    String x = chart.getXYPlot().getDomainAxis().getLabel();
+    String y = chart.getXYPlot().getRangeAxis().getLabel();
+    return chart.getTitle() != null ? chart.getTitle().toString() + "x " + x + ", y: " + y
+        : "unnamed chart" + "x " + x + ", y: " + y;
   }
 }
