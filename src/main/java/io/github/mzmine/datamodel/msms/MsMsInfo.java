@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.msms;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -29,7 +30,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.Nullable;
 
-public interface MsMsInfo extends Cloneable {
+public interface MsMsInfo {
 
   String XML_ELEMENT = "msmsinfo";
   String XML_TYPE_ATTRIBUTE = "type";
@@ -45,7 +46,6 @@ public interface MsMsInfo extends Cloneable {
   @Nullable Scan getMsMsScan();
 
   /**
-   *
    * @param scan The scan this event took place.
    * @return false if the msms scan was already set.
    */
@@ -61,6 +61,12 @@ public interface MsMsInfo extends Cloneable {
    * unknown.
    */
   @NotNull ActivationMethod getActivationMethod();
+
+  /**
+   * @return The isolation window of this msms event. May be null if unknown or not set, cover a
+   * small range(DDA) or a larger m/z range (SWATH/DIA).
+   */
+  @Nullable Range<Double> getIsolationWindow();
 
   /**
    * Appends a new element for an {@link MsMsInfo} at the current position. Start and close tag for
@@ -79,11 +85,11 @@ public interface MsMsInfo extends Cloneable {
    * @return The {@link MsMsInfo}.
    */
   static MsMsInfo loadFromXML(XMLStreamReader reader, RawDataFile file) {
-    if(!reader.isStartElement()) {
+    if (!reader.isStartElement()) {
       throw new IllegalStateException("Wrong element.");
     }
 
-    return switch(reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
+    return switch (reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
       case PasefMsMsInfoImpl.XML_TYPE_NAME -> PasefMsMsInfoImpl.loadFromXML(reader,
           (IMSRawDataFile) file);
       case DDAMsMsInfoImpl.XML_TYPE_NAME -> DDAMsMsInfoImpl.loadFromXML(reader, file);
@@ -92,7 +98,6 @@ public interface MsMsInfo extends Cloneable {
   }
 
   /**
-   *
    * @return A copy without setting the MsMsScan.
    */
   MsMsInfo createCopy();

@@ -18,7 +18,6 @@
 
 package io.github.mzmine.datamodel.msms;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,5 +42,4 @@ public interface DDAMsMsInfo extends MsMsInfo {
 
   @Nullable Scan getMsMsScan();
 
-  @Nullable Range<Double> getIsolationWindow();
 }
