@@ -485,7 +485,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
   public String toString() {
     String x = chart.getXYPlot().getDomainAxis().getLabel();
     String y = chart.getXYPlot().getRangeAxis().getLabel();
-    return chart.getTitle() != null ? chart.getTitle().toString() + "x " + x + ", y: " + y
-        : "unnamed chart" + "x " + x + ", y: " + y;
+    return chart.getTitle() != null ? chart.getTitle().toString() + " x: " + x + ", y: " + y
+        : "unnamed chart x: " + x + ", y: " + y;
   }
 }
