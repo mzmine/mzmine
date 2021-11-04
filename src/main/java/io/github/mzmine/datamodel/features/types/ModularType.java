@@ -55,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public abstract class ModularType extends DataType<ModularTypeMap> implements
-    SubColumnsFactory<ModularTypeMap> {
+    SubColumnsFactory {
 
   private static final Logger logger = Logger.getLogger(ModularType.class.getName());
 
@@ -115,15 +115,18 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
   @Override
   @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      @Nullable RawDataFile raw) {
+      @Nullable RawDataFile raw,
+      @Nullable SubColumnsFactory parentType) {
     final ModularType thisType = this;
     // add column for each sub data type
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
-
+    int isub = 0;
     for (DataType subType : getSubDataTypes()) {
       // create column and replace value factory to access sub type
-      TreeTableColumn<ModularFeatureListRow, Object> col = subType.createColumn(raw, thisType);
+      TreeTableColumn<ModularFeatureListRow, Object> col = subType
+          .createColumn(raw, thisType, isub);
       cols.add(col);
+      isub++;
     }
     return cols;
   }
@@ -160,8 +163,7 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
   @Override
   @Nullable
   public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
+      Object value) {
 
     if (value == null) {
       return "";
@@ -265,5 +267,16 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
     }
 
     return dataMap;
+  }
+
+  // TODO remove
+  @Override
+  public @NotNull DataType<?> getType(int subcolumn) {
+    return null;
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object cellData) {
+    return null;
   }
 }

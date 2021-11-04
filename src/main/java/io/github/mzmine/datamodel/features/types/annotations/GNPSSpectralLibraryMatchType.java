@@ -91,4 +91,5 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
       data.set(GNPSNetworkUrlType.class, match.getResultOr(ATT.GNPS_NETWORK_URL, null));
     }
   }
+
 }

@@ -50,8 +50,8 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   }
 
   @Override
-  public @NotNull String getFormattedString(@NotNull List<Integer> property) {
-    return property.isEmpty() ? "" : property.size() + ": " + property.toString();
+  public @NotNull String getFormattedString(@NotNull List<Integer> list) {
+    return list.isEmpty() ? "" : list.size() + ": " + list.toString();
   }
 
   @Override

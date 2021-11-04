@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types.numbers.abstr;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -28,14 +29,13 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class NumberRangeType<T extends Number & Comparable<?>>
     extends NumberType<Range<T>>
-    implements SubColumnsFactory<Range<T>> {
+    implements SubColumnsFactory {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
@@ -81,9 +81,14 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
   }
 
   @Override
+  public @NotNull DataType<?> getType(int subcolumn) {
+    return this;
+  }
+
+  @Override
   @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      @Nullable RawDataFile raw) {
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
     // create column per name
@@ -91,7 +96,7 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
       TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
       DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
       min.setCellValueFactory(cvFactoryMin);
-      min.setCellFactory(new DataTypeCellFactory(raw, this, index));
+      min.setCellFactory(new DataTypeCellFactory(raw, this, this, index));
       // add column
       cols.add(min);
     }
@@ -100,9 +105,7 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
+  public String getFormattedSubColValue(int subcolumn, Object value) {
     if (value == null) {
       return "";
     }
@@ -113,6 +116,20 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
         return getFormatter().format(((Range) value).upperEndpoint());
     }
     return "";
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object value) {
+    if (value == null) {
+      return null;
+    }
+    switch (subcolumn) {
+      case 0:
+        return ((Range) value).lowerEndpoint();
+      case 1:
+        return ((Range) value).upperEndpoint();
+    }
+    return null;
   }
 
 }

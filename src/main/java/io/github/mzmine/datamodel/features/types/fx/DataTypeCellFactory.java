@@ -24,12 +24,15 @@ import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Default cell factory for a DataType
@@ -39,17 +42,23 @@ import javafx.util.Callback;
 public class DataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private RawDataFile raw;
-  private DataType type;
-  private int subcolumn = -1;
+  private static final Logger logger = Logger.getLogger(DataTypeCellFactory.class.getName());
+  @NotNull
+  private final DataType type;
+  @Nullable
+  private final RawDataFile raw;
+  @Nullable
+  private final SubColumnsFactory parent;
+  private final int subcolumn;
 
 
   public DataTypeCellFactory(RawDataFile raw, DataType type) {
-    this(raw, type, -1);
+    this(raw, type, null, -1);
   }
 
-  public DataTypeCellFactory(RawDataFile raw, DataType type, int subcolumn) {
+  public DataTypeCellFactory(RawDataFile raw, DataType type, @Nullable SubColumnsFactory parent,
+      int subcolumn) {
+    this.parent = parent;
     this.type = type;
     this.raw = raw;
     this.subcolumn = subcolumn;
@@ -69,44 +78,49 @@ public class DataTypeCellFactory implements
 
       @Override
       protected void updateItem(Object item, boolean empty) {
-        super.updateItem(item, empty);
+        try {
+          super.updateItem(item, empty);
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
-        if (type instanceof LinkedGraphicalType lgType) {
-          Node node = lgType.getCellNode(this, param, null, raw);
-          getTableColumn().setMinWidth(lgType.getColumnWidth());
-          setGraphic(node);
-          setText(null);
-        } else {
-          if (item == null) {
-            item = type.getDefaultValue();
-          }
-          if (item == null || empty) {
-            setGraphic(null);
+          if (type instanceof LinkedGraphicalType lgType) {
+            // first handle linked graphical types (like charts) that are dependent on other data
+            Node node = lgType.getCellNode(this, param, null, raw);
+            getTableColumn().setMinWidth(lgType.getColumnWidth());
+            setGraphic(node);
             setText(null);
           } else {
-            // sub columns provide values
-            if (type instanceof SubColumnsFactory sub) {
-              // get sub column value
-              Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
-              setGraphic(n);
-              setText(
-                  n != null ? null
-                      : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
-            } else if (type instanceof GraphicalColumType graphicalColumType) {
-              Node node = graphicalColumType.getCellNode(this, param, item, raw);
-              getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
-              setGraphic(node);
+            if (item == null) {
+              item = type.getDefaultValue();
+            }
+            if (item == null || empty) {
+              setGraphic(null);
               setText(null);
             } else {
-              setText(type.getFormattedString(item));
-              setGraphic(null);
+              // sub columns provide values
+              if (parent != null) {
+                // get sub column value
+                Node n = parent.getSubColNode(subcolumn, this, param, item, raw);
+                setGraphic(n);
+                String text =
+                    n != null ? null : parent.getFormattedSubColValue(subcolumn, item);
+                setText(text);
+              } else if (type instanceof GraphicalColumType graphicalColumType) {
+                Node node = graphicalColumType.getCellNode(this, param, item, raw);
+                getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
+                setGraphic(node);
+                setText(null);
+              } else {
+                setText(type.getFormattedString(item));
+                setGraphic(null);
+              }
+            }
+            if (type instanceof NumberType) {
+              setAlignment(Pos.CENTER_RIGHT);
+            } else {
+              setAlignment(Pos.CENTER);
             }
           }
-          if (type instanceof NumberType) {
-            setAlignment(Pos.CENTER_RIGHT);
-          } else {
-            setAlignment(Pos.CENTER);
-          }
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Error in cell factory", ex);
         }
       }
     };

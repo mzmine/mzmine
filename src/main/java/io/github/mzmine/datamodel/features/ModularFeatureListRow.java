@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
@@ -704,17 +703,11 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   public List<ResultFormula> getFormulas() {
-    ModularTypeMap formulaType = get(FormulaAnnotationType.class);
-    return formulaType == null ? null : formulaType.get(FormulaListType.class);
+    return get(FormulaAnnotationType.class);
   }
 
   public void setFormulas(List<ResultFormula> formulas) {
-    if (get(FormulaAnnotationType.class) == null) {
-      FormulaAnnotationType mtype = new FormulaAnnotationType();
-      flist.addRowType(mtype);
-      set(FormulaAnnotationType.class, mtype.createMap());
-    }
-    get(FormulaAnnotationType.class).set(FormulaListType.class, formulas);
+    set(FormulaAnnotationType.class, formulas);
   }
 
   @Override

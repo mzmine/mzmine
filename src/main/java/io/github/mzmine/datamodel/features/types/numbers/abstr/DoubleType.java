@@ -52,7 +52,7 @@ public abstract class DoubleType extends NumberType<Double> {
 
   @Override
   public @NotNull String getFormattedString(Double value) {
-    return getFormatter().format(value);
+    return value == null ? "" : getFormatter().format(value);
   }
 
   public @NotNull String getFormattedString(double value) {

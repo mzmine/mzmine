@@ -26,14 +26,12 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import java.text.MessageFormat;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Cell type factory for ModularType
@@ -41,8 +39,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ModularDataTypeCellValueFactory implements
-    Callback<CellDataFeatures<ModularFeatureListRow, Object>, ObservableValue<Object>>,
-    Function<ModularFeatureListRow, ModularDataModel> {
+    Callback<CellDataFeatures<ModularFeatureListRow, Object>, ObservableValue<Object>> {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -50,25 +47,17 @@ public class ModularDataTypeCellValueFactory implements
   private final ModularType modularParentType;
   private final DataType<?> subType;
 
-  private final @NotNull Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier;
 
-  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType,
+  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType parentType,
       DataType<?> subType) {
-    this(raw, modularParentType, subType, null);
-  }
-
-  public ModularDataTypeCellValueFactory(RawDataFile raw, ModularType modularParentType,
-      DataType<?> subType,
-      Function<ModularFeatureListRow, ModularDataModel> dataMapSupplier) {
-    this.modularParentType = modularParentType;
+    this.modularParentType = parentType;
     this.subType = subType;
     this.raw = raw;
-    this.dataMapSupplier = dataMapSupplier == null ? this : dataMapSupplier;
   }
 
   @Override
   public ObservableValue<Object> call(CellDataFeatures<ModularFeatureListRow, Object> param) {
-    final ModularDataModel model = dataMapSupplier.apply(param.getValue().getValue());
+    final ModularDataModel model = apply(param.getValue().getValue());
     if (model == null) {
       logger.log(Level.WARNING, "There was no DataTypeMap for the column of DataType "
                                 + modularParentType.getClass().toString() + "and sub type "
@@ -104,7 +93,6 @@ public class ModularDataTypeCellValueFactory implements
   /**
    * The default way to get the DataMap. FeatureListRow (for raw==null), Feature for raw!=null.
    */
-  @Override
   public ModularDataModel apply(ModularFeatureListRow row) {
     if (raw != null) {
       // find data type map for feature for this raw file

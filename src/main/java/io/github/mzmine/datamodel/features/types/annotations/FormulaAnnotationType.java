@@ -18,71 +18,43 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MsMsScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A collection of annotation types related to a list of molecular formulas stored in the {@link
  * FormulaListType}. Includes scores, neutral mass, etc.
  */
-public class FormulaAnnotationType extends ModularType implements AnnotationType {
-
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "formula_annotation";
-  }
+public class FormulaAnnotationType extends ListWithSubsType<ResultFormula> implements
+    AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List
-      .of(new FormulaListType(), new FormulaMassType(), new RdbeType(),
-          new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
+  private static final List<DataType> subTypes = List
+      .of(new FormulaAnnotationType(), new FormulaMassType(), new RdbeType(),
+          new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
-  /**
-   * On change of the first list element, change all the other sub types.
-   *
-   * @param data       property
-   * @param formula    the new preferred formula (first element)
-   * @param removeNull remove all entries if formula is null
-   */
-  public static void setCurrentElement(ModularTypeMap data, ResultFormula formula,
-      boolean removeNull) {
-    if (formula == null) {
-      if (removeNull) {
-        for (DataType type : data.getTypes().values()) {
-          if (!(type instanceof FormulaListType)) {
-            data.set(type, null);
-          }
-        }
-      }
-    } else {
-      // update selected values
-      data.set(FormulaMassType.class, formula.getExactMass());
-//      data.set(NeutralMassType.class, formula.getSearchedNeutralMass());
-      data.set(IsotopePatternScoreType.class,
-          formula.getIsotopeScore() == null ? null : formula.getIsotopeScore().floatValue());
-      data.set(MsMsScoreType.class,
-          formula.getMSMSScore() == null ? null : formula.getMSMSScore().floatValue());
-      data.set(CombinedScoreType.class, (float) formula.getScore(10, 3, 1));
-      data.set(RdbeType.class, formula.getRDBE() == null ? null : formula.getRDBE().floatValue());
-      data.set(MzPpmDifferenceType.class,
-          (float) formula.getPpmDiff(formula.getSearchedNeutralMass()));
-      data.set(MzAbsoluteDifferenceType.class,
-          (formula.getSearchedNeutralMass() - formula.getExactMass()));
-    }
-  }
+  private static final Map<Class<? extends DataType>, Function<ResultFormula, Object>> mapper =
+      Map.ofEntries(
+          createEntry(FormulaAnnotationType.class, formula -> formula),
+          createEntry(FormulaMassType.class, formula -> formula.getExactMass()),
+          createEntry(RdbeType.class, formula -> formula.getRDBE()),
+          createEntry(MzPpmDifferenceType.class, formula -> formula.getPpmDiff()),
+          createEntry(MzAbsoluteDifferenceType.class, formula -> formula.getAbsoluteMzDiff()),
+          createEntry(IsotopePatternScoreType.class, formula -> formula.getIsotopeScore()),
+          createEntry(MsMsScoreType.class, formula -> formula.getMSMSScore()),
+          createEntry(CombinedScoreType.class, formula -> formula.getScore(10, 3, 1))
+      );
 
   @NotNull
   @Override
@@ -90,10 +62,22 @@ public class FormulaAnnotationType extends ModularType implements AnnotationType
     return subTypes;
   }
 
+  @Override
+  protected Map<Class<? extends DataType>, Function<ResultFormula, Object>> getMapper() {
+    return mapper;
+  }
+
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Formula";
+    return "Formulas";
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "formula_annotation";
   }
 
 }

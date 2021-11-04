@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,40 +8,40 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.modifiers;
 
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This data type contains sub columns. Master column is not visualized. Only sub columns
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public interface SubColumnsFactory<T> {
+public interface SubColumnsFactory {
+
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
-   * 
+   *
    * @return
    */
   @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      final @Nullable RawDataFile raw);
+      final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType);
 
   @NotNull
   public int getNumberOfSubColumns();
@@ -49,14 +49,23 @@ public interface SubColumnsFactory<T> {
   @Nullable
   public String getHeader(int subcolumn);
 
-  @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw);
+  /**
+   * The data type of the subcolumn
+   *
+   * @param subcolumn index of subcolumn
+   * @return datatype of subcolumn
+   */
+  @NotNull
+  DataType<?> getType(int subcolumn);
 
+  @Nullable
+  String getFormattedSubColValue(int subcolumn, Object cellData);
 
   @Nullable
-  default public Node getSubColNode(int subcolumn,
+  Object getSubColValue(int subcolumn, Object cellData);
+
+  @Nullable
+  default Node getSubColNode(int subcolumn,
       TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
     return null;

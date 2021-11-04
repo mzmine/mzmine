@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A list of {@link IonIdentity}. The first is generally the active element. A simple list without
- * all the other sub columns.
+ * all the other sub columns that might be used in other types.
  */
 public class SimpleIonIdentityListType extends ListDataType<IonIdentity>
     implements AnnotationType, EditableColumnType {

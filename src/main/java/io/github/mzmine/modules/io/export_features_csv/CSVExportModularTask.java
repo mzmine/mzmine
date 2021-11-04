@@ -280,7 +280,7 @@ public class CSVExportModularTask extends AbstractTask {
         }
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
-          String field = subCols.getFormattedSubColValue(i, null, null, value, null);
+          String field = subCols.getFormattedSubColValue(i, value);
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }

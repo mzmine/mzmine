@@ -26,8 +26,8 @@ import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -45,63 +45,37 @@ import javafx.util.Callback;
 public class EditComboCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
 
-  private final DataType modularParentType;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private RawDataFile raw;
-  private DataType<?> type;
-  private int subcolumn = -1;
+  private final SubColumnsFactory parentType;
+  private final RawDataFile raw;
+  private final DataType<?> type;
+  private final int subcolumn;
 
-
-  public EditComboCellFactory(RawDataFile raw, DataType<?> type) {
-    this(raw, type, -1);
-  }
-
-  public EditComboCellFactory(RawDataFile raw, DataType<?> type, int subcolumn) {
-    this(raw, type, null, subcolumn);
-  }
-
-  public EditComboCellFactory(RawDataFile raw, DataType<?> type, DataType modularParentType) {
-    this(raw, type, modularParentType, -1);
-  }
-
-  public EditComboCellFactory(RawDataFile raw, DataType<?> type, DataType modularParentType,
+  public EditComboCellFactory(RawDataFile raw, DataType<?> type, SubColumnsFactory parentType,
       int subcolumn) {
     this.type = type;
     this.raw = raw;
-    this.modularParentType = modularParentType;
+    this.parentType = parentType;
     this.subcolumn = subcolumn;
   }
 
   @Override
   public TreeTableCell<ModularFeatureListRow, Object> call(
       TreeTableColumn<ModularFeatureListRow, Object> param) {
-    ComboBoxTreeTableCell<ModularFeatureListRow, Object> comboCell = new ComboBoxTreeTableCell<>() {
-
+    return new ComboBoxTreeTableCell<>() {
       @Override
       public void startEdit() {
-        ModularFeatureListRow row = getTreeTableRow().getItem();
-        ModularDataModel model = raw == null ? row : row.getFeature(raw);
-        if (modularParentType != null) {
-          model = (ModularDataModel) model.get(modularParentType);
+        List list = getTypeList();
+        getItems().clear();
+        getItems().addAll(list);
+        // create element that triggers the add element dialog on selection
+        if (type instanceof AddElementDialog) {
+          getItems().add(AddElementDialog.BUTTON_TEXT);
         }
-
-        Object value = model.get(type);
-        if (value instanceof List list) {
-          getItems().clear();
-          getItems().addAll(list);
-          // create element that triggers the add element dialog on selection
-          if (type instanceof AddElementDialog) {
-            getItems().add(AddElementDialog.BUTTON_TEXT);
-          }
-          super.startEdit();
-          if (isEditing() && getGraphic() instanceof ComboBox) {
-            // needs focus for proper working of esc/enter
-            getGraphic().requestFocus();
-            ((ComboBox<?>) getGraphic()).show();
-          }
-        } else {
-          throw new UnsupportedOperationException("Unhandled data type in edit combo CellFactory: "
-                                                  + type.getHeaderString());
+        super.startEdit();
+        if (isEditing() && getGraphic() instanceof ComboBox combo) {
+          // needs focus for proper working of esc/enter
+          combo.requestFocus();
+          combo.show();
         }
       }
 
@@ -113,29 +87,45 @@ public class EditComboCellFactory implements
       @Override
       public void updateItem(Object item, boolean empty) {
         super.updateItem(item, empty);
+
         if (item == null || empty) {
           setGraphic(null);
           setText(null);
         } else {
+          // get list of this cell
+          final List list;
+          if (item instanceof List l) {
+            // item is whole list
+            list = l;
+          } else {
+            // item is single selected item
+            List originalList = getTypeList();
+            if (originalList != null) {
+              // put object in first place of list
+              list = new ArrayList<>(originalList);
+              list.remove(item);
+              list.add(0, item);
+            } else {
+              list = null;
+            }
+          }
+
           // sub columns provide values
-          if (type instanceof SubColumnsFactory) {
+          if (parentType != null) {
             // get sub column value
-            SubColumnsFactory sub = (SubColumnsFactory) type;
-            Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
+            Node n = parentType.getSubColNode(subcolumn, this, param, list, raw);
             setGraphic(n);
-            setText(
-                n != null ? null
-                    : sub.getFormattedSubColValue(subcolumn, this, param, item, raw));
-            setTooltip(
-                new Tooltip(sub.getFormattedSubColValue(subcolumn, this, param, item, raw)));
-          } else if (type instanceof GraphicalColumType) {
-            Node node = ((GraphicalColumType) type).getCellNode(this, param, item, raw);
-            getTableColumn().setMinWidth(((GraphicalColumType<?>) type).getColumnWidth());
+            String formattedSubVal = parentType.getFormattedSubColValue(subcolumn, list);
+            setText(n != null ? null : formattedSubVal);
+            setTooltip(new Tooltip(formattedSubVal));
+          } else if (type instanceof GraphicalColumType graphType) {
+            Node node = graphType.getCellNode(this, param, list, raw);
+            getTableColumn().setMinWidth(graphType.getColumnWidth());
             setGraphic(node);
             setText(null);
-            setTooltip(new Tooltip(type.getFormattedStringCheckType(item)));
+            setTooltip(new Tooltip(type.getFormattedStringCheckType(list)));
           } else {
-            String formatted = type.getFormattedStringCheckType(item);
+            String formatted = type.getFormattedStringCheckType(list);
             setTooltip(new Tooltip(formatted));
             setText(formatted);
             setGraphic(null);
@@ -147,9 +137,36 @@ public class EditComboCellFactory implements
           setAlignment(Pos.CENTER);
         }
       }
+
+      /**
+       * Get the underlying list for this type in this cell
+       *
+       * @return
+       */
+      private List getTypeList() {
+        ModularFeatureListRow row = getTreeTableRow().getItem();
+        ModularDataModel model = raw == null ? row : row.getFeature(raw);
+        final Object value;
+        if (parentType instanceof DataType pt) {
+          // SubColumnFactory parent type holds the value directly or in a subtype
+          Object parentValue = model.get(pt);
+          if (parentType.equals(type)) {
+            value = parentValue;
+          } else {
+            value = parentType.getSubColValue(subcolumn, parentValue);
+          }
+        } else {
+          value = model.get(type);
+        }
+        if (value instanceof List list) {
+          return list;
+        } else if (value == null) {
+          return null;
+        } else {
+          throw new UnsupportedOperationException("Unhandled data type in edit combo CellFactory: "
+                                                  + type.getHeaderString());
+        }
+      }
     };
-    return comboCell;
   }
-
-
 }

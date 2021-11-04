@@ -41,8 +41,8 @@ public abstract class ListDataType<T> extends DataType<List<T>> {
 
   @NotNull
   @Override
-  public String getFormattedString(@NotNull List<T> property) {
-    return property.stream().map(Object::toString).findFirst().orElse("");
+  public String getFormattedString(@NotNull List<T> list) {
+    return list == null ? "" : list.stream().map(Object::toString).findFirst().orElse("");
   }
 
 

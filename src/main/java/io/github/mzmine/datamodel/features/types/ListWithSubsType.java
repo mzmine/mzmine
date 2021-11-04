@@ -19,15 +19,16 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Node;
@@ -39,10 +40,15 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class ListWithSubType<T> extends ListDataType<T> implements
-    SubColumnsFactory<List<T>> {
+public abstract class ListWithSubsType<T> extends ListDataType<T> implements
+    SubColumnsFactory, EditableColumnType {
 
-  private static final Logger logger = Logger.getLogger(ListWithSubType.class.getName());
+  private static final Logger logger = Logger.getLogger(ListWithSubsType.class.getName());
+
+  protected static <T> SimpleEntry<Class<? extends DataType>, Function<T, Object>> createEntry(
+      Class<? extends DataType> clazz, Function<T, Object> function) {
+    return new SimpleEntry<>(clazz, function);
+  }
 
   /**
    * The unmodifiable list of sub data types. Order reflects the initial order of columns.
@@ -55,8 +61,7 @@ public abstract class ListWithSubType<T> extends ListDataType<T> implements
   @Override
   @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      @Nullable RawDataFile raw) {
-    final ListWithSubType thisType = this;
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     // add column for each sub data type
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
@@ -64,32 +69,20 @@ public abstract class ListWithSubType<T> extends ListDataType<T> implements
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       DataType type = subTypes.get(index);
-      TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(
-          type.getHeaderString());
-      DataTypeCellValueFactory cellValueFactory = new DataTypeCellValueFactory(raw, this);
-      col.setCellValueFactory(cellValueFactory);
-      if (type instanceof EditableColumnType) {
-        col.setCellFactory(new EditComboCellFactory(raw, this, index));
+      if (this.getClass().isInstance(type)) {
+        // create a special column for this type that actually represents the list of data
+        cols.add(DataType.createStandardColumn(type, raw, this, index));
       } else {
-        col.setCellFactory(new DataTypeCellFactory(raw, this, index));
+        // create all other columns
+        var col = type.createColumn(raw, this, index);
+        // override type in CellValueFactory with this parent type
+        col.setCellValueFactory(new DataTypeCellValueFactory(raw, this));
+        cols.add(col);
       }
-      // add column
-      cols.add(col);
     }
 
     return cols;
   }
-
-  /**
-   * Sub DataType is the sub column at index (see {@link #getSubDataTypes()#})
-   *
-   * @param index
-   * @return
-   */
-  public DataType getSubTypeAt(int index) {
-    return index >= 0 && index < getSubDataTypes().size() ? getSubDataTypes().get(index) : null;
-  }
-
 
   @NotNull
   @Override
@@ -110,27 +103,56 @@ public abstract class ListWithSubType<T> extends ListDataType<T> implements
   }
 
   @Override
+  public @NotNull DataType<?> getType(int index) {
+    if (index < 0 || index >= getSubDataTypes().size()) {
+      throw new IndexOutOfBoundsException(String
+          .format("Sub column index %d is out of bounds %d", index, getSubDataTypes().size()));
+    }
+    return index >= 0 && index < getSubDataTypes().size() ? getSubDataTypes().get(index) : null;
+  }
+
+  @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
-    DataType sub = getSubTypeAt(subcolumn);
+  public String getFormattedSubColValue(int subcolumn, Object value) {
+    DataType sub = getType(subcolumn);
     if (sub == null) {
       return "";
     }
-    Object realVal = value == null ? sub.getDefaultValue() : value;
-    if (realVal == null) {
-      return "";
+    if (value == null) {
+      return sub.getFormattedString(sub.getDefaultValue());
     }
 
     Object subvalue = null;
     try {
-      List<T> list = ((List<T>) realVal);
-      subvalue = list.isEmpty() ? null : getSubColValue(sub, list);
+      List<T> list = ((List<T>) value);
+      subvalue = list.isEmpty() ? sub.getDefaultValue() : getSubColValue(sub, list);
       return sub.getFormattedString(subvalue);
     } catch (Exception ex) {
       logger.log(Level.WARNING, String.format(
           "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
+          this.getClass().getName(), sub.getClass().getName(),
+          (subvalue == null ? "null" : subvalue.getClass())), ex);
+      return "";
+    }
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object value) {
+    DataType sub = getType(subcolumn);
+    if (sub == null) {
+      return null;
+    }
+    if (value == null) {
+      return sub.getDefaultValue();
+    }
+
+    Object subvalue = null;
+    try {
+      List<T> list = ((List<T>) value);
+      return list.isEmpty() ? sub.getDefaultValue() : getSubColValue(sub, list);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, String.format(
+          "Error while getting sub column value in type %s. Sub type %s cannot get value of %s",
           this.getClass(), sub.getClass(), sub, (subvalue == null ? "" : subvalue.getClass())), ex);
       return "";
     }
@@ -140,17 +162,36 @@ public abstract class ListWithSubType<T> extends ListDataType<T> implements
    * The sub column value for a specific subType in a value.
    *
    * @param subType the sub type
-   * @param value   the value (often the first in the list of values)
+   * @param list    the list
    * @return the sub column value or null if value==null or if sub column empty.
    */
-  protected abstract <K> @Nullable K getSubColValue(@NotNull DataType<K> subType,
-      @Nullable List<T> value);
+  protected <K> @Nullable K getSubColValue(@NotNull DataType<K> subType,
+      @Nullable List<T> list) {
+    if (list == null || list.isEmpty()) {
+      return subType.getDefaultValue();
+    } else {
+      if (this.getClass().isInstance(subType)) {
+        // all ions
+        return (K) list;
+      } else {
+        // get value for first ion
+        return (K) getMapper().get(subType.getClass()).apply(list.get(0));
+      }
+    }
+  }
+
+  /**
+   * Mapper from first list element to sub column value
+   *
+   * @return
+   */
+  protected abstract Map<Class<? extends DataType>, Function<T, Object>> getMapper();
 
   @Nullable
   @Override
   public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    DataType sub = getSubTypeAt(subcolumn);
+    DataType sub = getType(subcolumn);
     if (sub instanceof LinkedGraphicalType lgType) {
       return lgType.getCellNode(cell, coll, null, raw);
     } else if (cellData == null || sub == null || !(sub instanceof GraphicalColumType gcType)) {

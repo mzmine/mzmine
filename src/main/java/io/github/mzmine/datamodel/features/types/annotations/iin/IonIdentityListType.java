@@ -18,13 +18,12 @@
 package io.github.mzmine.datamodel.features.types.annotations.iin;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ListWithSubType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaConsensusSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -35,7 +34,6 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -46,8 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * A modular annotation type displaying all subtypes for the first element in a list of {@link
  * IonIdentity} stored in {@link SimpleIonIdentityListType}
  */
-public class IonIdentityListType extends ListWithSubType<IonIdentity> implements AnnotationType,
-    EditableColumnType {
+public class IonIdentityListType extends ListWithSubsType<IonIdentity> implements AnnotationType {
 
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List
@@ -116,30 +113,14 @@ public class IonIdentityListType extends ListWithSubType<IonIdentity> implements
     return formulas == null || formulas.isEmpty() ? null : formulas.get(0);
   }
 
-  private static SimpleEntry<Class<? extends DataType>, Function<IonIdentity, Object>> createEntry(
-      Class<? extends DataType> clazz, Function<IonIdentity, Object> function) {
-    return new SimpleEntry<>(clazz, function);
-  }
-
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
   @Override
-  protected <K> @Nullable K getSubColValue(@NotNull DataType<K> subType,
-      @Nullable List<IonIdentity> ions) {
-    if (ions == null || ions.isEmpty()) {
-      return subType.getDefaultValue();
-    } else {
-      if (this.getClass().isInstance(subType)) {
-        // all ions
-        return (K) ions;
-      } else {
-        // get value for first ion
-        return (K) mapper.get(subType.getClass()).apply(ions.get(0));
-      }
-    }
+  public Map<Class<? extends DataType>, Function<IonIdentity, Object>> getMapper() {
+    return mapper;
   }
 
   @NotNull
