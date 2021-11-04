@@ -56,6 +56,9 @@ public class MZmineProjectImpl implements MZmineProject {
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
 
+  @Nullable
+  private Boolean standalone;
+
   /*
    * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
    * LinkedList<MZmineProjectListener>());
@@ -319,5 +322,15 @@ public class MZmineProjectImpl implements MZmineProject {
   @Override
   public ListProperty<FeatureList> featureListsProperty() {
     return featureListsProperty;
+  }
+
+  @Override
+  public @Nullable Boolean isStandalone() {
+    return standalone;
+  }
+
+  @Override
+  public void setStandalone(Boolean standalone) {
+    this.standalone = standalone;
   }
 }

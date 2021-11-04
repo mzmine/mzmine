@@ -132,8 +132,8 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
       }
 
       final Element batchQueuesRoot = (Element) nodes.item(0);
-      final NodeList batchQueues = batchQueuesRoot
-          .getElementsByTagName(RawDataFileSaveHandler.BATCH_QUEUE_ELEMENT);
+      final NodeList batchQueues = batchQueuesRoot.getElementsByTagName(
+          RawDataFileSaveHandler.BATCH_QUEUE_ELEMENT);
 
       for (int i = 0; i < batchQueues.getLength(); i++) {
         Element queueElement = (Element) batchQueues.item(i);
@@ -237,6 +237,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
    */
   private void resolvePathsUnpackFiles(BatchQueue batchQueue, @NotNull final Path tempDir)
       throws IOException {
+    final String separator = System.getProperty("file.separator");
     for (MZmineProcessingStep<MZmineProcessingModule> step : batchQueue) {
       for (Parameter<?> parameter : step.getParameterSet().getParameters()) {
         if (parameter instanceof FileNamesParameter fnp) {
@@ -248,7 +249,9 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
             Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN.matcher(path);
             if (matcher.matches()) {
               path = matcher.group(2);
-              ZipUtils.unzipDirectory(path.replaceAll("\\\\", "/"), zipFile, tempDir.toFile());
+              ZipUtils.unzipDirectory(path.replaceAll("\\\\", "/"), zipFile,
+                  tempDir.toFile()); // always "/" in zips
+              path = path.replaceAll("/", separator); // appropriate separator afterwards
               newFiles[i] = new File(tempDir.toFile(), path);
             } else {
               newFiles[i] = files[i];
@@ -265,8 +268,8 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
             for (int i = 0; i < specificFilesPlaceholders.length; i++) {
               RawDataFilePlaceholder placeholder = specificFilesPlaceholders[i];
               if (placeholder.getAbsolutePath() != null) {
-                Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN
-                    .matcher(placeholder.getAbsolutePath());
+                Matcher matcher = RawDataFileSaveHandler.DATA_FILE_PATTERN.matcher(
+                    placeholder.getAbsolutePath());
                 // if the matcher matches, we have to replace the path.
                 if (matcher.matches()) {
                   String filename = matcher.group(2);

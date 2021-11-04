@@ -147,4 +147,8 @@ public interface MZmineProject {
 
   // void removeProjectListener(MZmineProjectListener listener);
 
+  @Nullable
+  public Boolean isStandalone();
+
+  public void setStandalone(Boolean standalone);
 }

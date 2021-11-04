@@ -139,6 +139,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
       newProject = new MZmineProjectImpl();
       newProject.setProjectFile(openFile);
+      newProject.setStandalone(false); // set to false by default, we check for existing files later
       GUIUtils.closeAllWindows();
       projectManager.setCurrentProject(newProject);
 
@@ -175,6 +176,8 @@ public class ProjectOpeningTask extends AbstractTask {
           loadUserParameters(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
+        } else if(entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
+          newProject.setStandalone(true);
         }
 
         // Close the ZIP entry
