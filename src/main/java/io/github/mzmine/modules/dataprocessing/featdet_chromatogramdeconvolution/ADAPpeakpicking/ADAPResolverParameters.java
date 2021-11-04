@@ -78,8 +78,8 @@ public class ADAPResolverParameters extends GeneralResolverParameters {
           + "set in the chromatogram building.", NumberFormat.getNumberInstance(), 10.0, 0.0, null);
 
   public ADAPResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        dimension, SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, AUTO_REMOVE, groupMS2Parameters, dimension,
+        SN_THRESHOLD, SN_ESTIMATORS, MIN_FEAT_HEIGHT, COEF_AREA_THRESHOLD, PEAK_DURATION,
         RT_FOR_CWT_SCALES_DURATION});
   }
 

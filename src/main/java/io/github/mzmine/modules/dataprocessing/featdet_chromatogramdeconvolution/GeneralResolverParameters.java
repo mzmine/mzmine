@@ -24,13 +24,11 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.CenterMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.maths.CenterMeasure;
 import javafx.collections.FXCollections;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +38,6 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
 
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "resolved");
-
-  public static final CenterMeasureParameter MZ_CENTER_FUNCTION = new CenterMeasureParameter(
-      "m/z center calculation", "Median, average or an automatic log10-weighted approach",
-      CenterMeasure.values(), null, CenterMeasure.MEDIAN, null);
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove original feature list",

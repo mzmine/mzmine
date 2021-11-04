@@ -83,7 +83,10 @@ public class ImsExpanderTask extends AbstractTask {
     useMzToleranceRange = parameters.getParameter(ImsExpanderParameters.mzTolerance).getValue();
     mzTolerance = parameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
         .getValue();
-    binWidth = parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue();
+    binWidth = parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue()
+        ? parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getEmbeddedParameter()
+        .getValue() : BinningMobilogramDataAccess.getRecommendedBinWidth(
+        (IMSRawDataFile) flist.getRawDataFile(0));
   }
 
   @Override
@@ -199,6 +202,9 @@ public class ImsExpanderTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
             getModuleCallDate()));
     project.addFeatureList(newFlist);
+    if(parameters.getParameter(ImsExpanderParameters.removeOriginalFeatureList).getValue()) {
+      project.removeFeatureList(flist);
+    }
     setStatus(TaskStatus.FINISHED);
   }
 
