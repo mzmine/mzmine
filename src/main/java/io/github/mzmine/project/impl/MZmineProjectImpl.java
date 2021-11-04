@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
@@ -36,7 +35,6 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ButtonType;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -173,33 +171,27 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void addFile(final RawDataFile newFile) {
+  public synchronized void addFile(final RawDataFile newFile) {
 
     assert newFile != null;
 
-    synchronized (rawDataFilesProperty.get()) {
-      // avoid duplicate file names and check the actual names of the files of the raw data files
-      // since that will be the problem during project save (duplicate zip entries)
-      final List<String> names = rawDataFilesProperty.get().stream()
-          .map(RawDataFile::getAbsolutePath).filter(Objects::nonNull).map(File::new)
-          .map(File::getName).toList();
-      if (names.contains(newFile.getName())) {
-        if (!MZmineCore.isHeadLessMode()) {
-          final ButtonType buttonType = MZmineCore.getDesktop().displayConfirmation(
-              "WARNING: A raw data file with the same name already exists\nin the project. "
-                  + "This will lead to errors during project saving.\nDo you wish to continue?",
-              ButtonType.YES, ButtonType.NO);
-          if (buttonType == ButtonType.NO) {
-            return;
-          }
-          // this will actually rename the file that is currently in the project, but it does the
-          // job, since this case is not properly supported.
-          RawDataFileRenameModule.renameFile(newFile, newFile.getName(), false);
-        } else {
-          logger.warning("Cannot at raw data file with a name that already exists in project.");
-          return;
-        }
+    // avoid duplicate file names and check the actual names of the files of the raw data files
+    // since that will be the problem during project save (duplicate zip entries)
+    final List<String> names = rawDataFilesProperty.get().stream().map(RawDataFile::getAbsolutePath)
+        .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
+    // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
+    final String name =
+        newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
+    if (names.contains(name)) {
+      if (!MZmineCore.isHeadLessMode()) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
+            + " because a file with the same name already exists in the project. Please copy "
+            + "the file and rename it, if you want to import it twice.");
       }
+      logger.warning(
+          "Cannot add file with an original name that already exists in project. (filename="
+              + newFile.getName() + ")");
+      return;
     }
 
     logger.finest("Adding a new file to the project: " + newFile.getName());
