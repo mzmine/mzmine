@@ -135,7 +135,7 @@ public class ModularFeatureList implements FeatureList {
             project.getFeatureLists().stream().map(FeatureList::getName).toList());
         names.remove(getName());
         name =
-            names.contains(name) ? MZmineProjectImpl.getUniqueFeatureListName(name, names) : name;
+            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
       }
     }
 
