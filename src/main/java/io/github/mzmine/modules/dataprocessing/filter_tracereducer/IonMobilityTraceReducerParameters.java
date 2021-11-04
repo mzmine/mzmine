@@ -18,12 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_tracereducer;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.util.ExitCode;
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 public class IonMobilityTraceReducerParameters extends SimpleParameterSet {
@@ -37,11 +41,37 @@ public class IonMobilityTraceReducerParameters extends SimpleParameterSet {
       "The suffix to give to the new feature list.", "reduced", true);
 
   public IonMobilityTraceReducerParameters() {
-    super(new Parameter[] {flists, removeOriginal, suffix});
+    super(new Parameter[]{flists, removeOriginal, suffix});
   }
 
   @Override
   public @NotNull IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;
+  }
+
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    assert Platform.isFxApplicationThread();
+
+    if ((parameters == null) || (parameters.length == 0)) {
+      return ExitCode.OK;
+    }
+
+    String message = "<h2>WARNING</h2>Application of this module will prohibit further resolving or other "
+        + "processing steps of ion mobility data. Therefore, this module should be applied after resolving.";
+
+    if (MZmineCore.getConfiguration().isDarkMode()) {
+      message =
+          "<html><body style=\"background-color:#1d1d1d;color:white\">"
+              + message + "</body></html>";
+    } else {
+      message =
+          "<html><body style=\"background-color:white;color:black\">"
+              + message + "</body></html>";
+    }
+
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
   }
 }
