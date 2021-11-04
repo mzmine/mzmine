@@ -96,14 +96,15 @@ public class DataTypeCellFactory implements
               setText(null);
             } else {
               // sub columns provide values
-              if (parent != null) {
-                // get sub column value
-                Node n = parent.getSubColNode(subcolumn, this, param, item, raw);
-                setGraphic(n);
-                String text =
-                    n != null ? null : parent.getFormattedSubColValue(subcolumn, item);
-                setText(text);
-              } else if (type instanceof GraphicalColumType graphicalColumType) {
+//              if (parent != null) {
+//                // get sub column value
+//                Node n = parent.getSubColNode(subcolumn, this, param, item, raw);
+//                setGraphic(n);
+//                String text =
+//                    n != null ? null : parent.getFormattedSubColValue(subcolumn, item);
+//                setText(text);
+//              } else
+              if (type instanceof GraphicalColumType graphicalColumType) {
                 Node node = graphicalColumType.getCellNode(this, param, item, raw);
                 getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());
                 setGraphic(node);

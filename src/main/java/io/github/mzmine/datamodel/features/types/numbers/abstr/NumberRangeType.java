@@ -52,6 +52,11 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
           + getFormatter().format(value.upperEndpoint());
   }
 
+  @NotNull
+  public String getFormattedString(@NotNull T value) {
+    return value == null ? "" : getFormatter().format(value);
+  }
+
   @Override
   public ObjectProperty<Range<T>> createProperty() {
     return new SimpleObjectProperty<Range<T>>();
@@ -94,7 +99,7 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
-      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
+      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this, this, index);
       min.setCellValueFactory(cvFactoryMin);
       min.setCellFactory(new DataTypeCellFactory(raw, this, this, index));
       // add column

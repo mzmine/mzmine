@@ -19,7 +19,6 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -76,7 +75,6 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
         // create all other columns
         var col = type.createColumn(raw, this, index);
         // override type in CellValueFactory with this parent type
-        col.setCellValueFactory(new DataTypeCellValueFactory(raw, this));
         cols.add(col);
       }
     }

@@ -85,7 +85,7 @@ public abstract class DataType<T> {
     if (parentType instanceof ModularType modType) {
       col.setCellValueFactory(new ModularDataTypeCellValueFactory(raw, modType, type));
     } else {
-      col.setCellValueFactory(new DataTypeCellValueFactory(raw, type));
+      col.setCellValueFactory(new DataTypeCellValueFactory(raw, type, parentType, subColumnIndex));
     }
     // value representation
     if (type instanceof EditableColumnType) {

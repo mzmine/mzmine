@@ -21,6 +21,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn;
@@ -37,10 +38,15 @@ public class DataTypeCellValueFactory implements
 
   private final RawDataFile raw;
   private final DataType type;
+  private final SubColumnsFactory parentType;
+  private final int subColIndex;
 
-  public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type) {
+  public DataTypeCellValueFactory(RawDataFile raw, DataType<?> type, SubColumnsFactory parentType,
+      int subColIndex) {
     this.raw = raw;
     this.type = type;
+    this.parentType = parentType;
+    this.subColIndex = subColIndex;
   }
 
   @Override
@@ -55,8 +61,14 @@ public class DataTypeCellValueFactory implements
     }
 
     // todo try read only wrapper
-    Object value = model.get(type);
-    return value == null ? null : new ReadOnlyObjectWrapper<>(value);
+    if (parentType != null && parentType instanceof DataType parent) {
+      Object value = model.get(parent);
+      Object subColValue = parentType.getSubColValue(subColIndex, value);
+      return subColValue == null ? null : new ReadOnlyObjectWrapper<>(subColValue);
+    } else {
+      Object value = model.get(type);
+      return value == null ? null : new ReadOnlyObjectWrapper<>(value);
+    }
 //    Property property = type.createProperty();
 //    property.setValue(model.get(type));
 //    return (ObservableValue<Object>) property;
