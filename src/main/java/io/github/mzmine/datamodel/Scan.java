@@ -140,7 +140,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   /**
    *
-   * @return The charge or null.
+   * @return The charge or null. Works for subclasses of {@link DDAMsMsInfo}.
    */
   default Integer getPrecursorCharge() {
     return getMsMsInfo() instanceof DDAMsMsInfo info ? info.getPrecursorCharge() : null;
@@ -148,7 +148,7 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   /**
    *
-   * @return The precursor mz or null.
+   * @return The precursor mz or null. Works for subclasses of {@link DDAMsMsInfo}.
    */
   default Double getPrecursorMz() {
     return getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : null;
