@@ -112,8 +112,8 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
               AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
       double relMassDev = ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
       data.set(MzPpmDifferenceType.class, (float) relMassDev);
-      data.set(LipidAnnotationMsMsScoreType.class, match.getMsMsScore());
-      data.set(LipidSpectrumType.class, null);// ??????
+      data.set(LipidAnnotationMsMsScoreType.class, match.getMsMsScore().floatValue());
+      data.set(LipidSpectrumType.class, null);
     }
   }
 }
