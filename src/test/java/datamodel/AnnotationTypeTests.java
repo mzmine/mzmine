@@ -15,7 +15,6 @@ import io.github.mzmine.datamodel.features.types.annotations.GNPSNetworkUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMsOneErrorType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
@@ -192,13 +191,6 @@ public class AnnotationTypeTests {
 
   // todo LipidAnnotationSummaryType
   // todo LipidAnnotationType
-
-  @Test
-  void lipidMsMsOneErrorTypeTest() {
-    LipidMsOneErrorType type = new LipidMsOneErrorType();
-    Double value = 0.978d;
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
-  }
 
   // todo LipidSpectrumType
 

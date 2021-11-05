@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import java.util.List;
 import javafx.collections.ListChangeListener;
@@ -38,7 +39,7 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
-      new LipidMsOneErrorType(), //
+      new MzPpmDifferenceType(), //
       new LipidAnnotationMsMsScoreType(), //
       new LipidSpectrumType());
 
@@ -110,7 +111,7 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
           MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
               AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
       double relMassDev = ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
-      data.set(LipidMsOneErrorType.class, relMassDev);
+      data.set(MzPpmDifferenceType.class, (float) relMassDev);
       data.set(LipidAnnotationMsMsScoreType.class, match.getMsMsScore());
       data.set(LipidSpectrumType.class, null);// ??????
     }

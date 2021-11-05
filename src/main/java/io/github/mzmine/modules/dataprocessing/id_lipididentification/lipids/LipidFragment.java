@@ -146,7 +146,7 @@ public class LipidFragment {
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CHAIN_TYPE);
     if (lipidChainType != null) {
-      writer.writeCharacters(lipidChainType.getName());
+      writer.writeCharacters(lipidChainType.name());
     } else {
       writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
