@@ -94,7 +94,7 @@ public abstract class FloatType extends NumberType<Float> {
       switch (bindingType) {
         case AVERAGE: {
           // calc average center of ranges
-          Float mean = 0f;
+          float mean = 0f;
           int c = 0;
           for (var model : models) {
             Float value = model.get(this);
@@ -107,7 +107,7 @@ public abstract class FloatType extends NumberType<Float> {
         }
         case SUM, CONSENSUS: {
           // calc average center of ranges
-          Float sum = 0f;
+          float sum = 0f;
           for (var model : models) {
             Float value = model.get(this);
             if (value != null) {
@@ -144,7 +144,7 @@ public abstract class FloatType extends NumberType<Float> {
         }
         case MAX: {
           // calc average center of ranges
-          Float max = Float.NEGATIVE_INFINITY;
+          Float max = null;
           for (var model : models) {
             Float value = model.get(this);
             if (value != null && (max == null || value > max)) {

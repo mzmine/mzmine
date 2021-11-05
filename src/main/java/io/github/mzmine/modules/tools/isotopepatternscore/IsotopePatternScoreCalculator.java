@@ -80,13 +80,15 @@ public class IsotopePatternScoreCalculator {
     // points from second pattern will have negative intensities.
     ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
-      if (dp.getIntensity() * patternIntensity < noiseIntensity)
+      if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
+      }
       mergedDataPoints.add(dp);
     }
     for (DataPoint dp : ScanUtils.extractDataPoints(nip2)) {
-      if (dp.getIntensity() * patternIntensity < noiseIntensity)
+      if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
+      }
       DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(), dp.getIntensity() * -1);
       mergedDataPoints.add(negativeDP);
     }
@@ -101,8 +103,9 @@ public class IsotopePatternScoreCalculator {
 
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(mergedDPArray[i].getMZ());
 
-      if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))
+      if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ())) {
         continue;
+      }
 
       double summedIntensity =
           mergedDPArray[i].getIntensity() + mergedDPArray[i + 1].getIntensity();
@@ -120,17 +123,19 @@ public class IsotopePatternScoreCalculator {
     float result = 1f;
 
     for (DataPoint dp : mergedDPArray) {
-      if (dp == null)
+      if (dp == null) {
         continue;
+      }
       double remainingIntensity = Math.abs(dp.getIntensity());
 
       // In case some large isotopes were grouped together, the summed
       // intensity may be over 1
-      if (remainingIntensity > 1)
+      if (remainingIntensity > 1) {
         remainingIntensity = 1;
+      }
 
       // Decrease the score with each remaining peak
-      result *= 1 - remainingIntensity;
+      result *= 1.f - remainingIntensity;
     }
 
     return result;

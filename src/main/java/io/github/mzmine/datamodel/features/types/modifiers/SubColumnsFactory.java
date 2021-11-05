@@ -22,8 +22,6 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.List;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,17 +36,16 @@ public interface SubColumnsFactory {
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
    *
-   * @return
+   * @return list of sub columns
    */
   @NotNull
-  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
+  List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType);
 
-  @NotNull
-  public int getNumberOfSubColumns();
+  int getNumberOfSubColumns();
 
   @Nullable
-  public String getHeader(int subcolumn);
+  String getHeader(int subcolumn);
 
   /**
    * The data type of the subcolumn
@@ -65,13 +62,6 @@ public interface SubColumnsFactory {
   @Nullable
   Object getSubColValue(int subcolumn, Object cellData);
 
-  @Nullable
-  default Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    return null;
-  }
-
   /**
    * Handle value change in this parent type
    *
@@ -79,7 +69,7 @@ public interface SubColumnsFactory {
    * @param subType        the sub type that was changed
    * @param subColumnIndex the index of the sub column that was changed in this parent type
    * @param newValue       the new value for the subType in this parent type
-   * @param <T>
+   * @param <T>            value type of DataType
    */
   default <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
       T newValue) {

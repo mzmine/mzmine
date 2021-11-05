@@ -122,7 +122,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   }
 
   @Override
-  public List<DataType> getSubDataTypes() {
+  public @NotNull List<DataType> getSubDataTypes() {
     return subTypes;
   }
 

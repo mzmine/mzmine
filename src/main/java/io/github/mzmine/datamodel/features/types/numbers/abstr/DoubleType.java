@@ -95,7 +95,7 @@ public abstract class DoubleType extends NumberType<Double> {
       switch (bindingType) {
         case AVERAGE: {
           // calc average center of ranges
-          Double mean = 0d;
+          double mean = 0d;
           int c = 0;
           for (var model : models) {
             Double value = model.get(this);
@@ -108,7 +108,7 @@ public abstract class DoubleType extends NumberType<Double> {
         }
         case SUM, CONSENSUS: {
           // calc average center of ranges
-          Double sum = 0d;
+          double sum = 0d;
           for (var model : models) {
             Double value = model.get(this);
             if (value != null) {
@@ -145,7 +145,7 @@ public abstract class DoubleType extends NumberType<Double> {
         }
         case MAX: {
           // calc average center of ranges
-          Double max = Double.NEGATIVE_INFINITY;
+          Double max = null;
           for (var model : models) {
             Double value = model.get(this);
             if (value != null && (max == null || value > max)) {

@@ -76,12 +76,12 @@ public abstract class DoubleRangeType extends NumberRangeType<Double> {
       switch (bindingType) {
         case AVERAGE: {
           // calc average center of ranges
-          Double mean = 0d;
+          double mean = 0d;
           int c = 0;
           for (var model : models) {
             Range<Double> range = model.get(this);
             if (range != null) {
-              Double center = (range.upperEndpoint() - range.lowerEndpoint()) / 2f;
+              double center = (range.upperEndpoint() - range.lowerEndpoint()) / 2f;
               mean += center;
               c++;
             }

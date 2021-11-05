@@ -100,7 +100,7 @@ public abstract class IntegerType extends NumberType<Integer> {
       switch (bindingType) {
         case AVERAGE: {
           // calc average center of ranges
-          Integer mean = 0;
+          int mean = 0;
           int c = 0;
           for (var model : models) {
             Integer value = model.get(this);
@@ -109,11 +109,11 @@ public abstract class IntegerType extends NumberType<Integer> {
               c++;
             }
           }
-          return c == 0 ? 0f : mean / c;
+          return c == 0 ? 0f : mean / (double) c;
         }
         case SUM, CONSENSUS: {
           // calc average center of ranges
-          Integer sum = 0;
+          int sum = 0;
           for (var model : models) {
             Integer value = model.get(this);
             if (value != null) {
@@ -150,7 +150,7 @@ public abstract class IntegerType extends NumberType<Integer> {
         }
         case MAX: {
           // calc average center of ranges
-          Integer max = Integer.MIN_VALUE;
+          Integer max = null;
           for (var model : models) {
             Integer value = model.get(this);
             if (value != null && (max == null || value > max)) {

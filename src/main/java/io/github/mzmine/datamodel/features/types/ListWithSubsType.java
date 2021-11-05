@@ -20,7 +20,6 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.AbstractMap.SimpleEntry;
@@ -30,8 +29,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +49,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
   /**
    * The unmodifiable list of sub data types. Order reflects the initial order of columns.
    *
-   * @return
+   * @return list of sub data types
    */
   @NotNull
   public abstract List<DataType> getSubDataTypes();
@@ -82,7 +79,6 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
     return cols;
   }
 
-  @NotNull
   @Override
   public int getNumberOfSubColumns() {
     return getSubDataTypes().size();
@@ -106,7 +102,7 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
       throw new IndexOutOfBoundsException(String
           .format("Sub column index %d is out of bounds %d", index, getSubDataTypes().size()));
     }
-    return index >= 0 && index < getSubDataTypes().size() ? getSubDataTypes().get(index) : null;
+    return getSubDataTypes().get(index);
   }
 
   @Override
@@ -151,7 +147,8 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
     } catch (Exception ex) {
       logger.log(Level.WARNING, String.format(
           "Error while getting sub column value in type %s. Sub type %s cannot get value of %s",
-          this.getClass(), sub.getClass(), sub, (subvalue == null ? "" : subvalue.getClass())), ex);
+          this.getClass().getName(), sub.getClass().getName(),
+          (subvalue == null ? "" : subvalue.getClass())), ex);
       return "";
     }
   }
@@ -184,19 +181,5 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
    * @return
    */
   protected abstract Map<Class<? extends DataType>, Function<T, Object>> getMapper();
-
-  @Nullable
-  @Override
-  public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    DataType sub = getType(subcolumn);
-    if (sub instanceof LinkedGraphicalType lgType) {
-      return lgType.getCellNode(cell, coll, null, raw);
-    } else if (cellData == null || sub == null || !(sub instanceof GraphicalColumType gcType)) {
-      return null;
-    } else {
-      return gcType.getCellNode(cell, coll, cellData, raw);
-    }
-  }
 
 }

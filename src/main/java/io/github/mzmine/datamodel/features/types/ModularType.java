@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectload.version_3_0.DataTypes;
@@ -37,8 +36,6 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -176,21 +173,6 @@ public abstract class ModularType extends DataType<ModularTypeMap> implements
 
     ModularTypeMap map = (ModularTypeMap) value;
     return sub.getFormattedString(map.get(sub));
-  }
-
-  @Nullable
-  @Override
-  public Node getSubColNode(int subcolumn, TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    DataType sub = getSubTypeAt(subcolumn);
-    if (sub instanceof LinkedGraphicalType lgType) {
-      return lgType.getCellNode(cell, coll, null, raw);
-    }
-    if (cellData == null || sub == null || !(sub instanceof GraphicalColumType gcType)) {
-      return null;
-    }
-
-    return gcType.getCellNode(cell, coll, cellData, raw);
   }
 
   @Override

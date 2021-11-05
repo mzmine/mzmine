@@ -44,24 +44,29 @@ public class FeatureSorter implements Comparator<Feature> {
     Double peak1Value = getValue(a);
     Double peak2Value = getValue(b);
 
-    return peak1Value.compareTo(peak2Value) * direction.getFactor();
+    return Double.compare(peak1Value, peak2Value) * direction.getFactor();
   }
 
-  private double getValue(Feature peak) {
-    switch (property) {
-      case Area:
-        return peak.getArea();
-      case Height:
-        return peak.getHeight();
-      case MZ:
-        return peak.getMZ() + peak.getRT() / 1000000.0;
-      case RT:
-        return peak.getRT() + peak.getMZ() / 1000000.0;
-      default:
-        // We should never get here, so throw exception
-        throw (new IllegalStateException());
-    }
-
+  private Double getValue(Feature peak) {
+    return switch (property) {
+      case Area -> {
+        Float area = peak.getArea();
+        yield area == null ? null : area.doubleValue();
+      }
+      case Intensity, Height -> {
+        Float height = peak.getHeight();
+        yield height == null ? null : height.doubleValue();
+      }
+      case ID -> null;
+      case MZ -> {
+        Float rt = peak.getRT();
+        yield rt == null ? peak.getMZ() : peak.getMZ() + rt / 100000.0;
+      }
+      case RT -> {
+        Float rt = peak.getRT();
+        yield rt == null ? peak.getMZ() : peak.getMZ() / 1000000.0 + rt;
+      }
+    };
   }
 
 }
