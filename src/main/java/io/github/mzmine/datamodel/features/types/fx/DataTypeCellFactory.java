@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,10 +52,6 @@ public class DataTypeCellFactory implements
   private final SubColumnsFactory parent;
   private final int subcolumn;
 
-
-  public DataTypeCellFactory(RawDataFile raw, DataType type) {
-    this(raw, type, null, -1);
-  }
 
   public DataTypeCellFactory(RawDataFile raw, DataType type, @Nullable SubColumnsFactory parent,
       int subcolumn) {
@@ -110,6 +107,11 @@ public class DataTypeCellFactory implements
                 setGraphic(node);
                 setText(null);
               } else {
+                // dirty fix for NumberRangeType as those types do not return sub types for each
+                // column, but rather use NumberRangeType.this as type
+                if (type instanceof NumberRangeType rangeType) {
+                  setText(rangeType.getFormattedString((Number) item));
+                }
                 setText(type.getFormattedString(item));
                 setGraphic(null);
               }

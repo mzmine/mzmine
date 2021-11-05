@@ -34,11 +34,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class NumberRangeType<T extends Number & Comparable<?>>
-    extends NumberType<Range<T>>
-    implements SubColumnsFactory {
+    extends NumberType<Range<T>> implements SubColumnsFactory {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
+  }
+
+  @Override
+  public @NotNull DataType<?> getType(int subcolumn) {
+    return this;
   }
 
   @Override
@@ -46,14 +50,14 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
 
   @Override
   @NotNull
-  public String getFormattedString(@NotNull Range<T> value) {
+  public String getFormattedString(Range<T> value) {
     return value == null ? ""
         : getFormatter().format(value.lowerEndpoint()) + "-"
           + getFormatter().format(value.upperEndpoint());
   }
 
   @NotNull
-  public String getFormattedString(@NotNull T value) {
+  public String getFormattedString(T value) {
     return value == null ? "" : getFormatter().format(value);
   }
 
@@ -86,22 +90,20 @@ public abstract class NumberRangeType<T extends Number & Comparable<?>>
   }
 
   @Override
-  public @NotNull DataType<?> getType(int subcolumn) {
-    return this;
-  }
-
-  @Override
   @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
       @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
+    // e.g. FloatType for FloatRangeType etc
+    DataType subColType = getType(0);
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
-      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this, this, index);
+      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, subColType, this,
+          index);
       min.setCellValueFactory(cvFactoryMin);
-      min.setCellFactory(new DataTypeCellFactory(raw, this, this, index));
+      min.setCellFactory(new DataTypeCellFactory(raw, subColType, this, index));
       // add column
       cols.add(min);
     }
