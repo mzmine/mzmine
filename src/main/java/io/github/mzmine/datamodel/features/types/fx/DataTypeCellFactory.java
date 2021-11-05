@@ -111,8 +111,9 @@ public class DataTypeCellFactory implements
                 // column, but rather use NumberRangeType.this as type
                 if (type instanceof NumberRangeType rangeType) {
                   setText(rangeType.getFormattedString((Number) item));
+                } else {
+                  setText(type.getFormattedString(item));
                 }
-                setText(type.getFormattedString(item));
                 setGraphic(null);
               }
             }

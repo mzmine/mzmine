@@ -94,38 +94,32 @@ public abstract class DataType<T> {
       col.setOnEditCommit(event -> {
         Object data = event.getNewValue();
         if (data != null) {
-          ModularDataModel model;
-          if (raw == null) {
-            model = event.getRowValue().getValue();
+          ModularFeatureListRow row = event.getRowValue().getValue();
+          ModularDataModel model = raw == null ? row : row.getFeature(raw);
+
+          if (parentType != null) {
+            parentType.valueChanged(model, (DataType) type, subColumnIndex, data);
           } else {
-            model = event.getRowValue().getValue().getFilesFeatures().get(raw);
-          }
-          // set value
-          if (parentType instanceof ModularType modularType) {
-            model = model.get(modularType);
-          }
-          if (model == null) {
-            throw new UnsupportedOperationException("Edit on empty model is not implemented");
-          }
-          if (type instanceof ListDataType) {
-            if (type instanceof AddElementDialog addDialog && data instanceof String
-                && AddElementDialog.BUTTON_TEXT.equals(data)) {
-              addDialog.createNewElementDialog(model, type);
-            } else {
-              try {
-                List<T> list = new ArrayList<>((List) model.get(type));
-                list.remove(data);
-                list.add(0, (T) data);
-                model.set((DataType) type, list);
-              } catch (Exception ex) {
-                logger.log(Level.SEVERE,
-                    "Cannot set value from table cell to data type: " + type.getHeaderString());
-                logger.log(Level.SEVERE, ex.getMessage(), ex);
+            if (type instanceof ListDataType) {
+              if (type instanceof AddElementDialog addDialog && data instanceof String
+                  && AddElementDialog.BUTTON_TEXT.equals(data)) {
+                addDialog.createNewElementDialog(model, type);
+              } else {
+                try {
+                  List list = new ArrayList<>((List) model.get(type));
+                  list.remove(data);
+                  list.add(0, (T) data);
+                  model.set((DataType) type, list);
+                } catch (Exception ex) {
+                  logger.log(Level.SEVERE,
+                      "Cannot set value from table cell to data type: " + type.getHeaderString());
+                  logger.log(Level.SEVERE, ex.getMessage(), ex);
+                }
               }
+            } else {
+              // TODO check if this cast is safe
+              model.set(type, (T) data);
             }
-          } else {
-            // TODO check if this cast is safe
-            model.set(type, (T) data);
           }
         }
       });

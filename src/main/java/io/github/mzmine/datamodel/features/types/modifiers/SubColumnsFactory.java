@@ -18,6 +18,7 @@
 package io.github.mzmine.datamodel.features.types.modifiers;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.util.List;
@@ -69,5 +70,18 @@ public interface SubColumnsFactory {
       TreeTableCell<ModularFeatureListRow, Object> cell,
       TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
     return null;
+  }
+
+  /**
+   * Handle value change in this parent type
+   *
+   * @param model          original data model that holds the parent Type (this)
+   * @param subType        the sub type that was changed
+   * @param subColumnIndex the index of the sub column that was changed in this parent type
+   * @param newValue       the new value for the subType in this parent type
+   * @param <T>
+   */
+  default <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
+      T newValue) {
   }
 }

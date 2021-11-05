@@ -111,14 +111,15 @@ public class EditComboCellFactory implements
           }
 
           // sub columns provide values
-          if (parentType != null) {
-            // get sub column value
-            Node n = parentType.getSubColNode(subcolumn, this, param, list, raw);
-            setGraphic(n);
-            String formattedSubVal = parentType.getFormattedSubColValue(subcolumn, list);
-            setText(n != null ? null : formattedSubVal);
-            setTooltip(new Tooltip(formattedSubVal));
-          } else if (type instanceof GraphicalColumType graphType) {
+//          if (parentType != null) {
+//            // get sub column value
+//            Node n = parentType.getSubColNode(subcolumn, this, param, list, raw);
+//            setGraphic(n);
+//            String formattedSubVal = parentType.getFormattedSubColValue(subcolumn, list);
+//            setText(n != null ? null : formattedSubVal);
+//            setTooltip(new Tooltip(formattedSubVal));
+//          } else
+          if (type instanceof GraphicalColumType graphType) {
             Node node = graphType.getCellNode(this, param, list, raw);
             getTableColumn().setMinWidth(graphType.getColumnWidth());
             setGraphic(node);

@@ -448,10 +448,6 @@ public class ModularFeatureListRow implements FeatureListRow {
    */
   @Override
   public void setIonIdentities(@Nullable List<IonIdentity> ions) {
-    if (get(IonIdentityListType.class) == null) {
-      // add row type if not available
-      flist.addRowType(new IonIdentityListType());
-    }
     set(IonIdentityListType.class, ions);
   }
 

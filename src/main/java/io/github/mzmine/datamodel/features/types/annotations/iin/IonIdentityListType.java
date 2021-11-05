@@ -17,6 +17,7 @@
 
 package io.github.mzmine.datamodel.features.types.annotations.iin;
 
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.FormulaConsensusSummaryType;
@@ -37,6 +38,8 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IonIdentityListType extends ListWithSubsType<IonIdentity> implements AnnotationType {
 
+  private static final Logger logger = Logger.getLogger(IonIdentityListType.class.getName());
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List
       .of(new IonNetworkIDType(), // start with netID
@@ -137,5 +141,25 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
     return "ion_identity_list";
+  }
+
+  @Override
+  public <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
+      T newValue) {
+    try {
+      if (subType.getClass().equals(FormulaConsensusSummaryType.class)) {
+        List<ResultFormula> formulas = model.get(this).get(0).getNetwork().getMolFormulas();
+        formulas.remove(newValue);
+        formulas.add(0, (ResultFormula) newValue);
+      } else if (subType.getClass().equals(FormulaListType.class)) {
+        List<ResultFormula> formulas = model.get(this).get(0).getMolFormulas();
+        formulas.remove(newValue);
+        formulas.add(0, (ResultFormula) newValue);
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, () -> String.format(
+          "Cannot handle change in subtype %s at index %d in parent type %s with new value %s",
+          subType.getClass().getName(), subColumnIndex, this.getClass().getName(), newValue));
+    }
   }
 }

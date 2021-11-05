@@ -41,10 +41,9 @@ public abstract class ListDataType<T> extends DataType<List<T>> {
 
   @NotNull
   @Override
-  public String getFormattedString(@NotNull List<T> list) {
+  public String getFormattedString(List<T> list) {
     return list == null ? "" : list.stream().map(Object::toString).findFirst().orElse("");
   }
-
 
   @Override
   public Object evaluateBindings(@NotNull BindingsType bindingType,
