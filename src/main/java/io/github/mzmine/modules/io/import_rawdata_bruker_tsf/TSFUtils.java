@@ -206,7 +206,7 @@ public class TSFUtils {
             frameTable.getScanModeColumn().get(frameIndex).intValue());
     final int msLevel = TDFUtils.getMZmineMsLevelFromBrukerMsMsType(
         frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    final float rt = frameTable.getTimeColumn().get(frameIndex).floatValue();
+    final float rt = frameTable.getTimeColumn().get(frameIndex).floatValue() / 60f;
     final PolarityType polarity = PolarityType.fromSingleChar(
         (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
     final Range<Double> mzRange = metaDataTable.getMzRange();
@@ -215,9 +215,6 @@ public class TSFUtils {
         spectrumType == MassSpectrumType.CENTROIDED ? loadCentroidSpectrum(handle, frameId)
             : loadProfileSpectrum(handle, frameId);
 
-    double ce = 0d;
-    double precursor = 0d;
-    int precursorCharge = 0;
     /*if (msLevel > 1) {
       ce = (double) Objects.requireNonNullElse(
           msMsInfoTable.getColumn(TDFFrameMsMsInfoTable.COLLISION_ENERGY).get(frameIndex), 0d);
@@ -228,8 +225,8 @@ public class TSFUtils {
     }*/
 
     if (maldiTable == null || maldiTable.getFrameIdColumn().isEmpty()) {
-      return new SimpleScan(file, (int) frameId, msLevel, rt, precursor, precursorCharge,
-          mzIntensities[0], mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange);
+      return new SimpleScan(file, (int) frameId, msLevel, rt, null, mzIntensities[0],
+          mzIntensities[1], spectrumType, polarity, scanDefinition, mzRange);
     } else {
       final Coordinates coords = new Coordinates(
           maldiTable.getTransformedXIndexPos((int) (frameIndex)),

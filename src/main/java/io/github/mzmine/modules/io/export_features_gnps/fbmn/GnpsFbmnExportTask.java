@@ -49,6 +49,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -209,7 +210,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
           writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
         }
 
-        int msmsCharge = msmsScan.getPrecursorCharge();
+        int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 0);
         String msmsPolarity = msmsScan.getPolarity().asSingleChar();
         if (msmsPolarity.equals("0"))
           msmsPolarity = "";

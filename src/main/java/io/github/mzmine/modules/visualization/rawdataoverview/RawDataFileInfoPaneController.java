@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.logging.Logger;
@@ -256,10 +257,10 @@ public class RawDataFileInfoPaneController {
 
         // check for precursor
         String precursor = "";
-        if (scan.getPrecursorMZ() == 0.000 || scan.getPrecursorMZ() == -1.000) {
-          precursor = "";
+        if (scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+          precursor = mzFormat.format(dda.getIsolationMz());
         } else {
-          precursor = mzFormat.format(scan.getPrecursorMZ());
+          precursor = "";
         }
 
         // format mzRange

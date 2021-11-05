@@ -23,7 +23,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -35,6 +34,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -130,8 +131,8 @@ public class ScanUtils {
 
     buf.append(" MS");
     buf.append(scan.getMSLevel());
-    if (scan.getMSLevel() > 1) {
-      buf.append(" (" + mzFormat.format(scan.getPrecursorMZ()) + ")");
+    if (scan.getMSLevel() > 1 && scan.getMsMsInfo() instanceof DDAMsMsInfo dda) {
+      buf.append(" (" + mzFormat.format(dda.getIsolationMz()) + ")");
     }
     switch (scan.getSpectrumType()) {
       case CENTROIDED:
@@ -436,8 +437,8 @@ public class ScanUtils {
 
           // Find exisiting left neighbour
           double leftNeighbourValue = beforeY;
-          int leftNeighbourBinIndex = (int) Math
-              .floor((beforeX - binRange.lowerEndpoint()) / binWidth);
+          int leftNeighbourBinIndex = (int) Math.floor(
+              (beforeX - binRange.lowerEndpoint()) / binWidth);
           for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
             if (binValues[anotherBinIndex] != null) {
               leftNeighbourValue = binValues[anotherBinIndex];
@@ -448,8 +449,8 @@ public class ScanUtils {
 
           // Find existing right neighbour
           double rightNeighbourValue = afterY;
-          int rightNeighbourBinIndex = (binValues.length - 1) + (int) Math
-              .ceil((afterX - binRange.upperEndpoint()) / binWidth);
+          int rightNeighbourBinIndex = (binValues.length - 1) + (int) Math.ceil(
+              (afterX - binRange.upperEndpoint()) / binWidth);
           for (int anotherBinIndex = binIndex + 1; anotherBinIndex < binValues.length;
               anotherBinIndex++) {
             if (binValues[anotherBinIndex] != null) {
@@ -496,9 +497,9 @@ public class ScanUtils {
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findFirstFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint = Arrays
-        .binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
-            (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+    final int insertionPoint = Arrays.binarySearch(dataPoints,
+        new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
+        (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 1;
       if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ())) {
@@ -520,9 +521,9 @@ public class ScanUtils {
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findLastFeatureWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint = Arrays
-        .binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
-            (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+    final int insertionPoint = Arrays.binarySearch(dataPoints,
+        new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
+        (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
     if (insertionPoint < 0) {
       final int k = -insertionPoint - 2;
       if (k >= 0 && mzRange.contains(dataPoints[k].getMZ())) {
@@ -679,8 +680,9 @@ public class ScanUtils {
     assert mzRange != null;
 
     return dataFile.getScanNumbers(2).stream().filter(
-        s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && mzRange
-            .contains(s.getPrecursorMZ()))
+            s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && (
+                s.getMsMsInfo() != null && s.getMsMsInfo() instanceof DDAMsMsInfo dda
+                    && mzRange.contains(dda.getIsolationMz())))
         .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
@@ -694,9 +696,10 @@ public class ScanUtils {
     assert rtRange != null;
     assert mzRange != null;
 
-    return dataFile.getScanNumbers(2).stream()
-        .filter(s -> rtRange.contains(s.getRetentionTime()) && mzRange.contains(s.getPrecursorMZ()))
-        .toArray(Scan[]::new);
+    return dataFile.getScanNumbers(2).stream().filter(
+        s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
+            && s.getMsMsInfo() instanceof DDAMsMsInfo dda && mzRange.contains(
+            dda.getIsolationMz()))).toArray(Scan[]::new);
   }
 
   /**
@@ -709,14 +712,14 @@ public class ScanUtils {
   }
 
   @Nullable
-  public static List<ImsMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
+  public static List<PasefMsMsInfo> findMsMsInfos(IMSRawDataFile imsRawDataFile,
       Range<Double> mzRange, Range<Float> rtRange) {
-    List<ImsMsMsInfo> featureMsMsInfos = new ArrayList<>();
+    List<PasefMsMsInfo> featureMsMsInfos = new ArrayList<>();
     Collection<? extends Frame> ms2Frames = imsRawDataFile.getFrames(2, rtRange);
     for (Frame frame : ms2Frames) {
-      Set<ImsMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
-      for (ImsMsMsInfo msmsInfo : frameMsMsInfos) {
-        if (mzRange.contains(msmsInfo.getLargestPeakMz())) {
+      Set<PasefMsMsInfo> frameMsMsInfos = frame.getImsMsMsInfos();
+      for (PasefMsMsInfo msmsInfo : frameMsMsInfos) {
+        if (mzRange.contains(msmsInfo.getIsolationMz())) {
           featureMsMsInfos.add(msmsInfo);
         }
       }
@@ -1351,8 +1354,8 @@ public class ScanUtils {
       }
       final double difference = lp.getMZ() - rp.getMZ();
       if (Math.abs(difference) <= allowedDifference) {
-        final double mzabs = expectedMassDeviationInPPM
-            .getMzToleranceForMass(Math.round((lp.getMZ() + rp.getMZ()) / 2d));
+        final double mzabs = expectedMassDeviationInPPM.getMzToleranceForMass(
+            Math.round((lp.getMZ() + rp.getMZ()) / 2d));
         final double variance = mzabs * mzabs;
         double matchScore = probabilityProductScore(lp, rp, variance);
         score += matchScore;
@@ -1483,8 +1486,8 @@ public class ScanUtils {
     if (scan.length <= n) {
       return scan;
     } else {
-      Arrays
-          .sort(scan, new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
+      Arrays.sort(scan,
+          new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
       return Arrays.copyOf(scan, n);
     }
   }

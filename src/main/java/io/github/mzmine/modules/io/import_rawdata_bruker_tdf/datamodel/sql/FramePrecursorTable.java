@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * As this is not a "real" table of the tdf format, it does not share the TDF prefix.
  * <p>
  * Maps precursor info (isolation m/z, precursor id and charge) to the respective scan numbers.
- * Returns {@link ImsMsMsInfo} for each frame.
+ * Returns {@link PasefMsMsInfo} for each frame.
  *
  * @author https://github.com/SteffenHeu
  */
@@ -48,6 +48,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   private final TDFDataColumn<Long> scanNumBeginColumn;
   private final TDFDataColumn<Long> scanNumEndColumn;
   private final TDFDataColumn<Double> collisionEnergyColumn;
+  private final TDFDataColumn<Double> isolationWidthColumn;
   private final TDFDataColumn<Double> largestPeakMzColumn;
   private final TDFDataColumn<Long> chargeColumn;
   private final TDFDataColumn<Long> parentIdColumn;
@@ -55,7 +56,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
   /**
    * Key = FrameId of the MS2 Frame
    * <p></p>
-   * Value = Collection of ImsMsMsInfo on all precursors in the frame.
+   * Value = Collection of PasefMsMsInfo on all precursors in the frame.
    */
   private final Map<Integer, Set<BuildingPASEFMsMsInfo>> info;
 
@@ -70,6 +71,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
     scanNumBeginColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN);
     scanNumEndColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.SCAN_NUM_END);
     collisionEnergyColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY);
+    isolationWidthColumn = new TDFDataColumn<>(TDFPasefFrameMsMsInfoTable.ISOLATION_WIDTH);
     largestPeakMzColumn = new TDFDataColumn<>(TDFPrecursorTable.LARGEST_PEAK_MZ);
     chargeColumn = new TDFDataColumn<>(TDFPrecursorTable.CHARGE);
     parentIdColumn = new TDFDataColumn<>(TDFPrecursorTable.PARENT_ID);
@@ -79,6 +81,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
         scanNumBeginColumn,
         scanNumEndColumn,
         collisionEnergyColumn,
+        isolationWidthColumn,
         largestPeakMzColumn,
         chargeColumn,
         parentIdColumn
@@ -106,6 +109,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_BEGIN + ", "
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.SCAN_NUM_END + ", "
         + msmstable + "." + TDFPasefFrameMsMsInfoTable.COLLISION_ENERGY + ", "
+        + msmstable + "." + TDFPasefFrameMsMsInfoTable.ISOLATION_WIDTH + ", "
         + precursorstable + "." + TDFPrecursorTable.LARGEST_PEAK_MZ + ", "
         + precursorstable + "." + TDFPrecursorTable.CHARGE + ", "
         + precursorstable + "." + TDFPrecursorTable.PARENT_ID;
@@ -137,7 +141,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
           Range.closedOpen(scanNumBeginColumn.get(i).intValue() - 1,
               // bruker scan numbers start at 1, ours start at 0
               scanNumEndColumn.get(i).intValue() - 1), collisionEnergyColumn.get(i).floatValue(),
-          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId));
+          chargeColumn.get(i).intValue(), parentIdColumn.get(i).intValue(), frameId, isolationWidthColumn.get(i)));
     }
   }
 

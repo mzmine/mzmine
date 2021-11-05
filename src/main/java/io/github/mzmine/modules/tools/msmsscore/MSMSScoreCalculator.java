@@ -65,8 +65,8 @@ public class MSMSScoreCalculator {
           "Mass list " + massList + " does not contain data for scan #" + msmsScan.getScanNumber());
     }
 
-    double precursorMZ = msmsScan.getPrecursorMZ();
-    int precursorCharge = msmsScan.getPrecursorCharge();
+    double precursorMZ = msmsScan.getPrecursorMz() != null ? msmsScan.getPrecursorMz() : 0d;
+    int precursorCharge = msmsScan.getPrecursorCharge() != null ? msmsScan.getPrecursorCharge() : 0;
     return evaluateMSMS(msmsTolerance, parentFormula, msmsIons, precursorMZ, precursorCharge,
         topNSignals);
   }

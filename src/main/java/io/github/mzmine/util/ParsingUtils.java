@@ -29,12 +29,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.xml.stream.XMLStreamReader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ParsingUtils {
+
+  private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());
 
   /**
    * Value separator for storing lists and arrays.
@@ -142,8 +149,8 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern
-        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern.compile(
+        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       double lower = Double.parseDouble(matcher.group(1));
@@ -154,8 +161,8 @@ public class ParsingUtils {
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern
-        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern.compile(
+        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       float lower = Float.parseFloat(matcher.group(1));
@@ -189,8 +196,8 @@ public class ParsingUtils {
       mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
       b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
 
-      int[] indices = ParsingUtils
-          .getIndicesOfSubListElements(mobilityScans, frame.getMobilityScans());
+      int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
+          frame.getMobilityScans());
       b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
 
       if (it.hasNext()) {
@@ -235,5 +242,37 @@ public class ParsingUtils {
 
   public static String[] stringToStringArray(String str) {
     return str.split(SEPARATOR);
+  }
+
+  /**
+   * @param reader           The reader.
+   * @param attributeName    The name of the attribute to parse.
+   * @param defaultValue     A default vaule, if the attribute is not found or cannot be parsed with
+   *                         the given function.
+   * @param conversionMethod A function to convert the parsed string to a value of type T.
+   * @param <T>              The type of the value to parse.
+   * @return The parsed value or the default value. If the attribute does not exist or an error occurs during parsing, the
+   */
+  public static <T> T readAttributeValueOrDefault(@NotNull final XMLStreamReader reader,
+      String attributeName, T defaultValue, Function<String, T> conversionMethod) {
+
+    if (!reader.isStartElement()) {
+      throw new IllegalStateException(
+          "Error parsing attribute. Current element is not a start element.");
+    }
+
+    final String attributeValue = reader.getAttributeValue(null, attributeName);
+    if (attributeValue == null) {
+      return defaultValue;
+    }
+
+    try {
+      return conversionMethod.apply(attributeValue);
+    } catch (Exception e) {
+      logger.log(Level.WARNING,
+          "Error parsing attribute " + attributeName + "of element " + reader.getLocalName()
+              + " with value " + attributeValue);
+      return defaultValue;
+    }
   }
 }
