@@ -93,7 +93,7 @@ public class CentWaveResolverParameters extends GeneralResolverParameters {
 
   public CentWaveResolverParameters() {
 
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters, SN_THRESHOLD,
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, AUTO_REMOVE, groupMS2Parameters, SN_THRESHOLD,
         PEAK_SCALES, PEAK_DURATION, INTEGRATION_METHOD, RENGINE_TYPE});
   }
 

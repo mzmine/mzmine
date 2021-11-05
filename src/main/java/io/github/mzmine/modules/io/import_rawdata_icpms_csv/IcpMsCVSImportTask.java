@@ -160,7 +160,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
           intensityValues[i] = Double.valueOf(intensity);
         }
 
-        Scan scan = new SimpleScan(newMZmineFile, scanNumber, 1, rt, 0.0, 1, mzValues,
+        Scan scan = new SimpleScan(newMZmineFile, scanNumber, 1, rt, null, mzValues,
             intensityValues, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
             "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
 

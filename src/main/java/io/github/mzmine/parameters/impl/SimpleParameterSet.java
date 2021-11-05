@@ -205,7 +205,6 @@ public class SimpleParameterSet implements ParameterSet {
       return ExitCode.OK;
     }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
-    parametersChangeProperty.bind(dialog.parametersChangeProperty());
     dialog.showAndWait();
     return dialog.getExitCode();
   }

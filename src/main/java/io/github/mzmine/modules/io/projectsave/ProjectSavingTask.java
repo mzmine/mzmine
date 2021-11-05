@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -49,6 +50,7 @@ import org.xml.sax.SAXException;
 public class ProjectSavingTask extends AbstractTask {
 
   public static final String VERSION_FILENAME = "MZMINE_VERSION";
+  public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
   public static final String CONFIG_FILENAME = "configuration.xml";
   public static final String PARAMETERS_FILENAME = "User parameters.xml";
 
@@ -67,7 +69,6 @@ public class ProjectSavingTask extends AbstractTask {
 
   // This hashtable maps raw data files to their ID within the saved project
   private Hashtable<RawDataFile, String> dataFilesIDMap;
-  private boolean saveStandaloneProject = true;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters,
       @NotNull Date moduleCallDate) {
@@ -157,7 +158,8 @@ public class ProjectSavingTask extends AbstractTask {
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
 
-      if (!MZmineCore.isHeadLessMode()) {
+      if (!MZmineCore.isHeadLessMode() && (savedProject.isStandalone() == null || (
+          savedProject.isStandalone() != null && savedProject.isStandalone() == false))) {
         ButtonType btn = MZmineCore.getDesktop().displayConfirmation(
             "Would you like to save a standalone project?\n\nIf yes, raw data files will be "
                 + "copied into the project file. Otherwise the project will require that all raw "
@@ -168,12 +170,12 @@ public class ProjectSavingTask extends AbstractTask {
           setStatus(TaskStatus.FINISHED);
           return;
         } else if (btn == ButtonType.YES) {
-          saveStandaloneProject = true;
+          savedProject.setStandalone(true);
         } else {
-          saveStandaloneProject = false;
+          savedProject.setStandalone(false);
         }
       } else {
-        saveStandaloneProject = true;
+        savedProject.setStandalone(true);
       }
 
       // Prepare a temporary ZIP file. We create this file in the same
@@ -189,6 +191,7 @@ public class ProjectSavingTask extends AbstractTask {
       // Stage 1 - save version and configuration
       currentStage++;
       saveVersion(zipStream);
+      saveStandalone(zipStream);
       saveConfiguration(zipStream);
       if (isCanceled()) {
         zipStream.close();
@@ -292,6 +295,14 @@ public class ProjectSavingTask extends AbstractTask {
 
   }
 
+  private void saveStandalone(ZipOutputStream zipStream) throws IOException {
+    if (savedProject.isStandalone()) {
+      zipStream.putNextEntry(new ZipEntry(STANDALONE_FILENAME));
+      String MZmineVersion = STANDALONE_FILENAME;
+      zipStream.write(MZmineVersion.getBytes());
+    }
+  }
+
   /**
    * Save the configuration file.
    *
@@ -329,7 +340,7 @@ public class ProjectSavingTask extends AbstractTask {
 
     AtomicBoolean finished = new AtomicBoolean(false);
     rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream,
-        saveStandaloneProject, getModuleCallDate());
+        Objects.requireNonNullElse(savedProject.isStandalone(), true), getModuleCallDate());
     rawDataFileSaveHandler.addTaskStatusListener((task, newStatus, oldStatus) -> {
       switch (newStatus) {
         case WAITING, PROCESSING -> {

@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -142,8 +143,10 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
   public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
     // set precursor mz to parameter if MS2 scan
     // otherwise leave the value to the one specified before
-    if (scan.getPrecursorMZ() != 0) {
-      this.getParameter(usePrecursorMZ).getEmbeddedParameter().setValue(scan.getPrecursorMZ());
+    double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
+    if (precursorMz != 0) {
+      this.getParameter(usePrecursorMZ).getEmbeddedParameter().setValue(precursorMz);
     } else {
       this.getParameter(usePrecursorMZ).setValue(false);
     }

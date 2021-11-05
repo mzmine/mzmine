@@ -18,6 +18,12 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
@@ -27,16 +33,9 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.MathUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * This class represents a manually picked chromatographic feature.
@@ -252,7 +251,7 @@ public class ManualFeature {
     allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
       if ((precursorCharge > 0) && (this.charge == 0))
         this.charge = precursorCharge;
     }

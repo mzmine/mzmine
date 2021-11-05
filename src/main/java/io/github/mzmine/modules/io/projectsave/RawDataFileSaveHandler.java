@@ -289,7 +289,8 @@ public class RawDataFileSaveHandler extends AbstractTask {
       path.append(prefix);
     }
     path.append(DATA_FILES_FOLDER);
-    path.append(file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf("\\") + 1));
+    final String separator = System.getProperty("file.separator");
+    path.append(file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf(separator) + 1));
     if (suffix != null) {
       path.append(suffix);
     }

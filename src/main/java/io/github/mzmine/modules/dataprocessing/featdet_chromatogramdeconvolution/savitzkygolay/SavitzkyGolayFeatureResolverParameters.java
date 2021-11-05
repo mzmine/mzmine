@@ -31,27 +31,27 @@ import io.github.mzmine.util.ExitCode;
 
 public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParameters {
 
-  public static final DoubleParameter MIN_PEAK_HEIGHT =
-      new DoubleParameter("Min peak height", "Minimum acceptable peak height (absolute intensity)",
-          MZmineCore.getConfiguration().getIntensityFormat());
+  public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter("Min peak height",
+      "Minimum acceptable peak height (absolute intensity)",
+      MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
+  public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+      "Peak duration range (min)", "Range of acceptable peak lengths",
+      MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
-  public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL =
-      new PercentParameter("Derivative threshold level",
-          "Minimum acceptable intensity in the 2nd derivative for peak recognition");
+  public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL = new PercentParameter(
+      "Derivative threshold level",
+      "Minimum acceptable intensity in the 2nd derivative for peak recognition");
 
   public SavitzkyGolayFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        MIN_PEAK_HEIGHT, PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE});
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, AUTO_REMOVE, groupMS2Parameters, MIN_PEAK_HEIGHT,
+        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE});
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final FeatureResolverSetupDialog dialog =
-        new FeatureResolverSetupDialog(valueCheckRequired, this, null);
+    final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
+        this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }

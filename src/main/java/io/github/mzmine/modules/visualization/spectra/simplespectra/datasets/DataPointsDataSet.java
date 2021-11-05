@@ -18,13 +18,11 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.DataPoint;
 import java.util.ArrayList;
 import java.util.List;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 
 /**
  * Data set for MzPeaks, used in feature detection preview
@@ -55,8 +53,8 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
         }
 
         dp.add(mzPeaks[mzPeaks.length - 1]);
-        this.mzPeaks = dp.toArray(new DataPoint[0]);
       }
+      this.mzPeaks = dp.toArray(new DataPoint[0]);
     }
 
   }

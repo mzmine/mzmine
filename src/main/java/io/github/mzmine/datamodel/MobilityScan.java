@@ -62,8 +62,6 @@ public interface MobilityScan extends MassSpectrum, Scan {
    */
   int getMobilityScanNumber();
 
-  @Nullable ImsMsMsInfo getMsMsInfo();
-
   @Nullable MassList getMassList();
 
   @Override
@@ -103,20 +101,10 @@ public interface MobilityScan extends MassSpectrum, Scan {
     return getFrame().getScanningMZRange();
   }
 
-  @Override
-  default double getPrecursorMZ() {
-    return getMsMsInfo() != null ? getMsMsInfo().getLargestPeakMz() : 0d;
-  }
-
   @NotNull
   @Override
   default PolarityType getPolarity() {
     return getFrame().getPolarity();
-  }
-
-  @Override
-  default int getPrecursorCharge() {
-    return getMsMsInfo() != null ? getMsMsInfo().getPrecursorCharge() : 0;
   }
 
   @Override
