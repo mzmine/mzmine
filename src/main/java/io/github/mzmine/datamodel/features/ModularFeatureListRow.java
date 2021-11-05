@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
@@ -557,36 +556,21 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
-    // add column first if needed
-    ModularTypeMap parent = get(SpectralLibraryMatchType.class);
-    if (parent == null) {
-      SpectralLibraryMatchType mtype = new SpectralLibraryMatchType();
-      flist.addRowType(mtype);
-      set(SpectralLibraryMatchType.class, mtype.createMap());
-      addSpectralLibraryMatch(id);
-      return;
+    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchType.class);
+    if (matches == null) {
+      matches = List.of(id);
     } else {
-      // unmodifiable list of matches
-      List<SpectralDBFeatureIdentity> matches = parent.get(SpectralLibMatchSummaryType.class);
-      if (matches == null) {
-        matches = List.of(id);
-      } else {
-        matches = new ArrayList<>(matches);
-        matches.add(id);
-      }
-      parent.set(SpectralLibMatchSummaryType.class, matches);
+      matches = new ArrayList<>(matches);
+      matches.add(id);
     }
+    set(SpectralLibraryMatchType.class, matches);
   }
 
   @Override
   @NotNull
   public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
-    ModularTypeMap matchProperty = get(SpectralLibraryMatchType.class);
-    if (matchProperty != null) {
-      return matchProperty.get(SpectralLibMatchSummaryType.class);
-    } else {
-      return List.of();
-    }
+    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchType.class);
+    return matches == null ? List.of() : matches;
   }
 
   @Override

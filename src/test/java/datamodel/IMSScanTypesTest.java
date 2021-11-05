@@ -1,19 +1,18 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package datamodel;
@@ -29,7 +28,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
@@ -72,6 +71,33 @@ public class IMSScanTypesTest {
   ModularFeatureList flist;
   ModularFeatureListRow row;
   ModularFeature feature;
+
+  private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
+    Assertions.assertEquals(value.getCollisionEnergy(), loaded.getCollisionEnergy());
+    Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
+    Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
+    Assertions.assertEquals(value.getCenterFunction(), loaded.getCenterFunction());
+    Assertions.assertEquals(value.getBasePeakIntensity(), loaded.getBasePeakIntensity());
+    Assertions.assertEquals(value.getDataFile(), loaded.getDataFile());
+    Assertions.assertEquals(value.getDataPointMZRange(), loaded.getDataPointMZRange());
+    Assertions.assertEquals(value.getScanningMZRange(), loaded.getScanningMZRange());
+    Assertions.assertEquals(value.getPolarity(), loaded.getPolarity());
+    Assertions.assertEquals(value.getNumberOfDataPoints(), loaded.getNumberOfDataPoints());
+    Assertions.assertEquals(value.getScanNumber(), loaded.getScanNumber());
+    Assertions.assertEquals(value.getPrecursorCharge(), loaded.getPrecursorCharge());
+    Assertions.assertEquals(value.getMsMsInfo(), loaded.getMsMsInfo());
+    Assertions.assertEquals(value.getRetentionTime(), loaded.getRetentionTime());
+    Assertions.assertEquals(value.getScanDefinition(), loaded.getScanDefinition());
+    Assertions.assertEquals(value.getSourceSpectra(), loaded.getSourceSpectra());
+    Assertions.assertEquals(value.getTIC(), loaded.getTIC());
+    Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
+    Assertions.assertEquals(value.getMergingType(), loaded.getMergingType());
+
+    for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
+      Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));
+      Assertions.assertEquals(value.getMzValue(i), loaded.getMzValue(i));
+    }
+  }
 
   @BeforeAll
   void initialise() {
@@ -176,7 +202,7 @@ public class IMSScanTypesTest {
     List<MergedMsMsSpectrum> value = new ArrayList<>();
     for (int i = 5; i < 10; i++) {
       PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1,
-          file.getFrame(i - 5), file.getFrame(i), Range.closed(299d,301d));
+          file.getFrame(i - 5), file.getFrame(i), Range.closed(299d, 301d));
 
       MergedMsMsSpectrum scan = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
           new MZTolerance(0.01, 10), MergingType.SUMMED, null,
@@ -215,7 +241,7 @@ public class IMSScanTypesTest {
 
   @Test
   void spectralLibMatchSummaryTypeTest() {
-    var type = new SpectralLibMatchSummaryType();
+    var type = new SpectralLibraryMatchType();
 
     var param = new CompositeCosineSpectralSimilarityParameters().cloneParameterSet();
     param.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7d);
@@ -252,33 +278,6 @@ public class IMSScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
-  }
-
-  private static void compareMergedMsMs(MergedMsMsSpectrum value, MergedMsMsSpectrum loaded) {
-    Assertions.assertEquals(value.getCollisionEnergy(), loaded.getCollisionEnergy());
-    Assertions.assertEquals(value.getBasePeakIndex(), loaded.getBasePeakIndex());
-    Assertions.assertEquals(value.getBasePeakMz(), loaded.getBasePeakMz());
-    Assertions.assertEquals(value.getCenterFunction(), loaded.getCenterFunction());
-    Assertions.assertEquals(value.getBasePeakIntensity(), loaded.getBasePeakIntensity());
-    Assertions.assertEquals(value.getDataFile(), loaded.getDataFile());
-    Assertions.assertEquals(value.getDataPointMZRange(), loaded.getDataPointMZRange());
-    Assertions.assertEquals(value.getScanningMZRange(), loaded.getScanningMZRange());
-    Assertions.assertEquals(value.getPolarity(), loaded.getPolarity());
-    Assertions.assertEquals(value.getNumberOfDataPoints(), loaded.getNumberOfDataPoints());
-    Assertions.assertEquals(value.getScanNumber(), loaded.getScanNumber());
-    Assertions.assertEquals(value.getPrecursorCharge(), loaded.getPrecursorCharge());
-    Assertions.assertEquals(value.getMsMsInfo(), loaded.getMsMsInfo());
-    Assertions.assertEquals(value.getRetentionTime(), loaded.getRetentionTime());
-    Assertions.assertEquals(value.getScanDefinition(), loaded.getScanDefinition());
-    Assertions.assertEquals(value.getSourceSpectra(), loaded.getSourceSpectra());
-    Assertions.assertEquals(value.getTIC(), loaded.getTIC());
-    Assertions.assertEquals(value.getMSLevel(), loaded.getMSLevel());
-    Assertions.assertEquals(value.getMergingType(), loaded.getMergingType());
-
-    for (int i = 0; i < value.getNumberOfDataPoints(); i++) {
-      Assertions.assertEquals(value.getIntensityValue(i), loaded.getIntensityValue(i));
-      Assertions.assertEquals(value.getMzValue(i), loaded.getMzValue(i));
-    }
   }
 
 

@@ -17,9 +17,13 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
@@ -27,33 +31,70 @@ import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
-import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * This type has multiple sub columns. The first is a list of complex objects ({@link
- * SpectralLibMatchSummaryType}). The first object in this list defines all the other sub columns.
+ * Spectral library matches in a list
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class SpectralLibraryMatchType extends ModularType implements AnnotationType {
+public class SpectralLibraryMatchType extends ListWithSubsType<SpectralDBFeatureIdentity> implements
+    AnnotationType {
 
+  private static final Map<Class<? extends DataType>, Function<SpectralDBFeatureIdentity, Object>> mapper =
+      Map.ofEntries(
+          createEntry(SpectralLibraryMatchType.class, match -> match),
+          createEntry(CompoundNameType.class,
+              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
+          createEntry(FormulaType.class,
+              match -> match.getEntry().getField(DBEntryField.FORMULA).orElse("").toString()),
+          createEntry(IonAdductType.class,
+              match -> match.getEntry().getField(DBEntryField.ION_TYPE).orElse("").toString()),
+          createEntry(SmilesStructureType.class,
+              match -> match.getEntry().getField(DBEntryField.SMILES).orElse("").toString()),
+          createEntry(InChIStructureType.class,
+              match -> match.getEntry().getField(DBEntryField.INCHI).orElse("").toString()),
+          createEntry(CosineScoreType.class, match -> (float) match.getSimilarity().getScore()),
+          createEntry(MatchingSignalsType.class, match -> match.getSimilarity().getOverlap()),
+          createEntry(PrecursorMZType.class,
+              match -> (double) match.getEntry().getField(DBEntryField.MZ).orElse(null)),
+          createEntry(NeutralMassType.class,
+              match -> (double) match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null)),
+          createEntry(CompoundNameType.class,
+              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
+          createEntry(CompoundNameType.class,
+              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
+          createEntry(CompoundNameType.class,
+              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString())
+      );
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new SpectralLibMatchSummaryType(),
+  private final List<DataType> subTypes = List.of(new SpectralLibraryMatchType(),
       new CompoundNameType(), new IonAdductType(),
       new FormulaType(), new SmilesStructureType(), new InChIStructureType(),
       new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
       new MatchingSignalsType());
 
+  @Override
+  protected Map<Class<? extends DataType>, Function<SpectralDBFeatureIdentity, Object>> getMapper() {
+    return mapper;
+  }
+
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "spectral_lib_match_annotation";
+    return "spectral_lib_matches";
   }
 
   @NotNull
@@ -65,43 +106,60 @@ public class SpectralLibraryMatchType extends ModularType implements AnnotationT
   @NotNull
   @Override
   public String getHeaderString() {
-    return "Spectral library match";
+    return "Spectral match";
   }
 
 
-  /**
-   * On change of the first list element, change all the other sub types.
-   *
-   * @param data  the data property
-   * @param match the current element
-   */
-  private void setCurrentElement(ModularTypeMap data, SpectralDBFeatureIdentity match) {
-    if (match == null) {
-      for (DataType type : this.getSubDataTypes()) {
-        if (!(type instanceof SpectralLibMatchSummaryType)) {
-          data.set(type, null);
-        }
-      }
-    } else {
-      SpectralDBEntry entry = match.getEntry();
-      SpectralSimilarity score = match.getSimilarity();
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
+      @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
+      @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    if (!(value instanceof List<?> list)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
+    }
 
-      // update selected values
-      data.set(CompoundNameType.class, entry.getField(DBEntryField.NAME).orElse("").toString());
-      data.set(FormulaType.class, entry.getField(DBEntryField.FORMULA).orElse("").toString());
-      data.set(IonAdductType.class, entry.getField(DBEntryField.ION_TYPE).orElse("").toString());
-      data.set(SmilesStructureType.class,
-          entry.getField(DBEntryField.SMILES).orElse("").toString());
-      data.set(InChIStructureType.class, entry.getField(DBEntryField.INCHI).orElse("").toString());
-      data.set(CosineScoreType.class, (float) score.getScore());
-      data.set(MatchingSignalsType.class, score.getOverlap());
-      if (entry.getField(DBEntryField.MZ).isPresent()) {
-        data.set(PrecursorMZType.class, (double) entry.getField(DBEntryField.MZ).orElse(null));
+    for (Object o : list) {
+      if (!(o instanceof SpectralDBFeatureIdentity id)) {
+        continue;
       }
-      if (entry.getField(DBEntryField.EXACT_MASS).isPresent()) {
-        data.set(NeutralMassType.class,
-            (double) entry.getField(DBEntryField.EXACT_MASS).orElse(null));
+
+      id.saveToXML(writer);
+    }
+  }
+
+  @Override
+  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
+      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
+      @Nullable RawDataFile file) throws XMLStreamException {
+
+    if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)
+          && reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR).equals(getUniqueID()))) {
+      throw new IllegalStateException("Wrong element");
+    }
+
+    List<FeatureIdentity> ids = new ArrayList<>();
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT) && reader
+          .getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
+          .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
+        FeatureIdentity id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
+        ids.add(id);
       }
     }
+
+    // never return null, if this type was saved we even need empty lists.
+    return ids;
   }
 }
