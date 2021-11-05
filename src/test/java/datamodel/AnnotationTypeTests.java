@@ -185,7 +185,7 @@ public class AnnotationTypeTests {
   @Test
   void lipidAnotationMsMsScoreTypeTest() {
     LipidAnnotationMsMsScoreType type = new LipidAnnotationMsMsScoreType();
-    Double value = 0.978d;
+    Float value = 0.978f;
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
