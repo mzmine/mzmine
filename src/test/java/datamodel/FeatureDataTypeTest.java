@@ -69,8 +69,8 @@ public class FeatureDataTypeTest {
     flist.addRow(row);
 
     List<Scan> scans = new ArrayList<>();
-    for (int i = 0; i < 5; i++) {
-      scans.add(new SimpleScan(file, i, 1, 0.1f * i, 0d, 0, new double[0], new double[0],
+    for (int i = 0; i < 20; i++) {
+      scans.add(new SimpleScan(file, i, 1, 0.1f * i, null, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
@@ -82,10 +82,10 @@ public class FeatureDataTypeTest {
         Assertions.fail("Cannot add scans to raw data file.");
       }
     }
-    flist.setSelectedScans(file, scans);
+    flist.setSelectedScans(file, scans.subList(3, 18));
 
     IonTimeSeries<Scan> series = new SimpleIonTimeSeries(null,
-        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans);
+        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans.subList(5, 10));
 
     // test if load/save is good
     feature.set(FeatureDataType.class, series);
@@ -93,12 +93,12 @@ public class FeatureDataTypeTest {
 
     // test if equals is good
     IonTimeSeries<Scan> series_2 = new SimpleIonTimeSeries(null,
-        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans);
+        new double[]{150d, 150d, 150d, 150d, 150d}, new double[]{1d, 5d, 20d, 5d, 1d}, scans.subList(5, 10));
     Assertions.assertEquals(series, series_2);
 
     // test if equals returns false
     IonTimeSeries<Scan> series_3 = new SimpleIonTimeSeries(null,
-        new double[]{150d, 150d, 120d, 130d, 150d}, new double[]{1d, 4d, 20d, 4.999d, 1d}, scans);
+        new double[]{150d, 150d, 120d, 130d, 150d}, new double[]{1d, 4d, 20d, 4.999d, 1d}, scans.subList(5, 10));
     Assertions.assertNotEquals(series, series_3);
 
     DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, flist, row, feature, file);
@@ -121,12 +121,12 @@ public class FeatureDataTypeTest {
     row.addFeature(file, feature);
     flist.addRow(row);
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 20; i++) {
       List<BuildingMobilityScan> scans = new ArrayList<>();
       for (int j = 0; j < 5; j++) {
         scans.add(new BuildingMobilityScan(j, new double[0], new double[0]));
       }
-      SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, 0, 0, new double[0], new double[0],
+      SimpleFrame frame = new SimpleFrame(file, i, 1, 0.1f * i, new double[0], new double[0],
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
           MobilityType.TIMS, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
@@ -138,7 +138,7 @@ public class FeatureDataTypeTest {
       }
     }
 
-    flist.setSelectedScans(file, file.getFrames());
+    flist.setSelectedScans(file, file.getFrames().subList(3, 18));
 
     IonMobilogramTimeSeries series = generateTrace(file, 2);
 
@@ -159,7 +159,7 @@ public class FeatureDataTypeTest {
   @NotNull
   private IonMobilogramTimeSeries generateTrace(IMSRawDataFile file, double seed) {
     List<IonMobilitySeries> mobilograms = new ArrayList<>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 7; i < 12; i++) {
       mobilograms.add(new SimpleIonMobilitySeries(null,
           new double[]{seed * 1, seed * 2, seed * 3, seed * 4, seed * 5},
           new double[]{seed * 5, seed * 4, seed * 3, seed * 2, seed * 1},

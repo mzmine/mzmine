@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -35,9 +36,9 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Date;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.apache.commons.lang3.ArrayUtils;
 
 
 public class MsnPeakPickingTask extends AbstractTask {
@@ -152,20 +153,22 @@ public class MsnPeakPickingTask extends AbstractTask {
 
         // Get ranges.
         float scanRT = scan.getRetentionTime();
-        double precursorMZ = scan.getPrecursorMZ();
+        double precursorMZ =
+            scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda
+                ? dda.getIsolationMz() : 0d;
 
         Range<Float> rtRange = rtTolerance.getToleranceRange(scanRT);
         Range<Double> mzRange = mzTolerance.getToleranceRange(precursorMZ);
 
         // Build simple feature for precursor in ranges.
-        ModularFeature newFeature =
-            FeatureUtils.buildSimpleModularFeature(newFeatureList, dataFile, rtRange, mzRange);
+        ModularFeature newFeature = FeatureUtils.buildSimpleModularFeature(newFeatureList, dataFile,
+            rtRange, mzRange);
 
         // Add feature to feature list.
         if (newFeature != null) {
 
-          ModularFeatureListRow newFeatureListRow =
-              new ModularFeatureListRow(newFeatureList, scan.getScanNumber(), newFeature);
+          ModularFeatureListRow newFeatureListRow = new ModularFeatureListRow(newFeatureList,
+              scan.getScanNumber(), newFeature);
 
           newFeatureList.addRow(newFeatureListRow);
         }
@@ -184,8 +187,9 @@ public class MsnPeakPickingTask extends AbstractTask {
     }
 
     dataFile.getAppliedMethods().forEach(m -> newFeatureList.getAppliedMethods().add(m));
-    newFeatureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        MsnFeatureDetectionModule.class, parameterSet, getModuleCallDate()));
+    newFeatureList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(MsnFeatureDetectionModule.class, parameterSet,
+            getModuleCallDate()));
 
     // Add new feature list to the project
     project.addFeatureList(newFeatureList);
@@ -211,9 +215,9 @@ public class MsnPeakPickingTask extends AbstractTask {
       return null;
     }
 
-    if (scan.getPrecursorMZ() == 0) {
-      return null;
-    }
+//    if (scan.getPrecursorMZ() == 0) {
+//      return null;
+//    }
 
     // int[] fragmentScanNumbers = scan.getFragmentScanNumbers();
     //

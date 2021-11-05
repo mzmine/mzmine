@@ -148,13 +148,15 @@ public class RowsFilterTask extends AbstractTask {
 
     // Copy previous applied methods.
     for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-
       newFeatureList.addDescriptionOfAppliedTask(method);
     }
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         getTaskDescription(), RowsFilterModule.class, parameters, getModuleCallDate()));
+
+    featureList.getRawDataFiles()
+        .forEach(file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
 
     // Get parameters.
     final boolean onlyIdentified =

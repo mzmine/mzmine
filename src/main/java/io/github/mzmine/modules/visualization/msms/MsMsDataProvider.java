@@ -23,6 +23,7 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -35,13 +36,14 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
-import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
@@ -217,7 +219,10 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       }
 
       // Skip empty scans and check parent m/z and rt bounds
-      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMZ())
+      int precursorCharge = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          Objects.requireNonNullElse(info.getPrecursorCharge(), -1) : -1;
+
+      if (scan.getBasePeakMz() == null || !mzRange.contains((double) precursorCharge)
           || !rtRange.contains(scan.getRetentionTime())
           || scan.getMassList().getNumberOfDataPoints() < 1) {
         processedScans++;
@@ -262,11 +267,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Precursor intensity
       double precursorIntensity = 0;
+      double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
       if (lastMS1Scan != null) {
 
         // Sum intensities of all ions from MS1 scan with similar m/z values
         MassList lastMS1ScanMassList = lastMS1Scan.getMassList();
-        Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
+        Range<Double> toleranceRange = mzTolerance.getToleranceRange(precursorMz);
         for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
           if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
             precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
@@ -306,7 +312,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Diagnostic fragmentation filtering (neutral loss)
         if (!(dffListNl == null || dffListNl.isEmpty())) {
-          double neutralLoss = scan.getPrecursorMZ() - productMz;
+          double neutralLoss = precursorMz - productMz;
           Range<Double> toleranceRange = mzTolerance.getToleranceRange(neutralLoss);
           for (double targetNeutralLoss : dffListNl) {
             if (!toleranceRange.contains(targetNeutralLoss)) {
@@ -322,8 +328,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Create new data point
-        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, scan.getPrecursorMZ(),
-            scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
+        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, precursorMz,
+            precursorCharge, scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
       }

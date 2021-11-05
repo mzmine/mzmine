@@ -91,11 +91,12 @@ public class FeatureDataType extends
     }
     final List<? extends Scan> selectedScans = flist.getSeletedScans(file);
     if (selectedScans == null) {
+      // sanity check during saving.
       throw new IllegalArgumentException("Cannot find selected scans.");
     }
 
     writer.writeStartElement(getUniqueID());
-    series.saveValueToXML(writer, selectedScans);
+    series.saveValueToXML(writer, file.getScans()); // use ALL scans of the given raw data file.
     writer.writeEndElement();
   }
 

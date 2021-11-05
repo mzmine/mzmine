@@ -78,8 +78,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.maths.CenterFunction;
-import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.ArrayList;
 import java.util.List;
@@ -371,8 +369,6 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.MZ_CENTER_FUNCTION,
-        new CenterFunction(CenterMeasure.AVG, CenterFunction.DEFAULT_MZ_WEIGHTING));
     param.setParameter(MinimumSearchFeatureResolverParameters.AUTO_REMOVE, true);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
@@ -424,8 +420,6 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.MZ_CENTER_FUNCTION,
-        new CenterFunction(CenterMeasure.AVG, CenterFunction.DEFAULT_MZ_WEIGHTING));
     param.setParameter(MinimumSearchFeatureResolverParameters.AUTO_REMOVE, true);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);

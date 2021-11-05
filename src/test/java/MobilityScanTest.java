@@ -97,7 +97,7 @@ public class MobilityScanTest {
     }
 
     logger.info("Creating frame.");
-    SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, 0d, 0, new double[]{0d, 1},
+    SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
         new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
         Range.closed(0d, 1d), MobilityType.TIMS, null);
 

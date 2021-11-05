@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.DataPoint;
@@ -27,6 +28,8 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -40,9 +43,25 @@ public class MsdkScanWrapper implements Scan {
 
   // wrap this scan
   private final MsScan scan;
+  private final MsMsInfo msMsInfo;
 
   public MsdkScanWrapper(MsScan scan) {
     this.scan = scan;
+    scan.getIsolations();
+    if (!scan.getIsolations().isEmpty()) {
+      IsolationInfo isolationInfo = scan.getIsolations().get(0);
+      ActivationInfo activationInfo = isolationInfo.getActivationInfo();
+      Float energy = activationInfo != null && activationInfo.getActivationEnergy() != null
+          ? activationInfo.getActivationEnergy().floatValue() : null;
+      ActivationMethod activationMethod = activationInfo != null ? ActivationMethod.valueOf(
+          activationInfo.getActivationType().name()) : null;
+
+      msMsInfo = new DDAMsMsInfoImpl(isolationInfo.getPrecursorMz(),
+          isolationInfo.getPrecursorCharge(), energy, this, null, scan.getMsLevel(),
+          activationMethod, null);
+    } else {
+      msMsInfo = null;
+    }
   }
 
   @Override
@@ -157,14 +176,8 @@ public class MsdkScanWrapper implements Scan {
   }
 
   @Override
-  public double getPrecursorMZ() {
-    return scan.getIsolations().stream().findFirst().map(IsolationInfo::getPrecursorMz).orElse(-1d);
-  }
-
-  @Override
-  public int getPrecursorCharge() {
-    return scan.getIsolations().stream().findFirst().map(IsolationInfo::getPrecursorCharge)
-        .orElse(-1);
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
   @NotNull
@@ -184,4 +197,5 @@ public class MsdkScanWrapper implements Scan {
   public void addMassList(@NotNull MassList massList) {
 
   }
+
 }

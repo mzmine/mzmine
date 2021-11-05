@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
@@ -28,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
@@ -127,7 +130,20 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setName(String name) {
-    MZmineCore.runLater(() -> this.nameProperty.set(name));
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+
+    if (project != null) {
+      synchronized (project.getFeatureLists()) {
+        final List<String> names = new ArrayList<>(
+            project.getFeatureLists().stream().map(FeatureList::getName).toList());
+        names.remove(getName());
+        name =
+            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+      }
+    }
+
+    final String finalName = name;
+    MZmineCore.runLater(() -> this.nameProperty.set(finalName));
   }
 
   @Override
@@ -475,14 +491,12 @@ public class ModularFeatureList implements FeatureList {
    * @see FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
-      Range<Float> rtRange,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
     return modularStream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
-        .filter(
-            f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
+        .filter(f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
@@ -535,8 +549,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public Stream<ModularFeature> parallelStreamFeatures() {
-    return parallelStream().flatMap(row -> row.getFeatures().stream())
-        .filter(Objects::nonNull);
+    return parallelStream().flatMap(row -> row.getFeatures().stream()).filter(Objects::nonNull);
   }
 
 
@@ -617,8 +630,7 @@ public class ModularFeatureList implements FeatureList {
 
     updateMaxIntensity(); // Update range before returning value
 
-    DoubleSummaryStatistics mzStatistics = getRows().stream()
-        .map(FeatureListRow::getAverageMZ)
+    DoubleSummaryStatistics mzStatistics = getRows().stream().map(FeatureListRow::getAverageMZ)
         .collect(Collectors.summarizingDouble((Double::doubleValue)));
 
     return Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
@@ -668,8 +680,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map,
-      Type relationship) {
+  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship) {
     R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship, key -> new R2RMap<>());
     rowMap.putAll(map);
   }
@@ -677,8 +688,8 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRowsRelationship(FeatureListRow a, FeatureListRow b,
       RowsRelationship relationship) {
-    R2RMap<RowsRelationship> rowMap = r2rMaps
-        .computeIfAbsent(relationship.getType(), key -> new R2RMap<>());
+    R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship.getType(),
+        key -> new R2RMap<>());
     rowMap.add(a, b, relationship);
   }
 

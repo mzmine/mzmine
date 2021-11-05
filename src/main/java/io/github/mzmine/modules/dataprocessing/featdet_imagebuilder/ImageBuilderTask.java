@@ -164,10 +164,10 @@ public class ImageBuilderTask extends AbstractTask {
       }
       progress = (processedScans / (double) scans.length) / 4;
       processedScans++;
-      featureList.setSelectedScans(rawDataFile, List.of(scans));
     }
 
-    logger.info("Extracted " + allDataPoints.size() + " ims data points");
+    featureList.setSelectedScans(rawDataFile, List.of(scans));
+    logger.info("Extracted " + allDataPoints.size() + " data points");
     return allDataPoints;
   }
 

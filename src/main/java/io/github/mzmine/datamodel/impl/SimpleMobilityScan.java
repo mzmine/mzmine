@@ -21,7 +21,6 @@ import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
@@ -30,6 +29,7 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.masslist.MobilityScanMassList;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -173,7 +173,7 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public PasefMsMsInfo getMsMsInfo() {
     return frame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
   }
 

@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,6 +171,8 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     final ArrayList<Feature> allFeatures = new ArrayList<>();
     final ArrayList<Feature> selectedFeatures = new ArrayList<>();
     final Set<RawDataFile> allFiles = new HashSet<>();
+    allFiles.addAll(rows.stream().flatMap(row -> row.getRawDataFiles().stream()).
+        collect(Collectors.toSet()));
 
     for (final ModularFeatureListRow row : rows) {
 
@@ -177,6 +180,9 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
       final FeatureIdentity identity = row.getPreferredFeatureIdentity();
 
       for (final Feature feature : row.getFeatures()) {
+        if(feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+          continue;
+        }
 
         allFeatures.add(feature);
         if (feature.getRawDataFile() == selectedFile) {
@@ -192,7 +198,7 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
         if (identity != null) {
           labelsMap.put(feature, identity.getName());
         }
-        allFiles.add(feature.getRawDataFile());
+//        allFiles.add(feature.getRawDataFile());
       }
     }
 

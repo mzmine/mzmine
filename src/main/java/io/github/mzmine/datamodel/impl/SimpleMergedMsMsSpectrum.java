@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -31,6 +32,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -54,35 +56,26 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
   private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
 
-  protected final float collisionEnergy;
-  protected final double precursorMz;
-  protected final int precursorCharge;
+  protected MsMsInfo msMsInfo;
 
   public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
-      @NotNull double[] intensityValues, double precursorMz, int precursorCharge,
-      float collisionEnergy, int msLevel, @NotNull List<? extends MassSpectrum> sourceSpectra,
-      @NotNull MergingType mergingType, @NotNull CenterFunction centerFunction) {
+      @NotNull double[] intensityValues, MsMsInfo info, int msLevel,
+      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
+      @NotNull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues, msLevel, sourceSpectra, mergingType, centerFunction);
 
-    this.precursorMz = precursorMz;
-    this.collisionEnergy = collisionEnergy;
-    this.precursorCharge = precursorCharge;
+    msMsInfo = info;
     this.scanDefinition = ScanUtils.scanToString(this, true);
   }
 
   @Override
   public float getCollisionEnergy() {
-    return collisionEnergy;
+    return msMsInfo != null ? Objects.requireNonNullElse(msMsInfo.getActivationEnergy(), 0f) : 0f;
   }
 
   @Override
-  public double getPrecursorMZ() {
-    return precursorMz;
-  }
-
-  @Override
-  public int getPrecursorCharge() {
-    return precursorCharge;
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
   protected static final String XML_MSLEVEL_ATTR = "mslevel";
@@ -94,17 +87,14 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
   public static SimpleMergedMsMsSpectrum loadFromXML(XMLStreamReader reader, IMSRawDataFile file)
       throws XMLStreamException {
     final int mslevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
-    final float ce = Float.parseFloat(reader.getAttributeValue(null, XML_CE_ATTR));
-    final double precursorMz = Double
-        .parseDouble(reader.getAttributeValue(null, XML_PRECURSOR_MZ_ATTR));
-    final int charge = Integer.parseInt(reader.getAttributeValue(null, XML_PRECURSOR_CHARGE_ATTR));
-    final MergingType type = MergingType
-        .valueOf(reader.getAttributeValue(null, XML_MERGING_TYPE_ATTR));
+    final MergingType type = MergingType.valueOf(
+        reader.getAttributeValue(null, XML_MERGING_TYPE_ATTR));
     assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
     double[] mzs = null;
     double[] intensties = null;
     List<MobilityScan> scans = null;
+    MsMsInfo info = null;
     while (reader.hasNext()) {
       int next = reader.next();
       if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)) {
@@ -114,17 +104,19 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_SCAN_LIST_ELEMENT -> scans = ParsingUtils
-            .stringToMobilityScanList(reader.getElementText(), file);
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_SCAN_LIST_ELEMENT -> scans = ParsingUtils.stringToMobilityScanList(
+            reader.getElementText(), file);
+        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file);
       }
     }
 
     assert mzs != null && intensties != null && scans != null;
-    return new SimpleMergedMsMsSpectrum(file.getMemoryMapStorage(), mzs, intensties, precursorMz,
-        charge, ce, mslevel, scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION);
+    return new SimpleMergedMsMsSpectrum(file.getMemoryMapStorage(), mzs, intensties, info, mslevel,
+        scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION);
   }
 
   @Override
@@ -134,10 +126,12 @@ public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implement
 
     writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
     writer.writeAttribute(XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
-    writer.writeAttribute(XML_PRECURSOR_MZ_ATTR, String.valueOf(getPrecursorMZ()));
-    writer.writeAttribute(XML_PRECURSOR_CHARGE_ATTR, String.valueOf(getPrecursorCharge()));
     writer.writeAttribute(XML_MERGING_TYPE_ATTR, getMergingType().name());
     writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
+
+    if(msMsInfo != null) {
+      msMsInfo.writeToXML(writer);
+    }
 
     writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
     writer.writeCharacters(ParsingUtils.doubleBufferToString(getMzValues()));

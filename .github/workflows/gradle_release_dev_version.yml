@@ -49,7 +49,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/MZmine-3.0.msi
+        path: build/jpackage/*.msi
         retention-days: 7  # store for 7 days
 
     - name: Upload builds ubuntu
@@ -65,7 +65,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/MZmine.app
+        path: build/jpackage/*.dmg
         retention-days: 7  # store for 7 days
        
     - name: Update Automatic Release Ubuntu
@@ -87,18 +87,18 @@ jobs:
         automatic_release_tag: "Windows-latest"
         prerelease: true
         title: "Windows Development Build"
-        files: build/jpackage/MZmine-3.0.msi
+        files: build/jpackage/*.msi
 
 
-#    - name: Update Automatic Release MacOS
-#      if: matrix.os == 'macos-latest'
-#      uses: marvinpinto/action-automatic-releases@latest
-#      with:
-#        repo_token: "${{ secrets.GITHUB_TOKEN}}"
-#        automatic_release_tag: "MacOS-latest"
-#        prerelease: true
-#        title: "MacOS Development Build"
-#        files: build/jpackage/MZmine.app
+    - name: Update Automatic Release MacOS
+      if: matrix.os == 'macos-latest'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN}}"
+        automatic_release_tag: "MacOS-latest"
+        prerelease: true
+        title: "MacOS Development Build"
+        files: build/jpackage/*.dmg
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
 

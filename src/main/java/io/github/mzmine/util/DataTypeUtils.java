@@ -19,6 +19,7 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -84,6 +85,13 @@ public class DataTypeUtils {
   public static void addDefaultChromatographicTypeColumns(ModularFeatureList flist) {
     flist.addRowType(DEFAULT_CHROMATOGRAPHIC_ROW);
     flist.addFeatureType(DEFAULT_CHROMATOGRAPHIC_FEATURE);
+
+    Optional<RawDataFile> imagingFile = flist.getRawDataFiles().stream()
+        .filter(file -> file instanceof ImagingRawDataFile).findFirst();
+    if (imagingFile.isPresent()) {
+      flist.addFeatureType(new ImageType());
+    }
+
     // row bindigns are now added in the table
   }
 

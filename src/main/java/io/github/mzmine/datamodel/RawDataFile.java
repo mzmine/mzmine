@@ -38,6 +38,15 @@ public interface RawDataFile {
    */
   @NotNull String getName();
 
+  /**
+   * Change the name of this data file.
+   * <p></p>
+   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
+   * is not predetermined in by a parameter. In that case, {@link io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
+   * String)} should be used.
+   */
+  void setName(@NotNull String name);
+
   @NotNull StringProperty nameProperty();
 
   /**
@@ -45,11 +54,6 @@ public interface RawDataFile {
    * file space or was created as a dummy file by mzTab-m import.
    */
   @Nullable String getAbsolutePath();
-
-  /**
-   * Change the name of this data file
-   */
-  void setName(@NotNull String name);
 
   int getNumOfScans();
 
@@ -110,10 +114,20 @@ public interface RawDataFile {
 
   @NotNull Range<Double> getDataMZRange();
 
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
   @NotNull Range<Float> getDataRTRange();
 
   @NotNull Range<Double> getDataMZRange(int msLevel);
 
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
   @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);

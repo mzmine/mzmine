@@ -118,10 +118,19 @@ public class MzMLCV {
   public static final String cvChromatogramBPC = "MS:1000628";
 
   // Activation
+  /// activation methods
   /** Constant <code>cvActivationEnergy="MS:1000045"</code> */
   public static final String cvActivationEnergy = "MS:1000045";
+  public static final String cvPercentCollisionEnergy = "MS:1000138";
+  public static final String cvActivationEnergy2 = "MS:1000509";
+  /// activation energies
   /** Constant <code>cvActivationCID="MS:1000133"</code> */
   public static final String cvActivationCID = "MS:1000133";
+  public static final String cvElectronCaptureDissociation = "MS:1000250";
+  public static final String cvHighEnergyCID = "MS:1000422";
+  public static final String cvLowEnergyCID = "MS:1000433";
+
+
 
   // Isolation
   /** Constant <code>cvIsolationWindowTarget="MS:1000827"</code> */
