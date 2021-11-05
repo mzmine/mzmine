@@ -70,7 +70,10 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
           createEntry(NeutralMassType.class,
               (ion -> ion.getNetwork() != null ? ion.getNetwork().getNeutralMass() : null)),
           createEntry(PartnerIdsType.class, (ion -> ion.getPartnerRowsString(";"))),
-          createEntry(MsMsMultimerVerifiedType.class, (ion -> ion.getMSMSMultimerCount() > 0)),
+          createEntry(MsMsMultimerVerifiedType.class, (ion -> {
+            int msmsMultimerCount = ion.getMSMSMultimerCount();
+            return msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
+          })),
           createEntry(FormulaConsensusSummaryType.class,
               (ion -> ion.getNetwork() != null ? ion.getNetwork().getMolFormulas() : null)),
           createEntry(FormulaListType.class, (ion -> ion.getMolFormulas())),
