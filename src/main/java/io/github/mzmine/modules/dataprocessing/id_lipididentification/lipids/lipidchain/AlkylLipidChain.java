@@ -22,6 +22,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.li
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
@@ -124,7 +126,7 @@ public class AlkylLipidChain implements ILipidChain {
           numberOfDBEs = Integer.parseInt(reader.getElementText());
           break;
         case XML_CHAIN_TYPE:
-          lipidChainType = ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+          lipidChainType = LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
           break;
         default:
           break;

@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
@@ -136,7 +137,7 @@ public class CustomLipidClass implements ILipidClass {
       }
 
       if (reader.getLocalName().equals(XML_LIPID_CLASS_NAME)) {
-        return ParsingUtils.lipidClassNameToLipidClass(reader.getElementText());
+        return LipidParsingUtils.lipidClassNameToLipidClass(reader.getElementText());
       }
 
       switch (reader.getLocalName()) {
@@ -175,7 +176,7 @@ public class CustomLipidClass implements ILipidClass {
       if (!reader.isStartElement()) {
         continue;
       }
-      lipidChainTypes.add(ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText()));
+      lipidChainTypes.add(LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText()));
     }
 
     return lipidChainTypes.toArray(new LipidChainType[0]);

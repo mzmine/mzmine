@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import io.github.mzmine.util.ParsingUtils;
 
 /**
@@ -755,7 +756,7 @@ public enum LipidClasses implements ILipidClass {
       }
 
       if (reader.getLocalName().equals(XML_LIPID_CLASS_NAME)) {
-        return ParsingUtils.lipidClassNameToLipidClass(reader.getElementText());
+        return LipidParsingUtils.lipidClassNameToLipidClass(reader.getElementText());
       }
 
     }

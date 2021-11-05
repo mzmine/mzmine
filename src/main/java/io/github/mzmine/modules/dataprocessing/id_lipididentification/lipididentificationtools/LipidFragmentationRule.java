@@ -23,6 +23,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.IonizationType;
@@ -153,12 +154,12 @@ public class LipidFragmentationRule {
           ionizationType = ParsingUtils.ionizationNameToIonizationType(reader.getElementText());
           break;
         case XML_LIPID_FRAGMENTATION_RULE_TYPE:
-          lipidFragmentationRuleType = ParsingUtils
+          lipidFragmentationRuleType = LipidParsingUtils
               .lipidFragmentationRuleNameToLipidFragmentationRuleType(reader.getElementText());
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
           lipidFragmentInformationLevelType =
-              ParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
           molecularFormula = reader.getElementText();

@@ -25,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -186,7 +187,7 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
           lipidAnnotationLevel =
-              ParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
           break;
         case XML_LIPID_FORMULA:
           molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());

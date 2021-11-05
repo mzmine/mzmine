@@ -276,71 +276,7 @@ public class ParsingUtils {
     return null;
   }
 
-  public static LipidFragmentationRuleType lipidFragmentationRuleNameToLipidFragmentationRuleType(
-      String lipidFragmentationRuleName) {
-    LipidFragmentationRuleType[] lipidFragmentationRuleTypes =
-        LipidFragmentationRuleType.class.getEnumConstants();
-    for (LipidFragmentationRuleType lipidFragmentationRuleType : lipidFragmentationRuleTypes) {
-      if (lipidFragmentationRuleType.name().equals(lipidFragmentationRuleName)) {
-        return lipidFragmentationRuleType;
-      }
-    }
-    return null;
-  }
-
-  public static LipidAnnotationLevel lipidAnnotationLevelNameToLipidAnnotationLevel(
-      String lipidAnnotationLevelName) {
-    LipidAnnotationLevel[] lipidAnnotationLevels = LipidAnnotationLevel.class.getEnumConstants();
-    for (LipidAnnotationLevel lipidAnnotationLevel : lipidAnnotationLevels) {
-      if (lipidAnnotationLevel.name().equals(lipidAnnotationLevelName)) {
-        return lipidAnnotationLevel;
-      }
-    }
-    return null;
-  }
-
-  public static LipidCategories lipidCategoryNameToLipidLipidCategory(String lipidCategoryName) {
-    LipidCategories[] lipidCategories = LipidCategories.class.getEnumConstants();
-    for (LipidCategories lipidCategory : lipidCategories) {
-      if (lipidCategory.name().equals(lipidCategoryName)) {
-        return lipidCategory;
-      }
-    }
-    return null;
-  }
-
-  public static LipidMainClasses lipidMainClassNameToLipidLipidMainClass(
-      String lipidMainClassName) {
-    LipidMainClasses[] lipidMainClasses = LipidMainClasses.class.getEnumConstants();
-    for (LipidMainClasses lipidMainClass : lipidMainClasses) {
-      if (lipidMainClass.name().equals(lipidMainClassName)) {
-        return lipidMainClass;
-      }
-    }
-    return null;
-  }
-
-  public static LipidChainType lipidChainTypeNameToLipidChainType(String lipidChainTypeName) {
-    LipidChainType[] lipidChainTypes = LipidChainType.class.getEnumConstants();
-    for (LipidChainType lipidChainType : lipidChainTypes) {
-      if (lipidChainType.name().equals(lipidChainTypeName)) {
-        return lipidChainType;
-      }
-    }
-    return null;
-  }
-
-  public static LipidClasses lipidClassNameToLipidClass(String lipidClassName) {
-    LipidClasses[] lipidClasses = LipidClasses.class.getEnumConstants();
-    for (LipidClasses lipidClass : lipidClasses) {
-      if (lipidClass.getName().equals(lipidClassName)) {
-        return lipidClass;
-      }
-    }
-    return null;
-  }
-
-  /**
+    /**
    * @param reader           The reader.
    * @param attributeName    The name of the attribute to parse.
    * @param defaultValue     A default vaule, if the attribute is not found or cannot be parsed with

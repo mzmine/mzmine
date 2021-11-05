@@ -23,6 +23,8 @@ import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -191,12 +193,12 @@ public class LipidFragment {
 
       switch (reader.getLocalName()) {
         case XML_LIPID_FRAGMENTATION_RULE_TYPE:
-          ruleType = ParsingUtils
+          ruleType = LipidParsingUtils
               .lipidFragmentationRuleNameToLipidFragmentationRuleType(reader.getElementText());
           break;
         case XML_LIPID_ANNOTAION_LEVEL:
           lipidFragmentInformationLevelType =
-              ParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
           break;
         case XML_MZ_EXACT:
           mzExact = Double.parseDouble(reader.getElementText());
@@ -232,7 +234,7 @@ public class LipidFragment {
           if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType
               .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
             lipidChainType =
-                ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
+                    LipidParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());
           }
           break;
         case CONST.XML_RAW_FILE_SCAN_ELEMENT:
