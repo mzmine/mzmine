@@ -33,7 +33,6 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
@@ -709,24 +708,14 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void addLipidAnnotation(MatchedLipid matchedLipid) {
     // add column first if needed
-    ModularTypeMap parent = get(LipidAnnotationType.class);
-    if (parent == null) {
-      LipidAnnotationType mtype = new LipidAnnotationType();
-      flist.addRowType(mtype);
-      set(LipidAnnotationType.class, mtype.createMap());
-      addLipidAnnotation(matchedLipid);
-      return;
+    List<MatchedLipid> matches = get(LipidAnnotationType.class);
+    if (matches == null) {
+      matches = List.of(matchedLipid);
     } else {
-      // unmodifiable list of matches
-      List<MatchedLipid> matches = parent.get(LipidAnnotationSummaryType.class);
-      if (matches == null) {
-        matches = List.of(matchedLipid);
-      } else {
-        matches = new ArrayList<>(matches);
-        matches.add(matchedLipid);
-      }
-      parent.set(LipidAnnotationSummaryType.class, matches);
+      matches = new ArrayList<>(matches);
+      matches.add(matchedLipid);
     }
+    set(LipidAnnotationType.class, matches);
   }
 
 }

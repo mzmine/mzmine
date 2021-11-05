@@ -66,8 +66,7 @@ public class LipidSpectrumType extends LinkedGraphicalType {
 
     StackPane pane = new StackPane();
 
-    List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class);
+    List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       Task task =
           new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row, coll.getText());
@@ -85,11 +84,14 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   @Override
   public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
       @Nonnull List<RawDataFile> file) {
-    List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class);
-    MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
-        matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-        new LipidSpectrumChart(row, null));
-    return () -> MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+    List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class);
+    if (matchedLipids != null) {
+      MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
+          matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
+          new LipidSpectrumChart(row, null));
+      return () -> MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+    } else {
+      return null;
+    }
   }
 }

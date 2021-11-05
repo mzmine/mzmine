@@ -18,21 +18,39 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class LipidAnnotationType extends ModularType implements AnnotationType {
+public class LipidAnnotationType extends ListWithSubsType<MatchedLipid> implements AnnotationType {
+
+  private static final Map<Class<? extends DataType>, Function<MatchedLipid, Object>> mapper =
+      Map.ofEntries(
+          createEntry(LipidAnnotationType.class, match -> match),
+          createEntry(IonAdductType.class, match -> match.getIonizationType().getAdductName()),
+          createEntry(FormulaType.class, match -> MolecularFormulaManipulator
+              .getString(match.getLipidAnnotation().getMolecularFormula())),
+          createEntry(CommentType.class,
+              match -> match.getComment() != null ? match.getComment() : ""),
+          createEntry(LipidAnnotationMsMsScoreType.class, match -> match.getMsMsScore()),
+          createEntry(LipidSpectrumType.class, match -> null), // ???
+          createEntry(LipidMsOneErrorType.class, match -> {
+            // calc ppm error?
+            double exactMass = getExactMass(match);
+            return ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
+          })
+      );
 
   private final List<DataType> subTypes = List.of(//
-      new LipidAnnotationSummaryType(), //
+      new LipidAnnotationType(), //
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
@@ -40,11 +58,21 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
       new LipidAnnotationMsMsScoreType(), //
       new LipidSpectrumType());
 
+  private static double getExactMass(MatchedLipid match) {
+    return MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
+        AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
+  }
+
+  @Override
+  protected Map<Class<? extends DataType>, Function<MatchedLipid, Object>> getMapper() {
+    return mapper;
+  }
+
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "lipid_annotation";
+    return "lipid_annotations";
   }
 
   @Override
@@ -57,37 +85,4 @@ public class LipidAnnotationType extends ModularType implements AnnotationType {
     return "Lipid Annotation";
   }
 
-  /**
-   * On change of the first list element, change all the other sub types.
-   *
-   * @param data
-   * @param match
-   */
-  private void setCurrentElement(ModularTypeMap data, MatchedLipid match,
-      int numberOfAnnotations) {
-    if (match == null) {
-      for (DataType type : this.getSubDataTypes()) {
-        if (!(type instanceof LipidAnnotationSummaryType)) {
-          data.set(type, null);
-        }
-      }
-    } else {
-
-      // update selected values
-      data.set(FormulaType.class,
-          MolecularFormulaManipulator.getString(match.getLipidAnnotation().getMolecularFormula()));
-      data.set(IonAdductType.class, match.getIonizationType().getAdductName());
-      if (match.getComment() != null) {
-        data.set(CommentType.class, match.getComment());
-      }
-      // Calc rel mass deviation;
-      double exactMass =
-          MolecularFormulaManipulator.getMass(match.getLipidAnnotation().getMolecularFormula(),
-              AtomContainerManipulator.MonoIsotopic) + match.getIonizationType().getAddedMass();
-      double relMassDev = ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
-      data.set(LipidMsOneErrorType.class, relMassDev);
-      data.set(LipidAnnotationMsMsScoreType.class, match.getMsMsScore());
-      data.set(LipidSpectrumType.class, null);// ??????
-    }
-  }
 }

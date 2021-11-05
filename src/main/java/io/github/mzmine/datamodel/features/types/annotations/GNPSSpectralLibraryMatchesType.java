@@ -65,16 +65,17 @@ public class GNPSSpectralLibraryMatchesType extends ListWithSubsType<GNPSLibrary
               match -> match.getResultOr(ATT.GNPS_NETWORK_URL, null))
       );
 
+  @Override
+  protected Map<Class<? extends DataType>, Function<GNPSLibraryMatch, Object>> getMapper() {
+    return mapper;
+  }
+
   @NotNull
   @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
 
-  @Override
-  protected Map<Class<? extends DataType>, Function<GNPSLibraryMatch, Object>> getMapper() {
-    return mapper;
-  }
 
   @NotNull
   @Override
