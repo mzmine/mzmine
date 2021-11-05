@@ -21,8 +21,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
@@ -45,7 +43,6 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -157,9 +154,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     totalRows = rows.length;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
@@ -168,9 +162,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     return ((double) finishedRows) / totalRows;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return MessageFormat.format(
@@ -184,7 +175,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    addRowTypes();
 
     for (FeatureListRow row : rows) {
       if (isCanceled()) {
@@ -250,15 +240,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     list = null;
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-  private void addRowTypes() {
-    // modular feature list?
-    Arrays.stream(rows).filter(row -> row.getFeatureList() instanceof ModularFeatureList)
-        .map(row -> (ModularFeatureList) row.getFeatureList()).findFirst()
-        .ifPresent(featureList -> {
-          featureList.addRowType(new SpectralLibraryMatchesType());
-        });
   }
 
   /**
