@@ -49,12 +49,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class SpectralLibraryMatchType extends ListWithSubsType<SpectralDBFeatureIdentity> implements
+public class SpectralLibraryMatchesType extends
+    ListWithSubsType<SpectralDBFeatureIdentity> implements
     AnnotationType {
 
   private static final Map<Class<? extends DataType>, Function<SpectralDBFeatureIdentity, Object>> mapper =
       Map.ofEntries(
-          createEntry(SpectralLibraryMatchType.class, match -> match),
+          createEntry(SpectralLibraryMatchesType.class, match -> match),
           createEntry(CompoundNameType.class,
               match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
           createEntry(FormulaType.class,
@@ -79,7 +80,7 @@ public class SpectralLibraryMatchType extends ListWithSubsType<SpectralDBFeature
               match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString())
       );
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new SpectralLibraryMatchType(),
+  private final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(),
       new FormulaType(), new SmilesStructureType(), new InChIStructureType(),
       new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),

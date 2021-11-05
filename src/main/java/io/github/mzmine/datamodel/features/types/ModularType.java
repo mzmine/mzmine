@@ -21,7 +21,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -49,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ModularType offers a main column for multiple sub columns (DataTypes) that are stored in a {@link
- * ModularTypeMap} An example implementation is given by {@link SpectralLibraryMatchType}, which is
- * extending the scope with one column (type) that defines all the other columns.
+ * ModularTypeMap} An example implementation is given by {@link SpectralLibraryMatchesType}, which
+ * is extending the scope with one column (type) that defines all the other columns.
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */

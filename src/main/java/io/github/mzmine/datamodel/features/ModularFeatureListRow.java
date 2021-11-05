@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
@@ -556,20 +556,20 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
-    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchType.class);
+    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
     if (matches == null) {
       matches = List.of(id);
     } else {
       matches = new ArrayList<>(matches);
       matches.add(id);
     }
-    set(SpectralLibraryMatchType.class, matches);
+    set(SpectralLibraryMatchesType.class, matches);
   }
 
   @Override
   @NotNull
   public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
-    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchType.class);
+    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
     return matches == null ? List.of() : matches;
   }
 

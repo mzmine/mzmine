@@ -25,7 +25,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
@@ -140,7 +140,7 @@ public class RegularScanTypesTest {
 
   @Test
   void spectralLibMatchSummaryTypeTest() {
-    SpectralLibraryMatchType type = new SpectralLibraryMatchType();
+    SpectralLibraryMatchesType type = new SpectralLibraryMatchesType();
 
     var param = new CompositeCosineSpectralSimilarityParameters().cloneParameterSet();
     param.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7d);
