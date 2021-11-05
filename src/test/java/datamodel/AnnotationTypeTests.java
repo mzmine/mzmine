@@ -61,8 +61,8 @@ public class AnnotationTypeTests {
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
     ModularTypeProperty value = type.createProperty();
     value.set(IdentityType.class, list);
-    final ModularTypeProperty loaded = (ModularTypeProperty) DataTypeTestUtils
-        .saveAndLoad(type, value, flist, row, null, null);
+    final ModularTypeProperty loaded = (ModularTypeProperty) DataTypeTestUtils.saveAndLoad(type,
+        value, flist, row, null, null);
 
     ListProperty<FeatureIdentity> featureIdentities = loaded.get(new IdentityType());
     Assertions.assertEquals(list.size(), featureIdentities.size());
@@ -153,8 +153,8 @@ public class AnnotationTypeTests {
 
     IdentityType type = new IdentityType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
-    final List<?> loaded = (List<?>) DataTypeTestUtils
-        .saveAndLoad(type, list, flist, row, null, null);
+    final List<?> loaded = (List<?>) DataTypeTestUtils.saveAndLoad(type, list, flist, row, null,
+        null);
 
     Assertions.assertEquals(list.size(), loaded.size());
 
@@ -189,7 +189,7 @@ public class AnnotationTypeTests {
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
-  // todo LipidAnnotationSummaryType
+  // todo LipidAnnotationSummaryType -> see RegularScanTypesTest
   // todo LipidAnnotationType
 
   // todo LipidSpectrumType
