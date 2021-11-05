@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
@@ -29,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.text.DateFormat;
@@ -70,22 +72,21 @@ public class ModularFeatureList implements FeatureList {
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
+  @NotNull
+  private final StringProperty nameProperty;
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private ObservableMap<Class<? extends DataType>, DataType> rowTypes =
-      FXCollections.observableMap(new LinkedHashMap<>());
+  private ObservableMap<Class<? extends DataType>, DataType> rowTypes = FXCollections.observableMap(
+      new LinkedHashMap<>());
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private ObservableMap<Class<? extends DataType>, DataType> featureTypes =
-      FXCollections.observableMap(new LinkedHashMap<>());
+  private ObservableMap<Class<? extends DataType>, DataType> featureTypes = FXCollections.observableMap(
+      new LinkedHashMap<>());
   private ObservableList<FeatureListRow> featureListRows;
   private ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
   private String dateCreated;
   private Range<Double> mzRange;
   private Range<Float> rtRange;
-  @NotNull
-  private final StringProperty nameProperty;
-
   // grouping
   private List<RowGroup> groups;
 
@@ -126,7 +127,20 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public void setName(String name) {
-    MZmineCore.runLater(() -> this.nameProperty.set(name));
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+
+    if (project != null) {
+      synchronized (project.getFeatureLists()) {
+        final List<String> names = new ArrayList<>(
+            project.getFeatureLists().stream().map(FeatureList::getName).toList());
+        names.remove(getName());
+        name =
+            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+      }
+    }
+
+    final String finalName = name;
+    MZmineCore.runLater(() -> this.nameProperty.set(finalName));
   }
 
   @Override
@@ -343,7 +357,7 @@ public class ModularFeatureList implements FeatureList {
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return modularStream().filter(
-        row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
+            row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
@@ -396,14 +410,12 @@ public class ModularFeatureList implements FeatureList {
    * @see FeatureList#getFeaturesInsideScanAndMZRange
    */
   @Override
-  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw,
-      Range<Float> rtRange,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile raw, Range<Float> rtRange,
       Range<Double> mzRange) {
     // TODO solve with bindings and check for rt or mz presence in row
     return modularStream().map(ModularFeatureListRow::getFilesFeatures).map(map -> map.get(raw))
         .filter(Objects::nonNull)
-        .filter(
-            f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
+        .filter(f -> rtRange.contains(f.getRT()) && mzRange.contains(f.getMZ()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 
@@ -454,8 +466,7 @@ public class ModularFeatureList implements FeatureList {
 
   @Override
   public Stream<ModularFeature> parallelStreamFeatures() {
-    return parallelStream().flatMap(row -> row.getFeatures().stream())
-        .filter(Objects::nonNull);
+    return parallelStream().flatMap(row -> row.getFeatures().stream()).filter(Objects::nonNull);
   }
 
 
@@ -494,11 +505,11 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public FeatureListRow findRowByID(int id) {
     List<FeatureListRow> featureListRows = stream().filter(r -> r.getID() == id).toList();
-    if(featureListRows.isEmpty()) {
+    if (featureListRows.isEmpty()) {
       return null;
     }
 
-    if(featureListRows.size() > 1) {
+    if (featureListRows.size() > 1) {
       logger.info("more than one row with id " + id);
     }
 
@@ -536,8 +547,7 @@ public class ModularFeatureList implements FeatureList {
 
     updateMaxIntensity(); // Update range before returning value
 
-    DoubleSummaryStatistics mzStatistics = getRows().stream()
-        .map(FeatureListRow::getAverageMZ)
+    DoubleSummaryStatistics mzStatistics = getRows().stream().map(FeatureListRow::getAverageMZ)
         .collect(Collectors.summarizingDouble((Double::doubleValue)));
 
     return Range.closed(mzStatistics.getMin(), mzStatistics.getMax());
@@ -577,8 +587,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map,
-      Type relationship) {
+  public void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship) {
     R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship, key -> new R2RMap<>());
     rowMap.putAll(map);
   }
@@ -586,8 +595,8 @@ public class ModularFeatureList implements FeatureList {
   @Override
   public void addRowsRelationship(FeatureListRow a, FeatureListRow b,
       RowsRelationship relationship) {
-    R2RMap<RowsRelationship> rowMap = r2rMaps
-        .computeIfAbsent(relationship.getType(), key -> new R2RMap<>());
+    R2RMap<RowsRelationship> rowMap = r2rMaps.computeIfAbsent(relationship.getType(),
+        key -> new R2RMap<>());
     rowMap.add(a, b, relationship);
   }
 
@@ -625,8 +634,7 @@ public class ModularFeatureList implements FeatureList {
     for (FeatureListRow row : this.getRows()) {
       id = renumberIDs ? id + 1 : row.getID();
       ModularFeatureListRow copyRow = new ModularFeatureListRow(flist, id,
-          (ModularFeatureListRow) row,
-          true);
+          (ModularFeatureListRow) row, true);
       flist.addRow(copyRow);
       mapCopied.put(row, copyRow);
     }

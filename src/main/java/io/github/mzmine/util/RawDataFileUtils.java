@@ -158,6 +158,12 @@ public class RawDataFileUtils {
    */
   public static @Nullable String askToRemoveCommonPrefix(@NotNull File fileNames[]) {
 
+    if(true) {
+      // currently this will break project load/save, because the files are renamed before they
+      // exist. So let's just deactivate it for now.
+      return null;
+    }
+
     // If we're running in batch mode or not on the JavaFX thread, give up
     if ((MZmineCore.getDesktop().getMainWindow() == null) || (!Platform.isFxApplicationThread())) {
       return null;

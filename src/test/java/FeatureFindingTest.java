@@ -148,7 +148,7 @@ public class FeatureFindingTest {
 
     assertEquals(2, project.getDataFiles().length);
     // sort by name
-    project.getRawDataFiles().sort(Comparator.comparing(RawDataFile::getName));
+    project.rawDataFilesProperty().sort(Comparator.comparing(RawDataFile::getName));
     int filesTested = 0;
     for (RawDataFile raw : project.getRawDataFiles()) {
       // check all scans and mass lists
