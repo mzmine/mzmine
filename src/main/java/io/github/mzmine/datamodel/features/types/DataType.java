@@ -122,6 +122,7 @@ public abstract class DataType<T> {
             }
           }
         }
+        event.getTreeTableView().refresh();
       });
     } else {
       col.setCellFactory(new DataTypeCellFactory(raw, type, parentType, subColumnIndex));

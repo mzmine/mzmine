@@ -35,6 +35,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -155,6 +156,14 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
         List<ResultFormula> formulas = model.get(this).get(0).getMolFormulas();
         formulas.remove(newValue);
         formulas.add(0, (ResultFormula) newValue);
+      } else if (subType.getClass().equals(IonIdentityListType.class)) {
+        List<IonIdentity> ions = model.get(this);
+        if (ions != null) {
+          ions = new ArrayList<>(ions);
+          ions.remove(newValue);
+          ions.add(0, (IonIdentity) newValue);
+          model.set(this, ions);
+        }
       }
     } catch (Exception ex) {
       logger.log(Level.WARNING, () -> String.format(

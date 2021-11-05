@@ -84,4 +84,5 @@ public interface SubColumnsFactory {
   default <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
       T newValue) {
   }
+
 }
