@@ -21,7 +21,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -55,7 +55,7 @@ public class LipidSpectrumChart extends StackPane {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
-    List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class);
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       List<ColoredXYDataset> datasets = new ArrayList<>();
       MatchedLipid match = matchedLipids.get(0);

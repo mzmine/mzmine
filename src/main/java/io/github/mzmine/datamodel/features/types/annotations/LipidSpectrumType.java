@@ -66,7 +66,7 @@ public class LipidSpectrumType extends LinkedGraphicalType {
 
     StackPane pane = new StackPane();
 
-    List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class);
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       Task task =
           new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row, coll.getText());
@@ -84,7 +84,7 @@ public class LipidSpectrumType extends LinkedGraphicalType {
   @Override
   public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
       @Nonnull List<RawDataFile> file) {
-    List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class);
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null) {
       MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
           matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",

@@ -33,7 +33,7 @@ import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchType;
@@ -708,14 +708,14 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public void addLipidAnnotation(MatchedLipid matchedLipid) {
     // add column first if needed
-    List<MatchedLipid> matches = get(LipidAnnotationType.class);
+    List<MatchedLipid> matches = get(LipidMatchListType.class);
     if (matches == null) {
       matches = List.of(matchedLipid);
     } else {
       matches = new ArrayList<>(matches);
       matches.add(matchedLipid);
     }
-    set(LipidAnnotationType.class, matches);
+    set(LipidMatchListType.class, matches);
   }
 
 }

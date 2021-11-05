@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -226,7 +226,7 @@ public class RowsFilterTask extends AbstractTask {
       }
 
       // Check identities.
-      List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class);
+      List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
       if (onlyIdentified) {
         List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
         List<GNPSLibraryMatch> gnps = row.get(GNPSSpectralLibraryMatchesType.class);

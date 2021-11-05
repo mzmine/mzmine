@@ -31,7 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.main.MZmineCore;
@@ -362,7 +362,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
         () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
     showMatchedLipidSignals.setOnAction(e -> {
-      List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidAnnotationType.class);
+      List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidMatchListType.class);
       if (matchedLipids != null && !matchedLipids.isEmpty()) {
         MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
             matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
@@ -451,7 +451,7 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private boolean rowHasMatchedLipidSignals(ModularFeatureListRow row) {
-    List<MatchedLipid> matches = row.get(LipidAnnotationType.class);
+    List<MatchedLipid> matches = row.get(LipidMatchListType.class);
     return matches != null && !matches.isEmpty();
   }
 

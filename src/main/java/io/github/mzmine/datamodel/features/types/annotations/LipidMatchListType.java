@@ -30,11 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class LipidAnnotationType extends ListWithSubsType<MatchedLipid> implements AnnotationType {
+public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implements AnnotationType {
 
   private static final Map<Class<? extends DataType>, Function<MatchedLipid, Object>> mapper =
       Map.ofEntries(
-          createEntry(LipidAnnotationType.class, match -> match),
+          createEntry(LipidMatchListType.class, match -> match),
           createEntry(IonAdductType.class, match -> match.getIonizationType().getAdductName()),
           createEntry(FormulaType.class, match -> MolecularFormulaManipulator
               .getString(match.getLipidAnnotation().getMolecularFormula())),
@@ -50,7 +50,7 @@ public class LipidAnnotationType extends ListWithSubsType<MatchedLipid> implemen
       );
 
   private final List<DataType> subTypes = List.of(//
-      new LipidAnnotationType(), //
+      new LipidMatchListType(), //
       new IonAdductType(), //
       new FormulaType(), //
       new CommentType(), //
