@@ -15,10 +15,11 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.annotations.formula;
 
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
@@ -33,20 +34,20 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * A collection of annotation types related to a list of molecular formulas stored in the {@link
- * FormulaListType}. Includes scores, neutral mass, etc.
+ * SimpleFormulaListType}. Includes scores, neutral mass, etc.
  */
-public class FormulaAnnotationType extends ListWithSubsType<ResultFormula> implements
+public class FormulaListType extends ListWithSubsType<ResultFormula> implements
     AnnotationType {
 
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List
-      .of(new FormulaAnnotationType(), new FormulaMassType(), new RdbeType(),
+      .of(new FormulaListType(), new FormulaMassType(), new RdbeType(),
           new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
   private static final Map<Class<? extends DataType>, Function<ResultFormula, Object>> mapper =
       Map.ofEntries(
-          createEntry(FormulaAnnotationType.class, formula -> formula),
+          createEntry(FormulaListType.class, formula -> formula),
           createEntry(FormulaMassType.class, formula -> formula.getExactMass()),
           createEntry(RdbeType.class, formula -> formula.getRDBE()),
           createEntry(MzPpmDifferenceType.class, formula -> formula.getPpmDiff()),

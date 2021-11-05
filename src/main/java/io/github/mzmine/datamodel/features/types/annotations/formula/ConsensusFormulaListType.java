@@ -15,45 +15,33 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.annotations.formula;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.FormulaUtils;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The formula mass typically follows a {@link FormulaType} and describes the neutral mass or m/z
- * depending on the formula. Also see {@link FormulaUtils}.
+ * This annotation type stores a list of formulas that were predicted as consensus formulas for
+ * multiple feature list rows (e.g., in Ion Identity Networking, see {@link
+ * IonNetwork#getMolFormulas()}) or for multiple different methods
  */
-public class FormulaMassType extends DoubleType {
+public class ConsensusFormulaListType extends ListDataType<ResultFormula>
+    implements AnnotationType, EditableColumnType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "formula_mass";
-  }
-
-  public FormulaMassType() {
-    super(new DecimalFormat("0.0000"));
-  }
-
-  @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getMZFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+    return "consensus_formula_list";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Formula mass";
+    return "Consensus formula";
   }
 
 }

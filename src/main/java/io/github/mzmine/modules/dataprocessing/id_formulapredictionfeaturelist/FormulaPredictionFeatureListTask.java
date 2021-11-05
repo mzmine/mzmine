@@ -24,7 +24,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formula_sort.FormulaSortParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
@@ -170,7 +170,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
 
     totalRows = featureList.getNumberOfRows();
 
-    featureList.addRowType(new FormulaAnnotationType());
+    featureList.addRowType(new FormulaListType());
 
     for (FeatureListRow row : featureList.getRows()) {
 

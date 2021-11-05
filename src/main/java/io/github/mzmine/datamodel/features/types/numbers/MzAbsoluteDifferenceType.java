@@ -17,7 +17,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
@@ -25,8 +25,8 @@ import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Absolute m/z difference, e.g., used in {@link FormulaAnnotationType} to describe the difference
- * between the measured (accurate) and the calculated (exact) m/z
+ * Absolute m/z difference, e.g., used in {@link FormulaListType} to describe the difference between
+ * the measured (accurate) and the calculated (exact) m/z
  */
 public class MzAbsoluteDifferenceType extends DoubleType {
 

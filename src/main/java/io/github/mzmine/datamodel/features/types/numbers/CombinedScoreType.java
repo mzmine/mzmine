@@ -17,16 +17,16 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
 
 /**
  * A {@link ScoreType} that combines multiple other scores. This type is typically used right after
- * other score types to signal which scores were combined. In the case of {@link
- * FormulaAnnotationType}, CombinedScore combines {@link IsotopePatternScoreType} and {@link
- * MsMsScoreType}, and the relative mass differnce into one score.
+ * other score types to signal which scores were combined. In the case of {@link FormulaListType},
+ * CombinedScore combines {@link IsotopePatternScoreType} and {@link MsMsScoreType}, and the
+ * relative mass differnce into one score.
  */
 public class CombinedScoreType extends ScoreType {
 

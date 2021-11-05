@@ -20,10 +20,10 @@ package io.github.mzmine.datamodel.features.types.annotations.iin;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaConsensusSummaryType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaListType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaMassType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaMassType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormulaListType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CombinedScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
@@ -59,9 +59,9 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
           new PartnerIdsType(), new MsMsMultimerVerifiedType(),
           // all formula types
           // list of IIN consensus formulas
-          new FormulaConsensusSummaryType(),
+          new ConsensusFormulaListType(),
           // List of formulas for this row and all related types
-          new FormulaListType(), new FormulaMassType(), new RdbeType(),
+          new SimpleFormulaListType(), new FormulaMassType(), new RdbeType(),
           new MZType(), new MzPpmDifferenceType(), new MzAbsoluteDifferenceType(),
           new IsotopePatternScoreType(), new MsMsScoreType(), new CombinedScoreType());
 
@@ -79,9 +79,9 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
             int msmsMultimerCount = ion.getMSMSMultimerCount();
             return msmsMultimerCount == -1 ? null : msmsMultimerCount > 0;
           })),
-          createEntry(FormulaConsensusSummaryType.class,
+          createEntry(ConsensusFormulaListType.class,
               (ion -> ion.getNetwork() != null ? ion.getNetwork().getMolFormulas() : null)),
-          createEntry(FormulaListType.class, (ion -> ion.getMolFormulas())),
+          createEntry(SimpleFormulaListType.class, (ion -> ion.getMolFormulas())),
           createEntry(FormulaMassType.class, (ion -> {
             ResultFormula f = getMolFormula(ion);
             return f == null ? null : f.getExactMass();
@@ -148,11 +148,11 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   public <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
       T newValue) {
     try {
-      if (subType.getClass().equals(FormulaConsensusSummaryType.class)) {
+      if (subType.getClass().equals(ConsensusFormulaListType.class)) {
         List<ResultFormula> formulas = model.get(this).get(0).getNetwork().getMolFormulas();
         formulas.remove(newValue);
         formulas.add(0, (ResultFormula) newValue);
-      } else if (subType.getClass().equals(FormulaListType.class)) {
+      } else if (subType.getClass().equals(SimpleFormulaListType.class)) {
         List<ResultFormula> formulas = model.get(this).get(0).getMolFormulas();
         formulas.remove(newValue);
         formulas.add(0, (ResultFormula) newValue);

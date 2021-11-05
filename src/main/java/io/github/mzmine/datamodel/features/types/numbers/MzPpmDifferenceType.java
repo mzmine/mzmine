@@ -17,16 +17,15 @@
 
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.annotations.FormulaAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Relative m/z difference in ppm (parts-per-million: 10^-6), e.g., used in {@link
- * FormulaAnnotationType} to describe the difference between the measured (accurate) and the
- * calculated (exact) m/z
+ * Relative m/z difference in ppm (parts-per-million: 10^-6), e.g., used in {@link FormulaListType}
+ * to describe the difference between the measured (accurate) and the calculated (exact) m/z
  */
 public class MzPpmDifferenceType extends FloatType {
 
