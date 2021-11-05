@@ -25,6 +25,8 @@ import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -139,7 +141,7 @@ public class MatchedLipid {
     if (comment != null) {
       writer.writeCharacters(comment);
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
 

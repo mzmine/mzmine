@@ -132,21 +132,21 @@ public class LipidFragment {
     if (chainLength != null) {
       writer.writeCharacters(chainLength.toString());
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     writer.writeStartElement(XML_NUMBER_OF_DBES);
     if (numberOfDBEs != null) {
       writer.writeCharacters(numberOfDBEs.toString());
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CHAIN_TYPE);
     if (lipidChainType != null) {
       writer.writeCharacters(lipidChainType.getName());
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     if (msMsScan != null) {
@@ -217,19 +217,19 @@ public class LipidFragment {
           }
           break;
         case XML_CHAIN_LENGTH:
-          if (lipidFragmentInformationLevelType
+          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType
               .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
             chainLength = Integer.parseInt(reader.getElementText());
           }
           break;
         case XML_NUMBER_OF_DBES:
-          if (lipidFragmentInformationLevelType
+          if (lipidFragmentInformationLevelType != null&&lipidFragmentInformationLevelType
               .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
             numberOfDBEs = Integer.parseInt(reader.getElementText());
           }
           break;
         case XML_LIPID_CHAIN_TYPE:
-          if (lipidFragmentInformationLevelType
+          if (lipidFragmentInformationLevelType != null && lipidFragmentInformationLevelType
               .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
             lipidChainType =
                 ParsingUtils.lipidChainTypeNameToLipidChainType(reader.getElementText());

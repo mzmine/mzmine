@@ -24,6 +24,8 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
@@ -98,7 +100,7 @@ public class CustomLipidClass implements ILipidClass {
         writer.writeCharacters(lipidChainType.getName());
       }
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     writer.writeStartElement(XML_LIPID_CLASS_FRAGMENTATION_RULES);
@@ -107,7 +109,7 @@ public class CustomLipidClass implements ILipidClass {
         lipidFragmentationRule.saveToXML(writer);
       }
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
 

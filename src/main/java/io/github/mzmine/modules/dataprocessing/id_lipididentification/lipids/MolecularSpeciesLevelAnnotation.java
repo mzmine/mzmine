@@ -24,6 +24,8 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -147,7 +149,7 @@ public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
         lipidChain.saveToXML(writer);
       }
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     writer.writeEndElement();

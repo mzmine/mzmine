@@ -22,6 +22,8 @@ package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididen
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -117,7 +119,7 @@ public class LipidFragmentationRule {
     if (molecularFormula != null) {
       writer.writeCharacters(molecularFormula);
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     writer.writeEndElement();
