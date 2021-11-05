@@ -18,8 +18,7 @@
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
@@ -27,23 +26,44 @@ import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This type has multiple sub columns. The first is a list of complex objects ({@link
- * GNPSSpectralLibMatchSummaryType}). The first object in this list defines all the other sub
- * columns.
+ * This type has multiple sub columns
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class GNPSSpectralLibraryMatchType extends ModularType implements AnnotationType {
+public class GNPSSpectralLibraryMatchesType extends ListWithSubsType<GNPSLibraryMatch> implements
+    AnnotationType {
 
   // Unmodifiable list of all subtypes
-  private static final List<DataType> subTypes = List.of(new GNPSSpectralLibMatchSummaryType(),
+  private static final List<DataType> subTypes = List.of(new GNPSSpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(),
       new SmilesStructureType(), new InChIStructureType(),
       new CosineScoreType(), new MatchingSignalsType(), new GNPSLibraryUrlType(),
       new GNPSClusterUrlType(), new GNPSNetworkUrlType());
+
+  private static final Map<Class<? extends DataType>, Function<GNPSLibraryMatch, Object>> mapper =
+      Map.ofEntries(
+          createEntry(GNPSSpectralLibraryMatchesType.class, match -> match),
+          createEntry(CompoundNameType.class,
+              match -> match.getResultOr(ATT.COMPOUND_NAME, "NONAME")),
+          createEntry(IonAdductType.class, match -> match.getResultOr(ATT.ADDUCT, "")),
+          createEntry(SmilesStructureType.class, match -> match.getResultOr(ATT.SMILES, "")),
+          createEntry(InChIStructureType.class, match -> match.getResultOr(ATT.INCHI, "")),
+          createEntry(CosineScoreType.class,
+              match -> match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null)),
+          createEntry(MatchingSignalsType.class,
+              match -> match.getResultOr(ATT.SHARED_SIGNALS, null)),
+          createEntry(GNPSLibraryUrlType.class,
+              match -> match.getResultOr(ATT.GNPS_LIBRARY_URL, null)),
+          createEntry(GNPSClusterUrlType.class,
+              match -> match.getResultOr(ATT.GNPS_CLUSTER_URL, null)),
+          createEntry(GNPSNetworkUrlType.class,
+              match -> match.getResultOr(ATT.GNPS_NETWORK_URL, null))
+      );
 
   @NotNull
   @Override
@@ -51,45 +71,22 @@ public class GNPSSpectralLibraryMatchType extends ModularType implements Annotat
     return subTypes;
   }
 
+  @Override
+  protected Map<Class<? extends DataType>, Function<GNPSLibraryMatch, Object>> getMapper() {
+    return mapper;
+  }
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "gnps_library_match_annotation";
+    return "gnps_library_matches";
   }
 
   @NotNull
   @Override
   public String getHeaderString() {
     return "GNPS library match";
-  }
-
-  /**
-   * On change of the first list element, change all the other sub types.
-   *
-   * @param data  the data property
-   * @param match the current element
-   */
-  private void setCurrentElement(ModularTypeMap data, GNPSLibraryMatch match) {
-    if (match == null) {
-      for (DataType type : this.getSubDataTypes()) {
-        if (!(type instanceof GNPSSpectralLibMatchSummaryType)) {
-          data.set(type, null);
-        }
-      }
-    } else {
-      // update selected values
-      data.set(CompoundNameType.class, match.getResultOr(ATT.COMPOUND_NAME, "NONAME").toString());
-      data.set(IonAdductType.class, match.getResultOr(ATT.ADDUCT, "").toString());
-      data.set(SmilesStructureType.class, match.getResultOr(ATT.SMILES, "").toString());
-      data.set(InChIStructureType.class, match.getResultOr(ATT.INCHI, "").toString());
-      data.set(CosineScoreType.class, match.getResultOr(ATT.LIBRARY_MATCH_SCORE, null));
-      data.set(MatchingSignalsType.class, match.getResultOr(ATT.SHARED_SIGNALS, null));
-      data.set(GNPSLibraryUrlType.class, match.getResultOr(ATT.GNPS_LIBRARY_URL, null));
-      data.set(GNPSClusterUrlType.class, match.getResultOr(ATT.GNPS_CLUSTER_URL, null));
-      data.set(GNPSNetworkUrlType.class, match.getResultOr(ATT.GNPS_NETWORK_URL, null));
-    }
   }
 
 }

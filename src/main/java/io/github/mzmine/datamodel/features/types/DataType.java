@@ -97,7 +97,9 @@ public abstract class DataType<T> {
           ModularFeatureListRow row = event.getRowValue().getValue();
           ModularDataModel model = raw == null ? row : row.getFeature(raw);
 
-          if (parentType != null) {
+          // if parent type is different than type - parent type will handle the value change
+          // e.g. see io.github.mzmine.datamodel.features.types.ListWithSubsType
+          if (parentType != null && !parentType.equals(type)) {
             parentType.valueChanged(model, (DataType) type, subColumnIndex, data);
           } else {
             if (type instanceof ListDataType) {
@@ -106,10 +108,13 @@ public abstract class DataType<T> {
                 addDialog.createNewElementDialog(model, type);
               } else {
                 try {
-                  List list = new ArrayList<>((List) model.get(type));
-                  list.remove(data);
-                  list.add(0, (T) data);
-                  model.set((DataType) type, list);
+                  List list = (List) model.get(type);
+                  if (list != null) {
+                    list = new ArrayList<>(list);
+                    list.remove(data);
+                    list.add(0, (T) data);
+                    model.set((DataType) type, list);
+                  }
                 } catch (Exception ex) {
                   logger.log(Level.SEVERE,
                       "Cannot set value from table cell to data type: " + type.getHeaderString());
