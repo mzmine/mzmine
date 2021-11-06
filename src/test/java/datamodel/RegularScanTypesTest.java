@@ -1,18 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package datamodel;
@@ -32,6 +33,11 @@ import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -46,6 +52,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.paint.Color;
@@ -168,5 +175,41 @@ public class RegularScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
+  }
+
+  @Test
+  void lipidAnnotationSummaryTypeTest() {
+    DataType<?> type = new LipidAnnotationSummaryType();
+
+    LipidFactory lipidFactory = new LipidFactory();
+    SpeciesLevelAnnotation speciesLevelAnnotation = lipidFactory.buildSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2);
+
+    MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = lipidFactory.buildMolecularSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2});
+
+    List<MatchedLipid> value = new ArrayList<>();
+
+    value.add(new MatchedLipid(speciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    value.add(new MatchedLipid(molecularSpeciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
+        flist, row, null, null);
+
+    Assertions.assertEquals(value.size(), loaded.size());
+    final MatchedLipid first = value.get(0);
+    final MatchedLipid firstLoaded = loaded.get(0);
+    Assertions.assertEquals(first.getIonizationType(), firstLoaded.getIonizationType());
+    Assertions.assertEquals(first.getMsMsScore(), firstLoaded.getMsMsScore());
+    Assertions.assertEquals(first.getAccurateMz(), firstLoaded.getAccurateMz());
+
+    final MatchedLipid second = value.get(1);
+    final MatchedLipid secondLoaded = loaded.get(1);
+    Assertions.assertEquals(second.getIonizationType(), secondLoaded.getIonizationType());
+    Assertions.assertEquals(second.getMsMsScore(), secondLoaded.getMsMsScore());
+    Assertions.assertEquals(second.getAccurateMz(), secondLoaded.getAccurateMz());
   }
 }

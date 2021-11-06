@@ -20,18 +20,19 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
-public class LipidAnnotationMsMsScoreType extends DoubleType {
+public class LipidAnnotationMsMsScoreType extends ScoreType {
 
   public LipidAnnotationMsMsScoreType() {
-    super(new DecimalFormat("0.0"));
+    super();
   }
 
   @Override
   public NumberFormat getFormatter() {
-    // only happens if types are used without initializing the MZmineCore
-    return DEFAULT_FORMAT;
+    return new DecimalFormat("0.0");
   }
 
   @Override

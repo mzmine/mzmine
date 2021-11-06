@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.types.annotations.GNPSNetworkUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidMsOneErrorType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
@@ -170,8 +169,8 @@ public class AnnotationTypeTests {
 
     IdentityType type = new IdentityType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
-    final List<?> loaded = (List<?>) DataTypeTestUtils
-        .saveAndLoad(type, list, flist, row, null, null);
+    final List<?> loaded = (List<?>) DataTypeTestUtils.saveAndLoad(type, list, flist, row, null,
+        null);
 
     Assertions.assertEquals(list.size(), loaded.size());
 
@@ -202,19 +201,12 @@ public class AnnotationTypeTests {
   @Test
   void lipidAnotationMsMsScoreTypeTest() {
     LipidAnnotationMsMsScoreType type = new LipidAnnotationMsMsScoreType();
-    Double value = 0.978d;
+    Float value = 0.978f;
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
-  // todo LipidAnnotationSummaryType
+  // todo LipidAnnotationSummaryType -> see RegularScanTypesTest
   // todo LipidAnnotationType
-
-  @Test
-  void lipidMsMsOneErrorTypeTest() {
-    LipidMsOneErrorType type = new LipidMsOneErrorType();
-    Double value = 0.978d;
-    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
-  }
 
   // todo LipidSpectrumType
 
