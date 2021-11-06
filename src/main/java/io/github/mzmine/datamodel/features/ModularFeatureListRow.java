@@ -30,10 +30,8 @@ import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
-import io.github.mzmine.datamodel.features.types.annotations.CommentType;
-import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
@@ -475,83 +473,54 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public String getComment() {
-    ModularTypeMap manual = getManualAnnotation();
-    if (manual != null) {
-      return manual.get(CommentType.class);
-    } else {
-      return get(CommentType.class);
-    }
+    ManualAnnotation manual = getManualAnnotation();
+    return manual == null ? null : manual.getComment();
   }
 
   @Override
   public void setComment(String comment) {
-    ModularTypeMap manual = getManualAnnotation();
+    ManualAnnotation manual = getManualAnnotation();
     if (manual == null) {
-      // add type
-      flist.addRowType(new ManualAnnotationType());
-      ManualAnnotationType mtype = new ManualAnnotationType();
-      flist.addRowType(mtype);
-      set(ManualAnnotationType.class, mtype.createMap());
-      setComment(comment);
-      return;
+      manual = new ManualAnnotation();
     }
-    manual.set(CommentType.class, comment);
+    manual.setComment(comment);
+    set(ManualAnnotationType.class, manual);
   }
 
-  public ModularTypeMap getManualAnnotation() {
+  public ManualAnnotation getManualAnnotation() {
     return get(ManualAnnotationType.class);
   }
 
   @Override
   public List<FeatureIdentity> getPeakIdentities() {
-    ModularTypeMap manual = getManualAnnotation();
-    if (manual != null) {
-      return manual.get(IdentityType.class);
-    } else {
-      List<FeatureIdentity> prop = get(IdentityType.class);
-      return prop != null ? prop
-          : FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList());
-    }
+    ManualAnnotation manual = getManualAnnotation();
+    return manual == null ? List.of() : manual.getIdentities();
   }
 
   public void setPeakIdentities(List<FeatureIdentity> identities) {
-    ModularTypeMap manual = getManualAnnotation();
+    ManualAnnotation manual = getManualAnnotation();
     if (manual == null) {
-      // add type
-      ManualAnnotationType mtype = new ManualAnnotationType();
-      flist.addRowType(mtype);
-      set(ManualAnnotationType.class, mtype.createMap());
-      setPeakIdentities(identities);
-      return;
+      manual = new ManualAnnotation();
     }
-    manual.set(IdentityType.class, identities);
+    manual.setIdentities(identities);
+    set(ManualAnnotationType.class, manual);
   }
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    ModularTypeMap manual = getManualAnnotation();
-    if (manual == null) {
-      // add type
-      flist.addRowType(new ManualAnnotationType());
-      ManualAnnotationType mtype = new ManualAnnotationType();
-      flist.addRowType(mtype);
-      set(ManualAnnotationType.class, mtype.createMap());
-      addFeatureIdentity(identity, preferred);
-      return;
-    }
-    // Verify if exists already an identity with the same name
-    List<FeatureIdentity> peakIdentities = getPeakIdentities();
-    for (FeatureIdentity testId : peakIdentities) {
-      if (testId.getName().equals(identity.getName())) {
-        return;
-      }
-    }
+    ManualAnnotation manual = Objects
+        .requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
 
+    List<FeatureIdentity> peakIdentities = Objects
+        .requireNonNullElse(getPeakIdentities(), new ArrayList<>());
+    peakIdentities.remove(identity);
     if (preferred) {
       peakIdentities.add(0, identity);
     } else {
       peakIdentities.add(identity);
     }
+    manual.setIdentities(peakIdentities);
+    set(ManualAnnotationType.class, manual);
   }
 
   @Override
@@ -575,7 +544,8 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void removeFeatureIdentity(FeatureIdentity identity) {
-    List<FeatureIdentity> identities = getPeakIdentities();
+    ManualAnnotation manual = getManualAnnotation();
+    List<FeatureIdentity> identities = manual.getIdentities();
     if (identities != null && !identities.isEmpty()) {
       identities = new ArrayList<>(identities);
       identities.remove(identity);
