@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
@@ -60,18 +60,14 @@ public class DataTypeCellValueFactory implements
       return null;
     }
 
-    // todo try read only wrapper
     if (parentType != null && parentType instanceof DataType parent) {
       Object value = model.get(parent);
       Object subColValue = parentType.getSubColValue(subColIndex, value);
-      return subColValue == null ? null : new ReadOnlyObjectWrapper<>(subColValue);
+      return subColValue == null ? null : new SimpleObjectProperty<>(subColValue);
     } else {
       Object value = model.get(type);
-      return value == null ? null : new ReadOnlyObjectWrapper<>(value);
+      return value == null ? null : new SimpleObjectProperty<>(value);
     }
-//    Property property = type.createProperty();
-//    property.setValue(model.get(type));
-//    return (ObservableValue<Object>) property;
   }
 
   /**

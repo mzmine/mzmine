@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -83,13 +84,9 @@ public class GNPSResultsImportTask extends AbstractTask {
   public static void addGNPSLibraryMatchToRow(ModularFeatureListRow row,
       GNPSLibraryMatch identity) {
     // add column first if needed
-    List<GNPSLibraryMatch> list = row.get(GNPSSpectralLibraryMatchesType.class);
-    if (list == null) {
-      list = List.of(identity);
-    } else {
-      list = new ArrayList<>(list);
-      list.add(identity);
-    }
+    List<GNPSLibraryMatch> list = Objects
+        .requireNonNullElse(row.get(GNPSSpectralLibraryMatchesType.class), new ArrayList<>());
+    list.add(identity);
     row.set(GNPSSpectralLibraryMatchesType.class, list);
   }
 

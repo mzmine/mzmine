@@ -53,8 +53,8 @@ public class DataTypeCellFactory implements
   private final int subcolumn;
 
 
-  public DataTypeCellFactory(RawDataFile raw, DataType type, @Nullable SubColumnsFactory parent,
-      int subcolumn) {
+  public DataTypeCellFactory(@Nullable RawDataFile raw, @NotNull DataType type,
+      @Nullable SubColumnsFactory parent, int subcolumn) {
     this.parent = parent;
     this.type = type;
     this.raw = raw;
@@ -64,7 +64,7 @@ public class DataTypeCellFactory implements
   /**
    * Creates cells of the modular feature table. Sets text, graphics and tool tips.
    *
-   * @param param
+   * @param param the column
    * @return The cell.
    */
   @Override
@@ -92,15 +92,6 @@ public class DataTypeCellFactory implements
               setGraphic(null);
               setText(null);
             } else {
-              // sub columns provide values
-//              if (parent != null) {
-//                // get sub column value
-//                Node n = parent.getSubColNode(subcolumn, this, param, item, raw);
-//                setGraphic(n);
-//                String text =
-//                    n != null ? null : parent.getFormattedSubColValue(subcolumn, item);
-//                setText(text);
-//              } else
               if (type instanceof GraphicalColumType graphicalColumType) {
                 Node node = graphicalColumType.getCellNode(this, param, item, raw);
                 getTableColumn().setMinWidth(graphicalColumType.getColumnWidth());

@@ -470,9 +470,6 @@ public class FeatureResolverTask extends AbstractTask {
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
 
-    // copy all Row and Feature types over
-    DataTypeUtils.copyTypes(originalFeatureList, resolvedFeatureList, true, true);
-
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
