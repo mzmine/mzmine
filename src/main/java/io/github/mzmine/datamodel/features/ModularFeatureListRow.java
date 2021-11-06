@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
-import io.github.mzmine.datamodel.features.types.ModularType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -448,8 +447,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * Checks if typeClass was added as a FeatureType - does not check nested types in a {@link
-   * ModularType}
+   * Checks if typeClass was added as a FeatureType
    *
    * @param typeClass class of a DataType
    * @return true if feature type is available
@@ -460,8 +458,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   /**
-   * Checks if typeClass was added as a row type - does not check nested types in a {@link
-   * ModularType}
+   * Checks if typeClass was added as a row type
    *
    * @param typeClass class of a DataType
    * @return true if row type is available

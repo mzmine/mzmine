@@ -28,7 +28,6 @@ import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
-import io.github.mzmine.datamodel.features.types.fx.ModularDataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
@@ -80,13 +79,8 @@ public abstract class DataType<T> {
     col.setUserData(type);
     col.setSortable(true);
 
-    // is sub column of parentType?
     // define observable
-    if (parentType instanceof ModularType modType) {
-      col.setCellValueFactory(new ModularDataTypeCellValueFactory(raw, modType, type));
-    } else {
-      col.setCellValueFactory(new DataTypeCellValueFactory(raw, type, parentType, subColumnIndex));
-    }
+    col.setCellValueFactory(new DataTypeCellValueFactory(raw, type, parentType, subColumnIndex));
     // value representation
     if (type instanceof EditableColumnType) {
       col.setCellFactory(type.getEditableCellFactory(raw, parentType, subColumnIndex));

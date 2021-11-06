@@ -25,8 +25,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
@@ -240,15 +238,13 @@ public class CSVExportModularTask extends AbstractTask {
    */
   private void joinEmptyCells(StringBuilder b, List<DataType> dataTypes) {
     for (DataType t : dataTypes) {
-      if (t instanceof ModularType) {
-        ModularType modType = (ModularType) t;
-        // join all the sub headers
-        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
-            .filter(this::filterType).collect(Collectors.toList());
-        joinEmptyCells(b, filteredSubTypes);
-      } else if (t instanceof SubColumnsFactory subCols) {
+      if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
+          DataType sub = subCols.getType(i);
+          if (sub != null && !filterType(sub)) {
+            continue;
+          }
           b.append(fieldSeparator);
         }
       } else {
@@ -259,27 +255,23 @@ public class CSVExportModularTask extends AbstractTask {
 
   /**
    * @param b
-   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature}, {@link ModularTypeMap}
-   *              might be null if not set
+   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature} might be null if not set
    * @param types
    * @return
    */
   private void joinData(StringBuilder b, @Nullable ModularDataModel data, List<DataType> types) {
     for (DataType type : types) {
-      if (type instanceof ModularType modType) {
-        // needs to be checked before SubColumnFactory
-        // join all the sub types of a modular data type
-        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
-            .filter(this::filterType).collect(Collectors.toList());
-        ModularTypeMap modProp = data == null ? null : data.get(modType);
-        joinData(b, modProp, filteredSubTypes);
-      } else if (type instanceof SubColumnsFactory subCols) {
+      if (type instanceof SubColumnsFactory subCols) {
         Object value = data == null ? null : data.get(type);
         if (value == null) {
           value = type.getDefaultValue();
         }
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
+          DataType<?> subType = subCols.getType(i);
+          if (subType != null && !filterType(subType)) {
+            continue;
+          }
           String field = subCols.getFormattedSubColValue(i, value);
           if (b.length() != 0) {
             b.append(fieldSeparator);
@@ -320,19 +312,13 @@ public class CSVExportModularTask extends AbstractTask {
     for (DataType t : types) {
       String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator) + t
           .getHeaderString();
-      if (t instanceof ModularType) {
-        ModularType modType = (ModularType) t;
-        // join all the sub headers
-        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
-            .filter(this::filterType).collect(Collectors.toList());
-        header = getJoinedHeader(filteredSubTypes, header);
-        if (b.length() != 0) {
-          b.append(fieldSeparator);
-        }
-        b.append(header);
-      } else if (t instanceof SubColumnsFactory subCols) {
+      if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
+          DataType subType = subCols.getType(i);
+          if (subType != null && !filterType(subType)) {
+            continue;
+          }
           String field = subCols.getHeader(i);
           if (b.length() != 0) {
             b.append(fieldSeparator);

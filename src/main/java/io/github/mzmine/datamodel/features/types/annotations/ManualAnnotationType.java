@@ -115,7 +115,6 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    // stop if ended==parsed+1 (reached end of this ModularType)
     ManualAnnotation manual = null;
     while (reader.hasNext()) {
       int next = reader.next();
