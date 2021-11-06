@@ -71,16 +71,10 @@ public class SpectralLibraryMatchesType extends
           createEntry(PrecursorMZType.class,
               match -> (double) match.getEntry().getField(DBEntryField.MZ).orElse(null)),
           createEntry(NeutralMassType.class,
-              match -> (double) match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null)),
-          createEntry(CompoundNameType.class,
-              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
-          createEntry(CompoundNameType.class,
-              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString()),
-          createEntry(CompoundNameType.class,
-              match -> match.getEntry().getField(DBEntryField.NAME).orElse("").toString())
+              match -> (double) match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null))
       );
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
+  private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(),
       new FormulaType(), new SmilesStructureType(), new InChIStructureType(),
       new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),

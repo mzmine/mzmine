@@ -134,19 +134,26 @@ public class ManualAnnotation {
 
   public void set(DataType sub, Object o) {
     if (sub instanceof CommentType) {
-      setComment(o.toString());
+      setComment((String) o);
+      return;
     } else if (sub instanceof SmilesStructureType) {
-      setSmiles(o.toString());
+      setSmiles((String) o);
+      return;
     } else if (sub instanceof InChIStructureType) {
-      setInchi(o.toString());
+      setInchi((String) o);
+      return;
     } else if (sub instanceof IdentityType) {
       setIdentities((List<FeatureIdentity>) o);
+      return;
     } else if (sub instanceof FormulaType) {
-      setFormula(o.toString());
+      setFormula((String) o);
+      return;
     } else if (sub instanceof IonAdductType) {
-      setIon(o.toString());
+      setIon((String) o);
+      return;
     } else if (sub instanceof CompoundNameType) {
-      setCompoundName(o.toString());
+      setCompoundName((String) o);
+      return;
     }
     throw new IllegalArgumentException(
         String.format("Subtype %s of class %s is not handled", sub, sub.getClass().getName()));

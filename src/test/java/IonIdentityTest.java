@@ -84,8 +84,6 @@ public class IonIdentityTest {
     // return some fixed mz and rt
     doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
     doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
-    doReturn(1f).when(rowProtonated).getAverageRT();
-    doReturn(1f).when(rowSodiated).getAverageRT();
 
     // add rows
     flist.addRow(rowProtonated);

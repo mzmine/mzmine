@@ -48,7 +48,7 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
   private static final Logger logger = Logger.getLogger(ManualAnnotationType.class.getName());
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new IdentityType(), new CommentType(),
+  private static final List<DataType> subTypes = List.of(new IdentityType(), new CommentType(),
       new CompoundNameType(), new IonAdductType(), new FormulaType(), new InChIStructureType(),
       new SmilesStructureType());
 
@@ -91,21 +91,23 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
     for (int i = 0; i < subTypes.size(); i++) {
       DataType sub = subTypes.get(i);
       Object subValue = getSubColValue(sub, manual);
+      if (subValue != null) {
+        writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+        writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
 
-      writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
-      writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
+        try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
+          sub.saveToXML(writer, subValue, flist, row, feature, file);
+        } catch (XMLStreamException e) {
+          final Object finalVal = subValue;
+          logger.warning(
+              () -> "Error while writing data type " + sub.getClass().getSimpleName()
+                    + " with value "
+                    + finalVal + " to xml.");
+          e.printStackTrace();
+        }
 
-      try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
-        sub.saveToXML(writer, subValue, flist, row, feature, file);
-      } catch (XMLStreamException e) {
-        final Object finalVal = subValue;
-        logger.warning(
-            () -> "Error while writing data type " + sub.getClass().getSimpleName() + " with value "
-                  + finalVal + " to xml.");
-        e.printStackTrace();
+        writer.writeEndElement();
       }
-
-      writer.writeEndElement();
     }
   }
 
@@ -114,26 +116,22 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     // stop if ended==parsed+1 (reached end of this ModularType)
-    int parsed = 0;
-    int ended = 0;
-
-    ManualAnnotation manual = new ManualAnnotation();
+    ManualAnnotation manual = null;
     while (reader.hasNext()) {
       int next = reader.next();
 
       if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
           .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-        ended++;
-        if (ended == parsed + 1) {
-          break;
-        }
+        break;
       }
       if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         DataType type = DataTypes.getTypeForId(
             reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
         Object o = type.loadFromXML(reader, flist, row, feature, file);
+        if (manual == null) {
+          manual = new ManualAnnotation();
+        }
         manual.set(type, o);
-        parsed++;
       }
     }
     return manual;

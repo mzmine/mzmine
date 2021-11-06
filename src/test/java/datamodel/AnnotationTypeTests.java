@@ -21,7 +21,6 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.ModularTypeMap;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -32,6 +31,7 @@ import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMsOneErrorType;
+import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
@@ -76,12 +76,12 @@ public class AnnotationTypeTests {
     // test row load
     ManualAnnotationType type = new ManualAnnotationType();
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
-    ModularTypeMap value = type.createMap();
-    value.set(IdentityType.class, list);
-    final ModularTypeMap loaded = (ModularTypeMap) DataTypeTestUtils
+    ManualAnnotation value = new ManualAnnotation();
+    value.setIdentities(list);
+    final ManualAnnotation loaded = (ManualAnnotation) DataTypeTestUtils
         .saveAndLoad(type, value, flist, row, null, null);
 
-    List<FeatureIdentity> featureIdentities = loaded.get(new IdentityType());
+    List<FeatureIdentity> featureIdentities = loaded.getIdentities();
     Assertions.assertEquals(list.size(), featureIdentities.size());
 
     FeatureIdentity loaded1 = featureIdentities.get(0);
