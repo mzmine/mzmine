@@ -38,6 +38,18 @@ import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCategories;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 
 public class ParsingUtils {
 
@@ -149,8 +161,8 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern
+        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       double lower = Double.parseDouble(matcher.group(1));
@@ -161,8 +173,8 @@ public class ParsingUtils {
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern
+        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       float lower = Float.parseFloat(matcher.group(1));
@@ -244,7 +256,27 @@ public class ParsingUtils {
     return str.split(SEPARATOR);
   }
 
-  /**
+  public static IonizationType ionizationNameToIonizationType(String ionizationName) {
+    IonizationType[] ionizationTypes = IonizationType.class.getEnumConstants();
+    for (IonizationType ionizationType : ionizationTypes) {
+      if (ionizationType.name().equals(ionizationName)) {
+        return ionizationType;
+      }
+    }
+    return null;
+  }
+
+  public static PolarityType polarityNameToPolarityType(String polarityName) {
+    PolarityType[] polarityTypes = PolarityType.class.getEnumConstants();
+    for (PolarityType polarityType : polarityTypes) {
+      if (polarityType.name().equals(polarityName)) {
+        return polarityType;
+      }
+    }
+    return null;
+  }
+
+    /**
    * @param reader           The reader.
    * @param attributeName    The name of the attribute to parse.
    * @param defaultValue     A default vaule, if the attribute is not found or cannot be parsed with

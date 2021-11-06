@@ -19,6 +19,7 @@
 package datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -26,6 +27,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
@@ -33,6 +36,11 @@ import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -47,6 +55,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.paint.Color;
@@ -169,5 +178,41 @@ public class RegularScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
+  }
+
+  @Test
+  void lipidAnnotationSummaryTypeTest() {
+    DataType<?> type = new LipidAnnotationSummaryType();
+
+    LipidFactory lipidFactory = new LipidFactory();
+    SpeciesLevelAnnotation speciesLevelAnnotation = lipidFactory.buildSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2);
+
+    MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = lipidFactory.buildMolecularSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2});
+
+    List<MatchedLipid> value = new ArrayList<>();
+
+    value.add(new MatchedLipid(speciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    value.add(new MatchedLipid(molecularSpeciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
+        flist, row, null, null);
+
+    Assertions.assertEquals(value.size(), loaded.size());
+    final MatchedLipid first = value.get(0);
+    final MatchedLipid firstLoaded = loaded.get(0);
+    Assertions.assertEquals(first.getIonizationType(), firstLoaded.getIonizationType());
+    Assertions.assertEquals(first.getMsMsScore(), firstLoaded.getMsMsScore());
+    Assertions.assertEquals(first.getAccurateMz(), firstLoaded.getAccurateMz());
+
+    final MatchedLipid second = value.get(1);
+    final MatchedLipid secondLoaded = loaded.get(1);
+    Assertions.assertEquals(second.getIonizationType(), secondLoaded.getIonizationType());
+    Assertions.assertEquals(second.getMsMsScore(), secondLoaded.getMsMsScore());
+    Assertions.assertEquals(second.getAccurateMz(), secondLoaded.getAccurateMz());
   }
 }
