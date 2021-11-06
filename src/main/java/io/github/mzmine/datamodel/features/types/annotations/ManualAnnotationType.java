@@ -17,7 +17,9 @@
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -30,6 +32,7 @@ import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.modules.io.projectload.version_3_0.DataTypes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.Property;
@@ -162,6 +165,38 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
       }
     }
     return cols;
+  }
+
+  @Override
+  public <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
+      T newValue) {
+    try {
+      ManualAnnotation manual = Objects.requireNonNullElse(model.get(this), new ManualAnnotation());
+
+      if (subType.getClass().equals(CommentType.class)) {
+        manual.setComment((String) newValue);
+      } else if (subType.getClass().equals(SmilesStructureType.class)) {
+        manual.setSmiles((String) newValue);
+      } else if (subType.getClass().equals(InChIStructureType.class)) {
+        manual.setInchi((String) newValue);
+      } else if (subType.getClass().equals(IdentityType.class)) {
+        List<FeatureIdentity> identities = Objects
+            .requireNonNullElse(manual.getIdentities(), new ArrayList<>());
+        identities.remove(newValue);
+        identities.add(0, (FeatureIdentity) newValue);
+        manual.setIdentities(identities);
+      } else if (subType.getClass().equals(FormulaType.class)) {
+        manual.setFormula((String) newValue);
+      } else if (subType.getClass().equals(IonAdductType.class)) {
+        manual.setIon((String) newValue);
+      } else if (subType.getClass().equals(CompoundNameType.class)) {
+        manual.setCompoundName((String) newValue);
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, () -> String.format(
+          "Cannot handle change in subtype %s at index %d in parent type %s with new value %s",
+          subType.getClass().getName(), subColumnIndex, this.getClass().getName(), newValue));
+    }
   }
 
   @Override
