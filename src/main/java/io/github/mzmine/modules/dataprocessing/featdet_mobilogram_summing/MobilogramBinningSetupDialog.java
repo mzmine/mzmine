@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.ReducedIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -59,8 +60,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess summedMobilogramAccess;
 
-  public MobilogramBinningSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public MobilogramBinningSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
@@ -70,24 +70,22 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     previewChart.setRangeAxisLabel("Intensity");
     previewChart.setDomainAxisLabel("Mobility");
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    previewChart
-        .setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
+    previewChart.setDomainAxisNumberFormatOverride(
+        MZmineCore.getConfiguration().getMobilityFormat());
     previewChart.setMinHeight(400);
     processedRenderer = new ColoredXYShapeRenderer();
 
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
-        (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists();
+    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
+        .getCurrentProject().getFeatureLists();
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                FXCollections.observableArrayList(newValue
-                    .getFeatures(newValue.getRawDataFile(0))));
+            fBox.setItems(FXCollections.observableArrayList(
+                newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }
@@ -130,24 +128,24 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   private void onSelectedFeatureChanged(final ModularFeature f) {
     previewChart.removeAllDatasets();
 
-    if (f == null || !(f.getRawDataFile() instanceof IMSRawDataFile) || !(f
-        .getFeatureData() instanceof IonMobilogramTimeSeries series)) {
+    if (f == null || !(f.getRawDataFile() instanceof IMSRawDataFile)
+        || !(f.getFeatureData() instanceof IonMobilogramTimeSeries series)) {
       return;
     }
 
     previewChart.setDomainAxisLabel(f.getMobilityUnit().getAxisLabel());
-    previewChart.addDataset(
-        new ColoredXYDataset(new SummedMobilogramXYProvider(series.getSummedMobilogram(),
+    previewChart.addDataset(new ColoredXYDataset(
+        new SummedMobilogramXYProvider(series.getSummedMobilogram(),
             new SimpleObjectProperty<>(f.getRawDataFile().getColor()),
             FeatureUtils.featureToString(f))));
 
     final Integer binWidth = switch (((IMSRawDataFile) f.getRawDataFile()).getMobilityType()) {
-      case TIMS -> parameterSet
-          .getParameter(MobilogramBinningParameters.timsBinningWidth).getValue();
-      case TRAVELING_WAVE -> parameterSet
-          .getParameter(MobilogramBinningParameters.twimsBinningWidth).getValue();
-      case DRIFT_TUBE -> parameterSet
-          .getParameter(MobilogramBinningParameters.dtimsBinningWidth).getValue();
+      case TIMS -> parameterSet.getParameter(MobilogramBinningParameters.timsBinningWidth)
+          .getValue();
+      case TRAVELING_WAVE -> parameterSet.getParameter(
+          MobilogramBinningParameters.twimsBinningWidth).getValue();
+      case DRIFT_TUBE -> parameterSet.getParameter(MobilogramBinningParameters.dtimsBinningWidth)
+          .getValue();
       default -> throw new UnsupportedOperationException(
           "Summing of the mobility type in raw data file " + f.getRawDataFile().getName()
               + " is unsupported.");
@@ -168,22 +166,20 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     }
 
     summedMobilogramAccess.setMobilogram(series.getSummedMobilogram());
-    SummedIntensityMobilitySeries fromSummed = summedMobilogramAccess
-        .toSummedMobilogram(null);
+    SummedIntensityMobilitySeries fromSummed = summedMobilogramAccess.toSummedMobilogram(null);
 
-    previewChart.addDataset(new ColoredXYDataset(
-        new SummedMobilogramXYProvider(fromSummed,
-            new SimpleObjectProperty<>(colorPalette.getPositiveColor()),
-            "From preprocessed")), processedRenderer);
+    previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(fromSummed,
+            new SimpleObjectProperty<>(colorPalette.getPositiveColor()), "From preprocessed")),
+        processedRenderer);
 
-    summedMobilogramAccess.setMobilogram(series.getMobilograms());
-    SummedIntensityMobilitySeries fromMobilograms = summedMobilogramAccess
-        .toSummedMobilogram(null);
+    if (!(series instanceof ReducedIonMobilogramTimeSeries)) {
+      summedMobilogramAccess.setMobilogram(series.getMobilograms());
+      SummedIntensityMobilitySeries fromMobilograms = summedMobilogramAccess.toSummedMobilogram(
+          null);
+      previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(fromMobilograms,
+          new SimpleObjectProperty<>(colorPalette.getPositiveColor()), "From raw")));
+    }
 
-    previewChart.addDataset(new ColoredXYDataset(
-        new SummedMobilogramXYProvider(fromMobilograms,
-            new SimpleObjectProperty<>(colorPalette.getPositiveColor()),
-            "From raw")));
   }
 
   @Override

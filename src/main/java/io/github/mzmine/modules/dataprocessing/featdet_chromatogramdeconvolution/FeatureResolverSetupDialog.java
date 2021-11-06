@@ -80,7 +80,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected ComboBox<ModularFeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ComboBox<ModularFeature> fBoxBadFeature;
-  protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess mobilogramBinning;
   protected Resolver resolver;
 
@@ -186,9 +185,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     preview.getColumnConstraints()
         .add(new ColumnConstraints(200, -1, -1, Priority.ALWAYS, HPos.LEFT, true));
     previewWrapperPane.setCenter(preview);
-
-    shapeRenderer.setDefaultItemLabelPaint(
-        MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
   }
 
   protected void onSelectedFeatureChanged(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
@@ -242,31 +238,45 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
       if (newValue.getFeatureList() instanceof ModularFeatureList flist) {
         if (dimension == ResolvingDimension.RETENTION_TIME) {
-          // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
-          final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
-              IonTimeSeriesUtils.remapRtAxis(newValue.getFeatureData(),
-                  flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
+          try {
+            // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
+            final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
+                IonTimeSeriesUtils.remapRtAxis(newValue.getFeatureData(),
+                    flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
 
-          for (IonTimeSeries<? extends Scan> series : resolved) {
-            ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
-                rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
-                    + rtFormat.format(
-                    series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime())
-                    + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
-            MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
+            for (IonTimeSeries<? extends Scan> series : resolved) {
+              ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
+                  rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
+                      + rtFormat.format(
+                      series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime())
+                      + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+              final var shapeRenderer = new ColoredXYShapeRenderer();
+              shapeRenderer.setDefaultItemLabelPaint(
+                  MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
+              MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
+            }
+          } catch (UnsupportedOperationException e) {
+            MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
           }
         } else {
           // for mobility dimension we don't need to remap RT
-          final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
-              newValue.getFeatureData(), null);
-          for (IonTimeSeries<? extends Scan> series : resolved) {
-            final SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
-            ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(mobilogram,
-                new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
-                mobilityFormat.format(mobilogram.getMobility(0)) + " - " + mobilityFormat.format(
-                    mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
-                    + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
-            MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
+          try {
+            final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
+                newValue.getFeatureData(), null);
+            for (IonTimeSeries<? extends Scan> series : resolved) {
+              final SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
+              ColoredXYDataset ds = new ColoredXYDataset(new SummedMobilogramXYProvider(mobilogram,
+                  new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
+                  mobilityFormat.format(mobilogram.getMobility(0)) + " - " + mobilityFormat.format(
+                      mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
+                      + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
+              final var shapeRenderer = new ColoredXYShapeRenderer();
+              shapeRenderer.setDefaultItemLabelPaint(
+                  MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
+              MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
+            }
+          } catch (UnsupportedOperationException e) {
+            MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
           }
         }
       }
@@ -278,6 +288,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       for (ResolvedPeak rp : resolved) {
         ColoredXYDataset ds = new ColoredXYDataset(rp);
         ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
+        final var shapeRenderer = new ColoredXYShapeRenderer();
+        shapeRenderer.setDefaultItemLabelPaint(
+            MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
         MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
       }
     }
@@ -328,7 +341,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     }
 
     List<String> errors = new ArrayList<>();
-    if (parameterSet.checkParameterValues(errors)) {
+    boolean check = parameterSet.checkParameterValues(errors);
+    if (check || (!check && errors.size() == 1 && errors.get(0).matches(
+        "At least ([\\d]+) feature lists must be selected"))) {
       onSelectedFeatureChanged(previewChart, fBox.getValue());
       onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getValue());
     }
@@ -361,4 +376,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     top30.sort(Comparator.comparingDouble(ModularFeatureListRow::getAverageHeight));
     return top30.get(top30.size() - 1).getBestFeature();
   }
+
+
 }

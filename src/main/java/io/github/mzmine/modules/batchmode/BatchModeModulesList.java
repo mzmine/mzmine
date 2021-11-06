@@ -64,6 +64,7 @@ import io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.Pe
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_scanfilters.ScanFiltersModule;
 import io.github.mzmine.modules.dataprocessing.filter_scansmoothing.ScanSmoothingModule;
+import io.github.mzmine.modules.dataprocessing.filter_tracereducer.IonMobilityTraceReducerModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.PeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
 import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFillerModule;
@@ -197,6 +198,7 @@ public class BatchModeModulesList {
       ADAPHierarchicalClusteringModule.class, //
       ADAPMultivariateCurveResolutionModule.class, //
       ADAP3DModule.class, //
+      IonMobilityTraceReducerModule.class, //
       ImsExpanderModule.class, //
 
       /*

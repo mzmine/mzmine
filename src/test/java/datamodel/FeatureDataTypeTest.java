@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
+import io.github.mzmine.datamodel.featuredata.impl.ReducedIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -154,6 +155,18 @@ public class FeatureDataTypeTest {
     Assertions.assertNotEquals(series, series_3);
 
     DataTypeTestUtils.testSaveLoad(new FeatureDataType(), null, flist, row, feature, file);
+
+    // test save and load for reduced trace
+    ReducedIonMobilogramTimeSeries reduced = new ReducedIonMobilogramTimeSeries(series);
+    feature.set(new FeatureDataType(), reduced);
+    DataTypeTestUtils.testSaveLoad(new FeatureDataType(), series, flist, row, feature, file);
+
+    // test equals
+    IonMobilogramTimeSeries reduced_2 = new ReducedIonMobilogramTimeSeries(series_2);
+    Assertions.assertEquals(reduced, reduced_2);
+
+    IonMobilogramTimeSeries reduced_3 = new ReducedIonMobilogramTimeSeries(series_3);
+    Assertions.assertNotEquals(reduced, reduced_3);
   }
 
   @NotNull
