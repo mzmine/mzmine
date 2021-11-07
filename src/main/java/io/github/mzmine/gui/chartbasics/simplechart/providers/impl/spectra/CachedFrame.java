@@ -125,11 +125,6 @@ public class CachedFrame implements Frame {
     return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
   }
 
-  @Override
-  public double getMobilityForMobilityScan(MobilityScan scan) {
-    return originalFrame.getMobilityForMobilityScan(scan);
-  }
-
   @Nullable
   @Override
   public DoubleBuffer getMobilities() {
@@ -283,13 +278,13 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public int getMaxMobilityScanDataPoints() {
-    return originalFrame.getMaxMobilityScanDataPoints();
+  public int getMaxMobilityScanRawDataPoints() {
+    return originalFrame.getMaxMobilityScanRawDataPoints();
   }
 
   @Override
-  public int getTotalMobilityScanDataPoints() {
-    return originalFrame.getTotalMobilityScanDataPoints();
+  public int getTotalMobilityScanRawDataPoints() {
+    return originalFrame.getTotalMobilityScanRawDataPoints();
   }
 
   @Override
@@ -300,6 +295,18 @@ public class CachedFrame implements Frame {
 
   @Override
   public void getIntensityValues(double[] dst, int dstStart) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public int getMaxMobilityScanMassListDataPoints() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public int getTotalMobilityScanMassListDataPoints() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }

@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Set;
@@ -60,7 +61,7 @@ public interface Frame extends Scan {
    * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
    * This operation is not thread save and requires one instance of {@link
    * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame#getMobilityScans(TDFUtils)}.
+   * UndloadedTDFFrame#getMobilityScans(TDFUtils)}.
    */
   @Nullable MobilityScan getMobilityScan(int num);
 
@@ -70,7 +71,7 @@ public interface Frame extends Scan {
    * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
    * This operation is not thread save and requires one instance of {@link
    * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame#getMobilityScans(TDFUtils)}.
+   * UndloadedTDFFrame#getMobilityScans(TDFUtils)}.
    */
   @NotNull List<MobilityScan> getMobilityScans();
 
@@ -80,7 +81,7 @@ public interface Frame extends Scan {
    * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
    * This operation is not thread save and requires one instance of {@link
    * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame#getMobilityScans(TDFUtils)}.
+   * UndloadedTDFFrame#getMobilityScans(TDFUtils)}.
    */
   @NotNull List<MobilityScan> getSortedMobilityScans();
 
@@ -89,8 +90,6 @@ public interface Frame extends Scan {
    * @return The mobility of this sub spectrum.
    */
   double getMobilityForMobilityScanNumber(int mobilityScanIndex);
-
-  double getMobilityForMobilityScan(MobilityScan scan);
 
   /**
    * @return Mapping of sub scan number <-> mobility
@@ -125,7 +124,11 @@ public interface Frame extends Scan {
     return null;
   }
 
-  int getMaxMobilityScanDataPoints();
+  int getMaxMobilityScanRawDataPoints();
 
-  int getTotalMobilityScanDataPoints();
+  int getTotalMobilityScanRawDataPoints();
+
+  int getMaxMobilityScanMassListDataPoints();
+
+  int getTotalMobilityScanMassListDataPoints();
 }

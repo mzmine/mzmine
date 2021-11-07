@@ -18,9 +18,21 @@
 
 package io.github.mzmine.modules.io.deprecated_jmzml;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,18 +47,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.SimpleScan;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ExceptionUtils;
-import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
@@ -184,7 +184,7 @@ public class MzMLImportTask extends AbstractTask {
          * have been loaded buildingFrame = new SimpleFrame(newImsFile, scanNumber, msLevel,
          * retentionTime, precursorMz, precursorCharge, mzValues, intensityValues, spectrumType,
          * polarity, scanDefinition, null, mobility.mobilityType(), 0, buildingMobilities, null); }
-         * buildingFrame.addMobilityScan( new SimpleMobilityScan(newImsFile,
+         * buildingFrame.addMobilityScan( new BuildingMobilityScan(newImsFile,
          * mobilityScanNumberCounter, buildingFrame, mzValues, intensityValues));
          * buildingMobilities.put(mobilityScanNumberCounter, mobility.mobility());
          * mobilityScanNumberCounter++; }

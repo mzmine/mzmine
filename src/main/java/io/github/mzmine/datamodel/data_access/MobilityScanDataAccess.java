@@ -28,9 +28,6 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
-import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl;
@@ -190,9 +187,8 @@ public class MobilityScanDataAccess implements MobilityScan {
       // increment by the last mobility scan
       currentMobilityScanDatapointIndexOffset += currentMobilityScan.getNumberOfDataPoints();
     }
-    currentMobilityScan =
-        currentFrame instanceof UndloadedTDFFrame tdf ? tdf.getMobilityScan(currentMobilityScanIndex, utils)
-            : currentFrame.getMobilityScan(currentMobilityScanIndex);
+    currentMobilityScan = currentFrame instanceof UndloadedTDFFrame tdf ? tdf.getMobilityScan(
+        currentMobilityScanIndex, utils) : currentFrame.getMobilityScan(currentMobilityScanIndex);
     currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
 
     /*if (type == MobilityScanDataType.CENTROID) {
@@ -241,9 +237,8 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentMobilityScanDatapointIndexOffset = 0;
 
     if (type == MobilityScanDataType.RAW) {
-      currentMobilityScans =
-          currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame ? undloadedTDFFrame.getMobilityScansPreloaded(utils)
-              : currentFrame.getMobilityScans();
+      currentMobilityScans = currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame
+          ? undloadedTDFFrame.getMobilityScansPreloaded(utils) : currentFrame.getMobilityScans();
 
       int mobilityScanDataPoints = 0;
       for (MobilityScan scan : currentMobilityScans) {
@@ -255,7 +250,7 @@ public class MobilityScanDataAccess implements MobilityScan {
       final List<? extends MassList> massLists;
       if (currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame) {
         massLists = undloadedTDFFrame.getMobilityScanMassListsPreloaded(utils);
-        currentMobilityScans = (List<MobilityScan>)(List<? extends MobilityScan>) massLists;
+        currentMobilityScans = (List<MobilityScan>) (List<? extends MobilityScan>) massLists;
       } else {
         massLists = currentFrame.getMobilityScans().stream().map(MobilityScan::getMassList)
             .toList();
@@ -333,23 +328,11 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanDataPoints).max().orElse(0);
-      case CENTROID -> Math.max(
-          frames.stream().filter(f -> f.getMassList() instanceof FrameMassList).mapToInt(
-                  frame -> ((FrameMassList) frame.getMassList()).getTotalMobilityScanDataPoints()).max()
-              .orElse(0), frames.stream().filter(
-                  f -> f.getMassList() instanceof ScanPointerMassList && f instanceof SimpleFrame)
-              .mapToInt(s -> ((SimpleFrame) s).getTotalMobilityScanDataPoints()).max().orElse(0));
+      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
+          .orElse(0);
+      case CENTROID -> frames.stream().mapToInt(Frame::getMaxMobilityScanMassListDataPoints).max()
+          .orElse(0);
     };
-   /* int forloop = 0;
-    if (type == MobilityScanDataType.CENTROID) {
-      for (Frame frame : frames) {
-        int dp = ((FrameMassList)frame.getMassList()).getMaxMobilityScanDatapoints();
-        if(dp > forloop)
-          forloop = dp;
-      }
-    }
-    return forloop;*/
   }
 
   // ###############################################

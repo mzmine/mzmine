@@ -96,7 +96,7 @@ public class MergedFrameHeatmapProvider implements PlotXYZDataProvider {
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     merged = SpectraMerging.getMergedFrame(frames, tolerance, null, mobilityScanBin, progress);
 
-    final int maxDp = merged.getMaxMobilityScanDataPoints();
+    final int maxDp = merged.getMaxMobilityScanRawDataPoints();
     final double mzs[] = new double[maxDp];
     final double intensities[] = new double[maxDp];
 

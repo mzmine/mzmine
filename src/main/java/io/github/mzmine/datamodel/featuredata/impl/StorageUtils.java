@@ -26,6 +26,8 @@ import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,13 @@ import org.jetbrains.annotations.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public class StorageUtils {
+
+  public static <T> List<double[][]> mapTo2dDoubleArrayList(List<T> objects,
+      Function<T, double[]> firstDimension, Function<T, double[]> secondDimension) {
+    return objects.stream().<double[][]>mapMulti((scan, c) -> {
+      c.accept(new double[][]{firstDimension.apply(scan), secondDimension.apply(scan)});
+    }).toList();
+  }
 
   /**
    * @param storage    The storage the m/z and intensity values shall be saved to. If null, the
@@ -54,13 +63,13 @@ public class StorageUtils {
     final List<double[][]> mzIntensities = new ArrayList<>();
 
     for (final T series : seriesList) {
-      double[][] mzIntensity = DataPointUtils
-          .getDataPointsAsDoubleArray(series.getMZValueBuffer(), series.getIntensityValueBuffer());
+      double[][] mzIntensity = DataPointUtils.getDataPointsAsDoubleArray(series.getMZValueBuffer(),
+          series.getIntensityValueBuffer());
       mzIntensities.add(mzIntensity);
     }
 
     // generate and copy the offsets to the array passed as an argument.
-    final int[] generatedOffsets = generateOffsets(mzIntensities);
+    final int[] generatedOffsets = generateOffsets(mzIntensities, new AtomicInteger(0));
     System.arraycopy(generatedOffsets, 0, offsets, 0, generatedOffsets.length);
 
     final int numDp =
@@ -89,12 +98,19 @@ public class StorageUtils {
    * @return An array of integer offsets. The indices in the array correspond to the indices in the
    * given list.
    */
-  public static int[] generateOffsets(List<double[][]> dataArrayList) {
+  public static int[] generateOffsets(List<double[][]> dataArrayList,
+      @NotNull AtomicInteger biggestOffset) {
     final int[] offsets = new int[dataArrayList.size()];
     offsets[0] = 0;
+    int biggest = 0;
     for (int i = 1; i < offsets.length; i++) {
-      offsets[i] = offsets[i - 1] + dataArrayList.get(i - 1)[0].length;
+      final int numPoints = dataArrayList.get(i - 1)[0].length;
+      offsets[i] = offsets[i - 1] + numPoints;
+      if (numPoints > biggest) {
+        biggest = numPoints;
+      }
     }
+    biggestOffset.set(biggest);
     return offsets;
   }
 
@@ -104,8 +120,8 @@ public class StorageUtils {
    * @param dst        the destination array of an appropriate size.
    * @return An array of base peak indices if arrayIndex == 1.
    */
-  public static int[] putAllValuesIntoOneArray(final List<double[][]> values,
-      final int arrayIndex, double[] dst) {
+  public static int[] putAllValuesIntoOneArray(final List<double[][]> values, final int arrayIndex,
+      double[] dst) {
     int[] basePeakIndices = null;
     if (arrayIndex == 1) {
       basePeakIndices = new int[values.size()];

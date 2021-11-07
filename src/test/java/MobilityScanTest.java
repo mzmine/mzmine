@@ -101,7 +101,7 @@ public class MobilityScanTest {
           Range.closed(0d, 1d), MobilityType.TIMS, null);
 
       List<BuildingMobilityScan> scans = makeSomeScans(mobilities.length);
-      frame.setMobilityScans(scans);
+      frame.setMobilityScans(scans, true);
       frame.setMobilities(mobilities);
       frames.add(frame);
     }
@@ -126,7 +126,7 @@ public class MobilityScanTest {
         Range.closed(0d, 1d), MobilityType.TIMS, null);
 
     List<BuildingMobilityScan> scans = makeSomeScans(100);
-    frame.setMobilityScans(scans);
+    frame.setMobilityScans(scans, true);
 
     logger.info("Checking mobility scan values.");
     for (int i = 0; i < scans.size(); i++) {
