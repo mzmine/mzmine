@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -234,5 +235,24 @@ public class StoredMobilityScan implements MobilityScan {
       return spectrum.getIntensityValue(cursor);
     }
 
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StoredMobilityScan that = (StoredMobilityScan) o;
+    return index == that.index && Objects.equals(
+        getFrame(), ((StoredMobilityScan) o).getFrame()) && Objects.equals(getDataFile(),
+        ((StoredMobilityScan) o).getDataFile());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index, getFrame().getFrameId(), getDataFile());
   }
 }

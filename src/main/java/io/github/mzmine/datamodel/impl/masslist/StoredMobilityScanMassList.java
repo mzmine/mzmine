@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -177,6 +178,28 @@ public class StoredMobilityScanMassList implements MassList {
     public double getIntensity() {
       return spectrum.getIntensityValue(cursor);
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StoredMobilityScanMassList that = (StoredMobilityScanMassList) o;
+    return index == that.index
+        && getNumberOfDataPoints() == ((StoredMobilityScanMassList) o).getNumberOfDataPoints()
+        && Objects.equals(storage.getFrame(), ((StoredMobilityScanMassList) o).storage.getFrame())
+        && Objects.equals(storage.getFrame().getDataFile(),
+        ((StoredMobilityScanMassList) o).storage.getFrame().getDataFile());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index, storage.getFrame().getFrameId(), storage.getFrame().getDataFile(),
+        getNumberOfDataPoints());
   }
 }
 
