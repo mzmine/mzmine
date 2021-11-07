@@ -21,14 +21,17 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -48,6 +51,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -272,6 +276,23 @@ public class ModularFeatureListRow implements FeatureListRow {
     modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
 
+    if (modularFeature != null) {
+      boolean isImagingFile = raw instanceof ImagingRawDataFile;
+      if (modularFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> set(type, true));
+      }
+      if (hasRowType(RTType.class) && !isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_CHROMATOGRAPHIC_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> set(type, true));
+      }
+      if (isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> set(type, true));
+      }
+    }
     if (!Objects.equals(oldFeature, modularFeature)) {
       // reflect changes by updating all row bindings
       getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw);

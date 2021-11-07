@@ -27,16 +27,16 @@ import javafx.beans.property.SimpleObjectProperty;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class LinkedGraphicalType extends DataType<Object> implements
-    NoTextColumn, GraphicalColumType<Object> {
+public abstract class LinkedGraphicalType extends DataType<Boolean> implements
+    NoTextColumn, GraphicalColumType<Boolean> {
 
   @Override
-  public Property<Object> createProperty() {
+  public Property<Boolean> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
   @Override
-  public Class<Object> getValueClass() {
-    return Object.class;
+  public Class<Boolean> getValueClass() {
+    return Boolean.class;
   }
 }

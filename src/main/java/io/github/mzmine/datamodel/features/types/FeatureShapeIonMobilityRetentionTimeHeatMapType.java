@@ -61,10 +61,10 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object nullData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
+    if (row == null || !value || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
         || raw instanceof ImagingRawDataFile) {
       return null;
     }

@@ -80,7 +80,7 @@ public class DataTypeCellFactory implements
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
           if (type instanceof LinkedGraphicalType lgType) {
             // first handle linked graphical types (like charts) that are dependent on other data
-            Node node = lgType.getCellNode(this, param, null, raw);
+            Node node = ((GraphicalColumType) lgType).getCellNode(this, param, item, raw);
             getTableColumn().setMinWidth(lgType.getColumnWidth());
             setGraphic(node);
             setText(null);
