@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
@@ -21,6 +20,7 @@ package io.github.mzmine.util;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -113,6 +113,46 @@ public class IsotopesUtils {
 
         // Get real m/z from knownMzs that is going to be compared with the theoretical one
         double realMz = knownMzs.get(mzIndex);
+
+        // Do not go left further if the theoretical m/z is higher than real
+        if (Doubles.compare(theoreticalMzTolRange.lowerEndpoint(), realMz) > 0) {
+          break;
+        }
+
+        // If the theoretical and real m/z values are equal up to tolerance, then m/z of the mzIndex
+        // peak corresponds to the mass of the isotope
+        if (theoreticalMzTolRange.contains(realMz)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+
+  public static boolean isPossibleIsotopeMz(double newMz, @NotNull List<DataPoint> knownMzs,
+      @NotNull List<Double> isotopesMzDiffs,
+      @NotNull MZTolerance mzTolerance) {
+
+    // Iterate over possible isotope m/z differences
+    for (double isotopeMzDiff : isotopesMzDiffs) {
+
+      // Compute theoretical m/z value representing the difference between possible isotope
+      // candidate newMz and possible isotope difference
+      double theoreticalMz = newMz - isotopeMzDiff;
+      Range<Double> theoreticalMzTolRange = mzTolerance.getToleranceRange(theoreticalMz);
+
+      // Go left over m/z's of previously detected peaks and check whether current peak is an
+      // isotope of one of them
+      // TODO: If in future the method will be slow for some data files it is possible to improve
+      //  the speed by implementing a HashSet for doubles with given precision and use it to store
+      //  all knownMzs values and check for their presence instead of the following for loop.
+      //  O(n^2 / 2) -> O(n) for O(n) memory
+      for (int mzIndex = knownMzs.size() - 1; mzIndex >= 0; mzIndex--) {
+
+        // Get real m/z from knownMzs that is going to be compared with the theoretical one
+        double realMz = knownMzs.get(mzIndex).getMZ();
 
         // Do not go left further if the theoretical m/z is higher than real
         if (Doubles.compare(theoreticalMzTolRange.lowerEndpoint(), realMz) > 0) {
