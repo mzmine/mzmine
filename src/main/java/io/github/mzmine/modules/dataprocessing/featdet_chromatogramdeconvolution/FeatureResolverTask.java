@@ -17,6 +17,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -32,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.parameters.ParameterSet;
@@ -479,9 +481,18 @@ public class FeatureResolverTask extends AbstractTask {
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
-    if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))
-        .getFeatureData() instanceof IonMobilogramTimeSeries) {
+    ModularFeature exampleFeature = originalFeatureList
+        .getFeature(0, originalFeatureList.getRawDataFile(0));
+
+    boolean isImagingFile = (originalFeatureList.getRawDataFile(0) instanceof ImagingRawDataFile);
+    if (exampleFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
       DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
+    }
+    if (originalFeatureList.hasRowType(RTType.class) && !isImagingFile) {
+      DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    }
+    if (isImagingFile) {
+      DataTypeUtils.addDefaultImagingTypeColumns(resolvedFeatureList);
     }
 
     return resolvedFeatureList;

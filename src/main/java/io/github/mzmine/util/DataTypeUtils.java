@@ -19,7 +19,6 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.IMSImagingRawDataFile;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -53,29 +52,43 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("null")
 public class DataTypeUtils {
 
-  public static final @NotNull
-  List<DataType> DEFAULT_CHROMATOGRAPHIC_ROW = List.of(
-      new RTType(), new RTRangeType(),
-      // needed next to each other for switching between RTType and RTRangeType
-      new MZType(), new MZRangeType(), //
-      new HeightType(), new AreaType(), new ManualAnnotationType(),
-      new FeatureShapeType(), new FeaturesType());
+  @NotNull
+  public static final List<DataType> DEFAULT_CHROMATOGRAPHIC_ROW =
+      List.of(new RTType(), new RTRangeType(),
+          // needed next to each other for switching between RTType and RTRangeType
+          new MZType(), new MZRangeType(), //
+          new HeightType(), new AreaType(), new ManualAnnotationType(),
+          new FeatureShapeType(), new FeaturesType());
 
-  public static final @NotNull
-  List<DataType> DEFAULT_CHROMATOGRAPHIC_FEATURE =
+  @NotNull
+  public static final List<DataType> DEFAULT_CHROMATOGRAPHIC_FEATURE =
       List.of(new RawFileType(), new DetectionType(), new MZType(),
           new MZRangeType(), new RTType(), new RTRangeType(), new HeightType(), new AreaType(),
           new BestScanNumberType(), new FeatureDataType(), new IntensityRangeType(), new FwhmType(),
           new TailingFactorType(), new AsymmetryFactorType());
 
   @NotNull
-  public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_ROW = List
-      .of(new MobilityType(), new MobilityRangeType(),
+  public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_ROW =
+      List.of(new MobilityType(), new MobilityRangeType(),
           new FeatureShapeMobilogramType());
 
   @NotNull
-  public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE = List
-      .of(new MobilityType(), new MobilityRangeType());
+  public static final List<DataType> DEFAULT_ION_MOBILITY_COLUMNS_FEATURE =
+      List.of(new MobilityType(), new MobilityRangeType());
+
+
+  @NotNull
+  public static final List<DataType> DEFAULT_IMAGING_COLUMNS_ROW =
+      List.of(new ImageType());
+
+  /**
+   * Adds the default imaging DataType columns to a feature list
+   *
+   * @param flist
+   */
+  public static void addDefaultImagingTypeColumns(ModularFeatureList flist) {
+    flist.addRowType(DEFAULT_IMAGING_COLUMNS_ROW);
+  }
 
   /**
    * Adds the default chromatogram DataType columns to a feature list
@@ -85,14 +98,6 @@ public class DataTypeUtils {
   public static void addDefaultChromatographicTypeColumns(ModularFeatureList flist) {
     flist.addRowType(DEFAULT_CHROMATOGRAPHIC_ROW);
     flist.addFeatureType(DEFAULT_CHROMATOGRAPHIC_FEATURE);
-
-    Optional<RawDataFile> imagingFile = flist.getRawDataFiles().stream()
-        .filter(file -> file instanceof ImagingRawDataFile).findFirst();
-    if (imagingFile.isPresent()) {
-      flist.addFeatureType(new ImageType());
-    }
-
-    // row bindigns are now added in the table
   }
 
   public static void addDefaultIonMobilityTypeColumns(ModularFeatureList flist) {
