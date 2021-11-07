@@ -46,11 +46,11 @@ public class SimpleMobilityScan implements MobilityScan {
   private static final Logger logger = Logger.getLogger(SimpleMobilityScan.class.getName());
 
   private final SimpleFrame frame;
-  private MassList massList = null;
   private final int storageOffset;
   private final int numDataPoints;
   private final int mobilityScanNumber;
   private final int basePeakIndex;
+  private MassList massList = null;
 
   /**
    * @param mobilityScanNumber The mobility scan number starting with 0.
@@ -79,7 +79,7 @@ public class SimpleMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    frame.getMobilityScanMzValues(this, dst);
+    frame.getMobilityScanMzValues(this, dst, 0);
     return dst;
   }
 
@@ -88,8 +88,20 @@ public class SimpleMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    frame.getMobilityScanIntensityValues(this, dst);
+    frame.getMobilityScanIntensityValues(this, dst, 0);
     return dst;
+  }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    frame.getMobilityScanMzValues(this, dst, dstStart);
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    frame.getMobilityScanIntensityValues(this, dst, dstStart);
   }
 
   @Override
@@ -129,8 +141,8 @@ public class SimpleMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    return getNumberOfDataPoints() > 1 ? Range
-        .closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1))
+    return getNumberOfDataPoints() > 1 ? Range.closed(getMzValue(0),
+        getMzValue(getNumberOfDataPoints() - 1))
         : Range.singleton(getNumberOfDataPoints() == 0 ? 0d : getMzValue(0));
   }
 

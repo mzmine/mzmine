@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
@@ -55,7 +54,7 @@ public class CachedFrame implements Frame {
   private List<MobilityScan> mobilityScans;
   private List<MobilityScan> sortedMobilityScans;
 
-  public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
+  public CachedFrame(Frame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
 
     double[] allmz = new double[frame.getNumberOfDataPoints()];
@@ -286,5 +285,22 @@ public class CachedFrame implements Frame {
   @Override
   public int getMaxMobilityScanDataPoints() {
     return originalFrame.getMaxMobilityScanDataPoints();
+  }
+
+  @Override
+  public int getTotalMobilityScanDataPoints() {
+    return originalFrame.getTotalMobilityScanDataPoints();
+  }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
   }
 }

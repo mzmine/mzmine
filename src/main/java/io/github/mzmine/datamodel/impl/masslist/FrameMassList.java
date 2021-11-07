@@ -39,6 +39,7 @@ public class FrameMassList extends SimpleMassList {
   protected DoubleBuffer mobilityScanIntensityBuffer;
 
   protected int maxMobilityScanDatapoints = -1;
+  private int totalMobilityScanDataPoints = -1;
 
   public FrameMassList(@Nullable MemoryMapStorage storage,
       @NotNull double[] mzValues,
@@ -115,6 +116,7 @@ public class FrameMassList extends SimpleMassList {
     final int[] offsets = generateOffsets(mobilityScanPeaks);
     final int numDp =
         offsets[offsets.length - 1] + mobilityScanPeaks.get(mobilityScanPeaks.size() - 1)[0].length;
+    totalMobilityScanDataPoints = numDp;
 
     // put all values into one array
     double[] allMzOrIntensity = new double[numDp];
@@ -156,15 +158,15 @@ public class FrameMassList extends SimpleMassList {
     }
   }
 
-  void getMobilityScanMzValues(MobilityScanMassList massList, double[] dst) {
+  void getMobilityScanMzValues(MobilityScanMassList massList, double[] dst, int dstPos) {
     assert massList.getNumberOfDataPoints() <= dst.length;
-    mobilityScanMzBuffer.get(massList.getStorageOffset(), dst, 0, massList.getNumberOfDataPoints());
+    mobilityScanMzBuffer.get(massList.getStorageOffset(), dst, dstPos, massList.getNumberOfDataPoints());
   }
 
-  void getMobilityScanIntensityValues(MobilityScanMassList massList, double[] dst) {
+  void getMobilityScanIntensityValues(MobilityScanMassList massList, double[] dst, int dstPos) {
     assert massList.getNumberOfDataPoints() <= dst.length;
     mobilityScanIntensityBuffer
-        .get(massList.getStorageOffset(), dst, 0, massList.getNumberOfDataPoints());
+        .get(massList.getStorageOffset(), dst, dstPos, massList.getNumberOfDataPoints());
   }
 
   double getMobilityScanMzValue(MobilityScanMassList massList, int index) {
@@ -183,6 +185,10 @@ public class FrameMassList extends SimpleMassList {
    */
   public int getMaxMobilityScanDatapoints() {
     return maxMobilityScanDatapoints;
+  }
+
+  public int getTotalMobilityScanDataPoints() {
+    return totalMobilityScanDataPoints;
   }
 
 }

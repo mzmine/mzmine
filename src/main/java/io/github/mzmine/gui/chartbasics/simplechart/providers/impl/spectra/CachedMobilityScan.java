@@ -205,4 +205,16 @@ public class CachedMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
 }

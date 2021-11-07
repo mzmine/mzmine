@@ -235,6 +235,18 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    System.arraycopy(mzValues, 0, dst, dstStart, getNumberOfDataPoints());
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    System.arraycopy(intensityValues, 0, dst, dstStart, getNumberOfDataPoints());
+  }
+
+  @Override
   public Iterator<DataPoint> iterator() {
     return new DataPointIterator(this);
   }

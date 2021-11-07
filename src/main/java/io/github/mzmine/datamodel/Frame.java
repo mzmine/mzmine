@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Set;
@@ -42,30 +43,46 @@ public interface Frame extends Scan {
 
   int getNumberOfMobilityScans();
 
-  @NotNull
-  MobilityType getMobilityType();
+  @NotNull MobilityType getMobilityType();
 
   /**
-   *
    * @return Unsorted set of sub spectrum numbers.
    */
 //  Set<Integer> getMobilityScanNumbers();
-
-  @NotNull
-  Range<Double> getMobilityRange();
+  @NotNull Range<Double> getMobilityRange();
 
   /**
    * @param num the number of the sub scan.
    * @return the mobility scan or null of no scan with that number exists.
+   * <p>
+   * WARNING: This method should not be used in parallel streams, because {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
+   * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
+   * This operation is not thread save and requires one instance of {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame#getMobilityScans(TDFUtils)}.
    */
-  @Nullable
-  MobilityScan getMobilityScan(int num);
+  @Nullable MobilityScan getMobilityScan(int num);
 
-  @NotNull
-  List<MobilityScan> getMobilityScans();
+  /**
+   * WARNING: This method should not be used in parallel streams, because {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
+   * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
+   * This operation is not thread save and requires one instance of {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame#getMobilityScans(TDFUtils)}.
+   */
+  @NotNull List<MobilityScan> getMobilityScans();
 
-  @NotNull
-  List<MobilityScan> getSortedMobilityScans();
+  /**
+   * WARNING: This method should not be used in parallel streams, because {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
+   * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
+   * This operation is not thread save and requires one instance of {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
+   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame#getMobilityScans(TDFUtils)}.
+   */
+  @NotNull List<MobilityScan> getSortedMobilityScans();
 
   /**
    * @param mobilityScanIndex
@@ -78,15 +95,13 @@ public interface Frame extends Scan {
   /**
    * @return Mapping of sub scan number <-> mobility
    */
-  @Nullable
-  DoubleBuffer getMobilities();
+  @Nullable DoubleBuffer getMobilities();
 
   /**
    * @return Set of ImsMsMsInfos for this frame. Empty set if this is not an MS/MS frame or no
-   *         precursors were fragmented or assigned.
+   * precursors were fragmented or assigned.
    */
-  @NotNull
-  Set<PasefMsMsInfo> getImsMsMsInfos();
+  @NotNull Set<PasefMsMsInfo> getImsMsMsInfos();
 
   /**
    * @param mobilityScanNumber The sub scan number of the given sub scan.
@@ -112,4 +127,5 @@ public interface Frame extends Scan {
 
   int getMaxMobilityScanDataPoints();
 
+  int getTotalMobilityScanDataPoints();
 }

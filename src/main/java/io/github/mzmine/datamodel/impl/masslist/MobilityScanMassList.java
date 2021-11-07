@@ -74,7 +74,7 @@ public class MobilityScanMassList implements MassList {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    frameMassList.getMobilityScanMzValues(this, dst);
+    frameMassList.getMobilityScanMzValues(this, dst, 0);
     return dst;
   }
 
@@ -83,8 +83,20 @@ public class MobilityScanMassList implements MassList {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    frameMassList.getMobilityScanIntensityValues(this, dst);
+    frameMassList.getMobilityScanIntensityValues(this, dst, 0);
     return dst;
+  }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    frameMassList.getMobilityScanMzValues(this, dst, dstStart);
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    frameMassList.getMobilityScanIntensityValues(this, dst, dstStart);
   }
 
   @Override

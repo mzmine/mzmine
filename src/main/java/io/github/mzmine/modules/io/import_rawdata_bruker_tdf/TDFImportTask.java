@@ -265,7 +265,7 @@ public class TDFImportTask extends AbstractTask {
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
         SimpleFrame frame = tdfUtils
-            .extractCentroidScanForTimsFrame(newMZmineFile, handle, frameId, metaDataTable,
+            .extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
                 frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
                 ms2Detector, ms2DetectorParam);
 
@@ -279,7 +279,7 @@ public class TDFImportTask extends AbstractTask {
         frames.add(frame);
         loadedFrames++;
         if (isCanceled()) {
-          tdfUtils.close(handle);
+          tdfUtils.close();
           return;
         }
       }
@@ -288,12 +288,12 @@ public class TDFImportTask extends AbstractTask {
     }
 
     // extract mobility scans
-    appendScansFromTimsSegment(tdfUtils, handle, frameTable, frames);
+    appendScansFromTimsSegment(tdfUtils, frameTable, frames);
 
     // now assign MS/MS infos
     constructMsMsInfo(newMZmineFile, framePrecursorTable);
 
-    tdfUtils.close(handle);
+    tdfUtils.close();
 
     if (isCanceled()) {
       return;
@@ -393,12 +393,10 @@ public class TDFImportTask extends AbstractTask {
   /**
    * Adds all scans from the pasef segment to a raw data file. Does not add the frame spectra!
    *
-   * @param handle        handle of the tdfbin. {@link TDFUtils#openFile(File)} {@link
-   *                      TDFUtils#openFile(File, long)}
    * @param tdfFrameTable {@link TDFFrameTable} of the tdf file
    * @param frames        the frames to load mobility spectra for
    */
-  private void appendScansFromTimsSegment(@Nonnull final TDFUtils tdfUtils, final long handle,
+  private void appendScansFromTimsSegment(@Nonnull final TDFUtils tdfUtils,
       @NotNull final TDFFrameTable tdfFrameTable, Set<SimpleFrame> frames) {
 
     loadedFrames = 0;
@@ -414,7 +412,7 @@ public class TDFImportTask extends AbstractTask {
       final MassDetector detector = msLevel == 1 ? ms1Detector : ms2Detector;
       final ParameterSet param = msLevel == 1 ? ms1DetectorParam : ms2DetectorParam;
       final List<BuildingMobilityScan> spectra = tdfUtils
-          .loadSpectraForTIMSFrame(handle, frame.getFrameId(), frameTable, detector, param);
+          .loadSpectraForTIMSFrame(frame.getFrameId(), frameTable, detector, param);
 
       frame.setMobilityScans(spectra);
 

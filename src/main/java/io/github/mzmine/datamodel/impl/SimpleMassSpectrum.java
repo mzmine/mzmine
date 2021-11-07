@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.impl.AbstractMassSpectrum.DataPointIterator;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,5 +147,17 @@ public class SimpleMassSpectrum implements MassSpectrum {
   @Override
   public Iterator<DataPoint> iterator() {
     return new DataPointIterator(this);
+  }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    System.arraycopy(mzValues, 0, dst, dstStart, getNumberOfDataPoints());
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    assert dstStart + getNumberOfDataPoints() <= dst.length;
+    System.arraycopy(intensityValues, 0, dst, dstStart, getNumberOfDataPoints());
   }
 }

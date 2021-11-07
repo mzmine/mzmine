@@ -58,6 +58,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private DoubleBuffer mobilityScanMzBuffer;
 
   protected int maxMobilityScanDataPoints = -1;
+  protected int totalMobilityScanDataPoints = -1;
 
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
       float retentionTime, @Nullable double[] mzValues,
@@ -151,6 +152,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     final int numDatapoints =
         offsets[offsets.length - 1] + originalMobilityScans.get(offsets.length - 1)
             .getNumberOfDataPoints();
+    totalMobilityScanDataPoints = numDatapoints;
 
     // now store all the data in a single array
     double[] data = new double[numDatapoints];
@@ -246,14 +248,14 @@ public class SimpleFrame extends SimpleScan implements Frame {
     this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>();
   }
 
-  void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
+  void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst, int dstPos) {
     assert scan.getNumberOfDataPoints() <= dst.length;
-    mobilityScanMzBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+    mobilityScanMzBuffer.get(scan.getStorageOffset(), dst, dstPos, scan.getNumberOfDataPoints());
   }
 
-  void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst) {
+  void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst, int dstPos) {
     assert scan.getNumberOfDataPoints() <= dst.length;
-    mobilityScanIntensityBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+    mobilityScanIntensityBuffer.get(scan.getStorageOffset(), dst, dstPos, scan.getNumberOfDataPoints());
   }
 
   double getMobilityScanMzValue(SimpleMobilityScan scan, int index) {
@@ -275,4 +277,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return maxMobilityScanDataPoints;
   }
 
+  public int getTotalMobilityScanDataPoints() {
+    return totalMobilityScanDataPoints;
+  }
 }

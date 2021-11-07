@@ -136,4 +136,14 @@ public class ScanPointerMassList implements MassList {
   public Iterator<DataPoint> iterator() {
     return scan.iterator();
   }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    scan.getMzValues(dst, dstStart);
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
+    scan.getIntensityValues(dst, dstStart);
+  }
 }
