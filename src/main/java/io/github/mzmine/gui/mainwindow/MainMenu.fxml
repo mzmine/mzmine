@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.mzmine.util.javafx.WindowsMenu?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.input.KeyCodeCombination?>
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright 2006-2020 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -16,50 +10,58 @@
   ~ License, or (at your option) any later version.
   ~
   ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  ~ General Public License for more details.
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  ~ Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
   -->
 
+<?import io.github.mzmine.util.javafx.WindowsMenu?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <MenuBar useSystemMenuBar="true"
   xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
 
   <Menu text="Project">
-      <Menu fx:id="recentProjectsMenu" text="Open recent project..."
-        onShowing="#fillRecentProjects"/>
-      <MenuItem fx:id="openProject" text="Open project" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="O"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="S"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="saveProjectAs" text="Save project as" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
-        <accelerator>
-          <KeyCodeCombination alt="DOWN" code="S"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="closeProject" text="Close project" onAction="#closeProject">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="W"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
+    <Menu onShowing="#fillRecentProjects" text="Open recent project..."
+      fx:id="recentProjectsMenu"/>
+    <MenuItem onAction="#runModule" text="Open project"
+      userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule"
+      fx:id="openProject">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="O"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#runModule" text="Save project"
+      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule"
+      fx:id="saveProject">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="S"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#runModule" text="Save project as"
+      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule"
+      fx:id="saveProjectAs">
+      <accelerator>
+        <KeyCodeCombination alt="DOWN" code="S"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="W"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
 
-      <SeparatorMenuItem/>
+    <SeparatorMenuItem/>
 
     <MenuItem text="Batch mode" onAction="#runModule"
       userData="io.github.mzmine.modules.batchmode.BatchModeModule">
@@ -302,8 +304,10 @@
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem text="Isotope grouper" onAction="#runModule"
+      <MenuItem onAction="#runModule" text="Isotope grouper (filter)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
+      <MenuItem onAction="#runModule" text="Isotope finder"
+        userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
       <MenuItem text="Isotope peak scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
     </Menu>
@@ -316,17 +320,17 @@
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
       <MenuItem text="Refine ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
       <MenuItem text="Formula prediction on ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
       <MenuItem text="Average formulas" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
       <MenuItem text="Check MS/MS ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
       <MenuItem text="Clear ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
     </Menu>
