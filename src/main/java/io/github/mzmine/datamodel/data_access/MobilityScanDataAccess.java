@@ -28,12 +28,17 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -52,13 +57,22 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   // current data
   protected final double[] mobilities;
+  /**
+   * In case we are given a {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl},
+   * we have to use our own {@link TDFUtils} to be thread safe.
+   */
+  protected final TDFUtils utils;
+  protected final long handle;
+  //
+
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
+  protected List<MobilityScan> currentMobilityScans;
   protected int currentNumberOfDataPoints = -1;
-
   protected int currentNumberOfMobilityScans = -1;
   protected int currentMobilityScanIndex = -1;
   protected int currentFrameIndex = -1;
+  protected int currentMobilityScanDatapointIndexOffset = 0;
 
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
@@ -77,6 +91,14 @@ public class MobilityScanDataAccess implements MobilityScan {
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames) {
     this.dataFile = dataFile;
     this.type = type;
+
+    if (dataFile instanceof TdfImsRawDataFileImpl) {
+      utils = new TDFUtils(1);
+      handle = utils.openFile(new File(dataFile.getAbsolutePath()), 1);
+    } else {
+      utils = null;
+      handle = 0L;
+    }
 
     // count matching scans
     eligibleFrames = frames;
@@ -164,8 +186,16 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   public MobilityScan nextMobilityScan() throws MissingMassListException {
     currentMobilityScanIndex++;
-    currentMobilityScan = currentFrame.getMobilityScan(currentMobilityScanIndex);
-    if (type == MobilityScanDataType.CENTROID) {
+    if (currentMobilityScan != null) {
+      // increment by the last mobility scan
+      currentMobilityScanDatapointIndexOffset += currentMobilityScan.getNumberOfDataPoints();
+    }
+    currentMobilityScan =
+        currentFrame instanceof UndloadedTDFFrame tdf ? tdf.getMobilityScan(currentMobilityScanIndex, utils)
+            : currentFrame.getMobilityScan(currentMobilityScanIndex);
+    currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
+
+    /*if (type == MobilityScanDataType.CENTROID) {
       final MassList ml = currentMobilityScan.getMassList();
       if (ml == null) {
         throw new MissingMassListException(
@@ -179,7 +209,7 @@ public class MobilityScanDataAccess implements MobilityScan {
       currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
       currentMobilityScan.getMzValues(mzs);
       currentMobilityScan.getIntensityValues(intensities);
-    }
+    }*/
     return currentMobilityScan;
   }
 
@@ -188,6 +218,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentMobilityScan = null;
     currentNumberOfDataPoints = 0;
   }
+
 
   public boolean hasNextFrame() {
     return currentFrameIndex + 1 < totalFrames;
@@ -205,6 +236,39 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentNumberOfMobilityScans = currentFrame.getNumberOfMobilityScans();
     currentMobilityScanIndex = -1;
     currentFrame.getMobilities().get(0, mobilities, 0, currentNumberOfMobilityScans);
+    currentMobilityScan = null;
+
+    currentMobilityScanDatapointIndexOffset = 0;
+
+    if (type == MobilityScanDataType.RAW) {
+      currentMobilityScans =
+          currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame ? undloadedTDFFrame.getMobilityScansPreloaded(utils)
+              : currentFrame.getMobilityScans();
+
+      int mobilityScanDataPoints = 0;
+      for (MobilityScan scan : currentMobilityScans) {
+        scan.getMzValues(mzs, mobilityScanDataPoints);
+        scan.getIntensityValues(intensities, mobilityScanDataPoints);
+        mobilityScanDataPoints += scan.getNumberOfDataPoints();
+      }
+    } else {
+      final List<? extends MassList> massLists;
+      if (currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame) {
+        massLists = undloadedTDFFrame.getMobilityScanMassListsPreloaded(utils);
+        currentMobilityScans = (List<MobilityScan>)(List<? extends MobilityScan>) massLists;
+      } else {
+        massLists = currentFrame.getMobilityScans().stream().map(MobilityScan::getMassList)
+            .toList();
+        currentMobilityScans = currentFrame.getMobilityScans();
+      }
+
+      int mobilityScanDataPoints = 0;
+      for (MassList massList : massLists) {
+        massList.getMzValues(mzs, mobilityScanDataPoints);
+        massList.getIntensityValues(intensities, mobilityScanDataPoints);
+        mobilityScanDataPoints += massList.getNumberOfDataPoints();
+      }
+    }
     return currentFrame;
   }
 
@@ -235,7 +299,7 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Override
   public double getMzValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
-    return mzs[index];
+    return mzs[currentMobilityScanDatapointIndexOffset + index];
   }
 
   /**
@@ -247,10 +311,10 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Override
   public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
-    if (intensities[index] > 1E4) {
-      return intensities[index];
+    if (intensities[currentMobilityScanDatapointIndexOffset + index] > 1E4) {
+      return intensities[currentMobilityScanDatapointIndexOffset + index];
     }
-    return intensities[index];
+    return intensities[currentMobilityScanDatapointIndexOffset + index];
   }
 
   /**
@@ -269,13 +333,13 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW -> frames.stream().mapToInt(Frame::getMaxMobilityScanDataPoints).max().orElse(0);
+      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanDataPoints).max().orElse(0);
       case CENTROID -> Math.max(
           frames.stream().filter(f -> f.getMassList() instanceof FrameMassList).mapToInt(
-              frame -> ((FrameMassList) frame.getMassList()).getMaxMobilityScanDatapoints()).max()
-              .orElse(0),
-          frames.stream().filter(f -> f.getMassList() instanceof ScanPointerMassList)
-              .mapToInt(Frame::getMaxMobilityScanDataPoints).max().orElse(0));
+                  frame -> ((FrameMassList) frame.getMassList()).getTotalMobilityScanDataPoints()).max()
+              .orElse(0), frames.stream().filter(
+                  f -> f.getMassList() instanceof ScanPointerMassList && f instanceof SimpleFrame)
+              .mapToInt(s -> ((SimpleFrame) s).getTotalMobilityScanDataPoints()).max().orElse(0));
     };
    /* int forloop = 0;
     if (type == MobilityScanDataType.CENTROID) {
@@ -372,6 +436,18 @@ public class MobilityScanDataAccess implements MobilityScan {
   @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all scans and data points");
+  }
+
+  @Override
+  public void getMzValues(double[] dst, int dstStart) {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all scans and data points");
+  }
+
+  @Override
+  public void getIntensityValues(double[] dst, int dstStart) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }

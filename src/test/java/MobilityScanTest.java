@@ -17,16 +17,21 @@
  */
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -35,6 +40,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class MobilityScanTest {
@@ -66,8 +72,6 @@ public class MobilityScanTest {
     Random rnd = new Random(System.currentTimeMillis());
     List<BuildingMobilityScan> scans = new ArrayList<>();
 
-    logger.info("Building " + numScans + " random scans");
-
     for (int i = 0; i < numScans; i++) {
       int numDataPoints = (int) (rnd.nextFloat() * 10);
       double mzs[] = new double[numDataPoints];
@@ -79,9 +83,29 @@ public class MobilityScanTest {
       scans.add(new BuildingMobilityScan(i, intensities, mzs));
     }
 
-    logger.info("Built " + numScans + " random scans");
-
     return scans;
+  }
+
+  public List<Frame> makeSomeFrames(IMSRawDataFile file, int numFrames) {
+
+    List<Frame> frames = new ArrayList<>();
+
+    double[] mobilities = new double[50];
+    for (int j = 0; j < mobilities.length; j++) {
+      mobilities[j] = 0;
+    }
+
+    for (int i = 0; i < numFrames; i++) {
+      SimpleFrame frame = new SimpleFrame(file, 1, 1, 0f, new double[]{0d, 1},
+          new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
+          Range.closed(0d, 1d), MobilityType.TIMS, null);
+
+      List<BuildingMobilityScan> scans = makeSomeScans(mobilities.length);
+      frame.setMobilityScans(scans);
+      frame.setMobilities(mobilities);
+      frames.add(frame);
+    }
+    return frames;
   }
 
   @Test
@@ -104,7 +128,7 @@ public class MobilityScanTest {
     List<BuildingMobilityScan> scans = makeSomeScans(100);
     frame.setMobilityScans(scans);
 
-    logger.info("Checking mopbility scan values.");
+    logger.info("Checking mobility scan values.");
     for (int i = 0; i < scans.size(); i++) {
       double[] originalMzs = scans.get(i).getMzValues();
       double[] originalIntensities = scans.get(i).getIntensityValues();
@@ -124,5 +148,55 @@ public class MobilityScanTest {
       Assert.assertArrayEquals(originalIntensities, actualIntensities, 1E-8);
     }
     logger.info("Mobility scan storing and loading ok.");
+  }
+
+  @Test
+  void testMobilityScanDataAccess() throws IOException, MissingMassListException {
+
+    logger.info("Creating raw data file.");
+    IMSRawDataFile file = null;
+    try {
+      file = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assert.fail();
+    }
+
+    final List<Frame> frames = makeSomeFrames(file, 10);
+    for (Frame frame : frames) {
+      file.addScan(frame);
+    }
+
+    final MobilityScanDataAccess access = new MobilityScanDataAccess(file, MobilityScanDataType.RAW,
+        frames);
+
+    logger.info("Checking mobility scan values.");
+
+    int frameIndex = -1;
+    while (access.hasNextFrame()) {
+      access.nextFrame();
+      frameIndex++;
+      int mobilityScanIndex = -1;
+      while (access.hasNextMobilityScan()) {
+        final MobilityScan mobScan = access.nextMobilityScan();
+        mobilityScanIndex++;
+
+        for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
+          final double expectedMz = file.getFrame(frameIndex).getMobilityScan(mobilityScanIndex)
+              .getMzValue(i);
+          final double expectedIntensity = file.getFrame(frameIndex)
+              .getMobilityScan(mobilityScanIndex).getIntensityValue(i);
+          Assertions.assertEquals(
+              file.getFrame(frameIndex).getMobilityScan(mobilityScanIndex).getNumberOfDataPoints(),
+              access.getNumberOfDataPoints());
+
+          final double actualMz = access.getMzValue(i);
+          final double actualIntensity = access.getIntensityValue(i);
+
+          Assertions.assertEquals(expectedMz, actualMz);
+          Assertions.assertEquals(expectedIntensity, actualIntensity);
+        }
+      }
+    }
   }
 }
