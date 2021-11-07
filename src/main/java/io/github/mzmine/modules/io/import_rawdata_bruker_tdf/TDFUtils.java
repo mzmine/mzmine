@@ -33,7 +33,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfFrame;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.CentroidData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
@@ -473,7 +473,7 @@ public class TDFUtils {
    * @param maldiFrameInfoTable Nullable for LC-IMS-MS. Required in case a maldi file is loaded.
    * @return The frame.
    */
-  public TdfFrame extractCentroidScanForTimsFrameLowRam(IMSRawDataFile newFile, final long frameId,
+  public UndloadedTDFFrame extractCentroidScanForTimsFrameLowRam(IMSRawDataFile newFile, final long frameId,
       @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
       @NotNull final FramePrecursorTable framePrecursorTable,
       @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
@@ -504,9 +504,9 @@ public class TDFUtils {
 
     Range<Double> mzRange = metaDataTable.getMzRange();
 
-    TdfFrame frame;
+    UndloadedTDFFrame frame;
     if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new TdfFrame(newFile, Math.toIntExact(frameId), msLevel,
+      frame = new UndloadedTDFFrame(newFile, Math.toIntExact(frameId), msLevel,
           (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
           data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
           Math.toIntExact(frameTable.getNumScansColumn().get(frameIndex)),
