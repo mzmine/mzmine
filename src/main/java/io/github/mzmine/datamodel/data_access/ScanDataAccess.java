@@ -27,7 +27,9 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +47,7 @@ public abstract class ScanDataAccess implements MassSpectrum {
   // current data
   protected final double[] mzs;
   protected final double[] intensities;
+  protected Map<Scan, Integer> scanIndexMap;
   protected int currentNumberOfDataPoints = -1;
   protected int scanIndex = -1;
 
@@ -111,6 +114,39 @@ public abstract class ScanDataAccess implements MassSpectrum {
   public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
     return intensities[index];
+  }
+
+  /**
+   * Jumps to target scan. Uses hashmap that is lazily initialized. Use jumpToIndex if index is
+   * available.
+   *
+   * @param target jump to target scan
+   * @return true if target scan was available
+   */
+  public boolean jumpToScan(Scan target) {
+    return jumpToIndex(indexOf(target));
+  }
+
+  /**
+   * Uses a lazily initialized hashmap to find the index of the scan in this data access
+   *
+   * @param target the target scan
+   * @return the scan index or -1 if not found
+   */
+  public int indexOf(Scan target) {
+    if (scanIndexMap == null) {
+      scanIndexMap = new HashMap<>(getNumberOfScans());
+      int oldIndex = scanIndex;
+      // fill map with indexes
+      scanIndex = -1;
+      int c = 0;
+      while (hasNextScan()) {
+        scanIndexMap.put(nextScan(), c);
+        c++;
+      }
+      scanIndex = oldIndex;
+    }
+    return scanIndexMap.getOrDefault(target, -1);
   }
 
   /**
@@ -291,5 +327,4 @@ public abstract class ScanDataAccess implements MassSpectrum {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
-
 }
