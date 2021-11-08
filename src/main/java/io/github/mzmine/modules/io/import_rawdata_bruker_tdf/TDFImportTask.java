@@ -80,7 +80,7 @@ public class TDFImportTask extends AbstractTask {
   @Nullable private final ParameterSet ms1DetectorParam;
   @Nullable private final ParameterSet ms2DetectorParam;
 
-  private final boolean denoising = true;
+  private final boolean denoising = false;
   private static final double NOISE_THRESHOLD = 9E0;
 
   private File fileNameToOpen;
