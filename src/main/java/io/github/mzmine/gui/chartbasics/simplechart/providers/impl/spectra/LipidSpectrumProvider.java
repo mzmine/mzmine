@@ -134,12 +134,12 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
       }
 
       @Override
-      public void getMzValues(double[] dst, int dstStart) {
+      public void getMzValues(double[] dst, int offset) {
 
       }
 
       @Override
-      public void getIntensityValues(double[] dst, int dstStart) {
+      public void getIntensityValues(double[] dst, int offset) {
 
       }
     };

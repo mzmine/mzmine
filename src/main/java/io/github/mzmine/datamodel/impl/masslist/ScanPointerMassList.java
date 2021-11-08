@@ -138,12 +138,12 @@ public class ScanPointerMassList implements MassList {
   }
 
   @Override
-  public void getMzValues(double[] dst, int dstStart) {
-    scan.getMzValues(dst, dstStart);
+  public void getMzValues(double[] dst, int offset) {
+    scan.getMzValues(dst, offset);
   }
 
   @Override
-  public void getIntensityValues(double[] dst, int dstStart) {
-    scan.getIntensityValues(dst, dstStart);
+  public void getIntensityValues(double[] dst, int offset) {
+    scan.getIntensityValues(dst, offset);
   }
 }

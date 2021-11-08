@@ -85,21 +85,21 @@ public class UnloadedTdfMobilityScan implements MobilityScan, MassList {
   }
 
   @Override
-  public void getMzValues(double[] dst, int dstStart) {
+  public void getMzValues(double[] dst, int offset) {
     if(mzs == null) {
       loadRawData();
     }
-    assert dstStart + getNumberOfDataPoints() <= dst.length;
-    System.arraycopy(mzs, 0, dst, dstStart, mzs.length);
+    assert offset + getNumberOfDataPoints() <= dst.length;
+    System.arraycopy(mzs, 0, dst, offset, mzs.length);
   }
 
   @Override
-  public void getIntensityValues(double[] dst, int dstStart) {
+  public void getIntensityValues(double[] dst, int offset) {
     if(intensities == null) {
       loadRawData();
     }
-    assert dstStart + getNumberOfDataPoints() <= dst.length;
-    System.arraycopy(intensities, 0, dst, dstStart, intensities.length);
+    assert offset + getNumberOfDataPoints() <= dst.length;
+    System.arraycopy(intensities, 0, dst, offset, intensities.length);
   }
 
   @Override

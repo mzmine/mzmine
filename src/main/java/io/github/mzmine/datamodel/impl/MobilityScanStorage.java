@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.impl;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.masslist.StoredMobilityScanMassList;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -92,6 +93,11 @@ public class MobilityScanStorage {
     }
   }
 
+  /**
+   * @param storage                The storage for mobility scans-
+   * @param massDetector           The mass detector
+   * @param massDetectorParameters The parameters for the mass detector.
+   */
   public void generateAndAddMobilityScanMassLists(@Nullable MemoryMapStorage storage,
       @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters) {
 
@@ -125,11 +131,29 @@ public class MobilityScanStorage {
     return new StoredMobilityScanMassList(mobilityScanIndex, this);
   }
 
+  /**
+   * Creates a {@link StoredMobilityScan} wrapper for the given index. Reuse when possible for ram
+   * efficiency.
+   *
+   * @param index The scan index.
+   * @return The mobility scan.
+   */
   public MobilityScan getMobilityScan(int index) {
     assert index <= getNumberOfMobilityScans();
     return new StoredMobilityScan(index, this);
   }
 
+  /**
+   * Creates {@link StoredMobilityScan} wrappers for all mobility scans of this file. It's
+   * recommended to not save the full array list for processing purposes, since the mobility scans
+   * are created on every call to this method. E.g. during feature detection (for the purpose of
+   * saving EICs/mobilogram trace) the SAME instance of {@link MobilityScan} should be used and
+   * reused (see {@link SimpleIonMobilogramTimeSeries#getSpectraModifiable()}) at all times. For
+   * example the mobility scans shall not be accessed via a {@link Frame} every time but retrieved
+   * once and reused.
+   *
+   * @return The mobility scans.
+   */
   public List<MobilityScan> getMobilityScans() {
     List<MobilityScan> scans = new ArrayList<>(getNumberOfMobilityScans());
     for (int i = 0; i < getNumberOfMobilityScans(); i++) {
@@ -188,15 +212,15 @@ public class MobilityScanStorage {
     return rawStorageOffsets[mobilityScanIndex];
   }
 
-  public void getRawMobilityScanMzValues(int mobilityScanIndex, double[] dst, int dstPos) {
-    assert getNumberOfRawDatapoints(mobilityScanIndex) + dstPos <= dst.length;
-    rawMzValues.get(getRawStorageOffset(mobilityScanIndex), dst, dstPos,
+  public void getRawMobilityScanMzValues(int mobilityScanIndex, double[] dst, int offset) {
+    assert getNumberOfRawDatapoints(mobilityScanIndex) + offset <= dst.length;
+    rawMzValues.get(getRawStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfRawDatapoints(mobilityScanIndex));
   }
 
-  public void getRawMobilityScanIntensityValues(int mobilityScanIndex, double[] dst, int dstPos) {
-    assert getNumberOfRawDatapoints(mobilityScanIndex) + dstPos <= dst.length;
-    rawIntensityValues.get(getRawStorageOffset(mobilityScanIndex), dst, dstPos,
+  public void getRawMobilityScanIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
+    assert getNumberOfRawDatapoints(mobilityScanIndex) + offset <= dst.length;
+    rawIntensityValues.get(getRawStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfRawDatapoints(mobilityScanIndex));
   }
 
@@ -209,7 +233,6 @@ public class MobilityScanStorage {
   }
 
   // mass list
-
   public int getNumberOfMassListDatapoints(int index) {
     assert index < getNumberOfMobilityScans();
     if (index < massListStorageOffsets.length - 1) {
@@ -219,31 +242,45 @@ public class MobilityScanStorage {
     }
   }
 
+  /**
+   * @param index The index of the mobility scan the mass list belongs to.
+   * @return The storage offset (where data points of this mass list start)
+   */
   public int getMassListStorageOffset(int index) {
     return massListStorageOffsets[index];
   }
 
+  /**
+   * @param index The index of the mobility scan this mass list belongs to.
+   * @return The base peak index (may be -1 if no base peak was detected).
+   */
   public int getMassListBasePeakIndex(int index) {
     return massListBasePeakIndices[index];
   }
 
+  /**
+   * @return The maximum number of points in a mass list.
+   */
   public int getMassListMaxNumPoints() {
     return massListMaxNumPoints;
   }
 
+  /**
+   * @return The total number of data points in all mobility scan-mass lists of this frame.
+   */
   public int getMassListTotalNumPoints() {
     return massListIntensityValues.capacity();
   }
 
-  public void getMassListMzValues(int mobilityScanIndex, double[] dst, int dstPos) {
-    assert getNumberOfMassListDatapoints(mobilityScanIndex) + dstPos <= dst.length;
-    massListMzValues.get(getMassListStorageOffset(mobilityScanIndex), dst, dstPos,
+  public void getMassListMzValues(int mobilityScanIndex, double[] dst, int offset) {
+    assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
+    massListMzValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 
-  public void getMassListIntensityValues(int mobilityScanIndex, double[] dst, int dstPos) {
-    assert getNumberOfMassListDatapoints(mobilityScanIndex) + dstPos <= dst.length;
-    massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex), dst, dstPos,
+  public void getMassListIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
+    assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
+    massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 

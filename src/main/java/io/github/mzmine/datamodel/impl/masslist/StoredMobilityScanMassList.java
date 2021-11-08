@@ -78,15 +78,15 @@ public class StoredMobilityScanMassList implements MassList {
   }
 
   @Override
-  public void getMzValues(double[] dst, int dstStart) {
-    assert dstStart + getNumberOfDataPoints() <= dst.length;
-    storage.getMassListMzValues(getMobilityScanNumber(), dst, dstStart);
+  public void getMzValues(double[] dst, int offset) {
+    assert offset + getNumberOfDataPoints() <= dst.length;
+    storage.getMassListMzValues(getMobilityScanNumber(), dst, offset);
   }
 
   @Override
-  public void getIntensityValues(double[] dst, int dstStart) {
-    assert dstStart + getNumberOfDataPoints() <= dst.length;
-    storage.getMassListIntensityValues(getMobilityScanNumber(), dst, dstStart);
+  public void getIntensityValues(double[] dst, int offset) {
+    assert offset + getNumberOfDataPoints() <= dst.length;
+    storage.getMassListIntensityValues(getMobilityScanNumber(), dst, offset);
   }
 
   @Override

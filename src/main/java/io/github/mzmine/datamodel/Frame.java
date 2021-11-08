@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.impl.StoredMobilityScan;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
@@ -53,6 +55,9 @@ public interface Frame extends Scan {
   @NotNull Range<Double> getMobilityRange();
 
   /**
+   * Creates a {@link StoredMobilityScan} wrapper for the given index. Reuse when possible for ram
+   * efficiency.
+   *
    * @param num the number of the sub scan.
    * @return the mobility scan or null of no scan with that number exists.
    * <p>
@@ -66,6 +71,17 @@ public interface Frame extends Scan {
   @Nullable MobilityScan getMobilityScan(int num);
 
   /**
+   * Creates {@link StoredMobilityScan} wrappers for all mobility scans of this file. It's
+   * recommended to not save the full array list for processing purposes, since the mobility scans
+   * are created on every call to this method. E.g. during feature detection (for the purpose of
+   * saving EICs/mobilogram trace) the SAME instance of {@link MobilityScan} should be used and
+   * reused (see {@link SimpleIonMobilogramTimeSeries#getSpectraModifiable()}) at all times. For
+   * example the mobility scans shall not be accessed via a {@link Frame} every time but retrieved
+   * once and reused.
+   *
+   * @return The mobility scans.
+   * <p>
+   * <p>
    * WARNING: This method should not be used in parallel streams, because {@link
    * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
    * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.

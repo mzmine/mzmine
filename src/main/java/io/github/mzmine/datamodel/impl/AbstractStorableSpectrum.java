@@ -120,15 +120,15 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
   }
 
   @Override
-  public void getMzValues(double[] dst, int dstStart) {
-    assert dstStart + getNumberOfDataPoints() <= dst.length;
-    mzValues.get(0, dst, dstStart, getNumberOfDataPoints());
+  public void getMzValues(double[] dst, int offset) {
+    assert offset + getNumberOfDataPoints() <= dst.length;
+    mzValues.get(0, dst, offset, getNumberOfDataPoints());
   }
 
   @Override
-  public void getIntensityValues(double[] dst, int dstStart) {
-    assert dstStart + getNumberOfDataPoints() <= dst.length;
-    intensityValues.get(0, dst, dstStart, getNumberOfDataPoints());
+  public void getIntensityValues(double[] dst, int offset) {
+    assert offset + getNumberOfDataPoints() <= dst.length;
+    intensityValues.get(0, dst, offset, getNumberOfDataPoints());
   }
 }
 
