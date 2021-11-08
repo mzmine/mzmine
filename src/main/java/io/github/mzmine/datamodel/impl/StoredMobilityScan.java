@@ -105,21 +105,22 @@ public class StoredMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    final Integer basePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
-    return basePeakIndex != null ? getMzValue(basePeakIndex) : null;
+    final int basePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? getMzValue(basePeakIndex) : null;
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    final Integer basePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
-    return basePeakIndex != null ? getIntensityValue(basePeakIndex) : null;
+    final int basePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? getIntensityValue(basePeakIndex) : null;
   }
 
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    return storage.getRawBasePeakIndex(getMobilityScanNumber());
+    int rawBasePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
+    return rawBasePeakIndex != -1 ? rawBasePeakIndex : null;
   }
 
   @Nullable

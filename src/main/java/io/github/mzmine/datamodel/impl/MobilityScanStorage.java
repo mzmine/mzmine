@@ -181,12 +181,12 @@ public class MobilityScanStorage {
 
   /**
    * @param index The mobility scan index.
-   * @return The base peak index or null.
+   * @return The base peak index or -1 if no base peak was found (scan empty).
    */
   @Nullable
-  public Integer getRawBasePeakIndex(int index) {
+  public int getRawBasePeakIndex(int index) {
     assert index < getNumberOfMobilityScans();
-    return rawBasePeakIndices[index] != -1 ? rawBasePeakIndices[index] : null;
+    return rawBasePeakIndices[index];
   }
 
   /**

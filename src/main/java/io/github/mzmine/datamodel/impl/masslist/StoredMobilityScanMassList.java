@@ -102,21 +102,22 @@ public class StoredMobilityScanMassList implements MassList {
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    final Integer basePeakIndex = storage.getMassListBasePeakIndex(getMobilityScanNumber());
-    return basePeakIndex != null ? getMzValue(basePeakIndex) : null;
+    final int basePeakIndex = storage.getMassListBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? getMzValue(basePeakIndex) : null;
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    final Integer basePeakIndex = storage.getMassListBasePeakIndex(getMobilityScanNumber());
-    return basePeakIndex != null ? getIntensityValue(basePeakIndex) : null;
+    final int basePeakIndex = storage.getMassListBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? getIntensityValue(basePeakIndex) : null;
   }
 
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    return storage.getMassListBasePeakIndex(getMobilityScanNumber());
+    int basePeakIndex = storage.getMassListBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? basePeakIndex : null;
   }
 
   @Nullable
