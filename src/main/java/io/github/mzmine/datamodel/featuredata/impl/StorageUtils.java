@@ -23,6 +23,7 @@ import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -172,6 +173,34 @@ public class StorageUtils {
       }
     } else {
       buffer = DoubleBuffer.wrap(values);
+    }
+    return buffer;
+  }
+
+  /**
+   * Stores the given array into an int buffer.
+   *
+   * @param storage The storage to be used. If null, the values will be wrapped using {@link
+   *                IntBuffer#wrap(int[])}.
+   * @param values  The values to be stored. If storage is null, an int buffer will be wrapped
+   *                around this array. Changes in the array will therefore be reflected in the
+   *                DoubleBuffer.
+   * @return The int buffer the values were stored in.
+   */
+  @NotNull
+  public static IntBuffer storeValuesToIntBuffer(@Nullable final MemoryMapStorage storage,
+      @NotNull final int[] values) {
+
+    IntBuffer buffer;
+    if (storage != null) {
+      try {
+        buffer = storage.storeData(values);
+      } catch (IOException e) {
+        e.printStackTrace();
+        buffer = IntBuffer.wrap(values);
+      }
+    } else {
+      buffer = IntBuffer.wrap(values);
     }
     return buffer;
   }
