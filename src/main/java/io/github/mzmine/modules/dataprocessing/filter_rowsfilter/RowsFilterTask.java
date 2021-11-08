@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -30,8 +28,10 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
+import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
@@ -40,6 +40,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -69,11 +70,12 @@ public class RowsFilterTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list feature list to process.
+   * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
   public RowsFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage,
+      @NotNull Date moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.
@@ -144,7 +146,7 @@ public class RowsFilterTask extends AbstractTask {
 
     final ModularFeatureList newFeatureList = new ModularFeatureList(
         featureList.getName() + ' '
-            + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
+        + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
         getMemoryMapStorage(), featureList.getRawDataFiles());
 
     // Copy previous applied methods.
@@ -192,11 +194,7 @@ public class RowsFilterTask extends AbstractTask {
     int rowsCount = 0;
     boolean removeRow = false;
 
-    if (removeRowString.equals(RowsFilterParameters.removeRowChoices[0])) {
-      removeRow = false;
-    } else {
-      removeRow = true;
-    }
+    removeRow = !removeRowString.equals(RowsFilterParameters.removeRowChoices[0]);
 
     // Keep rows that don't match any criteria. Keep by default.
     boolean filterRowCriteriaFailed = false;
@@ -228,25 +226,19 @@ public class RowsFilterTask extends AbstractTask {
       }
 
       // Check identities.
+      List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
       if (onlyIdentified) {
+        List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
+        List<GNPSLibraryMatch> gnps = row.get(GNPSSpectralLibraryMatchesType.class);
 
         boolean noIdentity = (row.getPreferredFeatureIdentity() == null);
-        boolean rowHasLipidAnnotatioType = (row.get(LipidAnnotationType.class) != null);
-        boolean hasMatchedLipid = false;
+        boolean noLipid = matchedLipids == null || matchedLipids.isEmpty();
+        boolean noGNPS = gnps == null || gnps.isEmpty();
+        boolean noMatch = matches == null || matches.isEmpty();
 
-        if (rowHasLipidAnnotatioType && row.get(LipidAnnotationType.class)
-            .get(LipidAnnotationSummaryType.class).getValue() != null) {
-          List<MatchedLipid> matchedLipid =
-              row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
-          if (!matchedLipid.isEmpty()) {
-            hasMatchedLipid = true;
-          }
-        }
-
-        if (noIdentity && !hasMatchedLipid) {
+        if (noIdentity && noLipid && noGNPS && noMatch) {
           filterRowCriteriaFailed = true;
         }
-
       }
 
       // Check average m/z.
@@ -256,7 +248,6 @@ public class RowsFilterTask extends AbstractTask {
         if (!mzRange.contains(row.getAverageMZ())) {
           filterRowCriteriaFailed = true;
         }
-
       }
 
       // Check average RT.
@@ -268,40 +259,51 @@ public class RowsFilterTask extends AbstractTask {
         if (!rtRange.contains(row.getAverageRT())) {
           filterRowCriteriaFailed = true;
         }
-
       }
 
       // Search feature identity text.
       if (filterByIdentityText) {
+        final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
+            .getEmbeddedParameter().getValue().toLowerCase().trim();
 
-        if (row.getPreferredFeatureIdentity() == null)
+        boolean foundText = false;
+        if (row.getPeakIdentities() != null) {
+          for (var id : row.getPeakIdentities()) {
+            if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
+              foundText = true;
+              break;
+            }
+          }
+        }
+        if (matchedLipids != null && !foundText) {
+          for (var id : matchedLipids) {
+            if (id != null && id.getLipidAnnotation().getAnnotation().toLowerCase().trim()
+                .contains(searchText)) {
+              foundText = true;
+              break;
+            }
+          }
+        }
+        if (!foundText && row.getSpectralLibraryMatches() != null) {
+          for (var id : row.getSpectralLibraryMatches()) {
+            if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
+              foundText = true;
+              break;
+            }
+          }
+        }
+        if (!foundText && row.get(GNPSSpectralLibraryMatchesType.class) != null) {
+          for (var id : row.get(GNPSSpectralLibraryMatchesType.class)) {
+            if (id != null && id.getResultOr(ATT.COMPOUND_NAME, "").toLowerCase().trim()
+                .contains(searchText)) {
+              foundText = true;
+              break;
+            }
+          }
+        }
+
+        if (!foundText) {
           filterRowCriteriaFailed = true;
-        if (row.getPreferredFeatureIdentity() != null) {
-          final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
-              .getEmbeddedParameter().getValue().toLowerCase().trim();
-          int numFailedIdentities = 0;
-          StringBuilder sb = new StringBuilder();
-          FeatureIdentity[] identities = row.getPeakIdentities().toArray(new FeatureIdentity[0]);
-          for (int index = 0; !isCanceled() && index < identities.length; index++) {
-            String rowText = identities[index].getName().toLowerCase().trim();
-            sb.setLength(0);
-
-            // check for lipid annotation
-            if (row.get(LipidAnnotationType.class) != null && row.get(LipidAnnotationType.class)
-                .get(LipidAnnotationSummaryType.class).getValue() != null) {
-              List<MatchedLipid> matchedLipids = row.get(LipidAnnotationType.class)
-                  .get(LipidAnnotationSummaryType.class).getValue();
-              for (MatchedLipid matchedLipid : matchedLipids) {
-                sb.append(matchedLipid.getLipidAnnotation().getAnnotation());
-              }
-            }
-            if (!rowText.contains(searchText) && !sb.toString().contains(searchText)) {
-              numFailedIdentities += 1;
-            }
-          }
-          if (numFailedIdentities == identities.length) {
-            filterRowCriteriaFailed = true;
-          }
         }
       }
 
@@ -353,7 +355,8 @@ public class RowsFilterTask extends AbstractTask {
       if (filterByDuration) {
 
         final Range<Double> durationRange = parameters
-            .getParameter(RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter().getValue();
+            .getParameter(RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter()
+            .getValue();
         if (!durationRange.contains(avgDuration)) {
           filterRowCriteriaFailed = true;
         }
@@ -364,7 +367,8 @@ public class RowsFilterTask extends AbstractTask {
       if (filterByFWHM) {
 
         final Range<Float> FWHMRange = RangeUtils.toFloatRange(
-            parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue());
+            parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter()
+                .getValue());
         // If any of the features fail the FWHM criteria,
         Float FWHM_value = row.getBestFeature().getFWHM();
 
@@ -377,7 +381,8 @@ public class RowsFilterTask extends AbstractTask {
       if (filterByCharge) {
 
         final Range<Integer> chargeRange =
-            parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter().getValue();
+            parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter()
+                .getValue();
         int charge = row.getBestFeature().getCharge();
         if (charge == 0 || !chargeRange.contains(charge)) {
           filterRowCriteriaFailed = true;
@@ -390,7 +395,8 @@ public class RowsFilterTask extends AbstractTask {
         // get embedded parameters
         final Range<Double> rangeKMD = parameters
             .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-            .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
+            .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange)
+            .getValue();
         final String kendrickMassBase = parameters
             .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
             .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
@@ -405,7 +411,8 @@ public class RowsFilterTask extends AbstractTask {
             .getValue();
         final boolean useRemainderOfKendrickMass = parameters
             .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-            .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
+            .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass)
+            .getValue();
 
         // get m/z
         Double valueMZ = row.getBestFeature().getMZ();
@@ -423,16 +430,18 @@ public class RowsFilterTask extends AbstractTask {
 
           // calc Kendrick mass defect
           defectOrRemainder = Math.ceil(charge * (valueMZ * kendrickMassFactor))
-              - charge * (valueMZ * kendrickMassFactor);
+                              - charge * (valueMZ * kendrickMassFactor);
         } else {
 
           // calc Kendrick mass remainder
           defectOrRemainder =
-              (charge * (divisor - Math.round(FormulaUtils.calculateExactMass(kendrickMassBase)))
-                  * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase)//
-                  - Math.floor((charge
-                      * (divisor - Math.round(FormulaUtils.calculateExactMass(kendrickMassBase)))
-                      * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase));
+              (charge * (divisor - Math
+                  .round(FormulaUtils.calculateExactMass(kendrickMassBase)))
+               * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase)//
+              - Math.floor((charge
+                            * (divisor - Math
+                  .round(FormulaUtils.calculateExactMass(kendrickMassBase)))
+                            * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase));
         }
 
         // shift Kendrick mass defect or remainder of Kendrick mass

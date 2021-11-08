@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,15 +8,14 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.annotations.formula;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A list of molecular formulas
  */
-public class FormulaSummaryType extends ListDataType<ResultFormula>
+public class SimpleFormulaListType extends ListDataType<ResultFormula>
     implements AnnotationType, EditableColumnType {
 
 
@@ -39,7 +38,7 @@ public class FormulaSummaryType extends ListDataType<ResultFormula>
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Formula";
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,23 +8,20 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import java.text.NumberFormat;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import io.github.mzmine.datamodel.features.types.DataType;
-import javafx.beans.property.Property;
+import java.text.NumberFormat;
 
-public abstract class NumberType<T extends Property<?>> extends DataType<T> {
+public abstract class NumberType<T> extends DataType<T> {
+
   protected final NumberFormat DEFAULT_FORMAT;
 
   protected NumberType(NumberFormat defaultFormat) {
@@ -33,22 +30,4 @@ public abstract class NumberType<T extends Property<?>> extends DataType<T> {
 
   public abstract NumberFormat getFormatter();
 
-  /**
-   * A formatted string representation of the value
-   * 
-   * @return the formatted representation of the value (or an empty String)
-   */
-  @Override
-  @NotNull
-  public String getFormattedString(@Nullable Object value) {
-    if (value != null) {
-      if (value instanceof Double || value instanceof Float)
-        return getFormatter().format(((Number) value).doubleValue());
-      else if (value instanceof Integer || value instanceof Long)
-        return getFormatter().format(((Number) value).longValue());
-      else
-        return getFormatter().format(value);
-    } else
-      return "";
-  }
 }

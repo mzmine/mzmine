@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,21 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.LinkedDataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -38,7 +36,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
-public class LipidSpectrumType extends LinkedDataType implements GraphicalColumType<Boolean> {
+public class LipidSpectrumType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -48,16 +46,16 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Matched Lipid Signals";
   }
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
 
-    if (row == null) {
+    if (row == null || !value) {
       return null;
     }
 
@@ -68,8 +66,7 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
 
     StackPane pane = new StackPane();
 
-    List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       Task task =
           new FeaturesGraphicalNodeTask(LipidSpectrumChart.class, pane, row, coll.getText());
@@ -87,11 +84,14 @@ public class LipidSpectrumType extends LinkedDataType implements GraphicalColumT
   @Override
   public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
       @Nonnull List<RawDataFile> file) {
-    List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
-    MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
-        matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-        new LipidSpectrumChart(row, null));
-    return () -> MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
+    if (matchedLipids != null) {
+      MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
+          matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
+          new LipidSpectrumChart(row, null));
+      return () -> MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+    } else {
+      return null;
+    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,29 +8,36 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataTypeUtils;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -53,6 +60,40 @@ public interface FeatureList {
    * Change the name of this feature list
    */
   public void setName(@NotNull String name);
+
+  void addRowBinding(@NotNull List<RowBinding> bindings);
+
+  void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+
+  void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeFeatureTypeListener(DataType featureType,
+      DataTypeValueChangeListener listener);
+
+  /**
+   * Apply all row bindings to row (e.g., calculating the average m/z etc)
+   *
+   * @param row
+   */
+  void applyRowBindings(FeatureListRow row);
+
+  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+
+  void addFeatureType(Collection<DataType> types);
+
+  void addFeatureType(@NotNull DataType<?>... types);
+
+  void addRowType(Collection<DataType> types);
+
+  void addRowType(@NotNull DataType<?>... types);
+
+  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+
+  boolean hasFeatureType(Class typeClass);
+
+  boolean hasRowType(Class typeClass);
 
   /**
    * Returns number of raw data files participating in the feature list
@@ -353,6 +394,54 @@ public interface FeatureList {
    */
   @NotNull
   Map<Type, R2RMap<RowsRelationship>> getRowMaps();
+
+  /**
+   * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
+   * over all features into a row DataType
+   *
+   * @return map of feature DataType listeners
+   */
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+
+  /**
+   * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
+   *
+   * @return map of feature DataType listeners
+   */
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+
+  /**
+   * @param row
+   * @param newFeature
+   * @param raw
+   */
+  default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw) {
+    applyRowBindings(row);
+
+    if (newFeature != null) {
+      boolean isImagingFile = raw instanceof ImagingRawDataFile;
+      if (newFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (hasRowType(RTType.class) && !isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_CHROMATOGRAPHIC_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+    }
+  }
 
   /**
    * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge

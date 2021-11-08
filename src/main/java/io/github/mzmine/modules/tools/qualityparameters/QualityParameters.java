@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
@@ -32,7 +31,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.util.DataPointUtils;
 import java.util.List;
-import javafx.beans.property.Property;
 
 /**
  * Calculates quality parameters for each peak in a feature list: - Full width at half maximum
@@ -45,33 +43,33 @@ public class QualityParameters {
     flist.addFeatureType(new FwhmType(), new AsymmetryFactorType(), new TailingFactorType());
 
     flist.streamFeatures().forEach(peak -> {
-      Property<Float> height = peak.getHeightProperty();
-      Property<Float> rt = peak.getRTProperty();
+      Float height = peak.getHeight();
+      Float rt = peak.getRT();
 
       List<Scan> scanNumbers = peak.getScanNumbers();
       RawDataFile dataFile = peak.getRawDataFile();
       IonTimeSeries<? extends Scan> dps = peak.getFeatureData();
-      if (height.getValue() == null || rt.getValue() == null || dataFile == null
+      if (height == null || rt == null || dataFile == null
           || scanNumbers.isEmpty() || dps.getNumberOfValues() < 3) {
         return;
       }
 
-      if(dps.getNumberOfValues() < 3) {
+      if (dps.getNumberOfValues() < 3) {
         return;
       }
 
-      Range<Float> rtRange = peak.get(RTRangeType.class).getValue();
+      Range<Float> rtRange = peak.get(RTRangeType.class);
       if (rtRange == null) {
-        rtRange = Range.singleton(rt.getValue());
+        rtRange = Range.singleton(rt);
       }
 
-      height = peak.getHeightProperty();
-      rt = peak.getRTProperty();
+      height = peak.getHeight();
+      rt = peak.getRT();
       double[] intensities = DataPointUtils.getDoubleBufferAsArray(dps.getIntensityValueBuffer());
 
       // FWHM
-      double rtValues[] =
-          peakFindRTs(height.getValue() / 2.0, rt.getValue(), scanNumbers, intensities, dataFile,
+      double[] rtValues =
+          peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile,
               rtRange);
       Double fwhm = rtValues[1] - rtValues[0];
       if (fwhm <= 0 || Double.isNaN(fwhm) || Double.isInfinite(fwhm)) {
@@ -82,10 +80,10 @@ public class QualityParameters {
       }
 
       // Tailing Factor - TF
-      double rtValues2[] =
-          peakFindRTs(height.getValue() * 0.05, rt.getValue(), scanNumbers, intensities,
+      double[] rtValues2 =
+          peakFindRTs(height * 0.05, rt, scanNumbers, intensities,
               dataFile, rtRange);
-      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt.getValue() - rtValues2[0]));
+      Double tf = (rtValues2[1] - rtValues2[0]) / (2 * (rt - rtValues2[0]));
       if (tf <= 0 || Double.isNaN(tf) || Double.isInfinite(tf)) {
         tf = null;
       }
@@ -94,10 +92,10 @@ public class QualityParameters {
       }
 
       // Asymmetry factor - AF
-      double rtValues3[] =
-          peakFindRTs(height.getValue() * 0.1, rt.getValue(), scanNumbers, intensities, dataFile,
+      double[] rtValues3 =
+          peakFindRTs(height * 0.1, rt, scanNumbers, intensities, dataFile,
               rtRange);
-      Double af = (rtValues3[1] - rt.getValue()) / (rt.getValue() - rtValues3[0]);
+      Double af = (rtValues3[1] - rt) / (rt - rtValues3[0]);
       if (af <= 0 || Double.isNaN(af) || Double.isInfinite(af)) {
         af = null;
       }
@@ -117,13 +115,13 @@ public class QualityParameters {
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValueBuffer());
+        .getDoubleBufferAsArray(feature.getFeatureData().getIntensityValueBuffer());
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
-    if(intensities.length < 3) {
+    if (intensities.length < 3) {
       return Float.NaN;
     }
 
@@ -138,7 +136,9 @@ public class QualityParameters {
     // FWHM
     double[] rtValues =
         peakFindRTs(height / 2.0, rt, scanNumbers, intensities, dataFile, rtRange);
-    if (rtValues.length < 2) return Float.NaN;
+    if (rtValues.length < 2) {
+      return Float.NaN;
+    }
     double fwhm = rtValues[1] - rtValues[0];
     if (fwhm <= 0 || Double.isInfinite(fwhm)) {
       return Float.NaN;
@@ -157,14 +157,14 @@ public class QualityParameters {
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValueBuffer());
+        .getDoubleBufferAsArray(feature.getFeatureData().getIntensityValueBuffer());
 
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
 
-    if(intensities.length < 3) {
+    if (intensities.length < 3) {
       return Float.NaN;
     }
 
@@ -197,12 +197,12 @@ public class QualityParameters {
     List<Scan> scanNumbers = feature.getScanNumbers();
     RawDataFile dataFile = feature.getRawDataFile();
     double[] intensities = DataPointUtils
-        .getDoubleBufferAsArray(((ModularFeature) feature).getFeatureData().getIntensityValueBuffer());
+        .getDoubleBufferAsArray(feature.getFeatureData().getIntensityValueBuffer());
     if (height == null || rt == null || dataFile == null
         || scanNumbers.isEmpty() || intensities.length == 0) {
       throw new IllegalArgumentException("Modular feature values are not initialized.");
     }
-    if(intensities.length < 3) {
+    if (intensities.length < 3) {
       return Float.NaN;
     }
 
@@ -268,7 +268,7 @@ public class QualityParameters {
           y2 = nextDP.getIntensity();
           lastDiff1 = currentDiff;
         } else if (currentDiff < lastDiff2 && currentDiff > 0 && currentRT >= featureRT
-            && lastDP != null) {
+                   && lastDP != null) {
           x3 = lastRT;
           y3 = lastDP.getIntensity();
           x4 = rt;
@@ -323,7 +323,7 @@ public class QualityParameters {
     float currentRT;
 
     if (intensities.length < 2) {
-      return new double[] { featureRT };
+      return new double[]{featureRT};
     }
 
     // Find the data points closet to input intensity on both side of the

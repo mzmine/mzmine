@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.abstr;
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class BooleanType extends DataType<Property<Boolean>> {
+public abstract class BooleanType extends DataType<Boolean> {
 
   @Override
   public Property<Boolean> createProperty() {
@@ -42,16 +41,21 @@ public abstract class BooleanType extends DataType<Property<Boolean>> {
   }
 
   @Override
+  public Class<Boolean> getValueClass() {
+    return Boolean.class;
+  }
+
+  @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
-    if(!(value instanceof Boolean b)) {
+    if (!(value instanceof Boolean b)) {
       throw new IllegalArgumentException(
           "Wrong value type for data type: " + this.getClass().getName() + " value class: "
-              + value.getClass());
+          + value.getClass());
     }
     writer.writeCharacters(String.valueOf(b));
   }
@@ -61,9 +65,10 @@ public abstract class BooleanType extends DataType<Property<Boolean>> {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String text = reader.getElementText();
-    if(text.isEmpty()) {
+    if (text.isEmpty()) {
       return null;
     }
     return Boolean.parseBoolean(text);
   }
+
 }

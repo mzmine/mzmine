@@ -1,19 +1,18 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas;
@@ -25,7 +24,7 @@ import java.util.List;
 
 public class AverageResultFormula extends ResultFormula {
 
-  private List<ResultFormula> formulas = new ArrayList<>();
+  private final List<ResultFormula> formulas = new ArrayList<>();
 
   public AverageResultFormula(ResultFormula f) {
     super(f);
@@ -53,23 +52,42 @@ public class AverageResultFormula extends ResultFormula {
   }
 
   @Override
-  public Double getIsotopeScore() {
-    double avg = formulas.stream().filter(f -> f.getIsotopeScore() != null)
-        .mapToDouble(ResultFormula::getIsotopeScore).average().orElse(-1);
-    return avg == -1 ? null : avg;
+  public Float getIsotopeScore() {
+    float mean = 0;
+    int c = 0;
+    for (var f : formulas) {
+      Float iso = f.getIsotopeScore();
+      if (iso != null) {
+        mean += iso;
+        c++;
+      }
+    }
+    return c == 0 ? null : mean / c;
   }
 
   @Override
-  public Double getMSMSScore() {
-    double avg = formulas.stream().filter(f -> f.getMSMSScore() != null)
-        .mapToDouble(ResultFormula::getMSMSScore).average().orElse(-1);
-    return avg == -1 ? null : avg;
+  public Float getMSMSScore() {
+    float mean = 0;
+    int c = 0;
+    for (var f : formulas) {
+      Float msmsScore = f.getMSMSScore();
+      if (msmsScore != null) {
+        mean += msmsScore;
+        c++;
+      }
+    }
+    return c == 0 ? null : mean / c;
   }
 
   @Override
-  public double getPPMScore(double neutralMass, double ppmMax) {
-    return formulas.stream().mapToDouble(f -> f.getPPMScore(neutralMass, ppmMax)).average()
-        .orElse(0);
+  public float getPPMScore(double neutralMass, float ppmMax) {
+    float mean = 0;
+    int c = 0;
+    for (var f : formulas) {
+      mean += f.getPPMScore(neutralMass, ppmMax);
+      c++;
+    }
+    return mean / c;
   }
 
 }

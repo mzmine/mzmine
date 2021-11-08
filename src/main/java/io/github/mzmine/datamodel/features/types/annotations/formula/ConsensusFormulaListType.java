@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,41 +8,40 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package io.github.mzmine.datamodel.features.types.annotations;
+package io.github.mzmine.datamodel.features.types.annotations.formula;
 
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
-import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A list of spectral library matches imported from GNPS results (see {@link
- * GNPSResultsImportModule}
+ * This annotation type stores a list of formulas that were predicted as consensus formulas for
+ * multiple feature list rows (e.g., in Ion Identity Networking, see {@link
+ * IonNetwork#getMolFormulas()}) or for multiple different methods
  */
-public class GNPSSpectralLibMatchSummaryType extends ListDataType<GNPSLibraryMatch>
+public class ConsensusFormulaListType extends ListDataType<ResultFormula>
     implements AnnotationType, EditableColumnType {
 
   @NotNull
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "gnps_library_match_list";
+    return "consensus_formula_list";
   }
 
-  @NotNull
   @Override
-  public String getHeaderString() {
-    return "GNPS";
+  public @NotNull String getHeaderString() {
+    return "Consensus formula";
   }
 
 }
