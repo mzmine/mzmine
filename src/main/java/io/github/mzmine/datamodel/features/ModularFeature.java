@@ -55,6 +55,7 @@ import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.DataTypeUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -296,7 +297,12 @@ public class ModularFeature implements Feature, ModularDataModel {
       }
     }
     // access default method
-    return ModularDataModel.super.set(tclass, value);
+    final boolean result = ModularDataModel.super.set(tclass, value);
+    // check feature data for graphical columns
+    if (result && tclass.equals(FeatureDataType.class)) {
+      DataTypeUtils.applyFeatureSpecificGraphicalTypes(this);
+    }
+    return result;
   }
 
   /**

@@ -148,6 +148,7 @@ public interface ModularDataModel {
    * @param <T>
    * @param type
    * @param value
+   * @return true if the new value is different than the old
    */
   default <T> boolean set(DataType<T> type, T value) {
     return set((Class) type.getClass(), value);
@@ -159,6 +160,7 @@ public interface ModularDataModel {
    * @param <T>
    * @param tclass
    * @param value
+   * @return true if the new value is different than the old
    */
   default <T> boolean set(Class<? extends DataType<T>> tclass, T value) {
     // type in defined columns?

@@ -17,10 +17,11 @@
 
 package io.github.mzmine.util;
 
-import io.github.mzmine.datamodel.IMSImagingRawDataFile;
-import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
@@ -46,7 +47,6 @@ import io.github.mzmine.datamodel.features.types.numbers.RTRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import java.util.List;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("null")
@@ -103,18 +103,19 @@ public class DataTypeUtils {
   public static void addDefaultIonMobilityTypeColumns(ModularFeatureList flist) {
     flist.addRowType(DEFAULT_ION_MOBILITY_COLUMNS_ROW);
     flist.addFeatureType(DEFAULT_ION_MOBILITY_COLUMNS_FEATURE);
+  }
 
-    Optional<RawDataFile> imagingFile = flist.getRawDataFiles().stream()
-        .filter(file -> file instanceof IMSImagingRawDataFile).findFirst();
-    if (imagingFile.isPresent()) {
-      flist.addFeatureType(new ImageType());
-    }
-
-    Optional<RawDataFile> lcIMS = flist.getRawDataFiles().stream()
-        .filter(file -> file instanceof IMSRawDataFile && !(file instanceof IMSImagingRawDataFile))
-        .findFirst();
-    if (lcIMS.isPresent()) {
-      flist.addFeatureType(new FeatureShapeIonMobilityRetentionTimeHeatMapType());
+  /**
+   * Apply and activate graphical types for features.
+   *
+   * @param feature target
+   */
+  public static void applyFeatureSpecificGraphicalTypes(ModularFeature feature) {
+    final RawDataFile raw = feature.getRawDataFile();
+    if (raw instanceof ImagingRawDataFile) {
+      feature.set(ImageType.class, true);
+    } else if (feature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+      feature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, true);
     }
   }
 
@@ -127,4 +128,6 @@ public class DataTypeUtils {
       target.addRowType(source.getRowTypes().values());
     }
   }
+
+
 }

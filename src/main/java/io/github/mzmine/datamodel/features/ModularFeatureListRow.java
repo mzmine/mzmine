@@ -281,6 +281,8 @@ public class ModularFeatureListRow implements FeatureListRow {
       if (modularFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
         DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_ROW.stream()
             .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> set(type, true));
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType).forEach(type -> set(type, true));
       }
       if (hasRowType(RTType.class) && !isImagingFile) {
         // activate shape for this row
