@@ -19,8 +19,6 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
@@ -31,11 +29,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class FeatureShapeMobilogramType extends LinkedGraphicalType {
 
@@ -83,22 +77,4 @@ public class FeatureShapeMobilogramType extends LinkedGraphicalType {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
 
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
-    // return something so this datatype is loaded and added to the feature table
-    return false;
-  }
-
-  @Override
-  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
-      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
-      throws XMLStreamException {
-    if (value == null) {
-      return;
-    }
-    writer.writeCharacters(String.valueOf(value));
-  }
 }
