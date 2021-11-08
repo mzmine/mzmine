@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
@@ -22,8 +21,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
@@ -57,8 +55,7 @@ public class LipidSpectrumChart extends StackPane {
     chart.getChart().setBackgroundPaint((new Color(0, 0, 0, 0)));
     chart.getXYPlot().setBackgroundPaint((new Color(0, 0, 0, 0)));
 
-    List<MatchedLipid> matchedLipids =
-        row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class).getValue();
+    List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
     if (matchedLipids != null && !matchedLipids.isEmpty()) {
       List<ColoredXYDataset> datasets = new ArrayList<>();
       MatchedLipid match = matchedLipids.get(0);
@@ -66,7 +63,7 @@ public class LipidSpectrumChart extends StackPane {
       if (match.getMatchedFragments() != null && !match.getMatchedFragments().isEmpty()) {
         matchedFragments.addAll(match.getMatchedFragments());
         Scan matchedMsMsScan =
-            matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst().get();
+            matchedFragments.stream().map(LipidFragment::getMsMsScan).findFirst().orElse(null);
         if (matchedMsMsScan != null) {
           PlotXYDataProvider spectrumProvider =
               new LipidSpectrumProvider(null, matchedMsMsScan, "MS/MS Spectrum",
@@ -101,6 +98,19 @@ public class LipidSpectrumChart extends StackPane {
 
   }
 
+  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
+    if (lipidFragment.getLipidFragmentInformationLevelType()
+        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append(lipidFragment.getLipidChainType() + " " + lipidFragment.getChainLength() + ":"
+                + lipidFragment.getNumberOfDBEs());
+      System.out.println(sb);
+      return sb.toString();
+    } else {
+      return lipidFragment.getRuleType().toString();
+    }
+  }
+
   class MatchedLipidLabelGenerator implements XYItemLabelGenerator {
 
     public static final int POINTS_RESERVE_X = 100;
@@ -114,7 +124,6 @@ public class LipidSpectrumChart extends StackPane {
     @Override
     public String generateLabel(XYDataset dataset, int series, int item) {
 
-
       // Create label
       String label = null;
       if (dataset.getSeriesKey(1).equals("Matched Signals")) {
@@ -127,21 +136,6 @@ public class LipidSpectrumChart extends StackPane {
       return label;
     }
 
-  }
-
-  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
-    if (lipidFragment.getLipidFragmentInformationLevelType()
-        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getLipidChainType() + " " + lipidFragment.getChainLength() + ":"
-          + lipidFragment.getNumberOfDBEs());
-      System.out.println(sb.toString());
-      return sb.toString();
-    } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getRuleType());
-      return sb.toString();
-    }
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
@@ -32,15 +31,15 @@ import org.jetbrains.annotations.NotNull;
 
 public class FormulaSortTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final float weightIsotopeScore;
+  private final float ppmMaxWeight;
+  private final float weightMSMSscore;
+  private final ParameterSet parameterSet;
   private ModularFeatureList featureList;
   private String message;
   private int totalRows;
   private int finishedRows = 0;
-  private Double weightIsotopeScore;
-  private Double ppmMaxWeight;
-  private Double weightMSMSscore;
-  private final ParameterSet parameterSet;
 
   /**
    * @param parameters
@@ -48,13 +47,16 @@ public class FormulaSortTask extends AbstractTask {
   public FormulaSortTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     weightIsotopeScore =
-        parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue();
-    ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue();
-    weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue();
+        parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue().floatValue();
+    ppmMaxWeight = parameters.getParameter(FormulaSortParameters.MAX_PPM_WEIGHT).getValue()
+        .floatValue();
+    weightMSMSscore = parameters.getParameter(FormulaSortParameters.MSMS_SCORE_WEIGHT).getValue()
+        .floatValue();
     parameterSet = parameters;
   }
 
-  public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters,
+      @NotNull Date moduleCallDate) {
     this(parameters, moduleCallDate);
     this.featureList = featureList;
     message = "Sorting formula lists of feature list " + featureList.getName();
@@ -101,8 +103,10 @@ public class FormulaSortTask extends AbstractTask {
   public void sort(List<ResultFormula> list) {
     FormulaUtils.sortFormulaList(list, ppmMaxWeight, weightIsotopeScore, weightMSMSscore);
   }
+
   public void sort(List<ResultFormula> list, double neutralMass) {
-    FormulaUtils.sortFormulaList(list, neutralMass, ppmMaxWeight, weightIsotopeScore, weightMSMSscore);
+    FormulaUtils
+        .sortFormulaList(list, neutralMass, ppmMaxWeight, weightIsotopeScore, weightMSMSscore);
   }
 
 }

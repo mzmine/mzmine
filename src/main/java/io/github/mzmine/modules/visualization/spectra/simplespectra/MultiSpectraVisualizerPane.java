@@ -203,7 +203,7 @@ public class MultiSpectraVisualizerPane extends BorderPane {
     // clear
     pnGrid.getChildren().clear();
 
-    ObservableList<Scan> numbers = peak.getAllMS2FragmentScans();
+    List<Scan> numbers = peak.getAllMS2FragmentScans();
     int i = 0;
     for (Scan scan : numbers) {
       BorderPane pn = addSpectra(scan);

@@ -23,12 +23,11 @@ import io.github.mzmine.datamodel.features.RowGroup;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Level of feature grouping
  */
-public class FeatureGroupType extends DataType<ObjectProperty<RowGroup>> {
+public class FeatureGroupType extends DataType<RowGroup> {
 
   @NotNull
   @Override
@@ -48,13 +47,14 @@ public class FeatureGroupType extends DataType<ObjectProperty<RowGroup>> {
     return new SimpleObjectProperty<>();
   }
 
-  @NotNull
   @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof RowGroup group) {
-      return String.valueOf(group.getGroupID());
-    }
-    return super.getFormattedString(value);
+  public Class<RowGroup> getValueClass() {
+    return RowGroup.class;
+  }
+
+  @Override
+  public @NotNull String getFormattedString(RowGroup value) {
+    return value == null ? "" : String.valueOf(value.getGroupID());
   }
 
   public enum GroupType {

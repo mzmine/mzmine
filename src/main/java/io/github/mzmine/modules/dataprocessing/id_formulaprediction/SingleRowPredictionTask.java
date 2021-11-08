@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
@@ -59,9 +58,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 
   private final Range<Double> massRange;
   private final MolecularFormulaRange elementCounts;
-  private MolecularFormulaGenerator generator;
-
-  private int foundFormulas = 0;
   private final IonizationType ionType;
   private final double searchedMass;
   private final int charge;
@@ -76,9 +72,12 @@ public class SingleRowPredictionTask extends AbstractTask {
   private final ParameterSet rdbeParameters;
   private final ParameterSet parameters;
   protected ResultWindowFX resultWindowFX;
+  private MolecularFormulaGenerator generator;
+  private int foundFormulas = 0;
 
 
-  SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Date moduleCallDate) {
+  SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow,
+      @NotNull Date moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();
@@ -183,12 +182,11 @@ public class SingleRowPredictionTask extends AbstractTask {
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
                     + " formulas");
 
-      Platform.runLater(() -> {
-        resultWindowFX.setTitle("Finished searching for "
-                                + MZmineCore.getConfiguration().getMZFormat().format(searchedMass)
-                                + " amu, "
-                                + foundFormulas + " formulas found");
-      });
+      Platform.runLater(() -> resultWindowFX.setTitle("Finished searching for "
+                                                      + MZmineCore.getConfiguration().getMZFormat()
+                                                          .format(searchedMass)
+                                                      + " amu, "
+                                                      + foundFormulas + " formulas found"));
     } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
@@ -236,7 +234,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
         adjustedFormula, minPredictedAbundance, charge, ionType.getPolarity());
 
-    Double isotopeScore = null;
+    Float isotopeScore = null;
     if ((checkIsotopes) && (detectedPattern != null)) {
 
       isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
@@ -252,7 +250,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     }
 
     // MS/MS evaluation is slowest, so let's do it last
-    Double msmsScore = null;
+    Float msmsScore = null;
     Feature bestPeak = peakListRow.getBestFeature();
     RawDataFile dataFile = bestPeak.getRawDataFile();
     Map<Double, String> msmsAnnotations = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,27 +8,25 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.List;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,26 +96,26 @@ public interface Feature {
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
    *
-   * @param i
+   * @param i index
    * @return
    */
   @Nullable
   default Scan getScanAtIndex(int i) {
     List<Scan> scans = getScanNumbers();
-    return scans == null ? null : scans.get(i);
+    return scans.get(i);
   }
 
   /**
    * Used to loop over retention time, scans, and data points in combination with ({@link
    * #getDataPointAtIndex(int)}
    *
-   * @param i
+   * @param i index
    * @return
    */
   @Nullable
   default float getRetentionTimeAtIndex(int i) {
     List<Scan> scans = getScanNumbers();
-    return scans == null ? null : scans.get(i).getRetentionTime();
+    return scans.get(i).getRetentionTime();
   }
 
   /**
@@ -188,17 +186,18 @@ public interface Feature {
   /**
    * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
    */
-  ObservableList<Scan> getAllMS2FragmentScans();
+  List<Scan> getAllMS2FragmentScans();
 
   /**
    * Set all fragment scan numbers
    *
    * @param allMS2FragmentScanNumbers
    */
-  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
+  void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers);
 
   /**
-   * @return The mobility or null if no mobility was set. Note that mobility can have different units.
+   * @return The mobility or null if no mobility was set. Note that mobility can have different
+   * units.
    * @see Feature#getMobilityUnit()
    */
   @Nullable
@@ -258,8 +257,9 @@ public interface Feature {
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached
+   *
+   * @return
    */
-  @Nullable
   IsotopePattern getIsotopePattern();
 
   /**
@@ -310,9 +310,9 @@ public interface Feature {
   // dulab Edit
   void outputChromToFile();
 
-  SimpleFeatureInformation getFeatureInformation();
+  FeatureInformation getFeatureInformation();
 
-  void setFeatureInformation(SimpleFeatureInformation featureInfo);
+  void setFeatureInformation(FeatureInformation featureInfo);
   // End dulab Edit
 
   @Nullable
@@ -333,11 +333,23 @@ public interface Feature {
 
   /**
    * The detected data points of this feature/chromatogram
-   *
-   * @return
    */
   default IonTimeSeries<? extends Scan> getFeatureData() {
     throw new UnsupportedOperationException(
         "Get feature data is not implemented for this sub class. Use ModularFeature or implement");
   }
+
+  /**
+   * The FeatureListRow that contains this feature
+   *
+   * @return a feature list row or null if not assigned to a row
+   */
+  @Nullable FeatureListRow getRow();
+
+  /**
+   * Set the parent row
+   *
+   * @param row parent row
+   */
+  void setRow(@Nullable FeatureListRow row);
 }
