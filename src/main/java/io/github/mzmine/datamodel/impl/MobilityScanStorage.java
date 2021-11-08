@@ -28,6 +28,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,15 +41,15 @@ public class MobilityScanStorage {
   private final Frame frame;
   private final DoubleBuffer rawMzValues;
   private final DoubleBuffer rawIntensityValues;
-  private final int[] rawStorageOffsets;
-  private final int[] rawBasePeakIndices;
+  private final IntBuffer rawStorageOffsets;
+  private final IntBuffer rawBasePeakIndices;
   private final int rawMaxNumPoints;
 
   // mass list
   private DoubleBuffer massListMzValues = null;
   private DoubleBuffer massListIntensityValues = null;
-  private int[] massListStorageOffsets = null;
-  private int[] massListBasePeakIndices = null;
+  private IntBuffer massListStorageOffsets = null;
+  private IntBuffer massListBasePeakIndices = null;
   private int massListMaxNumPoints = -1;
 
   public MobilityScanStorage(@Nullable MemoryMapStorage storage, @NotNull final Frame frame,
@@ -66,7 +67,9 @@ public class MobilityScanStorage {
         BuildingMobilityScan::getMzValues, BuildingMobilityScan::getIntensityValues);
 
     final AtomicInteger biggestOffset = new AtomicInteger(0);
-    rawStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
+    final int[] rawStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
+    this.rawStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage, rawStorageOffsets);
+
     rawMaxNumPoints = biggestOffset.get();
 
     final int numDp =
@@ -75,7 +78,9 @@ public class MobilityScanStorage {
     final double[] intensities = new double[numDp];
 
     StorageUtils.putAllValuesIntoOneArray(data, 0, mzs);
-    rawBasePeakIndices = StorageUtils.putAllValuesIntoOneArray(data, 1, intensities);
+    final int[] rawBasePeakIndices = StorageUtils.putAllValuesIntoOneArray(data, 1, intensities);
+    this.rawBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage, rawBasePeakIndices);
+
     rawMzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     rawIntensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
@@ -110,7 +115,8 @@ public class MobilityScanStorage {
     }
 
     AtomicInteger biggestOffset = new AtomicInteger(0);
-    massListStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
+    final int[] massListStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
+    this.massListStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage, massListStorageOffsets);
     massListMaxNumPoints = biggestOffset.get();
 
     final int numDp = massListStorageOffsets[massListStorageOffsets.length - 1] + data.get(
@@ -119,7 +125,8 @@ public class MobilityScanStorage {
     final double[] intensities = new double[numDp];
 
     StorageUtils.putAllValuesIntoOneArray(data, 0, mzs);
-    massListBasePeakIndices = StorageUtils.putAllValuesIntoOneArray(data, 1, intensities);
+    final int[] massListBasePeakIndices = StorageUtils.putAllValuesIntoOneArray(data, 1, intensities);
+    this.massListBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage, massListBasePeakIndices);
     massListMzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     massListIntensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
@@ -163,7 +170,7 @@ public class MobilityScanStorage {
   }
 
   public int getNumberOfMobilityScans() {
-    return rawStorageOffsets.length;
+    return rawStorageOffsets.capacity();
   }
 
   /**
@@ -172,10 +179,10 @@ public class MobilityScanStorage {
    */
   public int getNumberOfRawDatapoints(int index) {
     assert index < getNumberOfMobilityScans();
-    if (index < rawStorageOffsets.length - 1) {
-      return rawStorageOffsets[index + 1] - rawStorageOffsets[index];
+    if (index < rawStorageOffsets.capacity() - 1) {
+      return rawStorageOffsets.get(index + 1) - rawStorageOffsets.get(index);
     } else {
-      return rawMzValues.capacity() - rawStorageOffsets[index];
+      return rawMzValues.capacity() - rawStorageOffsets.get(index);
     }
   }
 
@@ -186,7 +193,7 @@ public class MobilityScanStorage {
   @Nullable
   public int getRawBasePeakIndex(int index) {
     assert index < getNumberOfMobilityScans();
-    return rawBasePeakIndices[index];
+    return rawBasePeakIndices.get(index);
   }
 
   /**
@@ -209,7 +216,7 @@ public class MobilityScanStorage {
 
   public int getRawStorageOffset(int mobilityScanIndex) {
     assert mobilityScanIndex < getNumberOfMobilityScans();
-    return rawStorageOffsets[mobilityScanIndex];
+    return rawStorageOffsets.get(mobilityScanIndex);
   }
 
   public void getRawMobilityScanMzValues(int mobilityScanIndex, double[] dst, int offset) {
@@ -235,10 +242,10 @@ public class MobilityScanStorage {
   // mass list
   public int getNumberOfMassListDatapoints(int index) {
     assert index < getNumberOfMobilityScans();
-    if (index < massListStorageOffsets.length - 1) {
-      return massListStorageOffsets[index + 1] - massListStorageOffsets[index];
+    if (index < massListStorageOffsets.capacity() - 1) {
+      return massListStorageOffsets.get(index + 1) - massListStorageOffsets.get(index);
     } else {
-      return massListMzValues.capacity() - massListStorageOffsets[index];
+      return massListMzValues.capacity() - massListStorageOffsets.get(index);
     }
   }
 
@@ -247,7 +254,7 @@ public class MobilityScanStorage {
    * @return The storage offset (where data points of this mass list start)
    */
   public int getMassListStorageOffset(int index) {
-    return massListStorageOffsets[index];
+    return massListStorageOffsets.get(index);
   }
 
   /**
@@ -255,7 +262,7 @@ public class MobilityScanStorage {
    * @return The base peak index (may be -1 if no base peak was detected).
    */
   public int getMassListBasePeakIndex(int index) {
-    return massListBasePeakIndices[index];
+    return massListBasePeakIndices.get(index);
   }
 
   /**
