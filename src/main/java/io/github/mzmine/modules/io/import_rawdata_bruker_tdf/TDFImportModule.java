@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -47,7 +46,6 @@ public class TDFImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Bruker TDF file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
-  private static boolean lowRam = false;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
@@ -107,19 +105,11 @@ public class TDFImportModule implements MZmineProcessingModule {
         // IMS files are big, reserve a single storage for each file
         final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
-        if (lowRam) {
-          IMSRawDataFile newMZmineFile = new TdfImsRawDataFileImpl(newName,
-              fileNames[i].getAbsolutePath(), storage);
-          Task newTask = new LowRamTDFImportTask(project, fileNames[i], newMZmineFile,
-              TDFImportModule.class, parameters, moduleCallDate);
-          tasks.add(newTask);
-        } else {
-          IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName,
-              fileNames[i].getAbsolutePath(), storage);
-          Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile,
-              TDFImportModule.class, parameters, moduleCallDate);
-          tasks.add(newTask);
-        }
+        IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName,
+            fileNames[i].getAbsolutePath(), storage);
+        Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile,
+            TDFImportModule.class, parameters, moduleCallDate);
+        tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();
         MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);

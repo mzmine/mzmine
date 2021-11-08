@@ -31,7 +31,6 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDa
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -184,28 +183,13 @@ public class MobilityScanDataAccess implements MobilityScan {
   public MobilityScan nextMobilityScan() throws MissingMassListException {
     currentMobilityScanIndex++;
     if (currentMobilityScan != null) {
-      // increment by the last mobility scan
+      // increment by the last mobility scan!
       currentMobilityScanDatapointIndexOffset += currentMobilityScan.getNumberOfDataPoints();
     }
-    currentMobilityScan = currentFrame instanceof UndloadedTDFFrame tdf ? tdf.getMobilityScan(
-        currentMobilityScanIndex, utils) : currentFrame.getMobilityScan(currentMobilityScanIndex);
+    // set new mobility scan after incrementing.
+    currentMobilityScan = currentFrame.getMobilityScan(currentMobilityScanIndex);
     currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
 
-    /*if (type == MobilityScanDataType.CENTROID) {
-      final MassList ml = currentMobilityScan.getMassList();
-      if (ml == null) {
-        throw new MissingMassListException(
-            "Mobility scan " + currentMobilityScanIndex + " does not contain a mass list.",
-            currentFrame);
-      }
-      currentNumberOfDataPoints = ml.getNumberOfDataPoints();
-      ml.getMzValues(mzs);
-      ml.getIntensityValues(intensities);
-    } else if (type == MobilityScanDataType.RAW) {
-      currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
-      currentMobilityScan.getMzValues(mzs);
-      currentMobilityScan.getIntensityValues(intensities);
-    }*/
     return currentMobilityScan;
   }
 
@@ -237,8 +221,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentMobilityScanDatapointIndexOffset = 0;
 
     if (type == MobilityScanDataType.RAW) {
-      currentMobilityScans = currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame
-          ? undloadedTDFFrame.getMobilityScansPreloaded(utils) : currentFrame.getMobilityScans();
+      currentMobilityScans = currentFrame.getMobilityScans();
 
       int mobilityScanDataPoints = 0;
       for (MobilityScan scan : currentMobilityScans) {
@@ -247,15 +230,9 @@ public class MobilityScanDataAccess implements MobilityScan {
         mobilityScanDataPoints += scan.getNumberOfDataPoints();
       }
     } else {
-      final List<? extends MassList> massLists;
-      if (currentFrame instanceof UndloadedTDFFrame undloadedTDFFrame) {
-        massLists = undloadedTDFFrame.getMobilityScanMassListsPreloaded(utils);
-        currentMobilityScans = (List<MobilityScan>) (List<? extends MobilityScan>) massLists;
-      } else {
-        massLists = currentFrame.getMobilityScans().stream().map(MobilityScan::getMassList)
-            .toList();
-        currentMobilityScans = currentFrame.getMobilityScans();
-      }
+      final List<? extends MassList> massLists = currentFrame.getMobilityScans().stream()
+          .map(MobilityScan::getMassList).toList();
+      currentMobilityScans = currentFrame.getMobilityScans();
 
       int mobilityScanDataPoints = 0;
       for (MassList massList : massLists) {

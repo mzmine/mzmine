@@ -33,7 +33,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.BrukerScanMode;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TDFLibrary;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.CentroidData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks.ProfileData;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.FramePrecursorTable;
@@ -462,67 +461,6 @@ public class TDFUtils {
     }
 
     frame.setMobilities(mobilities);
-
-    return frame;
-  }
-
-  /**
-   * @param frameId             the frame id.
-   * @param metaDataTable       {@link TDFMetaDataTable} to construct the frame.
-   * @param frameTable          {@link FramePrecursorTable} to construct the frame.
-   * @param maldiFrameInfoTable Nullable for LC-IMS-MS. Required in case a maldi file is loaded.
-   * @return The frame.
-   */
-  public UndloadedTDFFrame extractCentroidScanForTimsFrameLowRam(IMSRawDataFile newFile, final long frameId,
-      @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
-      @NotNull final FramePrecursorTable framePrecursorTable,
-      @Nullable final TDFMaldiFrameInfoTable maldiFrameInfoTable,
-      @Nullable final MassDetector ms1Detector, @Nullable final ParameterSet ms1Param,
-      @Nullable final MassDetector ms2Detector, @Nullable final ParameterSet ms2Param) {
-
-    final int frameIndex = frameTable.getFrameIdColumn().indexOf(frameId);
-    final int numScans = frameTable.getNumScansColumn().get(frameIndex).intValue();
-
-    final String scanDefinition =
-        metaDataTable.getInstrumentType() + " - " + BrukerScanMode.fromScanMode(
-            frameTable.getScanModeColumn().get(frameIndex).intValue());
-    final int msLevel = getMZmineMsLevelFromBrukerMsMsType(
-        frameTable.getMsMsTypeColumn().get(frameIndex).intValue());
-    final PolarityType polarity = PolarityType.fromSingleChar(
-        (String) frameTable.getColumn(TDFFrameTable.POLARITY).get(frameIndex));
-
-    double[][] data = extractCentroidsForFrame(frameId, 0, numScans);
-
-    if (msLevel == 1 && ms1Detector != null && ms1Param != null) {
-      data = ms1Detector.getMassValues(data[0], data[1], ms1Param);
-    } else if (msLevel == 2 && ms2Detector != null && ms2Param != null) {
-      data = ms2Detector.getMassValues(data[0], data[1], ms2Param);
-    }
-
-//    final double[] mobilities = convertScanNumsToOneOverK0(handle, frameId,
-//        createPopulatedArray(numScans));
-
-    Range<Double> mzRange = metaDataTable.getMzRange();
-
-    UndloadedTDFFrame frame;
-    if (maldiFrameInfoTable == null || maldiFrameInfoTable.getFrameIdColumn().isEmpty()) {
-      frame = new UndloadedTDFFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          Math.toIntExact(frameTable.getNumScansColumn().get(frameIndex)),
-          Math.toIntExact(frameTable.getNumPeaksColumn().get(frameIndex)));
-    } else {
-      throw new IllegalArgumentException("Maldi not supported yet.");
-      /*frame = new SimpleImagingFrame(newFile, Math.toIntExact(frameId), msLevel,
-          (float) (frameTable.getTimeColumn().get(frameIndex) / 60), // to minutes
-          data[0], data[1], MassSpectrumType.CENTROIDED, polarity, scanDefinition, mzRange,
-          MobilityType.TIMS, null);
-      Coordinates coords = new Coordinates(maldiFrameInfoTable.getTransformedXIndexPos(frameIndex),
-          maldiFrameInfoTable.getTransformedYIndexPos(frameIndex), 0);
-      ((SimpleImagingFrame) frame).setCoordinates(coords);*/
-    }
-
-//    frame.setMobilities(mobilities);
 
     return frame;
   }

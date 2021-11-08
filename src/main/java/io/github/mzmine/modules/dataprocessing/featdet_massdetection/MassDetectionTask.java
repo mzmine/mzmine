@@ -26,9 +26,6 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -162,12 +159,6 @@ public class MassDetectionTask extends AbstractTask {
           frame.getMobilityScanStorage()
               .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
                   massDetector.getParameterSet());
-        }
-        if (scan instanceof UndloadedTDFFrame undloadedTDFFrame
-            && massDetector.getModule() instanceof CentroidMassDetector) {
-          undloadedTDFFrame.setMobilityScanNoiseLevel(
-              massDetector.getParameterSet().getParameter(CentroidMassDetectorParameters.noiseLevel)
-                  .getValue());
         }
 
         if (this.saveToCDF) {

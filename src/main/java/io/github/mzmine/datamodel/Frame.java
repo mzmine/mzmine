@@ -22,8 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.impl.StoredMobilityScan;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.UndloadedTDFFrame;
 import java.nio.DoubleBuffer;
 import java.util.List;
 import java.util.Set;
@@ -60,13 +58,6 @@ public interface Frame extends Scan {
    *
    * @param num the number of the sub scan.
    * @return the mobility scan or null of no scan with that number exists.
-   * <p>
-   * WARNING: This method should not be used in parallel streams, because {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
-   * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
-   * This operation is not thread save and requires one instance of {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
-   * UndloadedTDFFrame#getMobilityScans(TDFUtils)}.
    */
   @Nullable MobilityScan getMobilityScan(int num);
 
@@ -80,24 +71,12 @@ public interface Frame extends Scan {
    * once and reused.
    *
    * @return The mobility scans.
-   * <p>
-   * <p>
-   * WARNING: This method should not be used in parallel streams, because {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
-   * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
-   * This operation is not thread save and requires one instance of {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
-   * UndloadedTDFFrame#getMobilityScans(TDFUtils)}.
    */
   @NotNull List<MobilityScan> getMobilityScans();
 
   /**
-   * WARNING: This method should not be used in parallel streams, because {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl} will
-   * load the scan data from disc using {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils}.
-   * This operation is not thread save and requires one instance of {@link
-   * io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils} per thread. (see {@link
-   * UndloadedTDFFrame#getMobilityScans(TDFUtils)}.
+   * Implications of {@link #getMobilityScans()} apply.
+   * @return The mobility scans sorted by ascending mobility.
    */
   @NotNull List<MobilityScan> getSortedMobilityScans();
 
