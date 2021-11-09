@@ -19,6 +19,7 @@
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -29,6 +30,10 @@ import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -68,17 +73,22 @@ public class MobilityScanTest {
     }
   }
 
+  /**
+   * Generates mobility scans with a random number of data points (0-200), m/z values (0-1) and intensities (0-1)
+   * @param numScans The number of moiblity scans.
+   * @return The mobility scans.
+   */
   public List<BuildingMobilityScan> makeSomeScans(int numScans) {
     Random rnd = new Random(System.currentTimeMillis());
     List<BuildingMobilityScan> scans = new ArrayList<>();
 
     for (int i = 0; i < numScans; i++) {
-      int numDataPoints = (int) (rnd.nextFloat() * 10);
+      int numDataPoints = (int) (rnd.nextFloat() * 200);
       double mzs[] = new double[numDataPoints];
       double intensities[] = new double[numDataPoints];
       for (int j = 0; j < numDataPoints; j++) {
-        mzs[j] = rnd.nextDouble() * 2000d;
-        intensities[j] = rnd.nextDouble() * 1E6;
+        mzs[j] = rnd.nextDouble();
+        intensities[j] = rnd.nextDouble();
       }
       scans.add(new BuildingMobilityScan(i, intensities, mzs));
     }
@@ -101,7 +111,7 @@ public class MobilityScanTest {
           Range.closed(0d, 1d), MobilityType.TIMS, null);
 
       List<BuildingMobilityScan> scans = makeSomeScans(mobilities.length);
-      frame.setMobilityScans(scans, true);
+      frame.setMobilityScans(scans, false);
       frame.setMobilities(mobilities);
       frames.add(frame);
     }
@@ -196,6 +206,71 @@ public class MobilityScanTest {
           Assertions.assertEquals(expectedMz, actualMz);
           Assertions.assertEquals(expectedIntensity, actualIntensity);
         }
+      }
+    }
+  }
+
+  @Test
+  void testMobilityScanDataAccessMassList() throws IOException, MissingMassListException {
+
+    MZmineCore.main(new String[]{"-r", "-m", "all"});
+
+    logger.info("Creating raw data file.");
+    IMSRawDataFile file = null;
+    try {
+      file = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assert.fail();
+    }
+
+    MassDetector centroidMassDetector = new CentroidMassDetector();
+    CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();
+    param.setParameter(CentroidMassDetectorParameters.detectIsotopes, false);
+    param.setParameter(CentroidMassDetectorParameters.noiseLevel, 0.45d);
+
+    final List<Frame> frames = makeSomeFrames(file, 300);
+    for (Frame frame : frames) {
+      file.addScan(frame);
+      ((SimpleFrame) frame).getMobilityScanStorage()
+          .generateAndAddMobilityScanMassLists(null, centroidMassDetector, param);
+
+      for (MobilityScan mobilityScan : frame.getMobilityScans()) {
+        final double[][] massValues = centroidMassDetector.getMassValues(mobilityScan, param);
+        final MassList ml = mobilityScan.getMassList();
+
+        Assertions.assertEquals(massValues[0].length,
+            mobilityScan.getMassList().getNumberOfDataPoints());
+
+        for (int i = 0; i < massValues[0].length; i++) {
+          Assertions.assertEquals(massValues[0][i], ml.getMzValue(i));
+          Assertions.assertEquals(massValues[1][i], ml.getIntensityValue(i));
+        }
+      }
+    }
+
+    final MobilityScanDataAccess access = new MobilityScanDataAccess(file,
+        MobilityScanDataType.CENTROID, frames);
+
+    while (access.hasNextFrame()) {
+      access.nextFrame();
+
+      // go through it twice so we can check if the reset works.
+      for (int j = 0; j < 2; j++) {
+
+        while (access.hasNextMobilityScan()) {
+          final MobilityScan mobScan = access.nextMobilityScan();
+
+          // reapply mass detection to the original scan data
+          final double[][] massValues = centroidMassDetector.getMassValues(mobScan, param);
+          Assertions.assertEquals(massValues[0].length, access.getNumberOfDataPoints());
+
+          for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
+            Assertions.assertEquals(massValues[0][i], access.getMzValue(i));
+            Assertions.assertEquals(massValues[1][i], access.getIntensityValue(i));
+          }
+        }
+        access.resetMobilityScan();
       }
     }
   }
