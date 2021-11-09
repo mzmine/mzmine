@@ -288,7 +288,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     return switch (type) {
       case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
           .orElse(0);
-      case CENTROID -> frames.stream().mapToInt(Frame::getMaxMobilityScanMassListDataPoints).max()
+      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
           .orElse(0);
     };
   }
