@@ -29,12 +29,9 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -53,14 +50,6 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   // current data
   protected final double[] mobilities;
-  /**
-   * In case we are given a {@link io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.TdfImsRawDataFileImpl},
-   * we have to use our own {@link TDFUtils} to be thread safe.
-   */
-  protected final TDFUtils utils;
-  protected final long handle;
-  //
-
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
   protected List<MobilityScan> currentMobilityScans;
@@ -87,14 +76,6 @@ public class MobilityScanDataAccess implements MobilityScan {
       @NotNull final MobilityScanDataType type, @NotNull final List<Frame> frames) {
     this.dataFile = dataFile;
     this.type = type;
-
-    if (dataFile instanceof TdfImsRawDataFileImpl) {
-      utils = new TDFUtils(1);
-      handle = utils.openFile(new File(dataFile.getAbsolutePath()), 1);
-    } else {
-      utils = null;
-      handle = 0L;
-    }
 
     // count matching scans
     eligibleFrames = frames;
