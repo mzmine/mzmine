@@ -178,7 +178,7 @@ public class MobilityScanDataAccess implements MobilityScan {
 
     currentNumberOfDataPoints = currentSpectrum.getNumberOfDataPoints();
     if(currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length) {
-      throw new IndexOutOfBoundsException();
+      throw new IndexOutOfBoundsException("currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length");
     }
 
     return currentMobilityScan;
@@ -253,9 +253,6 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   @Override
   public double getMzValue(int index) {
-    if(currentSpectrumDatapointIndexOffset + index >= mzs.length) {
-      throw new IndexOutOfBoundsException();
-    }
     assert index < getNumberOfDataPoints() && index >= 0;
     assert currentSpectrumDatapointIndexOffset + index < mzs.length;
     return mzs[currentSpectrumDatapointIndexOffset + index];
@@ -271,9 +268,6 @@ public class MobilityScanDataAccess implements MobilityScan {
   public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
     assert currentSpectrumDatapointIndexOffset + index < intensities.length;
-    if (intensities[currentSpectrumDatapointIndexOffset + index] > 1E4) {
-      return intensities[currentSpectrumDatapointIndexOffset + index];
-    }
     return intensities[currentSpectrumDatapointIndexOffset + index];
   }
 
