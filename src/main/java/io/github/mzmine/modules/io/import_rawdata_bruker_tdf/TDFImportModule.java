@@ -46,7 +46,7 @@ public class TDFImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Bruker TDF file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(TDFImportModule.class.getName());
 
   @Override
   public @NotNull String getName() {

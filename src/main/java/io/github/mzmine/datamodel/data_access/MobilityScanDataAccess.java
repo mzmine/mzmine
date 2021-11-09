@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
@@ -177,8 +178,9 @@ public class MobilityScanDataAccess implements MobilityScan {
         type == MobilityScanDataType.RAW ? currentMobilityScan : currentMobilityScan.getMassList();
 
     currentNumberOfDataPoints = currentSpectrum.getNumberOfDataPoints();
-    if(currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length) {
-      throw new IndexOutOfBoundsException("currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length");
+    if (currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length) {
+      throw new IndexOutOfBoundsException(
+          "currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length");
     }
 
     return currentMobilityScan;
@@ -218,11 +220,13 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentSpectra = type == MobilityScanDataType.RAW ? currentMobilityScans
         : currentMobilityScans.stream().map(MobilityScan::getMassList).toList();
 
-    int mobilityScanDataPoints = 0;
-    for (MassSpectrum scan : currentSpectra) {
-      scan.getMzValues(mzs, mobilityScanDataPoints);
-      scan.getIntensityValues(intensities, mobilityScanDataPoints);
-      mobilityScanDataPoints += scan.getNumberOfDataPoints();
+    final MobilityScanStorage storage = currentFrame.getMobilityScanStorage();
+    if (type == MobilityScanDataType.RAW) {
+      storage.getAllRawMobilityScanMzValues(mzs);
+      storage.getAllRawMobilityScanIntensityValues(intensities);
+    } else {
+      storage.getAllMassListMzValues(mzs);
+      storage.getAllMassListIntensityValues(intensities);
     }
 
     return currentFrame;

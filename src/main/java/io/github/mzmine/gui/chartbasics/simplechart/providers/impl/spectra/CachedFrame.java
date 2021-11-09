@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
@@ -118,6 +119,11 @@ public class CachedFrame implements Frame {
   @Override
   public List<MobilityScan> getSortedMobilityScans() {
     return sortedMobilityScans;
+  }
+
+  @Override
+  public MobilityScanStorage getMobilityScanStorage() {
+    return originalFrame.getMobilityScanStorage();
   }
 
   @Override

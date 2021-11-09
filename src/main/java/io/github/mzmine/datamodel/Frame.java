@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.StoredMobilityScan;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import java.nio.DoubleBuffer;
@@ -79,6 +80,12 @@ public interface Frame extends Scan {
    * @return The mobility scans sorted by ascending mobility.
    */
   @NotNull List<MobilityScan> getSortedMobilityScans();
+
+  /**
+   *
+   * @return The {@link MobilityScanStorage} of this frame.
+   */
+  MobilityScanStorage getMobilityScanStorage();
 
   /**
    * @param mobilityScanIndex

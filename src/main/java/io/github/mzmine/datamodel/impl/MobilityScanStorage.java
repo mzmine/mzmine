@@ -225,10 +225,20 @@ public class MobilityScanStorage {
         getNumberOfRawDatapoints(mobilityScanIndex));
   }
 
+  public void getAllRawMobilityScanMzValues(double[] dst) {
+    assert dst.length >= getRawTotalNumPoints();
+    rawMzValues.get(0, dst, 0, getRawTotalNumPoints());
+  }
+
   public void getRawMobilityScanIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
     assert getNumberOfRawDatapoints(mobilityScanIndex) + offset <= dst.length;
     rawIntensityValues.get(getRawStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfRawDatapoints(mobilityScanIndex));
+  }
+
+  public void getAllRawMobilityScanIntensityValues(double[] dst) {
+    assert dst.length >= getRawTotalNumPoints();
+    rawIntensityValues.get(0, dst, 0, getRawTotalNumPoints());
   }
 
   public double getRawMobilityScanMzValue(int mobilityScanIndex, int index) {
@@ -285,10 +295,20 @@ public class MobilityScanStorage {
         getNumberOfMassListDatapoints(mobilityScanIndex));
   }
 
+  public void getAllMassListMzValues(double[] dst) {
+    assert dst.length >= getMassListTotalNumPoints();
+    massListMzValues.get(0, dst, 0, getMassListTotalNumPoints());
+  }
+
   public void getMassListIntensityValues(int mobilityScanIndex, double[] dst, int offset) {
     assert getNumberOfMassListDatapoints(mobilityScanIndex) + offset <= dst.length;
     massListIntensityValues.get(getMassListStorageOffset(mobilityScanIndex), dst, offset,
         getNumberOfMassListDatapoints(mobilityScanIndex));
+  }
+
+  public void getAllMassListIntensityValues(double[] dst) {
+    assert dst.length >= getMassListTotalNumPoints();
+    massListIntensityValues.get(0, dst, 0, getMassListTotalNumPoints());
   }
 
   public double getMassListMzValue(int mobilityScanIndex, int index) {
