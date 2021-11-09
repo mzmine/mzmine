@@ -306,15 +306,4 @@ public class ScanDataAccess implements MassSpectrum {
         "The intended use of this class is to loop over all scans and data points");
   }
 
-  @Override
-  public void getMzValues(double[] dst, int offset) {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all scans and data points");
-  }
-
-  @Override
-  public void getIntensityValues(double[] dst, int offset) {
-    throw new UnsupportedOperationException(
-        "The intended use of this class is to loop over all scans and data points");
-  }
 }

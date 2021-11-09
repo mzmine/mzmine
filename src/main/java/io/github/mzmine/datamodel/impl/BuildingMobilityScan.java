@@ -244,13 +244,4 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Override
-  public void getMzValues(double[] dst, int offset) {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
-
-  @Override
-  public void getIntensityValues(double[] dst, int offset) {
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
-  }
 }

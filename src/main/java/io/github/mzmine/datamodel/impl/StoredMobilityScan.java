@@ -81,18 +81,6 @@ public class StoredMobilityScan implements MobilityScan {
   }
 
   @Override
-  public void getMzValues(double[] dst, int offset) {
-    assert offset + getNumberOfDataPoints() <= dst.length;
-    storage.getRawMobilityScanMzValues(getMobilityScanNumber(), dst, offset);
-  }
-
-  @Override
-  public void getIntensityValues(double[] dst, int offset) {
-    assert offset + getNumberOfDataPoints() <= dst.length;
-    storage.getRawMobilityScanIntensityValues(getMobilityScanNumber(), dst, offset);
-  }
-
-  @Override
   public double getMzValue(int index) {
     return storage.getRawMobilityScanMzValue(getMobilityScanNumber(), index);
   }

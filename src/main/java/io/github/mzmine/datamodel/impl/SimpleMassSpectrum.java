@@ -149,15 +149,4 @@ public class SimpleMassSpectrum implements MassSpectrum {
     return new DataPointIterator(this);
   }
 
-  @Override
-  public void getMzValues(double[] dst, int offset) {
-    assert offset + getNumberOfDataPoints() <= dst.length;
-    System.arraycopy(mzValues, 0, dst, offset, getNumberOfDataPoints());
-  }
-
-  @Override
-  public void getIntensityValues(double[] dst, int offset) {
-    assert offset + getNumberOfDataPoints() <= dst.length;
-    System.arraycopy(intensityValues, 0, dst, offset, getNumberOfDataPoints());
-  }
 }

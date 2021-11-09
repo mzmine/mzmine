@@ -129,15 +129,6 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
         return null;
       }
 
-      @Override
-      public void getMzValues(double[] dst, int offset) {
-
-      }
-
-      @Override
-      public void getIntensityValues(double[] dst, int offset) {
-
-      }
     };
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();

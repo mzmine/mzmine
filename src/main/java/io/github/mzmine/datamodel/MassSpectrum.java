@@ -58,13 +58,6 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    */
   double[] getMzValues(@NotNull double[] dst);
 
-  /**
-   *
-   * @param dst destination buffer.
-   * @param offset offset in the destination buffer to start writing.
-   */
-  void getMzValues(double[] dst, int offset);
-
 
   /**
    * @param dst A buffer the intensity values will be written into. The buffer should ideally have
@@ -74,13 +67,6 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    * buffer. However, a new buffer will be allocated if the original buffer is not big enough.
    */
   double[] getIntensityValues(@NotNull double[] dst);
-
-  /**
-   *
-   * @param dst destination buffer.
-   * @param offset offset in the destination buffer to start writing.
-   */
-  void getIntensityValues(double[] dst, int offset);
 
   /**
    *
