@@ -242,7 +242,7 @@ public class MobilityScanDataAccess implements MobilityScan {
    * @return
    */
   public MassList getMassList() {
-    return getCurrentMobilityScan().getMassList();
+    return currentSpectrum instanceof MassList ml ? ml : currentMobilityScan.getMassList();
   }
 
   /**
