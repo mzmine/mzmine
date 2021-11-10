@@ -457,7 +457,7 @@ public class FileAndPathUtil {
    * @return path safe string
    */
   public static String safePathEncode(String name) {
-    return name.replaceAll("\\W+", "_");
+    return safePathEncode(name, "_");
   }
 
   /**
@@ -468,6 +468,6 @@ public class FileAndPathUtil {
    * @return path safe string
    */
   public static String safePathEncode(String name, String replaceStr) {
-    return name.replaceAll("\\W+", replaceStr);
+    return name.replaceAll("[^a-zA-Z0-9-_\\.]", replaceStr);
   }
 }
