@@ -18,11 +18,13 @@
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
@@ -57,8 +59,7 @@ public class MZmineProjectImpl implements MZmineProject {
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
 
-  @Nullable
-  private Boolean standalone;
+  @Nullable private Boolean standalone;
 
   /*
    * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
@@ -328,5 +329,25 @@ public class MZmineProjectImpl implements MZmineProject {
   @Override
   public void setStandalone(Boolean standalone) {
     this.standalone = standalone;
+  }
+
+  @Override
+  public void setProjectLoadImsImportCaching(boolean enabled) {
+    MZmineCore.runLater(() -> {
+      for (int i = 0; i < getRawDataFiles().size(); i++) {
+        RawDataFile file = rawDataFilesProperty.get(i);
+        if (file instanceof IMSRawDataFile imsfile) {
+          if (enabled) {
+            if (!(file instanceof CachedIMSRawDataFile)) {
+              rawDataFilesProperty.set(i, new CachedIMSRawDataFile(imsfile));
+            }
+          } else {
+            if (file instanceof CachedIMSRawDataFile cached) {
+              rawDataFilesProperty.set(i, cached.getOriginalFile());
+            }
+          }
+        }
+      }
+    });
   }
 }

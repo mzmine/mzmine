@@ -109,6 +109,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
+    System.out.println("SimpleFrame.getMobilityScan");
     return getMobilityScanStorage().getMobilityScan(num);
   }
 
@@ -118,6 +119,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @NotNull
   @Override
   public List<MobilityScan> getMobilityScans() {
+    System.out.println("SimpleFrame.getMobilityScans");
     return getMobilityScanStorage().getMobilityScans();
   }
 

@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -95,7 +97,12 @@ public class IonMobilogramTimeSeriesFactory {
 
     final List<Frame> frames = new ArrayList<>(mobilograms.size());
     for (IonMobilitySeries ims : mobilograms) {
-      final Frame frame = ims.getSpectra().get(0).getFrame();
+      Frame frame = ims.getSpectra().get(0).getFrame();
+      // project load fix to prevent memory leaks
+      if(frame instanceof CachedIMSRawDataFile) {
+        System.out.println("CachedIMSRawDataFile");
+      }
+      frame = frame instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : frame;
       frames.add(frame);
     }
 
