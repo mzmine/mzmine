@@ -33,6 +33,7 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -145,6 +146,9 @@ public class ModularFeatureList implements FeatureList {
         final List<String> names = new ArrayList<>(
             project.getFeatureLists().stream().map(FeatureList::getName).toList());
         names.remove(getName());
+        // make path safe
+        name = FileAndPathUtil.safePathEncode(name);
+        // handle duplicates
         name =
             names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
       }
