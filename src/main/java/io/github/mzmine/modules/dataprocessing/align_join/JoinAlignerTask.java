@@ -192,6 +192,7 @@ public class JoinAlignerTask extends AbstractTask {
     alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
         allDataFiles);
     transferRowTypes(alignedFeatureList, featureLists);
+    transferSelectedScans(featureLists, alignedFeatureList);
     final AtomicInteger newRowID = new AtomicInteger(1);
 
     // get all rows of all feature lists.
@@ -220,9 +221,6 @@ public class JoinAlignerTask extends AbstractTask {
       }
       final FeatureList nextBaseList = nextEntry.getKey();
       leftoverFlists.remove(nextBaseList);
-
-      nextBaseList.getRawDataFiles().forEach(
-          file -> alignedFeatureList.setSelectedScans(file, nextBaseList.getSeletedScans(file)));
 
       // we add a new set of unaligned rows to the feature list that we can align on.
       List<FeatureListRow> nextBaseRows = new ArrayList<>(
@@ -466,6 +464,19 @@ public class JoinAlignerTask extends AbstractTask {
         if (!targetFlist.hasRowType(value)) {
           targetFlist.addRowType(sourceFlist.getRowTypes().get(value));
         }
+      }
+    }
+  }
+
+  private void transferSelectedScans(Collection<ModularFeatureList> flists,
+      ModularFeatureList target) {
+    for (ModularFeatureList flist : flists) {
+      for (RawDataFile rawDataFile : flist.getRawDataFiles()) {
+        if (target.getSeletedScans(rawDataFile) != null) {
+          throw new IllegalStateException(
+              "Error, selected scans for file " + rawDataFile + " already set.");
+        }
+        target.setSelectedScans(rawDataFile, flist.getSeletedScans(rawDataFile));
       }
     }
   }
