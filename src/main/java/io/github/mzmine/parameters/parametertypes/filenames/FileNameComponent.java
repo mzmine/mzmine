@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
@@ -30,6 +29,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 /**
+ *
  */
 public class FileNameComponent extends FlowPane implements LastFilesComponent {
 
@@ -67,17 +67,26 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
         if (currentDir != null && currentDir.exists()) {
           fileChooser.setInitialDirectory(currentDir);
         }
+      } else {
+        if (lastFiles != null && !lastFiles.isEmpty()) {
+          final File lastDir = lastFiles.get(0).getParentFile();
+          if (lastDir != null && lastDir.exists()) {
+            fileChooser.setInitialDirectory(lastDir);
+          }
+        }
       }
 
       // Open chooser.
       File selectedFile = null;
-      if(type == FileSelectionType.OPEN)
+      if (type == FileSelectionType.OPEN) {
         selectedFile = fileChooser.showOpenDialog(null);
-      else
+      } else {
         selectedFile = fileChooser.showSaveDialog(null);
-      
-      if (selectedFile == null)
+      }
+
+      if (selectedFile == null) {
         return;
+      }
       txtFilename.setText(selectedFile.getPath());
     });
 
@@ -100,16 +109,16 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
     return file;
   }
 
+  public void setValue(File value) {
+    txtFilename.setText(value.getPath());
+  }
+
   public File getValue(boolean allowEmptyString) {
     String fileName = txtFilename.getText();
     if (allowEmptyString == false && fileName.trim().isEmpty()) {
       return null;
     }
     return getValue();
-  }
-
-  public void setValue(File value) {
-    txtFilename.setText(value.getPath());
   }
 
   public void setToolTipText(String toolTip) {
