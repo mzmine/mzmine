@@ -101,7 +101,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   public MobilityScanStorage getMobilityScanStorage() {
     if(mobilityScanStorage == null) {
-      throw new IllegalStateException("Mobility scans not loaded");
+      throw new IllegalStateException("Mobility scans not loaded during file import.");
     }
     return mobilityScanStorage;
   }

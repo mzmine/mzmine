@@ -77,13 +77,14 @@ public interface Frame extends Scan {
 
   /**
    * Implications of {@link #getMobilityScans()} apply.
+   *
    * @return The mobility scans sorted by ascending mobility.
    */
   @NotNull List<MobilityScan> getSortedMobilityScans();
 
   /**
-   *
-   * @return The {@link MobilityScanStorage} of this frame.
+   * @return The {@link MobilityScanStorage} of this frame. The storage is initialised during raw
+   * data file import.
    */
   MobilityScanStorage getMobilityScanStorage();
 
