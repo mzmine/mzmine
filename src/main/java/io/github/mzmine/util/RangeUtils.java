@@ -28,6 +28,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.util.maths.ArithmeticUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -237,5 +238,9 @@ public class RangeUtils {
       throw new IllegalArgumentException("The method has not been implemented for this type yet.");
     }
     return range;
+  }
+
+  public static String formatRange(Range<? extends Number> range, NumberFormat format) {
+    return format.format(range.lowerEndpoint()) + " - " + format.format(range.upperEndpoint());
   }
 }
