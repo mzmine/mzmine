@@ -17,7 +17,6 @@
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
 
-import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -45,9 +44,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -89,10 +86,6 @@ public class FeatureListLoadTask extends AbstractTask {
   private String currentFlist = "";
   private int numFlists = 1;
   private int processedFlists;
-  /**
-   * Not thread safe!
-   */
-  private final Map<IMSRawDataFile, CachedIMSRawDataFile> bufferedImsFiles = new HashMap();
 
   public FeatureListLoadTask(@Nullable MemoryMapStorage storage, @NotNull MZmineProject project,
       ZipFile zip) {
