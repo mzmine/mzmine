@@ -54,6 +54,10 @@ public class FeatureNetworkGenerator {
 
   private static final Logger logger = Logger.getLogger(FeatureNetworkGenerator.class.getName());
   private final NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
+  private final NumberFormat scoreForm = MZmineCore.getConfiguration().getScoreFormat();
+  private final NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
+
   private Graph graph;
   private Map<Type, R2RMap<RowsRelationship>> relationsMaps;
   private Node neutralNode;
@@ -437,9 +441,9 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.LABEL.toString(), name);
       node.setAttribute("ui.label", name);
       node.setAttribute(NodeAtt.NET_ID.toString(), net.getID());
-      node.setAttribute(NodeAtt.RT.toString(), net.getAvgRT());
-      node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), net.getNeutralMass());
-      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), net.getHeightSum());
+      node.setAttribute(NodeAtt.RT.toString(), rtForm.format(net.getAvgRT()));
+      node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), mzForm.format(net.getNeutralMass()));
+      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), intensityForm.format(net.getHeightSum()));
 
       final SpectralDBFeatureIdentity bestMatch = net.keySet().stream()
           .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream).max(
@@ -449,9 +453,9 @@ public class FeatureNetworkGenerator {
         node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getName());
         node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
             DBEntryField.NAME, ""));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), score);
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
-            bestMatch.getSimilarity().getExplainedLibraryIntensity());
+            scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
       }
 
       // add best GNPS match to node
@@ -525,11 +529,16 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.TYPE.toString(),
           esi != null ? NodeType.ION_FEATURE : NodeType.SINGLE_FEATURE);
       node.setAttribute(NodeAtt.ID.toString(), row.getID());
-      node.setAttribute(NodeAtt.RT.toString(), row.getAverageRT());
-      node.setAttribute(NodeAtt.MZ.toString(), row.getAverageMZ());
-      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), row.getBestFeature().getHeight());
+      if (row.getAverageRT() != null) {
+        node.setAttribute(NodeAtt.RT.toString(), rtForm.format(row.getAverageRT()));
+      }
+      if (row.getAverageMZ() != null) {
+        node.setAttribute(NodeAtt.MZ.toString(), mzForm.format(row.getAverageMZ()));
+      }
+      node.setAttribute(NodeAtt.MAX_INTENSITY.toString(),
+          intensityForm.format(row.getBestFeature().getHeight()));
       final double sumIntensity = row.getSumIntensity();
-      node.setAttribute(NodeAtt.SUM_INTENSITY.toString(), sumIntensity);
+      node.setAttribute(NodeAtt.SUM_INTENSITY.toString(), intensityForm.format(sumIntensity));
       node.setAttribute(NodeAtt.LOG10_SUM_INTENSITY.toString(), Math.log10(sumIntensity));
       node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
       node.setAttribute(NodeAtt.GROUP_ID.toString(), row.getGroupID());
@@ -541,9 +550,9 @@ public class FeatureNetworkGenerator {
         node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getName());
         node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
             DBEntryField.NAME, ""));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), score);
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
-            bestMatch.getSimilarity().getExplainedLibraryIntensity());
+            scoreForm.format(bestMatch.getSimilarity().getExplainedLibraryIntensity()));
       }
 
       if (esi != null) {
@@ -554,7 +563,7 @@ public class FeatureNetworkGenerator {
 
         node.setAttribute(NodeAtt.ION_TYPE.toString(), esi.getIonType().toString(false));
         node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(),
-            esi.getIonType().getMass(row.getAverageMZ()));
+            mzForm.format(esi.getIonType().getMass(row.getAverageMZ())));
         node.setAttribute(NodeAtt.NET_ID.toString(), esi.getNetID());
         String ms2Veri = (esi.getMSMSMultimerCount() > 0 ? "xmer_verified" : "")
                          + (esi.getMSMSModVerify() > 0 ? " modification_verified" : "");
