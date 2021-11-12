@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.networking.visual;
@@ -38,6 +37,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.graphstream.graph.Node;
 
 public class FeatureNetworkPane extends NetworkPane {
@@ -132,45 +132,50 @@ public class FeatureNetworkPane extends NetworkPane {
       setAttributeForAllNodes(GraphStyleAttribute.LABEL, selectedItem);
     });
 
+    // #######################################################
+    // add buttons
     ToggleButton toggleCollapseIons = new ToggleButton("Collapse ions");
     toggleCollapseIons.setSelected(collapse);
-    menu.getChildren().add(toggleCollapseIons);
     toggleCollapseIons.selectedProperty()
         .addListener((o, old, value) -> collapseIonNodes(toggleCollapseIons.isSelected()));
 
     ToggleButton toggleShowMS2SimEdges = new ToggleButton("Show MS2 sim");
     toggleShowMS2SimEdges.setSelected(true);
-    menu.getChildren().add(toggleShowMS2SimEdges);
     toggleShowMS2SimEdges.selectedProperty()
         .addListener((o, old, value) -> setShowMs2SimEdges(toggleShowMS2SimEdges.isSelected()));
 
     ToggleButton toggleShowRelations = new ToggleButton("Show relational edges");
     toggleShowRelations.setSelected(true);
-    menu.getChildren().add(toggleShowRelations);
     toggleShowRelations.selectedProperty()
         .addListener((o, old, value) -> setConnectByNetRelations(toggleShowRelations.isSelected()));
 
     ToggleButton toggleShowIonIdentityEdges = new ToggleButton("Show ion edges");
     toggleShowIonIdentityEdges.setSelected(true);
-    menu.getChildren().add(toggleShowIonIdentityEdges);
     toggleShowIonIdentityEdges.selectedProperty().addListener(
         (o, old, value) -> showIonIdentityEdges(toggleShowIonIdentityEdges.isSelected()));
 
     ToggleButton toggleShowEdgeLabel = new ToggleButton("Show edge label");
     toggleShowEdgeLabel.setSelected(showEdgeLabels);
-    menu.getChildren().add(toggleShowEdgeLabel);
     toggleShowEdgeLabel.selectedProperty()
         .addListener((o, old, value) -> showEdgeLabels(toggleShowEdgeLabel.isSelected()));
 
     ToggleButton toggleShowNodeLabel = new ToggleButton("Show node label");
     toggleShowNodeLabel.setSelected(showNodeLabels);
-    menu.getChildren().add(toggleShowNodeLabel);
     toggleShowNodeLabel.selectedProperty()
         .addListener((o, old, value) -> showNodeLabels(toggleShowNodeLabel.isSelected()));
 
     Button showGNPSMatches = new Button("GNPS matches");
-    menu.getChildren().add(showGNPSMatches);
     showGNPSMatches.onMouseClickedProperty().addListener((o, old, value) -> showGNPSMatches());
+
+    Button showLibraryMatches = new Button("Library matches");
+    showLibraryMatches.onMouseClickedProperty()
+        .addListener((o, old, value) -> showLibraryMatches());
+
+    // finally add buttons
+    VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
+        toggleShowIonIdentityEdges, toggleShowEdgeLabel, toggleShowNodeLabel, showGNPSMatches,
+        showLibraryMatches);
+    this.setRight(pnRightMenu);
   }
 
   private void setAttributeForAllNodes(GraphStyleAttribute attribute, NodeAtt featureProperty) {
@@ -191,6 +196,21 @@ public class FeatureNetworkPane extends NetworkPane {
       }
     }
     logger.info("Show " + n + " GNPS library matches");
+  }
+
+  /**
+   * Show spectral library matches
+   */
+  private void showLibraryMatches() {
+    int n = 0;
+    for (Node node : graph) {
+      String name = (String) node.getAttribute(GNPSLibraryMatch.ATT.COMPOUND_NAME.getKey());
+      if (name != null) {
+        node.setAttribute("ui.label", name);
+        n++;
+      }
+    }
+    logger.info("Show " + n + " spectral library matches");
   }
 
   private void showIonIdentityEdges(boolean selected) {
@@ -335,7 +355,7 @@ public class FeatureNetworkPane extends NetworkPane {
                 node.setAttribute("ui.color", interpolated);
               } else if (colorValueMap != null) {
                 // non numeric values - use index
-                int index = colorValueMap.getOrDefault(colorValue, 0);
+                int index = colorValueMap.getOrDefault(colorValue.toString(), 0);
                 node.setAttribute("ui.color", index / (float) numColorValues);
               }
             }
@@ -358,7 +378,7 @@ public class FeatureNetworkPane extends NetworkPane {
                   sizeValueRange.upperEndpoint());
             } else if (sizeValueMap != null) {
               // non numeric values - use index
-              int index = sizeValueMap.getOrDefault(sizeValue, 0);
+              int index = sizeValueMap.getOrDefault(sizeValue.toString(), 0);
               size = index / (float) numSizeValues;
             }
             size = Math.max(MIN_NODE_WIDTH_GU, size * MAX_NODE_WIDTH_GU);
