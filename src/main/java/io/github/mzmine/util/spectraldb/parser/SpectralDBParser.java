@@ -34,7 +34,8 @@ public abstract class SpectralDBParser {
   protected final int bufferEntries;
   // process entries
   protected final LibraryEntryProcessor processor;
-  private final List<SpectralDBEntry> list;
+  protected final Object LOCK = new Object();
+  private List<SpectralDBEntry> list;
   private int processedEntries = 0;
 
   public SpectralDBParser(int bufferEntries, LibraryEntryProcessor processor) {
@@ -64,18 +65,21 @@ public abstract class SpectralDBParser {
         .anyMatch(v -> Double.compare(v, 0) == 0)) {
       return false;
     }
-    synchronized (list) {
-      list.add(entry);
-      if (list.size() % bufferEntries == 0) {
-        // start new task for every 1000 entries
-        // push entries
-        processor.processNextEntries(list, processedEntries);
-        processedEntries += list.size();
-        // new list
-        list.clear();
+    synchronized (LOCK) {
+      // need double lock as list changes inside
+      synchronized (list) {
+        list.add(entry);
+        if (list.size() % bufferEntries == 0) {
+          // start new task for every 1000 entries
+          // push entries
+          processor.processNextEntries(list, processedEntries);
+          processedEntries += list.size();
+          // new list
+          list = new ArrayList<>();
+        }
       }
-      return true;
     }
+    return true;
   }
 
   /**
@@ -83,12 +87,14 @@ public abstract class SpectralDBParser {
    */
   protected void finish() {
     // push entries
-    synchronized (list) {
-      if (!list.isEmpty()) {
-        logger.info("Imported last " + list.size() + " library entries");
-        processor.processNextEntries(list, processedEntries);
-        processedEntries += list.size();
-        list.clear();
+    synchronized (LOCK) {
+      synchronized (list) {
+        if (!list.isEmpty()) {
+          logger.info("Imported last " + list.size() + " library entries");
+          processor.processNextEntries(list, processedEntries);
+          processedEntries += list.size();
+          list = new ArrayList<>();
+        }
       }
     }
     logger.info(processedEntries + "  library entries imported");
