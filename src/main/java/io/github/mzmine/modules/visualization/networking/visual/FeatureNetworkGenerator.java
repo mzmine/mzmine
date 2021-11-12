@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.networking.visual;
@@ -23,16 +22,21 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
+import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -225,22 +229,22 @@ public class FeatureNetworkGenerator {
 
   private void addGNPSLibraryMatchesToNodes(FeatureListRow[] rows) {
     int n = 0;
-//    for (FeatureListRow r : rows) {
-//      GNPSLibraryMatch identity = r.get
-//          Arrays.stream(r.getPeakIdentities()).filter(GNPSResultsIdentity.class::isInstance)
-//              .map(GNPSResultsIdentity.class::cast).findFirst().orElse(null);
-//
-//      if (identity != null) {
-//        n++;
-//        Node node = getRowNode(r, true);
-//        identity.getResults().entrySet().stream().filter(e -> e.getValue() != null).forEach(e -> {
-//          // row node
-//          node.setAttribute(e.getKey(), e.getValue());
-//          // M nodes
-//          streamNeutralMolNodes(r).forEach(mnode -> mnode.setAttribute(e.getKey(), e.getValue()));
-//        });
-//      }
-//    }
+    for (FeatureListRow r : rows) {
+      final List<GNPSLibraryMatch> matches = r.get(GNPSSpectralLibraryMatchesType.class);
+      if (matches == null || matches.isEmpty()) {
+        continue;
+      }
+      GNPSLibraryMatch identity = matches.get(0);
+
+      if (identity != null) {
+        n++;
+        Node node = getRowNode(r, true);
+        identity.getResults().entrySet().stream().filter(e -> e.getValue() != null).forEach(e -> {
+          // row node
+          node.setAttribute(e.getKey(), e.getValue());
+        });
+      }
+    }
     logger.info("Added " + n + " GNPS library matches to their respective nodes");
   }
 
@@ -436,6 +440,32 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), net.getNeutralMass());
       node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), net.getHeightSum());
 
+      final SpectralDBFeatureIdentity bestMatch = net.keySet().stream()
+          .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream).max(
+              Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
+      if (bestMatch != null) {
+        double score = bestMatch.getSimilarity().getScore();
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
+            String.format("%s (%1.2G)", bestMatch.getName(), score));
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), score);
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
+            bestMatch.getSimilarity().getExplainedLibraryIntensity());
+      }
+
+      // add best GNPS match to node
+      final GNPSLibraryMatch bestGNPS = net.keySet().stream()
+          .map(row -> row.get(GNPSSpectralLibraryMatchesType.class)).filter(Objects::nonNull)
+          .flatMap(List::stream).max(Comparator.comparingDouble(a -> a.getResultOr(
+              ATT.LIBRARY_MATCH_SCORE, 0d))).orElse(null);
+      if (bestGNPS != null) {
+        final Node thisNode = node;
+        bestGNPS.getResults().entrySet().stream().filter(e -> e.getValue() != null).forEach(e -> {
+          // row node
+          thisNode.setAttribute(e.getKey(), e.getValue());
+        });
+      }
+
       // all intensitites of all iontypes
       for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
         IonIdentity ion = e.getValue();
@@ -502,6 +532,18 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.LOG10_SUM_INTENSITY.toString(), Math.log10(sumIntensity));
       node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
       node.setAttribute(NodeAtt.GROUP_ID.toString(), row.getGroupID());
+
+      final SpectralDBFeatureIdentity bestMatch = row.getSpectralLibraryMatches().stream().max(
+          Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
+      if (bestMatch != null) {
+        double score = bestMatch.getSimilarity().getScore();
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
+            String.format("%s (%1.2G)", bestMatch.getName(), score));
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), score);
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
+            bestMatch.getSimilarity().getExplainedLibraryIntensity());
+      }
 
       if (esi != null) {
         // undefined is not represented by a neutral M node
