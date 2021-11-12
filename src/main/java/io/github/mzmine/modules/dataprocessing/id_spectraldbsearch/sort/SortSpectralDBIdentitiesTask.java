@@ -17,7 +17,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -25,10 +24,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class SortSpectralDBIdentitiesTask extends AbstractTask {
@@ -62,7 +61,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    * @param row
    */
   public static void sortIdentities(FeatureListRow row) {
-    sortIdentities(row, false, 1.0d);
+    sortIdentities(row, false, 0d);
   }
 
   /**
@@ -74,41 +73,22 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    */
   public static void sortIdentities(FeatureListRow row, boolean filterMinSimilarity,
       double minScore) {
-    // get all row identities
-    List<FeatureIdentity> identities = row.getPeakIdentities();
-    if (identities == null || identities.isEmpty()) {
-      return;
-    }
-
     // filter for SpectralDBFeatureIdentity and write to map
-    List<SpectralDBFeatureIdentity> match = new ArrayList<>();
-
-    for (FeatureIdentity identity : identities) {
-      if (identity instanceof SpectralDBFeatureIdentity) {
-        row.removeFeatureIdentity(identity);
-        if (!filterMinSimilarity
-            || ((SpectralDBFeatureIdentity) identity).getSimilarity().getScore() >= minScore) {
-          match.add((SpectralDBFeatureIdentity) identity);
-        }
-      }
-    }
-    if (match.isEmpty()) {
+    List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
+    if (matches == null || matches.isEmpty()) {
       return;
     }
 
     // reversed order: by similarity score
-    match
-        .sort((a, b) -> Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
+    matches.stream().filter(m -> !filterMinSimilarity || m.getSimilarity().getScore() >= minScore)
+        .sorted(
+            (a, b) -> Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()))
+        .collect(Collectors.toList());
 
-    for (SpectralDBFeatureIdentity entry : match) {
-      row.addFeatureIdentity(entry, false);
-    }
-    row.setPreferredFeatureIdentity(match.get(0));
+    // set sorted list
+    row.setSpectralLibraryMatch(matches);
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
@@ -117,9 +97,6 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     return finishedRows / (float) totalRows;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return "Sort spectral database identities of data base search in " + featureList;

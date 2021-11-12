@@ -228,9 +228,7 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
-  default void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
-    addFeatureIdentity(id, false);
-  }
+  void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
 
   /**
    * Correlated features grouped
@@ -384,6 +382,12 @@ public interface FeatureListRow extends ModularDataModel {
         .sum();
   }
 
+  /**
+   * Set and override the list of matches
+   *
+   * @param matches new list of matches
+   */
+  void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches);
 
   /**
    * List of library matches sorted from best (index 0) to last match
