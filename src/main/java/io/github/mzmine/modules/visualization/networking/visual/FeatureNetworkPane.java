@@ -28,6 +28,7 @@ import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryM
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -165,11 +166,10 @@ public class FeatureNetworkPane extends NetworkPane {
         .addListener((o, old, value) -> showNodeLabels(toggleShowNodeLabel.isSelected()));
 
     Button showGNPSMatches = new Button("GNPS matches");
-    showGNPSMatches.onMouseClickedProperty().addListener((o, old, value) -> showGNPSMatches());
+    showGNPSMatches.setOnAction(e -> showGNPSMatches());
 
     Button showLibraryMatches = new Button("Library matches");
-    showLibraryMatches.onMouseClickedProperty()
-        .addListener((o, old, value) -> showLibraryMatches());
+    showLibraryMatches.setOnAction(e -> showLibraryMatches());
 
     // finally add buttons
     VBox pnRightMenu = new VBox(4, toggleCollapseIons, toggleShowMS2SimEdges, toggleShowRelations,
@@ -204,7 +204,7 @@ public class FeatureNetworkPane extends NetworkPane {
   private void showLibraryMatches() {
     int n = 0;
     for (Node node : graph) {
-      String name = (String) node.getAttribute(GNPSLibraryMatch.ATT.COMPOUND_NAME.getKey());
+      String name = (String) node.getAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString());
       if (name != null) {
         node.setAttribute("ui.label", name);
         n++;
@@ -327,16 +327,17 @@ public class FeatureNetworkPane extends NetworkPane {
     for (Node node : graph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
 
+      // label
+      try {
+        // make colors a gradient
+        Object value = node.getAttribute(nodeAttLabel.toString());
+        String label = value == null ? "" : value.toString();
+        node.setAttribute("ui.label", label);
+      } catch (Exception ex) {
+        logger.log(Level.SEVERE, "Error while setting label attribute. " + ex.getMessage(), ex);
+      }
+
       if (type == NodeType.ION_FEATURE || type == NodeType.SINGLE_FEATURE) {
-        // label
-        try {
-          // make colors a gradient
-          Object value = node.getAttribute(nodeAttLabel.toString());
-          String label = value == null ? "" : value.toString();
-          node.setAttribute("ui.label", label);
-        } catch (Exception ex) {
-          logger.log(Level.SEVERE, "Error while setting label attribute. " + ex.getMessage(), ex);
-        }
 
         // color
         try {
@@ -404,8 +405,9 @@ public class FeatureNetworkPane extends NetworkPane {
     int currentIndex = 0;
     for (Node node : graph) {
       try {
-        String object = node.getAttribute(attribute.toString()).toString();
-        if (object == null) {
+        String object = Objects.requireNonNullElse(node.getAttribute(attribute.toString()), "")
+            .toString();
+        if (object.isEmpty()) {
           continue;
         }
         if (!map.containsKey(object)) {

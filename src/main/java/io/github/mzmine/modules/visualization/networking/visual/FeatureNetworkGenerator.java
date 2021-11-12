@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -445,9 +446,9 @@ public class FeatureNetworkGenerator {
               Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
-            String.format("%s (%1.2G)", bestMatch.getName(), score));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
+            DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), score);
         node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
             bestMatch.getSimilarity().getExplainedLibraryIntensity());
@@ -537,9 +538,9 @@ public class FeatureNetworkGenerator {
           Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(),
-            String.format("%s (%1.2G)", bestMatch.getName(), score));
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
+            DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), score);
         node.setAttribute(NodeAtt.SPECTRAL_LIB_EXPLAINED_INTENSITY.toString(),
             bestMatch.getSimilarity().getExplainedLibraryIntensity());
