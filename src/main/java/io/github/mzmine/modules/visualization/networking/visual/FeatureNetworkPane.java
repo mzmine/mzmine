@@ -53,6 +53,8 @@ public class FeatureNetworkPane extends NetworkPane {
   // currently set dynamic node styles like color, size, label
   private final EnumMap<GraphStyleAttribute, NodeAtt> dynamicNodeStyle = new EnumMap<>(
       GraphStyleAttribute.class);
+  private final EnumMap<GraphStyleAttribute, EdgeAtt> dynamicEdgeStyle = new EnumMap<>(
+      GraphStyleAttribute.class);
   // style values need to be set as float - double crashes in the javafx thread for graphstream
   private final Map<NodeAtt, Range<Float>> attributeRanges = new HashMap<>();
   // for non numeric values: store all objects and provide indexes
@@ -133,6 +135,17 @@ public class FeatureNetworkPane extends NetworkPane {
       setAttributeForAllNodes(GraphStyleAttribute.LABEL, selectedItem);
     });
 
+    menu.getChildren().add(new Label("Edge:"));
+    ComboBox<EdgeAtt> comboEdgeLabel = new ComboBox<>(
+        FXCollections.observableArrayList(EdgeAtt.values()));
+    comboEdgeLabel.setTooltip(new Tooltip("Edge label"));
+    comboEdgeLabel.getSelectionModel().select(EdgeAtt.LABEL);
+    menu.getChildren().add(comboEdgeLabel);
+    comboEdgeLabel.setOnAction(e -> {
+      EdgeAtt selectedItem = comboEdgeLabel.getSelectionModel().getSelectedItem();
+      setAttributeForAllEdges(GraphStyleAttribute.LABEL, selectedItem);
+    });
+
     // #######################################################
     // add buttons
     ToggleButton toggleCollapseIons = new ToggleButton("Collapse ions");
@@ -178,10 +191,24 @@ public class FeatureNetworkPane extends NetworkPane {
     this.setRight(pnRightMenu);
   }
 
-  private void setAttributeForAllNodes(GraphStyleAttribute attribute, NodeAtt featureProperty) {
-    dynamicNodeStyle.put(attribute, featureProperty);
-    applyDynamicStyles();
+  private void setAttributeForAllNodes(GraphStyleAttribute attribute, NodeAtt prop) {
+    dynamicNodeStyle.put(attribute, prop);
+    switch (attribute) {
+      case COLOR -> applyNodeColorStyle();
+      case LABEL -> applyLabelStyle(GraphObject.NODE);
+      case SIZE -> applyNodeSizeStyle();
+    }
   }
+
+  private void setAttributeForAllEdges(GraphStyleAttribute attribute, EdgeAtt prop) {
+    dynamicEdgeStyle.put(attribute, prop);
+    switch (attribute) {
+      case COLOR -> applyNodeColorStyle();
+      case LABEL -> applyLabelStyle(GraphObject.EDGE);
+      case SIZE -> applyNodeSizeStyle();
+    }
+  }
+
 
   /**
    * Show GNPS library match
@@ -303,21 +330,61 @@ public class FeatureNetworkPane extends NetworkPane {
   }
 
   private void applyDynamicStyles() {
-    NodeAtt nodeAttSize = dynamicNodeStyle.get(GraphStyleAttribute.SIZE);
-    NodeAtt nodeAttColor = dynamicNodeStyle.get(GraphStyleAttribute.COLOR);
-    NodeAtt nodeAttLabel = dynamicNodeStyle.get(GraphStyleAttribute.LABEL);
+    applyNodeSizeStyle();
+    applyNodeColorStyle();
+    applyLabelStyle(GraphObject.NODE);
 
+    // edges
+    applyLabelStyle(GraphObject.EDGE);
+
+  }
+
+  private void applyNodeSizeStyle() {
+    NodeAtt nodeAttSize = dynamicNodeStyle.get(GraphStyleAttribute.SIZE);
     // min / max values of the specific attributes
     final Range<Float> sizeValueRange = nodeAttSize.isNumber() ? attributeRanges
         .computeIfAbsent(nodeAttSize, nodeAtt -> computeValueRange(rows, nodeAttSize)) : null;
-    final Range<Float> colorValueRange = nodeAttColor.isNumber() ? attributeRanges
-        .computeIfAbsent(nodeAttColor, nodeAtt -> computeValueRange(rows, nodeAttColor)) : null;
-
     // for non numeric values - give each Object an index
     final Map<String, Integer> sizeValueMap = nodeAttSize.isNumber() ? null
         : attributeCategoryValuesMap
             .computeIfAbsent(nodeAttSize, att -> indexAllValues(nodeAttSize));
     final int numSizeValues = sizeValueMap == null ? 0 : sizeValueMap.size();
+
+    for (Node node : graph) {
+      NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
+      if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
+        continue;
+      }
+      // set size
+      try {
+        Object sizeValue = node.getAttribute(nodeAttSize.toString());
+        if (sizeValue != null) {
+          // differentiate between numeric values and a list of discrete values
+          float size = 0;
+          if (sizeValueRange != null) {
+            size = interpolateIntensity(Float.parseFloat(sizeValue.toString()),
+                sizeValueRange.lowerEndpoint(),
+                sizeValueRange.upperEndpoint());
+          } else if (sizeValueMap != null) {
+            // non numeric values - use index
+            int index = sizeValueMap.getOrDefault(sizeValue.toString(), 0);
+            size = index / (float) numSizeValues;
+          }
+          size = Math.max(MIN_NODE_WIDTH_GU, size * MAX_NODE_WIDTH_GU);
+          // set as graphical units for zoom effect
+          // otherwise use fixed number of pixels
+          node.setAttribute("ui.size", size + "gu");
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Error while setting size attribute. " + ex.getMessage(), ex);
+      }
+    }
+  }
+
+  private void applyNodeColorStyle() {
+    NodeAtt nodeAttColor = dynamicNodeStyle.get(GraphStyleAttribute.COLOR);
+    final Range<Float> colorValueRange = nodeAttColor.isNumber() ? attributeRanges
+        .computeIfAbsent(nodeAttColor, nodeAtt -> computeValueRange(rows, nodeAttColor)) : null;
 
     final Map<String, Integer> colorValueMap =
         nodeAttColor.isNumber() ? null : attributeCategoryValuesMap
@@ -326,72 +393,70 @@ public class FeatureNetworkPane extends NetworkPane {
 
     for (Node node : graph) {
       NodeType type = (NodeType) node.getAttribute(NodeAtt.TYPE.toString());
-
-      // label
+      if (type == NodeType.NEUTRAL_M || type == NodeType.NEUTRAL_LOSS_CENTER) {
+        continue;
+      }
       try {
-        // make colors a gradient
-        Object value = node.getAttribute(nodeAttLabel.toString());
-        String label = value == null ? "" : value.toString();
-        node.setAttribute("ui.label", label);
+        if (nodeAttColor == NodeAtt.NONE) {
+          node.removeAttribute("ui.class");
+        } else {
+          // make colors a gradient
+          Object colorValue = node.getAttribute(nodeAttColor.toString());
+          if (colorValue != null) {
+            node.setAttribute("ui.class", "GRADIENT");
+            // differentiate between numeric values and a list of discrete values
+            if (colorValueRange != null) {
+              final float interpolated = interpolateIntensity(
+                  Float.parseFloat(colorValue.toString()),
+                  colorValueRange.lowerEndpoint(), colorValueRange.upperEndpoint());
+              node.setAttribute("ui.color", interpolated);
+            } else if (colorValueMap != null) {
+              // non numeric values - use index
+              int index = colorValueMap.getOrDefault(colorValue.toString(), 0);
+              node.setAttribute("ui.color", index / (float) numColorValues);
+            }
+          }
+        }
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Error while setting color attribute. " + ex.getMessage(), ex);
+        logger.log(Level.SEVERE, ex.getMessage(), ex);
+      }
+    }
+  }
+
+  private void applyLabelStyle(GraphObject target) {
+    final String att = getStyleAttribute(target, GraphStyleAttribute.LABEL);
+    target.stream(graph).forEach(node -> {
+      try {
+        node.setAttribute("ui.label", getOrElseString(node, att, ""));
       } catch (Exception ex) {
         logger.log(Level.SEVERE, "Error while setting label attribute. " + ex.getMessage(), ex);
       }
+    });
+  }
 
-      if (type == NodeType.ION_FEATURE || type == NodeType.SINGLE_FEATURE) {
+  /**
+   * Get style attribute
+   *
+   * @param target   the target object to style
+   * @param styleAtt the styling attribute of the node or edge
+   * @return either a {@link NodeAtt} or {@link EdgeAtt}
+   */
+  public String getStyleAttribute(GraphObject target, GraphStyleAttribute styleAtt) {
+    return Objects.toString(getDynamicStyle(target).get(styleAtt), null);
+  }
 
-        // color
-        try {
-          if (nodeAttColor == NodeAtt.NONE) {
-            node.removeAttribute("ui.class");
-          } else {
-            // make colors a gradient
-            Object colorValue = node.getAttribute(nodeAttColor.toString());
-            if (colorValue != null) {
-              node.setAttribute("ui.class", "GRADIENT");
-              // differentiate between numeric values and a list of discrete values
-              if (colorValueRange != null) {
-                final float interpolated = interpolateIntensity(
-                    Float.parseFloat(colorValue.toString()),
-                    colorValueRange.lowerEndpoint(), colorValueRange.upperEndpoint());
-                node.setAttribute("ui.color", interpolated);
-              } else if (colorValueMap != null) {
-                // non numeric values - use index
-                int index = colorValueMap.getOrDefault(colorValue.toString(), 0);
-                node.setAttribute("ui.color", index / (float) numColorValues);
-              }
-            }
-          }
-        } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error while setting color attribute. " + ex.getMessage(), ex);
-          logger.log(Level.SEVERE, ex.getMessage(), ex);
-        }
-
-        // set size
-        try {
-          // make colors a gradient
-          Object sizeValue = node.getAttribute(nodeAttSize.toString());
-          if (sizeValue != null) {
-            // differentiate between numeric values and a list of discrete values
-            float size = 0;
-            if (sizeValueRange != null) {
-              size = interpolateIntensity(Float.parseFloat(sizeValue.toString()),
-                  sizeValueRange.lowerEndpoint(),
-                  sizeValueRange.upperEndpoint());
-            } else if (sizeValueMap != null) {
-              // non numeric values - use index
-              int index = sizeValueMap.getOrDefault(sizeValue.toString(), 0);
-              size = index / (float) numSizeValues;
-            }
-            size = Math.max(MIN_NODE_WIDTH_GU, size * MAX_NODE_WIDTH_GU);
-            // set as graphical units for zoom effect
-            // otherwise use fixed number of pixels
-            node.setAttribute("ui.size", size + "gu");
-          }
-        } catch (Exception ex) {
-          logger.log(Level.WARNING, "Error while setting size attribute. " + ex.getMessage(), ex);
-        }
-      }
-    }
+  /**
+   * get the dynamic style map for target
+   *
+   * @param target edge or node as target
+   * @return style map
+   */
+  public EnumMap<GraphStyleAttribute, ?> getDynamicStyle(GraphObject target) {
+    return switch (target) {
+      case NODE -> dynamicNodeStyle;
+      case EDGE -> dynamicEdgeStyle;
+    };
   }
 
   /**
