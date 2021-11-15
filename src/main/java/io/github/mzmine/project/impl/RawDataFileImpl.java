@@ -61,10 +61,10 @@ public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
 
   // Name of this raw data file - may be changed by the user
-  private final StringProperty nameProperty = new SimpleStringProperty();
+  private final StringProperty nameProperty = new SimpleStringProperty("");
 
   protected final String absolutePath;
 
@@ -117,7 +117,7 @@ public class RawDataFileImpl implements RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return
+   * @return data point with maximum intensity (centroided)
    */
   @Override
   public int getMaxCentroidDataPoints() {
@@ -128,7 +128,7 @@ public class RawDataFileImpl implements RawDataFile {
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return
+   * @return data point with maximum intensity in unprocessed data points
    */
   @Override
   public int getMaxRawDataPoints() {
@@ -206,7 +206,6 @@ public class RawDataFileImpl implements RawDataFile {
    */
   @Override
   public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
-    assert rtRange != null;
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
         .toArray(Scan[]::new);
@@ -465,13 +464,23 @@ public class RawDataFileImpl implements RawDataFile {
 
   @Override
   public String setName(@NotNull String name) {
+    if (name.isBlank()) {
+      // keep old name
+      return getName();
+    }
+
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
       synchronized (project.getRawDataFiles()) {
         final List<String> names = new ArrayList<>(
             project.getRawDataFiles().stream().map(RawDataFile::getName).toList());
-        names.remove(getName());
+        final String oldName = getName();
+        // name is empty if set for the first time
+        if (!oldName.isBlank()) {
+          names.remove(oldName);
+        }
+
         // make path safe
         name = FileAndPathUtil.safePathEncode(name);
         // handle duplicates
