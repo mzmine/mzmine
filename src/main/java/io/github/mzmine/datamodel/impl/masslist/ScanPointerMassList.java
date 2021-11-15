@@ -136,4 +136,5 @@ public class ScanPointerMassList implements MassList {
   public Iterator<DataPoint> iterator() {
     return scan.iterator();
   }
+
 }

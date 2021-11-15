@@ -308,7 +308,7 @@ public class SmoothingTask extends AbstractTask {
           if (someMobilityScanIndex < frame.getNumberOfMobilityScans()) {
             someMobilityScan = frame.getMobilityScan(someMobilityScanIndex);
           } else {
-            someMobilityScan = frame.getMobilityScans().get(frame.getNumberOfMobilityScans() - 1);
+            someMobilityScan = frame.getMobilityScan(frame.getNumberOfMobilityScans() - 1);
           }
           final IonMobilitySeries dummyMobilogram = new SimpleIonMobilitySeries(null,
               new double[]{feature.getMZ()}, new double[]{0}, List.of(someMobilityScan));

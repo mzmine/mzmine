@@ -35,7 +35,6 @@ import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.PasefMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
-import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -128,7 +127,7 @@ public class IMSScanTypesTest {
           MobilityType.TIMS, null);
 
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
-      frame.setMobilityScans(scans);
+      frame.setMobilityScans(scans, true);
       try {
         file.addScan(frame);
       } catch (IOException e) {
@@ -147,9 +146,8 @@ public class IMSScanTypesTest {
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
           MobilityType.TIMS, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
-      frame.setMobilityScans(scans);
-      // set mass lists for merging
-      frame.getMobilityScans().stream().forEach(ms -> ms.addMassList(new ScanPointerMassList(ms)));
+      frame.setMobilityScans(scans, true);
+
       try {
         file.addScan(frame);
       } catch (IOException e) {

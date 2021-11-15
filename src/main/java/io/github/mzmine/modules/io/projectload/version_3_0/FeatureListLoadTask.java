@@ -27,6 +27,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -144,6 +146,9 @@ public class FeatureListLoadTask extends AbstractTask {
 
       final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
+      // enable caching of mobility scans during project import.
+      project.setProjectLoadImsImportCaching(true);
+
       for (File flistFile : files) {
         if (isCanceled()) {
           return;
@@ -162,14 +167,24 @@ public class FeatureListLoadTask extends AbstractTask {
           continue;
         }
         parseFeatureList(storage, flist, flistFile);
-        project.addFeatureList(flist);
 
+        // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
+        flist.replaceCachedFilesAndScans();
+
+        project.addFeatureList(flist);
         processedFlists++;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      project.setProjectLoadImsImportCaching(false);
+      MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
+      return;
     }
 
+    // disable caching on project level
+    project.setProjectLoadImsImportCaching(false);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -395,7 +410,9 @@ public class FeatureListLoadTask extends AbstractTask {
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @NotNull RawDataFile file) throws XMLStreamException {
 
-    final ModularFeature feature = new ModularFeature(flist, file, null, null);
+    // create feature with original file, but use buffered file for data type loading.
+    final RawDataFile originalFile = file instanceof CachedIMSRawDataFile c ? c.getOriginalFile() : file;
+    final ModularFeature feature = new ModularFeature(flist, originalFile, null, null);
 
     while (!(reader.getEventType() == XMLEvent.END_ELEMENT && reader.getLocalName()
         .equals(CONST.XML_FEATURE_ELEMENT)) && reader.hasNext()) {
@@ -422,6 +439,6 @@ public class FeatureListLoadTask extends AbstractTask {
       }
     }
 
-    row.addFeature(file, feature);
+    row.addFeature(originalFile, feature);
   }
 }

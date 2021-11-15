@@ -1,20 +1,21 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
+
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
@@ -27,51 +28,38 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.masslist.MobilityScanMassList;
-import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author https://github.com/SteffenHeu
- * @see io.github.mzmine.datamodel.MobilityScan
- */
-public class SimpleMobilityScan implements MobilityScan {
+public class StoredMobilityScan implements MobilityScan {
 
-  private static final Logger logger = Logger.getLogger(SimpleMobilityScan.class.getName());
+  private static final Logger logger = Logger.getLogger(StoredMobilityScan.class.getName());
 
-  private final SimpleFrame frame;
-  private MassList massList = null;
-  private final int storageOffset;
-  private final int numDataPoints;
-  private final int mobilityScanNumber;
-  private final int basePeakIndex;
+  private final MobilityScanStorage storage;
+  private final int index;
 
   /**
-   * @param mobilityScanNumber The mobility scan number starting with 0.
+   * @param mobilityScanIndex The mobility scan index starting with 0.
    */
-  public SimpleMobilityScan(int mobilityScanNumber, SimpleFrame frame, int storageOffset,
-      int numDataPoints, @Nullable Integer basePeakIndex) {
-    this.frame = frame;
-    this.mobilityScanNumber = mobilityScanNumber;
-    this.storageOffset = storageOffset;
-    this.numDataPoints = numDataPoints;
-    this.basePeakIndex = (basePeakIndex != null) ? basePeakIndex : -1;
+  public StoredMobilityScan(int mobilityScanIndex, @NotNull final MobilityScanStorage storage) {
+    this.storage = storage;
+    this.index = mobilityScanIndex;
   }
 
   @Override
   public int getNumberOfDataPoints() {
-    return numDataPoints;
+    return storage.getNumberOfRawDatapoints(index);
   }
 
   @Override
   public MassSpectrumType getSpectrumType() {
-    return frame.getSpectrumType();
+    return storage.getFrame().getSpectrumType();
   }
 
   @Override
@@ -79,7 +67,7 @@ public class SimpleMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    frame.getMobilityScanMzValues(this, dst);
+    storage.getRawMobilityScanMzValues(getMobilityScanNumber(), dst, 0);
     return dst;
   }
 
@@ -88,49 +76,46 @@ public class SimpleMobilityScan implements MobilityScan {
     if (dst.length < getNumberOfDataPoints()) {
       dst = new double[getNumberOfDataPoints()];
     }
-    frame.getMobilityScanIntensityValues(this, dst);
+    storage.getRawMobilityScanIntensityValues(getMobilityScanNumber(), dst, 0);
     return dst;
   }
 
   @Override
   public double getMzValue(int index) {
-    return frame.getMobilityScanMzValue(this, index);
+    return storage.getRawMobilityScanMzValue(getMobilityScanNumber(), index);
   }
 
   @Override
   public double getIntensityValue(int index) {
-    return frame.getMobilityScanIntensityValue(this, index);
+    return storage.getRawMobilityScanIntensityValue(getMobilityScanNumber(), index);
   }
 
   @Nullable
   @Override
   public Double getBasePeakMz() {
-    if (basePeakIndex == -1) {
-      return null;
-    }
-    return getMzValue(basePeakIndex);
+    final int basePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? getMzValue(basePeakIndex) : null;
   }
 
   @Nullable
   @Override
   public Double getBasePeakIntensity() {
-    if (basePeakIndex == -1) {
-      return null;
-    }
-    return getIntensityValue(basePeakIndex);
+    final int basePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
+    return basePeakIndex != -1 ? getIntensityValue(basePeakIndex) : null;
   }
 
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    return basePeakIndex == -1 ? null : basePeakIndex;
+    int rawBasePeakIndex = storage.getRawBasePeakIndex(getMobilityScanNumber());
+    return rawBasePeakIndex != -1 ? rawBasePeakIndex : null;
   }
 
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    return getNumberOfDataPoints() > 1 ? Range
-        .closed(getMzValue(0), getMzValue(getNumberOfDataPoints() - 1))
+    return getNumberOfDataPoints() > 1 ? Range.closed(getMzValue(0),
+        getMzValue(getNumberOfDataPoints() - 1))
         : Range.singleton(getNumberOfDataPoints() == 0 ? 0d : getMzValue(0));
   }
 
@@ -148,41 +133,33 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public double getMobility() {
-    return frame.getMobilityForMobilityScanNumber(mobilityScanNumber);
+    return storage.getFrame().getMobilityForMobilityScanNumber(getMobilityScanNumber());
   }
 
   @Override
   public MobilityType getMobilityType() {
-    return frame.getMobilityType();
+    return storage.getFrame().getMobilityType();
   }
 
   @Override
   public Frame getFrame() {
-    return frame;
+    return storage.getFrame();
   }
 
   @Override
   public float getRetentionTime() {
-    return frame.getRetentionTime();
+    return storage.getFrame().getRetentionTime();
   }
 
   @Override
   public int getMobilityScanNumber() {
-    return mobilityScanNumber;
+    return index;
   }
 
   @Nullable
   @Override
   public PasefMsMsInfo getMsMsInfo() {
-    return frame.getImsMsMsInfoForMobilityScan(mobilityScanNumber);
-  }
-
-  /**
-   * @return Used to retrieve this scans storage offset when reading mz/intensity values. Not
-   * intended for public usage, therefore not declared in {@link MobilityScan}.
-   */
-  int getStorageOffset() {
-    return storageOffset;
+    return storage.getFrame().getImsMsMsInfoForMobilityScan(getMobilityScanNumber());
   }
 
   @Override
@@ -192,16 +169,13 @@ public class SimpleMobilityScan implements MobilityScan {
 
   @Override
   public void addMassList(@NotNull MassList massList) {
-    if (!(massList instanceof MobilityScanMassList) && !(massList instanceof ScanPointerMassList)) {
-      throw new IllegalArgumentException(
-          "Cannot mass lists of type " + massList.getClass().getName() + " to MobilityScan");
-    }
-    this.massList = massList;
+    throw new UnsupportedOperationException(
+        "Mass lists should be added to the mobility scan storage.");
   }
 
   @Override
   public MassList getMassList() {
-    return massList;
+    return storage.getMassList(getMobilityScanNumber());
   }
 
   @Override
@@ -250,5 +224,24 @@ public class SimpleMobilityScan implements MobilityScan {
       return spectrum.getIntensityValue(cursor);
     }
 
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    StoredMobilityScan that = (StoredMobilityScan) o;
+    return index == that.index && Objects.equals(
+        getFrame(), ((StoredMobilityScan) o).getFrame()) && Objects.equals(getDataFile(),
+        ((StoredMobilityScan) o).getDataFile());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(index, getFrame().getFrameId(), getDataFile());
   }
 }

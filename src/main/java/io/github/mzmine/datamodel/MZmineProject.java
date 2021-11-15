@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
 import java.util.Hashtable;
@@ -151,4 +152,16 @@ public interface MZmineProject {
   public Boolean isStandalone();
 
   public void setStandalone(Boolean standalone);
+
+  /**
+   * Enables/disables usage of {@link CachedIMSRawDataFile}s for {@link IMSRawDataFile}s in the
+   * project. Cached files are used during feature list import to avoid multiple copies of {@link
+   * io.github.mzmine.datamodel.MobilityScan}s, since the main implementation ({@link
+   * io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed through
+   * data types.
+   * <p></p>
+   * After the project import, the files have to be replaced to lower ram consumption and allow
+   * further processing.
+   */
+  public void setProjectLoadImsImportCaching(boolean enabled);
 }

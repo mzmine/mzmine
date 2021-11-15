@@ -205,4 +205,5 @@ public class CachedMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
+
 }

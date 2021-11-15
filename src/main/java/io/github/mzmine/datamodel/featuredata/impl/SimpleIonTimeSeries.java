@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.featuredata.IntensitySeries;
 import io.github.mzmine.datamodel.featuredata.IonSpectrumSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MzSeries;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -95,6 +96,13 @@ public class SimpleIonTimeSeries implements IonTimeSeries<Scan> {
         case CONST.XML_SCAN_LIST_ELEMENT -> {
           int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
           scans = ParsingUtils.getSublistFromIndices(file.getScans(), indices); // use all scans
+
+          // if the scans were CachedFrames, we have to replace them when storing them to the series,
+          // otherwise, we would keep the refences to cached mobility scans alive.
+          if (scans.get(0) instanceof CachedIMSFrame) {
+            scans = scans.stream().map(scan -> ((CachedIMSFrame) scan).getOriginalFrame())
+                .map(f -> (Scan) f).toList();
+          }
         }
         case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
             reader.getElementText());
