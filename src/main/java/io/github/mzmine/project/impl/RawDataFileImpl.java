@@ -94,8 +94,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage, @NotNull Color color) throws IOException {
-
-    this.nameProperty.set(dataFileName);
+    setName(dataFileName);
     this.storageMemoryMap = storage;
     this.absolutePath = absolutePath;
 
@@ -465,7 +464,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public void setName(@NotNull String name) {
+  public String setName(@NotNull String name) {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
@@ -483,6 +482,7 @@ public class RawDataFileImpl implements RawDataFile {
 
     final String finalName = name;
     MZmineCore.runLater(() -> this.nameProperty.set(finalName));
+    return finalName;
   }
 
   @Override

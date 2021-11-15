@@ -77,7 +77,7 @@ public class ModularFeatureList implements FeatureList {
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
   @NotNull
-  private final StringProperty nameProperty;
+  private final StringProperty nameProperty = new SimpleStringProperty();
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
@@ -105,7 +105,7 @@ public class ModularFeatureList implements FeatureList {
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
       @NotNull List<RawDataFile> dataFiles) {
-    this.nameProperty = new SimpleStringProperty(name);
+    setName(name);
     this.dataFiles = FXCollections.observableList(dataFiles);
     featureListRows = FXCollections.observableArrayList();
     descriptionOfAppliedTasks = FXCollections.observableArrayList();
@@ -138,7 +138,7 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  public void setName(String name) {
+  public String setName(String name) {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
@@ -156,6 +156,7 @@ public class ModularFeatureList implements FeatureList {
 
     final String finalName = name;
     MZmineCore.runLater(() -> this.nameProperty.set(finalName));
+    return finalName;
   }
 
   @Override
