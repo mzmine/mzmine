@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -141,9 +142,9 @@ public class ExportScansTask extends AbstractTask {
           case "mgf":
             writer.write("BEGIN IONS");
             writer.newLine();
-            writer.write("PEPMASS=" + scan.getPrecursorMZ());
+            writer.write("PEPMASS=" + Objects.requireNonNullElse(scan.getPrecursorMz(), 0));
             writer.newLine();
-            writer.write("CHARGE=" + scan.getPrecursorCharge());
+            writer.write("CHARGE=" + Objects.requireNonNullElse(scan.getPrecursorCharge(), 0));
             writer.newLine();
             writer.write("MSLEVEL=" + scan.getMSLevel());
             writer.newLine();

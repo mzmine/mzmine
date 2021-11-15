@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.MobilityUnitType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Task;
 import io.github.mzmine.parameters.ParameterSet;
@@ -81,7 +82,8 @@ public class FeatureResolverTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public FeatureResolverTask(final MZmineProject project, MemoryMapStorage storage,
-      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction, @NotNull Date moduleCallDate) {
+      final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction,
+      @NotNull Date moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.
@@ -122,7 +124,7 @@ public class FeatureResolverTask extends AbstractTask {
       } else {
         try {
           if (((GeneralResolverParameters) parameters)
-              .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
+                  .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
           } else {
             legacyResolve();
@@ -143,7 +145,6 @@ public class FeatureResolverTask extends AbstractTask {
           }
 
           if (!isCanceled()) {
-
             // Add new featurelist to the project.
             project.addFeatureList(newPeakList);
 
@@ -340,7 +341,7 @@ public class FeatureResolverTask extends AbstractTask {
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
     final Resolver resolver = ((GeneralResolverParameters) parameters)
         .getResolver(parameters, originalFeatureList);
-    if(resolver == null) {
+    if (resolver == null) {
       setErrorMessage("Resolver could not be initialised.");
       setStatus(TaskStatus.ERROR);
       return;
@@ -384,11 +385,12 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-        + " have less than 4 scans (frames for IMS data)");
+                + " have less than 4 scans (frames for IMS data)");
 //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
+            getModuleCallDate()));
 
     newPeakList = resolvedFeatureList;
   }
@@ -452,7 +454,8 @@ public class FeatureResolverTask extends AbstractTask {
     }
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
+            getModuleCallDate()));
 
     return resolvedFeatureList;
   }
@@ -468,6 +471,7 @@ public class FeatureResolverTask extends AbstractTask {
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
         originalFeatureList.getName() + " " + parameters
             .getParameter(GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+
 //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
@@ -477,9 +481,18 @@ public class FeatureResolverTask extends AbstractTask {
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
-    if (originalFeatureList.getFeature(0, originalFeatureList.getRawDataFile(0))
-        .getFeatureData() instanceof IonMobilogramTimeSeries) {
+    ModularFeature exampleFeature = originalFeatureList
+        .getFeature(0, originalFeatureList.getRawDataFile(0));
+
+    boolean isImagingFile = (originalFeatureList.getRawDataFile(0) instanceof ImagingRawDataFile);
+    if (exampleFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
       DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
+    }
+    if (originalFeatureList.hasRowType(RTType.class) && !isImagingFile) {
+      DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    }
+    if (isImagingFile) {
+      DataTypeUtils.addDefaultImagingTypeColumns(resolvedFeatureList);
     }
 
     return resolvedFeatureList;

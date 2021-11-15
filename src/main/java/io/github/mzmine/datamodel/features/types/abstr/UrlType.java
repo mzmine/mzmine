@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.abstr;
@@ -23,7 +22,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -33,25 +32,32 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Use this type to store any URL
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class UrlType extends DataType<ObjectProperty<UrlShortName>> {
+public abstract class UrlType extends DataType<UrlShortName> {
 
   @Override
-  public ObjectProperty<UrlShortName> createProperty() {
+  public Property<UrlShortName> createProperty() {
     return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<UrlShortName> getValueClass() {
+    return UrlShortName.class;
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
-    if(!(value instanceof UrlShortName url)) {
+    if (!(value instanceof UrlShortName url)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
     writer.writeAttribute("short", url.shortName());
     writer.writeCharacters(url.longUrl());
@@ -63,7 +69,7 @@ public abstract class UrlType extends DataType<ObjectProperty<UrlShortName>> {
       @Nullable RawDataFile file) throws XMLStreamException {
     String shortName = reader.getAttributeValue(null, "short");
     String url = reader.getElementText();
-    if(url.isEmpty()) {
+    if (url.isEmpty()) {
       return null;
     }
     return new UrlShortName(url, shortName);

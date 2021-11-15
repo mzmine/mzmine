@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -62,15 +64,14 @@ public class IonMobilogramTimeSeriesFactory {
     double[][] summedAndWeighted = sumIntensitiesWeightMzs(mobilograms);
 
     mobilogramBinning.setMobilogram(mobilograms);
-    final SummedIntensityMobilitySeries summedMobilogram = mobilogramBinning
-        .toSummedMobilogram(storage);
+    final SummedIntensityMobilitySeries summedMobilogram = mobilogramBinning.toSummedMobilogram(
+        storage);
 
     return of(storage, summedAndWeighted[0], summedAndWeighted[1], mobilograms, summedMobilogram);
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @NotNull final double[] rtMzs,
-      @NotNull final double[] rtIntensities,
+      @NotNull final double[] rtMzs, @NotNull final double[] rtIntensities,
       @NotNull final List<IonMobilitySeries> mobilograms,
       @NotNull final BinningMobilogramDataAccess mobilogramBinning) {
 
@@ -81,25 +82,27 @@ public class IonMobilogramTimeSeriesFactory {
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @NotNull final double[] rtMzs,
-      @NotNull final double[] rtIntensities,
+      @NotNull final double[] rtMzs, @NotNull final double[] rtIntensities,
       @NotNull final List<IonMobilitySeries> mobilograms,
-      @NotNull final double[] mobilogramMobilities,
-      @NotNull final double[] mobilogramIntensities) {
+      @NotNull final double[] mobilogramMobilities, @NotNull final double[] mobilogramIntensities) {
 
     return of(storage, rtMzs, rtIntensities, mobilograms,
         new SummedIntensityMobilitySeries(storage, mobilogramMobilities, mobilogramIntensities));
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @NotNull final double[] rtMzs,
-      @NotNull final double[] rtIntensities,
+      @NotNull final double[] rtMzs, @NotNull final double[] rtIntensities,
       @NotNull final List<IonMobilitySeries> mobilograms,
       @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
 
     final List<Frame> frames = new ArrayList<>(mobilograms.size());
     for (IonMobilitySeries ims : mobilograms) {
-      final Frame frame = ims.getSpectra().get(0).getFrame();
+      Frame frame = ims.getSpectra().get(0).getFrame();
+      // project load fix to prevent memory leaks
+      if(frame instanceof CachedIMSRawDataFile) {
+        System.out.println("CachedIMSRawDataFile");
+      }
+      frame = frame instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : frame;
       frames.add(frame);
     }
 
@@ -107,10 +110,8 @@ public class IonMobilogramTimeSeriesFactory {
   }
 
   public static IonMobilogramTimeSeries of(@Nullable MemoryMapStorage storage,
-      @NotNull final double[] rtMzs,
-      @NotNull final double[] rtIntensities,
-      @NotNull final List<IonMobilitySeries> mobilograms,
-      @NotNull final List<Frame> frames,
+      @NotNull final double[] rtMzs, @NotNull final double[] rtIntensities,
+      @NotNull final List<IonMobilitySeries> mobilograms, @NotNull final List<Frame> frames,
       @NotNull final SummedIntensityMobilitySeries summedMobilogram) {
 
     return new SimpleIonMobilogramTimeSeries(storage, rtMzs, rtIntensities, mobilograms, frames,
@@ -121,8 +122,8 @@ public class IonMobilogramTimeSeriesFactory {
     double[] summedIntensities = new double[mobilograms.size()];
     double[] weightedMzs = new double[mobilograms.size()];
 
-    final int maxNumDetected = mobilograms.stream()
-        .mapToInt(IonMobilitySeries::getNumberOfValues).max().getAsInt();
+    final int maxNumDetected = mobilograms.stream().mapToInt(IonMobilitySeries::getNumberOfValues)
+        .max().getAsInt();
 
     final double[] tmpIntensities = new double[maxNumDetected];
     final double[] tmpMzs = new double[maxNumDetected];
@@ -158,6 +159,14 @@ public class IonMobilogramTimeSeriesFactory {
     return new double[][]{weightedMzs, summedIntensities};
   }
 
+  /**
+   * Loads a ion mobility trace from XML.
+   *
+   * @param reader  The reader.
+   * @param storage The storage or null.
+   * @param file    The file.
+   * @return The loaded trace.
+   */
   public static IonMobilogramTimeSeries loadFromXML(@NotNull XMLStreamReader reader,
       @Nullable MemoryMapStorage storage, @NotNull IMSRawDataFile file) throws XMLStreamException {
 
@@ -185,15 +194,16 @@ public class IonMobilogramTimeSeriesFactory {
           int[] indices = ParsingUtils.stringToIntArray(reader.getElementText());
           scans = ParsingUtils.getSublistFromIndices((List<Frame>) file.getFrames(), indices);
         }
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case SummedIntensityMobilitySeries.XML_ELEMENT -> summedMobilogram = SummedIntensityMobilitySeries
-            .loadFromXML(reader, storage);
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case SummedIntensityMobilitySeries.XML_ELEMENT -> summedMobilogram = SummedIntensityMobilitySeries.loadFromXML(
+            reader, storage);
       }
     }
 
-    return IonMobilogramTimeSeriesFactory.of(storage, mzs, intensities, mobilograms, summedMobilogram);
+    return IonMobilogramTimeSeriesFactory.of(storage, mzs, intensities, mobilograms,
+        summedMobilogram);
   }
 }

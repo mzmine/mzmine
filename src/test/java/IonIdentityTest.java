@@ -26,12 +26,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityModularType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
-import io.github.mzmine.datamodel.features.types.numbers.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -74,7 +72,7 @@ public class IonIdentityTest {
     flist.addRowType(new IDType());
     flist.addRowType(new RTType());
     flist.addRowType(new MZType());
-    flist.addRowType(new IonIdentityModularType());
+    flist.addRowType(new IonIdentityListType());
     flist.addRowType(new FeatureGroupType());
 
     ModularFeatureListRow rowProtonated = new ModularFeatureListRow(flist, 1);
@@ -86,8 +84,6 @@ public class IonIdentityTest {
     // return some fixed mz and rt
     doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
     doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
-    doReturn(1f).when(rowProtonated).getAverageRT();
-    doReturn(1f).when(rowSodiated).getAverageRT();
 
     // add rows
     flist.addRow(rowProtonated);
@@ -104,8 +100,8 @@ public class IonIdentityTest {
     IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated,
         hAdduct, rowSodiated, naAdduct);
 
-    assertNotNull(rowProtonated.get(new IonIdentityModularType()));
-    assertNotNull(rowProtonated.get(IonIdentityModularType.class));
+    assertNotNull(rowProtonated.get(new IonIdentityListType()));
+    assertNotNull(rowProtonated.get(IonIdentityListType.class));
     assertNotNull(rowProtonated.getIonIdentities());
 
     assertEquals(1, rowProtonated.getIonIdentities().size());
@@ -135,21 +131,20 @@ public class IonIdentityTest {
     assertEquals(2, nets.get(0).size());
 
     // test add formula
-    when(formula.getIsotopeScore()).thenReturn(0.9);
-    when(formula.getRDBE()).thenReturn(4.5);
+    when(formula.getIsotopeScore()).thenReturn(0.9f);
+    when(formula.getRDBE()).thenReturn(4.5f);
     IonIdentity ion = rowProtonated.getBestIonIdentity();
     ion.addMolFormula(formula);
-    assertEquals(0.9, ion.getBestMolFormula().getIsotopeScore());
-    assertEquals(4.5, ion.getBestMolFormula().getRDBE());
+    assertEquals(0.9f, ion.getBestMolFormula().getIsotopeScore());
+    assertEquals(4.5f, ion.getBestMolFormula().getRDBE());
 
     // setting the formula should have updated the sub properties
     // test properties in ion identity
     assertEquals(4.5f,
-        rowProtonated.get(IonIdentityModularType.class).get(RdbeType.class).getValue(),
+        rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getRDBE(),
         "Cannot access formula specific types from sub types of IonIdentityModularType.class");
     assertEquals(0.9f,
-        rowProtonated.get(IonIdentityModularType.class).get(IsotopePatternScoreType.class)
-            .getValue(),
+        rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getIsotopeScore(),
         "Cannot access formula specific types from sub types of IonIdentityModularType.class");
 
   }

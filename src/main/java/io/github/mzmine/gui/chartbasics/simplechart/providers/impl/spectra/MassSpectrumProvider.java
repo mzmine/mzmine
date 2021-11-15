@@ -128,6 +128,7 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
       public Iterator<DataPoint> iterator() {
         return null;
       }
+
     };
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -162,9 +163,8 @@ public class MassSpectrumProvider implements PlotXYDataProvider {
   @Nullable
   @Override
   public String getToolTipText(int itemIndex) {
-    return "m/z: " + mzFormat
-        .format(spectrum.getMzValue(itemIndex)) + "\nIntensity: " + intensityFormat
-        .format(spectrum.getIntensityValue(itemIndex));
+    return "m/z: " + mzFormat.format(spectrum.getMzValue(itemIndex)) + "\nIntensity: "
+        + intensityFormat.format(spectrum.getIntensityValue(itemIndex));
   }
 
   @Override

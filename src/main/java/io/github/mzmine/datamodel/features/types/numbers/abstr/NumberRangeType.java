@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,39 +8,41 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberRangeType<T extends Comparable<?>>
-    extends NumberType<ObjectProperty<Range<T>>>
-    implements SubColumnsFactory<ObjectProperty<Range<T>>>, BindingsFactoryType {
+public abstract class NumberRangeType<T extends Number & Comparable<?>>
+    extends NumberType<Range<T>> implements SubColumnsFactory {
 
   protected NumberRangeType(NumberFormat defaultFormat) {
     super(defaultFormat);
+  }
+
+  @Override
+  public @NotNull DataType<?> getType(int subcolumn) {
+    return this;
   }
 
   @Override
@@ -48,26 +50,15 @@ public abstract class NumberRangeType<T extends Comparable<?>>
 
   @Override
   @NotNull
-  public String getFormattedString(@NotNull ObjectProperty<Range<T>> value) {
-    return value.getValue() == null ? ""
-        : getFormatter().format(value.getValue().lowerEndpoint()) + "-"
-            + getFormatter().format(value.getValue().upperEndpoint());
+  public String getFormattedString(Range<T> value) {
+    return value == null ? ""
+        : getFormatter().format(value.lowerEndpoint()) + "-"
+          + getFormatter().format(value.upperEndpoint());
   }
 
-  /**
-   * A formatted string representation of the value
-   *
-   * @return the formatted representation of the value (or an empty String)
-   */
-  @Override
   @NotNull
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof Range) {
-      Range r = (Range) value;
-      return getFormatter().format(r.lowerEndpoint()) + "-"
-          + getFormatter().format(r.upperEndpoint());
-    } else
-      return "";
+  public String getFormattedString(T value) {
+    return value == null ? "" : getFormatter().format(value);
   }
 
   @Override
@@ -90,25 +81,29 @@ public abstract class NumberRangeType<T extends Comparable<?>>
       case 1:
         return "max";
     }
-    if (subcolumn < getNumberOfSubColumns())
+    if (subcolumn < getNumberOfSubColumns()) {
       throw new IllegalArgumentException("Sub column index is not handled: " + subcolumn);
-    else
+    } else {
       throw new IndexOutOfBoundsException(
           "Sub column index " + subcolumn + " is out of range " + getNumberOfSubColumns());
+    }
   }
 
   @Override
   @NotNull
   public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      @Nullable RawDataFile raw) {
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
     List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
 
+    // e.g. FloatType for FloatRangeType etc
+    DataType subColType = getType(0);
     // create column per name
     for (int index = 0; index < getNumberOfSubColumns(); index++) {
       TreeTableColumn<ModularFeatureListRow, Object> min = new TreeTableColumn<>(getHeader(index));
-      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, this);
+      DataTypeCellValueFactory cvFactoryMin = new DataTypeCellValueFactory(raw, subColType, this,
+          index);
       min.setCellValueFactory(cvFactoryMin);
-      min.setCellFactory(new DataTypeCellFactory(raw, this, index));
+      min.setCellFactory(new DataTypeCellFactory(raw, subColType, this, index));
       // add column
       cols.add(min);
     }
@@ -117,11 +112,10 @@ public abstract class NumberRangeType<T extends Comparable<?>>
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object value, RawDataFile raw) {
-    if (value == null)
+  public String getFormattedSubColValue(int subcolumn, Object value) {
+    if (value == null) {
       return "";
+    }
     switch (subcolumn) {
       case 0:
         return getFormatter().format(((Range) value).lowerEndpoint());
@@ -131,5 +125,18 @@ public abstract class NumberRangeType<T extends Comparable<?>>
     return "";
   }
 
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object value) {
+    if (value == null) {
+      return null;
+    }
+    switch (subcolumn) {
+      case 0:
+        return ((Range) value).lowerEndpoint();
+      case 1:
+        return ((Range) value).upperEndpoint();
+    }
+    return null;
+  }
 
 }

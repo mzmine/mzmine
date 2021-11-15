@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.apache.commons.math3.special.Erf;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -37,10 +25,24 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import org.apache.commons.math3.special.Erf;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Module for merging MS/MS spectra. Merging is performed by: 1. first selecting all consecutive
@@ -402,9 +404,13 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             lowestIntensityToConsider, cosineRange);
     for (int k = 1; k < scansToMerge.size(); ++k) {
       Scan scan = scansToMerge.get(k);
+      final int precursorCharge = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          Objects.requireNonNullElse(info.getPrecursorCharge(), -1) : -1;
+      final double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
+
       if (!(scan.getPolarity().equals(initial.polarity)
-          && scan.getPrecursorCharge() == initial.precursorCharge && mzTolerance
-          .checkWithinTolerance(scan.getPrecursorMZ(), initial.precursorMz))) {
+          && precursorCharge == initial.precursorCharge && mzTolerance
+          .checkWithinTolerance(precursorMz, initial.precursorMz))) {
         Logger.getLogger(MsMsSpectraMergeModule.class.getName()).warning(
             "Scan " + scan.getScanNumber()
                 + " cannot be merged: it seems to belong to a different feature.");

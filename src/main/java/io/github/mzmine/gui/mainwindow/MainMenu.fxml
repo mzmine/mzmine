@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import io.github.mzmine.util.javafx.WindowsMenu?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.input.KeyCodeCombination?>
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright 2006-2020 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -16,31 +10,35 @@
   ~ License, or (at your option) any later version.
   ~
   ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  ~ General Public License for more details.
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+  ~ Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
   -->
 
+<?import io.github.mzmine.util.javafx.WindowsMenu?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <MenuBar useSystemMenuBar="true"
   xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.gui.mainwindow.MainMenuController">
 
-  <Menu text="Project">
-      <Menu fx:id="recentProjectsMenu" text="Open recent project..."
-        onShowing="#fillRecentProjects"/>
-      <MenuItem fx:id="openProject" text="Open project" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="O"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
-        <accelerator>
+  <Menu onShowing="#fillRecentProjects" text="Project">
+    <Menu text="Open recent project..." fx:id="recentProjectsMenu"/>
+    <MenuItem fx:id="openProject" text="Open project" onAction="#runModule"
+      userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="O"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
+      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
+      <accelerator>
           <KeyCodeCombination alt="UP" code="S"
             control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
         </accelerator>
@@ -207,7 +205,7 @@
         text="Ims expander"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
     </Menu>
-    <Menu text="Imaging">
+    <Menu text="Imaging" disable="true">
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
@@ -267,6 +265,8 @@
         userData="io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule"/>
       <MenuItem text="CSV (legacy MZmine 2)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule"/>
+      <MenuItem text="Venn diagram export" onAction="#runModule"
+        userData="io.github.mzmine.modules.io.export_features_venn.VennExportModule"/>
       <MenuItem text="MetaboAnalyst" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule"/>
       <MenuItem text="mzTab" onAction="#runModule"

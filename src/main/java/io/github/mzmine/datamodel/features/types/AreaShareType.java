@@ -27,16 +27,19 @@ import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.Map;
 import javafx.beans.property.MapProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 
-public class AreaShareType extends DataType<MapProperty<RawDataFile, ModularFeature>>
-    implements GraphicalColumType<MapProperty<RawDataFile, ModularFeature>> {
+public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
+    implements GraphicalColumType<Map<RawDataFile, ModularFeature>> {
 
   @NotNull
   @Override
@@ -52,15 +55,20 @@ public class AreaShareType extends DataType<MapProperty<RawDataFile, ModularFeat
   }
 
   @Override
-  public MapProperty<RawDataFile, ModularFeature> createProperty() {
-    return new SimpleMapProperty<RawDataFile, ModularFeature>();
+  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
+    return (Class) Map.class;
   }
 
   @Override
   public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
-      MapProperty<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
+      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
+      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
+      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
       return null;

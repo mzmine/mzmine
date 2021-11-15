@@ -19,13 +19,10 @@
 package io.github.mzmine.parameters.dialogs;
 
 
-import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import javafx.geometry.Orientation;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 
@@ -48,23 +45,13 @@ public class ParameterSetupDialogWithPreview extends ParameterSetupDialog {
   protected final CheckBox cbShowPreview;
   private Runnable onPreviewShown;
 
-  public ParameterSetupDialogWithPreview(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, "");
   }
 
-  public ParameterSetupDialogWithPreview(boolean valueCheckRequired,
-      ParameterSet parameters, String message) {
+  public ParameterSetupDialogWithPreview(boolean valueCheckRequired, ParameterSet parameters,
+      String message) {
     super(valueCheckRequired, parameters, message);
-
-    // Iterate over all OptionalModuleParameter's and add listeners to detect changes in their
-    // embedded parameters. In case of any change call this.parametersChanged()
-    for (Parameter<?> parameter : parameters.getParameters()) {
-      if (parameter instanceof OptionalModuleParameter) {
-        ((OptionalModuleParameter<?>) parameter).embeddedParametersChangeProperty()
-            .addListener((observable, oldValue, newValue) -> parametersChanged());
-      }
-    }
 
     paramPreviewSplit = new SplitPane();
     paramPreviewSplit.getItems().add(mainScrollPane);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -23,7 +22,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.ImageChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -34,8 +32,7 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import org.jetbrains.annotations.NotNull;
 
-public class ImageType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class ImageType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -51,11 +48,11 @@ public class ImageType extends LinkedDataType
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getFeature(raw) == null || !(raw instanceof ImagingRawDataFile)) {
+    if (row == null || !value || row.getFeature(raw) == null
+        || !(raw instanceof ImagingRawDataFile)) {
       return null;
     }
 
@@ -88,4 +85,5 @@ public class ImageType extends LinkedDataType
   public double getColumnWidth() {
     return 205;
   }
+
 }

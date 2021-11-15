@@ -18,14 +18,14 @@
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
 
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Set;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * A spectrum of merged peaks with meta information
@@ -118,10 +118,10 @@ public class MergedSpectrum {
     this.origins = new RawDataFile[] {single.getDataFile()};
     this.scanIds = new int[] {single.getScanNumber()};
     this.polarity = single.getPolarity();
-    this.precursorCharge = single.getPrecursorCharge();
+    this.precursorCharge = Objects.requireNonNullElse(single.getPrecursorCharge(), 0);
     this.removedScansByLowCosine = 0;
     this.removedScansByLowQuality = 0;
-    this.precursorMz = single.getPrecursorMZ();
+    this.precursorMz = Objects.requireNonNullElse(single.getPrecursorMz(), 0d);
   }
 
   public MergedSpectrum(MergedDataPoint[] data, RawDataFile[] origins, int[] scanIds,

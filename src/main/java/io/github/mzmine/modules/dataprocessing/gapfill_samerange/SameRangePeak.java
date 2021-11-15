@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -241,7 +242,9 @@ public class SameRangePeak{
     allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = fragmentScan.getMsMsInfo() != null &&
+          fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda && dda.getPrecursorCharge() != null
+          ? dda.getPrecursorCharge() : 0;
       if ((precursorCharge > 0) && (this.charge == 0))
         this.charge = precursorCharge;
     }

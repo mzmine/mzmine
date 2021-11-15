@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
@@ -106,7 +107,8 @@ public class MirrorChartFactory {
     };
 
     // scan a
-    double precursorMZA = scan.getPrecursorMZ();
+    double precursorMZA = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
@@ -256,7 +258,8 @@ public class MirrorChartFactory {
 
   public static PseudoSpectrumDataSet createMSMSDataSet(Scan scan, String label) {
     if (scan != null) {
-      return createMSMSDataSet(scan.getPrecursorMZ(), scan.getRetentionTime(),
+      return createMSMSDataSet(scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          info.getIsolationMz() : 0d, scan.getRetentionTime(),
           ScanUtils.extractDataPoints(scan), label);
     } else {
       return null;
@@ -296,10 +299,15 @@ public class MirrorChartFactory {
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
 
     if (scan != null && mirror != null) {
+      double scanPrecursor = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          info.getIsolationMz() : 0d;
+      double mirrorPrecursor = mirror.getMsMsInfo() instanceof DDAMsMsInfo info ?
+          info.getIsolationMz() : 0d;
+
       String label1 = MessageFormat.format("MSMS for m/z={0} RT={1}",
-          mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime()));
+          mzForm.format(scanPrecursor), rtForm.format(scan.getRetentionTime()));
       String label2 = MessageFormat.format("MSMS for m/z={0} RT={1}",
-          mzForm.format(mirror.getPrecursorMZ()), rtForm.format(mirror.getRetentionTime()));
+          mzForm.format(mirrorPrecursor), rtForm.format(mirror.getRetentionTime()));
       // data
       PseudoSpectrumDataSet data = new PseudoSpectrumDataSet(true, label1, label2);
       // for each row
@@ -330,8 +338,13 @@ public class MirrorChartFactory {
       return null;
     }
 
-    return new EChartPanel(createMirrorChart(labelA, scan.getPrecursorMZ(), scan.getRetentionTime(),
-        ScanUtils.extractDataPoints(scan), labelB, mirror.getPrecursorMZ(),
+    double scanPrecursor = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
+    double mirrorPrecursor = mirror.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
+
+    return new EChartPanel(createMirrorChart(labelA, scanPrecursor, scan.getRetentionTime(),
+        ScanUtils.extractDataPoints(scan), labelB, mirrorPrecursor,
         mirror.getRetentionTime(), ScanUtils.extractDataPoints(mirror), showTitle, showLegend));
   }
 
@@ -347,9 +360,13 @@ public class MirrorChartFactory {
     if (scan == null || mirror == null) {
       return null;
     }
+    double scanPrecursor = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
+    double mirrorPrecursor = mirror.getMsMsInfo() instanceof DDAMsMsInfo info ?
+        info.getIsolationMz() : 0d;
 
-    return new EChartViewer(createMirrorChart(labelA, scan.getPrecursorMZ(),
-        scan.getRetentionTime(), ScanUtils.extractDataPoints(scan), labelB, mirror.getPrecursorMZ(),
+    return new EChartViewer(createMirrorChart(labelA, scanPrecursor,
+        scan.getRetentionTime(), ScanUtils.extractDataPoints(scan), labelB, mirrorPrecursor,
         mirror.getRetentionTime(), ScanUtils.extractDataPoints(mirror), showTitle, showLegend));
   }
 

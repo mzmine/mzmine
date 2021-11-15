@@ -8,21 +8,27 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA.
  *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
+import io.github.mzmine.util.ParsingUtils;
 
 /**
  * This enum contains all lipid classes. Each enum has information on: name, abbreviation,
@@ -664,13 +670,22 @@ public enum LipidClasses implements ILipidClass {
               LipidAnnotationLevel.SPECIES_LEVEL, "C6H11P2O8"), //
       });
 
+  private static final String XML_ELEMENT = "lipidclass";
+  private static final String XML_LIPID_CLASS_NAME = "lipidclassname";
+  private static final String XML_LIPID_CLASS_ABBR = "lipidclassabbr";
+  private static final String XML_LIPID_CATEGORY = "lipidcategory";
+  private static final String XML_LIPID_MAIN_CLASS = "lipidmainclass";
+  private static final String XML_LIPID_CLASS_BACKBONE_FORMULA = "lipidclassbackboneformula";
+  private static final String XML_LIPID_CLASS_CHAIN_TYPE = "lipidclasschaintypes";
+  private static final String XML_LIPID_CLASS_FRAGMENTATION_RULES = "lipidclassfragmentationrules";
+
   private String name;
   private String abbr;
   private LipidCategories coreClass;
   private LipidMainClasses mainClass;
   private String backBoneFormula;
-  LipidChainType[] chainTypes;
-  LipidFragmentationRule[] fragmentationRules;
+  private LipidChainType[] chainTypes;
+  private LipidFragmentationRule[] fragmentationRules;
 
   LipidClasses(String name, String abbr, LipidCategories coreClass, LipidMainClasses mainClass,
       String backBoneFormula, LipidChainType[] chainTypes,
@@ -716,4 +731,36 @@ public enum LipidClasses implements ILipidClass {
   public String toString() {
     return this.abbr + " " + this.name;
   }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(XML_ELEMENT, LipidClasses.class.getSimpleName());
+    writer.writeStartElement(XML_LIPID_CLASS_NAME);
+    writer.writeCharacters(name);
+    writer.writeEndElement();
+    writer.writeEndElement();
+  }
+
+
+  public static ILipidClass loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Cannot load lipid class from the current element. Wrong name.");
+    }
+
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals(XML_LIPID_CLASS_NAME)) {
+        return LipidParsingUtils.lipidClassNameToLipidClass(reader.getElementText());
+      }
+
+    }
+    return null;
+  }
+
 }

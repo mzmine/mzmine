@@ -18,11 +18,9 @@
 
 package io.github.mzmine.gui.preferences;
 
-import java.util.Collection;
-
-import org.w3c.dom.Element;
-
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
@@ -67,7 +65,7 @@ public class NumOfThreadsParameter implements UserParameter<Integer, NumOfThread
 
   @Override
   public Integer getValue() {
-    return value;
+    return isAutomatic() ? Runtime.getRuntime().availableProcessors() : value;
   }
 
   public boolean isAutomatic() {

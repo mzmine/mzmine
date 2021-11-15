@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
@@ -31,8 +30,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,15 +41,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CCSCalcTask extends AbstractTask {
 
-  private static Logger logger = Logger.getLogger(CCSCalcTask.class.getName());
+  private static final Logger logger = Logger.getLogger(CCSCalcTask.class.getName());
 
   private final boolean assumeChargeState;
   private final RangeMap<Double, Integer> rangeChargeMap;
   private final ModularFeatureList[] featureLists;
   private final boolean createNewFeatureList;
   private final MZmineProject project;
-  private ParameterSet parameters;
-  private String description;
+  private final ParameterSet parameters;
   private double percentage;
   private int totalRows;
   private int processedRows;
@@ -101,7 +99,7 @@ public class CCSCalcTask extends AbstractTask {
       }
 
       for (FeatureListRow row : workingFeatureList.getRows()) {
-        ObservableList<RawDataFile> rawDataFiles = row.getRawDataFiles();
+        List<RawDataFile> rawDataFiles = row.getRawDataFiles();
         for (RawDataFile file : rawDataFiles) {
 
           ModularFeature feature = (ModularFeature) row.getFeature(file);
@@ -142,7 +140,8 @@ public class CCSCalcTask extends AbstractTask {
       }
 
       workingFeatureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters, getModuleCallDate()));
+          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters,
+              getModuleCallDate()));
       if (workingFeatureList != featureList) {
         project.addFeatureList(workingFeatureList);
       }

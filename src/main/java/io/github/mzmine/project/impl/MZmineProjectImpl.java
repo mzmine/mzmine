@@ -18,15 +18,19 @@
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.logging.Logger;
 import javafx.beans.property.ListProperty;
@@ -41,45 +45,42 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
-
   private final SimpleListProperty<RawDataFile> rawDataFilesProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
           ));
-
-
   private final SimpleListProperty<FeatureList> featureListsProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
           ));
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
+  private File projectFile;
 
-  /**
-   * Synchronized map to store file names that are currently being loaded. By using a {@link
-   * WeakReference} we can check if a file with that name exists. And in case the import was started
-   * but aborted, we can remember that.
+  @Nullable private Boolean standalone;
+
+  /*
+   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
+   * LinkedList<MZmineProjectListener>());
    */
-  /*private final Map<String, WeakReference<RawDataFile>> registeredFileNames = Collections
-      .synchronizedMap(new HashMap<>());
+  public MZmineProjectImpl() {
+    projectParametersAndValues = new Hashtable<>();
+  }
 
-  public String getUniqueFileName(String proposedName, RawDataFile file) {
-    synchronized (registeredFileNames) {
-      WeakReference<RawDataFile> currentReference = registeredFileNames.get(proposedName);
-      if (currentReference == null) {
-        registeredFileNames.put(proposedName, new WeakReference<>(file));
-        return proposedName;
-      }
-      else {
-        for (int i = 0;; i++) {
-          String uniqueName = proposedName + "";
-        }
-      }
+  public static String getUniqueName(String proposedName, List<String> existingNames) {
+    int i = 1;
+
+    proposedName = proposedName.trim().replaceAll("\\([\\d]+\\)$", "").trim();
+
+    String unique = proposedName + " (" + i + ")";
+    while (existingNames.contains(unique)) {
+      i++;
+      unique = proposedName + " (" + i + ")";
     }
-  }*/
+    return unique;
+  }
 
   @Override
   public Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> getProjectParametersAndValues() {
@@ -105,25 +106,13 @@ public class MZmineProjectImpl implements MZmineProject {
     return null;
   }
 
-  private File projectFile;
-
-  /*
-   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
-   * LinkedList<MZmineProjectListener>());
-   */
-  public MZmineProjectImpl() {
-
-    projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
-
-  }
-
   @Override
   public void addParameter(UserParameter<?, ?> parameter) {
     if (projectParametersAndValues.containsKey(parameter)) {
       return;
     }
 
-    Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
+    Hashtable<RawDataFile, Object> parameterValues = new Hashtable<>();
     projectParametersAndValues.put(parameter, parameterValues);
 
   }
@@ -183,9 +172,29 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public void addFile(final RawDataFile newFile) {
+  public synchronized void addFile(final RawDataFile newFile) {
 
     assert newFile != null;
+
+    // avoid duplicate file names and check the actual names of the files of the raw data files
+    // since that will be the problem during project save (duplicate zip entries)
+    final List<String> names = rawDataFilesProperty.get().stream().map(RawDataFile::getAbsolutePath)
+        .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
+    // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
+    final String name =
+        newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
+    if (names.contains(name)) {
+      if (!MZmineCore.isHeadLessMode()) {
+        MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
+            + " because a file with the same name already exists in the project. Please copy "
+            + "the file and rename it, if you want to import it twice.");
+      }
+      logger.warning(
+          "Cannot add file with an original name that already exists in project. (filename="
+              + newFile.getName() + ")");
+      return;
+    }
+
     logger.finest("Adding a new file to the project: " + newFile.getName());
 
     FxThreadUtil.runOnFxThreadAndWait(() -> {
@@ -215,12 +224,21 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public void addFeatureList(final FeatureList featureList) {
+    if (featureList == null) {
+      return;
+    }
 
-    assert featureList != null;
+    synchronized (featureListsProperty.get()) {
+      // avoid duplicate file names
+      final List<String> names = featureListsProperty.get().stream().map(f -> f.getName()).toList();
+      if (names.contains(featureList.getName())) {
+        featureList.setName(getUniqueName(featureList.getName(), names));
+      }
+    }
+
     FxThreadUtil.runOnFxThreadAndWait(() -> {
       featureListsProperty.get().add(featureList);
     });
-
   }
 
   @Override
@@ -228,9 +246,11 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert featureList != null;
 
-    FxThreadUtil.runOnFxThreadAndWait(() -> {
-      featureListsProperty.get().remove(featureList);
-    });
+    synchronized (featureListsProperty) {
+      FxThreadUtil.runOnFxThreadAndWait(() -> {
+        featureListsProperty.get().remove(featureList);
+      });
+    }
   }
 
   @Override
@@ -261,6 +281,14 @@ public class MZmineProjectImpl implements MZmineProject {
     projectFile.delete();
   }
 
+  /*
+   * @Override public void addProjectListener(MZmineProjectListener newListener) {
+   * listeners.add(newListener); }
+   *
+   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
+   * listeners.remove(newListener); }
+   */
+
   @Override
   public String toString() {
     if (projectFile == null) {
@@ -273,17 +301,9 @@ public class MZmineProjectImpl implements MZmineProject {
     return projectName;
   }
 
-  /*
-   * @Override public void addProjectListener(MZmineProjectListener newListener) {
-   * listeners.add(newListener); }
-   *
-   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
-   * listeners.remove(newListener); }
-   */
-
   @Override
   public ObservableList<RawDataFile> getRawDataFiles() {
-    return rawDataFilesProperty.get();
+    return FXCollections.unmodifiableObservableList(rawDataFilesProperty.get());
   }
 
   @Override
@@ -293,7 +313,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public ObservableList<FeatureList> getFeatureLists() {
-    return featureListsProperty.get();
+    return FXCollections.unmodifiableObservableList(featureListsProperty.get());
   }
 
   @Override
@@ -301,4 +321,33 @@ public class MZmineProjectImpl implements MZmineProject {
     return featureListsProperty;
   }
 
+  @Override
+  public @Nullable Boolean isStandalone() {
+    return standalone;
+  }
+
+  @Override
+  public void setStandalone(Boolean standalone) {
+    this.standalone = standalone;
+  }
+
+  @Override
+  public void setProjectLoadImsImportCaching(boolean enabled) {
+    MZmineCore.runLater(() -> {
+      for (int i = 0; i < getRawDataFiles().size(); i++) {
+        RawDataFile file = rawDataFilesProperty.get(i);
+        if (file instanceof IMSRawDataFile imsfile) {
+          if (enabled) {
+            if (!(file instanceof CachedIMSRawDataFile)) {
+              rawDataFilesProperty.set(i, new CachedIMSRawDataFile(imsfile));
+            }
+          } else {
+            if (file instanceof CachedIMSRawDataFile cached) {
+              rawDataFilesProperty.set(i, cached.getOriginalFile());
+            }
+          }
+        }
+      }
+    });
+  }
 }

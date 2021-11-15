@@ -24,8 +24,10 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of the Scan interface.
@@ -34,18 +36,16 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
   public static final String XML_SCAN_TYPE = "simplescan";
 
-  @NotNull
-  private final RawDataFile dataFile;
+  @NotNull private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
 
-  private double precursorMZ;
-  private int precursorCharge;
   private float retentionTime;
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
   private MassList massList = null;
+  private MsMsInfo msMsInfo;
 
   /**
    * Clone constructor
@@ -53,9 +53,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
 
-    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
-        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(),
-        sc.getPolarity(),
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
+        newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
         sc.getScanDefinition(), sc.getScanningMZRange());
   }
 
@@ -64,7 +63,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
    * Constructor for creating scan with given data
    */
   public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, double[] mzValues, double[] intensityValues,
+      @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
 
@@ -74,12 +73,11 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.scanNumber = scanNumber;
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
-    this.precursorMZ = precursorMZ;
-    this.precursorCharge = precursorCharge;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
     setSpectrumType(spectrumType);
+    setMsMsInfo(msMsInfo);
   }
 
 
@@ -113,34 +111,17 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.msLevel = msLevel;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
-   */
   @Override
-  public double getPrecursorMZ() {
-    return precursorMZ;
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
-  /**
-   * @param precursorMZ The precursorMZ to set.
-   */
-  public void setPrecursorMZ(double precursorMZ) {
-    this.precursorMZ = precursorMZ;
-  }
-
-  /**
-   * @return Returns the precursorCharge.
-   */
-  @Override
-  public int getPrecursorCharge() {
-    return precursorCharge;
-  }
-
-  /**
-   * @param precursorCharge The precursorCharge to set.
-   */
-  public void setPrecursorCharge(int precursorCharge) {
-    this.precursorCharge = precursorCharge;
+  public void setMsMsInfo(@Nullable MsMsInfo info) {
+    msMsInfo = info; // in case its null
+    if (info != null) {
+      msMsInfo = info.createCopy();
+      msMsInfo.setMsMsScan(this);
+    }
   }
 
   /**

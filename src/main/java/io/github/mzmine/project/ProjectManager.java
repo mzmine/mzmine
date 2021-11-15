@@ -19,12 +19,24 @@
 package io.github.mzmine.project;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import javax.xml.stream.XMLStreamReader;
 
 /**
  * Project manager
  */
 public interface ProjectManager {
 
+  /**
+   * Contract: Should not be used during raw data import to retrieve a list of possible raw data
+   * files. The list should be provided as a parameter to the {@link io.github.mzmine.datamodel.features.types.DataType#loadFromXML(XMLStreamReader,
+   * ModularFeatureList, ModularFeatureListRow, ModularFeature, RawDataFile)} method.
+   *
+   * @return The current project.
+   */
   public MZmineProject getCurrentProject();
 
   public void setCurrentProject(MZmineProject newProject);

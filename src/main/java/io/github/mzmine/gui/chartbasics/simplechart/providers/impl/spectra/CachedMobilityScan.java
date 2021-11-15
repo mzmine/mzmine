@@ -21,12 +21,12 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -182,7 +182,7 @@ public class CachedMobilityScan implements MobilityScan {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public PasefMsMsInfo getMsMsInfo() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
@@ -205,4 +205,5 @@ public class CachedMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
+
 }

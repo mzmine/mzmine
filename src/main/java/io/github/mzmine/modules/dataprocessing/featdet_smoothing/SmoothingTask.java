@@ -43,6 +43,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.ArrayList;
 import java.util.Date;
@@ -173,6 +174,7 @@ public class SmoothingTask extends AbstractTask {
 
     final ModularFeatureList smoothedList = flist
         .createCopy(flist.getName() + " " + suffix, getMemoryMapStorage(), false);
+    DataTypeUtils.copyTypes(flist, smoothedList, true, true);
     final SGIntensitySmoothing smoother = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
         rtWeights);
     // include zeros
@@ -306,7 +308,7 @@ public class SmoothingTask extends AbstractTask {
           if (someMobilityScanIndex < frame.getNumberOfMobilityScans()) {
             someMobilityScan = frame.getMobilityScan(someMobilityScanIndex);
           } else {
-            someMobilityScan = frame.getMobilityScans().get(frame.getNumberOfMobilityScans() - 1);
+            someMobilityScan = frame.getMobilityScan(frame.getNumberOfMobilityScans() - 1);
           }
           final IonMobilitySeries dummyMobilogram = new SimpleIonMobilitySeries(null,
               new double[]{feature.getMZ()}, new double[]{0}, List.of(someMobilityScan));

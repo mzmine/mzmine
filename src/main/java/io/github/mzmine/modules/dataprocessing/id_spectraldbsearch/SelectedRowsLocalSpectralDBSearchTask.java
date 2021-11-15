@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
@@ -32,6 +33,7 @@ import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -43,11 +45,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private final FeatureListRow[] peakListRows;
   private final File dataBaseFile;
-
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ParameterSet parameters;
 
   private List<RowsSpectralMatchTask> tasks;
@@ -84,7 +84,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Spectral database identification of " + peakListRows.length
-        + " feature lists using database " + dataBaseFile;
+           + " feature lists using database " + dataBaseFile;
   }
 
   /**
@@ -94,6 +94,10 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     int count = 0;
+    // add row type
+    Arrays.stream(peakListRows).filter(r -> r.getFeatureList() instanceof ModularFeatureList)
+        .map(r -> (ModularFeatureList) r.getFeatureList())
+        .distinct().forEach(flist -> flist.addRowType(new SpectralLibraryMatchesType()));
 
     if (peakListRows.length == 1) {
       // add result frame

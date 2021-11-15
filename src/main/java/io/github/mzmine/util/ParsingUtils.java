@@ -29,12 +29,31 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.xml.stream.XMLStreamReader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.IonizationType;
+import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCategories;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 
 public class ParsingUtils {
+
+  private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());
 
   /**
    * Value separator for storing lists and arrays.
@@ -189,8 +208,8 @@ public class ParsingUtils {
       mobilityScans.sort(Comparator.comparingInt(MobilityScan::getMobilityScanNumber));
       b.append("{").append(frame.getDataFile().getScans().indexOf(frame)).append("}");
 
-      int[] indices = ParsingUtils
-          .getIndicesOfSubListElements(mobilityScans, frame.getMobilityScans());
+      int[] indices = ParsingUtils.getIndicesOfSubListElements(mobilityScans,
+          frame.getMobilityScans());
       b.append("[").append(ParsingUtils.intArrayToString(indices, indices.length)).append("]");
 
       if (it.hasNext()) {
@@ -235,5 +254,57 @@ public class ParsingUtils {
 
   public static String[] stringToStringArray(String str) {
     return str.split(SEPARATOR);
+  }
+
+  public static IonizationType ionizationNameToIonizationType(String ionizationName) {
+    IonizationType[] ionizationTypes = IonizationType.class.getEnumConstants();
+    for (IonizationType ionizationType : ionizationTypes) {
+      if (ionizationType.name().equals(ionizationName)) {
+        return ionizationType;
+      }
+    }
+    return null;
+  }
+
+  public static PolarityType polarityNameToPolarityType(String polarityName) {
+    PolarityType[] polarityTypes = PolarityType.class.getEnumConstants();
+    for (PolarityType polarityType : polarityTypes) {
+      if (polarityType.name().equals(polarityName)) {
+        return polarityType;
+      }
+    }
+    return null;
+  }
+
+    /**
+   * @param reader           The reader.
+   * @param attributeName    The name of the attribute to parse.
+   * @param defaultValue     A default vaule, if the attribute is not found or cannot be parsed with
+   *                         the given function.
+   * @param conversionMethod A function to convert the parsed string to a value of type T.
+   * @param <T>              The type of the value to parse.
+   * @return The parsed value or the default value. If the attribute does not exist or an error occurs during parsing, the
+   */
+  public static <T> T readAttributeValueOrDefault(@NotNull final XMLStreamReader reader,
+      String attributeName, T defaultValue, Function<String, T> conversionMethod) {
+
+    if (!reader.isStartElement()) {
+      throw new IllegalStateException(
+          "Error parsing attribute. Current element is not a start element.");
+    }
+
+    final String attributeValue = reader.getAttributeValue(null, attributeName);
+    if (attributeValue == null) {
+      return defaultValue;
+    }
+
+    try {
+      return conversionMethod.apply(attributeValue);
+    } catch (Exception e) {
+      logger.log(Level.WARNING,
+          "Error parsing attribute " + attributeName + "of element " + reader.getLocalName()
+              + " with value " + attributeValue);
+      return defaultValue;
+    }
   }
 }

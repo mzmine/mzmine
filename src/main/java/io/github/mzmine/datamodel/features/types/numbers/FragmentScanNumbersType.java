@@ -45,7 +45,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Fragment scans";
   }
 

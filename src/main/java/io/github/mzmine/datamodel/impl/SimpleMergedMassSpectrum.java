@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -151,19 +152,14 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
   }
 
   @Override
-  public double getPrecursorMZ() {
-    return 0;
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return null;
   }
 
   @NotNull
   @Override
   public PolarityType getPolarity() {
     return polarity;
-  }
-
-  @Override
-  public int getPrecursorCharge() {
-    return 0;
   }
 
   @Nullable

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -179,7 +180,8 @@ class FragmentScan {
    */
   private void detectPrecursor(Scan spectrum, double precursorMass, Range<Double> isolationWindow,
       MZTolerance massAccuracy, double[] precInfo) {
-    this.precursorCharge = spectrum.getPrecursorCharge();
+    this.precursorCharge = Objects.requireNonNullElse(spectrum.getPrecursorCharge(), 0);
+
     this.polarity = spectrum.getPolarity();
     Range<Double> mzRange = Range.closed(precursorMass + isolationWindow.lowerEndpoint(),
         precursorMass + isolationWindow.upperEndpoint());
