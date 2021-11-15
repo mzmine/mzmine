@@ -183,6 +183,10 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
 
       while (access.hasNextFrame()) {
+        if(isCanceled()) {
+          return;
+        }
+
         final Frame frame = access.nextFrame();
         for (ImsGap gap : imsGaps) {
           access.resetMobilityScan();

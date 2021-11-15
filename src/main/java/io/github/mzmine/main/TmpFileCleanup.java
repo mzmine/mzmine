@@ -19,6 +19,7 @@
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -54,8 +55,9 @@ public class TmpFileCleanup implements Runnable {
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-          if (name.matches("mzmine.*\\.tmp") || name
-              .matches("(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*")) {
+          if (name.matches("mzmine.*\\.tmp") || name.matches(
+              "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*") || name.matches(
+              "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
             return true;
           }
           return false;
