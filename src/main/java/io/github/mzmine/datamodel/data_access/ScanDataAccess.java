@@ -305,4 +305,5 @@ public class ScanDataAccess implements MassSpectrum {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
+
 }

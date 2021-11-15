@@ -25,7 +25,6 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
@@ -192,7 +191,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     }
     // ticChart.removeDatasets(mzRangeTicDatasetIndices);
     mzRangeTicDatasetIndices.clear();
-    cachedFrame = new CachedFrame((SimpleFrame) selectedFrame.get(), frameNoiseLevel,
+    cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
     heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
     mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
@@ -383,8 +382,11 @@ public class IMSRawDataOverviewPane extends BorderPane {
           new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile, scanSelection,
               this, rtWidth, selectedBinningMobilogramDataAccess));
       mobilogramCalc.start();
+      float rt = selectedFrame.get().getRetentionTime();
       ionTraceChart.setDataset(new IMSIonTraceHeatmapProvider(rawDataFile, selectedMz.get(),
-          rawDataFile.getDataRTRange(1), mobilityScanNoiseLevel));
+          Range.closed(Math.max(rawDataFile.getDataRTRange(1).lowerEndpoint(), rt - rtWidth / 2),
+              Math.min(rawDataFile.getDataRTRange(1).upperEndpoint(), rt + rtWidth / 2)),
+          mobilityScanNoiseLevel));
       updateValueMarkers();
     }));
   }

@@ -79,7 +79,7 @@ class IonTimeSeriesTest {
     mobilityScans
         .add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}));
 
-    frame.setMobilityScans(mobilityScans);
+    frame.setMobilityScans(mobilityScans, false);
 
     SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(null,
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());

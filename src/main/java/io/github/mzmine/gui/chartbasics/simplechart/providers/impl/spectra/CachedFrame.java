@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.impl.SimpleFrame;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
@@ -55,7 +55,7 @@ public class CachedFrame implements Frame {
   private List<MobilityScan> mobilityScans;
   private List<MobilityScan> sortedMobilityScans;
 
-  public CachedFrame(SimpleFrame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
+  public CachedFrame(Frame frame, double frameNoiseLevel, double mobilityScaNoiseLevel) {
     originalFrame = frame;
 
     double[] allmz = new double[frame.getNumberOfDataPoints()];
@@ -122,13 +122,13 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
+  public MobilityScanStorage getMobilityScanStorage() {
+    return originalFrame.getMobilityScanStorage();
   }
 
   @Override
-  public double getMobilityForMobilityScan(MobilityScan scan) {
-    return originalFrame.getMobilityForMobilityScan(scan);
+  public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
+    return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
   }
 
   @Nullable
@@ -284,7 +284,24 @@ public class CachedFrame implements Frame {
   }
 
   @Override
-  public int getMaxMobilityScanDataPoints() {
-    return originalFrame.getMaxMobilityScanDataPoints();
+  public int getMaxMobilityScanRawDataPoints() {
+    return originalFrame.getMaxMobilityScanRawDataPoints();
+  }
+
+  @Override
+  public int getTotalMobilityScanRawDataPoints() {
+    return originalFrame.getTotalMobilityScanRawDataPoints();
+  }
+
+  @Override
+  public int getMaxMobilityScanMassListDataPoints() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
+  }
+
+  @Override
+  public int getTotalMobilityScanMassListDataPoints() {
+    throw new UnsupportedOperationException(
+        "Not intended. This frame is used for visualisation only");
   }
 }

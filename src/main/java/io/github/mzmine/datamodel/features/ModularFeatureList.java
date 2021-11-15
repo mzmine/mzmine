@@ -18,6 +18,8 @@
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -29,6 +31,8 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
@@ -68,8 +72,7 @@ public class ModularFeatureList implements FeatureList {
    * The storage of this feature list. May be null if data points of features shall be stored in
    * ram.
    */
-  @Nullable
-  private final MemoryMapStorage memoryMapStorage;
+  @Nullable private final MemoryMapStorage memoryMapStorage;
   // bindings for values
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
@@ -768,4 +771,29 @@ public class ModularFeatureList implements FeatureList {
     return memoryMapStorage;
   }
 
+  /**
+   * Replaces {@link CachedIMSRawDataFile}s and {@link CachedIMSFrame}s in the selected scans and
+   * raw data files of this feature list. Cached files are used during feature list import to avoid
+   * multiple copies of {@link io.github.mzmine.datamodel.MobilityScan}s, since the main
+   * implementation ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on
+   * demand and passed through data types.
+   * <p></p>
+   * After the project import, the files have to be replaced to lower ram consumption and allow
+   * further processing.
+   */
+  public void replaceCachedFilesAndScans() {
+    for (int i = 0; i < getNumberOfRawDataFiles(); i++) {
+      RawDataFile file = getRawDataFile(i);
+      if (file instanceof IMSRawDataFile imsfile) {
+        if (imsfile instanceof CachedIMSRawDataFile cached) {
+          dataFiles.set(i, cached.getOriginalFile());
+
+          List<? extends Scan> scans = selectedScans.remove(cached);
+          List<Frame> frames = scans.stream()
+              .map(scan -> ((CachedIMSFrame) scan).getOriginalFrame()).toList();
+          selectedScans.put(cached.getOriginalFile(), frames);
+        }
+      }
+    }
+  }
 }

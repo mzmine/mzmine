@@ -18,16 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_imsexpander;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Date;
 import java.util.List;
@@ -49,6 +52,7 @@ public class ImsExpanderSubTask extends AbstractTask {
   private final AtomicInteger processedFrames = new AtomicInteger(0);
   private final Boolean useRawData;
   private final Double customNoiseLevel;
+  private final Range<Double> traceMzRange;
 
   private long totalFrames = 1;
 
@@ -64,13 +68,15 @@ public class ImsExpanderSubTask extends AbstractTask {
     this.useRawData = parameters.getParameter(ImsExpanderParameters.useRawData).getValue();
     this.customNoiseLevel = parameters.getParameter(ImsExpanderParameters.useRawData)
         .getEmbeddedParameter().getValue();
+    traceMzRange = expandingTraces.size() > 0 ?  Range.closed(expandingTraces.get(0).getMzRange().lowerEndpoint(), expandingTraces.get(
+        expandingTraces.size() - 1).getMzRange().upperEndpoint()) : Range.singleton(0d);
   }
 
   @Override
   public String getTaskDescription() {
+    String range = " m/z range: " + RangeUtils.formatRange(traceMzRange, MZmineCore.getConfiguration().getMZFormat());
     return flist.getName() + ": expanding traces for frame " + processedFrames.get() + "/"
-        + totalFrames + " (m/z " + expandingTraces.get(0).getMzRange().lowerEndpoint() + " - "
-        + expandingTraces.get(expandingTraces.size() - 1).getMzRange().upperEndpoint();
+        + totalFrames + range;
   }
 
   @Override
@@ -107,7 +113,7 @@ public class ImsExpanderSubTask extends AbstractTask {
             final double mz = access.getMzValue(dpIndex);
             final double intensity = access.getIntensityValue(dpIndex);
 
-            if(useRawData && intensity < customNoiseLevel) {
+            if (useRawData && intensity < customNoiseLevel) {
               continue;
             }
 

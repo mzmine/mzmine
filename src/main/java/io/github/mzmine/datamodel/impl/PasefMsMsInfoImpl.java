@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.util.ParsingUtils;
 import java.util.Objects;
 import javax.xml.stream.XMLStreamException;
@@ -213,6 +214,11 @@ public class PasefMsMsInfoImpl implements PasefMsMsInfo {
 
     Range<Integer> spectrumRange = ParsingUtils.parseIntegerRange(
         reader.getAttributeValue(null, XML_SPECTRUM_NUMBER_RANGE_ATTR));
+
+    // replace by original file so we store the original frames and not the cached ones.
+    if(file instanceof CachedIMSRawDataFile cachedIMSRawDataFile) {
+      file = (IMSRawDataFile) cachedIMSRawDataFile.getOriginalFile();
+    }
 
     return new PasefMsMsInfoImpl(precursorMz, spectrumRange, collisionEnergy, precursorCharge,
         parentFrameIndex != null ? file.getFrame(parentFrameIndex) : null,

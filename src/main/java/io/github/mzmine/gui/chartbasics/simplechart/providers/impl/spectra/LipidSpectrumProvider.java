@@ -18,12 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
-import java.awt.Color;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
@@ -34,7 +28,13 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.awt.Color;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class LipidSpectrumProvider implements PlotXYDataProvider {
 
@@ -132,6 +132,7 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
       public Iterator<DataPoint> iterator() {
         return null;
       }
+
     };
 
     this.seriesKey = seriesKey;

@@ -44,10 +44,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class TDFImportModule implements MZmineProcessingModule {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private static final String MODULE_NAME = "Bruker TDF file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
+  private static final Logger logger = Logger.getLogger(TDFImportModule.class.getName());
 
   @Override
   public @NotNull String getName() {
@@ -105,8 +104,9 @@ public class TDFImportModule implements MZmineProcessingModule {
       try {
         // IMS files are big, reserve a single storage for each file
         final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
-        IMSRawDataFile newMZmineFile = MZmineCore
-            .createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
+
+        IMSRawDataFile newMZmineFile = MZmineCore.createNewIMSFile(newName,
+            fileNames[i].getAbsolutePath(), storage);
         Task newTask = new TDFImportTask(project, fileNames[i], newMZmineFile,
             TDFImportModule.class, parameters, moduleCallDate);
         tasks.add(newTask);
