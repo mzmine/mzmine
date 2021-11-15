@@ -159,7 +159,7 @@ public class FeatureNetworkGenerator {
         // Add consensus edges
         for (ConsensusEdge e : consensusEdges) {
           Edge edge = addNewEdge(e.getA(), e.getB(), e.getType(), e.getAnnotation(), false);
-          edge.setAttribute(EdgeAtt.SCORE.toString(), e.getScore());
+          edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(e.getScore()));
           edge.setAttribute(EdgeAtt.NUMBER_OF_COLLAPSED_EDGES.toString(), e.getNumberOfEdges());
         }
         // set network as finalized
@@ -287,7 +287,7 @@ public class FeatureNetworkGenerator {
     double score = sim.getScore();
     Edge edge = addNewEdge(a, b, type, sim.getAnnotation(), false, dmz);
     edge.setAttribute(EdgeAtt.LABEL.toString(), sim.getAnnotation());
-    edge.setAttribute(EdgeAtt.SCORE.toString(), score);
+    edge.setAttribute(EdgeAtt.SCORE.toString(), scoreForm.format(score));
     switch (type) {
       case MS2_SIMILARITY, MS2_GNPS_COSINE_SIM -> edge
           .setAttribute("ui.size", (float) Math.max(1, Math.min(5, 5 * score * score)));
@@ -591,7 +591,7 @@ public class FeatureNetworkGenerator {
     String uiClass = getUIClass(type);
     Edge e = addNewEdge(node1, node2, type.toString(), label, directed, uiClass);
     e.setAttribute(EdgeAtt.TYPE.toString(), type);
-    e.setAttribute(EdgeAtt.DELTA_MZ.toString(), dmz);
+    e.setAttribute(EdgeAtt.DELTA_MZ.toString(), mzForm.format(dmz));
     return e;
   }
 
