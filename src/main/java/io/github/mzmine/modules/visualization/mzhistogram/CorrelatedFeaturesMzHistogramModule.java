@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class CorrelatedFeaturesMzHistogramModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "m/z delta histogram (correlated features)";
+  private static final String MODULE_NAME = "Correlated features \u0394 m/z histogram";
   private static final String MODULE_DESCRIPTION =
       "This module plots all m/z deltas between correlated features in a histogram and offers a Gaussian fit.";
 
@@ -55,7 +55,8 @@ public class CorrelatedFeaturesMzHistogramModule implements MZmineRunnableModule
 
     for (int i = 0; i < flists.length; i++) {
       Task newTask =
-          new CorrelatedFeaturesMzHistogramTask(flists[i], parameters.cloneParameterSet(), moduleCallDate);
+          new CorrelatedFeaturesMzHistogramTask(flists[i], parameters.cloneParameterSet(),
+              moduleCallDate);
       tasks.add(newTask);
     }
 

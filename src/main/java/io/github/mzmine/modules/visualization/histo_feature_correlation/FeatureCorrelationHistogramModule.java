@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureCorrelationHistogramModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Histogram (feature correlation)";
+  private static final String MODULE_NAME = "Correlation coefficient histogram (grouped feature shapes)";
   private static final String MODULE_DESCRIPTION =
       "This module plots all correlations between feature shapes.";
 
@@ -55,7 +55,8 @@ public class FeatureCorrelationHistogramModule implements MZmineRunnableModule {
 
     for (int i = 0; i < flists.length; i++) {
       Task newTask =
-          new FeatureCorrelationHistogramTask(flists[i], parameters.cloneParameterSet(), moduleCallDate);
+          new FeatureCorrelationHistogramTask(flists[i], parameters.cloneParameterSet(),
+              moduleCallDate);
       tasks.add(newTask);
     }
 
