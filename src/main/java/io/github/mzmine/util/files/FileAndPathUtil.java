@@ -56,6 +56,12 @@ public class FileAndPathUtil {
     return new File(filepath.getParentFile(), getRealFileName(filepath.getName(), format));
   }
 
+
+  public static File getRealFilePathWithSuffix(File outputFile, String suffix, String format) {
+    File out = eraseFormat(outputFile);
+    return getRealFilePath(outputFile, out.getName() + suffix, format);
+  }
+
   /**
    * Returns the real file name as filename.fileformat
    *

@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
-public class MZDistributionHistoParameters extends SimpleParameterSet {
+public class ScanMzHistogramParameters extends SimpleParameterSet {
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
   public static final ScanSelectionParameter scanSelection =
@@ -44,7 +44,7 @@ public class MZDistributionHistoParameters extends SimpleParameterSet {
   public static final DoubleParameter binWidth = new DoubleParameter("m/z bin width",
       "Binning of m/z values for feature picking ", MZmineCore.getConfiguration().getMZFormat());
 
-  public MZDistributionHistoParameters() {
+  public ScanMzHistogramParameters() {
     super(new Parameter[]{dataFiles, scanSelection, mzRange, rtRange, binWidth,
         useMobilityScans});
   }
