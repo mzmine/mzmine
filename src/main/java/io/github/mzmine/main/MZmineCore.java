@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.main;
@@ -69,15 +68,13 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-
+  private static final List<MemoryMapStorage> storageList = Collections
+      .synchronizedList(new ArrayList<>());
+  private static final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
   private static TaskControllerImpl taskController;
   private static MZmineConfiguration configuration;
   private static Desktop desktop;
   private static ProjectManagerImpl projectManager;
-  private static final List<MemoryMapStorage> storageList = Collections
-      .synchronizedList(new ArrayList<>());
-
-  private static final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
   private static boolean headLessMode = false;
   // batch exit code is only set if run in headless mode with batch file
   private static ExitCode batchExitCode = null;
@@ -132,21 +129,6 @@ public final class MZmineCore {
     MZmineArgumentParser argsParser = new MZmineArgumentParser();
     argsParser.parse(args);
 
-    // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
-    switch (argsParser.isKeepInRam()) {
-      case NONE -> {
-        // nothing in RAM
-      }
-      case ALL -> MemoryMapStorage.setStoreAllInRam(true);
-      case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
-      case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
-      case RAW_SCANS -> MemoryMapStorage.setStoreRawFilesInRam(true);
-      case MASSES_AND_FEATURES -> {
-        MemoryMapStorage.setStoreMassListsInRam(true);
-        MemoryMapStorage.setStoreFeaturesInRam(true);
-      }
-    }
-
     // override preferences file by command line argument pref
     File prefFile = argsParser.getPreferencesFile();
     if (prefFile == null) {
@@ -162,6 +144,18 @@ public final class MZmineCore {
         e.printStackTrace();
       }
     }
+
+    KeepInMemory keepInMemory = argsParser.isKeepInMemory();
+    if (keepInMemory != null) {
+      // set to preferences
+      configuration.getPreferences().setParameter(MZminePreferences.memoryOption, keepInMemory);
+    } else {
+      keepInMemory = configuration.getPreferences().getParameter(MZminePreferences.memoryOption)
+          .getValue();
+    }
+
+    // apply memory management option
+    keepInMemory.enforceToMemoryMapping();
 
     // batch mode defined by command line argument
     File batchFile = argsParser.getBatchFile();
@@ -198,7 +192,8 @@ public final class MZmineCore {
         }
 
         // run batch file
-        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile, new Date());
+        batchExitCode = BatchModeModule
+            .runBatch(projectManager.getCurrentProject(), batchFile, new Date());
       }
 
       // option to keep MZmine running after the batch is finished
@@ -286,7 +281,8 @@ public final class MZmineCore {
     return initializedModules.values();
   }
 
-  public static RawDataFile createNewFile(@NotNull final String name, @Nullable final String absPath,
+  public static RawDataFile createNewFile(@NotNull final String name,
+      @Nullable final String absPath,
       @Nullable final MemoryMapStorage storage) throws IOException {
     return new RawDataFileImpl(name, absPath, storage);
   }
