@@ -81,7 +81,7 @@ public final class MZmineCore {
   private MZmineConfiguration configuration;
   private Desktop desktop;
   private ProjectManagerImpl projectManager;
-  private boolean headLessMode = false;
+  private boolean headLessMode = true;
   // batch exit code is only set if run in headless mode with batch file
   private ExitCode batchExitCode = null;
 
