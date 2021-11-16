@@ -16,13 +16,19 @@
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,17 +39,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 @ExtendWith(MockitoExtension.class)
+@TestMethodOrder(OrderAnnotation.class)
 public class ProjectTest {
 
   @Mock
   RawDataFile raw;
 
+  @BeforeEach
+  void initEach() {
+    // each test a new project
+  }
+
+
   @Test
+  @Order(1)
   void projectTest() {
     // state for testing should be headless
     assertEquals(true, MZmineCore.isHeadLessMode());
 
-    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     assertNotNull(project);
 
     ModularFeatureList flist = new ModularFeatureList("A", null, raw);
@@ -53,6 +67,27 @@ public class ProjectTest {
 
     project.addFile(raw);
     assertEquals(1, project.getRawDataFiles().size());
+
+    // clean project. Otherwise next tests will see objects from this test
+    MZmineTestUtil.cleanProject();
+  }
+
+  @Test
+  @Order(2)
+  void testEmptyProjectAfterTest() {
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    assertNotNull(project);
+
+    assertEquals(0, project.getFeatureLists().size());
+    assertEquals(0, project.getRawDataFiles().size());
+  }
+
+  @Test
+  @Order(3)
+  void setNewProjectTest() {
+    final MZmineProject old = MZmineCore.getProjectManager().getCurrentProject();
+    MZmineCore.getProjectManager().setCurrentProject(new MZmineProjectImpl());
+    assertNotEquals(old, MZmineCore.getProjectManager().getCurrentProject());
   }
 
 }

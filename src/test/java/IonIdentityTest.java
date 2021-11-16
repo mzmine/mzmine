@@ -35,11 +35,9 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.ProjectManager;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -47,8 +45,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -73,14 +69,9 @@ public class IonIdentityTest {
   IonType hAdduct = new IonType(IonModification.H);
   IonType naAdduct = new IonType(IonModification.NA);
 
+
   @Test
   void ionIdentityTest() {
-    MZmineProjectImpl project = new MZmineProjectImpl();
-    try (MockedStatic<MZmineCore> utilities = Mockito.mockStatic(MZmineCore.class)) {
-      utilities.when(MZmineCore::getProjectManager).thenReturn(projectManager);
-      doReturn(project).when(projectManager).getCurrentProject();
-      assertEquals(project, MZmineCore.getProjectManager().getCurrentProject());
-
       // create feature list need project manager and project
       ModularFeatureList flist = new ModularFeatureList("A", null, raw);
 
@@ -162,6 +153,5 @@ public class IonIdentityTest {
           rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getIsotopeScore(),
           "Cannot access formula specific types from sub types of IonIdentityModularType.class");
 
-    }
   }
 }

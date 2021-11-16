@@ -20,6 +20,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
@@ -118,5 +119,9 @@ public class MZmineTestUtil {
    */
   public static boolean isSorted(FeatureList flist) {
     return Comparators.isInOrder(flist.getRows(), FeatureListRowSorter.DEFAULT);
+  }
+
+  public static void cleanProject() {
+    MZmineCore.getProjectManager().setCurrentProject(new MZmineProjectImpl());
   }
 }
