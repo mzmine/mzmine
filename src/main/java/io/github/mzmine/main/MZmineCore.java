@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.main;
@@ -41,6 +40,7 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +55,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,15 +70,13 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-
+  private static final List<MemoryMapStorage> storageList = Collections
+      .synchronizedList(new ArrayList<>());
+  private static final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
   private static TaskControllerImpl taskController;
   private static MZmineConfiguration configuration;
   private static Desktop desktop;
   private static ProjectManagerImpl projectManager;
-  private static final List<MemoryMapStorage> storageList = Collections
-      .synchronizedList(new ArrayList<>());
-
-  private static final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
   private static boolean headLessMode = false;
   // batch exit code is only set if run in headless mode with batch file
   private static ExitCode batchExitCode = null;
@@ -148,19 +147,38 @@ public final class MZmineCore {
     }
 
     // override preferences file by command line argument pref
-    File prefFile = argsParser.getPreferencesFile();
-    if (prefFile == null) {
-      prefFile = MZmineConfiguration.CONFIG_FILE;
-    }
+    final File prefFile = Objects
+        .requireNonNullElse(argsParser.getPreferencesFile(), MZmineConfiguration.CONFIG_FILE);
 
+    boolean updateTempDir = false;
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {
       try {
         configuration.loadConfiguration(prefFile);
-        setTempDirToPreference();
+        updateTempDir = true;
       } catch (Exception e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
+            e);
       }
+    } else {
+      logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
+    }
+
+    // override temp directory
+    final File tempDirectory = argsParser.getTempDirectory();
+    if (tempDirectory != null) {
+      // needs to be accessible
+      if (FileAndPathUtil.createDirectory(tempDirectory)) {
+        configuration.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
+        updateTempDir = true;
+      } else {
+        logger.log(Level.WARNING, "Cannot ");
+      }
+    }
+
+    // set temp directory
+    if (updateTempDir) {
+      setTempDirToPreference();
     }
 
     // batch mode defined by command line argument
@@ -198,7 +216,8 @@ public final class MZmineCore {
         }
 
         // run batch file
-        batchExitCode = BatchModeModule.runBatch(projectManager.getCurrentProject(), batchFile, new Date());
+        batchExitCode = BatchModeModule
+            .runBatch(projectManager.getCurrentProject(), batchFile, new Date());
       }
 
       // option to keep MZmine running after the batch is finished
@@ -286,7 +305,8 @@ public final class MZmineCore {
     return initializedModules.values();
   }
 
-  public static RawDataFile createNewFile(@NotNull final String name, @Nullable final String absPath,
+  public static RawDataFile createNewFile(@NotNull final String name,
+      @Nullable final String absPath,
       @Nullable final MemoryMapStorage storage) throws IOException {
     return new RawDataFileImpl(name, absPath, storage);
   }
