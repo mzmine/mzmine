@@ -54,12 +54,14 @@ public interface FeatureList {
    * @return Short descriptive name for the feature list
    */
   @NotNull
-  public String getName();
+  String getName();
 
   /**
    * Change the name of this feature list
+   *
+   * @return the actually set name after checking for resticted symbols and duplicate names
    */
-  public void setName(@NotNull String name);
+  String setName(@NotNull String name);
 
   void addRowBinding(@NotNull List<RowBinding> bindings);
 

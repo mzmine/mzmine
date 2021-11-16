@@ -35,8 +35,11 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.IonNetworkLogic;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.project.ProjectManager;
+import io.github.mzmine.project.impl.MZmineProjectImpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -44,6 +47,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -60,6 +65,9 @@ public class IonIdentityTest {
   RawDataFile raw;
 
   @Mock
+  ProjectManager projectManager;
+
+  @Mock
   ResultFormula formula;
 
   IonType hAdduct = new IonType(IonModification.H);
@@ -67,86 +75,93 @@ public class IonIdentityTest {
 
   @Test
   void ionIdentityTest() {
-    ModularFeatureList flist = new ModularFeatureList("A", null, raw);
+    MZmineProjectImpl project = new MZmineProjectImpl();
+    try (MockedStatic<MZmineCore> utilities = Mockito.mockStatic(MZmineCore.class)) {
+      utilities.when(MZmineCore::getProjectManager).thenReturn(projectManager);
+      doReturn(project).when(projectManager).getCurrentProject();
+      assertEquals(project, MZmineCore.getProjectManager().getCurrentProject());
 
-    flist.addRowType(new IDType());
-    flist.addRowType(new RTType());
-    flist.addRowType(new MZType());
-    flist.addRowType(new IonIdentityListType());
-    flist.addRowType(new FeatureGroupType());
+      // create feature list need project manager and project
+      ModularFeatureList flist = new ModularFeatureList("A", null, raw);
 
-    ModularFeatureListRow rowProtonated = new ModularFeatureListRow(flist, 1);
-    ModularFeatureListRow rowSodiated = new ModularFeatureListRow(flist, 2);
-    // create spy instances to return mz and rt values
-    double mz = 200;
-    rowProtonated = spy(rowProtonated);
-    rowSodiated = spy(rowSodiated);
-    // return some fixed mz and rt
-    doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
-    doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
+      flist.addRowType(new IDType());
+      flist.addRowType(new RTType());
+      flist.addRowType(new MZType());
+      flist.addRowType(new IonIdentityListType());
+      flist.addRowType(new FeatureGroupType());
 
-    // add rows
-    flist.addRow(rowProtonated);
-    flist.addRow(rowSodiated);
+      ModularFeatureListRow rowProtonated = new ModularFeatureListRow(flist, 1);
+      ModularFeatureListRow rowSodiated = new ModularFeatureListRow(flist, 2);
+      // create spy instances to return mz and rt values
+      double mz = 200;
+      rowProtonated = spy(rowProtonated);
+      rowSodiated = spy(rowSodiated);
+      // return some fixed mz and rt
+      doReturn(mz + hAdduct.getMassDifference()).when(rowProtonated).getAverageMZ();
+      doReturn(mz + naAdduct.getMassDifference()).when(rowSodiated).getAverageMZ();
 
-    List<RowGroup> groups = new ArrayList<>();
-    RowGroup group = new RowGroup(List.of(raw), 0);
-    groups.add(group);
-    group.add(rowProtonated);
-    group.add(rowSodiated);
-    flist.setGroups(groups);
+      // add rows
+      flist.addRow(rowProtonated);
+      flist.addRow(rowSodiated);
 
-    // add ions to rows
-    IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated,
-        hAdduct, rowSodiated, naAdduct);
+      List<RowGroup> groups = new ArrayList<>();
+      RowGroup group = new RowGroup(List.of(raw), 0);
+      groups.add(group);
+      group.add(rowProtonated);
+      group.add(rowSodiated);
+      flist.setGroups(groups);
 
-    assertNotNull(rowProtonated.get(new IonIdentityListType()));
-    assertNotNull(rowProtonated.get(IonIdentityListType.class));
-    assertNotNull(rowProtonated.getIonIdentities());
+      // add ions to rows
+      IonIdentity.addAdductIdentityToRow(new MZTolerance(1, 10), rowProtonated,
+          hAdduct, rowSodiated, naAdduct);
 
-    assertEquals(1, rowProtonated.getIonIdentities().size());
-    assertEquals(1, rowSodiated.getIonIdentities().size());
-    assertNotNull(rowProtonated.getBestIonIdentity());
-    assertNotNull(rowSodiated.getBestIonIdentity());
+      assertNotNull(rowProtonated.get(new IonIdentityListType()));
+      assertNotNull(rowProtonated.get(IonIdentityListType.class));
+      assertNotNull(rowProtonated.getIonIdentities());
 
-    List<IonNetwork> nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-    assertEquals(1, nets.size());
-    assertEquals(2, nets.get(0).size());
+      assertEquals(1, rowProtonated.getIonIdentities().size());
+      assertEquals(1, rowSodiated.getIonIdentities().size());
+      assertNotNull(rowProtonated.getBestIonIdentity());
+      assertNotNull(rowSodiated.getBestIonIdentity());
 
-    IonNetworkLogic.renumberNetworks(flist);
-    nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-    assertEquals(1, nets.size());
-    assertEquals(2, nets.get(0).size());
+      List<IonNetwork> nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+      assertEquals(1, nets.size());
+      assertEquals(2, nets.get(0).size());
 
-    // recalc annotation networks
-    IonNetworkLogic.recalcAllAnnotationNetworks(flist, true);
-    nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-    assertEquals(1, nets.size());
-    assertEquals(2, nets.get(0).size());
+      IonNetworkLogic.renumberNetworks(flist);
+      nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+      assertEquals(1, nets.size());
+      assertEquals(2, nets.get(0).size());
 
-    // show all annotations with the highest count of links
-    IonNetworkLogic.sortIonIdentities(flist, true);
-    nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
-    assertEquals(1, nets.size());
-    assertEquals(2, nets.get(0).size());
+      // recalc annotation networks
+      IonNetworkLogic.recalcAllAnnotationNetworks(flist, true);
+      nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+      assertEquals(1, nets.size());
+      assertEquals(2, nets.get(0).size());
 
-    // test add formula
-    when(formula.getIsotopeScore()).thenReturn(0.9f);
-    when(formula.getRDBE()).thenReturn(4.5f);
-    IonIdentity ion = rowProtonated.getBestIonIdentity();
-    ion.addMolFormula(formula);
-    assertEquals(0.9f, ion.getBestMolFormula().getIsotopeScore());
-    assertEquals(4.5f, ion.getBestMolFormula().getRDBE());
+      // show all annotations with the highest count of links
+      IonNetworkLogic.sortIonIdentities(flist, true);
+      nets = IonNetworkLogic.streamNetworks(flist).collect(Collectors.toList());
+      assertEquals(1, nets.size());
+      assertEquals(2, nets.get(0).size());
 
-    // setting the formula should have updated the sub properties
-    // test properties in ion identity
-    assertEquals(4.5f,
-        rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getRDBE(),
-        "Cannot access formula specific types from sub types of IonIdentityModularType.class");
-    assertEquals(0.9f,
-        rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getIsotopeScore(),
-        "Cannot access formula specific types from sub types of IonIdentityModularType.class");
+      // test add formula
+      when(formula.getIsotopeScore()).thenReturn(0.9f);
+      when(formula.getRDBE()).thenReturn(4.5f);
+      IonIdentity ion = rowProtonated.getBestIonIdentity();
+      ion.addMolFormula(formula);
+      assertEquals(0.9f, ion.getBestMolFormula().getIsotopeScore());
+      assertEquals(4.5f, ion.getBestMolFormula().getRDBE());
 
+      // setting the formula should have updated the sub properties
+      // test properties in ion identity
+      assertEquals(4.5f,
+          rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getRDBE(),
+          "Cannot access formula specific types from sub types of IonIdentityModularType.class");
+      assertEquals(0.9f,
+          rowProtonated.get(IonIdentityListType.class).get(0).getBestMolFormula().getIsotopeScore(),
+          "Cannot access formula specific types from sub types of IonIdentityModularType.class");
+
+    }
   }
-
 }
