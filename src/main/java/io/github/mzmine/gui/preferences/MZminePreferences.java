@@ -124,7 +124,7 @@ public class MZminePreferences extends SimpleParameterSet {
       "Temporary file directory", "Directory where temporary files"
                                   + " will be stored. Directory should be located on a drive with fast read and write "
                                   + "(e.g., an SSD). Requires a restart of MZmine to take effect (the program argument --temp "
-                                  + "override this parameter: --temp D:\\your_tmp_dir\\)",
+                                  + "overrides this parameter, if set: --temp D:\\your_tmp_dir\\)",
       System.getProperty("java.io.tmpdir"));
 
   public static final ComboParameter<KeepInMemory> memoryOption =
