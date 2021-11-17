@@ -270,7 +270,8 @@ public class MS2SimilarityTask extends AbstractTask {
           if (dpb != null) {
             // align and check spectra
             SpectralSimilarity spectralSim =
-                createMS2Sim(mzTolerance, dpa, dpb, minMatch, SIZE_OVERLAP, fa.getMZ(), fb.getMZ());
+                createMS2SimModificationAware(mzTolerance, dpa, dpb, minMatch, SIZE_OVERLAP,
+                    fa.getMZ(), fb.getMZ());
             if (spectralSim != null && spectralSim.cosine() >= minCosineSimilarity) {
               cosineSim.addSpectralSim(spectralSim);
             }
@@ -280,7 +281,7 @@ public class MS2SimilarityTask extends AbstractTask {
               massDiffB = ScanMZDiffConverter.getAllMZDiff(dpb, mzTolerance, maxDPForDiff);
               Arrays.sort(massDiffB, dpSorter);
               SpectralSimilarity massDiffSim =
-                  createMS2SimWithoutModAware(mzTolerance, massDiffA, massDiffB, minMatch,
+                  createMS2Sim(mzTolerance, massDiffA, massDiffB, minMatch,
                       DIFF_OVERLAP);
 
               if (massDiffSim != null && massDiffSim.cosine() >= minCosineSimilarity) {
@@ -388,8 +389,9 @@ public class MS2SimilarityTask extends AbstractTask {
       FeatureListRow a, FeatureListRow b, DataPoint[] sortedA, DataPoint[] sortedB, Type simType) {
     // align and check spectra
     SpectralSimilarity spectralSim = simType == Type.MS2_NEUTRAL_LOSS_SIM ?
-        createMS2SimWithoutModAware(mzTolerance, sortedA, sortedB, minMatch, SIZE_OVERLAP) :
-        createMS2Sim(mzTolerance, sortedA, sortedB, minMatch, SIZE_OVERLAP, a.getAverageMZ(),
+        createMS2Sim(mzTolerance, sortedA, sortedB, minMatch, SIZE_OVERLAP) :
+        createMS2SimModificationAware(mzTolerance, sortedA, sortedB, minMatch, SIZE_OVERLAP,
+            a.getAverageMZ(),
             b.getAverageMZ());
 
     if (spectralSim != null && spectralSim.cosine() >= minCosineSimilarity) {
@@ -409,9 +411,10 @@ public class MS2SimilarityTask extends AbstractTask {
    * @return the spectral similarity if number of overlapping signals >= minimum, else null
    */
   @Nullable
-  private SpectralSimilarity createMS2SimWithoutModAware(MZTolerance mzTol, DataPoint[] sortedA,
+  private SpectralSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] sortedA,
       DataPoint[] sortedB, double minMatch, Function<List<DataPoint[]>, Integer> overlapFunction) {
-    return createMS2Sim(mzTol, sortedA, sortedB, minMatch, overlapFunction, -1d, -1d);
+    return createMS2SimModificationAware(mzTol, sortedA, sortedB, minMatch, overlapFunction, -1d,
+        -1d);
   }
 
   /**
@@ -427,7 +430,7 @@ public class MS2SimilarityTask extends AbstractTask {
    * @return the spectral similarity if number of overlapping signals >= minimum, else null
    */
   @Nullable
-  private SpectralSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] sortedA,
+  private SpectralSimilarity createMS2SimModificationAware(MZTolerance mzTol, DataPoint[] sortedA,
       DataPoint[] sortedB, double minMatch, Function<List<DataPoint[]>, Integer> overlapFunction,
       double precursorMzA, double precursorMzB) {
     // align
