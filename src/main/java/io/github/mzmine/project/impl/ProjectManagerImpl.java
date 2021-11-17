@@ -78,7 +78,7 @@ public class ProjectManagerImpl implements ProjectManager {
     }
 
     // Notify the GUI about project structure change
-    if (MZmineCore.isHeadLessMode()) {
+    if (!MZmineCore.isHeadLessMode()) {
       MZmineGUI.activateProject(project);
     }
   }
