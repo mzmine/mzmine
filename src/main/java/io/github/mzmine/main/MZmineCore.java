@@ -172,7 +172,9 @@ public final class MZmineCore {
         configuration.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
         updateTempDir = true;
       } else {
-        logger.log(Level.WARNING, "Cannot ");
+        logger.log(Level.WARNING,
+            "Cannot create or access temp file directory that was set via program argument: "
+            + tempDirectory.getAbsolutePath());
       }
     }
 
