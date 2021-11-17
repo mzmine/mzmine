@@ -36,9 +36,9 @@ public class SpectralLibrary {
 
   public SpectralLibrary(@NotNull String name, @NotNull File path,
       @NotNull List<SpectralDBEntry> entries) {
-    this.name = name;
     this.path = path;
     this.entries = entries;
+    this.name = String.format("%s (%d spectra)", name, size());
   }
 
   @NotNull
@@ -58,5 +58,20 @@ public class SpectralLibrary {
 
   public int size() {
     return entries.size();
+  }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
+
+  /**
+   * Test for equal resourse paths
+   *
+   * @param lib other library
+   * @return true if the path of both libraries equal
+   */
+  public boolean equalSources(SpectralLibrary lib) {
+    return lib != null && lib.getPath().equals(this.getPath());
   }
 }

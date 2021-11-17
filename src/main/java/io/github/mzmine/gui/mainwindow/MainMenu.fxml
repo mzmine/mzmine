@@ -39,25 +39,26 @@
     <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
       <accelerator>
-          <KeyCodeCombination alt="UP" code="S"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="saveProjectAs" text="Save project as" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
-        <accelerator>
-          <KeyCodeCombination alt="DOWN" code="S"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="closeProject" text="Close project" onAction="#closeProject">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="W"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
+        <KeyCodeCombination alt="UP" code="S"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#runModule" text="Save project as"
+      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule"
+      fx:id="saveProjectAs">
+      <accelerator>
+        <KeyCodeCombination alt="DOWN" code="S"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="W"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
 
-      <SeparatorMenuItem/>
+    <SeparatorMenuItem/>
 
     <MenuItem text="Batch mode" onAction="#runModule"
       userData="io.github.mzmine.modules.batchmode.BatchModeModule">
@@ -314,17 +315,17 @@
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
       <MenuItem text="Refine ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
       <MenuItem text="Formula prediction on ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
       <MenuItem text="Average formulas" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
       <MenuItem text="Check MS/MS ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
       <MenuItem text="Clear ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
     </Menu>
@@ -412,6 +413,12 @@
         <MenuItem text="Local spectral database search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule"/>
+        <MenuItem onAction="#runModule"
+          text="Import spectral library"
+          userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+        <MenuItem onAction="#runModule"
+          text="Local spectral database search (preloaded)"
+          userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.preloaded.PreloadedLocalSpectralDBSearchModule"/>
         <MenuItem text="NIST MS search" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule"/>
         <MenuItem text="Chemical formula prediction"

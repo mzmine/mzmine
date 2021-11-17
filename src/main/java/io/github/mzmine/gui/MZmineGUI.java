@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.gui;
@@ -47,6 +46,7 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -61,6 +61,7 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -181,6 +182,9 @@ public class MZmineGUI extends Application implements Desktop {
       GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
       featureListsList.setValues(project.featureListsProperty().getValue());
 
+      var libraryList = mainWindowController.getSpectralLibraryList();
+      libraryList.setItems(project.spectralLibrariesProperty().getValue());
+
     });
 
   }
@@ -193,8 +197,16 @@ public class MZmineGUI extends Application implements Desktop {
 
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
+    final GroupableListView<FeatureList> featureListView = mainWindowController
+        .getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
+  }
+
+  @NotNull
+  public static List<SpectralLibrary> getSelectedSpectralLibraryList() {
+    final var spectralLibraryView = mainWindowController.getSpectralLibraryList();
+    return FXCollections
+        .unmodifiableObservableList(spectralLibraryView.getSelectionModel().getSelectedItems());
   }
 
   @NotNull
@@ -275,7 +287,8 @@ public class MZmineGUI extends Application implements Desktop {
 
       if (!rawDataFiles.isEmpty()) {
         logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
-            + Arrays.toString(rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
+                            + Arrays.toString(
+            rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
         param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
@@ -535,6 +548,11 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public FeatureList[] getSelectedPeakLists() {
     return getSelectedFeatureLists().toArray(new FeatureList[0]);
+  }
+
+  @Override
+  public SpectralLibrary[] getSelectedSpectralLibraries() {
+    return getSelectedSpectralLibraryList().toArray(new SpectralLibrary[0]);
   }
 
   @Override

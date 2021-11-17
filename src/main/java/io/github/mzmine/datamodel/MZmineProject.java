@@ -177,7 +177,7 @@ public interface MZmineProject {
    *
    * @param library new library
    */
-  void addSpectralLibrary(final SpectralLibrary library);
+  void addSpectralLibrary(final SpectralLibrary... library);
 
   /**
    * The observable list of spectral preloaded libraries
@@ -185,4 +185,11 @@ public interface MZmineProject {
    * @return current list of preloaded libraries
    */
   ObservableList<SpectralLibrary> getSpectralLibraries();
+
+  /**
+   * Remove preloaded spectral library
+   *
+   * @param library library to be removed
+   */
+  void removeSpectralLibrary(SpectralLibrary... library);
 }

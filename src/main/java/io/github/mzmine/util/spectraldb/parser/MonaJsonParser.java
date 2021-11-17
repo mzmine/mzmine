@@ -105,7 +105,6 @@ public class MonaJsonParser extends SpectralDBParser {
       // combine
       results.addAll(entries);
       processor.processNextEntries(results, 0);
-      finish();
       return true;
     }
   }

@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.javafx.FxThreadUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
@@ -366,14 +367,29 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public synchronized void addSpectralLibrary(final SpectralLibrary library) {
-    // remove all with same path
-    spectralLibrariesProperty.removeIf(lib -> lib.getPath().equals(library.getPath()));
-    spectralLibrariesProperty.add(library);
+  public void addSpectralLibrary(final SpectralLibrary... library) {
+    synchronized (spectralLibrariesProperty) {
+      FxThreadUtil.runOnFxThreadAndWait(() -> {
+        // remove all with same path
+        spectralLibrariesProperty.removeIf(lib -> Arrays.stream(library)
+            .anyMatch(newlib -> lib.getPath().equals(newlib.getPath())));
+        spectralLibrariesProperty.addAll(library);
+      });
+    }
   }
 
   @Override
   public ObservableList<SpectralLibrary> getSpectralLibraries() {
-    return spectralLibrariesProperty.get();
+    return FXCollections.unmodifiableObservableList(spectralLibrariesProperty.get());
   }
+
+  @Override
+  public void removeSpectralLibrary(SpectralLibrary... library) {
+    synchronized (spectralLibrariesProperty) {
+      FxThreadUtil.runOnFxThreadAndWait(() -> {
+        spectralLibrariesProperty.removeAll(library);
+      });
+    }
+  }
+
 }
