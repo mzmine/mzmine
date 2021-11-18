@@ -53,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RowsSpectralMatchTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(RowsSpectralMatchTask.class.getName());
   private static final String METHOD = "Spectral DB search";
   private static final int MAX_ERROR = 3;
   private final AtomicInteger errorCounter = new AtomicInteger(0);
@@ -68,7 +69,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final int minMatch;
   private final boolean removePrecursor;
   private final boolean cropSpectraToOverlap;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private String description;
   private FeatureListRow[] rows;
   private int finishedRows = 0;
@@ -179,9 +179,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
         dataBaseFile.getName(), startEntry, startEntry + listsize - 1);
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
@@ -232,6 +229,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         rowMassLists.add(rowMassList);
       }
 
+      List<SpectralDBFeatureIdentity> ids = null;
       // match against all library entries
       for (SpectralDBEntry ident : list) {
         SpectralDBFeatureIdentity best = null;
@@ -247,11 +245,16 @@ public class RowsSpectralMatchTask extends AbstractTask {
         }
         // has match?
         if (best != null) {
-          addIdentity(row, best);
+          if (ids == null) {
+            ids = new ArrayList<>();
+          }
+          ids.add(best);
           matches.getAndIncrement();
         }
       }
-      // sort identities based on similarity score
+
+      // add and sort identities based on similarity score
+      addIdentities(row, ids);
       SortSpectralDBIdentitiesTask.sortIdentities(row);
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
@@ -389,12 +392,23 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
   }
 
-  private void addIdentity(FeatureListRow row, SpectralDBFeatureIdentity pid) {
+//  private void addIdentity(FeatureListRow row, SpectralDBFeatureIdentity pid) {
+//    // add new identity to the row
+//    row.addSpectralLibraryMatch(pid);
+//
+//    if (matchListener != null) {
+//      matchListener.accept(pid);
+//    }
+//  }
+
+  private void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
     // add new identity to the row
-    row.addSpectralLibraryMatch(pid);
+    row.addSpectralLibraryMatches(matches);
 
     if (matchListener != null) {
-      matchListener.accept(pid);
+      for (var pid : matches) {
+        matchListener.accept(pid);
+      }
     }
   }
 

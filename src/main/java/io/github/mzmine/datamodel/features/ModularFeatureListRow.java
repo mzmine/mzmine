@@ -230,6 +230,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     return this.getFeatures().stream().map(ModularFeature.class::cast).filter(Objects::nonNull);
   }
 
+
   // Helper methods
   @Override
   public Range<Double> getMZRange() {
@@ -529,6 +530,18 @@ public class ModularFeatureListRow implements FeatureListRow {
       }
       matches.add(id);
       set(SpectralLibraryMatchesType.class, matches);
+    }
+  }
+
+  @Override
+  public void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches) {
+    synchronized (getMap()) {
+      List<SpectralDBFeatureIdentity> old = get(SpectralLibraryMatchesType.class);
+      if (old == null) {
+        old = new ArrayList<>();
+      }
+      old.addAll(matches);
+      set(SpectralLibraryMatchesType.class, old);
     }
   }
 

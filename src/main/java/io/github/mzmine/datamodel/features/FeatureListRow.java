@@ -406,4 +406,5 @@ public interface FeatureListRow extends ModularDataModel {
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
+  void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
 }
