@@ -106,10 +106,16 @@ public class FeatureFindingTest {
    */
   @BeforeAll
   public void init() {
-    logger.info("Running MZmine");
-    MZmineCore.main(new String[]{"-r", "-m", "all"});
+//    logger.info("Running MZmine");
+//    MZmineCore.main(new String[]{"-r", "-m", "all"});
     logger.info("Getting project");
     project = MZmineCore.getProjectManager().getCurrentProject();
+  }
+
+  @AfterAll
+  public void tearDown() {
+    // we need to clean the project after this integration test
+    MZmineTestUtil.cleanProject();
   }
 
 
@@ -585,12 +591,6 @@ public class FeatureFindingTest {
     assertTrue(processed1.stream()
             .anyMatch(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2),
         "No row found with 2 features");
-  }
-
-  @AfterAll
-  public void tearDown() {
-    // System.exit in tests are bad
-    // MZmineCore.exit();
   }
 
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {

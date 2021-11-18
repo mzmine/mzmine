@@ -142,7 +142,8 @@ public class GNPSResultsImportTask extends AbstractTask {
       Path path = Paths.get(file.getAbsolutePath());
       Stream<String> lines = Files.lines(path);
       List<String> replaced =
-          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")).collect(Collectors.toList());
+          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")
+              .replaceAll("edge id=\"Cosine\"", "edge")).collect(Collectors.toList());
       Files.write(path, replaced);
       lines.close();
       logger.info("zero ids in graphml replaces");
