@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.main;
@@ -36,13 +37,13 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MZmineArgumentParser {
 
-  private static Logger logger = Logger.getLogger(MZmineArgumentParser.class.getName());
+  private static final Logger logger = Logger.getLogger(MZmineArgumentParser.class.getName());
 
   private File batchFile;
   private File preferencesFile;
   private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
-  private KeepInRam isKeepInRam = KeepInRam.NONE;
+  private KeepInMemory isKeepInMemory = null;
 
   public void parse(String[] args) {
     Options options = new Options();
@@ -105,9 +106,9 @@ public class MZmineArgumentParser {
 
       String keepInData = cmd.getOptionValue(keepInMemory.getLongOpt());
       if (keepInData != null) {
-        isKeepInRam = KeepInRam.parse(keepInData);
+        isKeepInMemory = KeepInMemory.parse(keepInData);
         logger.info(
-            () -> "the -m / --memory argument was set to " + isKeepInRam.toString()
+            () -> "the -m / --memory argument was set to " + isKeepInMemory.toString()
                   + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
       }
 
@@ -153,24 +154,9 @@ public class MZmineArgumentParser {
    *
    * @return true will keep objects in memory which are usually stored in memory mapped files
    */
-  public KeepInRam isKeepInRam() {
-    return isKeepInRam;
+  public KeepInMemory isKeepInMemory() {
+    return isKeepInMemory;
   }
 
-  public enum KeepInRam {
-    NONE, ALL, FEATURES, MASS_LISTS, RAW_SCANS, MASSES_AND_FEATURES;
-
-    public static KeepInRam parse(String s) {
-      s = s.toLowerCase();
-      return switch (s) {
-        case "all" -> ALL;
-        case "features" -> FEATURES;
-        case "centroids" -> MASS_LISTS;
-        case "raw" -> RAW_SCANS;
-        case "masses_features" -> MASSES_AND_FEATURES;
-        default -> throw new IllegalStateException("Unexpected value: " + s);
-      };
-    }
-  }
 }
 
