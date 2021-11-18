@@ -70,26 +70,31 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  private static final List<MemoryMapStorage> storageList = Collections
+
+  private static final MZmineCore instance = new MZmineCore();
+
+  // the default headless desktop is returned if no other desktop is set (e.g., during start up)
+  // it is also used in headless mode
+  private final Desktop defaultHeadlessDesktop = new HeadLessDesktop();
+  private final List<MemoryMapStorage> storageList = Collections
       .synchronizedList(new ArrayList<>());
-  private static final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
-  private static TaskControllerImpl taskController;
-  private static MZmineConfiguration configuration;
-  private static Desktop desktop;
-  private static ProjectManagerImpl projectManager;
-  private static boolean headLessMode = false;
+  private final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
+  private TaskControllerImpl taskController;
+  private MZmineConfiguration configuration;
+  private Desktop desktop;
+  private ProjectManagerImpl projectManager;
+  private boolean headLessMode = true;
   // batch exit code is only set if run in headless mode with batch file
-  private static ExitCode batchExitCode = null;
+  private ExitCode batchExitCode = null;
+
+  private MZmineCore() {
+    init();
+  }
 
   /**
    * Main method
    */
   public static void main(final String[] args) {
-    // In the beginning, set the default locale to English, to avoid
-    // problems with conversion of numbers etc. (e.g. decimal separator may
-    // be . or , depending on the locale)
-    Locale.setDefault(new Locale("en", "US"));
-
     logger.info("Starting MZmine " + getMZmineVersion());
     /*
      * Dump the MZmine and JVM arguments for debugging purposes
@@ -113,20 +118,6 @@ public final class MZmineCore {
     Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir
     cleanupThread.setPriority(Thread.MIN_PRIORITY);
     cleanupThread.start();
-
-    logger.fine("Loading core classes..");
-
-    // Create instance of configuration
-    configuration = new MZmineConfigurationImpl();
-
-    // Create instances of core modules
-    projectManager = new ProjectManagerImpl();
-    taskController = new TaskControllerImpl();
-
-    logger.fine("Initializing core classes..");
-
-    projectManager.initModule();
-    taskController.initModule();
 
     MZmineArgumentParser argsParser = new MZmineArgumentParser();
     argsParser.parse(args);
@@ -154,7 +145,7 @@ public final class MZmineCore {
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {
       try {
-        configuration.loadConfiguration(prefFile);
+        getInstance().configuration.loadConfiguration(prefFile);
         updateTempDir = true;
       } catch (Exception e) {
         logger.log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
@@ -169,7 +160,7 @@ public final class MZmineCore {
     if (tempDirectory != null) {
       // needs to be accessible
       if (FileAndPathUtil.createDirectory(tempDirectory)) {
-        configuration.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
+        getInstance().configuration.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
         updateTempDir = true;
       } else {
         logger.log(Level.WARNING,
@@ -187,9 +178,9 @@ public final class MZmineCore {
     File batchFile = argsParser.getBatchFile();
     boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
 
-    headLessMode = false;
+    getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
     // If we have no arguments, run in GUI mode, otherwise run in batch mode
-    if (batchFile == null && !keepRunningInHeadless) {
+    if (!getInstance().headLessMode) {
       try {
         logger.info("Starting MZmine GUI");
         Application.launch(MZmineGUI.class, args);
@@ -198,10 +189,8 @@ public final class MZmineCore {
         logger.log(Level.SEVERE, "Could not initialize GUI", e);
         System.exit(1);
       }
-
     } else {
-      headLessMode = true;
-      desktop = new HeadLessDesktop();
+      getInstance().desktop = getInstance().defaultHeadlessDesktop;
 
       // Tracker
       GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)",
@@ -218,8 +207,8 @@ public final class MZmineCore {
         }
 
         // run batch file
-        batchExitCode = BatchModeModule
-            .runBatch(projectManager.getCurrentProject(), batchFile, new Date());
+        getInstance().batchExitCode = BatchModeModule
+            .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, new Date());
       }
 
       // option to keep MZmine running after the batch is finished
@@ -230,46 +219,51 @@ public final class MZmineCore {
     }
   }
 
+  public static MZmineCore getInstance() {
+    return instance;
+  }
+
   /**
    * Exit MZmine (usually used in headless mode)
    */
   public static void exit() {
-    if (batchExitCode == ExitCode.OK || batchExitCode == null) {
+    if (instance.batchExitCode == ExitCode.OK || instance.batchExitCode == null) {
       System.exit(0);
     } else {
       System.exit(1);
     }
   }
 
-
   @NotNull
   public static TaskController getTaskController() {
-    return taskController;
+    return instance.taskController;
   }
 
   /**
-   * May return null during application startup when desktop is not ready yet.
+   * The current desktop or a default headless desktop (e.g., during app startup).
+   *
+   * @return the current desktop or the default headless desktop if still during app startup
    */
-  @Nullable
+  @NotNull
   public static Desktop getDesktop() {
-    return desktop;
+    return instance.desktop == null ? instance.defaultHeadlessDesktop : instance.desktop;
   }
 
   public static void setDesktop(Desktop desktop) {
     assert desktop != null;
-    MZmineCore.desktop = desktop;
+    getInstance().desktop = desktop;
   }
 
   @NotNull
   public static ProjectManager getProjectManager() {
-    assert projectManager != null;
-    return projectManager;
+    assert getInstance().projectManager != null;
+    return getInstance().projectManager;
   }
 
   @NotNull
   public static MZmineConfiguration getConfiguration() {
-    assert configuration != null;
-    return configuration;
+    assert getInstance().configuration != null;
+    return getInstance().configuration;
   }
 
   /**
@@ -279,7 +273,7 @@ public final class MZmineCore {
   public synchronized static <ModuleType extends MZmineModule> ModuleType getModuleInstance(
       Class<ModuleType> moduleClass) {
 
-    ModuleType module = (ModuleType) initializedModules.get(moduleClass);
+    ModuleType module = (ModuleType) getInstance().initializedModules.get(moduleClass);
 
     if (module == null) {
 
@@ -291,7 +285,7 @@ public final class MZmineCore {
         module = moduleClass.getDeclaredConstructor().newInstance();
 
         // Add to the module list
-        initializedModules.put(moduleClass, module);
+        getInstance().initializedModules.put(moduleClass, module);
 
       } catch (Throwable e) {
         logger.log(Level.SEVERE, "Could not start module " + moduleClass, e);
@@ -304,7 +298,7 @@ public final class MZmineCore {
   }
 
   public static Collection<MZmineModule> getAllModules() {
-    return initializedModules.values();
+    return getInstance().initializedModules.values();
   }
 
   public static RawDataFile createNewFile(@NotNull final String name,
@@ -338,8 +332,7 @@ public final class MZmineCore {
       if ((versionString == null) || (versionString.startsWith("$"))) {
         return Version.parse("3-SNAPSHOT");
       }
-      Version version = Version.parse(versionString);
-      return version;
+      return Version.parse(versionString);
     } catch (Exception e) {
       e.printStackTrace();
       return Version.parse("3-SNAPSHOT");
@@ -368,10 +361,10 @@ public final class MZmineCore {
 
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
-    final MZmineProject currentProject = projectManager.getCurrentProject();
+    final MZmineProject currentProject = getInstance().projectManager.getCurrentProject();
     final Date date = new Date();
     module.runModule(currentProject, parameters, newTasks, date);
-    taskController.addTasks(newTasks.toArray(new Task[0]));
+    getInstance().taskController.addTasks(newTasks.toArray(new Task[0]));
 
     return newTasks;
     // Log module run in audit log
@@ -409,7 +402,7 @@ public final class MZmineCore {
    * @return headless mode or JavaFX GUI
    */
   public static boolean isHeadLessMode() {
-    return headLessMode;
+    return getInstance().headLessMode;
   }
 
   /**
@@ -424,10 +417,32 @@ public final class MZmineCore {
   }
 
   public static void registerStorage(MemoryMapStorage storage) {
-    storageList.add(storage);
+    getInstance().storageList.add(storage);
   }
 
   public static List<MemoryMapStorage> getStorageList() {
-    return storageList;
+    return getInstance().storageList;
+  }
+
+  protected void init() {
+    // In the beginning, set the default locale to English, to avoid
+    // problems with conversion of numbers etc. (e.g. decimal separator may
+    // be . or , depending on the locale)
+    Locale.setDefault(new Locale("en", "US"));
+    // initialize by default with all in memory
+    MemoryMapStorage.setStoreAllInRam(true);
+
+    logger.fine("Loading core classes..");
+    // Create instance of configuration
+    configuration = new MZmineConfigurationImpl();
+
+    // Create instances of core modules
+    projectManager = new ProjectManagerImpl();
+    taskController = new TaskControllerImpl();
+
+    logger.fine("Initializing core classes..");
+
+    projectManager.initModule();
+    taskController.initModule();
   }
 }

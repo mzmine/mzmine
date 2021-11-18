@@ -460,4 +460,25 @@ public class FileAndPathUtil {
     }
     return uniqueFile;
   }
+
+  /**
+   * Remove all symbols not allowed in path. Replaces with _
+   *
+   * @param name source name (filename or path)
+   * @return path safe string
+   */
+  public static String safePathEncode(String name) {
+    return safePathEncode(name, "_");
+  }
+
+  /**
+   * Remove all symbols not allowed in path
+   *
+   * @param name       source name (filename or path)
+   * @param replaceStr replace all restricted characters by this str
+   * @return path safe string
+   */
+  public static String safePathEncode(String name, String replaceStr) {
+    return name.replaceAll("[^a-zA-Z0-9-_()\\.\\s]", replaceStr);
+  }
 }

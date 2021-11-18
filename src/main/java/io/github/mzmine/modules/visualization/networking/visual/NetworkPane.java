@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.networking.visual;
@@ -25,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -38,6 +38,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.graphstream.graph.Edge;
+import org.graphstream.graph.Element;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
@@ -54,6 +55,8 @@ import org.graphstream.ui.geom.Point3;
 import org.graphstream.ui.javafx.util.FxFileSinkImages;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NetworkPane extends BorderPane {
 
@@ -160,6 +163,19 @@ public class NetworkPane extends BorderPane {
       + "edge.medium{fill-color: rgb(50,100,200); stroke-color: rgb(50,100,200); stroke-width: 5px;}";
   private static final Logger LOG = Logger.getLogger(NetworkPane.class.getName());
   private final HBox pnSettings;
+  // selected node
+  private final List<Node> selectedNodes;
+  private final Label lbTitle;
+  private final FileChooser saveDialog;
+  private final ExtensionFilter graphmlExt = new ExtensionFilter(
+      "Export network to graphml (*.graphml)",
+      "*.graphml");
+  private final ExtensionFilter pngExt = new ExtensionFilter("PNG pixel graphics file (*.png)",
+      "*.png");
+  private final ExtensionFilter svgExt = new ExtensionFilter("SVG vector graphics file (*.svg)",
+      "*.svg");
+  // needs more resources
+  private final boolean enableMouseOnEdges = false;
   protected String styleSheet;
   // save screenshot
   protected FileSinkGraphML saveGraphML = new FileSinkGraphML();
@@ -172,19 +188,7 @@ public class NetworkPane extends BorderPane {
   protected double viewPercent = 1;
   protected boolean showNodeLabels = false;
   protected boolean showEdgeLabels = false;
-  // selected node
-  private final List<Node> selectedNodes;
-  private final Label lbTitle;
-
-  private final FileChooser saveDialog;
-  private final ExtensionFilter graphmlExt = new ExtensionFilter("Export network to graphml (*.graphml)",
-      "*.graphml");
-  private final ExtensionFilter pngExt = new ExtensionFilter("PNG pixel graphics file (*.png)", "*.png");
-  private final ExtensionFilter svgExt = new ExtensionFilter("SVG vector graphics file (*.svg)", "*.svg");
   private Point2D last;
-
-  // needs more resources
-  private final boolean enableMouseOnEdges = false;
 
 
   /**
@@ -194,9 +198,6 @@ public class NetworkPane extends BorderPane {
     this(title, "", showTitle);
   }
 
-  /**
-   * @wbp.parser.constructor
-   */
   public NetworkPane(String title, String styleSheet2, boolean showTitle) {
     System.setProperty("org.graphstream.ui", "javafx");
 //    System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
@@ -281,9 +282,7 @@ public class NetworkPane extends BorderPane {
       }
     });
 
-    view.setOnScroll(event -> {
-      zoom(event.getDeltaY() > 0);
-    });
+    view.setOnScroll(event -> zoom(event.getDeltaY() > 0));
 
     view.setOnMouseClicked(e -> {
       if (e.getButton() == MouseButton.PRIMARY) {
@@ -319,7 +318,7 @@ public class NetworkPane extends BorderPane {
   /**
    * Load default style from file
    *
-   * @return
+   * @return the loaded style or an empty string on error
    */
   private String loadDefaultStyle() {
     try {
@@ -410,9 +409,6 @@ public class NetworkPane extends BorderPane {
     });
   }
 
-  /**
-   * @param styleSheet
-   */
   public void setStyleSheet(String styleSheet) {
     this.styleSheet = styleSheet;
     graph.setAttribute("ui.stylesheet", styleSheet);
@@ -454,18 +450,14 @@ public class NetworkPane extends BorderPane {
     }
   }
 
-  public boolean isVisible(Edge edge) {
+  public boolean isVisible(Element edge) {
     return edge.getAttribute("ui.hide") == null;
-  }
-
-  public boolean isVisible(Node node) {
-    return node.getAttribute("ui.hide") == null;
   }
 
   /**
    * Combines clear and add selection
    *
-   * @param node
+   * @param node target node
    */
   public void setSelectedNode(Node node) {
     clearSelections();
@@ -542,4 +534,32 @@ public class NetworkPane extends BorderPane {
     return pnSettings;
   }
 
+  /**
+   * Get attribute or return defaultValue for null
+   *
+   * @param target       target element
+   * @param attribute    the attribute string or null (will return default value)
+   * @param defaultValue the default if the attribute or its value is null
+   * @param <T>          the type of the target value
+   * @return return the mapping for attribute or defaultValue if null
+   */
+  public <T> T getOrElse(@NotNull Element target, @Nullable String attribute,
+      @Nullable T defaultValue) {
+    return attribute == null ? defaultValue
+        : (T) Objects.requireNonNullElse(target.getAttribute(attribute), defaultValue);
+  }
+
+  /**
+   * Get attribute or return defaultValue for null
+   *
+   * @param target       target element
+   * @param attribute    the attribute string or null (will return default value)
+   * @param defaultValue the default if the attribute or its value is null
+   * @return return the mapping for attribute or defaultValue if null
+   */
+  public String getOrElseString(@NotNull Element target, @Nullable String attribute,
+      @Nullable String defaultValue) {
+    return attribute == null ? defaultValue
+        : Objects.toString(target.getAttribute(attribute), defaultValue);
+  }
 }
