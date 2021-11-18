@@ -86,6 +86,7 @@ public class GnpsJsonParser extends SpectralDBTextParser {
           logger.log(Level.WARNING, "This file was no GNPS spectral json library");
           return false;
         }
+        processedLines.incrementAndGet();
       }
     }
     // finish and process last entries

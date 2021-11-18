@@ -85,6 +85,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
             results.add(entry);
           }
         }
+        processedLines.incrementAndGet();
 
         if ((correct.get() + error.get()) >= 4) {
           break;
@@ -99,8 +100,10 @@ public class MonaJsonParser extends SpectralDBTextParser {
       }
 
       // read the rest in parallel
-      final List<SpectralDBEntry> entries = br.lines().parallel().filter(line -> line.length() > 2)
-          .map(line -> parseToEntry(correct, error, line)).filter(Objects::nonNull)
+      final List<SpectralDBEntry> entries = br.lines().parallel().filter(line -> {
+        processedLines.incrementAndGet();
+        return line.length() > 2;
+      }).map(line -> parseToEntry(correct, error, line)).filter(Objects::nonNull)
           .collect(Collectors.toList());
 
       // combine

@@ -108,6 +108,7 @@ public class JdxParser extends SpectralDBTextParser {
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Error for entry", ex);
         }
+        processedLines.incrementAndGet();
       }
     }
 

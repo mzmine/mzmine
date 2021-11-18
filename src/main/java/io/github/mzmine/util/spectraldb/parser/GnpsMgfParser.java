@@ -155,6 +155,7 @@ public class GnpsMgfParser extends SpectralDBTextParser {
           logger.log(Level.WARNING, "Error for entry", ex);
           state = State.WAIT_FOR_META;
         }
+        processedLines.incrementAndGet();
       }
       // finish and process all entries
       finish();

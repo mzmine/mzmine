@@ -99,6 +99,7 @@ public class NistMspParser extends SpectralDBTextParser {
           fields = new EnumMap<>(fields);
           dps.clear();
         }
+        processedLines.incrementAndGet();
       }
       // finish and process all entries
       finish();
