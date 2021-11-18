@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    *
    * @param row
    */
-  public static void sortIdentities(FeatureListRow row) {
+  public static void sortIdentities(@NotNull FeatureListRow row) {
     sortIdentities(row, false, 0d);
   }
 
@@ -71,7 +72,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    * @param filterMinSimilarity
    * @param minScore
    */
-  public static void sortIdentities(FeatureListRow row, boolean filterMinSimilarity,
+  public static void sortIdentities(@NotNull FeatureListRow row, boolean filterMinSimilarity,
       double minScore) {
     // filter for SpectralDBFeatureIdentity and write to map
     List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
@@ -80,9 +81,9 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     }
 
     // reversed order: by similarity score
-    matches.stream().filter(m -> !filterMinSimilarity || m.getSimilarity().getScore() >= minScore)
-        .sorted(
-            (a, b) -> Double.compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()))
+    matches = matches.stream()
+        .filter(m -> !filterMinSimilarity || m.getSimilarity().getScore() >= minScore)
+        .sorted(Comparator.comparingDouble(SpectralDBFeatureIdentity::getScore).reversed())
         .collect(Collectors.toList());
 
     // set sorted list
