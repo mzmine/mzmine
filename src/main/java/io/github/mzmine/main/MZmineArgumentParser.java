@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.main;
@@ -40,6 +41,7 @@ public class MZmineArgumentParser {
 
   private File batchFile;
   private File preferencesFile;
+  private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
   private KeepInMemory isKeepInMemory = null;
 
@@ -54,6 +56,11 @@ public class MZmineArgumentParser {
     Option pref = new Option("p", "pref", true, "preferences file");
     pref.setRequired(false);
     options.addOption(pref);
+
+    Option tmpFolder = new Option("t", "temp", true,
+        "Temp directory overrides definition in preferences and JVM");
+    tmpFolder.setRequired(false);
+    options.addOption(tmpFolder);
 
     Option keepRunning = new Option("r", "running", false, "keep MZmine running in headless mode");
     keepRunning.setRequired(false);
@@ -82,6 +89,14 @@ public class MZmineArgumentParser {
         preferencesFile = new File(spref);
       }
 
+      String stemp = cmd.getOptionValue(tmpFolder.getLongOpt());
+      if (stemp != null) {
+        logger.info(
+            () -> "Temp directory set by command line, will override all other definitions: "
+                  + stemp);
+        tempDirectory = new File(stemp);
+      }
+
       isKeepRunningAfterBatch = cmd.hasOption(keepRunning.getLongOpt());
       if (isKeepRunningAfterBatch) {
 
@@ -104,6 +119,15 @@ public class MZmineArgumentParser {
     }
   }
 
+  /**
+   * The temp directory overrides all other definitions if set
+   *
+   * @return the temp directory override (null or a file)
+   */
+  @Nullable
+  public File getTempDirectory() {
+    return tempDirectory;
+  }
 
   @Nullable
   public File getPreferencesFile() {

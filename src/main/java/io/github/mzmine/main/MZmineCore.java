@@ -40,6 +40,7 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +55,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -121,19 +123,40 @@ public final class MZmineCore {
     argsParser.parse(args);
 
     // override preferences file by command line argument pref
-    File prefFile = argsParser.getPreferencesFile();
-    if (prefFile == null) {
-      prefFile = MZmineConfiguration.CONFIG_FILE;
-    }
+    final File prefFile = Objects
+        .requireNonNullElse(argsParser.getPreferencesFile(), MZmineConfiguration.CONFIG_FILE);
 
+    boolean updateTempDir = false;
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {
       try {
         getInstance().configuration.loadConfiguration(prefFile);
-        setTempDirToPreference();
+        updateTempDir = true;
       } catch (Exception e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
+            e);
       }
+    } else {
+      logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
+    }
+
+    // override temp directory
+    final File tempDirectory = argsParser.getTempDirectory();
+    if (tempDirectory != null) {
+      // needs to be accessible
+      if (FileAndPathUtil.createDirectory(tempDirectory)) {
+        getInstance().configuration.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
+        updateTempDir = true;
+      } else {
+        logger.log(Level.WARNING,
+            "Cannot create or access temp file directory that was set via program argument: "
+            + tempDirectory.getAbsolutePath());
+      }
+    }
+
+    // set temp directory
+    if (updateTempDir) {
+      setTempDirToPreference();
     }
 
     KeepInMemory keepInMemory = argsParser.isKeepInMemory();
