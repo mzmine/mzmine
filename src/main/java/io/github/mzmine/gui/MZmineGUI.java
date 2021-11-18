@@ -175,16 +175,18 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
+      if (mainWindowController != null) {
+        GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
+        rawDataList.setValues(project.rawDataFilesProperty().getValue());
 
-      GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-      rawDataList.setValues(project.rawDataFilesProperty().getValue());
+        GroupableListView<FeatureList> featureListsList = mainWindowController
+            .getFeatureListsList();
+        featureListsList.setValues(project.featureListsProperty().getValue());
 
-      GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
-      featureListsList.setValues(project.featureListsProperty().getValue());
+        var libraryList = mainWindowController.getSpectralLibraryList();
+        libraryList.setItems(project.spectralLibrariesProperty().getValue());
 
-      var libraryList = mainWindowController.getSpectralLibraryList();
-      libraryList.setItems(project.spectralLibrariesProperty().getValue());
-
+      }
     });
 
   }

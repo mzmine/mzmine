@@ -28,13 +28,15 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public abstract class SpectralDBParser {
-  private static Logger logger = Logger.getLogger(SpectralDBParser.class.getName());
 
-  protected int bufferEntries = 1000;
+  private static final Logger logger = Logger.getLogger(SpectralDBParser.class.getName());
+
+  protected final int bufferEntries;
+  // process entries
+  protected final LibraryEntryProcessor processor;
+  protected final Object LOCK = new Object();
   private List<SpectralDBEntry> list;
   private int processedEntries = 0;
-  // process entries
-  protected LibraryEntryProcessor processor;
 
   public SpectralDBParser(int bufferEntries, LibraryEntryProcessor processor) {
     list = new ArrayList<>();
@@ -45,32 +47,37 @@ public abstract class SpectralDBParser {
   /**
    * Parses the file and creates spectral db entries
    *
-   * @param mainTask
-   * @param dataBaseFile
+   * @param dataBaseFile file to parse
    * @return the list or an empty list if something went wrong (e.g., wrong format)
-   * @throws IOException
+   * @throws IOException exception while reading file
    */
   public abstract boolean parse(AbstractTask mainTask, File dataBaseFile)
       throws UnsupportedFormatException, IOException;
 
   /**
    * Add DB entry and push every 1000 entries. Does not allow 0 intensity values.
-   * 
-   * @param entry
+   *
+   * @param entry handle parsed library entry
    */
-  protected synchronized boolean addLibraryEntry(SpectralDBEntry entry) {
+  protected boolean addLibraryEntry(SpectralDBEntry entry) {
     // no 0 values allowed in entry
     if (Arrays.stream(entry.getDataPoints()).mapToDouble(DataPoint::getIntensity)
-        .anyMatch(v -> Double.compare(v, 0) == 0))
+        .anyMatch(v -> Double.compare(v, 0) == 0)) {
       return false;
-    list.add(entry);
-    if (list.size() % bufferEntries == 0) {
-      // start new task for every 1000 entries
-      // push entries
-      processor.processNextEntries(list, processedEntries);
-      processedEntries += list.size();
-      // new list
-      list = new ArrayList<>();
+    }
+    synchronized (LOCK) {
+      // need double lock as list changes inside
+      synchronized (list) {
+        list.add(entry);
+        if (list.size() % bufferEntries == 0) {
+          // start new task for every 1000 entries
+          // push entries
+          processor.processNextEntries(list, processedEntries);
+          processedEntries += list.size();
+          // new list
+          list = new ArrayList<>();
+        }
+      }
     }
     return true;
   }
@@ -78,15 +85,18 @@ public abstract class SpectralDBParser {
   /**
    * Finish and push last entries
    */
-  protected synchronized void finish() {
+  protected void finish() {
     // push entries
-    if (!list.isEmpty()) {
-      logger.info("Imported last " + list.size() + " library entries");
-      processor.processNextEntries(list, processedEntries);
-      processedEntries += list.size();
-      list = null;
+    synchronized (LOCK) {
+      synchronized (list) {
+        if (!list.isEmpty()) {
+          logger.info("Imported last " + list.size() + " library entries");
+          processor.processNextEntries(list, processedEntries);
+          processedEntries += list.size();
+          list = new ArrayList<>();
+        }
+      }
     }
-
     logger.info(processedEntries + "  library entries imported");
   }
 

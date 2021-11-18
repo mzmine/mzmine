@@ -43,8 +43,7 @@ import org.jetbrains.annotations.NotNull;
 public class HeadLessDesktop implements Desktop {
 
   private static final String MODULE_NAME = "Desktop";
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(HeadLessDesktop.class.getName());
 
   @Override
   public Stage getMainWindow() {
@@ -118,13 +117,12 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void openWebPage(URL url) {
+  public void openWebPage(@NotNull URL url) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void addTab(MZmineTab tab) {
-    return;
   }
 
   @Override

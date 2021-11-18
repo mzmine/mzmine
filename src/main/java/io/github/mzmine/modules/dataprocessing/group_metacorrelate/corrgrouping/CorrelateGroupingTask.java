@@ -171,7 +171,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     autoSuffix = !parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getValue();
 
     if (autoSuffix) {
-      suffix = MessageFormat.format("corr {2} r>={0} dp>={1}", minShapeCorrR,
+      suffix = MessageFormat.format("corr {2} r greq {0} dp greq {1}", minShapeCorrR,
           minCorrelatedDataPoints, shapeSimMeasure);
     } else {
       suffix = parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getEmbeddedParameter()
