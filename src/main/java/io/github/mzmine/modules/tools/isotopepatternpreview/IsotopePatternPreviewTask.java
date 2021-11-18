@@ -31,6 +31,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
@@ -55,7 +56,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   private boolean displayResult;
 
   public IsotopePatternPreviewTask() {
-    super(null, new Date()); // date irrelevant, not in batch mode
+    super(null, Instant.now()); // date irrelevant, not in batch mode
     message = "Wating for parameters";
     parametersChanged = false;
     formula = "";
@@ -67,7 +68,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth,
       int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
-    super(null, new Date());
+    super(null, Instant.now());
     parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;

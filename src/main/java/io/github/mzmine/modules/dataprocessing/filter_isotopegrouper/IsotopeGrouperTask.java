@@ -39,6 +39,7 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -82,7 +83,7 @@ class IsotopeGrouperTask extends AbstractTask {
    *
    */
   IsotopeGrouperTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

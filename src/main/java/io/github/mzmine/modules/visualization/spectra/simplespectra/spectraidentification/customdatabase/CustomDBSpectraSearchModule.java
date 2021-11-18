@@ -18,15 +18,14 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Module for identifying peaks by searching custom databases file.
@@ -53,7 +52,7 @@ public class CustomDBSpectraSearchModule implements MZmineModule {
    * 
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
-      final SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      final SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
 
     final SpectraIdentificationCustomDatabaseParameters parameters =
         (SpectraIdentificationCustomDatabaseParameters) MZmineCore.getConfiguration()

@@ -22,7 +22,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +37,7 @@ public class FeatureTableDoubleClickTask extends AbstractTask {
 
   protected FeatureTableDoubleClickTask(final Runnable runnable, final ModularFeatureList flist,
       final DataType<?> dataType) {
-    super(null, new Date()); // date is irrelevant
+    super(null, Instant.now()); // date is irrelevant
 
     this.runnable = runnable;
     this.flist = flist;

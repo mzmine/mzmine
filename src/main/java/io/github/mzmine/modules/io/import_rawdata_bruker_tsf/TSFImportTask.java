@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Level;
@@ -71,7 +72,7 @@ public class TSFImportTask extends AbstractTask {
 
   public TSFImportTask(MZmineProject project, File fileName, @Nullable MemoryMapStorage storage,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

@@ -41,9 +41,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -89,7 +89,7 @@ public class FeatureListLoadTask extends AbstractTask {
 
   public FeatureListLoadTask(@Nullable MemoryMapStorage storage, @NotNull MZmineProject project,
       ZipFile zip) {
-    super(storage, new Date());
+    super(storage, Instant.now());
     this.project = project;
     this.zip = zip;
   }

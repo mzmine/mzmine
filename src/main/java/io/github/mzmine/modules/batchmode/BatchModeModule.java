@@ -18,16 +18,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -35,6 +25,15 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
 
 /**
  * Batch mode module
@@ -60,7 +59,7 @@ public class BatchModeModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     BatchTask newTask = new BatchTask(project, parameters, moduleCallDate);
 
     /*
@@ -79,7 +78,7 @@ public class BatchModeModule implements MZmineProcessingModule {
     return MZmineModuleCategory.PROJECT;
   }
 
-  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile, @NotNull Date moduleCallDate) {
+  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile, @NotNull Instant moduleCallDate) {
 
     logger.info("Running batch from file " + batchFile);
 

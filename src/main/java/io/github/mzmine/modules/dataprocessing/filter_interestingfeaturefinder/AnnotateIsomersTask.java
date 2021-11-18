@@ -36,9 +36,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -67,7 +67,7 @@ public class AnnotateIsomersTask extends AbstractTask {
 
 
   public AnnotateIsomersTask(MemoryMapStorage storage, @NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, ModularFeatureList flist, @NotNull Date moduleCallDate) {
+      @NotNull ParameterSet parameters, ModularFeatureList flist, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

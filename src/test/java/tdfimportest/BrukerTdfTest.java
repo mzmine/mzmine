@@ -40,6 +40,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +69,7 @@ public class BrukerTdfTest {
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
     AbstractTask importTask = new TDFImportTask(project, file, rawDataFile, TDFImportModule.class,
-        new TDFImportParameters(), new Date());
+        new TDFImportParameters(), Instant.now());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
     });

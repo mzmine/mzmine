@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -43,7 +44,7 @@ public class RawDataOverviewTask extends AbstractTask {
   private int totalSteps = 0;
   private int appliedSteps = 0;
 
-  public RawDataOverviewTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public RawDataOverviewTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.rawDataFiles = parameters.getParameter(RawDataOverviewParameters.rawDataFiles).getValue()

@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.kendrickmassplot;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -90,7 +91,7 @@ public class KendrickMassPlotTask extends AbstractTask {
   private FeatureListRow[] rows;
   private int totalSteps = 3, appliedSteps = 0;
 
-  public KendrickMassPlotTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public KendrickMassPlotTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     featureList = parameters.getParameter(KendrickMassPlotParameters.featureList).getValue()
         .getMatchingFeatureLists()[0];

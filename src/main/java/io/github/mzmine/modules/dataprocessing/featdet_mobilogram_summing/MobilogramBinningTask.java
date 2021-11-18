@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,7 +61,7 @@ public class MobilogramBinningTask extends AbstractTask {
       @NotNull final ModularFeatureList originalFeatureList,
       @NotNull final ParameterSet parameters,
       @NotNull final MZmineProject project,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
     this.originalFeatureList = originalFeatureList;

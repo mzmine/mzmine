@@ -56,6 +56,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -123,14 +124,14 @@ public class TDFImportTask extends AbstractTask {
    */
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     this(project, file, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public TDFImportTask(MZmineProject project, File file, IMSRawDataFile newMZmineFile,
       @Nullable final AdvancedSpectraImportParameters advancedParam,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(newMZmineFile.getMemoryMapStorage(), moduleCallDate);
     this.fileNameToOpen = file;
     this.project = project;

@@ -32,6 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,7 +61,7 @@ public class ImsExpanderSubTask extends AbstractTask {
       @NotNull final ParameterSet parameters, @NotNull final List<Frame> frames,
       @NotNull final ModularFeatureList flist,
       @NotNull final List<ExpandingTrace> expandingTraces) {
-    super(storage, new Date()); // just a subtask, date irrelevant
+    super(storage, Instant.now()); // just a subtask, date irrelevant
     this.parameters = parameters;
     this.frames = frames;
     this.flist = flist;

@@ -20,9 +20,9 @@ package io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Collection;
 
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -56,7 +56,7 @@ public class PeakComparisonRowFilterModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] peakLists =
         parameters.getParameter(PeakComparisonRowFilterParameters.PEAK_LISTS).getValue()

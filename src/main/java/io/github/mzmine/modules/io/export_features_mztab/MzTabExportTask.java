@@ -25,6 +25,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Pattern;
@@ -61,7 +62,7 @@ class MzTabExportTask extends AbstractTask {
   private FeatureList[] featureLists;
   private final boolean exportall;
 
-  MzTabExportTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  MzTabExportTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
     this.featureLists =

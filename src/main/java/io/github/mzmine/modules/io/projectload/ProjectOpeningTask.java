@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,12 +72,12 @@ public class ProjectOpeningTask extends AbstractTask {
 //  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
 //  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
-  public ProjectOpeningTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public ProjectOpeningTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
   }
 
-  public ProjectOpeningTask(File openFile, @NotNull Date moduleCallDate) {
+  public ProjectOpeningTask(File openFile, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = openFile;
   }

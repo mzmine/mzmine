@@ -43,9 +43,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.adap.ADAPInterface;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -71,7 +71,7 @@ public class ADAP3AlignerTask extends AbstractTask {
   private final Project alignment;
 
   public ADAP3AlignerTask(MZmineProject project, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;

@@ -44,6 +44,7 @@ import java.awt.Color;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -111,7 +112,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan,
-      SpectraIdentificationResultsWindowFX resultWindow, @NotNull Date moduleCallDate) {
+      SpectraIdentificationResultsWindowFX resultWindow, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.startEntry = startEntry;

@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import java.time.Instant;
 import java.util.Collection;
 
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -50,7 +50,7 @@ public class Ms2SearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList peakList1[] =
         parameters.getParameter(Ms2SearchParameters.peakList1).getValue().getMatchingFeatureLists();

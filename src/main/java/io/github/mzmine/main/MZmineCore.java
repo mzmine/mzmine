@@ -47,6 +47,7 @@ import java.io.InputStream;
 import java.lang.Runtime.Version;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -207,7 +208,7 @@ public final class MZmineCore {
 
         // run batch file
         getInstance().batchExitCode = BatchModeModule
-            .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, new Date());
+            .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
       }
 
       // option to keep MZmine running after the batch is finished
@@ -361,7 +362,8 @@ public final class MZmineCore {
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
     final MZmineProject currentProject = getInstance().projectManager.getCurrentProject();
-    final Date date = new Date();
+    final Instant date = Instant.now();
+    logger.finest(() -> "Module " + module.getName() + " called at " + date.toString());
     module.runModule(currentProject, parameters, newTasks, date);
     getInstance().taskController.addTasks(newTasks.toArray(new Task[0]));
 

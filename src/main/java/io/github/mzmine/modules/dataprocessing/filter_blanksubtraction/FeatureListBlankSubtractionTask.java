@@ -30,9 +30,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,7 +64,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private ModularFeatureList alignedFeatureList;
 
   public FeatureListBlankSubtractionTask(MZmineProject project,
-      FeatureListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      FeatureListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

@@ -41,6 +41,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -487,7 +488,8 @@ public class TICVisualizerTab extends MZmineTab {
       final File exportFile = exportChooser.showSaveDialog(getTabPane().getScene().getWindow());
       if (exportFile != null) {
 
-        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile, new Date()));
+        MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile,
+            Instant.now()));
       }
     }
   }

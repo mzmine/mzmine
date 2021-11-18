@@ -15,6 +15,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlacehold
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class RawDataSavingUtils {
         .sorted(Comparator.comparing(FeatureListAppliedMethod::getModuleCallDate)).toList();
 
     // group applied methods by date
-    final Map<Date, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
+    final Map<Instant, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
     for (FeatureListAppliedMethod method : appliedMethods) {
       final List<FeatureListAppliedMethod> value = methodMap
           .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());

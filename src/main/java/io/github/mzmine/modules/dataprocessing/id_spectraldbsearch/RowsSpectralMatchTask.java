@@ -42,6 +42,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.File;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -99,13 +100,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private int minMatchedIsoSignals;
 
   public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
-      ParameterSet parameters, int startEntry, List<SpectralDBEntry> list, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, int startEntry, List<SpectralDBEntry> list, @NotNull Instant moduleCallDate) {
     this(description, rows, parameters, startEntry, list, null, moduleCallDate);
   }
 
   public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
-      Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Date moduleCallDate) {
+      Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.description = description;
     this.rows = rows;

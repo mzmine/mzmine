@@ -35,8 +35,8 @@ import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.io.File;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -57,7 +57,7 @@ public class CorrelatedFeaturesMzHistogramTask extends AbstractTask {
   private MzDeltaCorrelationHistogramTab tab;
   private final ParameterSet parameters;
 
-  public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public CorrelatedFeaturesMzHistogramTask(ModularFeatureList flist, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.flist = flist;
     this.parameters = parameters;

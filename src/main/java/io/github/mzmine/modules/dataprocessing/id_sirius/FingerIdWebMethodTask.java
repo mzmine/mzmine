@@ -18,13 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
@@ -33,6 +26,13 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Class FingerIdWebMethodTask Wrapper around FingerIdWebMethod - calculates the result as a
@@ -70,7 +70,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param row - one of possible result containers
    */
   private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, ResultWindowFX windowFX, FeatureListRow row, @NotNull Date moduleCallDate) {
+      Integer candidatesAmount, ResultWindowFX windowFX, FeatureListRow row, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     if (windowFX == null && row == null)
       throw new RuntimeException("Only one result container can be null at a time");
@@ -101,7 +101,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param windowFX - Result container for SingleRowIdentificationTask
    */
   public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, ResultWindowFX windowFX, @NotNull Date moduleCallDate) {
+      Integer candidatesAmount, ResultWindowFX windowFX, @NotNull Instant moduleCallDate) {
     this(annotation, experiment, candidatesAmount, windowFX, null, moduleCallDate);
   }
 
@@ -114,7 +114,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param row - Result container for PeakListIdentificationTask
    */
   public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
-      Integer candidatesAmount, FeatureListRow row, @NotNull Date moduleCallDate) {
+      Integer candidatesAmount, FeatureListRow row, @NotNull Instant moduleCallDate) {
     this(annotation, experiment, candidatesAmount, null, row, moduleCallDate);
   }
 

@@ -24,18 +24,39 @@
 
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.R.REngineType;
+import io.github.mzmine.util.R.RSessionWrapper;
+import io.github.mzmine.util.R.RSessionWrapperException;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,27 +68,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
-import io.github.mzmine.util.R.RSessionWrapperException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,7 +129,7 @@ public class CameraSearchTask extends AbstractTask {
   private REngineType rEngineType;
 
   public CameraSearchTask(final MZmineProject project, final ParameterSet parameters,
-      final FeatureList list, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final FeatureList list, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.

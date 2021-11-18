@@ -32,6 +32,7 @@ import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -59,7 +60,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
   private int totalTasks;
 
   public SelectedRowsLocalSpectralDBSearchTask(FeatureListRow[] peakListRows, FeatureTableFX table,
-      ParameterSet parameters, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.peakListRows = peakListRows;
     this.parameters = parameters;

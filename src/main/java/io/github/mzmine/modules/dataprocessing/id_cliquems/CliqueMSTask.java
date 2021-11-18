@@ -33,7 +33,7 @@ import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementatio
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +66,7 @@ public class CliqueMSTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public CliqueMSTask(final ParameterSet parameters,
-      final FeatureList list, @NotNull Date moduleCallDate) {
+      final FeatureList list, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     peakList = list;

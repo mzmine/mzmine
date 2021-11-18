@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -74,7 +75,7 @@ public class ImsExpanderTask extends AbstractTask {
 
   public ImsExpanderTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final ModularFeatureList flist,
-      MZmineProject project, final int allowedThreads, @NotNull Date moduleCallDate) {
+      MZmineProject project, final int allowedThreads, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;

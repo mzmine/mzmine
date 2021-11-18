@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
@@ -56,7 +57,7 @@ public class MsnPeakPickingTask extends AbstractTask {
   private int processedScans, totalScans;
 
   public MsnPeakPickingTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

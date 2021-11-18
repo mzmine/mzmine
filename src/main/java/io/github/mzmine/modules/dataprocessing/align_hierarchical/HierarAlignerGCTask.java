@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -26,16 +28,23 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.SortingDirection;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.Format;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -43,21 +52,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.gnf.clustering.DataSource;
 import org.gnf.clustering.DistanceMatrix;
 import org.gnf.clustering.FloatSource1D;
 import org.gnf.clustering.LinkageMode;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.SortingDirection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HierarAlignerGCTask extends AbstractTask {
 
@@ -129,7 +129,7 @@ public class HierarAlignerGCTask extends AbstractTask {
   //// public static final double MIN_SCORE_ABSOLUTE = Double.MIN_VALUE;
   public static final double MIN_SCORE_ABSOLUTE = 0.0;
 
-  HierarAlignerGCTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+  HierarAlignerGCTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

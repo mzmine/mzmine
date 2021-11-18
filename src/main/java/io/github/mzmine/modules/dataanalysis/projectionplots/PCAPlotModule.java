@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.dataanalysis.projectionplots;
 
+import java.time.Instant;
 import java.util.Collection;
 
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -48,7 +48,7 @@ public class PCAPlotModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ProjectionPlotDataset dataset = new PCADataset(project, parameters);
     tasks.add(dataset);
     return ExitCode.OK;

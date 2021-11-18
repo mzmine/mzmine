@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.import_features_mztabm;
 
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -74,7 +75,7 @@ public class MzTabmImportTask extends AbstractTask {
   private final List<Task> underlyingTasks = new ArrayList<Task>();
 
   MzTabmImportTask(MZmineProject project, ParameterSet parameters, File inputFile,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.parameters = parameters;

@@ -43,6 +43,7 @@ import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -84,7 +85,7 @@ public class MS2SimilarityTask extends AbstractTask {
 
 
   public MS2SimilarityTask(final ParameterSet parameterSet,
-      @Nullable ModularFeatureList featureList, @NotNull Date moduleCallDate) {
+      @Nullable ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureList = featureList;
     mzTolerance = parameterSet.getParameter(MS2SimilarityParameters.MZ_TOLERANCE).getValue();
@@ -116,7 +117,7 @@ public class MS2SimilarityTask extends AbstractTask {
    * Create the task on set of rows
    */
   public MS2SimilarityTask(final ParameterSet parameters, @Nullable ModularFeatureList featureList,
-      List<FeatureListRow> rows, @NotNull Date moduleCallDate) {
+      List<FeatureListRow> rows, @NotNull Instant moduleCallDate) {
     this(parameters, featureList, moduleCallDate);
     this.rows = rows;
   }

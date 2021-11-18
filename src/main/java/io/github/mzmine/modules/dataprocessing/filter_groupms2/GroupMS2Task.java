@@ -43,9 +43,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,7 +82,7 @@ public class GroupMS2Task extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @NotNull Date moduleCallDate) {
+      final ParameterSet parameterSet, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     // Initialize.

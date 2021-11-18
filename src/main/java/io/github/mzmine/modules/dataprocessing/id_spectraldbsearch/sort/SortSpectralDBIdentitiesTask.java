@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -42,7 +43,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
   private Double minScore;
 
   SortSpectralDBIdentitiesTask(FeatureList featureList, ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
     this.parameters = parameters;

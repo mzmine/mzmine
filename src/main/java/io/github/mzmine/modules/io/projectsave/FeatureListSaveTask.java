@@ -40,7 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -79,7 +79,7 @@ public class FeatureListSaveTask extends AbstractTask {
   private int processedRows = 0;
 
   public FeatureListSaveTask(ModularFeatureList flist, ZipOutputStream zos) {
-    super(null, new Date());
+    super(null, Instant.now());
     this.flist = flist;
     this.zos = zos;
     rows = flist.getNumberOfRows();
