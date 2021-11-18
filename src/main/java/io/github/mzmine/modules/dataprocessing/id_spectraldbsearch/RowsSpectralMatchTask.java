@@ -98,13 +98,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this(description, rows, parameters, startEntry, list, null, moduleCallDate);
   }
 
-  public static RowsSpectralMatchTask createSubTask(ParameterSet parameters,
-      List<SpectralDBEntry> list,
-      Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Date moduleCallDate) {
-    return new RowsSpectralMatchTask("Subtask", new FeatureListRow[0], parameters, 0, list,
-        matchListener, moduleCallDate);
-  }
-
   public RowsSpectralMatchTask(String description, @NotNull FeatureListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Date moduleCallDate) {
@@ -116,7 +109,15 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.list = list;
     this.matchListener = matchListener;
     listsize = list.size();
-    dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
+    File dataBaseFileTmp;
+    try {
+      dataBaseFileTmp = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile)
+          .getValue();
+    } catch (Exception ex) {
+      // not available if we use it as a sub task, e.g., for prelaoded libraries
+      dataBaseFileTmp = null;
+    }
+    dataBaseFile = dataBaseFileTmp;
     mzToleranceSpectra =
         parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
     msLevel = parameters.getParameter(LocalSpectralDBSearchParameters.msLevel).getValue();
@@ -154,6 +155,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
     allMS2Scans = parameters.getParameter(LocalSpectralDBSearchParameters.allMS2Spectra).getValue();
 
     totalRows = rows.length;
+  }
+
+  public static RowsSpectralMatchTask createSubTask(ParameterSet parameters,
+      List<SpectralDBEntry> list,
+      Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Date moduleCallDate) {
+    return new RowsSpectralMatchTask("Subtask", new FeatureListRow[0], parameters, 0, list,
+        matchListener, moduleCallDate);
   }
 
   @Override
