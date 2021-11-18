@@ -18,17 +18,22 @@
 package io.github.mzmine.util.spectraldb.parser;
 
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.files.FileTypeFilter;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Auto detects library format
- * 
- * @author Robin Schmid
  *
+ * @author Robin Schmid
  */
 public class AutoLibraryParser extends SpectralDBParser {
+
+  private static final Logger logger = Logger.getLogger(AutoLibraryParser.class.getName());
+  private SpectralDBParser subParser;
 
   public AutoLibraryParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -41,50 +46,73 @@ public class AutoLibraryParser extends SpectralDBParser {
     FileTypeFilter msp = new FileTypeFilter("msp", "");
     FileTypeFilter mgf = new FileTypeFilter("mgf", "");
     FileTypeFilter jdx = new FileTypeFilter("jdx", "");
+    long totalLines;
+    try {
+      totalLines = FileAndPathUtil.countLines(dataBaseFile);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING,
+          "Could not count lines in data base file: " + dataBaseFile.getAbsolutePath(), ex);
+      totalLines = 0L;
+    }
+
     if (json.accept(dataBaseFile)) {
       // test Gnps and MONA json parser
       SpectralDBParser[] parser =
-          new SpectralDBParser[] {new MonaJsonParser(bufferEntries, processor),
+          new SpectralDBParser[]{new MonaJsonParser(bufferEntries, processor),
               new GnpsJsonParser(bufferEntries, processor)};
       for (SpectralDBParser p : parser) {
-        if (mainTask.isCanceled())
+        if (mainTask.isCanceled()) {
           return false;
+        }
         try {
+          subParser = p;
+          if (subParser instanceof SpectralDBTextParser txtParser) {
+            txtParser.setTotalLines(totalLines);
+          }
           boolean state = p.parse(mainTask, dataBaseFile);
-          if (state)
+          if (state) {
             return state;
-          else
+          } else {
             continue;
+          }
         } catch (Exception ex) {
           // do nothing and try next json format
         }
       }
     } else {
-      final SpectralDBParser parser;
       // msp, jdx or mgf
       if (msp.accept(dataBaseFile)) {
         // load NIST msp format
-        parser = new NistMspParser(bufferEntries, processor);
+        subParser = new NistMspParser(bufferEntries, processor);
       } else if (jdx.accept(dataBaseFile)) {
         // load jdx format
-        parser = new JdxParser(bufferEntries, processor);
+        subParser = new JdxParser(bufferEntries, processor);
       } else if (mgf.accept(dataBaseFile)) {
-        parser = new GnpsMgfParser(bufferEntries, processor);
+        subParser = new GnpsMgfParser(bufferEntries, processor);
       } else {
         throw (new UnsupportedFormatException(
             "Format not supported: " + dataBaseFile.getAbsolutePath()));
       }
 
+      if (subParser instanceof SpectralDBTextParser txtParser) {
+        txtParser.setTotalLines(totalLines);
+      }
       // parse the file
-      boolean state = parser.parse(mainTask, dataBaseFile);
-      if (state)
+      boolean state = subParser.parse(mainTask, dataBaseFile);
+      if (state) {
         return state;
+      }
     }
-    if (mainTask.isCanceled())
+    if (mainTask.isCanceled()) {
       return false;
-    else
+    } else {
       throw (new UnsupportedFormatException(
           "Format not supported: " + dataBaseFile.getAbsolutePath()));
+    }
   }
 
+  @Override
+  public double getProgress() {
+    return subParser == null ? 0 : subParser.getProgress();
+  }
 }

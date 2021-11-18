@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid
  */
-public class MonaJsonParser extends SpectralDBParser {
+public class MonaJsonParser extends SpectralDBTextParser {
 
   private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData",
       SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
@@ -66,6 +66,7 @@ public class MonaJsonParser extends SpectralDBParser {
 
   @Override
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+    super.parse(mainTask, dataBaseFile);
     logger.info("Parsing MONA spectral json library " + dataBaseFile.getAbsolutePath());
 
     AtomicInteger correct = new AtomicInteger(0);

@@ -23,6 +23,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.util.Collection;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +49,13 @@ public class SpectralLibraryImportModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
 
-    Task newTask = new SpectralLibraryImportTask(project, parameters, moduleCallDate);
-    tasks.add(newTask);
+    final File[] files = parameters.getParameter(SpectralLibraryImportParameters.dataBaseFiles)
+        .getValue();
+    for (File f : files) {
+      Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
+      tasks.add(newTask);
+    }
+
     return ExitCode.OK;
   }
 

@@ -100,4 +100,6 @@ public abstract class SpectralDBParser {
     logger.info(processedEntries + "  library entries imported");
   }
 
+  public abstract double getProgress();
+
 }

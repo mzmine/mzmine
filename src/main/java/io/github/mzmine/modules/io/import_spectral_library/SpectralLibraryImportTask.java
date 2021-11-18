@@ -18,14 +18,12 @@
 package io.github.mzmine.modules.io.import_spectral_library;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
-import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
@@ -40,22 +38,21 @@ class SpectralLibraryImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(SpectralLibraryImportTask.class.getName());
 
-  private final ParameterSet parameters;
   private final MZmineProject project;
   private final File dataBaseFile;
   private final List<SpectralDBEntry> entries = new ArrayList<>();
+  private AutoLibraryParser parser;
 
-  public SpectralLibraryImportTask(MZmineProject project, ParameterSet parameters,
+  public SpectralLibraryImportTask(MZmineProject project, File dataBaseFile,
       @NotNull Date moduleCallDate) {
     super(MemoryMapStorage.forMassList(), moduleCallDate);
     this.project = project;
-    this.parameters = parameters;
-    dataBaseFile = parameters.getParameter(SpectralLibraryImportParameters.dataBaseFile).getValue();
+    this.dataBaseFile = dataBaseFile;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return parser == null ? 0 : parser.getProgress();
   }
 
   @Override
@@ -89,18 +86,11 @@ class SpectralLibraryImportTask extends AbstractTask {
   /**
    * Load all library entries from data base file
    *
-   * @param dataBaseFile
-   * @return
+   * @param dataBaseFile the target database file
    */
-  private void parseFile(File dataBaseFile)
-      throws UnsupportedFormatException, IOException {
+  private void parseFile(File dataBaseFile) throws UnsupportedFormatException, IOException {
     //
-    AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
-      @Override
-      public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
-        entries.addAll(list);
-      }
-    });
+    parser = new AutoLibraryParser(1000, (list, alreadyProcessed) -> entries.addAll(list));
 
     // return tasks
     parser.parse(this, dataBaseFile);

@@ -19,6 +19,10 @@ package io.github.mzmine.util.files;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,6 +36,43 @@ import org.apache.commons.io.FilenameUtils;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class FileAndPathUtil {
+
+  /**
+   * Count the number of lines in a text file (should be seconds even for large files)
+   *
+   * @param fileName target file
+   * @return the number of lines in file or -1 if the file does not exist or is not readable
+   * @throws IOException see {@link Paths#get(String, String...)}
+   */
+  public static long countLines(String fileName) throws IOException {
+    return countLines(Paths.get(fileName));
+  }
+
+  /**
+   * Count the number of lines in a text file (should be seconds even for large files)
+   *
+   * @param file target file
+   * @return the number of lines in file or -1 if the file does not exist or is not readable
+   * @throws IOException see {@link Paths#get(String, String...)}
+   */
+  public static long countLines(File file) throws IOException {
+    return countLines(file.toPath());
+  }
+
+  /**
+   * Count the number of lines in a text file (should be seconds even for large files)
+   *
+   * @param file target file
+   * @return the number of lines in file or -1 if the file does not exist or is not readable
+   * @throws IOException see {@link Paths#get(String, String...)}
+   */
+  public static long countLines(Path file) throws IOException {
+    if (Files.exists(file) && Files.isRegularFile(file)) {
+      return Files.lines(file).count();
+    } else {
+      return -1;
+    }
+  }
 
   /**
    * Returns the real file path as path/filename.fileformat
