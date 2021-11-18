@@ -139,9 +139,11 @@ public final class MZmineCore {
     KeepInMemory keepInMemory = argsParser.isKeepInMemory();
     if (keepInMemory != null) {
       // set to preferences
-      configuration.getPreferences().setParameter(MZminePreferences.memoryOption, keepInMemory);
+      getInstance().configuration.getPreferences()
+          .setParameter(MZminePreferences.memoryOption, keepInMemory);
     } else {
-      keepInMemory = configuration.getPreferences().getParameter(MZminePreferences.memoryOption)
+      keepInMemory = getInstance().configuration.getPreferences()
+          .getParameter(MZminePreferences.memoryOption)
           .getValue();
     }
 
