@@ -522,14 +522,21 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
-    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
-    if (matches == null) {
-      matches = List.of(id);
-    } else {
-      matches = new ArrayList<>(matches);
+    synchronized (getMap()) {
+      List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
+      if (matches == null) {
+        matches = new ArrayList<>();
+      }
       matches.add(id);
+      set(SpectralLibraryMatchesType.class, matches);
     }
-    set(SpectralLibraryMatchesType.class, matches);
+  }
+
+  @Override
+  public void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches) {
+    synchronized (getMap()) {
+      set(SpectralLibraryMatchesType.class, matches);
+    }
   }
 
   @Override
