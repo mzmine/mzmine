@@ -120,21 +120,6 @@ public final class MZmineCore {
     MZmineArgumentParser argsParser = new MZmineArgumentParser();
     argsParser.parse(args);
 
-    // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
-    switch (argsParser.isKeepInRam()) {
-      case NONE -> {
-        // nothing in RAM
-      }
-      case ALL -> MemoryMapStorage.setStoreAllInRam(true);
-      case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
-      case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
-      case RAW_SCANS -> MemoryMapStorage.setStoreRawFilesInRam(true);
-      case MASSES_AND_FEATURES -> {
-        MemoryMapStorage.setStoreMassListsInRam(true);
-        MemoryMapStorage.setStoreFeaturesInRam(true);
-      }
-    }
-
     // override preferences file by command line argument pref
     File prefFile = argsParser.getPreferencesFile();
     if (prefFile == null) {
@@ -150,6 +135,20 @@ public final class MZmineCore {
         e.printStackTrace();
       }
     }
+
+    KeepInMemory keepInMemory = argsParser.isKeepInMemory();
+    if (keepInMemory != null) {
+      // set to preferences
+      getInstance().configuration.getPreferences()
+          .setParameter(MZminePreferences.memoryOption, keepInMemory);
+    } else {
+      keepInMemory = getInstance().configuration.getPreferences()
+          .getParameter(MZminePreferences.memoryOption)
+          .getValue();
+    }
+
+    // apply memory management option
+    keepInMemory.enforceToMemoryMapping();
 
     // batch mode defined by command line argument
     File batchFile = argsParser.getBatchFile();
