@@ -31,8 +31,8 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataTypeUtils;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -465,7 +465,7 @@ public interface FeatureList {
 
     public MZmineModule getModule();
 
-    public Date getModuleCallDate();
+    public Instant getModuleCallDate();
 
     public void saveValueToXML(Element element);
   }

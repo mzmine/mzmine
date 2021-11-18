@@ -18,8 +18,8 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -55,7 +55,7 @@ public class RawDataOverviewModule implements MZmineRunnableModule {
 
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
 
     Task newTask = new RawDataOverviewTask(parameters, moduleCallDate);
     tasks.add(newTask);

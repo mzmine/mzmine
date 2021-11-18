@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -53,7 +54,7 @@ public class MergeAlignerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public MergeAlignerTask(MZmineProject project, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

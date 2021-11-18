@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList featureLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
         .getValue().getMatchingFeatureLists();
@@ -72,7 +73,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
    * @param row the feature list row.
    */
   public static void showSelectedRowsIdentificationDialog(final FeatureListRow[] rows,
-      FeatureTableFX table, @NotNull Date moduleCallDate) {
+      FeatureTableFX table, @NotNull Instant moduleCallDate) {
 
     final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
 

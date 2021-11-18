@@ -41,8 +41,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -87,7 +87,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
    * @param parameters
    * @param featureList
    */
-  FormulaPredictionFeatureListTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  FormulaPredictionFeatureListTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.featureList = featureList;

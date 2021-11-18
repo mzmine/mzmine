@@ -44,6 +44,7 @@ import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertorIonMobility;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -93,7 +94,7 @@ public class IonMobilityTraceBuilderTask extends AbstractTask {
 
   @SuppressWarnings("unchecked")
   public IonMobilityTraceBuilderTask(MZmineProject project, RawDataFile rawDataFile,
-      List<Frame> frames, ParameterSet parameters, @NotNull Date moduleCallDate) {
+      List<Frame> frames, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(MemoryMapStorage.forFeatureList(), moduleCallDate); // Ims files are usually big, so we create our own
     this.project = project;
     this.rawDataFile = rawDataFile;

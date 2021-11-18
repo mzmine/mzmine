@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.visualization.mzhistogram;
 
 import io.github.mzmine.main.MZmineCore;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -45,7 +46,7 @@ public class ScanMzHistogramTask extends AbstractTask {
    * @param parameters
    */
   public ScanMzHistogramTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.project = project;
     this.dataFile = dataFile;

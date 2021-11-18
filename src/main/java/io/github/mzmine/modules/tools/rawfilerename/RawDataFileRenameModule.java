@@ -29,9 +29,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,23 +102,9 @@ public class RawDataFileRenameModule implements MZmineProcessingModule {
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
-    final RawDataFile[] matchingRawDataFiles = parameters.getParameter(
-        RawDataFileRenameParameters.files).getValue().getMatchingRawDataFiles();
-    final String newName = parameters.getParameter(RawDataFileRenameParameters.newName).getValue();
-    if (matchingRawDataFiles.length == 0) {
-      return ExitCode.OK;
-    }
+      @NotNull Instant moduleCallDate) {
 
-    RawDataFile file = matchingRawDataFiles[0];
-
-    // set name is now threadsafe and will return the set name after checking for duplicates etc
-    final String realName = file.setName(newName);
-    parameters.setParameter(RawDataFileRenameParameters.newName, realName);
-
-    file.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(this, parameters, moduleCallDate));
-
+    tasks.add(new RawDataFileRenameTask(null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

@@ -37,7 +37,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -61,7 +61,7 @@ public class ExportScansTask extends AbstractTask {
   private boolean useMassList;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
-    super(null, new Date()); // no new data stored -> null, date irrelevant (not used in batch)
+    super(null, Instant.now()); // no new data stored -> null, date irrelevant (not used in batch)
     progress = 0;
     progressMax = 0;
     this.scans = scans;

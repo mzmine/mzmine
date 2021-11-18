@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,7 +91,7 @@ public class MzMLImportTask extends AbstractTask {
   private Map<Integer, Double> buildingMobilities;
 
   public MzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;

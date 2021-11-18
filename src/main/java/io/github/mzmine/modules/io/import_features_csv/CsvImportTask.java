@@ -36,7 +36,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Date;
+import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ public class CsvImportTask extends AbstractTask {
   private double percent = 0.0;
 
   CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate); this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()

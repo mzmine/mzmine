@@ -40,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -94,7 +95,7 @@ public class RawDataFileSaveHandler extends AbstractTask {
   }
 
   public RawDataFileSaveHandler(MZmineProject project, ZipOutputStream zipOutputStream,
-      boolean saveFilesInProject, @NotNull Date moduleCallDate) {
+      boolean saveFilesInProject, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.project = project;
     this.zipStream = zipOutputStream;

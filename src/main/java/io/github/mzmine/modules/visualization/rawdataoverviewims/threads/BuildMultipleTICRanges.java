@@ -29,8 +29,8 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class BuildMultipleTICRanges extends AbstractTask {
   public BuildMultipleTICRanges(@NotNull List<Range<Double>> mzRanges, @NotNull IMSRawDataFile file,
       @NotNull ScanSelection scanSelection,
       @NotNull IMSRawDataOverviewPane pane) {
-    super(null, new Date()); // no new data stored -> null, date is irrelevant (not used in batch mode)
+    super(null, Instant.now()); // no new data stored -> null, date is irrelevant (not used in batch mode)
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
     this.pane = pane;

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {
@@ -89,7 +90,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters, new Date()));
+      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters, Instant.now()));
     }
   }
 }

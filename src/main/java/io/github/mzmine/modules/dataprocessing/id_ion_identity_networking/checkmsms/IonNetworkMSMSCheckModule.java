@@ -26,8 +26,8 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
@@ -65,7 +65,7 @@ public class IonNetworkMSMSCheckModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] pkl = parameters.getParameter(IonNetworkMSMSCheckParameters.PEAK_LISTS)
         .getValue()

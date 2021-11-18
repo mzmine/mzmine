@@ -48,6 +48,7 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import java.io.File;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -286,7 +287,7 @@ public class MZmineGUI extends Application implements Desktop {
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
           module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
-              new Date());
+              Instant.now());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
       }

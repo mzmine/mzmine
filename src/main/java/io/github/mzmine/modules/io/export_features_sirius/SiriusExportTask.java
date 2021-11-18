@@ -57,6 +57,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,7 +119,7 @@ public class SiriusExportTask extends AbstractTask {
   private int nextID = 1;
   private boolean renumberID;
 
-  SiriusExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();

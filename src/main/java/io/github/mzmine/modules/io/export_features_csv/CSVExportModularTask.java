@@ -39,8 +39,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +64,7 @@ public class CSVExportModularTask extends AbstractTask {
   private String headerSeparator = ":";
   private FeatureListRowsFilter filter;
 
-  public CSVExportModularTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
@@ -85,7 +85,7 @@ public class CSVExportModularTask extends AbstractTask {
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator,
-      String idSeparator, FeatureListRowsFilter filter, @NotNull Date moduleCallDate) {
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat

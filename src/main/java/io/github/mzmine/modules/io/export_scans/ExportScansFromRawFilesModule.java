@@ -27,10 +27,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports scans around a center time
@@ -53,7 +53,7 @@ public class ExportScansFromRawFilesModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ScanSelection select =
         parameters.getParameter(ExportScansFromRawFilesParameters.scanSelect).getValue();

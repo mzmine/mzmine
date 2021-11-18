@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import java.io.File;
 import java.io.FileReader;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,7 +54,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
   private RTTolerance rtTolerance;
   private ParameterSet parameters;
 
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;

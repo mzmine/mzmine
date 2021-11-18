@@ -32,6 +32,7 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -63,7 +64,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * @param batchTasks all sub tasks are registered to the batchtasks list
    */
   public MultiThreadPeakFinderMainTask(MZmineProject project, FeatureList peakList,
-      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, Collection<Task> batchTasks, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;

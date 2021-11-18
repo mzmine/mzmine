@@ -44,6 +44,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -117,14 +118,14 @@ public class MzXMLImportTask extends AbstractTask {
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.parameters = parameters;
     this.module = module;

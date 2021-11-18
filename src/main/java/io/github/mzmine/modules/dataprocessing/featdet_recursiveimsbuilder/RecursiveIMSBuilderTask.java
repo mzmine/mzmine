@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -90,7 +91,7 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
 
   public RecursiveIMSBuilderTask(@Nullable MemoryMapStorage storage,
       @NotNull final IMSRawDataFile file,
-      @NotNull final ParameterSet parameters, MZmineProject project, @NotNull Date moduleCallDate) {
+      @NotNull final ParameterSet parameters, MZmineProject project, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.file = file;

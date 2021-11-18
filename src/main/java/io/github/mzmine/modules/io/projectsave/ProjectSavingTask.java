@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Objects;
@@ -71,7 +72,7 @@ public class ProjectSavingTask extends AbstractTask {
   private Hashtable<RawDataFile, String> dataFilesIDMap;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();

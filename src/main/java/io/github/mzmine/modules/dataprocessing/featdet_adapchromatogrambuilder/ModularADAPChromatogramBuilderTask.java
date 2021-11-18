@@ -46,6 +46,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -92,7 +93,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
    * @param parameters
    */
   public ModularADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
-      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.dataFile = dataFile;

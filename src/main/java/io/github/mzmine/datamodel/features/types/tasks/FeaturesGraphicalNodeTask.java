@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -46,7 +46,7 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
 
   public FeaturesGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane,
       ModularFeatureListRow row, String collHeader) {
-    super(null, new Date()); // no new data stored -> null
+    super(null, Instant.now()); // no new data stored -> null
     this.nodeClass = nodeClass;
     this.pane = pane;
     this.row = row;

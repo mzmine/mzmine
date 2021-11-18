@@ -31,6 +31,7 @@ import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,7 +63,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
   private int totalTasks;
 
   SpectraIdentificationSpectralDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.parameters = parameters;

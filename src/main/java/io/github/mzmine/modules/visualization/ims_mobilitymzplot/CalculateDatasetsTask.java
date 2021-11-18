@@ -41,8 +41,8 @@ import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYZPieRende
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +65,7 @@ public class CalculateDatasetsTask extends AbstractTask {
 
   public CalculateDatasetsTask(Collection<ModularFeatureListRow> rows,
       PlotType plotType, boolean useMobilograms) {
-    super(null, new Date()); // no new data stored -> null, date is irrelevant (not used in batch)
+    super(null, Instant.now()); // no new data stored -> null, date is irrelevant (not used in batch)
     this.rows = rows;
     this.plotType = plotType;
     this.useMobilograms = useMobilograms;

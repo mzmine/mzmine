@@ -18,14 +18,8 @@
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.awt.Color;
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
-import org.jfree.data.xy.AbstractXYZDataset;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZAnalyzerWindow;
@@ -33,6 +27,11 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import java.awt.Color;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 public class CVPlotModule implements MZmineRunnableModule {
 
@@ -52,7 +51,7 @@ public class CVPlotModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList featureLists[] =
         parameters.getParameter(CVParameters.featureLists).getValue().getMatchingFeatureLists();

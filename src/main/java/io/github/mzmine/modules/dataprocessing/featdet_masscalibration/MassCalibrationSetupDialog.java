@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Date;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -208,7 +209,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         previewTask.cancel();
       }
 
-      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true, new Date());
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true, Instant.now());
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);

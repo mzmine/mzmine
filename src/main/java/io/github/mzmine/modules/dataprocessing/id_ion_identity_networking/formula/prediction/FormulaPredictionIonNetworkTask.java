@@ -45,8 +45,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -90,7 +90,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public FormulaPredictionIonNetworkTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public FormulaPredictionIonNetworkTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
     mzTolerance =

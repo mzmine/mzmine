@@ -25,8 +25,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -53,7 +53,7 @@ public class FeatureListBlankSubtractionModule implements MZmineProcessingModule
 
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
 
     Task task = new FeatureListBlankSubtractionTask(project,
         (FeatureListBlankSubtractionParameters) parameters, MemoryMapStorage.forFeatureList(), moduleCallDate);

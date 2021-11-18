@@ -23,6 +23,7 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
@@ -82,7 +83,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
    * @param parameters task parameters.
    */
   public SpectraIdentificationOnlineDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
     this.currentScan = currentScan;
