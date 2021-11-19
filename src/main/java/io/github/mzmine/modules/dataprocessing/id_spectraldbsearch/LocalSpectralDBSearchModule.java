@@ -29,6 +29,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
@@ -42,7 +43,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
    *
    * @param rows the feature list row.
    */
-  public static void showSelectedRowsIdentificationDialog(final FeatureListRow[] rows,
+  public static void showSelectedRowsIdentificationDialog(final List<FeatureListRow> rows,
       FeatureTableFX table, @NotNull Date moduleCallDate) {
 
     final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();

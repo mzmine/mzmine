@@ -38,7 +38,7 @@ class LocalSpectralDBSearchTask extends RowsSpectralMatchTask {
 
   public LocalSpectralDBSearchTask(ParameterSet parameters, FeatureList[] featureLists,
       @NotNull Date moduleCallDate) {
-    super(parameters, combineRows(featureLists), null, moduleCallDate);
+    super(parameters, combineRows(featureLists), moduleCallDate);
     this.featureLists = featureLists;
   }
 
@@ -57,11 +57,10 @@ class LocalSpectralDBSearchTask extends RowsSpectralMatchTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    // run the actual matching task
-    String description = String
+    logger.info(() -> String
         .format("Spectral library matching in %d feature lists (%d rows) against libraries: %s",
             featureLists.length, rows.size(),
-            libraries.stream().map(Objects::toString).collect(Collectors.joining(", ")));
+            libraries.stream().map(Objects::toString).collect(Collectors.joining(", "))));
 
     // run the actual subtask
     super.run();
@@ -74,6 +73,7 @@ class LocalSpectralDBSearchTask extends RowsSpectralMatchTask {
                 .collect(Collectors.joining(", ")),
             LocalSpectralDBSearchModule.class, parameters, getModuleCallDate()));
       }
+
       setStatus(TaskStatus.FINISHED);
     }
   }

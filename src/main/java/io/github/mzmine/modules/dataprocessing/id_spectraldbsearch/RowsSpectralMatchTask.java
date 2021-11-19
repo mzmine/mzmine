@@ -30,7 +30,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -45,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -77,8 +75,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
   // remove 13C isotopes
   private final boolean removeIsotopes;
   private final MassListDeisotoperParameters deisotopeParam;
-  // listen for matches
-  private final Consumer<SpectralDBFeatureIdentity> matchListener;
 
   // needs any signals within mzToleranceSpectra for
   // 13C, H, 2H or Cl
@@ -86,7 +82,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final int minMatchedIsoSignals;
 
   public RowsSpectralMatchTask(ParameterSet parameters, @NotNull List<FeatureListRow> rows,
-      Consumer<SpectralDBFeatureIdentity> matchListener, @NotNull Date moduleCallDate) {
+      @NotNull Date moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     this.rows = rows;
@@ -96,7 +92,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
             libraries.size(), libraries.stream().map(SpectralLibrary::getName).collect(
                 Collectors.joining(", ")));
 
-    this.matchListener = matchListener;
     mzToleranceSpectra = parameters.getValue(LocalSpectralDBSearchParameters.mzTolerance);
     msLevel = parameters.getValue(LocalSpectralDBSearchParameters.msLevel);
     noiseLevel = parameters.getValue(LocalSpectralDBSearchParameters.noiseLevel);
@@ -145,7 +140,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
 
     // combine libraries
     List<SpectralDBEntry> entries = new ArrayList<>();
@@ -168,7 +162,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
     logger.info(() -> String.format("library matches=%d (Errors:%d); rows=%d; library entries=%d",
         getCount(), getErrorCount(), rows.size(), entries.size()));
 
-    setStatus(TaskStatus.FINISHED);
   }
 
   /**
@@ -228,17 +221,17 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   /**
    * Remove 13C isotopes from masslist
-   *
-   * @param a
-   * @return
    */
   private DataPoint[] removeIsotopes(DataPoint[] a) {
     return MassListDeisotoper.filterIsotopes(a, deisotopeParam);
   }
 
   /**
-   * @param row
-   * @param ident
+   * match row against library entry
+   *
+   * @param row         target row
+   * @param rowMassList mass list (data points) for row
+   * @param ident       library entry
    * @return spectral similarity or null if no match
    */
   private SpectralSimilarity spectraDBMatch(FeatureListRow row, DataPoint[] rowMassList,
@@ -271,17 +264,14 @@ public class RowsSpectralMatchTask extends AbstractTask {
       }
 
       // check spectra similarity
-      SpectralSimilarity sim = createSimilarity(library, query);
-      if (sim != null) {
-        return sim;
-      }
+      return createSimilarity(library, query);
     }
     return null;
   }
 
 
   private DataPoint[] removePrecursor(DataPoint[] masslist, double precursorMZ) {
-    List<DataPoint> filtered = new ArrayList<DataPoint>();
+    List<DataPoint> filtered = new ArrayList<>();
     for (DataPoint dp : masslist) {
       double mz = dp.getMZ();
       // skip precursor mz
@@ -289,7 +279,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         filtered.add(dp);
       }
     }
-    return filtered.toArray(new DataPoint[filtered.size()]);
+    return filtered.toArray(new DataPoint[0]);
   }
 
   /**
@@ -321,8 +311,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   /**
    * Thresholded masslist
    *
-   * @return
-   * @throws MissingMassListException
+   * @return the mass list data points from scan
+   * @throws MissingMassListException if no mass list available
    */
   private DataPoint[] getDataPoints(Scan scan, boolean noiseFilter)
       throws MissingMassListException {
@@ -356,15 +346,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
   }
 
-  private void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
+  protected void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
     // add new identity to the row
     row.addSpectralLibraryMatches(matches);
-
-    if (matchListener != null) {
-      for (var pid : matches) {
-        matchListener.accept(pid);
-      }
-    }
   }
 
   public int getCount() {

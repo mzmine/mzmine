@@ -65,6 +65,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -213,7 +214,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         new ConditionalMenuItem("Local spectral database search", () -> selectedRows.size() >= 1);
     spectralDbSearchItem
         .setOnAction(e -> LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(
-            selectedRows.toArray(new ModularFeatureListRow[0]), table, new Date()));
+            new ArrayList<>(selectedRows), table, new Date()));
 
     final MenuItem nistSearchItem =
         new ConditionalMenuItem("NIST MS search", () -> selectedRows.size() == 1);
