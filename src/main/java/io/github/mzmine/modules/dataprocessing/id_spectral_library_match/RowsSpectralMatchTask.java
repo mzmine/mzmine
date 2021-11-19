@@ -53,6 +53,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class RowsSpectralMatchTask extends AbstractTask {
 
+  // isotopes to check number of signals matching
+  public final static double[] DELTA_ISOTOPES = new double[]{1.0034, 1.0078, 2.0157, 1.9970};
+
   private static final Logger logger = Logger.getLogger(RowsSpectralMatchTask.class.getName());
   private static final String METHOD = "Spectral library search";
   protected final List<FeatureListRow> rows;
@@ -63,10 +66,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
   // in some cases this task is only going to run on one scan
   protected final Scan scan;
   protected final AtomicInteger matches = new AtomicInteger(0);
-  private final AtomicInteger errorCounter = new AtomicInteger(0);
   protected final MZTolerance mzToleranceSpectra;
   protected final MZTolerance mzTolerancePrecursor;
   protected final RTTolerance rtTolerance;
+  private final AtomicInteger errorCounter = new AtomicInteger(0);
   private final boolean useRT;
   private final int totalRows;
   private final int msLevel;
@@ -184,6 +187,48 @@ public class RowsSpectralMatchTask extends AbstractTask {
     totalRows = rows.size();
   }
 
+  /**
+   * Checks for isotope pattern in matched signals within mzToleranceSpectra
+   *
+   * @param sim
+   * @return
+   */
+  public static boolean checkForIsotopePattern(SpectralSimilarity sim,
+      MZTolerance mzToleranceSpectra, int minMatchedIsoSignals) {
+    // use mzToleranceSpectra
+    DataPoint[][] aligned = sim.getAlignedDataPoints();
+    aligned = ScanAlignment.removeUnaligned(aligned);
+
+    // find something in range of:
+    // 13C 1.0034
+    // H ( for M+ and M+H or -H -H2)
+    // 2H 1.0078 2.0157
+    // Cl 1.9970
+    // just check one
+
+    int matches = 0;
+    DataPoint[] lib = aligned[0];
+    for (int i = 0; i < lib.length - 1; i++) {
+      double a = lib[i].getMZ();
+      // each lib[i] can only have one match to each isotope dist
+      for (double dIso : DELTA_ISOTOPES) {
+        boolean matchedIso = false;
+        for (int k = i + 1; k < lib.length && !matchedIso; k++) {
+          double dmz = Math.abs(a - lib[k].getMZ());
+          // any match?
+          if (mzToleranceSpectra.checkWithinTolerance(dIso, dmz)) {
+            matchedIso = true;
+            matches++;
+            if (matches >= minMatchedIsoSignals) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public double getFinishedPercentage() {
     return totalRows == 0 ? 0 : finishedRows.get() / (double) totalRows;
@@ -284,8 +329,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
           SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(),
               rowMassLists.get(i), ident);
           if (sim != null
-              && (!needsIsotopePattern || SpectralMatchTask.checkForIsotopePattern(sim,
-              mzToleranceSpectra, minMatchedIsoSignals))
+              && (!needsIsotopePattern || checkForIsotopePattern(sim, mzToleranceSpectra,
+              minMatchedIsoSignals))
               && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
             best = new SpectralDBFeatureIdentity(scans.get(i), ident, sim, METHOD);
           }
