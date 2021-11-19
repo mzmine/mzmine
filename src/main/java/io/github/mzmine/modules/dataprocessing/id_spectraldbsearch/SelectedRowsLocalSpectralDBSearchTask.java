@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
@@ -38,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,9 +47,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
+  private static final Logger logger = Logger
+      .getLogger(SelectedRowsLocalSpectralDBSearchTask.class.getName());
   private final FeatureListRow[] peakListRows;
-  private final File dataBaseFile;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final List<SpectralLibrary> libraries;
+  private final String description;
   private ParameterSet parameters;
 
   private List<RowsSpectralMatchTask> tasks;
@@ -64,12 +68,12 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
     this.peakListRows = peakListRows;
     this.parameters = parameters;
     this.table = table;
-    dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
+    libraries = parameters.getParameter(LocalSpectralDBSearchParameters.libraries).getValue();
+    description = String.format("Spectral library matching of %d rows in libraries: %s",
+        peakListRows.length,
+        libraries.stream().map(SpectralLibrary::getName).collect(Collectors.joining(", ")));
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalTasks == 0 || tasks == null) {
@@ -78,18 +82,11 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
     return ((double) totalTasks - tasks.size()) / totalTasks;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of " + peakListRows.length
-           + " feature lists using database " + dataBaseFile;
+    return description;
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);

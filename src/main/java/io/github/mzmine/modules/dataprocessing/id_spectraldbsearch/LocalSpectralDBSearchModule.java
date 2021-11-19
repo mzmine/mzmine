@@ -19,6 +19,7 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -68,8 +69,10 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
-
-    Task newTask = new LocalSpectralDBSearchTask(parameters, moduleCallDate);
+    final ModularFeatureList[] featureLists = parameters
+        .getParameter(LocalSpectralDBSearchParameters.peakLists)
+        .getValue().getMatchingFeatureLists();
+    Task newTask = new LocalSpectralDBSearchTask(parameters, featureLists, moduleCallDate);
     tasks.add(newTask);
 
     return ExitCode.OK;
