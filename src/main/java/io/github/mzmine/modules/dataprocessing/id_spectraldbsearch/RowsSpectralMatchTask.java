@@ -40,8 +40,8 @@ import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
-import java.util.ArrayList;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -86,44 +86,44 @@ public class RowsSpectralMatchTask extends AbstractTask {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     this.rows = rows;
-    this.libraries = parameters.getValue(LocalSpectralDBSearchParameters.libraries);
+    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries);
     this.description = String
         .format("Spectral library matching for %d rows in %d libraries: %s", rows.size(),
             libraries.size(), libraries.stream().map(SpectralLibrary::getName).collect(
                 Collectors.joining(", ")));
 
-    mzToleranceSpectra = parameters.getValue(LocalSpectralDBSearchParameters.mzTolerance);
-    msLevel = parameters.getValue(LocalSpectralDBSearchParameters.msLevel);
-    noiseLevel = parameters.getValue(LocalSpectralDBSearchParameters.noiseLevel);
+    mzToleranceSpectra = parameters.getValue(SpectralLibrarySearchParameters.mzTolerance);
+    msLevel = parameters.getValue(SpectralLibrarySearchParameters.msLevel);
+    noiseLevel = parameters.getValue(SpectralLibrarySearchParameters.noiseLevel);
 
-    useRT = parameters.getValue(LocalSpectralDBSearchParameters.rtTolerance);
-    rtTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance)
+    useRT = parameters.getValue(SpectralLibrarySearchParameters.rtTolerance);
+    rtTolerance = parameters.getParameter(SpectralLibrarySearchParameters.rtTolerance)
         .getEmbeddedParameter().getValue();
 
-    minMatch = parameters.getValue(LocalSpectralDBSearchParameters.minMatch);
-    simFunction = parameters.getValue(LocalSpectralDBSearchParameters.similarityFunction);
-    needsIsotopePattern = parameters.getValue(LocalSpectralDBSearchParameters.needsIsotopePattern);
+    minMatch = parameters.getValue(SpectralLibrarySearchParameters.minMatch);
+    simFunction = parameters.getValue(SpectralLibrarySearchParameters.similarityFunction);
+    needsIsotopePattern = parameters.getValue(SpectralLibrarySearchParameters.needsIsotopePattern);
     minMatchedIsoSignals = !needsIsotopePattern ? 0
-        : parameters.getParameter(LocalSpectralDBSearchParameters.needsIsotopePattern)
+        : parameters.getParameter(SpectralLibrarySearchParameters.needsIsotopePattern)
             .getEmbeddedParameter().getValue();
     removeIsotopes =
-        parameters.getValue(LocalSpectralDBSearchParameters.deisotoping);
-    deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
+        parameters.getValue(SpectralLibrarySearchParameters.deisotoping);
+    deisotopeParam = parameters.getParameter(SpectralLibrarySearchParameters.deisotoping)
         .getEmbeddedParameters();
 
     removePrecursor =
-        parameters.getValue(LocalSpectralDBSearchParameters.removePrecursor);
+        parameters.getValue(SpectralLibrarySearchParameters.removePrecursor);
 
     cropSpectraToOverlap =
-        parameters.getValue(LocalSpectralDBSearchParameters.cropSpectraToOverlap);
+        parameters.getValue(SpectralLibrarySearchParameters.cropSpectraToOverlap);
     if (msLevel > 1) {
       mzTolerancePrecursor =
-          parameters.getValue(LocalSpectralDBSearchParameters.mzTolerancePrecursor);
+          parameters.getValue(SpectralLibrarySearchParameters.mzTolerancePrecursor);
     } else {
       mzTolerancePrecursor = null;
     }
 
-    allMS2Scans = parameters.getValue(LocalSpectralDBSearchParameters.allMS2Spectra);
+    allMS2Scans = parameters.getValue(SpectralLibrarySearchParameters.allMS2Spectra);
 
     totalRows = rows.size();
   }

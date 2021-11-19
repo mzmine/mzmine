@@ -41,7 +41,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
-import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -65,8 +65,8 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
-import java.util.ArrayList;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -213,7 +213,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem spectralDbSearchItem =
         new ConditionalMenuItem("Local spectral database search", () -> selectedRows.size() >= 1);
     spectralDbSearchItem
-        .setOnAction(e -> LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(
+        .setOnAction(e -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
             new ArrayList<>(selectedRows), table, Instant.now()));
 
     final MenuItem nistSearchItem =

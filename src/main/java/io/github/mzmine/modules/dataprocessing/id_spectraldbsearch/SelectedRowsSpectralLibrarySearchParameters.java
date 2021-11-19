@@ -19,9 +19,9 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
 import io.github.mzmine.parameters.Parameter;
 
-public class SelectedRowsLocalSpectralDBSearchParameters extends LocalSpectralDBSearchParameters {
+public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
 
-  public SelectedRowsLocalSpectralDBSearchParameters() {
+  public SelectedRowsSpectralLibrarySearchParameters() {
     super(
         new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
             noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance,

@@ -412,7 +412,7 @@
       <Menu text="Search spectra">
         <MenuItem text="Local spectral database search"
           onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule"/>
+          userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.SpectralLibrarySearchModule"/>
         <MenuItem onAction="#runModule"
           text="Import spectral library"
           userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>

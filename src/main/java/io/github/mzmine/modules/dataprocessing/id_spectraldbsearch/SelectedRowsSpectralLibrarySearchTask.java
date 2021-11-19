@@ -39,14 +39,14 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class SelectedRowsLocalSpectralDBSearchTask extends RowsSpectralMatchTask {
+public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask {
 
   private static final Logger logger = Logger
-      .getLogger(SelectedRowsLocalSpectralDBSearchTask.class.getName());
+      .getLogger(SelectedRowsSpectralLibrarySearchTask.class.getName());
   private SpectraIdentificationResultsWindowFX resultWindow;
   private FeatureTableFX table;
 
-  public SelectedRowsLocalSpectralDBSearchTask(List<FeatureListRow> rows, FeatureTableFX table,
+  public SelectedRowsSpectralLibrarySearchTask(List<FeatureListRow> rows, FeatureTableFX table,
       ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(parameters, rows, moduleCallDate); // no new data stored -> null
     this.table = table;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
@@ -22,7 +21,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchParameters;
+import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
@@ -47,7 +46,6 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -147,7 +145,7 @@ public class SpectralMatchTask extends AbstractTask {
         parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.needsIsotopePattern)
             .getValue();
     minMatchedIsoSignals = !needsIsotopePattern ? 0
-        : parameters.getParameter(LocalSpectralDBSearchParameters.needsIsotopePattern)
+        : parameters.getParameter(SpectralLibrarySearchParameters.needsIsotopePattern)
             .getEmbeddedParameter().getValue();
     removeIsotopes = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.deisotoping).getValue();
@@ -159,7 +157,7 @@ public class SpectralMatchTask extends AbstractTask {
         .getValue();
 
     removePrecursor =
-        parameters.getParameter(LocalSpectralDBSearchParameters.removePrecursor).getValue();
+        parameters.getParameter(SpectralLibrarySearchParameters.removePrecursor).getValue();
   }
 
   /**

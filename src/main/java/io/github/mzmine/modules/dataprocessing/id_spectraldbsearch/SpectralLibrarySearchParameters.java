@@ -39,7 +39,7 @@ import java.util.Collection;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 
-public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
+public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
@@ -103,11 +103,11 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
    *
    * @param parameters
    */
-  protected LocalSpectralDBSearchParameters(Parameter[] parameters) {
+  protected SpectralLibrarySearchParameters(Parameter[] parameters) {
     super(parameters);
   }
 
-  public LocalSpectralDBSearchParameters() {
+  public SpectralLibrarySearchParameters() {
     super(new Parameter[]{peakLists, libraries, msLevel, allMS2Spectra,
         mzTolerancePrecursor, removePrecursor, noiseLevel, deisotoping, needsIsotopePattern,
         cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});

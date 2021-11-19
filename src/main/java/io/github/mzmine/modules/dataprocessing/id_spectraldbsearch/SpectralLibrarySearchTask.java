@@ -25,19 +25,18 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-class LocalSpectralDBSearchTask extends RowsSpectralMatchTask {
+class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
 
-  private static final Logger logger = Logger.getLogger(LocalSpectralDBSearchTask.class.getName());
+  private static final Logger logger = Logger.getLogger(SpectralLibrarySearchTask.class.getName());
   private final FeatureList[] featureLists;
 
-  public LocalSpectralDBSearchTask(ParameterSet parameters, FeatureList[] featureLists,
+  public SpectralLibrarySearchTask(ParameterSet parameters, FeatureList[] featureLists,
       @NotNull Instant moduleCallDate) {
     super(parameters, combineRows(featureLists), moduleCallDate);
     this.featureLists = featureLists;
@@ -72,7 +71,7 @@ class LocalSpectralDBSearchTask extends RowsSpectralMatchTask {
         flist.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
             "Spectral library matching with libraries: " + libraries.stream().map(Objects::toString)
                 .collect(Collectors.joining(", ")),
-            LocalSpectralDBSearchModule.class, parameters, getModuleCallDate()));
+            SpectralLibrarySearchModule.class, parameters, getModuleCallDate()));
       }
 
       setStatus(TaskStatus.FINISHED);
