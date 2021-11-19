@@ -69,8 +69,10 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
     setStatus(TaskStatus.PROCESSING);
 
     // add result frame
-    resultWindow = new SpectraIdentificationResultsWindowFX();
-    MZmineCore.runLater(() -> resultWindow.show());
+    MZmineCore.runOnFxThreadAndWait(() -> {
+      resultWindow = new SpectraIdentificationResultsWindowFX();
+      resultWindow.show();
+    });
 
     // do the actual matching
     super.run();
