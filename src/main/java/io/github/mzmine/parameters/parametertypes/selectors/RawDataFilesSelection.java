@@ -47,12 +47,9 @@ public class RawDataFilesSelection implements Cloneable {
     this.selectionType = selectionType;
   }
 
-  public RawDataFile[] getEvaluationResult() {
+  public RawDataFilePlaceholder[] getEvaluationResult() {
     if (evaluatedSelection != null) {
-      var value = Arrays.stream(evaluatedSelection)
-          .map(placeholder -> placeholder.getMatchingFile()).filter(Objects::nonNull)
-          .toArray(RawDataFile[]::new);
-      return value;
+      return Arrays.copyOf(evaluatedSelection, evaluatedSelection.length);
     }
     throw new IllegalStateException("Raw data file selection has not been evaluated.");
   }
