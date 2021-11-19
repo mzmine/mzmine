@@ -166,7 +166,14 @@ public class ModularFeatureList implements FeatureList {
     }
 
     final String finalName = name;
-    MZmineCore.runLater(() -> this.nameProperty.set(finalName));
+
+    if(!project.getFeatureLists().contains(this)) {
+      // if this happens during project load or outside of the GUI, we set it directly.
+      // Otherwise the FX thread might be slower than we expect
+      nameProperty.set(finalName);
+    } else {
+      MZmineCore.runLater(() -> this.nameProperty.set(finalName));
+    }
     return finalName;
   }
 
