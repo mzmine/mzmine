@@ -14,7 +14,8 @@ jobs:
     strategy:
       matrix:
         include:
-        - os: macos-latest
+        # - os: macos-latest
+        - os: macos-11
         - os: ubuntu-latest
         - os: windows-latest
         
@@ -61,7 +62,7 @@ jobs:
         retention-days: 7  # store for 7 days
         
     - name: Upload builds macos
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-11'
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
@@ -91,7 +92,7 @@ jobs:
 
 
     - name: Update Automatic Release MacOS
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-11'
       uses: marvinpinto/action-automatic-releases@latest
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN}}"
