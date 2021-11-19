@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.tools.isotopepatternscore;
@@ -49,7 +48,7 @@ public class IsotopePatternScoreCalculator {
    * Returns a calculated similarity score of two isotope patterns in the range of 0 (not similar at
    * all) to 1 (100% same).
    */
-  public static double getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2,
+  public static float getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2,
       ParameterSet parameters) {
 
     assert ip1 != null;
@@ -81,13 +80,15 @@ public class IsotopePatternScoreCalculator {
     // points from second pattern will have negative intensities.
     ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
     for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
-      if (dp.getIntensity() * patternIntensity < noiseIntensity)
+      if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
+      }
       mergedDataPoints.add(dp);
     }
     for (DataPoint dp : ScanUtils.extractDataPoints(nip2)) {
-      if (dp.getIntensity() * patternIntensity < noiseIntensity)
+      if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;
+      }
       DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(), dp.getIntensity() * -1);
       mergedDataPoints.add(negativeDP);
     }
@@ -102,8 +103,9 @@ public class IsotopePatternScoreCalculator {
 
       Range<Double> toleranceRange = mzTolerance.getToleranceRange(mergedDPArray[i].getMZ());
 
-      if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))
+      if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ())) {
         continue;
+      }
 
       double summedIntensity =
           mergedDPArray[i].getIntensity() + mergedDPArray[i + 1].getIntensity();
@@ -118,20 +120,22 @@ public class IsotopePatternScoreCalculator {
 
     // Calculate the resulting score. Ideal score is 1, in case the final
     // data point array is empty.
-    double result = 1;
+    float result = 1f;
 
     for (DataPoint dp : mergedDPArray) {
-      if (dp == null)
+      if (dp == null) {
         continue;
+      }
       double remainingIntensity = Math.abs(dp.getIntensity());
 
       // In case some large isotopes were grouped together, the summed
       // intensity may be over 1
-      if (remainingIntensity > 1)
+      if (remainingIntensity > 1) {
         remainingIntensity = 1;
+      }
 
       // Decrease the score with each remaining peak
-      result *= 1 - remainingIntensity;
+      result *= 1.f - remainingIntensity;
     }
 
     return result;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
@@ -31,8 +31,8 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -219,7 +219,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
   /**
    * Opens the parameter setup dialog of the selected module.
    */
-  private void setParameters(@Nonnull DefaultMutableTreeNode _selected) {
+  private void setParameters(@NotNull DefaultMutableTreeNode _selected) {
     if (_selected == null || !(_selected instanceof DPPModuleTreeNode))
       return;
 
@@ -262,7 +262,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
   /**
    * Adds a module in the tvAllModules to the processing list
    */
-  private void addModule(@Nonnull DPPModuleTreeNode node, @Nonnull DPPMSLevelTreeNode target) {
+  private void addModule(@NotNull DPPModuleTreeNode node, @NotNull DPPMSLevelTreeNode target) {
 
     if (nodeContains(target, node)) {
       logger
@@ -307,7 +307,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
     expandAllNodes(tvProcessing);
   }
 
-  public @Nonnull DPPParameterValueWrapper getValueFromComponent() {
+  public @NotNull DPPParameterValueWrapper getValueFromComponent() {
     DPPParameterValueWrapper value = new DPPParameterValueWrapper();
     Boolean val = Boolean.valueOf(cbDiffMSn.isSelected());
     value.setDifferentiateMSn(val);
@@ -323,7 +323,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
    *
    * @return Instance of DataPointProcessingQueue.
    */
-  public @Nonnull DataPointProcessingQueue getProcessingQueueFromNode(
+  public @NotNull DataPointProcessingQueue getProcessingQueueFromNode(
       DPPMSLevelTreeNode parentNode) {
     DataPointProcessingQueue list = new DataPointProcessingQueue();
 
@@ -349,8 +349,8 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
    * @param item Tree item.
    * @return Instance of MZmineProcessingStep<DataPointProcessingModule>.
    */
-  private @Nonnull MZmineProcessingStep<DataPointProcessingModule> createProcessingStep(
-      @Nonnull DPPModuleTreeNode item) {
+  private @NotNull MZmineProcessingStep<DataPointProcessingModule> createProcessingStep(
+      @NotNull DPPModuleTreeNode item) {
     return new MZmineProcessingStepImpl<>(item.getModule(), item.getParameters());
   }
 
@@ -379,7 +379,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
    * @param queue The queue.
    * @return Collection<DPPModuleTreeItem>.
    */
-  private @Nonnull Collection<DPPModuleTreeNode> createTreeItemsFromQueue(
+  private @NotNull Collection<DPPModuleTreeNode> createTreeItemsFromQueue(
       @Nullable DataPointProcessingQueue queue) {
     Collection<DPPModuleTreeNode> items = new ArrayList<DPPModuleTreeNode>();
 
@@ -443,8 +443,8 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
     return false;
   }
 
-  private boolean nodeContains(@Nonnull DefaultMutableTreeNode node,
-      @Nonnull DefaultMutableTreeNode comp) {
+  private boolean nodeContains(@NotNull DefaultMutableTreeNode node,
+      @NotNull DefaultMutableTreeNode comp) {
     Enumeration<?> e = node.depthFirstEnumeration();
     while (e.hasMoreElements()) {
       DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
@@ -455,7 +455,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
     return false;
   }
 
-  private @Nullable DefaultMutableTreeNode getSelectedItem(@Nonnull JTree tree) {
+  private @Nullable DefaultMutableTreeNode getSelectedItem(@NotNull JTree tree) {
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     if (selectionModel == null)
       return null;
@@ -465,13 +465,13 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
     return (DefaultMutableTreeNode) path.getLastPathComponent();
   }
 
-  private void expandAllNodes(@Nonnull JTree tree) {
+  private void expandAllNodes(@NotNull JTree tree) {
     for (int i = 0; i < tree.getRowCount(); i++) {
       tree.expandRow(i);
     }
   }
 
-  private @Nonnull DPPMSLevelTreeNode getTargetNode() {
+  private @NotNull DPPMSLevelTreeNode getTargetNode() {
     DefaultMutableTreeNode n = getSelectedItem(tvProcessing);
 
     // if (n instanceof DPPModuleTreeNode || (n != null && n ==
@@ -486,7 +486,7 @@ public class ProcessingComponent extends SwingNode implements ActionListener {
     return tiLastTarget;
   }
 
-  private @Nonnull DPPMSLevelTreeNode getNodeByMSLevel(MSLevel mslevel) {
+  private @NotNull DPPMSLevelTreeNode getNodeByMSLevel(MSLevel mslevel) {
     return msLevelNodes[mslevel.ordinal()];
   }
 }

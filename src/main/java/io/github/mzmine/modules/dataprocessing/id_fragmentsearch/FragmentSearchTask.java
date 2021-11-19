@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_fragmentsearch;
 
-import java.util.Arrays;
-import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
@@ -36,6 +34,10 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class FragmentSearchTask extends AbstractTask {
 
@@ -54,8 +56,8 @@ public class FragmentSearchTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public FragmentSearchTask(ParameterSet parameters, FeatureList peakList) {
-    super(null); // no new data stored -> null
+  public FragmentSearchTask(ParameterSet parameters, FeatureList peakList, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -132,7 +134,7 @@ public class FragmentSearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of fragments",
-            FragmentSearchModule.class, parameters));
+            FragmentSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

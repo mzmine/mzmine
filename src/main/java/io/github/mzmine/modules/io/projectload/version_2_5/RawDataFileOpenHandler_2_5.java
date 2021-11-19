@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.io.projectload.version_2_5;
@@ -23,9 +22,11 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.RawDataFileOpenHandler;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.RangeUtils;
 import java.io.File;
@@ -41,7 +42,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDataFileOpenHandler {
+public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -78,7 +79,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
    * @throws SAXException
    * @throws ParserConfigurationException
    */
-  @Override
   public RawDataFile readRawDataFile(InputStream is, File scansFile, boolean isIMSRawDataFile,
       boolean isImagingRawDataFile) throws IOException, ParserConfigurationException, SAXException,
       UnsupportedOperationException {
@@ -95,7 +95,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
     charBuffer = new StringBuffer();
     massLists = new ArrayList<>();
 
-    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null);
+    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile("DUMMYNAME", null, null);
     // newRawDataFile.openDataPointsFile(scansFile);
 
     // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
@@ -112,7 +112,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
   }
 
-  @Override
   public void cancel() {
     canceled = true;
   }
@@ -255,8 +254,12 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements RawDat
 
     if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
+      final DDAMsMsInfo info =
+          msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
+              null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
+
       Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
-          precursorMZ, precursorCharge, /* fragmentScan, */ null, null, null, polarity,
+          info, /* fragmentScan, */ null, null, null, polarity,
           scanDescription, scanMZRange);
 
       try {

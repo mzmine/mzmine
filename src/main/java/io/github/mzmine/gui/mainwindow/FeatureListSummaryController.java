@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,17 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -29,13 +30,15 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import io.github.mzmine.util.ExitCode;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -44,11 +47,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
 
-  private static final Logger logger = Logger.getLogger(FeatureListSummaryController.class.getName());
+  private static final Logger logger = Logger
+      .getLogger(FeatureListSummaryController.class.getName());
 
   @FXML
   public TextField tfNumRows;
@@ -96,6 +100,18 @@ public class FeatureListSummaryController {
     lvAppliedMethods.setItems(featureList.getAppliedMethods());
   }
 
+  public void setRawDataFile(@Nullable RawDataFile file) {
+    clear();
+    if (file == null) {
+      return;
+    }
+
+    lbFeatureListName.setText(file.getName());
+    tfNumRows.setText(String.valueOf(file.getNumOfScans()));
+    tfCreated.setText(file.getAbsolutePath());
+    lvAppliedMethods.setItems(file.getAppliedMethods());
+  }
+
   public void clear() {
     lbFeatureListName.setText("None selected");
     tfNumRows.setText("");
@@ -110,12 +126,17 @@ public class FeatureListSummaryController {
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
     sb.append(value.toString());
-    if (parameter instanceof ParameterSetParameter) {
-      for (Parameter<?> parameter1 : ((ParameterSetParameter) parameter).getValue()
-          .getParameters()) {
+    if (parameter instanceof EmbeddedParameterSet embedded) {
+      ParameterSet parameterSet = embedded.getEmbeddedParameters();
+      for (Parameter<?> parameter1 : parameterSet.getParameters()) {
         sb.append("\n\t");
         sb.append(parameterToString(parameter1));
       }
+    }
+    if(parameter instanceof OptionalParameter) {
+      sb.append("\t(");
+      sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
+      sb.append(")");
     }
     return sb.toString();
   }
@@ -127,14 +148,14 @@ public class FeatureListSummaryController {
         "Warning: This will overwrite the current batch queue.\nDo you wish to continue?",
         ButtonType.YES, ButtonType.NO);
 
-    if(btn != ButtonType.YES) {
+    if (btn != ButtonType.YES) {
       return;
     }
 
     BatchQueue queue = new BatchQueue();
 
     for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
-      if(item.getModule() instanceof MZmineProcessingModule) {
+      if (item.getModule() instanceof MZmineProcessingModule) {
         ParameterSet parameterSet = item.getParameters().cloneParameterSet();
         setSelectionToLastBatchStep(parameterSet);
         MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl(
@@ -150,19 +171,21 @@ public class FeatureListSummaryController {
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
-    batchModeParameters.showSetupDialog(true);
+    if(batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
+    }
   }
 
   private void setSelectionToLastBatchStep(ParameterSet parameters) {
     for (Parameter<?> parameter : parameters.getParameters()) {
-      if(parameter instanceof FeatureListsParameter) {
+      if (parameter instanceof FeatureListsParameter) {
         final FeatureListsSelection featureListsSelection = new FeatureListsSelection();
         featureListsSelection.setSelectionType(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS);
-        ((FeatureListsParameter)parameter).setValue(featureListsSelection);
-      } else if(parameter instanceof RawDataFilesParameter) {
+        ((FeatureListsParameter) parameter).setValue(featureListsSelection);
+      } else if (parameter instanceof RawDataFilesParameter) {
         final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
             RawDataFilesSelectionType.BATCH_LAST_FILES);
-        ((RawDataFilesParameter)parameter).setValue(rawDataFilesSelection);
+        ((RawDataFilesParameter) parameter).setValue(rawDataFilesSelection);
       }
     }
   }

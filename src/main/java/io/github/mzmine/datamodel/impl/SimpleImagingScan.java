@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.io.import_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
 
 
 public class SimpleImagingScan extends SimpleScan implements ImagingScan {
@@ -34,13 +34,18 @@ public class SimpleImagingScan extends SimpleScan implements ImagingScan {
       double precursorMZ, int precursorCharge, double mzValues[], double intensityValues[],
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange, Coordinates coordinates) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, mzValues,
-        intensityValues, spectrumType, polarity, scanDefinition, scanMZRange);
+    super(dataFile, scanNumber, msLevel, retentionTime,
+        null, mzValues, intensityValues, spectrumType, polarity, scanDefinition,
+        scanMZRange);
+    if(Double.compare(precursorMZ, 0d) != 0) {
+      setMsMsInfo(new DDAMsMsInfoImpl(precursorMZ, precursorCharge != 0 ? precursorCharge : null, null, this,
+          null, msLevel, null, null));
+    }
+
     this.setCoordinates(coordinates);
   }
 
   /**
-   *
    * @return the xyz coordinates. null if no coordinates were specified
    */
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,20 +8,26 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.util.ArrayList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureListUtils {
+
   /**
    * Copies the FeatureListAppliedMethods from <b>source</b> to <b>target</b>
    *
@@ -33,4 +39,45 @@ public class FeatureListUtils {
       target.addDescriptionOfAppliedTask(proc);
     }
   }
+
+  /**
+   *
+   * @param rows The rows to search.
+   * @param rtRange The rt range.
+   * @param mzRange The m/z range.
+   * @param sortedByMz If the list is sorted by m/z (ascending)
+   * @param <T>
+   * @return List of matching rows.
+   */
+  @NotNull
+  public static <T extends FeatureListRow> List<T> getRows(@NotNull final List<T> rows,
+      @NotNull final Range<Float> rtRange, @NotNull final Range<Double> mzRange, boolean sortedByMz) {
+    final List<T> validRows = new ArrayList<>();
+
+    if(sortedByMz) {
+      final double lower = mzRange.lowerEndpoint();
+      final double upper = mzRange.upperEndpoint();
+
+      for (T row : rows) {
+        final double mz = row.getAverageMZ();
+        if(mz < lower) {
+          continue;
+        } else if(mz > upper) {
+          break;
+        }
+        if (rtRange.contains(row.getAverageRT())) {
+          validRows.add(row);
+        }
+      }
+    } else {
+      for (T row : rows) {
+        if (mzRange.contains(row.getAverageMZ()) && rtRange.contains(row.getAverageRT())) {
+          validRows.add(row);
+        }
+      }
+    }
+
+    return validRows;
+  }
+
 }

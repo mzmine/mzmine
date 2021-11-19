@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.chartthemes;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.ChartThemeFactory.THEME;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -26,7 +28,7 @@ import java.awt.Paint;
 import java.awt.Stroke;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.Axis;
@@ -152,7 +154,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   }
 
   @Override
-  public void apply(@Nonnull JFreeChart chart) {
+  public void apply(@NotNull JFreeChart chart) {
     assert chart != null;
 
     super.apply(chart);
@@ -175,8 +177,16 @@ public class EStandardChartTheme extends StandardChartTheme {
 
   }
 
+  public void apply(@NotNull EChartViewer chartViewer) {
+    apply(chartViewer.getChart());
 
-  public void applyToCrosshair(@Nonnull JFreeChart chart) {
+    if(chartViewer instanceof SimpleChart simpleChart) {
+      simpleChart.setLegendItemsVisible(isShowLegend());
+    }
+  }
+
+
+  public void applyToCrosshair(@NotNull JFreeChart chart) {
     Plot p = chart.getPlot();
     if (p instanceof XYPlot) {
       XYPlot xyp = (XYPlot) p;
@@ -189,7 +199,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
   }
 
-  public void applyToAxes(@Nonnull JFreeChart chart) {
+  public void applyToAxes(@NotNull JFreeChart chart) {
     Plot p = chart.getPlot();
 
     // Only apply to XYPlot
@@ -258,7 +268,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     }
   }
 
-  public void applyToLegend(@Nonnull JFreeChart chart) {
+  public void applyToLegend(@NotNull JFreeChart chart) {
 
     if (chart.getLegend() != null) {
       chart.getLegend().setBackgroundPaint(this.getChartBackgroundPaint());
@@ -267,7 +277,7 @@ public class EStandardChartTheme extends StandardChartTheme {
     fixLegend(chart);
   }
 
-  public void applyToTitles(@Nonnull JFreeChart chart) {
+  public void applyToTitles(@NotNull JFreeChart chart) {
     TextTitle title = chart.getTitle();
     if (title != null) {
       title.setVisible(isShowTitle());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.dialogs;
@@ -75,6 +75,7 @@ public class ParameterSetupDialog extends Stage {
   protected final ButtonBar pnlButtons;
   // Footer message
   protected final String footerMessage;
+
   /**
    * This single panel contains a grid of all the components of this dialog. Row number 100 contains
    * all the buttons of the dialog. Derived classes may add their own components such as previews to
@@ -103,12 +104,21 @@ public class ParameterSetupDialog extends Stage {
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
-
   /**
    * Constructor
    */
   public ParameterSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
+  }
+
+  @Override
+  public void showAndWait() {
+    if (MZmineCore.getDesktop() != null) {
+      // this should prevent the main stage tool tips from bringing the main stage to the front.
+      Stage mainStage = MZmineCore.getDesktop().getMainWindow();
+      this.initOwner(mainStage);
+    }
+    super.showAndWait();
   }
 
   /**
@@ -168,9 +178,7 @@ public class ParameterSetupDialog extends Stage {
       UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      if (comp instanceof Control) {
-        ((Control) comp).setTooltip(new Tooltip(up.getDescription()));
-      }
+      addToolTipToControls(comp, up.getDescription());
       if (comp instanceof Region) {
         double minWidth = ((Region) comp).getMinWidth();
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
@@ -310,7 +318,7 @@ public class ParameterSetupDialog extends Stage {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  protected void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
         continue;
@@ -328,6 +336,28 @@ public class ParameterSetupDialog extends Stage {
       // component
       if (component != null) {
         up.setValueFromComponent(component);
+      }
+    }
+  }
+
+  public void setParameterValuesToComponents() {
+    for (Parameter<?> p : parameterSet.getParameters()) {
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter)) {
+        continue;
+      }
+      UserParameter up;
+      if (p instanceof UserParameter) {
+        up = (UserParameter) p;
+      } else {
+        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+      }
+
+      Node component = parametersAndComponents.get(p.getName());
+
+      // if a parameter is a HiddenParameter it does not necessarily have
+      // component
+      if (component != null) {
+        up.setValueToComponent(component, up.getValue());
       }
     }
   }
@@ -395,14 +425,9 @@ public class ParameterSetupDialog extends Stage {
           .addListener(((observable, oldValue, newValue) -> parametersChanged()));
     }
     if (node instanceof Region) {
-      Region panelComp = (Region)
-          node;
+      Region panelComp = (Region) node;
       for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
-        Node child =
-            panelComp.getChildrenUnmodifiable().get(i);
-        /*if (!(child instanceof Control)) {
-          continue;
-        }*/
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
         addListenersToNode(child);
       }
     }
@@ -412,4 +437,20 @@ public class ParameterSetupDialog extends Stage {
     return valueCheckRequired;
   }
 
+  protected void addToolTipToControls(Node node, String toolTipText) {
+    if (node instanceof Control) {
+      ((Control) node).setTooltip(new Tooltip(toolTipText));
+    }
+    if (node instanceof Region) {
+      Region panelComp = (Region) node;
+      for (int i = 0; i < panelComp.getChildrenUnmodifiable().size(); i++) {
+        Node child = panelComp.getChildrenUnmodifiable().get(i);
+        addToolTipToControls(child, toolTipText);
+      }
+    }
+  }
+
+  public GridPane getParamsPane() {
+    return paramsPane;
+  }
 }

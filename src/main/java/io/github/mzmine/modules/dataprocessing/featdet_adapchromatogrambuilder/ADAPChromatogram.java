@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,14 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Edited and modified by Owen Myers (Oweenm@gmail.com)
  */
 
 
@@ -44,10 +42,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -66,8 +65,8 @@ public class ADAPChromatogram {
   // private Hashtable<Integer, DataPoint> dataPointsMap;
   private final TreeMap<Scan, DataPoint> dataPointsMap;
 
-  // Chromatogram m/z, RT, height, area. The mz value will be the highest points mz value
-  private double mz, rt, height, area, weightedMz;
+  // Chromatogram m/z, RT, height. The mz value will be the highest points mz value
+  private double mz, rt, height, weightedMz;
   private Double fwhm = null, tf = null, af = null;
 
   // Top intensity scan, fragment scan
@@ -206,7 +205,6 @@ public class ADAPChromatogram {
   /**
    * This method adds a MzFeature to this Chromatogram. All values of this Chromatogram (rt, m/z,
    * intensity and ranges) are updated on request
-   *
    */
   public void addMzFeature(Scan scanNumber, DataPoint mzValue) {
     double curIntensity;
@@ -279,10 +277,6 @@ public class ADAPChromatogram {
     return "Chromatogram " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
-  public double getArea() {
-    return area;
-  }
-
   public double getHeight() {
     return height;
   }
@@ -295,7 +289,7 @@ public class ADAPChromatogram {
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull
+  public @NotNull
   FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
@@ -304,17 +298,17 @@ public class ADAPChromatogram {
     return rt;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
@@ -323,12 +317,12 @@ public class ADAPChromatogram {
     return representativeScan;
   }
 
-  public @Nonnull
+  public @NotNull
   Scan[] getScanNumbers() {
     return dataPointsMap.keySet().toArray(Scan[]::new);
   }
 
-  public @Nonnull
+  public @NotNull
   RawDataFile getDataFile() {
     return dataFile;
   }
@@ -337,7 +331,7 @@ public class ADAPChromatogram {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
@@ -397,10 +391,8 @@ public class ADAPChromatogram {
 
     // Update raw data point ranges, height, rt and representative scan
     height = Double.MIN_VALUE;
-    area = 0;
     rawDataPointsRTRange = null;
 
-    DataPoint last = null;
     for (int i = 0; i < allScanNumbers.length; i++) {
 
       DataPoint mzFeature = dataPointsMap.get(allScanNumbers[i]);
@@ -419,17 +411,6 @@ public class ADAPChromatogram {
         rt = allScanNumbers[i].getRetentionTime();
         representativeScan = allScanNumbers[i];
       }
-
-      // update area
-      if(last!=null) {
-        // For area calculation, we use retention time in seconds
-        double previousRT = allScanNumbers[i - 1].getRetentionTime() * 60d;
-        double currentRT = allScanNumbers[i].getRetentionTime() * 60d;
-        double previousHeight = last.getIntensity();
-        double currentHeight = mzFeature.getIntensity();
-        area += (currentRT - previousRT) * (currentHeight + previousHeight) / 2;
-      }
-      last = mzFeature;
 
       // retention time
       float scanRt = allScanNumbers[i].getRetentionTime();
@@ -451,7 +432,7 @@ public class ADAPChromatogram {
         dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }
@@ -588,23 +569,25 @@ public class ADAPChromatogram {
     int nextDetectedScanIndex = 0;
     int currentGap = 0;
     int added;
-    for(allScansIndex=0; allScansIndex<scanNumbers.length; allScansIndex++) {
+    for (allScansIndex = 0; allScansIndex < scanNumbers.length; allScansIndex++) {
       added = 0;
       // was a DP detected in this scan?
-      if(scanNumbers[allScansIndex] == detectedScans[nextDetectedScanIndex]) {
-        if(currentGap >= minGap) {
+      if (scanNumbers[allScansIndex] == detectedScans[nextDetectedScanIndex]) {
+        if (currentGap >= minGap) {
           // add leading zeros before allScansIndex
           for (int i = 1; i <= zeros && i <= currentGap && (allScansIndex - i) >= 0; i++) {
             // add zero data points
-            dataPointsToAdd.put(scanNumbers[allScansIndex-i], new SimpleDataPoint(getMZ(), 0d));
+            dataPointsToAdd.put(scanNumbers[allScansIndex - i], new SimpleDataPoint(getMZ(), 0d));
             added++;
           }
           currentGap -= added;
           // add trailing zeros after last detected
-          if(currentGap>0 && nextDetectedScanInAllIndex>=0) {
-            for (int i = 1; i <= zeros && i <= currentGap && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
+          if (currentGap > 0 && nextDetectedScanInAllIndex >= 0) {
+            for (int i = 1; i <= zeros && i <= currentGap
+                && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
               // add zero data points after
-              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
+              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i],
+                  new SimpleDataPoint(getMZ(), 0d));
             }
           }
         }
@@ -613,59 +596,35 @@ public class ADAPChromatogram {
         nextDetectedScanInAllIndex = allScansIndex;
 
         // no more detected scans
-        if(nextDetectedScanIndex==detectedScans.length) {
+        if (nextDetectedScanIndex == detectedScans.length) {
           // add trailing zeros after last detected
-            for (int i = 1; i <= zeros && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
-              // add zero data points after
-              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
-            }
+          for (int i = 1; i <= zeros && (nextDetectedScanInAllIndex + i) < scanNumbers.length;
+              i++) {
+            // add zero data points after
+            dataPointsToAdd
+                .put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
+          }
           break;
         }
-      }
-      else {
-        currentGap ++;
+      } else {
+        currentGap++;
       }
 
       // last datapoint
-      if(allScansIndex==scanNumbers.length-1) {
-        if(currentGap >= minGap) {
+      if (allScansIndex == scanNumbers.length - 1) {
+        if (currentGap >= minGap) {
           // add trailing zeros after last detected
-          if(currentGap>0 && nextDetectedScanInAllIndex>=0) {
-            for (int i = 1; i <= zeros && i <= currentGap && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
+          if (currentGap > 0 && nextDetectedScanInAllIndex >= 0) {
+            for (int i = 1; i <= zeros && i <= currentGap
+                && (nextDetectedScanInAllIndex + i) < scanNumbers.length; i++) {
               // add zero data points after
-              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i], new SimpleDataPoint(getMZ(), 0d));
+              dataPointsToAdd.put(scanNumbers[nextDetectedScanInAllIndex + i],
+                  new SimpleDataPoint(getMZ(), 0d));
             }
           }
         }
       }
     }
     dataPointsMap.putAll(dataPointsToAdd);
-
-
-
-//    for (Entry<Scan, DataPoint> entry : dataPointsMap.entrySet()) {
-//      Scan nextScan = entry.getKey();
-//      while (allScansIndex < numScans && scans[allScansIndex] != nextScan) { // find the next scan
-//        allScansIndex++;
-//      }
-//      if (allScansIndex - lastScanIndex >= minGap) { // check if gap was big enough
-//        for (int i = 1; i <= zeros; i++) {
-//          if (lastScanIndex + i < numScans && lastScanIndex != 0) {
-//            dataPointsToAdd.put(scans[lastScanIndex + i], new SimpleDataPoint(getMZ(), 0d));
-//          }
-//          if (allScansIndex - i >= 0) {
-//            dataPointsToAdd.put(scans[allScansIndex - 1], new SimpleDataPoint(getMZ(), 0d));
-//          }
-//        }
-//      }
-//      lastScanIndex = allScansIndex;
-//    }
-//
-//    if (lastScanIndex + 1 < numScans) {
-//      dataPointsToAdd.put(scans[lastScanIndex + 1], new SimpleDataPoint(getMZ(), 0d));
-//    }
-//
-//    dataPointsMap.putAll(dataPointsToAdd);
-//     logger.info(() -> String.format("mz: %f\t Added %d data points", getMZ(), dataPointsToAdd.size()));
   }
 }

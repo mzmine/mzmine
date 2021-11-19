@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,19 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration.standardslist;
 
 import com.Ostermiller.util.CSVParser;
 import com.Ostermiller.util.LabeledCSVParser;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,11 +28,9 @@ import java.util.logging.Logger;
 
 
 /**
- * UniversalCalibrantsListExtractor for csv files
- * expects columns at fixed positions for storing needed data
- * first column is mz
- * second column is optional name
- * first row (column headers) is skipped
+ * UniversalCalibrantsListExtractor for csv files expects columns at fixed positions for storing
+ * needed data first column is mz second column is optional name first row (column headers) is
+ * skipped
  */
 public class UniversalCalibrantsListCsvExtractor implements StandardsListExtractor {
 
@@ -62,11 +59,12 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
   /**
    * Creates the extractor
    *
-   * @param filename csv filename
-   * @param inputStream input stream to use
+   * @param filename    csv filename
+   * @param inputStream input stream to use.
    * @throws IOException exception thrown when issues opening given file occur
    */
-  public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream) throws IOException {
+  public UniversalCalibrantsListCsvExtractor(String filename, InputStream inputStream)
+      throws IOException {
     this.filename = filename;
     this.csvReader = new LabeledCSVParser(new CSVParser(inputStream));
   }
@@ -84,7 +82,7 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
       logger.fine("Using cached list");
       return new StandardsList(this.extractedData);
     }
-    this.extractedData = new ArrayList<StandardsListItem>();
+    this.extractedData = new ArrayList<>();
 
     String[] lineValues;
     while ((lineValues = csvReader.getLine()) != null) {
@@ -104,12 +102,21 @@ public class UniversalCalibrantsListCsvExtractor implements StandardsListExtract
     }
 
     logger.info("Extracted " + extractedData.size() + " universal calibrants from "
-            + csvReader.getLastLineNumber() + " rows");
+        + csvReader.getLastLineNumber() + " rows");
     if (extractedData.size() < csvReader.getLastLineNumber()) {
       logger.warning("Skipped " + (csvReader.getLastLineNumber() - extractedData.size())
-              + " rows when reading universal calibrants in csv file " + filename);
+          + " rows when reading universal calibrants in csv file " + filename);
     }
 
     return new StandardsList(extractedData);
+  }
+
+  @Override
+  public void closeInputStreams() {
+    try {
+      csvReader.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }

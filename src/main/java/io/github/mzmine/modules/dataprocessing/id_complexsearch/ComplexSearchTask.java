@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,32 +8,34 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_complexsearch;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import java.util.Arrays;
-import java.util.logging.Logger;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class ComplexSearchTask extends AbstractTask {
 
@@ -52,8 +54,8 @@ public class ComplexSearchTask extends AbstractTask {
    * @param parameters
    * @param peakList
    */
-  public ComplexSearchTask(ParameterSet parameters, FeatureList peakList) {
-    super(null); // no new data stored -> null
+  public ComplexSearchTask(ParameterSet parameters, FeatureList peakList, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
@@ -134,7 +136,7 @@ public class ComplexSearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of complexes",
-            ComplexSearchModule.class, parameters));
+            ComplexSearchModule.class, parameters, getModuleCallDate()));
 
 
     setStatus(TaskStatus.FINISHED);

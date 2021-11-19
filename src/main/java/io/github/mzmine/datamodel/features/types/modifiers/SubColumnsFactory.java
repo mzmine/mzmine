@@ -17,47 +17,62 @@
 
 package io.github.mzmine.datamodel.features.types.modifiers;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
+import io.github.mzmine.datamodel.features.types.DataType;
+import java.util.List;
 import javafx.scene.control.TreeTableColumn;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This data type contains sub columns. Master column is not visualized. Only sub columns
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public interface SubColumnsFactory<T> {
+public interface SubColumnsFactory {
+
   /**
    * Creates sub columns which are then added to the parent column by the parent datatype
-   * 
-   * @return
+   *
+   * @return list of sub columns
    */
-  @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
-      final @Nullable RawDataFile raw);
+  @NotNull
+  List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
+      final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType);
 
-  @Nonnull
-  public int getNumberOfSubColumns();
-
-  @Nullable
-  public String getHeader(int subcolumn);
+  int getNumberOfSubColumns();
 
   @Nullable
-  public String getFormattedSubColValue(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw);
+  String getHeader(int subcolumn);
 
+  /**
+   * The data type of the subcolumn
+   *
+   * @param subcolumn index of subcolumn
+   * @return datatype of subcolumn
+   */
+  @NotNull
+  DataType<?> getType(int subcolumn);
 
   @Nullable
-  default public Node getSubColNode(int subcolumn,
-      TreeTableCell<ModularFeatureListRow, Object> cell,
-      TreeTableColumn<ModularFeatureListRow, Object> coll, Object cellData, RawDataFile raw) {
-    return null;
+  String getFormattedSubColValue(int subcolumn, Object cellData);
+
+  @Nullable
+  Object getSubColValue(int subcolumn, Object cellData);
+
+  /**
+   * Handle value change in this parent type
+   *
+   * @param model          original data model that holds the parent Type (this)
+   * @param subType        the sub type that was changed
+   * @param subColumnIndex the index of the sub column that was changed in this parent type
+   * @param newValue       the new value for the subType in this parent type
+   * @param <T>            value type of DataType
+   */
+  default <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
+      T newValue) {
   }
+
 }

@@ -1,23 +1,24 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics;
 
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -42,24 +43,22 @@ import org.jfree.chart.plot.ValueAxisPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
-
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import org.jfree.data.RangeType;
 
 /**
- * Collection of methods for JFreeCharts <br>
- * Calculate mouseXY to plotXY <br>
- * Calc width and height for plots where domain and range axis share the same dimensions <br>
- * Zoom and shift axes by absolute or relative values
- * 
+ * Collection of methods for JFreeCharts <br> Calculate mouseXY to plotXY <br> Calc width and height
+ * for plots where domain and range axis share the same dimensions <br> Zoom and shift axes by
+ * absolute or relative values
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartLogics {
+
   private static Logger logger = Logger.getLogger(ChartLogics.class.getName());
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
-   * 
+   *
    * @param myChart
    * @param mouseX
    * @param mouseY
@@ -73,7 +72,7 @@ public class ChartLogics {
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
-   * 
+   *
    * @param myChart
    * @param mouseX
    * @param mouseY
@@ -89,18 +88,21 @@ public class ChartLogics {
     ChartEntity entity = findChartEntity(myChart, mouseX, mouseY);
     if (entity instanceof AxisEntity) {
       Axis a = ((AxisEntity) entity).getAxis();
-      if (a.getPlot() instanceof XYPlot)
+      if (a.getPlot() instanceof XYPlot) {
         plot = (XYPlot) a.getPlot();
+      }
     }
 
     ChartRenderingInfo info = myChart.getChartRenderingInfo();
     int subplot = info.getPlotInfo().getSubplotIndex(p);
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
-    if (subplot != -1)
+    if (subplot != -1) {
       dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
+    }
 
-    if (plot == null)
+    if (plot == null) {
       plot = findXYSubplot(myChart.getChart(), info, p.getX(), p.getY());
+    }
 
     // coordinates
     double cx = 0;
@@ -123,10 +125,12 @@ public class ChartLogics {
         rangeAxisEdge = pp.getRangeAxisEdge();
       }
 
-      if (domainAxis != null)
+      if (domainAxis != null) {
         cx = domainAxis.java2DToValue(p.getX(), dataArea, domainAxisEdge);
-      if (rangeAxis != null)
+      }
+      if (rangeAxis != null) {
         cy = rangeAxis.java2DToValue(p.getY(), dataArea, rangeAxisEdge);
+      }
     } else {
       throw new Exception("no xyplot found");
     }
@@ -136,7 +140,7 @@ public class ChartLogics {
 
   /**
    * Subplot or main plot at point
-   * 
+   *
    * @param chart
    * @param info
    * @param mouseX
@@ -148,24 +152,26 @@ public class ChartLogics {
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     XYPlot plot = null;
     if (subplot != -1) {
-      if (chart.getPlot() instanceof CombinedDomainXYPlot)
+      if (chart.getPlot() instanceof CombinedDomainXYPlot) {
         plot = (XYPlot) ((CombinedDomainXYPlot) chart.getPlot()).getSubplots().get(subplot);
-      else if (chart.getPlot() instanceof CombinedRangeXYPlot)
+      } else if (chart.getPlot() instanceof CombinedRangeXYPlot) {
         plot = (XYPlot) ((CombinedRangeXYPlot) chart.getPlot()).getSubplots().get(subplot);
+      }
     }
 
-    if (plot == null && chart.getPlot() instanceof XYPlot)
+    if (plot == null && chart.getPlot() instanceof XYPlot) {
       plot = (XYPlot) chart.getPlot();
+    }
 
     return plot;
   }
 
   /**
    * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
-   * 
+   *
    * @param chart
-   * @param mx mouse coordinates
-   * @param my mouse coordinates
+   * @param mx    mouse coordinates
+   * @param my    mouse coordinates
    * @return
    */
   public static ChartEntity findChartEntity(ChartPanel chart, double mx, double my) {
@@ -188,7 +194,7 @@ public class ChartLogics {
 
   /**
    * Translates screen (pixel) values to plot values
-   * 
+   *
    * @param myChart
    * @return width in data space for x and y
    * @throws Exception
@@ -202,10 +208,10 @@ public class ChartLogics {
 
   /**
    * Data width to pixel width on screen
-   * 
+   *
    * @param myChart
    * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param axis      for width calculation
    * @return
    */
   public static double calcWidthOnScreen(ChartPanel myChart, double dataWidth, ValueAxis axis,
@@ -222,7 +228,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -234,7 +240,7 @@ public class ChartLogics {
   /**
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -255,7 +261,7 @@ public class ChartLogics {
 
   /**
    * Calculates the size of a chart for a given fixed plot width and height
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -267,7 +273,7 @@ public class ChartLogics {
 
   /**
    * Calculates the size of a chart for a given fixed plot width and height
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -306,9 +312,9 @@ public class ChartLogics {
         estimatedChartWidth = estimatedChartWidth - dataArea.getWidth() + plotWidth;
         estimatedChartHeight = estimatedChartHeight - dataArea.getHeight() + plotHeight;
 
-        if ((int) lastW == (int) estimatedChartWidth && (int) lastH == (int) estimatedChartHeight)
+        if ((int) lastW == (int) estimatedChartWidth && (int) lastH == (int) estimatedChartHeight) {
           break;
-        else {
+        } else {
           lastW = estimatedChartWidth;
           lastH = estimatedChartHeight;
         }
@@ -323,10 +329,10 @@ public class ChartLogics {
   /**
    * calls this method twice (2 iterations) with an estimated chartHeight of 3*chartWidth Domain and
    * Range axes need to share the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param copyToNewPanel
-   * @param chartWidth width of data
+   * @param chartWidth     width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -337,10 +343,10 @@ public class ChartLogics {
   /**
    * calculates the correct height with multiple iterations Domain and Range axes need to share the
    * same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param copyToNewPanel
-   * @param chartWidth width of data
+   * @param chartWidth     width of data
    * @return
    */
   public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
@@ -357,8 +363,9 @@ public class ChartLogics {
     // paint on a ghost panel
     JPanel parent = (JPanel) myChart.getParent();
     JPanel p = copyToNewPanel ? new JPanel() : parent;
-    if (copyToNewPanel)
+    if (copyToNewPanel) {
       p.add(myChart, BorderLayout.CENTER);
+    }
     try {
       for (int i = 0; i < iterations; i++) {
         // paint on ghost panel with estimated height (if copy
@@ -393,10 +400,11 @@ public class ChartLogics {
 
         // for next iteration
         estimatedHeight = height;
-        if ((int) lastH == (int) height)
+        if ((int) lastH == (int) height) {
           break;
-        else
+        } else {
           lastH = height;
+        }
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -413,7 +421,7 @@ public class ChartLogics {
 
   /**
    * Removes draw size restrictions
-   * 
+   *
    * @param myChart
    */
   public static void makeChartResizable(ChartPanel myChart) {
@@ -424,9 +432,8 @@ public class ChartLogics {
   }
 
   /**
-   * 
    * Domain and Range axes need to share the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @return
    */
@@ -471,7 +478,7 @@ public class ChartLogics {
 
   /**
    * Returns dimensions for limiting factor width or height
-   * 
+   *
    * @param myChart
    * @return
    */
@@ -532,7 +539,6 @@ public class ChartLogics {
   }
 
   /**
-   * 
    * @param myChart
    * @return Range the domainAxis zoom (X-axis)
    */
@@ -545,7 +551,7 @@ public class ChartLogics {
 
   /**
    * Zoom into a chart panel
-   * 
+   *
    * @param myChart
    * @param zoom
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
@@ -562,7 +568,6 @@ public class ChartLogics {
 
   /**
    * Zoom into a chart panel
-   * 
    */
   public static void setZoomAxis(ValueAxis axis, Range zoom) {
     axis.setRange(zoom);
@@ -570,7 +575,7 @@ public class ChartLogics {
 
   /**
    * Auto range the range axis
-   * 
+   *
    * @param myChart
    */
   public static void autoRangeAxis(ChartPanel myChart) {
@@ -584,7 +589,7 @@ public class ChartLogics {
 
   /**
    * Auto range the range axis
-   * 
+   *
    * @param myChart
    */
   public static void autoDomainAxis(ChartPanel myChart) {
@@ -598,7 +603,7 @@ public class ChartLogics {
 
   /**
    * Auto range the axis
-   * 
+   *
    * @param axis
    */
   public static void autoAxis(ValueAxis axis) {
@@ -613,9 +618,9 @@ public class ChartLogics {
   /**
    * Move a chart by a percentage x-offset if xoffset is <0 the shift will be negativ (xoffset>0
    * results in a positive shift)
-   * 
+   *
    * @param myChart
-   * @param xoffset in percent
+   * @param xoffset    in percent
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
   public static void offsetDomainAxis(ChartPanel myChart, double xoffset, boolean autoRangeY) {
@@ -631,7 +636,7 @@ public class ChartLogics {
 
   /**
    * Apply an absolute offset to domain (x) axis and move it
-   * 
+   *
    * @param myChart
    * @param xoffset
    * @param autoRangeY
@@ -649,7 +654,7 @@ public class ChartLogics {
 
   /**
    * Apply an absolute offset to an axis and move it
-   * 
+   *
    * @param offset
    */
   public static void offsetAxisAbsolute(ValueAxis axis, double offset) {
@@ -660,7 +665,7 @@ public class ChartLogics {
   /**
    * Apply an relative offset to an axis and move it. LowerBound and UpperBound are defined by
    * {@link ValueAxis#getDefaultAutoRange()}
-   * 
+   *
    * @param axis
    * @param offset percentage
    */
@@ -670,16 +675,31 @@ public class ChartLogics {
     setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
   }
 
+  /**
+   * Check {@link NumberAxis#getRangeType()} to set a hard bound at 0 for axes that do not include
+   * both the negative and positive range
+   *
+   * @param axis  the target axis
+   * @param range the new range that will be limited by the RangeType of a number axis
+   * @return
+   */
   public static Range keepRangeWithinAutoBounds(ValueAxis axis, Range range) {
-    // keep within auto range bounds
-     Range auto = getAutoRange(axis);
-     if(auto==null)
-       return range;
-    return new Range(Math.max(auto.getLowerBound(), range.getLowerBound()), Math.min(auto.getUpperBound(), range.getUpperBound()));
+    if (axis instanceof NumberAxis numberAxis) {
+      if (RangeType.POSITIVE.equals(numberAxis.getRangeType())) {
+        return new Range(Math.max(0, range.getLowerBound()), range.getUpperBound());
+      } else if (RangeType.NEGATIVE.equals(numberAxis.getRangeType())) {
+        return new Range(range.getLowerBound(), Math.min(0, range.getUpperBound()));
+      } else {
+        return range;
+      }
+    } else {
+      return range;
+    }
   }
 
   /**
    * The auto range - copied from {@link NumberAxis} autoAdjustRange
+   *
    * @param axis
    * @return
    */
@@ -701,8 +721,7 @@ public class ChartLogics {
       double upper = r.getUpperBound();
       double lower = r.getLowerBound();
 
-      if (axis instanceof NumberAxis) {
-        NumberAxis numberAxis = (NumberAxis) axis;
+      if (axis instanceof NumberAxis numberAxis) {
         if (numberAxis.getRangeType() == RangeType.POSITIVE) {
           lower = Math.max(0.0, lower);
           upper = Math.max(0.0, upper);
@@ -763,19 +782,20 @@ public class ChartLogics {
           }
         } else {
           upper = upper + axis.getUpperMargin() * range;
-          lower = lower - axis.getLowerMargin() * range;
+//          lower = lower - axis.getLowerMargin() * range;
         }
       }
       return new Range(lower, upper);
+    } else {
+      return null;
     }
-    else return null;
   }
 
   /**
    * Zoom in (negative yzoom) or zoom out of range axis.
-   * 
+   *
    * @param myChart
-   * @param yzoom percentage zoom factor
+   * @param yzoom          percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
   public static void zoomRangeAxis(JFreeChart myChart, double yzoom, boolean holdLowerBound) {
@@ -784,9 +804,9 @@ public class ChartLogics {
 
   /**
    * Zoom in (negative zoom) or zoom out of axis.
-   * 
+   *
    * @param axis
-   * @param zoom percentage zoom factor
+   * @param zoom           percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
   public static void zoomAxis(ValueAxis axis, double zoom, boolean holdLowerBound) {
@@ -795,8 +815,9 @@ public class ChartLogics {
     double dist = upper - lower;
 
     if (holdLowerBound) {
-      if (zoom == 0)
+      if (zoom == 0) {
         return;
+      }
       upper += dist * zoom;
     } else {
       lower -= dist * zoom / 2;
@@ -812,9 +833,9 @@ public class ChartLogics {
 
   /**
    * Zoom in (negative zoom) or zoom out of axis.
-   * 
+   *
    * @param axis
-   * @param zoom percentage zoom factor
+   * @param zoom  percentage zoom factor
    * @param start point on this range (first click/pressed event), used as center
    */
   public static void zoomAxis(ValueAxis axis, double zoom, double start) {
@@ -833,7 +854,6 @@ public class ChartLogics {
   }
 
   /**
-   * 
    * @param chartPanel
    * @return
    */
@@ -842,4 +862,32 @@ public class ChartLogics {
         : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
   }
 
+  /**
+   * Set the range type of both axes. See {@link RangeType}. This also controls the behavior of
+   * zooming and scrolling
+   *
+   * @param chart      the chart. Currently only with XYPlot and {@link NumberAxis}
+   * @param domainType type for domain axis
+   * @param rangeType  type for range axis
+   */
+  public static void setAxesTypes(JFreeChart chart, RangeType domainType, RangeType rangeType) {
+    XYPlot plot = chart.getXYPlot();
+    if (plot != null) {
+      if (plot.getDomainAxis() instanceof NumberAxis axis) {
+        axis.setRangeType(domainType);
+      }
+      if (plot.getRangeAxis() instanceof NumberAxis axis) {
+        axis.setRangeType(rangeType);
+      }
+    }
+  }
+
+  /**
+   * Convenience method to set all ranges to positive values only.
+   *
+   * @param chart the chart. Currently only with XYPlot and {@link NumberAxis}
+   */
+  public static void setAxesTypesPositive(JFreeChart chart) {
+    setAxesTypes(chart, RangeType.POSITIVE, RangeType.POSITIVE);
+  }
 }

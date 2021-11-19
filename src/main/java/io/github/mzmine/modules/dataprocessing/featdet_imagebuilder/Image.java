@@ -1,31 +1,30 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
- * This file is part of MZmine 3.
- * 
- * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
- * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 
 package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
+import java.util.List;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
-import java.util.LinkedHashSet;
-import java.util.LinkedHashSet;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -38,8 +37,9 @@ public class Image implements IImage {
   private double maximumIntensity;
   private Range<Double> mzRange;
   private Range<Double> intensityRange;
-  private LinkedHashSet<ImageDataPoint> dataPoints;
-  private LinkedHashSet<Scan> scanNumbers;
+  private List<ImageDataPoint> dataPoints;
+  private List<Scan> scanNumbers;
+  private Scan representativeScan;
   private String representativeString;
   private FeatureList featureList;
 
@@ -54,8 +54,8 @@ public class Image implements IImage {
 
   public Image(double mz, ImagingParameters imagingParameters, PaintScale paintScale,
       double maximumIntensity, Range<Double> mzRange, Range<Double> intensityRange,
-      LinkedHashSet<ImageDataPoint> dataPoints, LinkedHashSet<Scan> scanNumbers, String representativeString,
-      FeatureList featureList) {
+      List<ImageDataPoint> dataPoints, Scan representativeScan, List<Scan> scanNumbers,
+      String representativeString, FeatureList featureList) {
     this.mz = mz;
     this.imagingParameters = imagingParameters;
     this.paintScale = paintScale;
@@ -64,6 +64,7 @@ public class Image implements IImage {
     this.intensityRange = intensityRange;
     this.dataPoints = dataPoints;
     this.scanNumbers = scanNumbers;
+    this.representativeScan = representativeScan;
     this.representativeString = representativeString;
     this.featureList = featureList;
   }
@@ -116,20 +117,28 @@ public class Image implements IImage {
     this.intensityRange = intensityRange;
   }
 
-  public LinkedHashSet<ImageDataPoint> getDataPoints() {
+  public List<ImageDataPoint> getDataPoints() {
     return dataPoints;
   }
 
-  public void setDataPoints(LinkedHashSet<ImageDataPoint> dataPoints) {
+  public void setDataPoints(List<ImageDataPoint> dataPoints) {
     this.dataPoints = dataPoints;
   }
 
-  public LinkedHashSet<Scan> getScanNumbers() {
+  public List<Scan> getScanNumbers() {
     return scanNumbers;
   }
 
-  public void setScanNumbers(LinkedHashSet<Scan> scanNumbers) {
+  public void setScanNumbers(List<Scan> scanNumbers) {
     this.scanNumbers = scanNumbers;
+  }
+
+  public Scan getRepresentativeScan() {
+    return representativeScan;
+  }
+
+  public void setRepresentativeScan(Scan representativeScan) {
+    this.representativeScan = representativeScan;
   }
 
   public String getRepresentativeString() {

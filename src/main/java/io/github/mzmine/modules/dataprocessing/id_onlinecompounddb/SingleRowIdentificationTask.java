@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
@@ -27,6 +27,8 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +46,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 
 public class SingleRowIdentificationTask extends AbstractTask {
@@ -72,8 +75,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param peakListRow peak-list row to identify.
    */
-  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow) {
-    super(null); // no new data stored -> null
+  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakListRow = peakListRow;
 

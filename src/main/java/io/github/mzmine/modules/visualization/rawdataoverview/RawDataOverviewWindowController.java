@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
 import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
@@ -61,9 +61,6 @@ public class RawDataOverviewWindowController {
   private boolean scroll;
 
   @FXML
-  private Label rawDataLabel;
-
-  @FXML
   private ChromatogramAndSpectraVisualizer visualizer;
 
   @FXML
@@ -78,8 +75,6 @@ public class RawDataOverviewWindowController {
   public void initialize() {
 
     // this.rawDataFile = rawDataFile;
-    // add meta data
-    rawDataLabel.setText("Overview of raw data file(s): ");
 
     addChromatogramSelectedScanListener();
 
@@ -190,11 +185,11 @@ public class RawDataOverviewWindowController {
 
     visualizer.chromPositionProperty().addListener((observable, oldValue, pos) -> {
       RawDataFile selectedRawDataFile = pos.getDataFile();
-      if (selectedRawDataFile instanceof ImagingRawDataFileImpl) {
+      if (selectedRawDataFile == null || selectedRawDataFile instanceof ImagingRawDataFileImpl) {
         return;
       }
       RawDataFileInfoPaneController con = rawDataFilesAndControllers.get(selectedRawDataFile);
-      if (con == null || selectedRawDataFile == null) {
+      if (con == null) {
         logger.info("Cannot find controller for raw data file " + selectedRawDataFile.getName());
         return;
       }
@@ -225,7 +220,7 @@ public class RawDataOverviewWindowController {
     return visualizer.getSelectedRawDataFile();
   }
 
-  @Nonnull
+  @NotNull
   public Collection<RawDataFile> getRawDataFiles() {
     return visualizer.getRawDataFiles();
   }

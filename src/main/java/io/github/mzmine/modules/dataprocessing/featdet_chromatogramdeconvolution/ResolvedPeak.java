@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -41,12 +42,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ResolvedPeak
  */
+@Deprecated
 public class ResolvedPeak implements PlotXYDataProvider {
 
   private SimpleFeatureInformation peakInfo;
@@ -216,7 +218,9 @@ public class ResolvedPeak implements PlotXYDataProvider {
         ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = fragmentScan.getMsMsInfo() != null &&
+          fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda && dda.getPrecursorCharge() != null
+          ? dda.getPrecursorCharge() : 0;
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }
@@ -294,7 +298,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     setFragmentScanNumber(best);
   }
 
-  public @Nonnull
+  public @NotNull
   FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
@@ -303,17 +307,17 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return rt;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull
+  public @NotNull
   Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
@@ -322,12 +326,12 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return representativeScan;
   }
 
-  public @Nonnull
+  public @NotNull
   Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull
+  public @NotNull
   RawDataFile getRawDataFile() {
     return dataFile;
   }
@@ -336,7 +340,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
@@ -416,13 +420,13 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return dp;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -434,7 +438,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return String.format("%f - %f min", getRawDataPointsIntensityRange().lowerEndpoint(), getRawDataPointsRTRange().upperEndpoint());

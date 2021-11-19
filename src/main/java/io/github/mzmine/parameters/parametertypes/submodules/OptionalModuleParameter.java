@@ -1,37 +1,37 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.submodules;
 
-import org.w3c.dom.Element;
-
+import io.github.mzmine.modules.io.projectsave.RawDataSavingUtils;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterContainer;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
-
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
+import org.w3c.dom.Element;
 
 /**
  * Parameter represented by check box with additional sub-module
  */
-public class OptionalModuleParameter<T extends ParameterSet>
-    implements UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer {
+public class OptionalModuleParameter<T extends ParameterSet> implements
+    UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer, EmbeddedParameterSet {
 
   private String name, description;
   private T embeddedParameters;
@@ -51,6 +51,10 @@ public class OptionalModuleParameter<T extends ParameterSet>
 
   public T getEmbeddedParameters() {
     return embeddedParameters;
+  }
+
+  public void setEmbeddedParameters(T embeddedParameters) {
+    this.embeddedParameters = embeddedParameters;
   }
 
   /**
@@ -83,8 +87,9 @@ public class OptionalModuleParameter<T extends ParameterSet>
         if (p instanceof UserParameter) {
           UserParameter<?, ?> up = (UserParameter<?, ?>) p;
           Object upValue = up.getValue();
-          if (upValue == null)
+          if (upValue == null) {
             return null;
+          }
         }
       }
     }
@@ -99,8 +104,8 @@ public class OptionalModuleParameter<T extends ParameterSet>
   @Override
   public OptionalModuleParameter<T> cloneParameter() {
     final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
-    final OptionalModuleParameter<T> copy =
-        new OptionalModuleParameter<>(name, description, embeddedParametersClone);
+    final OptionalModuleParameter<T> copy = new OptionalModuleParameter<>(name, description,
+        embeddedParametersClone);
     copy.setValue(this.getValue());
     return copy;
   }
@@ -124,8 +129,9 @@ public class OptionalModuleParameter<T extends ParameterSet>
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null)
+    if (value != null) {
       xmlElement.setAttribute("selected", value.toString());
+    }
     embeddedParameters.saveValuesToXML(xmlElement);
   }
 
@@ -145,5 +151,19 @@ public class OptionalModuleParameter<T extends ParameterSet>
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     // delegate skipSensitiveParameters to embedded ParameterSet
     embeddedParameters.setSkipSensitiveParameters(skipSensitiveParameters);
+  }
+
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if (!(that instanceof OptionalModuleParameter thatOpt)) {
+      return false;
+    }
+
+    if (value != thatOpt.getValue()) {
+      return false;
+    }
+
+    return RawDataSavingUtils
+        .parameterSetsEqual(getEmbeddedParameters(), thatOpt.getEmbeddedParameters(), false, false);
   }
 }

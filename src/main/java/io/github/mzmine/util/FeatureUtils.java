@@ -12,35 +12,31 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureStatus;
-
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utilities for feature lists
@@ -69,6 +65,18 @@ public class FeatureUtils {
     return buf.toString();
   }
 
+  public static String rowToString(FeatureListRow row) {
+    StringBuffer buf = new StringBuffer();
+    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+    buf.append("m/z ");
+    buf.append(mzFormat.format(row.getAverageMZ()));
+    buf.append(" (");
+    buf.append(timeFormat.format(row.getAverageRT()));
+    buf.append(" min)");
+    return buf.toString();
+  }
+
   /**
    * Compares identities of two feature list rows. 1) if preferred identities are available, they
    * must be same 2) if no identities are available on both rows, return true 3) otherwise all
@@ -79,8 +87,9 @@ public class FeatureUtils {
    */
   public static boolean compareIdentities(FeatureListRow row1, FeatureListRow row2) {
 
-    if ((row1 == null) || (row2 == null))
+    if ((row1 == null) || (row2 == null)) {
       return false;
+    }
 
     // If both have preferred identity available, then compare only those
     FeatureIdentity row1PreferredIdentity = row1.getPreferredFeatureIdentity();
@@ -90,15 +99,17 @@ public class FeatureUtils {
     }
 
     // If no identities at all for both rows, then return true
-    ObservableList<FeatureIdentity> row1Identities = row1.getPeakIdentities();
-    ObservableList<FeatureIdentity> row2Identities = row2.getPeakIdentities();
-    if ((row1Identities.isEmpty()) && (row2Identities.isEmpty()))
+    List<FeatureIdentity> row1Identities = row1.getPeakIdentities();
+    List<FeatureIdentity> row2Identities = row2.getPeakIdentities();
+    if ((row1Identities.isEmpty()) && (row2Identities.isEmpty())) {
       return true;
+    }
 
     // Otherwise compare all against all and require that each identity has
     // a matching identity on the other row
-    if (row1Identities.size() != row2Identities.size())
+    if (row1Identities.size() != row2Identities.size()) {
       return false;
+    }
     boolean sameID = false;
     for (FeatureIdentity row1Identity : row1Identities) {
       sameID = false;
@@ -151,7 +162,7 @@ public class FeatureUtils {
   /**
    * Finds a combined m/z range that covers all given features
    */
-  public static Range<Double> findMZRange(Feature features[]) {
+  public static Range<Double> findMZRange(Feature[] features) {
 
     Range<Double> mzRange = null;
 
@@ -214,7 +225,7 @@ public class FeatureUtils {
    *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
    *         it.
    */
-  public @Nonnull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
+  public @NotNull static Range<Float> getFeatureListRowAvgRtRange(FeatureListRow row) {
 
     if (row == null || row.getBestFeature() == null)
       return Range.closed(0.f, 0.f);
@@ -237,8 +248,8 @@ public class FeatureUtils {
 
     float avgL = 0, avgU = 0;
     for (int i = 0; i < size; i++) {
-      avgL += lower[i];
-      avgU += upper[i];
+      avgL += (float) lower[i];
+      avgU += (float) upper[i];
     }
     avgL /= size;
     avgU /= size;
@@ -253,7 +264,7 @@ public class FeatureUtils {
    * @return A copy of row.
    */
   public static ModularFeatureListRow copyFeatureRow(final ModularFeatureListRow row) {
-    return copyFeatureRow((ModularFeatureList)row.getFeatureList(), row, true);
+    return copyFeatureRow(row.getFeatureList(), row, true);
   }
 
   /**
@@ -388,7 +399,7 @@ public class FeatureUtils {
       // Naive area under the curve calculation.
       double rtDifference = nextScan.getRetentionTime() - scan.getRetentionTime();
       rtDifference *= 60;
-      targetArea += (rtDifference * (intensity + nextIntensity) / 2);
+      targetArea += (float)(rtDifference * (intensity + nextIntensity) / 2);
     }
 
     if (targetHeight != 0) {

@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
@@ -21,17 +21,17 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a frame and it's subscans into ram.
@@ -86,15 +86,15 @@ public class CachedMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+  public double[] getMzValues(@NotNull double[] dst) {
+    System.arraycopy(mzs, 0, dst, 0, mzs.length);
+    return dst;
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
-    throw new UnsupportedOperationException(
-        "Not intended. This frame is used for visualisation only");
+  public double[] getIntensityValues(@NotNull double[] dst) {
+    System.arraycopy(intensities, 0, dst, 0, intensities.length);
+    return dst;
   }
 
   @Override
@@ -149,7 +149,7 @@ public class CachedMobilityScan implements MobilityScan {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     return originalMobilityScan.getDataFile();
@@ -182,13 +182,13 @@ public class CachedMobilityScan implements MobilityScan {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public PasefMsMsInfo getMsMsInfo() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
@@ -199,10 +199,11 @@ public class CachedMobilityScan implements MobilityScan {
         "Not intended. This frame is used for visualisation only");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(
         "Not intended. This frame is used for visualisation only");
   }
+
 }

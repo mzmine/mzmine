@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,21 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel;
 
 import java.util.Map;
-import javax.annotation.Nonnull;
+import java.util.Map.Entry;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This interface is used to keep extra information about peaks
@@ -28,6 +31,10 @@ import javax.annotation.Nonnull;
  */
 public interface FeatureInformation {
 
+  String XML_PROPERTY_ELEMENT = "property";
+  String XML_ELEMENT = "featureinformation";
+  String XML_NAME_ATTR = "name";
+
   /**
    * Returns the value of a property
    *
@@ -35,10 +42,10 @@ public interface FeatureInformation {
    * @return
    */
 
-  @Nonnull
+  @NotNull
   String getPropertyValue(String property);
 
-  @Nonnull
+  @NotNull
   String getPropertyValue(String property, String defaultValue);
 
   /**
@@ -47,7 +54,19 @@ public interface FeatureInformation {
    * @return
    */
 
-  @Nonnull
+  @NotNull
   Map<String, String> getAllProperties();
 
+  default void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    for (Entry<String, String> entry : getAllProperties().entrySet()) {
+      writer.writeStartElement(XML_PROPERTY_ELEMENT);
+      writer.writeAttribute(XML_NAME_ATTR, entry.getKey());
+      writer.writeCharacters(entry.getValue());
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
+  }
 }

@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.numbers;
@@ -28,12 +27,19 @@ import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MobilityType extends FloatType implements ExpandableType {
 
   public MobilityType() {
     super(new DecimalFormat("0.00"));
+  }
+
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "ion_mobility";
   }
 
   @Override
@@ -47,23 +53,23 @@ public class MobilityType extends FloatType implements ExpandableType {
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Mobility";
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getExpandedTypeClass() {
     return MobilityRangeType.class;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Class<? extends DataType<?>> getHiddenTypeClass() {
     return getClass();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<RowBinding> createDefaultRowBindings() {
     return List.of(new SimpleRowBinding(this, BindingsType.AVERAGE));

@@ -1,0 +1,148 @@
+/*
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
+package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
+
+import io.github.mzmine.datamodel.featuredata.IonMobilitySeries;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.logging.Logger;
+
+public class TempIMTrace {
+
+  private static Logger logger = Logger.getLogger(TempMobilogram.class.getName());
+
+  protected final TreeMap<Integer, BuildingIonMobilitySeries> mobilograms = new TreeMap<>();
+  protected double lowestMz = Double.MAX_VALUE;
+  protected double highestMz = Double.MIN_VALUE;
+  protected double centerMz;
+
+  public TempIMTrace() {
+
+  }
+
+
+  /**
+   * Adds a data point if no data point of the same scan number is contained in this trace.
+   *
+   * @param mobilogram
+   * @return
+   */
+  public BuildingIonMobilitySeries tryToAddMobilogram(BuildingIonMobilitySeries mobilogram) {
+    var currentValue = mobilograms.putIfAbsent(mobilogram.getFrame().getFrameId(), mobilogram);
+    if (currentValue == null) {
+      updateValues();
+    }
+    return currentValue;
+  }
+
+  /**
+   * @param mobilogram
+   * @return The replaced data point
+   */
+  public BuildingIonMobilitySeries replaceMobilogram(BuildingIonMobilitySeries mobilogram) {
+    final BuildingIonMobilitySeries replaced = mobilograms
+        .put(mobilogram.getFrame().getFrameId(), mobilogram);
+    if (replaced == null) {
+      logger.fine(() -> "Data point did not replace another data point");
+    }
+    updateValues();
+    return replaced;
+  }
+
+  public double getLowestMz() {
+    return lowestMz;
+  }
+
+  public void setLowestMz(double lowestMz) {
+    this.lowestMz = lowestMz;
+  }
+
+  public double getHighestMz() {
+    return highestMz;
+  }
+
+  public void setHighestMz(double highestMz) {
+    this.highestMz = highestMz;
+  }
+
+  private void updateValues() {
+    centerMz = 0d;
+    double summedIntensities = 0d;
+    for (BuildingIonMobilitySeries value : mobilograms.values()) {
+      final double intensity = value.getSummedIntensity();
+      final double mz = value.getAvgMZ();
+
+      if (mz > highestMz) {
+        highestMz = mz;
+      }
+      if (mz < lowestMz) {
+        lowestMz = mz;
+      }
+
+      centerMz += mz * intensity;
+      summedIntensities += value.getSummedIntensity();
+    }
+    centerMz /= summedIntensities;
+  }
+
+  public BuildingIonMobilitySeries keepBetterFittingDataPoint(BuildingIonMobilitySeries mob) {
+    final BuildingIonMobilitySeries current = tryToAddMobilogram(mob);
+    if (current == null) {
+      return null;
+    }
+
+    final double currentDelta = Math.abs(centerMz - current.getAvgMZ());
+    final double proposedDelta = Math.abs(centerMz - mob.getAvgMZ());
+    if (currentDelta > proposedDelta) {
+      var ceilingEntry = mobilograms.ceilingEntry(mob.getFrame().getFrameId() + 1);
+      var floorEntry = mobilograms.floorEntry(mob.getFrame().getFrameId() - 1);
+
+      if(ceilingEntry != null && floorEntry != null) {
+        final double ceilingIntensity = ceilingEntry.getValue().getSummedIntensity();
+        final double floorIntensity = floorEntry.getValue().getSummedIntensity();
+        final double avgIntensity = (ceilingIntensity + floorIntensity) / 2;
+
+        // only replace if the proposed intensity fits better
+        if (Math.abs(avgIntensity - mob.getSummedIntensity()) < Math
+            .abs(avgIntensity - current.getSummedIntensity())) {
+          return replaceMobilogram(mob);
+        }
+      }
+    }
+    return mob;
+  }
+
+  public List<IonMobilitySeries> getMobilograms() {
+    return new ArrayList<>(mobilograms.values());
+  }
+
+  public int getNumberOfDataPoints() {
+    return mobilograms.values().stream().mapToInt(IonMobilitySeries::getNumberOfValues).sum();
+  }
+
+  public double getCenterMz() {
+    return centerMz;
+  }
+
+  public void removeMobilograms(Collection<IonMobilitySeries> mobs) {
+    mobs.forEach(m -> mobilograms.remove(m.getSpectrum(0).getFrame().getFrameId()));
+  }
+}

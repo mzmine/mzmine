@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -27,6 +27,35 @@ import java.util.stream.DoubleStream;
  * Mathematical calculation-related helper class
  */
 public class MathUtils {
+
+
+  /**
+   * Cantor pairing function for integers >= 0 to produce unique ids for a pair. The result of a and
+   * b is undirected so the arguments of a and b can be switched
+   *
+   * @param a >=0
+   * @param b >=0
+   * @return unique undirected pairing ID
+   */
+  public static int undirectedPairing(int a, int b) {
+    if (a > b) {
+      return directedPairing(b, a);
+    } else {
+      return directedPairing(a, b);
+    }
+  }
+
+  /**
+   * Cantor pairing function for integers >= 0 to produce unique ids for a pair. The result of a and
+   * b is directed so changing the argument order will change the result.
+   *
+   * @param a >=0
+   * @param b >=0
+   * @return unique directed pairing ID
+   */
+  public static int directedPairing(int a, int b) {
+    return ((a + b) * (a + b + 1) / 2) + a;
+  }
 
   /**
    * median or non-weighted average
@@ -299,5 +328,21 @@ public class MathUtils {
       avg += values[i] * realWeights[i] / weightSum;
     }
     return avg;
+  }
+
+  /**
+   * @param y The y value to calc x for.
+   * @return X value for given points and y value based on linear interpolation.
+   */
+  public static double twoPointGetXForY(double x1, double y1, double x2, double y2, double y) {
+    return (y - y1) * ((x2 - x1) / (y2 - y1)) + x1;
+  }
+
+  /**
+   * @param x The y value to calc x for.
+   * @return Y value for given points and X value based on linear interpolation.
+   */
+  public static double twoPointGetYForX(double x1, double y1, double x2, double y2, double x) {
+    return (x - x1) * ((y2 - y1) / (x2 - x1)) + y1;
   }
 }

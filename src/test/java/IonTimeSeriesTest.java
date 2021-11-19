@@ -18,21 +18,23 @@
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.impl.IonMobilogramTimeSeriesFactory;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
-import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,32 +46,29 @@ import org.junit.jupiter.api.Test;
 
 class IonTimeSeriesTest {
 
-  private static final MemoryMapStorage rawStorage = MemoryMapStorage.forRawDataFile();
-  private static final MemoryMapStorage flsitStorage = MemoryMapStorage.forFeatureList();
-
   private static final Logger logger = Logger.getLogger(IonTimeSeriesTest.class.getName());
 
   public static IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
 
-    RawDataFile file = new RawDataFileImpl("test", rawStorage, Color.BLACK);
+    RawDataFile file = new RawDataFileImpl("test", null, null, Color.BLACK);
     List<Scan> scans = new ArrayList();
-    scans.add(new SimpleScan(file, 0, 1, 1f, 0, 0, new double[]{10d, 10d}, new double[]{10d, 10d},
+    scans.add(new SimpleScan(file, 0, 1, 1f, null, new double[]{10d, 10d}, new double[]{10d, 10d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(10d, 10d)));
-    scans.add(new SimpleScan(file, 1, 1, 1f, 0, 0, new double[]{11d, 11d}, new double[]{11d, 11d},
+    scans.add(new SimpleScan(file, 1, 1, 1f, null, new double[]{11d, 11d}, new double[]{11d, 11d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d)));
-    SimpleIonTimeSeries series = new SimpleIonTimeSeries(rawStorage,
+    SimpleIonTimeSeries series = new SimpleIonTimeSeries(null,
         new double[]{5d, 10d}, new double[]{30d, 31d}, scans);
     return series;
   }
 
   public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
-    RawDataFile file = new RawDataFileImpl("test", rawStorage, Color.BLACK);
+    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, null, Color.BLACK);
 
     List<Frame> frames = new ArrayList<>();
-    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
-        new double[] {1d}, new double[]{1d},
+    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f,
+        new double[]{1d}, new double[]{1d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d), MobilityType.TIMS, null);
     frame.setMobilities(new double[]{1d, 2d});
@@ -80,15 +79,16 @@ class IonTimeSeriesTest {
     mobilityScans
         .add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}));
 
-    frame.setMobilityScans(mobilityScans);
+    frame.setMobilityScans(mobilityScans, false);
 
-    SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(flsitStorage,
+    SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(null,
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
-    return new SimpleIonMobilogramTimeSeries(flsitStorage, List.of(ionMobilitySeries));
+    return IonMobilogramTimeSeriesFactory
+        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 1));
   }
 
-  @Disabled("Needs test file?")
+  @Disabled
   @Test
   void testCasting() {
 
@@ -100,7 +100,6 @@ class IonTimeSeriesTest {
       List<Scan> scans = (List<Scan>) scanSeries.getSpectra();
       Assertions.assertTrue(scans.get(0) instanceof Scan);
       Assertions.assertFalse(scans.get(0) instanceof Frame);
-
 
       IonTimeSeries<? extends Scan> imFrameSeries = makeIonMobilityTimeSeries();
       Assertions.assertFalse(imFrameSeries instanceof SimpleIonTimeSeries);

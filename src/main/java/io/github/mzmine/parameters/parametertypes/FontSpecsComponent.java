@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,17 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.controlsfx.dialog.FontSelectorDialog;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
@@ -33,7 +33,7 @@ public class FontSpecsComponent extends FlowPane {
   private final Button fontSelectButton;
   private final ColorPicker colorPicker;
 
-  private @Nonnull Font currentFont = Font.font("Arial");
+  private @NotNull Font currentFont = Font.font("Arial");
 
   public FontSpecsComponent() {
 
@@ -52,7 +52,7 @@ public class FontSpecsComponent extends FlowPane {
     getChildren().addAll(fontLabel, fontSelectButton, colorPicker);
   }
 
-  public void setFont(@Nonnull Font font) {
+  public void setFont(@NotNull Font font) {
     assert font != null;
     this.currentFont = font;
     updateLabel();
@@ -63,7 +63,7 @@ public class FontSpecsComponent extends FlowPane {
   }
 
 
-  public void setColor(@Nonnull Color color) {
+  public void setColor(@NotNull Color color) {
     colorPicker.setValue(color);
     updateLabel();
   }

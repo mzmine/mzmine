@@ -1,27 +1,25 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.mzhistogram.chart;
 
+import io.github.mzmine.util.maths.DoubleArraySupplier;
 import java.util.function.Supplier;
 import org.jfree.data.Range;
-
-import io.github.mzmine.util.maths.DoubleArraySupplier;
 
 public class HistogramData {
 
@@ -55,7 +53,7 @@ public class HistogramData {
 
   /**
    * Data is not binned and maybe unsorted
-   * 
+   *
    * @return
    */
   public double[] getData() {
@@ -63,10 +61,12 @@ public class HistogramData {
   }
 
   public Range getRange() {
-    if (range == null)
+    if (range == null) {
       findRange();
-    if (range == null)
+    }
+    if (range == null) {
       return new Range(0, 0);
+    }
     return range;
   }
 
@@ -79,10 +79,12 @@ public class HistogramData {
       double min = data[0];
       double max = data[0];
       for (int i = 1; i < data.length; i++) {
-        if (data[i] > max)
+        if (data[i] > max) {
           max = data[i];
-        if (data[i] < min)
+        }
+        if (data[i] < min) {
           min = data[i];
+        }
       }
       setRange(new Range(min, max));
     }

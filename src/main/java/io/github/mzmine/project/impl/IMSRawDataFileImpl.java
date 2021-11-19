@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.project.impl;
@@ -26,20 +26,18 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -51,9 +49,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private static Logger logger = Logger.getLogger(IMSRawDataFileImpl.class.getName());
 
   private final List<Frame> frames = FXCollections.observableArrayList();
-  private final Hashtable<Integer, Set<Scan>> frameNumbersCache;
+  private final Hashtable<Integer, List<Scan>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
-  private final Hashtable<Integer, Collection<? extends Frame>> frameMsLevelCache;
+  private final Hashtable<Integer, List<Frame>> frameMsLevelCache;
 
   /**
    * Mobility <-> sub spectrum number is the same for a segment but might change between segments!
@@ -65,8 +63,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
 
-  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
-    super(dataFileName, storage);
+  public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
+      MemoryMapStorage storage) throws IOException {
+    super(dataFileName, absolutePath, storage);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
@@ -78,8 +77,9 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   }
 
-  public IMSRawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color) throws IOException {
-    super(dataFileName, storage, color);
+  public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
+      MemoryMapStorage storage, Color color) throws IOException {
+    super(dataFileName, absolutePath, storage, color);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
@@ -110,7 +110,6 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
               + ") does not match the mobility type of raw data file (" + getMobilityType() + ")");
     }
 
-
 //    Range<Integer> segmentKey = getSegmentKeyForFrame((newFrame).getScanNumber());
 //    segmentMobilityRange.putIfAbsent(segmentKey, newFrame.getMobilities());
 
@@ -122,17 +121,17 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
      */
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public Collection<Frame> getFrames() {
+  public List<Frame> getFrames() {
     return frames;
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public Collection<? extends Frame> getFrames(int msLevel) {
-    return frameMsLevelCache.computeIfAbsent(msLevel, level -> getFrames().stream()
-        .filter(frame -> frame.getMSLevel() == msLevel).collect(Collectors.toSet()));
+  public List<Frame> getFrames(int msLevel) {
+    return frameMsLevelCache.computeIfAbsent(msLevel,
+        level -> getFrames().stream().filter(frame -> frame.getMSLevel() == msLevel).toList());
   }
 
   @Nullable
@@ -142,17 +141,17 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<Frame> getFrames(int msLevel, Range<Float> rtRange) {
     return getFrames(msLevel).stream().filter(frame -> rtRange.contains(frame.getRetentionTime()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public Set<Scan> getFrameNumbers(int msLevel) {
+  public List<Scan> getFrameNumbers(int msLevel) {
     return frameNumbersCache.computeIfAbsent(msLevel, (key) -> {
-      Set<Scan> frameNums = new HashSet<>();
+      List<Scan> frameNums = new ArrayList<>();
       synchronized (frames) {
         for (Scan e : frames) {
           if (e.getMSLevel() == msLevel) {
@@ -169,18 +168,33 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     return frames.size();
   }
 
-  @Nonnull
+  @NotNull
   @Override
-  public Set<Scan> getFrameNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
+  public List<Scan> getFrameNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     // since {@link getFrameNumbers(int)} is prefiltered, this shouldn't lead to NPE
     return getFrameNumbers(msLevel).stream()
-        .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime()))
-        .collect(Collectors.toSet());
+        .filter(frameNum -> rtRange.contains(frameNum.getRetentionTime())).toList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getDataMobilityRange() {
+    mobilityRange = dataMobilityRangeCache.computeIfAbsent(0, level -> {
+      double lower = 1E10;
+      double upper = -1E10;
+      synchronized (frames) {
+        for (Frame e : getFrames()) {
+          if (e.getMobilityRange().lowerEndpoint() < lower) {
+            lower = e.getMobilityRange().lowerEndpoint();
+          }
+          if (e.getMobilityRange().upperEndpoint() > upper) {
+            upper = e.getMobilityRange().upperEndpoint();
+          }
+        }
+      }
+      return Range.closed(lower, upper);
+    });
+
     return mobilityRange;
   }
 
@@ -227,13 +241,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public MobilityType getMobilityType() {
     return mobilityType;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getDataMobilityRange(int msLevel) {
     if (dataMobilityRangeCache.get(msLevel) == null) {
@@ -276,7 +290,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }*/
 
   /**
-   * @param frameNumber The frame number.
+   * @param frameId The frame number.
    * @return Map of mobility scan number <-> mobility or null for invalid frame numbers.
    */
   @Nullable
@@ -290,6 +304,19 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private Range<Integer> getSegmentKeyForFrame(int frameId) {
     return segmentMobilityRange.keySet().stream()
         .filter(segmentRange -> segmentRange.contains(frameId)).findFirst().get();
+  }
+
+  /**
+   * Method to check if the proposed number of datapoints exceeds the current max number of
+   * datapoints. Used in case the data points of a frame are altered. E.g. when a MZML IMS file is
+   * imported. At that point, no summed frame is available and will have to be created later on.
+   *
+   * @param proposedValue The proposed number of data points.
+   */
+  public void updateMaxRawDataPoints(int proposedValue) {
+    if (proposedValue > getMaxRawDataPoints()) {
+      maxRawDataPoints = proposedValue;
+    }
   }
 
 }

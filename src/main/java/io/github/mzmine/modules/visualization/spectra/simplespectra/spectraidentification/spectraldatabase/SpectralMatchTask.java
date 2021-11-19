@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
@@ -44,11 +44,15 @@ import java.awt.Color;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Spectral match task to compare single spectra with spectral databases
@@ -75,6 +79,7 @@ public class SpectralMatchTask extends AbstractTask {
   private final int minMatch;
   private List<SpectralDBEntry> list;
   private int totalSteps;
+  private final boolean removePrecursor;
 
   private List<SpectralDBFeatureIdentity> matches;
   private SpectraIdentificationResultsWindowFX resultWindow;
@@ -107,8 +112,8 @@ public class SpectralMatchTask extends AbstractTask {
 
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan,
-      SpectraIdentificationResultsWindowFX resultWindow) {
-    super(null); // no new data stored -> null
+      SpectraIdentificationResultsWindowFX resultWindow, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.startEntry = startEntry;
     this.list = list;
@@ -152,6 +157,9 @@ public class SpectralMatchTask extends AbstractTask {
     cropSpectraToOverlap = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.cropSpectraToOverlap)
         .getValue();
+
+    removePrecursor =
+        parameters.getParameter(LocalSpectralDBSearchParameters.removePrecursor).getValue();
   }
 
   /**
@@ -209,7 +217,8 @@ public class SpectralMatchTask extends AbstractTask {
 
         SpectralSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null && (!needsIsotopePattern
-            || checkForIsotopePattern(sim, mzToleranceSpectra, minMatchedIsoSignals))) {
+                            || checkForIsotopePattern(sim, mzToleranceSpectra,
+            minMatchedIsoSignals))) {
           count++;
           // use SpectralDBFeatureIdentity to store all results similar
           // to peaklist method
@@ -303,10 +312,24 @@ public class SpectralMatchTask extends AbstractTask {
         query = cropped[1];
       }
 
+      if (usePrecursorMZ && removePrecursor && ident.getPrecursorMZ() != null) {
+        // precursor mz from library entry for signal filtering
+        double precursorMZ = ident.getPrecursorMZ();
+        // remove from both spectra
+        library = removePrecursor(library, precursorMZ);
+        query = removePrecursor(query, precursorMZ);
+      }
+
       // check spectra similarity
       return createSimilarity(library, query);
     }
     return null;
+  }
+
+  private DataPoint[] removePrecursor(DataPoint[] masslist, double precursorMZ) {
+    return Arrays.stream(masslist)
+        .filter(dp -> !mzTolerancePrecursor.checkWithinTolerance(dp.getMZ(), precursorMZ))
+        .toArray(DataPoint[]::new);
   }
 
   /**
@@ -333,7 +356,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   private boolean checkPrecursorMZ(double precursorMZ, SpectralDBEntry ident) {
     return ident.getPrecursorMZ() != null
-        && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
+           && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
   }
 
   /**

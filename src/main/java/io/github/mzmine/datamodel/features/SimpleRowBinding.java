@@ -12,16 +12,14 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.BindingsFactoryType;
 import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
-import javafx.beans.binding.ObjectBinding;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Create standard RowBindings for AVERAGE, SUM, MAX, MIN, RANGES, etc Specific {@link DataType}s
@@ -31,28 +29,29 @@ import javafx.beans.binding.ObjectBinding;
  */
 public class SimpleRowBinding implements RowBinding {
 
-  private final DataType rowType;
-  private final BindingsFactoryType featureType;
-  private final BindingsType bindingType;
+  private final @NotNull DataType rowType;
+  private final @NotNull DataType featureType;
+  private final @NotNull BindingsType bindingType;
 
-  public SimpleRowBinding(BindingsFactoryType featureAndRowType, BindingsType bindingType) {
-    this((DataType) featureAndRowType, featureAndRowType, bindingType);
+  public SimpleRowBinding(@NotNull DataType<?> featureAndRowType,
+      @NotNull BindingsType bindingType) {
+    this(featureAndRowType, featureAndRowType, bindingType);
   }
 
-  public SimpleRowBinding(DataType rowType, BindingsFactoryType featureType,
-      BindingsType bindingType) {
+  public SimpleRowBinding(@NotNull DataType<?> rowType, @NotNull DataType<?> featureType,
+      @NotNull BindingsType bindingType) {
     super();
-    assert featureType instanceof DataType : "feature type needs to be a DataType";
     this.rowType = rowType;
     this.featureType = featureType;
     this.bindingType = bindingType;
   }
 
   @Override
-  public void apply(ModularFeatureListRow row) {
-    if (row.get(rowType) != null) {
-      ObjectBinding<?> binding = featureType.createBinding(bindingType, row);
-      row.get(rowType).bind(binding);
+  public void apply(FeatureListRow row) {
+    // row might be null if the feature was not yet added
+    if (row != null) {
+      Object value = featureType.evaluateBindings(bindingType, row.getFeatures());
+      row.set(rowType, value);
     }
   }
 
@@ -63,6 +62,18 @@ public class SimpleRowBinding implements RowBinding {
 
   @Override
   public DataType getFeatureType() {
-    return (DataType) featureType;
+    return featureType;
+  }
+
+  @Override
+  public void valueChanged(ModularDataModel dataModel, DataType type, Object oldValue,
+      Object newValue) {
+    if (dataModel instanceof Feature feature) {
+      // change in feature applied to its row
+      apply(feature.getRow());
+    } else {
+      throw new UnsupportedOperationException(
+          "Cannot apply a SimpleRowBinding if the changed data model is not a Feature");
+    }
   }
 }

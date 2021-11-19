@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.chromatogram;
@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
@@ -44,7 +45,7 @@ import javafx.collections.ObservableList;
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
  * create separate data set for each file because the user may add/remove files later.
- *
+ * <p>
  * Added the possibility to switch to TIC plot type from a "non-TICVisualizerWindow" context.
  */
 public class TICDataSet extends AbstractXYZDataset implements Task {
@@ -75,6 +76,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   private final Range<Double> mzRange;
   private double intensityMin;
   private double intensityMax;
+  private TICVisualizerTab window;
 
   private TaskStatus status;
   private String errorMessage;
@@ -87,10 +89,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
   /**
    * Create the data set.
    *
-   * @param file data file to plot.
-   * @param scans scans to plot.
+   * @param file    data file to plot.
+   * @param scans   scans to plot.
    * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param window  visualizer window.
    */
   public TICDataSet(final RawDataFile file, final ObservableList<Scan> scans,
       final Range<Double> rangeMZ, final TICVisualizerTab window) {
@@ -102,10 +104,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * Create the data set + possibility to specify a plot type, even outside a "TICVisualizerWindow"
    * context.
    *
-   * @param file data file to plot.
-   * @param scans scans to plot.
-   * @param rangeMZ range of m/z to plot.
-   * @param window visualizer window.
+   * @param file     data file to plot.
+   * @param scans    scans to plot.
+   * @param rangeMZ  range of m/z to plot.
+   * @param window   visualizer window.
    * @param plotType plot type.
    */
   public TICDataSet(final RawDataFile file, final List<Scan> scans, final Range<Double> rangeMZ,
@@ -121,6 +123,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     processedScans = 0;
     intensityMin = 0.0;
     intensityMax = 0.0;
+    this.window = window;
 
     status = TaskStatus.WAITING;
     errorMessage = null;
@@ -248,7 +251,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
    * Returns index of data point which exactly matches given X and Y values
    *
    * @param retentionTime retention time.
-   * @param intensity intensity.
+   * @param intensity     intensity.
    * @return the nearest data point index.
    */
   public int getIndex(final double retentionTime, final double intensity) {
@@ -359,6 +362,15 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     // Determine plot type (now done from constructor).
     final TICPlotType plotType = this.plotType;
 
+    // fix for imZML files without a retention time in their scans -> crashes TIC Plot
+    boolean useScanNumberAsRt = Double
+        .compare(scans.get(0).getRetentionTime(), scans.get(scans.size() - 1).getRetentionTime())
+        == 0;
+    if(useScanNumberAsRt && window != null) {
+      final NumberAxis axis = (NumberAxis) window.getTICPlot().getXYPlot().getDomainAxis();
+      MZmineCore.runLater(() -> axis.setLabel("Scan number"));
+    }
+
     // Process each scan.
     for (int index = 0; status != TaskStatus.CANCELED && index < totalScans; index++) {
 
@@ -388,7 +400,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       }
 
       intensityValues[index] = intensity;
-      rtValues[index] = scan.getRetentionTime();
+      rtValues[index] = useScanNumberAsRt ? scan.getScanNumber() : scan.getRetentionTime();
 
       // Update min and max.
       if (index == 0) {

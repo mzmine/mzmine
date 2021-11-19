@@ -1,28 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.maths.similarity;
-
 import java.util.Arrays;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-
 import io.github.mzmine.util.maths.Transform;
 
 /**
@@ -33,25 +31,34 @@ import io.github.mzmine.util.maths.Transform;
  */
 public abstract class Similarity {
 
+  // #############################################
+  // abstract methods
+  /**
+   *
+   * @param data data[dp][0,1]
+   * @return
+   */
+  public abstract double calc(double[][] data);
+
+
   // Measures
   public static final Similarity COSINE = new Similarity() {
-    @Override
     public double calc(double[][] data) {
       return dot(data) / (Math.sqrt(norm(data, 0)) * Math.sqrt(norm(data, 1)));
     }
   };
 
+
   /**
    * Log ratio proportionality
    * https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004075
-   * 
-   * 
+   *
+   *
    */
-  public static final Similarity logger_VAR_PROPORTIONALITY = new Similarity() {
-    @Override
+  public static final Similarity LOG_VAR_PROPORTIONALITY = new Similarity() {
     public double calc(double[][] data) {
-      double[] logratioXY = transform(ratio(data, 0, 1), Transform.logger);
-      double[] logx = transform(col(data, 0), Transform.logger);
+      double[] logratioXY = transform(ratio(data, 0, 1), Transform.LOG);
+      double[] logx = transform(col(data, 0), Transform.LOG);
       return var(logratioXY) / var(logx);
     }
   };
@@ -59,22 +66,21 @@ public abstract class Similarity {
   /**
    * Log ratio proportionality -1 to 1
    * https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004075
-   * 
-   * 
+   *
+   *
    */
-  public static final Similarity logger_VAR_CONCORDANCE = new Similarity() {
-    @Override
+  public static final Similarity LOG_VAR_CONCORDANCE = new Similarity() {
     public double calc(double[][] data) {
-      double[] logx = transform(col(data, 0), Transform.logger);
-      double[] logy = transform(col(data, 1), Transform.logger);
+      double[] logx = transform(col(data, 0), Transform.LOG);
+      double[] logy = transform(col(data, 1), Transform.LOG);
       return 2 * covar(logx, logy) / (var(logx) + var(logy));
     }
   };
+
   /**
    * Spearmans correlation:
    */
   public static final Similarity SPEARMANS_CORR = new Similarity() {
-    @Override
     public double calc(double[][] data) {
       SpearmansCorrelation corr = new SpearmansCorrelation();
       return corr.correlation(col(data, 0), col(data, 1));
@@ -84,7 +90,6 @@ public abstract class Similarity {
    * Pearson correlation:
    */
   public static final Similarity PEARSONS_CORR = new Similarity() {
-    @Override
     public double calc(double[][] data) {
       PearsonsCorrelation corr = new PearsonsCorrelation();
       return corr.correlation(col(data, 0), col(data, 1));
@@ -95,14 +100,12 @@ public abstract class Similarity {
    * slope
    */
   public static final Similarity REGRESSION_SLOPE = new Similarity() {
-
     public SimpleRegression getRegression(double[][] data) {
       SimpleRegression reg = new SimpleRegression();
       reg.addData(data);
       return reg;
     }
 
-    @Override
     public double calc(double[][] data) {
       return getRegression(data).getSlope();
     }
@@ -116,14 +119,12 @@ public abstract class Similarity {
    * slope
    */
   public static final Similarity REGRESSION_SLOPE_SIGNIFICANCE = new Similarity() {
-
     public SimpleRegression getRegression(double[][] data) {
       SimpleRegression reg = new SimpleRegression();
       reg.addData(data);
       return reg;
     }
 
-    @Override
     public double calc(double[][] data) {
       return getRegression(data).getSignificance();
     }
@@ -142,14 +143,6 @@ public abstract class Similarity {
     return max / min;
   }
 
-  // #############################################
-  // abstract methods
-  /**
-   * 
-   * @param data data[dp][0,1]
-   * @return
-   */
-  public abstract double calc(double[][] data);
 
   public double[] col(double[][] data, int i) {
     double[] v = new double[data.length];

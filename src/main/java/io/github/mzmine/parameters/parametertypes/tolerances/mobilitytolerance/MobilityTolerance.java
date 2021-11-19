@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance;
@@ -28,21 +28,21 @@ import com.google.common.collect.Range;
  */
 public class MobilityTolerance {
 
-  private final double tolerance;
+  private final float tolerance;
 
-  public MobilityTolerance(final double tolerance) {
+  public MobilityTolerance(final float tolerance) {
     this.tolerance = tolerance;
   }
 
-  public double getTolerance() {
+  public float getTolerance() {
     return tolerance;
   }
 
-  public Range<Double> getToleranceRange(final double mobility) {
+  public Range<Float> getToleranceRange(final float mobility) {
     return Range.closed(mobility - tolerance, mobility + tolerance);
   }
 
-  public boolean checkWithinTolerance(final double mobility1, final double mobility2) {
+  public boolean checkWithinTolerance(final float mobility1, final float mobility2) {
     return getToleranceRange(mobility1).contains(mobility2);
   }
 

@@ -1,26 +1,27 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.scans.similarity.impl.cosine;
 
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.parameters.ParameterSet;
@@ -49,14 +50,14 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
     double minCos =
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.minCosine).getValue();
-    boolean removeUnmatched = parameters
-        .getParameter(WeightedCosineSpectralSimilarityParameters.removeUnmatched).getValue();
+    HandleUnmatchedSignalOptions handleUnmatched = parameters
+        .getParameter(WeightedCosineSpectralSimilarityParameters.handleUnmatched).getValue();
 
     // align
     List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     // removes all signals which were not found in both masslists
-    if (removeUnmatched)
-      aligned = removeUnaligned(aligned);
+    aligned = handleUnmatched.handleUnmatched(aligned);
+
     // overlapping within mass tolerance
     int overlap = calcOverlap(aligned);
 
@@ -74,7 +75,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
     return "Weighted dot-product cosine";
   }

@@ -8,61 +8,94 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the im plied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.features.correlation.R2RMap;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
+import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataTypeUtils;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.RawDataFile;
-import javax.annotation.Nullable;
+import javafx.collections.ObservableMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Interface for feature list
  */
 public interface FeatureList {
 
-  /**
-   * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge conflicts.
-   */
-  public interface FeatureListAppliedMethod {
-
-    @Nonnull
-    public String getDescription();
-
-    /**
-     * This {@link FeatureListAppliedMethod} stores a clone of the original parameter set.
-     *
-     * @return A clone of the parameter set stored in this object, so the stored values cannot be
-     * edited.
-     */
-    @Nonnull
-    public ParameterSet getParameters();
-
-    public MZmineModule getModule();
-  }
+  @NotNull
+  String getNameProperty();
 
   /**
    * @return Short descriptive name for the feature list
    */
-  public String getName();
+  @NotNull
+  String getName();
 
   /**
    * Change the name of this feature list
+   *
+   * @return the actually set name after checking for resticted symbols and duplicate names
    */
-  public void setName(String name);
+  String setName(@NotNull String name);
+
+  void addRowBinding(@NotNull List<RowBinding> bindings);
+
+  void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
+
+  void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);
+
+  void removeFeatureTypeListener(DataType featureType,
+      DataTypeValueChangeListener listener);
+
+  /**
+   * Apply all row bindings to row (e.g., calculating the average m/z etc)
+   *
+   * @param row
+   */
+  void applyRowBindings(FeatureListRow row);
+
+  ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
+
+  void addFeatureType(Collection<DataType> types);
+
+  void addFeatureType(@NotNull DataType<?>... types);
+
+  void addRowType(Collection<DataType> types);
+
+  void addRowType(@NotNull DataType<?>... types);
+
+  ObservableMap<Class<? extends DataType>, DataType> getRowTypes();
+
+  boolean hasFeatureType(Class typeClass);
+
+  boolean hasRowType(Class typeClass);
 
   /**
    * Returns number of raw data files participating in the feature list
@@ -98,12 +131,12 @@ public interface FeatureList {
    * @param row         Row of the feature list
    * @param rawDataFile Raw data file where the feature is detected/estimated
    */
-  public Feature getFeature(int row, RawDataFile rawDataFile);
+  public ModularFeature getFeature(int row, RawDataFile rawDataFile);
 
   /**
    * Returns all features for a raw data file
    */
-  public ObservableList<Feature> getFeatures(RawDataFile rawDataFile);
+  public List<ModularFeature> getFeatures(RawDataFile rawDataFile);
 
   /**
    * Returns all features on one row
@@ -114,6 +147,15 @@ public interface FeatureList {
    * Returns all feature list rows
    */
   public ObservableList<FeatureListRow> getRows();
+
+  /**
+   * Creates a stream of FeatureListRows
+   *
+   * @return
+   */
+  default Stream<FeatureListRow> stream(boolean parallel) {
+    return parallel ? parallelStream() : stream();
+  }
 
   /**
    * Creates a stream of FeatureListRows
@@ -134,15 +176,23 @@ public interface FeatureList {
    *
    * @return
    */
-  public Stream<Feature> streamFeatures();
+  default Stream<ModularFeature> streamFeatures(boolean parallel) {
+    return parallel ? parallelStreamFeatures() : streamFeatures();
+  }
+
+  /**
+   * Stream of all features across all samples
+   *
+   * @return
+   */
+  public Stream<ModularFeature> streamFeatures();
 
   /**
    * Parallel stream of all rows.features across all samples
    *
    * @return
    */
-  public Stream<Feature> parallelStreamFeatures();
-
+  public Stream<ModularFeature> parallelStreamFeatures();
 
   /**
    * The selected scans to build this feature/chromatogram
@@ -151,7 +201,7 @@ public interface FeatureList {
    * @param scans all filtered scans that were used to build the chromatogram in the first place.
    *              For ion mobility data, the Frames are returned
    */
-  void setSelectedScans(@Nonnull RawDataFile file, @Nullable List<? extends Scan> scans);
+  void setSelectedScans(@NotNull RawDataFile file, @Nullable List<? extends Scan> scans);
 
   /**
    * @param file the data file
@@ -159,21 +209,21 @@ public interface FeatureList {
    * returned.
    */
   @Nullable
-  List<? extends Scan> getSeletedScans(@Nonnull RawDataFile file);
+  List<? extends Scan> getSeletedScans(@NotNull RawDataFile file);
 
   /**
    * Returns all rows with average retention time within given range
    *
    * @param rtRange Retention time range
    */
-  public ObservableList<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
+  public List<FeatureListRow> getRowsInsideScanRange(Range<Float> rtRange);
 
   /**
    * Returns all rows with average m/z within given range
    *
    * @param mzRange m/z range
    */
-  public ObservableList<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
+  public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange);
 
   /**
    * Returns all rows with average m/z and retention time within given range
@@ -181,7 +231,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public ObservableList<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
+  public List<FeatureListRow> getRowsInsideScanAndMZRange(Range<Float> rtRange,
       Range<Double> mzRange);
 
   /**
@@ -190,7 +240,7 @@ public interface FeatureList {
    * @param file    Raw data file
    * @param rtRange Retention time range
    */
-  public ObservableList<Feature> getFeaturesInsideScanRange(RawDataFile file, Range<Float> rtRange);
+  public List<Feature> getFeaturesInsideScanRange(RawDataFile file, Range<Float> rtRange);
 
   /**
    * Returns all features in a given m/z range
@@ -198,7 +248,7 @@ public interface FeatureList {
    * @param file    Raw data file
    * @param mzRange m/z range
    */
-  public ObservableList<Feature> getFeaturesInsideMZRange(RawDataFile file, Range<Double> mzRange);
+  public List<Feature> getFeaturesInsideMZRange(RawDataFile file, Range<Double> mzRange);
 
   /**
    * Returns all features in a given m/z & retention time ranges
@@ -207,7 +257,7 @@ public interface FeatureList {
    * @param rtRange Retention time range
    * @param mzRange m/z range
    */
-  public ObservableList<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file,
+  public List<Feature> getFeaturesInsideScanAndMZRange(RawDataFile file,
       Range<Float> rtRange,
       Range<Double> mzRange);
 
@@ -278,5 +328,145 @@ public interface FeatureList {
 
   default boolean isAligned() {
     return getNumberOfRawDataFiles() > 1;
+  }
+
+  /**
+   * List of RowGroups group features based on different methods
+   *
+   * @return
+   */
+  List<RowGroup> getGroups();
+
+  /**
+   * List of RowGroups group features based on different methods
+   */
+  void setGroups(List<RowGroup> groups);
+
+  /**
+   * Add row-to-row relationships
+   *
+   * @param a            rows in any order
+   * @param b            rows in any order
+   * @param relationship the relationship between a and b
+   */
+  void addRowsRelationship(FeatureListRow a, FeatureListRow b, RowsRelationship relationship);
+
+  /**
+   * Add row-to-row relationships to a specific master list for {@link Type}.
+   *
+   * @param map          a map of relationships
+   * @param relationship the relationship type between the pairs of rows
+   */
+  void addRowsRelationships(R2RMap<? extends RowsRelationship> map, Type relationship);
+
+  /**
+   * Short cut to get the MS1 correlation map of grouped features
+   *
+   * @return the map for {@link Type#MS1_FEATURE_CORR}
+   */
+  default R2RMap<RowsRelationship> getMs1CorrelationMap() {
+    return getRowMap(Type.MS1_FEATURE_CORR);
+  }
+
+  /**
+   * Short cut to get the MS2 spectral similarity map of grouped features
+   *
+   * @return the map for {@link Type#MS2_COSINE_SIM}
+   */
+  default R2RMap<RowsRelationship> getMs2SimilarityMap() {
+    return getRowMap(Type.MS2_COSINE_SIM);
+  }
+
+  /**
+   * A mutable map of row-to-row relationships. See {@link #addRowsRelationships(R2RMap, Type)} to
+   * add.
+   *
+   * @param relationship the relationship between two rows
+   * @return
+   */
+  @Nullable
+  default R2RMap<RowsRelationship> getRowMap(Type relationship) {
+    return getRowMaps().get(relationship);
+  }
+
+  /**
+   * An immutable map to store different relationships
+   *
+   * @return a map that stores different relationship maps
+   */
+  @NotNull
+  Map<Type, R2RMap<RowsRelationship>> getRowMaps();
+
+  /**
+   * Maps {@link Feature} DataType listeners, e.g., for calculating the mean values for a DataType
+   * over all features into a row DataType
+   *
+   * @return map of feature DataType listeners
+   */
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getFeatureTypeChangeListeners();
+
+  /**
+   * Maps {@link FeatureListRow} DataType listeners, e.g., for graphical representations
+   *
+   * @return map of feature DataType listeners
+   */
+  @NotNull Map<DataType<?>, List<DataTypeValueChangeListener<?>>> getRowTypeChangeListeners();
+
+  /**
+   * @param row
+   * @param newFeature
+   * @param raw
+   */
+  default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw) {
+    applyRowBindings(row);
+
+    if (newFeature != null) {
+      boolean isImagingFile = raw instanceof ImagingRawDataFile;
+      if (newFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (hasRowType(RTType.class) && !isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_CHROMATOGRAPHIC_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+    }
+  }
+
+  /**
+   * TODO: extract interface and rename to AppliedMethod. Not doing it now to avoid merge
+   * conflicts.
+   */
+  public interface FeatureListAppliedMethod {
+
+    @NotNull
+    public String getDescription();
+
+    /**
+     * This {@link FeatureListAppliedMethod} stores a clone of the original parameter set.
+     *
+     * @return A clone of the parameter set stored in this object, so the stored values cannot be
+     * edited.
+     */
+    @NotNull
+    public ParameterSet getParameters();
+
+    public MZmineModule getModule();
+
+    public Instant getModuleCallDate();
+
+    public void saveValueToXML(Element element);
   }
 }

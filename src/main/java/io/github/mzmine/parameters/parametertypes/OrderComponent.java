@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Arrays;
 import io.github.mzmine.util.javafx.DraggableListCell;
+import java.util.Arrays;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ListView;
 
@@ -35,7 +35,15 @@ public class OrderComponent<ValueType> extends ListView<ValueType> {
     // Border border = BorderFactory.createEtchedBorder();
     // setBorder(border);
 
-    setCellFactory(param -> new DraggableListCell<ValueType>());
+    setCellFactory(param -> new DraggableListCell<>() {
+      @Override
+      protected void updateItem(ValueType item, boolean empty) {
+        super.updateItem(item, empty);
+        if(!empty && item != null) {
+          setText(item.toString());
+        }
+      }
+    });
 
     // Adjust the size of the component
     setPrefWidth(150);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,26 +8,27 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.datamodel.ImagingRawDataFile;
+import io.github.mzmine.datamodel.ImagingScan;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.io.import_rawdata_imzml.Coordinates;
+import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import io.github.mzmine.datamodel.ImagingRawDataFile;
-import io.github.mzmine.datamodel.ImagingScan;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_imzml.Coordinates;
-import io.github.mzmine.modules.io.import_imzml.ImagingParameters;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRawDataFile {
@@ -42,8 +43,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
   private Scan[][][] xyzScanNumbers;
 
 
-  public ImagingRawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
-    super(dataFileName, storage);
+  public ImagingRawDataFileImpl(String dataFileName, @Nullable final String absPath,
+      MemoryMapStorage storage) throws IOException {
+    super(dataFileName, absPath, storage);
   }
 
   @Override
@@ -61,14 +63,15 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     //
     Scan[][][] numbers = getXYZScanNumbers();
     // yline:
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
     if (ix >= 0 && ix < numbers.length && iy >= 0 && iy < numbers[ix].length
-        && numbers[ix][iy][0] != null)
+        && numbers[ix][iy][0] != null) {
       return numbers[ix][iy][0];
-    else
+    } else {
       return null;
+    }
   }
 
   @Override
@@ -82,10 +85,10 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     y2 = Math.max(tmp, y2);
 
     Scan[][][] numbers = getXYZScanNumbers();
-    int iy = (int) ((y) / param.getPixelShape());
+    int iy = (int) ((y) / param.getPixelHeight());
     int ix = (int) (x / param.getPixelWidth());
 
-    int iy2 = (int) ((y2) / param.getPixelShape());
+    int iy2 = (int) ((y2) / param.getPixelHeight());
     int ix2 = (int) (x2 / param.getPixelWidth());
 
     List<Scan> list = new ArrayList<>();
@@ -93,8 +96,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
     if (ix >= 0 && ix2 < numbers.length && iy >= 0 && iy2 < numbers[ix2].length) {
       for (int i = ix; i <= ix2; i++) {
         for (int k = iy; k <= iy2; k++) {
-          if (numbers[i][k][0] != null)
+          if (numbers[i][k][0] != null) {
             list.add(numbers[i][k][0]);
+          }
         }
       }
     }
@@ -124,8 +128,9 @@ public class ImagingRawDataFileImpl extends RawDataFileImpl implements ImagingRa
         if (numbers.get(i) instanceof ImagingScan) {
           Coordinates c = ((ImagingScan) numbers.get(i)).getCoordinates();
           if (c.getX() < param.getMaxNumberOfPixelX() && c.getY() < param.getMaxNumberOfPixelY()
-              && c.getZ() < param.getMaxNumberOfPixelZ())
+              && c.getZ() < param.getMaxNumberOfPixelZ()) {
             xyzScanNumbers[c.getX()][c.getY()][c.getZ()] = numbers.get(i);
+          }
         }
       }
     }

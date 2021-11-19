@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,45 +8,50 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.projectsave;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Hashtable;
-import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.xml.transform.TransformerConfigurationException;
-
-import org.xml.sax.SAXException;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
-import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.StreamCopy;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import javafx.scene.control.ButtonType;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import org.jetbrains.annotations.NotNull;
+import org.xml.sax.SAXException;
 
 public class ProjectSavingTask extends AbstractTask {
 
   public static final String VERSION_FILENAME = "MZMINE_VERSION";
+  public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
   public static final String CONFIG_FILENAME = "configuration.xml";
   public static final String PARAMETERS_FILENAME = "User parameters.xml";
 
@@ -66,8 +71,9 @@ public class ProjectSavingTask extends AbstractTask {
   // This hashtable maps raw data files to their ID within the saved project
   private Hashtable<RawDataFile, String> dataFilesIDMap;
 
-  public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
-    super(null);
+  public ProjectSavingTask(MZmineProject project, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
     this.savedProject = (MZmineProjectImpl) project;
     this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
     dataFilesIDMap = new Hashtable<RawDataFile, String>();
@@ -79,8 +85,9 @@ public class ProjectSavingTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    if (currentSavedObjectName == null)
+    if (currentSavedObjectName == null) {
       return "Saving project";
+    }
     return "Saving project (" + currentSavedObjectName + ")";
   }
 
@@ -90,19 +97,22 @@ public class ProjectSavingTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
 
-    if (totalSaveItems == 0)
+    if (totalSaveItems == 0) {
       return 0.0;
+    }
 
     double currentItemProgress = 0.0;
 
     switch (currentStage) {
       case 2:
-        if (rawDataFileSaveHandler != null)
+        if (rawDataFileSaveHandler != null) {
           currentItemProgress = rawDataFileSaveHandler.getProgress();
+        }
         break;
       case 3:
-        if (peakListSaveHandler != null)
+        if (peakListSaveHandler != null) {
           currentItemProgress = peakListSaveHandler.getProgress();
+        }
         break;
       case 4:
       case 5:
@@ -126,14 +136,17 @@ public class ProjectSavingTask extends AbstractTask {
 
     setStatus(TaskStatus.CANCELED);
 
-    if (rawDataFileSaveHandler != null)
+    if (rawDataFileSaveHandler != null) {
       rawDataFileSaveHandler.cancel();
+    }
 
-    if (peakListSaveHandler != null)
+    if (peakListSaveHandler != null) {
       peakListSaveHandler.cancel();
+    }
 
-    if (userParameterSaveHandler != null)
+    if (userParameterSaveHandler != null) {
       userParameterSaveHandler.cancel();
+    }
 
   }
 
@@ -145,6 +158,26 @@ public class ProjectSavingTask extends AbstractTask {
     try {
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
+
+      if (!MZmineCore.isHeadLessMode() && (savedProject.isStandalone() == null || (
+          savedProject.isStandalone() != null && savedProject.isStandalone() == false))) {
+        ButtonType btn = MZmineCore.getDesktop().displayConfirmation(
+            "Would you like to save a standalone project?\n\nIf yes, raw data files will be "
+                + "copied into the project file. Otherwise the project will require that all raw "
+                + "files stay in the same directories.\n<b>WARNING</b> If this is an existing "
+                + "project, it is recommended to save it in the same way.", ButtonType.YES,
+            ButtonType.NO, ButtonType.CANCEL);
+        if (btn == ButtonType.CANCEL) {
+          setStatus(TaskStatus.FINISHED);
+          return;
+        } else if (btn == ButtonType.YES) {
+          savedProject.setStandalone(true);
+        } else {
+          savedProject.setStandalone(false);
+        }
+      } else {
+        savedProject.setStandalone(true);
+      }
 
       // Prepare a temporary ZIP file. We create this file in the same
       // directory as the final saveFile to avoid moving between
@@ -159,6 +192,7 @@ public class ProjectSavingTask extends AbstractTask {
       // Stage 1 - save version and configuration
       currentStage++;
       saveVersion(zipStream);
+      saveStandalone(zipStream);
       saveConfiguration(zipStream);
       if (isCanceled()) {
         zipStream.close();
@@ -239,8 +273,9 @@ public class ProjectSavingTask extends AbstractTask {
       if (currentSavedObjectName == null) {
         setErrorMessage("Failed saving the project: " + ExceptionUtils.exceptionToString(e));
       } else {
-        setErrorMessage("Failed saving the project. Error while saving " + currentSavedObjectName
-            + ": " + ExceptionUtils.exceptionToString(e));
+        setErrorMessage(
+            "Failed saving the project. Error while saving " + currentSavedObjectName + ": "
+                + ExceptionUtils.exceptionToString(e));
       }
 
     }
@@ -248,22 +283,30 @@ public class ProjectSavingTask extends AbstractTask {
 
   /**
    * Save the version info
-   * 
+   *
    * @throws java.io.IOException
    */
   private void saveVersion(ZipOutputStream zipStream) throws IOException {
 
     zipStream.putNextEntry(new ZipEntry(VERSION_FILENAME));
 
-    String MZmineVersion = MZmineCore.getMZmineVersion();
+    String MZmineVersion = String.valueOf(MZmineCore.getMZmineVersion());
 
     zipStream.write(MZmineVersion.getBytes());
 
   }
 
+  private void saveStandalone(ZipOutputStream zipStream) throws IOException {
+    if (savedProject.isStandalone()) {
+      zipStream.putNextEntry(new ZipEntry(STANDALONE_FILENAME));
+      String MZmineVersion = STANDALONE_FILENAME;
+      zipStream.write(MZmineVersion.getBytes());
+    }
+  }
+
   /**
    * Save the configuration file.
-   * 
+   *
    * @throws java.io.IOException
    */
   private void saveConfiguration(ZipOutputStream zipStream) throws IOException {
@@ -288,82 +331,104 @@ public class ProjectSavingTask extends AbstractTask {
       e.printStackTrace();
       logger.warning("Could not save configuration" + ExceptionUtils.exceptionToString(e));
     }
-
   }
 
   /**
    * Save the raw data files
-   * 
-   * @throws SAXException
-   * @throws TransformerConfigurationException
    */
   private void saveRawDataFiles(ZipOutputStream zipStream)
-      throws IOException, TransformerConfigurationException, SAXException {
+      throws IOException, ParserConfigurationException {
 
-    rawDataFileSaveHandler = new RawDataFileSaveHandler(zipStream);
+    AtomicBoolean finished = new AtomicBoolean(false);
+    rawDataFileSaveHandler = new RawDataFileSaveHandler(savedProject, zipStream,
+        Objects.requireNonNullElse(savedProject.isStandalone(), true), getModuleCallDate());
+    rawDataFileSaveHandler.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      switch (newStatus) {
+        case WAITING, PROCESSING -> {
+        }
+        case FINISHED -> {
+          finished.set(true);
+        }
+        case CANCELED -> {
+          finished.set(true);
+          setStatus(TaskStatus.CANCELED);
+        }
+        case ERROR -> {
+          finished.set(true);
+          setErrorMessage("Error while saving raw data files.");
+          setStatus(TaskStatus.ERROR);
+        }
+      }
+    });
+    MZmineCore.getTaskController().addTask(rawDataFileSaveHandler);
 
-    RawDataFile rawDataFiles[] = savedProject.getDataFiles();
-
-    for (int i = 0; i < rawDataFiles.length; i++) {
-
-      if (isCanceled())
-        return;
-
-      currentSavedObjectName = rawDataFiles[i].getName();
-      rawDataFileSaveHandler.writeRawDataFile((RawDataFileImpl) rawDataFiles[i], i + 1);
-      dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
-      finishedSaveItems++;
+    while (!finished.get() && !isCanceled()) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 
   /**
    * Save the feature lists
-   * 
+   *
    * @throws SAXException
    * @throws TransformerConfigurationException
    */
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    FeatureList peakLists[] = savedProject.getFeatureLists().toArray(new FeatureList[0]);
+    for (FeatureList featureList : savedProject.getFeatureLists()) {
+      FeatureListSaveTask saveTask = new FeatureListSaveTask((ModularFeatureList) featureList,
+          zipStream);
 
-    for (int i = 0; i < peakLists.length; i++) {
+      AtomicBoolean finished = new AtomicBoolean(false);
+      saveTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
+        switch (newStatus) {
+          case WAITING, PROCESSING -> {
+          }
+          case FINISHED, ERROR, CANCELED -> {
+            finished.set(true);
+          }
+        }
+      });
+      MZmineCore.getTaskController().addTask(saveTask);
 
-      if (isCanceled())
-        return;
+      while (!finished.get()) {
+        try {
+          Thread.sleep(50);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
 
-      logger.info("Saving feature list: " + peakLists[i].getName());
-
-      String peakListSavedName = "Peak list #" + (i + 1) + " " + peakLists[i].getName();
-
-      zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
-
-      peakListSaveHandler = new PeakListSaveHandler(zipStream, dataFilesIDMap);
-
-      currentSavedObjectName = peakLists[i].getName();
-      peakListSaveHandler.savePeakList(peakLists[i]);
-      finishedSaveItems++;
+      if (isCanceled()) {
+        break;
+      }
     }
   }
 
   /**
    * Save the feature lists
-   * 
+   *
    * @throws SAXException
    * @throws TransformerConfigurationException
    */
   private void saveUserParameters(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
 
     logger.info("Saving user parameters");
 
     zipStream.putNextEntry(new ZipEntry(PARAMETERS_FILENAME));
 
-    userParameterSaveHandler =
-        new UserParameterSaveHandler(zipStream, savedProject, dataFilesIDMap);
+    userParameterSaveHandler = new UserParameterSaveHandler(zipStream, savedProject,
+        dataFilesIDMap);
 
     currentSavedObjectName = "User parameters";
     userParameterSaveHandler.saveParameters();

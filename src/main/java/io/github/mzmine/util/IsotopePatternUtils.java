@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -25,7 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.openscience.cdk.interfaces.IIsotope;
 import com.google.common.collect.Range;
@@ -88,7 +88,7 @@ public class IsotopePatternUtils {
       // now check the ppm difference and compare the mass differences
       double ppm = getPpmDiff(p.getMZ(), dp.getMZ() + isoMzDiff);
       if (bestppm == null) {
-        bestppm = new Double(ppm);
+        bestppm = ppm;
         bestdp = p;
       } else if (bestppm != null && Math.abs(ppm) < Math.abs(bestppm.doubleValue())) {
         bestppm = ppm;
@@ -462,8 +462,8 @@ public class IsotopePatternUtils {
    * @param dp the ProcessedDataPoint to gather the list from.
    * @return List of all results, empty if no such results exists.
    */
-  public static @Nonnull List<DPPIsotopicPeakResult> getIsotopicPeakResults(
-      @Nonnull ProcessedDataPoint dp) {
+  public static @NotNull List<DPPIsotopicPeakResult> getIsotopicPeakResults(
+      @NotNull ProcessedDataPoint dp) {
     List<DPPIsotopicPeakResult> results = new ArrayList<>();
 
     if (!dp.resultTypeExists(ResultType.ISOTOPICPEAK))
@@ -483,8 +483,8 @@ public class IsotopePatternUtils {
    * @param dp
    * @return
    */
-  public static @Nonnull List<DPPIsotopePatternResult> getIsotopePatternResults(
-      @Nonnull ProcessedDataPoint dp) {
+  public static @NotNull List<DPPIsotopePatternResult> getIsotopePatternResults(
+      @NotNull ProcessedDataPoint dp) {
     List<DPPIsotopePatternResult> results = new ArrayList<>();
 
     if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
@@ -525,7 +525,7 @@ public class IsotopePatternUtils {
     return charges;
   }
 
-  public static @Nonnull List<Integer> getChargeStates(List<DPPIsotopicPeakResult> iprs) {
+  public static @NotNull List<Integer> getChargeStates(List<DPPIsotopicPeakResult> iprs) {
     List<Integer> charges = new ArrayList<Integer>();
 
     for (DPPIsotopicPeakResult ipr : iprs) {

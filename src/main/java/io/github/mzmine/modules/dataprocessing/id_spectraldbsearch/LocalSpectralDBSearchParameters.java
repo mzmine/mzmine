@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 
-import java.util.Collection;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
@@ -38,7 +37,9 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import java.util.Collection;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 
 public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
@@ -75,6 +76,11 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
 
+
+  public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
+      "For MS2 scans, remove precursor signal prior to matching (+- precursor m/z tolerance)",
+      false);
+
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
 
@@ -94,7 +100,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
       new ModuleComboParameter<>("Similarity",
           "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS);
+          SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
   /**
    * for SelectedRowsParameters
@@ -106,9 +112,9 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   }
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, dataBaseFile, msLevel, allMS2Spectra,
-        mzTolerancePrecursor, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
-        mzTolerance, rtTolerance, minMatch, similarityFunction});
+    super(new Parameter[]{peakLists, dataBaseFile, msLevel, allMS2Spectra,
+        mzTolerancePrecursor, removePrecursor, noiseLevel, deisotoping, needsIsotopePattern,
+        cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
   }
 
   @Override
@@ -128,22 +134,33 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
 
     int level = getParameter(msLevel).getValue() == null ? 2 : getParameter(msLevel).getValue();
 
     IntegerComponent msLevelComp = dialog.getComponentForParameter(msLevel);
+    CheckBox cRemovePrec = dialog.getComponentForParameter(removePrecursor);
+    CheckBox cAllMS2 = dialog.getComponentForParameter(allMS2Spectra);
     Node mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
+
     mzTolPrecursor.setDisable(level < 2);
+    cRemovePrec.setDisable(level < 2);
+    cAllMS2.setDisable(level < 2);
     msLevelComp.getTextField().setOnKeyTyped(e -> {
       try {
         int level2 = Integer.parseInt(msLevelComp.getText());
-        mzTolPrecursor.setDisable(level2 < 2);
+        boolean isMS1 = level2 == 1;
+        mzTolPrecursor.setDisable(isMS1);
+        cRemovePrec.setDisable(isMS1);
+        cAllMS2.setDisable(isMS1);
       } catch (Exception ex) {
         // do nothing user might be still typing
         mzTolPrecursor.setDisable(true);
+        cRemovePrec.setDisable(true);
+        cAllMS2.setDisable(true);
       }
     });
 

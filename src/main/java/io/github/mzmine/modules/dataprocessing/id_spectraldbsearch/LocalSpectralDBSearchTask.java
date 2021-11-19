@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
@@ -21,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -31,10 +31,13 @@ import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
@@ -50,8 +53,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private int totalTasks;
   private FeatureListRow[] rows;
 
-  public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public LocalSpectralDBSearchTask(FeatureList featureList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
     this.rows = featureList.getRows().toArray(FeatureListRow[]::new);
     this.parameters = parameters;
@@ -82,6 +85,10 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+
+    // add row type
+    featureList.addRowType(new SpectralLibraryMatchesType());
+
     int count = 0;
     try {
       tasks = parseFile(dataBaseFile);
@@ -121,7 +128,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Peak identification using MS/MS spectral database " + dataBaseFile,
-        LocalSpectralDBSearchModule.class, parameters));
+        LocalSpectralDBSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -142,7 +149,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
         RowsSpectralMatchTask task = new RowsSpectralMatchTask(featureList.getName(), rows, parameters,
-            alreadyProcessed + 1, list);
+            alreadyProcessed + 1, list, getModuleCallDate());
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

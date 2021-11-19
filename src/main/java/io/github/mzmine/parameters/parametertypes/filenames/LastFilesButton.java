@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javafx.beans.NamedArg;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -64,6 +65,10 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     init();
   }
 
+  public LastFilesButton(@NamedArg("text") String text) {
+    this(text, null);
+  }
+
   private void init() {
     setTooltip(new Tooltip("Load last files"));
     menu = new ContextMenu();
@@ -87,7 +92,7 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     }
     setDisable(false);
 
-    lastFiles.stream().forEach(file -> {
+    lastFiles.forEach(file -> {
       String name = fileToString(file);
       MenuItem item = new MenuItem(name);
       item.setUserData(file);
@@ -106,8 +111,9 @@ public class LastFilesButton extends Button implements LastFilesComponent {
   }
 
   public void addFile(File f) {
-    if (f == null)
+    if (f == null) {
       return;
+    }
 
     // add to last files if not already inserted
     lastFiles.remove(f);
@@ -115,4 +121,7 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     setLastFiles(lastFiles);
   }
 
+  public void setChangeListener(Consumer<File> changeListener) {
+    this.changeListener = changeListener;
+  }
 }

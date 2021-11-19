@@ -39,13 +39,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author aleksandrsmirnov
@@ -67,8 +68,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV2Task(final MZmineProject project, final ChromatogramPeakPair lists,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
     // Initialize.
     this.project = project;
     parameters = parameterSet;
@@ -148,7 +149,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     }
   }
 
-  private ModularFeatureList decomposePeaks(@Nonnull ChromatogramPeakPair lists) {
+  private ModularFeatureList decomposePeaks(@NotNull ChromatogramPeakPair lists) {
     RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
 
     // Create new feature list.
@@ -163,7 +164,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
-            ADAPMultivariateCurveResolutionModule.class, parameters));
+            ADAPMultivariateCurveResolutionModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
     List<BetterPeak> chromatograms = utils.getPeaks(lists.chromatograms);
@@ -257,8 +258,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     return decomposition.run(params, chromatograms, peaks);
   }
 
-  @Nonnull
-  private Feature getFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak) {
+  @NotNull
+  private Feature getFeature(@NotNull RawDataFile file, @NotNull BetterPeak peak) {
     Chromatogram chromatogram = peak.chromatogram;
 
     // Retrieve scan numbers

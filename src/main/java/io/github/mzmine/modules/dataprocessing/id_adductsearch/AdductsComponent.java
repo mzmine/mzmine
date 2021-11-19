@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 /*
@@ -24,6 +24,11 @@
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
+import com.Ostermiller.util.CSVParser;
+import com.Ostermiller.util.CSVPrinter;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -33,12 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.controlsfx.control.CheckListView;
-import com.Ostermiller.util.CSVParser;
-import com.Ostermiller.util.CSVPrinter;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.ExitCode;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -47,6 +46,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.controlsfx.control.CheckListView;
 
 /**
  * A component for selecting adducts.
@@ -122,7 +122,9 @@ public class AdductsComponent extends BorderPane {
       // Read the CSV file into a string array.
       String[][] csvLines = null;
       try {
-        csvLines = CSVParser.parse(new FileReader(file));
+        FileReader reader = new FileReader(file);
+        csvLines = CSVParser.parse(reader);
+        reader.close();
       } catch (IOException ex) {
         final String msg = "There was a problem reading the adducts file.";
         MZmineCore.getDesktop().displayErrorMessage(msg + "\n(" + ex.getMessage() + ')');
@@ -238,5 +240,6 @@ public class AdductsComponent extends BorderPane {
           String.valueOf(adduct.getMassDifference()) //
       });
     }
+    writer.close();
   }
 }

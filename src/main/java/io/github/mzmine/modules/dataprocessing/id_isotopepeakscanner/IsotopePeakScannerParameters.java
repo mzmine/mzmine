@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
@@ -105,12 +105,9 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
           + " This will greatly increase computation time but help with unknown-compound-identification.",
       new AutoCarbonParameters());
 
-  public static final BooleanParameter showPreview = new BooleanParameter("Show pattern preview",
-      "If selected this will add a preview chart of the calculated isotope pattern with the current settings.");
-
   public IsotopePeakScannerParameters() {
     super(new Parameter[]{PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
-        charge, minPatternIntensity, mergeWidth, showPreview, minHeight, checkIntensity, minRating,
+        charge, minPatternIntensity, mergeWidth, minHeight, checkIntensity, minRating,
         ratingChoices, calculate_accurate_average, suffix});
   }
 

@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
@@ -29,6 +28,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -56,6 +56,7 @@ public class FileNamesComponent extends FlowPane {
     txtFilename.setPrefColumnCount(40);
     txtFilename.setPrefRowCount(6);
     txtFilename.setFont(smallFont);
+    initDragDropped();
 
     Button btnFileBrowser = new Button("Select");
     btnFileBrowser.setOnAction(e -> {
@@ -65,7 +66,7 @@ public class FileNamesComponent extends FlowPane {
 
       fileChooser.getExtensionFilters().addAll(this.filters);
 
-      String currentPaths[] = txtFilename.getText().split("\n");
+      String[] currentPaths = txtFilename.getText().split("\n");
       if (currentPaths.length > 0) {
         File currentFile = new File(currentPaths[0].trim());
         File currentDir = currentFile.getParentFile();
@@ -173,4 +174,39 @@ public class FileNamesComponent extends FlowPane {
     txtFilename.setTooltip(new Tooltip(toolTip));
   }
 
+  private void initDragDropped() {
+    txtFilename.setOnDragOver(e -> {
+      if (e.getGestureSource() != this && e.getGestureSource() != txtFilename && e.getDragboard()
+          .hasFiles()) {
+        e.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+      }
+      e.consume();
+    });
+    txtFilename.setOnDragDropped(e -> {
+      if (e.getDragboard().hasFiles()) {
+        final List<File> files = e.getDragboard().getFiles();
+        final List<String> patterns = new ArrayList<>();
+
+        StringBuilder sb = new StringBuilder(txtFilename.getText());
+        if (!sb.toString().endsWith("\n")) {
+          sb.append("\n");
+        }
+
+        filters.stream().flatMap(f -> f.getExtensions().stream()).forEach(
+            extension -> patterns.add(extension.toLowerCase().replace("*", "").toLowerCase()));
+
+        for (File file : files) {
+          if (patterns.stream()
+              .anyMatch(filter -> file.getAbsolutePath().toLowerCase().endsWith(filter))) {
+            sb.append(file.getPath()).append("\n");
+          }
+        }
+
+        txtFilename.setText(sb.toString());
+
+        e.setDropCompleted(true);
+        e.consume();
+      }
+    });
+  }
 }

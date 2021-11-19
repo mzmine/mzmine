@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
@@ -239,12 +239,9 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           + " for error size vs m/z value. Please see the help file for more details.",
       biasEstimationChoices, BiasEstimationChoice.ARITHMETIC_MEAN.toString(), true, 250);
 
-  public static final StringParameter suffix = new StringParameter("Suffix",
-      "This string is added to mass list name as a suffix", "calibrated");
-
   public MassCalibrationParameters() {
     super(new Parameter[] {dataFiles, intensityThreshold, duplicateErrorFilter,
-        referenceLibrary, rangeExtractionMethod, biasEstimationMethod, suffix});
+        referenceLibrary, rangeExtractionMethod, biasEstimationMethod });
   }
 
   @Override

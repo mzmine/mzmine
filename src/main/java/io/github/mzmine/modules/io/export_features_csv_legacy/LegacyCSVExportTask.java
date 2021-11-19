@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,54 +8,60 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.export_features_csv_legacy;
 
+import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
-import io.github.mzmine.util.FeatureUtils;
-import java.io.File;
-import java.io.FileWriter;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
+import java.io.File;
+import java.io.FileWriter;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 public class LegacyCSVExportTask extends AbstractTask {
 
   private final FeatureList[] featureLists;
-  private int processedRows = 0, totalRows = 0;
-
   // parameter values
   private final File fileName;
   private final String plNamePattern = "{}";
   private final String fieldSeparator;
-  private final LegacyExportRowCommonElement[] commonElements;
+  private LegacyExportRowCommonElement[] commonElements;
   private final LegacyExportRowDataFileElement[] dataFileElements;
   private final Boolean exportAllFeatureInfo;
   private final String idSeparator;
   private final FeatureListRowsFilter filter;
+  private int processedRows = 0, totalRows = 0;
 
-  public LegacyCSVExportTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public LegacyCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -69,6 +75,17 @@ public class LegacyCSVExportTask extends AbstractTask {
         .getValue();
     idSeparator = parameters.getParameter(LegacyCSVExportParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(LegacyCSVExportParameters.filter).getValue();
+    refineCommonElements();
+  }
+
+  private void refineCommonElements() {
+    List<LegacyExportRowCommonElement> list = Lists.newArrayList(commonElements);
+
+    if (list.contains(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)
+        && list.contains(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT)) {
+      list.remove(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION);
+      commonElements = list.toArray(new LegacyExportRowCommonElement[list.size()]);
+    }
   }
 
   /**
@@ -84,8 +101,9 @@ public class LegacyCSVExportTask extends AbstractTask {
   public LegacyCSVExportTask(FeatureList[] featureLists, File fileName, String fieldSeparator,
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements,
-      Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter) {
-    super(null); // no new data stored -> null
+      Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter,
+      @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;
     this.fieldSeparator = fieldSeparator;
@@ -106,7 +124,8 @@ public class LegacyCSVExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to CSV file(s) (legacy MZmine 2 format)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists)
+           + " to CSV file(s) (legacy MZmine 2 format)";
   }
 
   @Override
@@ -188,11 +207,19 @@ public class LegacyCSVExportTask extends AbstractTask {
     int length = commonElements.length;
     String name;
     for (int i = 0; i < length; i++) {
-      name = commonElements[i].toString();
-      name = name.replace("Export ", "");
-      name = escapeStringForCSV(name);
-      line.append(name);
-      line.append(fieldSeparator);
+      if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT)) {
+        line.append("best ion" + fieldSeparator);
+        line.append("auto MS2 verify" + fieldSeparator);
+        line.append("identified by n=" + fieldSeparator);
+        line.append("partners" + fieldSeparator);
+      } else if (commonElements[i].equals(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION)) {
+        line.append("best ion" + fieldSeparator);
+      } else {
+        name = commonElements[i].toString();
+        name = name.replace("Export ", "");
+        name = escapeStringForCSV(name);
+        line.append(name + fieldSeparator);
+      }
     }
 
     // feature Information
@@ -315,6 +342,46 @@ public class LegacyCSVExportTask extends AbstractTask {
               }
             }
             line.append(numDetected + fieldSeparator);
+            break;
+          case ROW_CORR_GROUP_ID:
+            int gid = featureListRow.getGroupID();
+            line.append((gid == -1 ? "" : gid) + fieldSeparator);
+
+            break;
+          case ROW_MOL_NETWORK_ID:
+            IonIdentity ion = featureListRow.getBestIonIdentity();
+            line.append((ion == null ? "" : ion.getNetID()) + fieldSeparator);
+            break;
+          case ROW_BEST_ANNOTATION:
+            IonIdentity ion3 = featureListRow.getBestIonIdentity();
+            line.append((ion3 == null ? "" : ion3.getNetID()) + fieldSeparator);
+            break;
+          case ROW_BEST_ANNOTATION_AND_SUPPORT:
+            IonIdentity ad = featureListRow.getBestIonIdentity();
+            if (ad == null) {
+              line.append(fieldSeparator + fieldSeparator + fieldSeparator + fieldSeparator);
+            } else {
+              String msms = "";
+              if (ad.getMSMSModVerify() > 0) {
+                msms = "MS/MS verified: nloss";
+              }
+              if (ad.getMSMSMultimerCount() > 0) {
+                msms += msms.isEmpty() ? "MS/MS verified: xmer" : (idSeparator + " xmer");
+              }
+              String partners = ad.getPartnerRowsString(idSeparator);
+              line.append(ad.getIonType().toString(false) + fieldSeparator //
+                          + msms + fieldSeparator //
+                          + ad.getPartnerRows().toArray().length + fieldSeparator //
+                          + partners + fieldSeparator);
+            }
+            break;
+          case ROW_NEUTRAL_MASS:
+            IonIdentity ion2 = featureListRow.getBestIonIdentity();
+            if (ion2 == null || ion2.getNetwork() == null) {
+              line.append(fieldSeparator);
+            } else {
+              line.append(mzForm.format(ion2.getNetwork().calcNeutralMass()) + fieldSeparator);
+            }
             break;
         }
       }

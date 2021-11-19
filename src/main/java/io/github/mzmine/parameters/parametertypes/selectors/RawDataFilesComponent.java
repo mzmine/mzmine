@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -46,20 +46,20 @@ public class RawDataFilesComponent extends GridPane {
     numFilesLabel = new Label();
     add(numFilesLabel, 0, 0);
 
-    detailsButton = new Button("...");
-    detailsButton.setDisable(true);
+    detailsButton = new Button("Select");
     add(detailsButton, 2, 0);
 
     typeCombo =
         new ComboBox<>(FXCollections.observableArrayList(RawDataFilesSelectionType.values()));
-    typeCombo.setOnAction(e -> {
-      RawDataFilesSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
-      currentValue.setSelectionType(type);
-      detailsButton.setDisable((type != RawDataFilesSelectionType.NAME_PATTERN)
-          && (type != RawDataFilesSelectionType.SPECIFIC_FILES));
+    typeCombo.getSelectionModel().selectFirst();
+
+    typeCombo.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+      currentValue.setSelectionType(newValue);
+      detailsButton.setDisable(newValue != RawDataFilesSelectionType.NAME_PATTERN
+          && newValue != RawDataFilesSelectionType.SPECIFIC_FILES);
       updateNumFiles();
     });
-    typeCombo.getSelectionModel().selectFirst();
+
     add(typeCombo, 1, 0);
 
 
@@ -107,7 +107,9 @@ public class RawDataFilesComponent extends GridPane {
   }
 
   public RawDataFilesSelection getValue() {
-    return currentValue;
+    RawDataFilesSelection clone = currentValue.clone();
+    clone.resetSelection();
+    return clone;
   }
 
   public void setToolTipText(String toolTip) {
@@ -115,6 +117,7 @@ public class RawDataFilesComponent extends GridPane {
   }
 
   private void updateNumFiles() {
+    currentValue.resetSelection();
     if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
       numFilesLabel.setText("");
       numFilesLabel.setTooltip(null);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
@@ -26,18 +26,20 @@ import static io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSear
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class AdductSearchTask extends AbstractTask {
 
@@ -61,8 +63,8 @@ public class AdductSearchTask extends AbstractTask {
    * @param parameterSet the parameters.
    * @param list feature list.
    */
-  public AdductSearchTask(final ParameterSet parameterSet, final FeatureList list) {
-    super(null); // no new data stored -> null
+  public AdductSearchTask(final ParameterSet parameterSet, final FeatureList list, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     peakList = list;
     parameters = parameterSet;
@@ -104,7 +106,7 @@ public class AdductSearchTask extends AbstractTask {
         // Add task description to peakList.
         peakList.addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod("Identification of adducts", AdductSearchModule.class,
-                parameters));
+                parameters, getModuleCallDate()));
 
         // Done.
         setStatus(TaskStatus.FINISHED);

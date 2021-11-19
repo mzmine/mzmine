@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,24 +8,23 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.paintscale;
 
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.color.SimpleColorPalette;
-import io.github.mzmine.util.color.Vision;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -51,9 +50,10 @@ public class PaintScalePaletteParameter
   public PaintScalePaletteParameter(String name, String descr) {
     this.name = name;
     this.descr = descr;
-    value = SimpleColorPalette.DEFAULT.get(Vision.DEUTERANOPIA);
+    value = SimpleColorPalette.BLUE_RED_WHITE;
     palettes = new ArrayList<>();
     palettes.add(value);
+    palettes.add(SimpleColorPalette.RAINBOW);
   }
 
   @Override
@@ -98,6 +98,13 @@ public class PaintScalePaletteParameter
     }
 
     selected = (selected != -1) ? selected : 0;
+
+    if (!palettes.contains(SimpleColorPalette.BLUE_RED_WHITE)) {
+      palettes.add(SimpleColorPalette.BLUE_RED_WHITE);
+      logger.info(
+          "Loaded color palettes did not contain default " + SimpleColorPalette.BLUE_RED_WHITE
+              .getName() + " palette. Adding...");
+    }
 
     if (!palettes.contains(SimpleColorPalette.RAINBOW)) {
       palettes.add(SimpleColorPalette.RAINBOW);
@@ -146,12 +153,12 @@ public class PaintScalePaletteParameter
     component.setValue(newValue);
   }
 
-  protected @Nonnull
+  protected @NotNull
   List<SimpleColorPalette> getPalettes() {
     return palettes;
   }
 
-  protected void setPalettes(@Nonnull List<SimpleColorPalette> palettes) {
+  protected void setPalettes(@NotNull List<SimpleColorPalette> palettes) {
 
     int index = 0;
     for (SimpleColorPalette def : SimpleColorPalette.DEFAULT.values()) {

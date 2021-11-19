@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.main;
@@ -20,7 +21,6 @@ package io.github.mzmine.main;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,6 +28,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parses the command line arguments
@@ -36,21 +37,39 @@ import org.apache.commons.cli.ParseException;
  */
 public class MZmineArgumentParser {
 
-  private static Logger logger = Logger.getLogger(MZmineArgumentParser.class.getName());
+  private static final Logger logger = Logger.getLogger(MZmineArgumentParser.class.getName());
 
   private File batchFile;
   private File preferencesFile;
+  private File tempDirectory;
+  private boolean isKeepRunningAfterBatch = false;
+  private KeepInMemory isKeepInMemory = null;
 
   public void parse(String[] args) {
     Options options = new Options();
 
-    Option batch = new Option("b", "batch", true, "input file path");
+    // -b  or --batch
+    Option batch = new Option("b", "batch", true, "batch mode file");
     batch.setRequired(false);
     options.addOption(batch);
 
-    Option pref = new Option("p", "pref", true, "output file");
+    Option pref = new Option("p", "pref", true, "preferences file");
     pref.setRequired(false);
     options.addOption(pref);
+
+    Option tmpFolder = new Option("t", "temp", true,
+        "Temp directory overrides definition in preferences and JVM");
+    tmpFolder.setRequired(false);
+    options.addOption(tmpFolder);
+
+    Option keepRunning = new Option("r", "running", false, "keep MZmine running in headless mode");
+    keepRunning.setRequired(false);
+    options.addOption(keepRunning);
+
+    Option keepInMemory = new Option("m", "memory", true,
+        "keep objects (scan data, features, etc) in memory. Options: all, features, centroids, raw, masses_features (masses_features for features and centroids)");
+    keepInMemory.setRequired(false);
+    options.addOption(keepInMemory);
 
     CommandLineParser parser = new BasicParser();
     HelpFormatter formatter = new HelpFormatter();
@@ -70,11 +89,44 @@ public class MZmineArgumentParser {
         preferencesFile = new File(spref);
       }
 
+      String stemp = cmd.getOptionValue(tmpFolder.getLongOpt());
+      if (stemp != null) {
+        logger.info(
+            () -> "Temp directory set by command line, will override all other definitions: "
+                  + stemp);
+        tempDirectory = new File(stemp);
+      }
+
+      isKeepRunningAfterBatch = cmd.hasOption(keepRunning.getLongOpt());
+      if (isKeepRunningAfterBatch) {
+
+        logger.info(
+            () -> "the -r / --running argument was set to keep MZmine alive after batch is finished");
+      }
+
+      String keepInData = cmd.getOptionValue(keepInMemory.getLongOpt());
+      if (keepInData != null) {
+        isKeepInMemory = KeepInMemory.parse(keepInData);
+        logger.info(
+            () -> "the -m / --memory argument was set to " + isKeepInMemory.toString()
+                  + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
+      }
+
     } catch (ParseException e) {
       logger.log(Level.SEVERE, "Wrong command line arguments. " + e.getMessage(), e);
       formatter.printHelp("utility-name", options);
       System.exit(1);
     }
+  }
+
+  /**
+   * The temp directory overrides all other definitions if set
+   *
+   * @return the temp directory override (null or a file)
+   */
+  @Nullable
+  public File getTempDirectory() {
+    return tempDirectory;
   }
 
   @Nullable
@@ -86,5 +138,25 @@ public class MZmineArgumentParser {
   public File getBatchFile() {
     return batchFile;
   }
+
+  /**
+   * After batch is finished, keep mzmine running
+   *
+   * @return true if -r or --running was set as argument
+   */
+  public boolean isKeepRunningAfterBatch() {
+    return isKeepRunningAfterBatch;
+  }
+
+  /**
+   * Keep all {@link io.github.mzmine.util.MemoryMapStorage} items in RAM (e.g., scans, features,
+   * masslists)
+   *
+   * @return true will keep objects in memory which are usually stored in memory mapped files
+   */
+  public KeepInMemory isKeepInMemory() {
+    return isKeepInMemory;
+  }
+
 }
 

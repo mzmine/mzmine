@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
@@ -21,8 +21,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
+import org.jetbrains.annotations.NotNull;
 
-public class RetentionTimeMobilityDataPoint implements DataPoint {
+public class RetentionTimeMobilityDataPoint implements DataPoint, Comparable {
 
   private final double mz;
   private final double intensity;
@@ -56,6 +57,28 @@ public class RetentionTimeMobilityDataPoint implements DataPoint {
 
   public MobilityScan getMobilityScan() {
     return mobilityScan;
+  }
+
+  @Override
+  public int compareTo(@NotNull Object o) {
+    if (o instanceof RetentionTimeMobilityDataPoint) {
+      int i = Double.compare(getIntensity(), ((RetentionTimeMobilityDataPoint) o).getIntensity());
+      if (i != 0) {
+        return i * -1; // descending, most intense first
+      }
+      int f = Integer.compare(getFrame().getFrameId(),
+          ((RetentionTimeMobilityDataPoint) o).getFrame().getFrameId());
+      if (f != 0) {
+        return f;
+      }
+      int m = Integer.compare(getMobilityScan().getMobilityScanNumber(),
+          ((RetentionTimeMobilityDataPoint) o).getMobilityScan().getMobilityScanNumber());
+      if(m != 0) {
+        return m;
+      }
+      return Double.compare(getMZ(), ((RetentionTimeMobilityDataPoint) o).getMZ());
+    }
+    return -1;
   }
 
   /*@Override

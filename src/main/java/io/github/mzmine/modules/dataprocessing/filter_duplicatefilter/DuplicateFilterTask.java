@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -26,24 +29,23 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import javax.annotation.Nullable;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A task to filter out duplicate feature list rows.
@@ -66,8 +68,8 @@ public class DuplicateFilterTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public DuplicateFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet params, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet params, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     this.project = project;
@@ -174,7 +176,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
       if (mainRow != null) {
         // copy first row
-        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow, true);
+        ModularFeatureListRow firstRow = new ModularFeatureListRow(newPeakList, mainRow.getID(), mainRow, true);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {
@@ -222,7 +224,7 @@ public class DuplicateFilterTask extends AbstractTask {
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
           new SimpleFeatureListAppliedMethod("Duplicate feature list rows filter",
-              DuplicateFilterModule.class, parameters));
+              DuplicateFilterModule.class, parameters, getModuleCallDate()));
       logger.info("Removed " + n + " duplicate rows");
     }
 

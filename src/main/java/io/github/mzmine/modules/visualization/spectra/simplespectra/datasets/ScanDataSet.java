@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,23 +8,23 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
 import java.util.Map;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.scans.ScanUtils;
 
 /**
  * Spectra visualizer data set for scan data points
@@ -39,6 +39,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   private final String label;
   private final Scan scan;
   private final Map<Integer, String> annotation = new Hashtable<>();
+  private final Map<Double, String> mzAnnotationMap = new Hashtable<>();
 
   /*
    * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
@@ -157,14 +158,32 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   }
 
   public void addAnnotation(Map<Integer, String> annotation) {
-    this.annotation.putAll(annotation);;
+    this.annotation.putAll(annotation);
   }
+
+  /**
+   * Add annotations for m/z values
+   *
+   * @param annotation m/z value and annotation map
+   */
+  public void addMzAnnotation(Map<Double, String> annotation) {
+    this.mzAnnotationMap.putAll(annotation);
+  }
+
 
   public String getAnnotation(int item) {
-    return annotation.get(item);
+    String ann = mzAnnotationMap.get(getXValue(0, item));
+    String ann2 = annotation.get(item);
+    if (ann != null && ann2 != null) {
+      return ann + " " + ann2;
+    }
+    if (ann2 != null) {
+      return ann2;
+    }
+    if (ann != null) {
+      return ann;
+    }
+    return null;
   }
 
-  /*
-   * public DataPoint[] getDataPoints() { return dataPoints; }
-   */
 }

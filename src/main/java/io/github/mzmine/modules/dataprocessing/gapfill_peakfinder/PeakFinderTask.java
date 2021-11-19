@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
@@ -33,12 +33,15 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 
 class PeakFinderTask extends AbstractTask {
 
@@ -58,8 +61,8 @@ class PeakFinderTask extends AbstractTask {
   private int masterSample = 0;
   private boolean useParallelStream = false;
 
-  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, MemoryMapStorage storage) {
-    super(storage);
+  PeakFinderTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
@@ -86,8 +89,7 @@ class PeakFinderTask extends AbstractTask {
     processedScans = new AtomicInteger();
 
     // Create new feature list
-    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage());
-//            new ModularFeatureList(peakList + " " + suffix, peakList.getRawDataFiles());
+    processedPeakList = peakList.createCopy(peakList + " " + suffix, getMemoryMapStorage(), false);
 
     if (rtCorrection) {
       totalScans *= 2;
@@ -175,7 +177,7 @@ class PeakFinderTask extends AbstractTask {
     // Add task description to peakList
     processedPeakList
         .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
-            PeakFinderModule.class, parameters));
+            PeakFinderModule.class, parameters, getModuleCallDate()));
 
     // Remove the original peaklist if requested
     if (removeOriginal)

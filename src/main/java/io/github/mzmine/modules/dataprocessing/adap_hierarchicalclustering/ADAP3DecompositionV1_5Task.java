@@ -41,6 +41,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -51,8 +52,8 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author aleksandrsmirnov
@@ -72,8 +73,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
   private final ParameterSet parameters;
 
   ADAP3DecompositionV1_5Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
     // Initialize.
     this.project = project;
     parameters = parameterSet;
@@ -170,7 +171,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Peak deconvolution by ADAP-3",
-            ADAPHierarchicalClusteringModule.class, parameters));
+            ADAPHierarchicalClusteringModule.class, parameters, getModuleCallDate()));
 
     // Collect peak information
     List<Peak> peaks = getPeaks(peakList,
@@ -258,7 +259,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
    * @return list of ADAP Peaks
    */
 
-  @Nonnull
+  @NotNull
   public static List<Peak> getPeaks(final FeatureList peakList, final double edgeToHeightThreshold,
       final double deltaToHeightThreshold) {
     RawDataFile dataFile = peakList.getRawDataFile(0);

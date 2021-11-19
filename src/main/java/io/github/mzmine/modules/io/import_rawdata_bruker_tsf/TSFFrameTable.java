@@ -1,0 +1,208 @@
+/*
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
+package io.github.mzmine.modules.io.import_rawdata_bruker_tsf;
+
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataColumn;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.sql.TDFDataTable;
+import java.util.Arrays;
+
+public class TSFFrameTable extends TDFDataTable<Long> {
+
+  /**
+   * An analysis consists of several frames (or "mobility scans"). A frame represents all TOF scans
+   * acquired during a single TIMS-voltage ramp.
+   */
+  public static final String FRAME_TABLE_NAME = "Frames";
+
+  /**
+   * Unique ID for this frame. Numbered consecutively starting from one.
+   */
+  public static final String FRAME_ID = "Id";
+
+  /**
+   * Time (in seconds), relative to the start time of the acquisition.
+   */
+  public static final String TIME = "Time";
+
+  /**
+   * Ionization mode used when acquiring this frame.
+   */
+  public static final String POLARITY = "Polarity";
+
+  /**
+   * 0 = MS; 1 = AutoMSMS; 2 = MRM; 3 = in-source CID; 4 = broadband CID; 8 = PASEF; 9 = DIA; 10 =
+   * PRM; 20 = Maldi
+   */
+  public static final String SCAN_MODE = "ScanMode";
+
+  /**
+   * 0 = MS frame; 2 = MS/MS fragment frame; 8 = PASEF frame; 9 = DIA frame; 10 = PRM frame
+   */
+  public static final String MSMS_TYPE = "MsMsType";
+
+  /**
+   * ID for accessing mobility-resolved data for this frame. May be NULL in case this frame does not
+   * have any mobility-resolved data.
+   */
+  public static final String TIMS_ID = "TimsId";
+
+  /**
+   * Maximum intensity occurring in all data belonging to this frame (do not use to generate a BPC
+   * directly from this!).
+   */
+  public static final String MAX_INTENSITY = "MaxIntensity";
+
+  /**
+   * Sum of all intensities occurring in the data belonging to this frame (can quickly generate a
+   * TIC from this).
+   */
+  public static final String SUMMED_INTENSITIES = "SummedIntensities";
+
+  /**
+   * The number of peaks stored in this frame (total over all scans).
+   */
+  public static final String NUM_PEAKS = "NumPeaks";
+
+  /**
+   *
+   */
+  public static final String MZ_CALIBRATION = "MzCalibration";
+
+  /**
+   * ID of the mz calibration for this frame. Every frame has exactly one mz calibration.h
+   */
+  public static final String T1 = "T1";
+
+  /**
+   * Measured Temperature2 of the device. Required to perform a temperature compensated mz
+   * calibration
+   */
+  public static final String T2 = "T2";
+
+  /**
+   * The property group for this frame. May be overridden by properties for this specific frame in
+   * table 'FrameProperties'. Use the 'Properties' view for easy access to frame properties. This
+   * field may be NULL, in which case only the FrameProperties apply to this frame.
+   */
+  public static final String PROPERTY_GROUP = "PropertyGroup";
+
+  private final TDFDataColumn<Long> frameIdColumn;
+  private final TDFDataColumn<Double> timeColumn;
+  private final TDFDataColumn<String> polarityColumn;
+  private final TDFDataColumn<Long> scanModeColumn;
+  private final TDFDataColumn<Long> msMsTypeColumn;
+  private final TDFDataColumn<Long> timsIdColumn;
+  private final TDFDataColumn<Long> maxIntensityColumn;
+  private final TDFDataColumn<Long> summedIntensityColumn;
+  private final TDFDataColumn<Long> numPeaksColumn;
+  private final TDFDataColumn<Long> mzCalibrationColumn;
+  private final TDFDataColumn<Long> t1Column;
+  private final TDFDataColumn<Long> t2Column;
+  private final TDFDataColumn<Long> propertyGroupColumn;
+
+  public TSFFrameTable() {
+    super(FRAME_TABLE_NAME, FRAME_ID);
+    columns.addAll(Arrays.asList(new TDFDataColumn<Double>(TIME),
+        new TDFDataColumn<String>(POLARITY),
+        new TDFDataColumn<Long>(SCAN_MODE),
+        new TDFDataColumn<Long>(MSMS_TYPE),
+        new TDFDataColumn<Long>(TIMS_ID),
+        new TDFDataColumn<Long>(MAX_INTENSITY),
+        new TDFDataColumn<Long>(SUMMED_INTENSITIES),
+        new TDFDataColumn<Long>(NUM_PEAKS),
+        new TDFDataColumn<Long>(MZ_CALIBRATION),
+        new TDFDataColumn<Long>(T1),
+        new TDFDataColumn<Long>(T2),
+        new TDFDataColumn<Long>(PROPERTY_GROUP)));
+
+    frameIdColumn = (TDFDataColumn<Long>) getColumn(FRAME_ID);
+    timeColumn = (TDFDataColumn<Double>) getColumn(TIME);
+    polarityColumn = (TDFDataColumn<String>) getColumn(POLARITY);
+    scanModeColumn = (TDFDataColumn<Long>) getColumn(SCAN_MODE);
+    msMsTypeColumn = (TDFDataColumn<Long>) getColumn(MSMS_TYPE);
+    timsIdColumn = (TDFDataColumn<Long>) getColumn(TIMS_ID);
+    maxIntensityColumn = (TDFDataColumn<Long>) getColumn(MAX_INTENSITY);
+    summedIntensityColumn = (TDFDataColumn<Long>) getColumn(SUMMED_INTENSITIES);
+    numPeaksColumn = (TDFDataColumn<Long>) getColumn(NUM_PEAKS);
+    mzCalibrationColumn = (TDFDataColumn<Long>) getColumn(MZ_CALIBRATION);
+    t1Column = (TDFDataColumn<Long>) getColumn(T1);
+    t2Column = (TDFDataColumn<Long>) getColumn(T2);
+    propertyGroupColumn = (TDFDataColumn<Long>) getColumn(PROPERTY_GROUP);
+  }
+
+  public long getFirstFrameNumber() {
+    return getFrameIdColumn().get(0);
+  }
+
+  public int lastFrameId() {
+    return getFrameIdColumn().get((getFrameIdColumn().size() - 1)).intValue();
+  }
+
+  public TDFDataColumn<Long> getFrameIdColumn() {
+    return frameIdColumn;
+  }
+
+  public TDFDataColumn<Double> getTimeColumn() {
+    return timeColumn;
+  }
+
+  public TDFDataColumn<String> getPolarityColumn() {
+    return polarityColumn;
+  }
+
+  public TDFDataColumn<Long> getScanModeColumn() {
+    return scanModeColumn;
+  }
+
+  public TDFDataColumn<Long> getMsMsTypeColumn() {
+    return msMsTypeColumn;
+  }
+
+  public TDFDataColumn<Long> getTimsIdColumn() {
+    return timsIdColumn;
+  }
+
+  public TDFDataColumn<Long> getMaxIntensityColumn() {
+    return maxIntensityColumn;
+  }
+
+  public TDFDataColumn<Long> getSummedIntensityColumn() {
+    return summedIntensityColumn;
+  }
+
+  public TDFDataColumn<Long> getNumPeaksColumn() {
+    return numPeaksColumn;
+  }
+
+  public TDFDataColumn<Long> getMzCalibrationColumn() {
+    return mzCalibrationColumn;
+  }
+
+  public TDFDataColumn<Long> getT1Column() {
+    return t1Column;
+  }
+
+  public TDFDataColumn<Long> getT2Column() {
+    return t2Column;
+  }
+
+  public TDFDataColumn<Long> getPropertyGroupColumn() {
+    return propertyGroupColumn;
+  }
+}

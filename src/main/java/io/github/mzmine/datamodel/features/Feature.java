@@ -4,32 +4,31 @@
  * This file is part of MZmine.
  *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General License as published by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * License for more details.
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General License along with MZmine; if not, write to
- * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureInformation;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import java.util.List;
-import javafx.collections.ObservableList;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface defines the properties of a detected feature
@@ -39,23 +38,23 @@ public interface Feature {
   /**
    * This method returns the status of the feature
    */
-  @Nonnull
+  @NotNull
   FeatureStatus getFeatureStatus();
 
   /**
    * This method returns raw M/Z value of the feature
    */
-  double getMZ();
+  Double getMZ();
 
   /**
    * Sets raw M/Z value of the feature
    */
-  void setMZ(double mz);
+  void setMZ(Double mz);
 
   /**
    * This method returns raw retention time of the feature in minutes
    */
-  float getRT();
+  Float getRT();
 
   /**
    * Sets retention time of the feature
@@ -65,17 +64,17 @@ public interface Feature {
   /**
    * This method returns the raw height of the feature
    */
-  float getHeight();
+  Float getHeight();
 
   /**
    * Sets height of the feature
    */
-  void setHeight(float height);
+  void setHeight(Float height);
 
   /**
    * This method returns the raw area of the feature
    */
-  float getArea();
+  Float getArea();
 
   /**
    * Sets area of the feature
@@ -91,32 +90,32 @@ public interface Feature {
   /**
    * This method returns numbers of scans that contain this feature
    */
-  @Nonnull
+  @NotNull
   List<Scan> getScanNumbers();
 
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
    *
-   * @param i
+   * @param i index
    * @return
    */
   @Nullable
   default Scan getScanAtIndex(int i) {
     List<Scan> scans = getScanNumbers();
-    return scans == null ? null : scans.get(i);
+    return scans.get(i);
   }
 
   /**
    * Used to loop over retention time, scans, and data points in combination with ({@link
    * #getDataPointAtIndex(int)}
    *
-   * @param i
+   * @param i index
    * @return
    */
   @Nullable
   default float getRetentionTimeAtIndex(int i) {
     List<Scan> scans = getScanNumbers();
-    return scans == null ? null : scans.get(i).getRetentionTime();
+    return scans.get(i).getRetentionTime();
   }
 
   /**
@@ -164,41 +163,41 @@ public interface Feature {
   /**
    * Returns the retention time range of all raw data points used to detect this feature
    */
-  @Nonnull
+  @NotNull
   Range<Float> getRawDataPointsRTRange();
 
   /**
    * Returns the range of m/z values of all raw data points used to detect this feature
    */
-  @Nonnull
+  @NotNull
   Range<Double> getRawDataPointsMZRange();
 
   /**
    * Returns the range of intensity values of all raw data points used to detect this feature
    */
-  @Nonnull
+  @NotNull
   Range<Float> getRawDataPointsIntensityRange();
 
   /**
-   * Returns the number of scan that represents the fragmentation of this feature in MS2 level.
+   * Returns the scan that represents the fragmentation of this feature in MS2 level.
    */
   Scan getMostIntenseFragmentScan();
 
   /**
    * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
    */
-  ObservableList<Scan> getAllMS2FragmentScans();
+  List<Scan> getAllMS2FragmentScans();
 
   /**
    * Set all fragment scan numbers
    *
    * @param allMS2FragmentScanNumbers
    */
-  //void setAllMS2FragmentScanNumbers(List<Integer> allMS2FragmentScanNumbers); ?
-  void setAllMS2FragmentScans(ObservableList<Scan> allMS2FragmentScanNumbers);
+  void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers);
 
   /**
-   * @return The mobility if no mobility was set. Note that mobility can have different units.
+   * @return The mobility or null if no mobility was set. Note that mobility can have different
+   * units.
    * @see Feature#getMobilityUnit()
    */
   @Nullable
@@ -258,61 +257,62 @@ public interface Feature {
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached
+   *
+   * @return
    */
-  @Nullable
   IsotopePattern getIsotopePattern();
 
   /**
    * Sets the isotope pattern of this feature
    */
-  void setIsotopePattern(@Nonnull IsotopePattern isotopePattern);
+  void setIsotopePattern(@NotNull IsotopePattern isotopePattern);
 
   /**
    * Returns the charge of this ion. If the charge is unknown, returns 0.
    */
-  int getCharge();
+  Integer getCharge();
 
   /**
    * Sets the charge of this ion
    */
-  void setCharge(int charge);
+  void setCharge(Integer charge);
 
   /**
    * This method returns the full width at half maximum (FWHM) of the feature
    */
-  float getFWHM();
+  Float getFWHM();
 
   /**
    * Sets the full width at half maximum (FWHM)
    */
-  void setFWHM(double fwhm);
+  void setFWHM(Float fwhm);
 
   /**
    * This method returns the tailing factor of the feature
    */
-  float getTailingFactor();
+  Float getTailingFactor();
 
   /**
    * Sets the tailing factor
    */
-  void setTailingFactor(double tf);
+  void setTailingFactor(Float tf);
 
   /**
    * This method returns the asymmetry factor of the feature
    */
-  float getAsymmetryFactor();
+  Float getAsymmetryFactor();
 
   /**
    * Sets the asymmetry factor
    */
-  void setAsymmetryFactor(double af);
+  void setAsymmetryFactor(Float af);
 
   // dulab Edit
   void outputChromToFile();
 
-  SimpleFeatureInformation getFeatureInformation();
+  FeatureInformation getFeatureInformation();
 
-  void setFeatureInformation(SimpleFeatureInformation featureInfo);
+  void setFeatureInformation(FeatureInformation featureInfo);
   // End dulab Edit
 
   @Nullable
@@ -323,7 +323,7 @@ public interface Feature {
   @Nullable
   FeatureList getFeatureList();
 
-  void setFeatureList(@Nonnull FeatureList featureList);
+  void setFeatureList(@NotNull FeatureList featureList);
 
   default int getNumberOfDataPoints() {
     List<DataPoint> dp = getDataPoints();
@@ -333,11 +333,23 @@ public interface Feature {
 
   /**
    * The detected data points of this feature/chromatogram
-   *
-   * @return
    */
   default IonTimeSeries<? extends Scan> getFeatureData() {
     throw new UnsupportedOperationException(
         "Get feature data is not implemented for this sub class. Use ModularFeature or implement");
   }
+
+  /**
+   * The FeatureListRow that contains this feature
+   *
+   * @return a feature list row or null if not assigned to a row
+   */
+  @Nullable FeatureListRow getRow();
+
+  /**
+   * Set the parent row
+   *
+   * @param row parent row
+   */
+  void setRow(@Nullable FeatureListRow row);
 }

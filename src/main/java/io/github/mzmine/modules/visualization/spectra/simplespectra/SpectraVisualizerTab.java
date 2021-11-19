@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,29 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
-import java.awt.Color;
-import java.io.File;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -58,11 +45,23 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraident
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.dialogs.AxesSetupDialog;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.io.File;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -72,13 +71,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Spectrum visualizer using JFreeChart library
  */
 public class SpectraVisualizerTab extends MZmineTab {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final Image centroidIcon =
       FxIconUtil.loadImageFromResources("icons/centroidicon.png");
@@ -210,38 +213,38 @@ public class SpectraVisualizerTab extends MZmineTab {
       // open window with all selected rows
       MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
       libraryWindow.setData(currentScan);
-      libraryWindow.setVisible(true);
+      libraryWindow.show();
     });
 
     dbOnlineButton = new Button(null, new ImageView(dbOnlineIcon));
     dbOnlineButton.setTooltip(new Tooltip("Select online database for annotation"));
     dbOnlineButton.setOnAction(e -> {
-      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
     dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
     dbCustomButton.setOnAction(e -> {
-      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     dbLipidsButton = new Button(null, new ImageView(dbLipidsIcon));
     dbLipidsButton.setTooltip(new Tooltip("Select target lipid classes for annotation"));
     dbLipidsButton.setOnAction(e -> {
-      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
     dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral database"));
     dbSpectraButton.setOnAction(e -> {
       SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
-          spectrumPlot);
+          spectrumPlot, Instant.now());
     });
 
     sumFormulaButton = new Button(null, new ImageView(sumFormulaIcon));
     sumFormulaButton.setTooltip(new Tooltip("Predict sum formulas for annotation"));
     sumFormulaButton.setOnAction(e -> {
-      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     toolBar.getItems().addAll(centroidContinuousButton, dataPointsButton, annotationsButton,
@@ -284,13 +287,14 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   private void loadColorSettings() {
-    SimpleColorPalette p = MZmineCore.getConfiguration().getDefaultColorPalette();
-    scanColor = FxColorUtil.fxColorToAWT(p.get(0));
-    massListColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    peaksColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    singlePeakColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    detectedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
-    predictedIsotopesColor = FxColorUtil.fxColorToAWT(p.getNextColor());
+    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+    scanColor = FxColorUtil.fxColorToAWT(palette.get(0));
+    massListColor = FxColorUtil.fxColorToAWT(
+        ColorUtils.getContrastPaletteColor(FxColorUtil.awtColorToFX(dataFileColor), palette));
+    peaksColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    singlePeakColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    detectedIsotopesColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
+    predictedIsotopesColor = FxColorUtil.fxColorToAWT(palette.getNextColor());
   }
 
   public void loadRawData(Scan scan) {
@@ -362,7 +366,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     Integer basePeak = scan.getBasePeakIndex();
 
-    if (basePeak != 0) {
+    if (basePeak != null) {
       spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz()) + " m/z ("
           + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
     }
@@ -586,6 +590,14 @@ public class SpectraVisualizerTab extends MZmineTab {
     spectrumDataSet.addAnnotation(annotation);
   }
 
+  /**
+   * Add annotations for m/z values
+   * @param annotation m/z value and annotation map
+   */
+  public void addMzAnnotation(Map<Double, String> annotation) {
+    spectrumDataSet.addMzAnnotation(annotation);
+  }
+
   public SpectraPlot getSpectrumPlot() {
     return spectrumPlot;
   }
@@ -598,19 +610,19 @@ public class SpectraVisualizerTab extends MZmineTab {
     spectrumPlot.addDataSet(dataset, color, true);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
     return new ArrayList<>(Collections.singletonList(dataFile));
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
     return Collections.emptyList();
@@ -650,7 +662,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featurelists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
 
   }
 }

@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.io.export_features_csv;
@@ -25,13 +24,11 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.LinkedDataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.modules.io.export_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -42,16 +39,20 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javafx.beans.property.Property;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CSVExportModularTask extends AbstractTask {
 
   public static final String DATAFILE_PREFIX = "DATAFILE";
-
+  private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   private ModularFeatureList[] featureLists;
   private int processedRows = 0, totalRows = 0;
 
@@ -63,8 +64,8 @@ public class CSVExportModularTask extends AbstractTask {
   private String headerSeparator = ":";
   private FeatureListRowsFilter filter;
 
-  public CSVExportModularTask(ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
             .getMatchingFeatureLists();
@@ -84,8 +85,8 @@ public class CSVExportModularTask extends AbstractTask {
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator,
-      String idSeparator, FeatureListRowsFilter filter) {
-    super(null); // no new data stored -> null
+      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat
           .format("Column separator cannot equal the identity separator (currently {0})",
@@ -108,7 +109,8 @@ public class CSVExportModularTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to CSV file(s) (new format)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists)
+           + " to CSV file(s) (new format)";
   }
 
   @Override
@@ -208,7 +210,7 @@ public class CSVExportModularTask extends AbstractTask {
 
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
-        || type instanceof LinkedDataType);
+             || type instanceof LinkedGraphicalType);
   }
 
   private String joinRowData(ModularFeatureListRow row,
@@ -219,44 +221,80 @@ public class CSVExportModularTask extends AbstractTask {
     // add feature types
     for (RawDataFile raw : raws) {
       ModularFeature feature = row.getFeature(raw);
-      joinData(b, feature, featureTypes);
+      if (feature != null) {
+        joinData(b, feature, featureTypes);
+      } else {
+        joinEmptyCells(b, featureTypes);
+      }
     }
     return b.toString();
   }
 
   /**
+   * Fills in empty cells for all data types and their sub types
+   *
+   * @param b         the string builder
+   * @param dataTypes the list of types (with sub types) that are empty
+   */
+  private void joinEmptyCells(StringBuilder b, List<DataType> dataTypes) {
+    for (DataType t : dataTypes) {
+      if (t instanceof SubColumnsFactory subCols) {
+        int numberOfSub = subCols.getNumberOfSubColumns();
+        for (int i = 0; i < numberOfSub; i++) {
+          DataType sub = subCols.getType(i);
+          if (sub != null && !filterType(sub)) {
+            continue;
+          }
+          b.append(fieldSeparator);
+        }
+      } else {
+        b.append(fieldSeparator);
+      }
+    }
+  }
+
+  /**
    * @param b
-   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature}, {@link
-   *              ModularTypeProperty}
+   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature} might be null if not set
    * @param types
    * @return
    */
-  private void joinData(StringBuilder b, ModularDataModel data, List<DataType> types) {
+  private void joinData(StringBuilder b, @Nullable ModularDataModel data, List<DataType> types) {
     for (DataType type : types) {
-      if (type instanceof ModularType) {
-        ModularType modType = (ModularType) type;
-        ModularTypeProperty modProp = data.get(modType);
-        // join all the sub types of a modular data type
-        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
-            .filter(this::filterType).collect(Collectors.toList());
-        joinData(b, modProp, filteredSubTypes);
-      } else if (type instanceof SubColumnsFactory subCols) {
-        Property property = data.get(type);
-        Object value = property == null? null : property.getValue();
+      if (type instanceof SubColumnsFactory subCols) {
+        Object value = data == null ? null : data.get(type);
+        if (value == null) {
+          value = type.getDefaultValue();
+        }
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
-          String field = subCols.getFormattedSubColValue(i, null, null, value, null);
+          DataType<?> subType = subCols.getType(i);
+          if (subType != null && !filterType(subType)) {
+            continue;
+          }
+          String field = subCols.getFormattedSubColValue(i, value);
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }
           b.append(field == null ? "" : field);
         }
       } else {
-        Property property = data.get(type);
+        Object value = data == null ? null : data.get(type);
+        if (value == null) {
+          value = type.getDefaultValue();
+        }
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
-        b.append(escapeStringForCSV(type.getFormattedString(property)));
+        String str;
+        try {
+          str = type.getFormattedString(value);
+        } catch (Exception e) {
+          logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
+                                 + " value: " + value, e);
+          str = "";
+        }
+        b.append(escapeStringForCSV(str));
       }
     }
   }
@@ -274,19 +312,13 @@ public class CSVExportModularTask extends AbstractTask {
     for (DataType t : types) {
       String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator) + t
           .getHeaderString();
-      if (t instanceof ModularType) {
-        ModularType modType = (ModularType) t;
-        // join all the sub headers
-        List<DataType> filteredSubTypes = modType.getSubDataTypes().stream()
-            .filter(this::filterType).collect(Collectors.toList());
-        header = getJoinedHeader(filteredSubTypes, header);
-        if (b.length() != 0) {
-          b.append(fieldSeparator);
-        }
-        b.append(header);
-      } else if (t instanceof SubColumnsFactory subCols) {
+      if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
+          DataType subType = subCols.getType(i);
+          if (subType != null && !filterType(subType)) {
+            continue;
+          }
           String field = subCols.getHeader(i);
           if (b.length() != 0) {
             b.append(fieldSeparator);

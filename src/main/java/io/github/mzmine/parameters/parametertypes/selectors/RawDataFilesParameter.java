@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,29 +8,31 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
-public class RawDataFilesParameter
-    implements UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
+public class RawDataFilesParameter implements
+    UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
 
+  private static final String PATH_ATTRIBUTE = "path";
   private String name = "Raw data files";
   private int minCount, maxCount;
 
@@ -71,14 +73,16 @@ public class RawDataFilesParameter
   }
 
   public void setValue(RawDataFilesSelectionType selectionType) {
-    if (value == null)
+    if (value == null) {
       value = new RawDataFilesSelection();
+    }
     value.setSelectionType(selectionType);
   }
 
   public void setValue(RawDataFilesSelectionType selectionType, RawDataFile dataFiles[]) {
-    if (value == null)
+    if (value == null) {
       value = new RawDataFilesSelection();
+    }
     value.setSelectionType(selectionType);
     value.setSpecificFiles(dataFiles);
   }
@@ -86,8 +90,17 @@ public class RawDataFilesParameter
   @Override
   public RawDataFilesParameter cloneParameter() {
     RawDataFilesParameter copy = new RawDataFilesParameter(name, minCount, maxCount);
-    if (value != null)
+    if (value != null) {
       copy.value = value.clone();
+    }
+    return copy;
+  }
+
+  public RawDataFilesParameter cloneParameter(boolean keepSelection) {
+    RawDataFilesParameter copy = new RawDataFilesParameter(name, minCount, maxCount);
+    if (value != null) {
+      copy.value = keepSelection ? value.cloneAndKeepSelection() : value.clone();
+    }
     return copy;
   }
 
@@ -104,10 +117,14 @@ public class RawDataFilesParameter
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
     RawDataFile matchingFiles[];
-    if (value == null)
+    if (value == null) {
       matchingFiles = new RawDataFile[0];
-    else
+    } else {
       matchingFiles = value.getMatchingRawDataFiles();
+    }
+    if (value != null) {
+      value.resetSelection(); // has to be reset after evaluation
+    }
 
     if (matchingFiles.length < minCount) {
       errorMessages.add("At least " + minCount + " raw data files must be selected");
@@ -123,28 +140,28 @@ public class RawDataFilesParameter
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    RawDataFile[] currentDataFiles =
-        MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFile[] currentDataFiles = MZmineCore.getProjectManager().getCurrentProject()
+        .getDataFiles();
 
     RawDataFilesSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
 
-    if (Strings.isNullOrEmpty(attrValue))
+    if (Strings.isNullOrEmpty(attrValue)) {
       selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
-    else
+    } else {
       selectionType = RawDataFilesSelectionType.valueOf(xmlElement.getAttribute("type"));
+    }
 
-    ArrayList<Object> newValues = new ArrayList<Object>();
+    List<Object> newValues = new ArrayList<>();
 
     NodeList items = xmlElement.getElementsByTagName("specific_file");
     for (int i = 0; i < items.getLength(); i++) {
       String itemString = items.item(i).getTextContent();
-      for (RawDataFile df : currentDataFiles) {
-        if (df.getName().equals(itemString))
-          newValues.add(df);
-      }
+      String path = ((Element) items.item(i)).getAttribute(PATH_ATTRIBUTE);
+      path = path.isEmpty() ? null : path;
+      newValues.add(new RawDataFilePlaceholder(itemString, path));
     }
-    RawDataFile specificFiles[] = newValues.toArray(new RawDataFile[0]);
+    RawDataFilePlaceholder specificFiles[] = newValues.toArray(new RawDataFilePlaceholder[0]);
 
     String namePattern = null;
     items = xmlElement.getElementsByTagName("name_pattern");
@@ -160,17 +177,20 @@ public class RawDataFilesParameter
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null) {
       return;
+    }
     Document parentDocument = xmlElement.getOwnerDocument();
     xmlElement.setAttribute("type", value.getSelectionType().name());
 
-    if (value.getSpecificFiles() != null) {
-      for (RawDataFile item : value.getSpecificFiles()) {
+    if (value.getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES
+        && value.getSpecificFiles() != null) {
+      for (RawDataFile item : value.getSpecificFilesPlaceholders()) {
         assert item != null;
         Element newElement = parentDocument.createElement("specific_file");
         String fileName = item.getName();
         newElement.setTextContent(fileName);
+        newElement.setAttribute(PATH_ATTRIBUTE, item.getAbsolutePath());
         xmlElement.appendChild(newElement);
       }
     }

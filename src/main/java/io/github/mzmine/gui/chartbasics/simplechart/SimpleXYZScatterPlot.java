@@ -1,31 +1,35 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart;
 
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYSmallBlockRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
@@ -38,8 +42,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -47,16 +52,16 @@ import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -65,9 +70,12 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.general.DatasetChangeListener;
+import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import org.jfree.fx.FXGraphics2D;
@@ -80,32 +88,47 @@ import org.jfree.fx.FXHints;
  * @author https://github.com/SteffenHeu & https://github.com/Annexhc
  */
 public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartViewer implements
-    SimpleChart<T> {
+    SimpleChart<T>, AllowsRegionSelection {
 
   protected static final Logger logger = Logger.getLogger(SimpleXYZScatterPlot.class.getName());
+
   protected static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
+  protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
   protected final JFreeChart chart;
 
-  protected final Color legendBg = new Color(0, 0, 0, 0); // bg is transparent
-
   protected final ObjectProperty<PlotCursorPosition> cursorPositionProperty;
-  protected final List<DatasetsChangedListener> datasetListeners;
+  protected final List<DatasetChangeListener> datasetListeners;
   protected final ObjectProperty<XYItemRenderer> defaultRenderer;
+  protected final BooleanProperty itemLabelsVisible = new SimpleBooleanProperty(false);
+  protected final BooleanProperty legendItemsVisible = new SimpleBooleanProperty(true);
+
   private final XYPlot plot;
   private final TextTitle chartTitle;
   private final TextTitle chartSubTitle;
+  private final BooleanProperty isDrawingRegion = new SimpleBooleanProperty(false);
+  /**
+   * May contain null value. Only used if paintscale different to the paintscale of dataset 0 shall
+   * be used as legend.
+   */
+  private final ObjectProperty<PaintScale> legendPaintScale = new SimpleObjectProperty<>(null);
   protected RectangleEdge defaultPaintscaleLocation = RectangleEdge.RIGHT;
-  protected ColoredXYSmallBlockRenderer blockRenderer;
   protected NumberFormat legendAxisFormat;
   private int nextDataSetNum;
   private Canvas legendCanvas;
   private String legendLabel = null;
+  private RegionSelectionListener currentRegionListener = null;
+  private XYShapeAnnotation currentRegionAnnotation;
+  /**
+   * Needs to be stored in case a separate legend canvas is used, so we can redraw the legend when
+   * the canvas is resized.
+   */
+  private Title currentLegend = null;
 
   public SimpleXYZScatterPlot() {
     this("");
   }
 
-  public SimpleXYZScatterPlot(@Nonnull String title) {
+  public SimpleXYZScatterPlot(@NotNull String title) {
 
     super(ChartFactory.createScatterPlot("", "x", "y", null,
         PlotOrientation.VERTICAL, true, false, true), true, true, true, true, false);
@@ -117,40 +140,115 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     chart.addSubtitle(chartSubTitle);
     plot = chart.getXYPlot();
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-    blockRenderer = new ColoredXYSmallBlockRenderer();
-    defaultRenderer = new SimpleObjectProperty<>(blockRenderer);
+    defaultRenderer = new SimpleObjectProperty<>(new ColoredXYSmallBlockRenderer());
     legendAxisFormat = new DecimalFormat("0.##E0");
     setCursor(Cursor.DEFAULT);
+    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
+    theme.apply(this);
 
     cursorPositionProperty = new SimpleObjectProperty<>(new PlotCursorPosition(0, 0, -1, null));
     initializeMouseListener();
+    initLabelListeners();
+
     datasetListeners = new ArrayList<>();
 
     plot.setRenderer(defaultRenderer.get());
     initializePlot();
     nextDataSetNum = 0;
 
-    EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
-    theme.apply(chart);
+    legendPaintScale.addListener(((observable, oldValue, newValue) -> updateLegend()));
   }
 
   /**
-   * @param dataset the dataset. null to clear the plot. Removes all other datasets.
+   * Updates the legend to the paint scale currently set via {@link #setLegendPaintScale(PaintScale)}
+   * or the paint scale from data set with index 0. If neither is set, the legend is removed.
    */
-  public void setDataset(@Nullable ColoredXYZDataset dataset) {
-    assert Platform.isFxApplicationThread();
+  public void updateLegend() {
+    final XYDataset dataset = getXYPlot().getDataset(0);
+    if (dataset == null) {
+      return;
+    }
+    getChart().clearSubtitles();
+
+    if (dataset instanceof PaintScaleProvider) {
+      final PaintScale paintScale;
+      if (this.legendPaintScale.get() != null) {
+        paintScale = legendPaintScale.get();
+      } else if (dataset instanceof XYZDataset) {
+        paintScale = makePaintScale((XYZDataset) dataset);
+      } else {
+        return;
+      }
+
+      PaintScaleLegend legend = generateLegend(paintScale);
+      if (legendCanvas != null) {
+        drawLegendToSeparateCanvas(legend);
+        currentLegend = legend;
+      } else {
+        getChart().addSubtitle(legend);
+        currentLegend = null;
+      }
+    } else {
+      LegendTitle legend = new LegendTitle(getChart().getXYPlot());
+      legend.setPosition(RectangleEdge.BOTTOM);
+      final EStandardChartTheme theme = MZmineCore.getConfiguration()
+          .getDefaultChartTheme();
+      legend.setBackgroundPaint(legendBg);
+      legend.setItemFont(theme.getRegularFont());
+      legend.setItemPaint(theme.getLegendItemPaint());
+      getChart().addLegend(legend);
+    }
+  }
+
+  private void initLabelListeners() {
+    // automatically update label visibility
+    itemLabelsVisible.addListener((obs, old, newVal) -> {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if (renderer != null) {
+          renderer.setDefaultItemLabelsVisible(newVal, false);
+        }
+      }
+      getChart().fireChartChanged();
+    });
+
+    legendItemsVisible.addListener((obs, old, newVal) -> {
+      for (int i = 0; i < getXYPlot().getRendererCount(); i++) {
+        XYItemRenderer renderer = getXYPlot().getRenderer(i);
+        if (renderer != null) {
+          renderer.setDefaultSeriesVisibleInLegend(newVal, false);
+        }
+      }
+      final LegendTitle legend = getChart().getLegend();
+      if (legend != null) {
+        legend.setVisible(newVal);
+      }
+      getChart().fireChartChanged();
+    });
+  }
+
+  /**
+   * @param dataset the main dataset. null to clear the plot. Removes all other datasets.
+   */
+  public synchronized void setDataset(@Nullable ColoredXYZDataset dataset) {
 
     removeAllDatasets();
+    if (dataset == null) {
+      return;
+    }
+
     plot.setDataset(dataset);
     plot.setRenderer(defaultRenderer.get());
-    onDatasetChanged(dataset);
-    if (dataset != null) {
-      dataset.addChangeListener(event -> onDatasetChanged((XYZDataset) event.getSource()));
+    if (dataset.getStatus() == TaskStatus.FINISHED) {
+      datasetChanged(new DatasetChangeEvent(this, dataset));
     }
+    dataset.addChangeListener(
+        event -> datasetChanged(new DatasetChangeEvent(this, event.getDataset())));
     if (nextDataSetNum == 0) {
       nextDataSetNum++;
     }
-    notifyDatasetsChangedListeners();
+
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
   }
 
   /**
@@ -164,40 +262,60 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * @param dataset
-   * @param renderer
    * @return The dataset index.
    */
   public synchronized int addDataset(XYZDataset dataset, XYItemRenderer renderer) {
-    assert Platform.isFxApplicationThread();
 
+    // jfreechart renderers dont check if the value actually changed and notify either way
+    if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
+    }
+    if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
+      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
+    }
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
     nextDataSetNum++;
-    notifyDatasetsChangedListeners();
+
+    if (chart.isNotify()) {
+      notifyDatasetChangeListeners(new DatasetChangeEvent(this, dataset));
+    }
+    if (dataset instanceof ColoredXYZDataset) {
+      dataset.addChangeListener(e -> datasetChanged(new DatasetChangeEvent(this, e.getDataset())));
+    }
+
     return nextDataSetNum - 1;
   }
 
   /**
    * Adds a dataset with the default renderer.
    *
-   * @param datasetProvider
+   * @param datasetProvider The provider
    * @return The dataset index
    */
   public synchronized int addDataset(T datasetProvider) {
-    assert Platform.isFxApplicationThread();
 
     if (datasetProvider instanceof XYZDataset) {
-      return addDataset((XYZDataset) datasetProvider, plot.getRenderer());
+      return addDataset((XYZDataset) datasetProvider, defaultRenderer.get());
     }
     ColoredXYZDataset dataset = new ColoredXYZDataset(datasetProvider);
     return addDataset(dataset, defaultRenderer.get());
   }
 
+  public void addDatasetsAndRenderers(
+      Map<XYZDataset, XYItemRenderer> datasetsAndRenderers) {
+    getChart().setNotify(false);
+    getXYPlot().setNotify(false);
+    datasetsAndRenderers.forEach(this::addDataset);
+    getXYPlot().setNotify(true);
+    getChart().setNotify(true);
+    getChart().fireChartChanged();
+  }
+
   public synchronized void removeAllDatasets() {
-    assert Platform.isFxApplicationThread();
 
     chart.setNotify(false);
+    plot.setNotify(false);
     for (int i = 0; i < nextDataSetNum; i++) {
       XYDataset ds = plot.getDataset(i);
       if (ds instanceof Task) {
@@ -205,39 +323,15 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       }
       plot.setDataset(i, null);
       plot.setRenderer(i, null);
+      if (ds != null) {
+        ds.removeChangeListener(getXYPlot());
+      }
     }
+    plot.setNotify(true);
     chart.setNotify(true);
     chart.fireChartChanged();
-    notifyDatasetsChangedListeners();
-  }
-
-  @Override
-  public void switchLegendVisible() {
-    // Toggle legend visibility.
-    final LegendTitle legend = getChart().getLegend();
-    legend.setVisible(!legend.isVisible());
-  }
-
-  @Override
-  public void switchItemLabelsVisible() {
-    // no items in standard xyz plot.
-  }
-
-  @Override
-  public void switchBackground() {
-    // Toggle background color
-    final Paint color = getChart().getPlot().getBackgroundPaint();
-    Color bgColor, liColor;
-    if (color.equals(Color.darkGray)) {
-      bgColor = Color.white;
-      liColor = Color.darkGray;
-    } else {
-      bgColor = Color.darkGray;
-      liColor = Color.white;
-    }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+    notifyDatasetChangeListeners(new DatasetChangeEvent(this, null));
+    nextDataSetNum = 0;
   }
 
   @Override
@@ -288,9 +382,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       public void chartMouseClicked(ChartMouseEventFX event) {
         if (event.getTrigger().getButton() == MouseButton.PRIMARY) {
           PlotCursorPosition pos = getCurrentCursorPosition();
-          if (pos != null) {
-            setCursorPosition(pos);
-          }
+          setCursorPosition(pos);
         }
       }
 
@@ -304,6 +396,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   /**
    * @return current cursor position or null
    */
+  @NotNull
   private PlotCursorPosition getCurrentCursorPosition() {
     final double domainValue = getXYPlot().getDomainCrosshairValue();
     final double rangeValue = getXYPlot().getRangeCrosshairValue();
@@ -316,10 +409,14 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
       XYDataset dataset = plot.getDataset(i);
       if (dataset instanceof ColoredXYZDataset) {
         index = ((ColoredXYZDataset) dataset).getValueIndex(domainValue, rangeValue);
+      } else if (dataset instanceof ColoredXYZPieDataset) {
+        index = ((ColoredXYZPieDataset) dataset).getValueIndex(domainValue, rangeValue);
       }
       if (index != -1) {
         datasetIndex = i;
-        zValue = ((ColoredXYZDataset) dataset).getZValue(0, index);
+        if (dataset instanceof ColoredXYZDataset) {
+          zValue = ((ColoredXYZDataset) dataset).getZValue(0, index);
+        }
         break;
       }
     }
@@ -327,13 +424,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     return (index != -1) ?
         new PlotCursorPosition(domainValue, rangeValue, zValue, index,
             plot.getDataset(datasetIndex)) :
-        new PlotCursorPosition(domainValue,
-            rangeValue, index, null);
-  }
-
-  @Override
-  public Plot getPlot() {
-    return plot;
+        new PlotCursorPosition(domainValue, rangeValue, index, null);
   }
 
   public XYPlot getXYPlot() {
@@ -362,7 +453,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
 
   public void setLegendNumberFormatOverride(NumberFormat format) {
     this.legendAxisFormat = format;
-    onDatasetChanged((XYZDataset) getXYPlot().getDataset());
+    datasetChanged(new DatasetChangeEvent(this, getXYPlot().getDataset()));
   }
 
   @Override
@@ -370,27 +461,28 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     addMenuItem(getContextMenu(), title, ai);
   }
 
-
   @Override
-  public void addDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void addDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.add(listener);
   }
 
   @Override
-  public void removeDatasetsChangedListener(DatasetsChangedListener listener) {
+  public void removeDatasetChangeListener(DatasetChangeListener listener) {
     datasetListeners.remove(listener);
   }
 
   @Override
-  public void clearDatasetsChangedListeners(DatasetChangeListener listener) {
+  public void clearDatasetChangeListeners() {
     datasetListeners.clear();
   }
 
-  private void notifyDatasetsChangedListeners() {
-    Map<Integer, XYDataset> datasets = getAllDatasets();
+  public void notifyDatasetChangeListeners(DatasetChangeEvent event) {
+    if (!chart.isNotify()) {
+      return;
+    }
 
-    for (DatasetsChangedListener listener : datasetListeners) {
-      listener.datasetsChanged(datasets);
+    for (DatasetChangeListener listener : datasetListeners) {
+      listener.datasetChanged(event);
     }
   }
 
@@ -406,39 +498,37 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    * @return Paint scale based on the datasets min and max values.
    */
   private PaintScale makePaintScale(XYZDataset dataset) {
-    if (!(dataset instanceof ColoredXYZDataset)
+    if (!(dataset instanceof ColoredXYZDataset xyz)
         || ((ColoredXYZDataset) dataset).getPaintScale() == null
         || ((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      LookupPaintScale ps = new LookupPaintScale(0, 10000, Color.BLACK);
-      return ps;
+      org.jfree.data.Range range = DatasetUtils.findZBounds(dataset);
+      return new LookupPaintScale(range.getLowerBound(), range.getUpperBound(), Color.BLACK);
     } else {
-      ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
       return xyz.getPaintScale();
     }
   }
 
   /**
-   * @param dataset Called when the dataset is changed, e.g. when the calculation finished.
+   * @param event Called when the dataset is changed, e.g. when the calculation finished.
    */
-  private void onDatasetChanged(XYZDataset dataset) {
-    if (dataset == null) {
+  @Override
+  public void datasetChanged(DatasetChangeEvent event) {
+    super.datasetChanged(event);
+
+    if (!(event.getDataset() instanceof XYZDataset dataset)) {
       return;
     }
-    PaintScale paintScale = makePaintScale(dataset);
-    updateRenderer(paintScale);
-    if (dataset instanceof ColoredXYZDataset
-        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
-      PaintScaleLegend legend = generateLegend(((ColoredXYZDataset) dataset).getMinZValue(),
-          ((ColoredXYZDataset) dataset).getMaxZValue(), paintScale);
-      chart.clearSubtitles();
-      if (legendCanvas != null) {
-        drawLegendToSeparateCanvas(legend);
-      } else {
-        chart.addSubtitle(legend);
-      }
+
+    if (getXYPlot().indexOf((XYDataset) event.getDataset()) == 0) {
+      updateLegend();
     }
+
     MZmineCore.getConfiguration().getDefaultChartTheme().applyToLegend(chart);
-    chart.fireChartChanged();
+    if (chart.isNotify()) {
+      chart.fireChartChanged();
+    }
+
+    notifyDatasetChangeListeners(event);
   }
 
   public Canvas getLegendCanvas() {
@@ -453,16 +543,37 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   public void setLegendCanvas(@Nullable Canvas canvas) {
     this.legendCanvas = canvas;
+
+    widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.BOTTOM
+          || defaultPaintscaleLocation == RectangleEdge.TOP) {
+        legendCanvas.setWidth(newValue.doubleValue());
+      }
+    }));
+
+    heightProperty().addListener(((observable, oldValue, newValue) -> {
+      if (defaultPaintscaleLocation == RectangleEdge.LEFT
+          || defaultPaintscaleLocation == RectangleEdge.RIGHT) {
+        legendCanvas.setHeight(newValue.doubleValue());
+      }
+    }));
+
+    legendCanvas.widthProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentLegend != null) {
+        drawLegendToSeparateCanvas(currentLegend);
+      }
+    }));
   }
 
   public void setLegendAxisLabel(@Nullable String label) {
     legendLabel = label;
   }
 
-  private void drawLegendToSeparateCanvas(PaintScaleLegend legend) {
+  private void drawLegendToSeparateCanvas(Title legend) {
+    assert legendCanvas != null;
     GraphicsContext gc = legendCanvas.getGraphicsContext2D();
-    gc.clearRect(0, 0, legendCanvas.getWidth(), legendCanvas.getHeight()); // clear canvas
     FXGraphics2D g2 = new FXGraphics2D(gc);
+    gc.clearRect(0, 0, legendCanvas.getWidth(), legendCanvas.getHeight()); // clear canvas
     g2.setRenderingHint(FXHints.KEY_USE_FX_FONT_METRICS, true);
     g2.setZeroStrokeWidth(0.1);
     g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
@@ -476,7 +587,7 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
    */
   @Override
   public LinkedHashMap<Integer, XYDataset> getAllDatasets() {
-    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<Integer, XYDataset>();
+    final LinkedHashMap<Integer, XYDataset> datasetMap = new LinkedHashMap<>();
 
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataset = plot.getDataset(i);
@@ -488,18 +599,17 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
   }
 
   /**
-   * @param min
-   * @param max
-   * @param scale
+   * @param scale The paint scale
    * @return Legend based on the {@link LookupPaintScale}.
    */
-  private PaintScaleLegend generateLegend(double min, double max, @Nonnull PaintScale scale) {
+  private PaintScaleLegend generateLegend(@NotNull PaintScale scale) {
     Paint axisPaint = getXYPlot().getDomainAxis().getAxisLinePaint();
     Font axisLabelFont = getXYPlot().getDomainAxis().getLabelFont();
     Font axisTickLabelFont = getXYPlot().getDomainAxis().getTickLabelFont();
 
     NumberAxis scaleAxis = new NumberAxis(null);
-    scaleAxis.setRange(min, max);
+    scaleAxis.setRange(scale.getLowerBound(),
+        Math.max(scale.getUpperBound(), scale.getUpperBound() * 1E-10));
     scaleAxis.setAxisLinePaint(axisPaint);
     scaleAxis.setTickMarkPaint(axisPaint);
     scaleAxis.setNumberFormatOverride(legendAxisFormat);
@@ -517,33 +627,20 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     newLegend.setAxisOffset(5.0);
     newLegend.setSubdivisionCount(500);
     newLegend.setPosition(defaultPaintscaleLocation);
-//    double h =
-//        newLegend.getHeight() + newLegend.getStripWidth() + newLegend.getAxisOffset() ;
     newLegend.setBackgroundPaint(legendBg);
     return newLegend;
   }
 
-  /**
-   * updates the renderer to the block sizes & paint scale provided by the dataset.
-   *
-   * @param paintScale
-   */
-  private void updateRenderer(PaintScale paintScale) {
-    XYDataset dataset = plot.getDataset();
-    if (!(dataset instanceof XYZDataset)) {
-      // maybe add a case for that later
-      return;
-    }
-    if (!(dataset instanceof ColoredXYZDataset)) {
-      return;
-    }
-    if (((ColoredXYZDataset) dataset).getStatus() != TaskStatus.FINISHED) {
-      return;
-    }
-    ColoredXYZDataset xyz = (ColoredXYZDataset) dataset;
-    blockRenderer.setBlockHeight(xyz.getBoxHeight());
-    blockRenderer.setBlockWidth(xyz.getBoxWidth());
-    blockRenderer.setPaintScale(paintScale);
+  public PaintScale getLegendPaintScale() {
+    return legendPaintScale.get();
+  }
+
+  public void setLegendPaintScale(PaintScale legendPaintScale) {
+    this.legendPaintScale.set(legendPaintScale);
+  }
+
+  public ObjectProperty<PaintScale> legendPaintScaleProperty() {
+    return legendPaintScale;
   }
 
   public RectangleEdge getDefaultPaintscaleLocation() {
@@ -554,5 +651,73 @@ public class SimpleXYZScatterPlot<T extends PlotXYZDataProvider> extends EChartV
     this.defaultPaintscaleLocation = defaultPaintscaleLocation;
   }
 
+  public boolean isItemLabelsVisible() {
+    return itemLabelsVisible.get();
+  }
 
+  public void setItemLabelsVisible(boolean itemLabelsVisible) {
+    this.itemLabelsVisible.set(itemLabelsVisible);
+  }
+
+  public BooleanProperty itemLabelsVisibleProperty() {
+    return itemLabelsVisible;
+  }
+
+  public boolean isLegendItemsVisible() {
+    return legendItemsVisible.get();
+  }
+
+  @Override
+  public void setLegendItemsVisible(boolean visible) {
+    legendItemsVisible.set(visible);
+  }
+
+  public BooleanProperty legendItemsVisibleProperty() {
+    return legendItemsVisible;
+  }
+
+  /**
+   * Initializes a {@link RegionSelectionListener} and adds it to the plot. Following clicks will be
+   * added to a region. Region selection can be finished by {@link SimpleXYZScatterPlot#finishPath()}.
+   */
+  @Override
+  public void startRegion() {
+    isDrawingRegion.set(true);
+
+    if (currentRegionListener != null) {
+      removeChartMouseListener(currentRegionListener);
+    }
+    currentRegionListener = new RegionSelectionListener(this);
+    currentRegionListener.buildingPathProperty().addListener(((observable, oldValue, newValue) -> {
+      if (currentRegionAnnotation != null) {
+        getXYPlot().removeAnnotation(currentRegionAnnotation, false);
+      }
+      Color regionColor = new Color(0.6f, 0.6f, 0.6f, 0.4f);
+      currentRegionAnnotation = new XYShapeAnnotation(newValue, new BasicStroke(1f), regionColor,
+          regionColor);
+      getXYPlot().addAnnotation(currentRegionAnnotation, true);
+    }));
+    addChartMouseListener(currentRegionListener);
+  }
+
+  /**
+   * The {@link RegionSelectionListener} of the current selection. The path/points can be retrieved
+   * from the listener object.
+   *
+   * @return The finished listener
+   */
+  @Override
+  public RegionSelectionListener finishPath() {
+    if (!isDrawingRegion.get()) {
+      return null;
+    }
+    if (currentRegionAnnotation != null) {
+      getXYPlot().removeAnnotation(currentRegionAnnotation);
+    }
+    isDrawingRegion.set(false);
+    removeChartMouseListener(currentRegionListener);
+    RegionSelectionListener tempRegionListener = currentRegionListener;
+    currentRegionListener = null;
+    return tempRegionListener;
+  }
 }

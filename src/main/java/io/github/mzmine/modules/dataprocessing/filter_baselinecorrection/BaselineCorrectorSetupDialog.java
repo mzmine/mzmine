@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,29 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -46,8 +33,23 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.control.ProgressBar;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
@@ -156,8 +158,8 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     private boolean userCanceled;
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
-        Range<Float> rtRange, Range<Double> mzRange) {
-      super(null); // no new data stored -> null
+        Range<Float> rtRange, Range<Double> mzRange, @NotNull Instant moduleCallDate) {
+      super(null, moduleCallDate); // no new data stored -> null
 
       this.dialog = dialog;
       this.ticPlot = ticPlot;
@@ -417,7 +419,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     if (ready && (previewTask == null || previewTask.getStatus() != TaskStatus.PROCESSING)) {
 
       baselineCorrector.initProgress(dataFile);
-      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange);
+      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange, Instant.now()); // date does not matter for preview
       previewThread = new Thread(previewTask);
       logger.info("Launch preview task.");
       previewThread.start();

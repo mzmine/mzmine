@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,20 +8,22 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_nist;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.time.Instant;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import java.util.Date;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -40,37 +42,37 @@ public class NistMsSearchModule implements MZmineProcessingModule {
       "This method searches spectra against the NIST library.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
 
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
 
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
 
     return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return NistMsSearchParameters.class;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     for (final FeatureList peakList : parameters.getParameter(NistMsSearchParameters.PEAK_LISTS)
         .getValue().getMatchingFeatureLists()) {
 
-      tasks.add(new NistMsSearchTask(peakList, parameters));
+      tasks.add(new NistMsSearchTask(peakList, parameters, moduleCallDate));
     }
 
     return ExitCode.OK;
@@ -88,7 +90,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
         MZmineCore.getConfiguration().getModuleParameters(NistMsSearchModule.class);
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
+      MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters, Instant.now()));
     }
   }
 }

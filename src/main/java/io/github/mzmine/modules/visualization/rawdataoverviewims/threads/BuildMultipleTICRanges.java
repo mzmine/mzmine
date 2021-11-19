@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.rawdataoverviewims.threads;
@@ -29,10 +29,11 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildMultipleTICRanges extends AbstractTask {
 
@@ -42,10 +43,10 @@ public class BuildMultipleTICRanges extends AbstractTask {
   private final ScanSelection scanSelection;
   private double finishedPercentage;
 
-  public BuildMultipleTICRanges(@Nonnull List<Range<Double>> mzRanges, @Nonnull IMSRawDataFile file,
-      @Nonnull ScanSelection scanSelection,
-      @Nonnull IMSRawDataOverviewPane pane) {
-    super(null); // no new data stored -> null
+  public BuildMultipleTICRanges(@NotNull List<Range<Double>> mzRanges, @NotNull IMSRawDataFile file,
+      @NotNull ScanSelection scanSelection,
+      @NotNull IMSRawDataOverviewPane pane) {
+    super(null, Instant.now()); // no new data stored -> null, date is irrelevant (not used in batch mode)
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
     this.pane = pane;

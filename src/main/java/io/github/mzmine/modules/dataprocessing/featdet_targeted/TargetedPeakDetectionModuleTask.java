@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
@@ -37,11 +37,14 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
@@ -65,8 +68,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private double noiseLevel;
 
   TargetedPeakDetectionModuleTask(MZmineProject project, ParameterSet parameters,
-      RawDataFile dataFile, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      RawDataFile dataFile, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.parameters = parameters;
@@ -177,7 +180,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Targeted feature detection ",
-            TargetedFeatureDetectionModule.class, parameters));
+            TargetedFeatureDetectionModule.class, parameters, getModuleCallDate()));
 
     logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);

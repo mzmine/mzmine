@@ -12,25 +12,22 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.fx;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.geometry.Pos;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.control.cell.ComboBoxTreeTableCell;
 import javafx.scene.control.cell.TextFieldTreeTableCell;
 import javafx.util.Callback;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Default cell factory for a DataType
@@ -39,22 +36,15 @@ import javafx.util.Callback;
  */
 public class EditableDataTypeCellFactory implements
     Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> {
+
   // TODO rename this class to EditStringConverterTypeCellFactory
+  private static final Logger logger = Logger
+      .getLogger(EditableDataTypeCellFactory.class.getName());
+  @Nullable
+  private final DataType type;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private RawDataFile raw;
-  private DataType<?> type;
-  private int subcolumn = -1;
-
-
-  public EditableDataTypeCellFactory(RawDataFile raw, DataType<?> type) {
-    this(raw, type, -1);
-  }
-
-  public EditableDataTypeCellFactory(RawDataFile raw, DataType<?> type, int subcolumn) {
+  public EditableDataTypeCellFactory(DataType type) {
     this.type = type;
-    this.raw = raw;
-    this.subcolumn = subcolumn;
   }
 
   @Override

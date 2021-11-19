@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.norm_linear;
@@ -34,10 +34,14 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class LinearNormalizerTask extends AbstractTask {
 
@@ -57,8 +61,8 @@ class LinearNormalizerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage); // no new data stored -> null
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate); // no new data stored -> null
 
     this.project = project;
     this.originalFeatureList = (ModularFeatureList) featureList;
@@ -180,7 +184,7 @@ class LinearNormalizerTask extends AbstractTask {
       if (normalizationType == NormalizationType.TotalRawSignal) {
         normalizationFactor = 0;
         for (Scan scan : file.getScanNumbers(1)) {
-          normalizationFactor += scan.getTIC();
+          normalizationFactor += Objects.requireNonNullElse(scan.getTIC(), 0f).floatValue();
         }
       }
 
@@ -215,7 +219,7 @@ class LinearNormalizerTask extends AbstractTask {
 
           if (normalizedRow == null) {
 
-            normalizedRow = new ModularFeatureListRow((ModularFeatureList) originalFeatureListRow.getFeatureList(),
+            normalizedRow = new ModularFeatureListRow(originalFeatureListRow.getFeatureList(),
                     originalFeatureListRow, false);
 
             rowMap.put(originalFeatureListRow, normalizedRow);
@@ -251,7 +255,7 @@ class LinearNormalizerTask extends AbstractTask {
     // Add task description to feature List
     normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Linear normalization of by " + normalizationType,
-        LinearNormalizerModule.class, parameters));
+        LinearNormalizerModule.class, parameters, getModuleCallDate()));
 
     // Remove the original feature list if requested
     if (removeOriginal)

@@ -27,6 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,10 +39,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.math3.distribution.FDistribution;
 import org.apache.commons.math3.exception.MathIllegalArgumentException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AnovaTask extends AbstractTask {
 
@@ -55,8 +56,8 @@ public class AnovaTask extends AbstractTask {
   private final FeatureListRow[] featureListRows;
   private final UserParameter userParameter;
 
-  public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters) {
-    super(null);
+  public AnovaTask(FeatureListRow[] featureListRows, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
     this.featureListRows = featureListRows;
     this.userParameter = parameters.getParameter(AnovaParameters.selectionData).getValue();
   }
@@ -170,7 +171,7 @@ public class AnovaTask extends AbstractTask {
   }
 
   @Nullable
-  private Double oneWayAnova(@Nonnull double[][] intensityGroups) {
+  private Double oneWayAnova(@NotNull double[][] intensityGroups) {
 
     int numGroups = intensityGroups.length;
     long numIntensities = Arrays.stream(intensityGroups).flatMapToDouble(Arrays::stream).count();

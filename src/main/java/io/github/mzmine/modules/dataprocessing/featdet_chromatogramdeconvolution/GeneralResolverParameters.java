@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,41 +8,36 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
 
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.CenterMeasureParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.maths.CenterMeasure;
 import javafx.collections.FXCollections;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class GeneralResolverParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
-      "This string is added to feature list name as suffix", "deconvoluted");
-
-  public static final CenterMeasureParameter MZ_CENTER_FUNCTION = new CenterMeasureParameter(
-      "m/z center calculation", "Median, average or an automatic log10-weighted approach",
-      CenterMeasure.values(), null, CenterMeasure.MEDIAN, null);
+      "This string is added to feature list name as suffix", "resolved");
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove original feature list",
@@ -51,9 +46,10 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());
 
-  public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>("Dimension",
-      "Select the dimension to be resolved.",
-      FXCollections.observableArrayList(ResolvingDimension.values()), ResolvingDimension.RETENTION_TIME);
+  public static final ComboParameter<ResolvingDimension> dimension = new ComboParameter<>(
+      "Dimension", "Select the dimension to be resolved.",
+      FXCollections.observableArrayList(ResolvingDimension.values()),
+      ResolvingDimension.RETENTION_TIME);
 
   /**
    * R engine type. Only added in parameter sets that need R.
@@ -66,10 +62,11 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
     super(parameters);
   }
 
+  @Deprecated
   public abstract FeatureResolver getResolver();
 
   @Nullable
-  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameterSet) {
+  public Resolver getResolver(ParameterSet parameterSet, ModularFeatureList flist) {
     return null;
   }
 }

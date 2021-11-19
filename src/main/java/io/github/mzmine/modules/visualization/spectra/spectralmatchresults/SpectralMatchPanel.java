@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 // import io.github.mzmine.util.swing.IconUtil;
 // import io.github.mzmine.util.swing.SwingExportUtil;
+import io.github.mzmine.util.swing.SwingExportUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -45,6 +46,7 @@ import javax.swing.SwingUtilities;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 import org.openscience.cdk.DefaultChemObjectBuilder;
@@ -267,6 +269,17 @@ public class SpectralMatchPanel extends JPanel {
     mirrorChart = new EChartPanel(mirrorChart.getChart(), false);
     spectrumPanel.add(mirrorChart);
 
+    CombinedDomainXYPlot plot = (CombinedDomainXYPlot) mirrorChart.getChart().getPlot();
+
+    for(Object o : plot.getSubplots()) {
+      if(o instanceof XYPlot p) {
+        p.setDomainGridlinesVisible(false);
+        p.setDomainMinorGridlinesVisible(false);
+        p.setRangeGridlinesVisible(false);
+        p.setRangeMinorGridlinesVisible(false);
+      }
+    }
+
     coupleZoomYListener();
 
     metaDataPanelScrollPane.setPreferredSize(new Dimension(META_WIDTH + 20, ENTRY_HEIGHT));
@@ -394,9 +407,7 @@ public class SpectralMatchPanel extends JPanel {
 
   public void exportToGraphics(String format, File file) {
     try {
-      /*
-       * SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
-       */
+       SwingExportUtil.writeToGraphics(this, file.getParentFile(), file.getName(), format);
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
     } finally {

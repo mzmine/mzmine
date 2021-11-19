@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,90 +8,77 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import javafx.collections.FXCollections;
+import io.github.mzmine.util.ExitCode;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Defines smoothing task parameters.
- *
- * @author $Author$
- * @version $Revision$
- */
 public class SmoothingParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter peakLists = new FeatureListsParameter();
-  /**
-   * Raw data file suffix.
-   */
-  public static final StringParameter SUFFIX = new StringParameter("Filename suffix",
-      "Suffix to be appended to peak-list file name", "smoothed");
-  /**
-   * Filter width.
-   */
-  public static final ComboParameter<Integer> FILTER_WIDTH = new ComboParameter<Integer>(
-      "Filter width (retention time)", "Number of data point covered by the smoothing filter",
-      new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
-  public static final ComboParameter<Integer> MOBILITY_FILTER_WIDTH = new ComboParameter<Integer>(
-      "Filter width (mobility)",
-      "Number of data point covered by the smoothing filter. Will not affect smoothing if there is no mobility dimension.",
-      new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5);
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final ComboParameter<MobilitySmoothingType> MOBILITY_SMOOTHING_TYPE =
-      new ComboParameter<>("Smooth individual/summed mobilograms",
-          "Determines if summed or single mobilograms shall be smoothed.", FXCollections
-          .observableArrayList(MobilitySmoothingType.values()), MobilitySmoothingType.SUMMED);
-  /**
-   * Remove original data file.
-   */
-  public static final BooleanParameter REMOVE_ORIGINAL =
-      new BooleanParameter("Remove original feature list",
-          "If checked, the source feature list will be replaced by the smoothed version");
+  public static final OptionalParameter<ComboParameter<Integer>> rtSmoothing = new OptionalParameter<>(
+      new ComboParameter<Integer>("Retention time smoothing",
+          "Enables intensity smoothing along the rt axis.",
+          new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5));
 
-  /**
-   * Create the parameter set.
-   */
+  public static final OptionalParameter<ComboParameter<Integer>> mobilitySmoothing = new OptionalParameter<>(
+      new ComboParameter<Integer>("Mobility smoothing",
+          "Enables intensity smoothing of the summed mobilogram.",
+          new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5));
+
+  public static final BooleanParameter removeOriginal = new BooleanParameter(
+      "Remove original feature list",
+      "The originial feature list is removed after the processing has finished");
+
+  public static final StringParameter suffix = new StringParameter("Suffix",
+      "The suffix to be added to processed feature lists.", " sm");
+
   public SmoothingParameters() {
-    super(new Parameter[]{peakLists, SUFFIX, FILTER_WIDTH, MOBILITY_FILTER_WIDTH,
-        MOBILITY_SMOOTHING_TYPE, REMOVE_ORIGINAL});
+    super(new Parameter[]{featureLists, rtSmoothing, mobilitySmoothing, removeOriginal, suffix});
   }
 
-  enum MobilitySmoothingType {
-    SUMMED("Summed"), INDIVIDUAL("Individual");
-
-    private final String str;
-
-    MobilitySmoothingType(String str) {
-      this.str = str;
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    boolean superCheck = super.checkParameterValues(errorMessages);
+    if (!superCheck) {
+      return false;
     }
 
-    @Override
-    public String toString() {
-      return str;
+    if (!this.getParameter(mobilitySmoothing).getValue()
+        && !this.getParameter(rtSmoothing).getValue()) {
+      errorMessages.add("At least one smoothing type must be selected");
+      return false;
     }
+    return true;
   }
 
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new SmoothingSetupDialog(valueCheckRequired, this);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

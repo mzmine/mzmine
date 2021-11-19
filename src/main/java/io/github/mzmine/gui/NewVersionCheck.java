@@ -1,24 +1,24 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui;
 
-
+import java.lang.Runtime.Version;
 import java.net.URL;
 import java.util.logging.Logger;
 import io.github.mzmine.main.MZmineCore;
@@ -31,7 +31,9 @@ public class NewVersionCheck implements Runnable {
 
   public enum CheckType {
     DESKTOP, MENU
-  };
+  }
+
+  ;
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final CheckType checkType;
@@ -43,7 +45,7 @@ public class NewVersionCheck implements Runnable {
   public void run() {
 
     // Check for updated version
-    String currentVersion, newestVersion;
+    Version currentVersion, newestVersion;
     currentVersion = MZmineCore.getMZmineVersion();
 
     if (checkType.equals(CheckType.MENU)) {
@@ -54,8 +56,8 @@ public class NewVersionCheck implements Runnable {
 
     try {
       final URL newestVersionURL = new URL(newestVersionAddress);
-      newestVersion = InetUtils.retrieveData(newestVersionURL);
-      newestVersion = newestVersion.trim();
+      final String newestVersionData = InetUtils.retrieveData(newestVersionURL).trim();
+      newestVersion = Version.parse(newestVersionData);
     } catch (Exception e) {
       if (checkType.equals(CheckType.MENU)) {
         e.printStackTrace();
@@ -70,13 +72,21 @@ public class NewVersionCheck implements Runnable {
         logger.info(msg);
         desktop.displayMessage(msg);
       }
-    } else if (currentVersion.equals(newestVersion) || currentVersion.equals("0.0")) {
+      return;
+    }
+
+    final int versionComparison = currentVersion.compareTo(newestVersion);
+
+    if (versionComparison == 0) {
       if (checkType.equals(CheckType.MENU)) {
         final String msg = "No updated version of MZmine is available.";
         logger.info(msg);
         desktop.displayMessage(msg);
       }
-    } else {
+      return;
+    }
+
+    if (versionComparison < 0) {
       final String msg = "An updated version is available: MZmine " + newestVersion;
       final String msg2 = "Please download the newest version from: http://mzmine.github.io";
       logger.info(msg);
@@ -86,5 +96,12 @@ public class NewVersionCheck implements Runnable {
         desktop.setStatusBarText(msg + ". " + msg2, Color.RED);
       }
     }
+
+    if (versionComparison > 0) {
+      final String msg = "It seems you are running MZmine version " + currentVersion
+          + ", which is newer than the latest official release " + newestVersion;
+      logger.info(msg);
+    }
+
   }
 }

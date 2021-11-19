@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
@@ -35,23 +34,25 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
  */
 class IsotopeGrouperTask extends AbstractTask {
-
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   /**
    * The isotopeDistance constant defines expected distance between isotopes. Actual weight of 1
@@ -61,13 +62,9 @@ class IsotopeGrouperTask extends AbstractTask {
    * tolerance.
    */
   private static final double isotopeDistance = 1.0033;
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject project;
   private final ModularFeatureList featureList;
-
-  // peaks counter
-  private int processedRows, totalRows;
-
   // parameter values
   private final String suffix;
   private final MZTolerance mzTolerance;
@@ -79,13 +76,15 @@ class IsotopeGrouperTask extends AbstractTask {
   private final boolean chooseMostIntense;
   private final int maximumCharge;
   private final ParameterSet parameters;
+  // peaks counter
+  private int processedRows, totalRows;
 
   /**
    *
    */
   IsotopeGrouperTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.featureList = featureList;
@@ -146,6 +145,10 @@ class IsotopeGrouperTask extends AbstractTask {
     // Create a new deisotoped peakList
     ModularFeatureList deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix,
         getMemoryMapStorage(), featureList.getRawDataFiles());
+    deisotopedFeatureList
+        .setSelectedScans(featureList.getRawDataFile(0), featureList.getSeletedScans(
+            featureList.getRawDataFile(0)));
+    DataTypeUtils.copyTypes(featureList, deisotopedFeatureList, true, true);
 
     // Collect all selected charge states
     int[] charges = new int[maximumCharge];
@@ -198,7 +201,8 @@ class IsotopeGrouperTask extends AbstractTask {
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the feature list.
       if (bestFitRows.size() == 1) {
-        deisotopedFeatureList.addRow(new ModularFeatureListRow(deisotopedFeatureList, row, true));
+        deisotopedFeatureList
+            .addRow(new ModularFeatureListRow(deisotopedFeatureList, row.getID(), row, true));
         sortedRows.remove(bestFitRows.get(0));
         processedRows++;
         continue;
@@ -229,7 +233,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
       // copy row
       FeatureListRow newRow = new ModularFeatureListRow(deisotopedFeatureList,
-          (ModularFeatureListRow) originalRows[0], true);
+          originalRows[0].getID(), (ModularFeatureListRow) originalRows[0], true);
       deisotopedFeatureList.addRow(newRow);
       // set isotope pattern
       Feature feature = newRow.getFeatures().get(0);
@@ -256,7 +260,7 @@ class IsotopeGrouperTask extends AbstractTask {
     // Add task description to peakList
     deisotopedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Isotopic peaks grouper",
-            IsotopeGrouperModule.class, parameters));
+            IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
     // Remove the original peakList if requested
     if (removeOriginal) {

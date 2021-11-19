@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.taskcontrol;
@@ -21,12 +21,14 @@ package io.github.mzmine.taskcontrol;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An abstract implementation of task which defines common methods to make Task implementation
@@ -35,12 +37,13 @@ import javax.annotation.Nullable;
 public abstract class AbstractTask implements Task {
 
   protected final MemoryMapStorage storage;
+  protected final Instant moduleCallDate;
 
   private TaskStatus status = TaskStatus.WAITING;
+
   private String errorMessage = null;
   // listener to control status changes
   private List<TaskStatusListener> listener;
-
   private StringProperty name = new SimpleStringProperty("Task name");
 
   public final String getName() {
@@ -56,14 +59,15 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   *
-   * @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *  @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                RawDataFiles, MassLists, FeatureLists). May be null if results shall be stored
    *                in ram. For now, one storage should be created per module call in {@link
-   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection)}.
+   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection, Instant)}.
+   * @param moduleCallDate
    */
-  protected AbstractTask(@Nullable MemoryMapStorage storage) {
+  protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     this.storage = storage;
+    this.moduleCallDate = moduleCallDate;
   }
 
   /**
@@ -158,5 +162,9 @@ public abstract class AbstractTask implements Task {
   public void clearTaskStatusListener() {
     if (listener != null)
       listener.clear();
+  }
+
+  public Instant getModuleCallDate() {
+    return moduleCallDate;
   }
 }

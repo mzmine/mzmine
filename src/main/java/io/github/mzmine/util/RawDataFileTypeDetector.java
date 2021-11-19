@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -63,6 +63,8 @@ public class RawDataFileTypeDetector {
 
   private static final String TDF_SUFFIX = ".tdf";
   private static final String TDF_BIN_SUFFIX = ".tdf_bin";
+  private static final String TSF_BIN_SUFFIX = ".tsf_bin";
+  private static final String TSF_SUFFIX = ".tsf_bin";
   private static final String BRUKER_FOLDER_SUFFIX = ".d";
 
   /**
@@ -71,9 +73,9 @@ public class RawDataFileTypeDetector {
   public static RawDataFileType detectDataFileType(File fileName) {
 
     if (fileName.isDirectory()) {
-      if (fileName.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
+      /*if (fileName.getName().endsWith(BRUKER_FOLDER_SUFFIX)) {
         return RawDataFileType.BRUKER_TDF;
-      }
+      }*/
 
       // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
       for (File f : fileName.listFiles()) {
@@ -84,6 +86,9 @@ public class RawDataFileTypeDetector {
             && (f.getName().contains(TDF_SUFFIX) || f.getName().contains(TDF_BIN_SUFFIX))) {
           return RawDataFileType.BRUKER_TDF;
         }
+        if(f.isFile() && (f.getName().contains(TSF_SUFFIX) || f.getName().contains(TSF_BIN_SUFFIX))) {
+          return RawDataFileType.BRUKER_TSF;
+        }
       }
       // We don't recognize any other directory type than Waters and Bruker
       return null;
@@ -93,6 +98,9 @@ public class RawDataFileTypeDetector {
 
       if (fileName.getName().contains(TDF_SUFFIX) || fileName.getName().contains(TDF_BIN_SUFFIX)) {
         return RawDataFileType.BRUKER_TDF;
+      }
+      if(fileName.getName().contains(TDF_SUFFIX) || fileName.getName().contains(TDF_BIN_SUFFIX)) {
+        return RawDataFileType.BRUKER_TSF;
       }
 
       try {

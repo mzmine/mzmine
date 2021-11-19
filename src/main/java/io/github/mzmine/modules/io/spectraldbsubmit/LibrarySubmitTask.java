@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
@@ -29,22 +29,6 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharSink;
 import com.google.common.io.FileWriteMode;
@@ -61,6 +45,25 @@ import io.github.mzmine.modules.io.spectraldbsubmit.view.ResultsTextPane;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS
@@ -96,8 +99,8 @@ public class LibrarySubmitTask extends AbstractTask {
   private final MSMSLibrarySubmissionWindow window;
 
   public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
-      Map<LibrarySubmitIonParameters, DataPoint[]> map) {
-    super(null);
+      Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate);
     this.window = window;
     this.map = map;
     // get file, user and pass
@@ -125,8 +128,8 @@ public class LibrarySubmitTask extends AbstractTask {
     }
   }
 
-  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
-    this(null, map);
+  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
+    this(null, map, moduleCallDate);
   }
 
   @Override
@@ -194,6 +197,7 @@ public class LibrarySubmitTask extends AbstractTask {
   public void writeResults(final String url, final String message, final Result type,
       boolean isLink) {
     if (window != null && window.getTxtResults() != null) {
+//      final ResultsTextPane pane = window.getTxtResults();
       final ResultsTextPane pane = window.getTxtResults();
       SwingUtilities.invokeLater(() -> {
         switch (type) {

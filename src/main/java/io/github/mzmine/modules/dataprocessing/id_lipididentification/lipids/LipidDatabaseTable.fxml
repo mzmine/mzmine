@@ -9,6 +9,24 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 
+<!--
+  ~ Copyright 2006-2021 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  -->
+
 <BorderPane prefHeight="800.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidDatabaseTableController">
    <center>
       <SplitPane dividerPositions="0.6" orientation="VERTICAL" prefHeight="160.0" prefWidth="200.0" BorderPane.alignment="CENTER">
@@ -18,17 +36,13 @@
                   <TableView fx:id="lipidDatabaseTableView" prefHeight="798.0" prefWidth="822.0">
                     <columns>
                       <TableColumn fx:id="idColumn" editable="false" maxWidth="60.0" minWidth="50.0" prefWidth="50.0" text="ID" />
-                      <TableColumn fx:id="lipidCoreClassColumn" editable="false" prefWidth="75.0" text="Lipid core class" />
-                        <TableColumn fx:id="lipidMainClassColumn" editable="false" prefWidth="75.0" text="Lipid main class" />
                         <TableColumn fx:id="lipidClassColumn" editable="false" prefWidth="75.0" text="Lipid class" />
                         <TableColumn fx:id="formulaColumn" editable="false" prefWidth="75.0" text="Molecular formula" />
                         <TableColumn fx:id="abbreviationColumn" editable="false" prefWidth="75.0" text="Abbreviation" />
-                        <TableColumn fx:id="ionizationColumn" editable="false" prefWidth="75.0" text="Ionization" />
                         <TableColumn fx:id="exactMassColumn" editable="false" prefWidth="75.0" text="Exact mass" />
                         <TableColumn fx:id="infoColumn" editable="false" prefWidth="75.0" text="Info" />
                         <TableColumn fx:id="statusColumn" editable="false" maxWidth="60.0" minWidth="60.0" prefWidth="60.0" text="Status" />
                         <TableColumn fx:id="fragmentsPosColumn" editable="false" prefWidth="75.0" text="MS/MS fragments positive ionization" />
-                        <TableColumn fx:id="fragmentsNegColumn" editable="false" prefWidth="75.0" text="MS/MS fragments negative ionization" />
                     </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

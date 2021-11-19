@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -28,8 +28,10 @@ import io.github.msdk.datamodel.RawDataFile;
 import io.github.msdk.datamodel.SimpleIsolationInfo;
 import io.github.msdk.util.tolerances.MzTolerance;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Simple implementation of the Scan interface.
@@ -44,13 +46,19 @@ public class MZmineToMSDKMsScan implements MsScan {
    */
   public MZmineToMSDKMsScan(Scan mzmineScan) {
     this.mzmineScan = mzmineScan;
-    if (mzmineScan.getPrecursorMZ() != 0) {
-      Range<Double> isolationMzRange = Range.singleton(mzmineScan.getPrecursorMZ());
-      double precursorMz = mzmineScan.getPrecursorMZ();
-      int precursorCharge = mzmineScan.getPrecursorCharge();
-      ActivationInfo activationInfo = null;
+
+    int precursorCharge = -1;
+    double precursorMz = 0d;
+
+    if(mzmineScan.getMsMsInfo() instanceof DDAMsMsInfo info) {
+      precursorCharge =  Objects.requireNonNullElse(info.getPrecursorCharge(), -1);
+      precursorMz = info.getIsolationMz();
+    }
+
+    if (precursorMz != 0d) {
+      Range<Double> isolationMzRange = Range.singleton(precursorMz);
       isolations.add(new SimpleIsolationInfo(isolationMzRange, 0f, precursorMz, precursorCharge,
-          activationInfo, null));
+          null, null));
     }
   }
 

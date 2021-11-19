@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types.modifiers;
 
 import io.github.mzmine.datamodel.features.types.DataType;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * DataType, which is either hidden or expanded, must have a buddy type, which is either expanded or
@@ -26,10 +27,10 @@ import javax.annotation.Nonnull;
  */
 public interface ExpandableType {
 
-  @Nonnull
+  @NotNull
   Class<? extends DataType<?>> getExpandedTypeClass();
 
-  @Nonnull
+  @NotNull
   Class<? extends DataType<?>> getHiddenTypeClass();
 
   default boolean isHiddenType() {
@@ -40,7 +41,7 @@ public interface ExpandableType {
     return getClass().equals(getExpandedTypeClass());
   }
 
-  @Nonnull
+  @NotNull
   default Class<? extends DataType<?>> getBuddyTypeClass() {
     return isExpandedType() ? getHiddenTypeClass() : getExpandedTypeClass();
   }

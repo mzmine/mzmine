@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,31 +8,34 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_ms2search;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 
 class Ms2SearchTask extends AbstractTask {
@@ -52,8 +55,8 @@ class Ms2SearchTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2) {
-    super(null); // no new data stored -> null
+  public Ms2SearchTask(ParameterSet parameters, FeatureList peakList1, FeatureList peakList2, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList1 = peakList1;
     this.peakList2 = peakList2;
@@ -112,8 +115,8 @@ class Ms2SearchTask extends AbstractTask {
         Feature featureB = rows2[j].getBestFeature();
         // Complication. The "best" peak, may not have the "best"
         // fragmentation
-        Scan scanA = rows1[i].getBestFragmentation();
-        Scan scanB = rows2[j].getBestFragmentation();
+        Scan scanA = rows1[i].getMostIntenseFragmentScan();
+        Scan scanB = rows2[j].getMostIntenseFragmentScan();
 
         searchResult =
             simpleMS2similarity(scanA, scanB, intensityThreshold, mzTolerance);
@@ -134,7 +137,7 @@ class Ms2SearchTask extends AbstractTask {
     // Add task description to peakList
     ((ModularFeatureList) peakList1).addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Identification of similar MS2s",
-            Ms2SearchModule.class, parameters));
+            Ms2SearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 

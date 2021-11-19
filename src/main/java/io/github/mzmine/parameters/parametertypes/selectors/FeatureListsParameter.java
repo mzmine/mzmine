@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -21,7 +21,7 @@ package io.github.mzmine.parameters.parametertypes.selectors;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -34,7 +34,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   private String name = "Feature lists";
   private int minCount, maxCount;
 
-  private @Nonnull
+  private @NotNull
   FeatureListsSelection value = new FeatureListsSelection();
 
   public FeatureListsParameter() {
@@ -62,7 +62,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   }
 
   @Override
-  public void setValue(@Nonnull FeatureListsSelection newValue) {
+  public void setValue(@NotNull FeatureListsSelection newValue) {
     this.value = newValue;
   }
 
@@ -102,8 +102,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
     FeatureList matchingPeakLists[];
     if (value == null)
       matchingPeakLists = new FeatureList[0];
-    else
-      matchingPeakLists = value.getMatchingFeatureLists();
+    else      matchingPeakLists = value.getMatchingFeatureLists();
 
     if (matchingPeakLists.length < minCount) {
       errorMessages.add("At least " + minCount + " feature lists  must be selected");

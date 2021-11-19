@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.gui;
@@ -37,14 +36,13 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 
 public class HeadLessDesktop implements Desktop {
 
   private static final String MODULE_NAME = "Desktop";
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(HeadLessDesktop.class.getName());
 
   @Override
   public Stage getMainWindow() {
@@ -92,17 +90,17 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SimpleParameterSet.class;
   }
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull ExitCode exitMZmine() {
+  public @NotNull ExitCode exitMZmine() {
     System.exit(0);
     return ExitCode.OK;
   }
@@ -113,13 +111,12 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  public void openWebPage(URL url) {
+  public void openWebPage(@NotNull URL url) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void addTab(MZmineTab tab) {
-    return;
   }
 
   @Override
@@ -128,12 +125,12 @@ public class HeadLessDesktop implements Desktop {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<MZmineTab> getAllTabs() {
     return Collections.emptyList();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<MZmineTab> getTabsInMainWindow() {
     return Collections.emptyList();

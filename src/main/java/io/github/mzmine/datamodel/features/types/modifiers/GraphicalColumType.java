@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types.modifiers;
@@ -31,7 +32,11 @@ import javafx.scene.control.TreeTableColumn;
 public interface GraphicalColumType<T> {
 
   public static final int DEFAULT_GRAPHICAL_CELL_HEIGHT = 100;
+  public static final int DEFAULT_IMAGE_CELL_HEIGHT = 150;
   public static final int DEFAULT_GRAPHICAL_CELL_WIDTH = 250;
+  public static final int LARGE_GRAPHICAL_CELL_WIDTH = 300;
+  public static final int MAXIMUM_GRAPHICAL_CELL_WIDTH = 800;
+
 
   /**
    *

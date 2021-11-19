@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -34,8 +34,8 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureConvertorIonMobility {
 
@@ -43,7 +43,8 @@ public class FeatureConvertorIonMobility {
       SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> sortedDataPoints) {
     List<DataPoint> summedDataPoints = new ArrayList<>();
     // sum intensity over mobility dimension
-    for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints.entrySet()) {
+    for (Entry<Frame, SortedSet<RetentionTimeMobilityDataPoint>> entry : sortedDataPoints
+        .entrySet()) {
       double mz = 0;
       double intensity = 0;
       for (RetentionTimeMobilityDataPoint dp : entry.getValue()) {
@@ -56,8 +57,13 @@ public class FeatureConvertorIonMobility {
     return summedDataPoints;
   }
 
+  /**
+   * @param originalDataPoints
+   * @return Keys (=Frame) sorted by ascending rt + scan number, values (=data points) sorted by ascending
+   * mobility scan number.
+   */
   public static SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> groupDataPointsByFrameId(
-      @Nonnull final Collection<? extends DataPoint> originalDataPoints) {
+      @NotNull final Collection<? extends DataPoint> originalDataPoints) {
 
     // group by frame & sort ascending
     SortedMap<Frame, SortedSet<RetentionTimeMobilityDataPoint>> sortedDataPoints = new TreeMap<>(

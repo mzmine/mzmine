@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
@@ -37,8 +37,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,7 +48,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
@@ -71,8 +74,8 @@ class RansacAlignerTask extends AbstractTask {
   private int newRowID = 1;
 
   public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.featureLists = (ModularFeatureList[]) featureLists;
@@ -165,7 +168,7 @@ class RansacAlignerTask extends AbstractTask {
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
           targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
-          //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
+          //(@NotNull ModularFeatureList flist, int id, RawDataFile raw,
           //    ModularFeature p)
           newRowID++;
           alignedFeatureList.addRow(targetRow);
@@ -207,7 +210,7 @@ class RansacAlignerTask extends AbstractTask {
     // Add task description to peakList
     alignedFeatureList
         .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner",
-            RansacAlignerModule.class, parameters));
+            RansacAlignerModule.class, parameters, getModuleCallDate()));
 
     logger.info("Finished RANSAC aligner");
     setStatus(TaskStatus.FINISHED);

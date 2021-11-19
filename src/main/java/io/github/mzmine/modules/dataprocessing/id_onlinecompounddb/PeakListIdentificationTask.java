@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
@@ -25,7 +25,9 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.FeatureListRowSorter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.mzmine.datamodel.IonizationType;
@@ -42,6 +44,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import org.jetbrains.annotations.NotNull;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
@@ -72,8 +75,8 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list) {
-    super(null); // no new data stored -> null
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     peakList = list;
     numItems = 0;
@@ -148,7 +151,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     }
 
     peakList.getAppliedMethods().add(
-        new SimpleFeatureListAppliedMethod(OnlineDBSearchModule.class, parameters));
+        new SimpleFeatureListAppliedMethod(OnlineDBSearchModule.class, parameters, getModuleCallDate()));
   }
 
   /**

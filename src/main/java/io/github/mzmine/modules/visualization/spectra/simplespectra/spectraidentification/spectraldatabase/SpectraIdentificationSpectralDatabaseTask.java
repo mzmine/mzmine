@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
@@ -31,11 +31,14 @@ import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Task to compare single spectra with spectral databases
@@ -60,8 +63,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
   private int totalTasks;
 
   SpectraIdentificationSpectralDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot) {
-    super(null); // no new data stored -> null
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.parameters = parameters;
     dataBaseFile = parameters
@@ -169,7 +172,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
         SpectralMatchTask task = new SpectralMatchTask(parameters, alreadyProcessed + 1, list,
-            spectraPlot, currentScan, resultWindow);
+            spectraPlot, currentScan, resultWindow, getModuleCallDate());
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

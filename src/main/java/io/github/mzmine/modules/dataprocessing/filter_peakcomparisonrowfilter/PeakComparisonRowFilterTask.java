@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter;
@@ -31,9 +31,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Filters out feature list rows.
@@ -59,8 +62,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public PeakComparisonRowFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     this.project = project;
@@ -142,7 +145,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     // Add task description to peakList.
     newPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(getTaskDescription(),
-            PeakComparisonRowFilterModule.class, parameters));
+            PeakComparisonRowFilterModule.class, parameters, getModuleCallDate()));
 
     // Get parameters.
     final boolean evalutateFoldChange =
@@ -178,12 +181,12 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     // Error handling. User tried to select a column from the peaklist that
     // doesn't exist.
-    if (columnIndex1 > rawDataFiles.length) {
+    if (columnIndex1 >= rawDataFiles.length) {
       setErrorMessage("Column 1 set too large.");
       setStatus(TaskStatus.ERROR);
       return null;
     }
-    if (columnIndex2 > rawDataFiles.length) {
+    if (columnIndex2 >= rawDataFiles.length) {
       setErrorMessage("Column 2 set too large.");
       setStatus(TaskStatus.ERROR);
       return null;
@@ -249,7 +252,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
       // Good row?
       if (allCriteriaMatched)
-        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row, true));
+        newPeakList.addRow(new ModularFeatureListRow(newPeakList, row.getID(), row, true));
 
     }
 

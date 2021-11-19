@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,19 +8,20 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_adductsearch;
 
-import java.util.Arrays;
-import javax.annotation.concurrent.Immutable;
 import io.github.mzmine.main.MZmineCore;
+import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class AdductType {
@@ -83,6 +84,11 @@ public class AdductType {
     }
 
     return eq;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getMassDifference());
   }
 
   @Override

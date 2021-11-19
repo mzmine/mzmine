@@ -1,25 +1,26 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.scans.similarity;
 
+import io.github.mzmine.main.MZmineCore;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.MZmineModule;
@@ -31,25 +32,25 @@ import io.github.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectral
 
 /**
  * Abstract class to implement differnt spactal similarity functions to match 2 spectra
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public abstract class SpectralSimilarityFunction implements MZmineModule {
 
+  public static final WeightedCosineSpectralSimilarity weightedCosine = MZmineCore
+      .getModuleInstance(WeightedCosineSpectralSimilarity.class);
+  public static final CompositeCosineSpectralSimilarity compositeCosine = MZmineCore
+      .getModuleInstance(CompositeCosineSpectralSimilarity.class);
   /**
    * The collection of SpectralSImilarityFunctions
    */
-  public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[] {
-      new WeightedCosineSpectralSimilarity(), new CompositeCosineSpectralSimilarity()};
+  public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[]{
+      weightedCosine, compositeCosine};
 
   /**
-   * 
    * @param parameters
    * @param mzTol
-   * @param minMatch minimum overlap in signals
-   * @param a
-   * @param b
+   * @param minMatch   minimum overlap in signals
    * @return A spectra similarity if all requirements were met - otherwise null
    */
   @Nullable
@@ -59,7 +60,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
   /**
    * Align two mass lists. Override if alignement is changed in a specific spectral similarity
    * function.
-   * 
+   *
    * @param mzTol
    * @param a
    * @param b
@@ -71,7 +72,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
 
   /**
    * Calculate overlap
-   * 
+   *
    * @param aligned
    * @return
    */
@@ -81,7 +82,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
 
   /**
    * Remove unaligned signals (not present in all masslists)
-   * 
+   *
    * @param aligned
    * @return
    */

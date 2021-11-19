@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
@@ -67,6 +67,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   /**
    * Load the user parameters
    */
+  @Override
   public void readUserParameters(InputStream inputStream)
       throws IOException, ParserConfigurationException, SAXException {
 
@@ -83,20 +84,22 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   /**
    * @return the progress of these functions loading the feature list from the zip file.
    */
+  @Override
   public double getProgress() {
     if (totalParams == 0)
       return 0;
     return (double) parsedParams / totalParams;
   }
 
+  @Override
   public void cancel() {
     canceled = true;
   }
 
   /**
-   * @see DefaultHandler#startElement(String, String,
-   *      String, Attributes)
+   * @see DefaultHandler#startElement(String, String, String, Attributes)
    */
+  @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
@@ -147,9 +150,9 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
   }
 
   /**
-   * @see DefaultHandler#endElement(String, String,
-   *      String)
+   * @see DefaultHandler#endElement(String, String, String)
    */
+  @Override
   @SuppressWarnings("unchecked")
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
@@ -170,7 +173,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
       String valueString = getTextOfElement();
       Object value;
       if (currentParameter instanceof DoubleParameter) {
-        value = new Double(valueString);
+        value = Double.valueOf(valueString);
       } else
         value = valueString;
       currentValues.put(currentDataFile, value);
@@ -198,7 +201,7 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
 
   /**
    * Return a string without tab an EOF characters
-   * 
+   *
    * @return String element text
    */
   private String getTextOfElement() {
@@ -211,9 +214,10 @@ public class UserParameterOpenHandler_3_0 extends DefaultHandler
 
   /**
    * characters()
-   * 
+   *
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
+  @Override
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
   }

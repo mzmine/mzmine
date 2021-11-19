@@ -1,30 +1,28 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.DataPoint;
 import java.util.ArrayList;
 import java.util.List;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 
 /**
  * Data set for MzPeaks, used in feature detection preview
@@ -32,7 +30,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   protected DataPoint mzPeaks[];
@@ -55,8 +53,8 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
         }
 
         dp.add(mzPeaks[mzPeaks.length - 1]);
-        this.mzPeaks = dp.toArray(new DataPoint[0]);
       }
+      this.mzPeaks = dp.toArray(new DataPoint[0]);
     }
 
   }

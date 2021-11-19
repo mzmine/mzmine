@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,113 +8,64 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.msms;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * MS/MS visualizer using JFreeChart library
- */
 public class MsMsVisualizerModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "MS/MS visualizer";
-  private static final String MODULE_DESCRIPTION = "MS/MS visualizer."; // TODO
+  private static final String MODULE_NAME = "MS/MS data visualizer";
+  private static final String MODULE_DESCRIPTION = "Scatter plot for MS/MS data visualization, four"
+      + "axes types supported: retention time, precursor m/z, product m/z, neutral loss";
 
   @Override
-  public @Nonnull
-  String getName() {
+  @NotNull
+  public String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
-  String getDescription() {
+  @NotNull
+  public String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    RawDataFile dataFiles[] =
-        parameters.getParameter(MsMsParameters.dataFiles).getValue().getMatchingRawDataFiles();
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    assert MZmineCore.getDesktop() != null;
 
-    MsMsVisualizerTab newTab = new MsMsVisualizerTab(dataFiles[0], parameters);
-
-    //newWindow.show();
-    MZmineCore.getDesktop().addTab(newTab);
+    MsMsVisualizerTab newTab = new MsMsVisualizerTab(parameters);
 
     return ExitCode.OK;
   }
 
-  public static void showIDAVisualizerSetupDialog(RawDataFile dataFile) {
-    showIDAVisualizerSetupDialog(dataFile, null, null, null, null, 0.0);
-  }
-
-  public static void showIDAVisualizerSetupDialog(RawDataFile dataFile, Range<Double> mzRange,
-      Range<Double> rtRange, IntensityType intensityType, NormalizationType normalizationType,
-      Double minFeatureInt) {
-    ParameterSet parameters =
-        MZmineCore.getConfiguration().getModuleParameters(MsMsVisualizerModule.class);
-
-    parameters.getParameter(MsMsParameters.dataFiles)
-        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[]{dataFile});
-
-    if (rtRange != null) {
-      parameters.getParameter(MsMsParameters.retentionTimeRange).setValue(rtRange);
-    }
-    if (mzRange != null) {
-      parameters.getParameter(MsMsParameters.mzRange).setValue(mzRange);
-    }
-    if (intensityType != null) {
-      parameters.getParameter(MsMsParameters.intensityType).setValue(intensityType);
-    }
-    if (normalizationType != null) {
-      parameters.getParameter(MsMsParameters.normalizationType).setValue(normalizationType);
-    }
-    if (!Double.isNaN(minFeatureInt)) {
-      parameters.getParameter(MsMsParameters.minFeatureInt).setValue(minFeatureInt);
-    }
-
-    ExitCode exitCode = parameters.showSetupDialog(true);
-
-    if (exitCode != ExitCode.OK) {
-      return;
-    }
-
-    MsMsVisualizerTab newTab = new MsMsVisualizerTab(dataFile, parameters);
-
-    MZmineCore.getDesktop().addTab(newTab);
-
-  }
-
   @Override
-  public @Nonnull
+  public @NotNull
   MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return MsMsParameters.class;
   }
