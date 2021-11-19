@@ -27,16 +27,22 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MetaboAnalystExportParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv") //
+  );
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.",
-      "csv", FileSelectionType.SAVE);
+      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+      + "If the file already exists, it will be overwritten.",
+      extensions, FileSelectionType.SAVE);
 
   public static final ComboParameter<UserParameter<?, ?>> groupParameter =
       new ComboParameter<UserParameter<?, ?>>("Grouping parameter",
