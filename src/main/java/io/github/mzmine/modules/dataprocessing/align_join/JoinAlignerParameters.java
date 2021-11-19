@@ -53,17 +53,24 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance =
       new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
-          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"), false);
+          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"),
+          false);
 
   public static final DoubleParameter mobilityWeight = new DoubleParameter("Mobility weight",
       "Score for perfectly matching mobility values. Only taken into account if \"Mobility tolerance\" is activated.",
       new DecimalFormat("0.000"), 1d);
 
   public static final BooleanParameter SameChargeRequired = new BooleanParameter(
-      "Require same charge state", "If checked, only rows having same charge state can be aligned", false);
+      "Require same charge state", "If checked, only rows having same charge state can be aligned",
+      false);
 
   public static final BooleanParameter SameIDRequired = new BooleanParameter("Require same ID",
-      "If checked, only rows having same compound identities (or no identities) can be aligned", false);
+      "If checked, only rows having same compound identities (or no identities) can be aligned",
+      false);
+
+  public static final BooleanParameter removeOriginalFeatureLists = new BooleanParameter(
+      "Remove original feature lists",
+      "Remove original feature lists after merging", true);
 
   public static final OptionalModuleParameter compareIsotopePattern =
       new OptionalModuleParameter("Compare isotope pattern",
@@ -78,8 +85,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
         mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
-        compareIsotopePattern,
-        compareSpectraSimilarity});
+        removeOriginalFeatureLists, compareIsotopePattern, compareSpectraSimilarity});
   }
 
   @NotNull

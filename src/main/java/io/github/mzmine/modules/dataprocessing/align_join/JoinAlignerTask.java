@@ -54,7 +54,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +83,7 @@ public class JoinAlignerTask extends AbstractTask {
   private final boolean compareSpectraSimilarity;
   private final ParameterSet parameters;
   private final boolean compareMobility;
+  private final boolean removeOriginalFeatureLists;
   /**
    * All feature lists except the base list
    */
@@ -111,6 +111,9 @@ public class JoinAlignerTask extends AbstractTask {
 
     mzTolerance = parameters.getParameter(JoinAlignerParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(JoinAlignerParameters.RTTolerance).getValue();
+
+    removeOriginalFeatureLists = parameters
+        .getValue(JoinAlignerParameters.removeOriginalFeatureLists);
 
     compareMobility = parameters.getParameter(JoinAlignerParameters.mobilityTolerance).getValue();
     mobilityTolerance = parameters.getParameter(JoinAlignerParameters.mobilityTolerance)
@@ -259,6 +262,10 @@ public class JoinAlignerTask extends AbstractTask {
 
     logger.info("Finished join aligner");
 
+    if (removeOriginalFeatureLists) {
+      project.removeFeatureLists(featureLists);
+      logger.info("Original lists removed after join aligner");
+    }
     setStatus(TaskStatus.FINISHED);
 
   }
