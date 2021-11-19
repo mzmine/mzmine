@@ -51,12 +51,12 @@ public class LipidMatchListType extends ListWithSubsType<MatchedLipid> implement
               .getString(match.getLipidAnnotation().getMolecularFormula())),
           createEntry(CommentType.class,
               match -> match.getComment() != null ? match.getComment() : ""),
-          createEntry(LipidAnnotationMsMsScoreType.class, MatchedLipid::getMsMsScore),
+          createEntry(LipidAnnotationMsMsScoreType.class, l -> l.getMsMsScore().floatValue()),
           createEntry(LipidSpectrumType.class, match -> null), // ???
           createEntry(MzPpmDifferenceType.class, match -> {
             // calc ppm error?
             double exactMass = getExactMass(match);
-            return ((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
+            return (float)((exactMass - match.getAccurateMz()) / exactMass) * 1000000;
           })
       );
 
