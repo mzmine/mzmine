@@ -73,8 +73,8 @@ import org.xml.sax.SAXException;
 public class FeatureListLoadTask extends AbstractTask {
 
   public static final String TEMP_FLIST_DATA_FOLDER = "mzmine_featurelists_temp";
-  public static final Pattern fileNamePattern = Pattern
-      .compile("([^\\n]+)(" + FeatureListSaveTask.DATA_FILE_SUFFIX + ")");
+  public static final Pattern fileNamePattern = Pattern.compile(
+      "([^\\n]+)(" + FeatureListSaveTask.DATA_FILE_SUFFIX + ")");
 
   private static final Logger logger = Logger.getLogger(FeatureListLoadTask.class.getName());
   final String idTypeUniqueID = new IDType().getUniqueID();
@@ -103,11 +103,11 @@ public class FeatureListLoadTask extends AbstractTask {
       } catch (Exception e) {
         logger.log(Level.WARNING, e,
             () -> "Error loading data type " + type.getHeaderString() + " in row (id=" + row.getID()
-                  + ") feature " + (file != null ? file.getName() : "") + " from XML.");
+                + ") feature " + (file != null ? file.getName() : "") + " from XML.");
       }
     } else {
-      logger.info(() -> "No data type for id " + reader
-          .getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+      logger.info(() -> "No data type for id " + reader.getAttributeValue(null,
+          CONST.XML_DATA_TYPE_ID_ATTR));
     }
     return null;
   }
@@ -115,13 +115,13 @@ public class FeatureListLoadTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return "Importing feature list " + currentFlist + (processedFlists + 1) + "/" + numFlists
-           + ". Parsing row " + processedRows + "/" + totalRows;
+        + ". Parsing row " + processedRows + "/" + totalRows;
   }
 
   @Override
   public double getFinishedPercentage() {
     return (double) processedFlists / numFlists + ((double) 1 / numFlists) * ((double) processedRows
-                                                                              / totalRows);
+        / totalRows);
   }
 
   @Override
@@ -134,8 +134,8 @@ public class FeatureListLoadTask extends AbstractTask {
       ZipUtils.unzipDirectory(FeatureListSaveTask.FLIST_FOLDER, zip, tempDirectory.toFile());
       logger.info(() -> "Unzipping feature lists done.");
 
-      File[] files = new File(tempDirectory.toFile(), FeatureListSaveTask.FLIST_FOLDER)
-          .listFiles((dir, name) -> fileNamePattern.matcher(name).matches());
+      File[] files = new File(tempDirectory.toFile(), FeatureListSaveTask.FLIST_FOLDER).listFiles(
+          (dir, name) -> fileNamePattern.matcher(name).matches());
       if (files == null) {
         logger.info("Did not find feature lists to load.");
         setStatus(TaskStatus.FINISHED);
@@ -163,7 +163,7 @@ public class FeatureListLoadTask extends AbstractTask {
         if (flist == null) {
           logger.severe(
               () -> "Cannot load feature list from files " + flistFile.getAbsolutePath() + " and "
-                    + metadataFile.getAbsolutePath());
+                  + metadataFile.getAbsolutePath());
           continue;
         }
         parseFeatureList(storage, flist, flistFile);
@@ -211,7 +211,8 @@ public class FeatureListLoadTask extends AbstractTask {
                 || !flist.getDateCreated()
                 .equals(reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR))) {
               throw new IllegalArgumentException(
-                  "Feature list names do not match. " + flist.getName() + " " + reader.getText());
+                  "Feature list names do not match. " + flist.getName() + " != "
+                      + reader.getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR));
             }
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
             parseRow(reader, storage, flist);
@@ -252,7 +253,7 @@ public class FeatureListLoadTask extends AbstractTask {
 
       logger.finest(
           () -> "Creating " + ModularFeatureListRow.class.getSimpleName() + "s for feature list "
-                + flist.getName() + ".");
+              + flist.getName() + ".");
       while (reader.hasNext()) {
         final int type = reader.next();
         if (type == XMLEvent.START_ELEMENT && reader.getLocalName().equals(CONST.XML_ROW_ELEMENT)) {
@@ -288,10 +289,10 @@ public class FeatureListLoadTask extends AbstractTask {
       XPathFactory factory = XPathFactory.newInstance();
       XPath xpath = factory.newXPath();
 
-      XPathExpression metadataExpr = xpath
-          .compile("//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_METADATA_ELEMENT);
-      final Element metadataElement = (Element) (((NodeList) metadataExpr
-          .evaluate(configuration, XPathConstants.NODESET)).item(0));
+      XPathExpression metadataExpr = xpath.compile(
+          "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_FLIST_METADATA_ELEMENT);
+      final Element metadataElement = (Element) (((NodeList) metadataExpr.evaluate(configuration,
+          XPathConstants.NODESET)).item(0));
 
       final ModularFeatureList flist = new ModularFeatureList(
           metadataElement.getElementsByTagName(CONST.XML_FLIST_NAME_ELEMENT).item(0)
@@ -310,26 +311,26 @@ public class FeatureListLoadTask extends AbstractTask {
       }
       // set applied methods
       Element appliedMethodsList = (Element) nodelist.item(0);
-      NodeList methodElements = appliedMethodsList
-          .getElementsByTagName(CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
+      NodeList methodElements = appliedMethodsList.getElementsByTagName(
+          CONST.XML_FLIST_APPLIED_METHOD_ELEMENT);
       for (int i = 0; i < methodElements.getLength(); i++) {
-        FeatureListAppliedMethod method = SimpleFeatureListAppliedMethod
-            .loadValueFromXML((Element) methodElements.item(i));
+        FeatureListAppliedMethod method = SimpleFeatureListAppliedMethod.loadValueFromXML(
+            (Element) methodElements.item(i));
         flist.getAppliedMethods().add(method);
       }
 
-      XPathExpression rawFilesListExpr = xpath
-          .compile("//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_RAW_FILES_LIST_ELEMENT);
+      XPathExpression rawFilesListExpr = xpath.compile(
+          "//" + CONST.XML_ROOT_ELEMENT + "/" + CONST.XML_RAW_FILES_LIST_ELEMENT);
       nodelist = (NodeList) rawFilesListExpr.evaluate(configuration, XPathConstants.NODESET);
-      NodeList filesList = ((Element) nodelist.item(0))
-          .getElementsByTagName(CONST.XML_RAW_FILE_ELEMENT);
+      NodeList filesList = ((Element) nodelist.item(0)).getElementsByTagName(
+          CONST.XML_RAW_FILE_ELEMENT);
 
       // set selected scans
       for (int i = 0; i < filesList.getLength(); i++) {
-        NodeList nameList = ((Element) filesList.item(i))
-            .getElementsByTagName(CONST.XML_RAW_FILE_NAME_ELEMENT);
-        NodeList pathList = ((Element) filesList.item(i))
-            .getElementsByTagName(CONST.XML_RAW_FILE_PATH_ELEMENT);
+        NodeList nameList = ((Element) filesList.item(i)).getElementsByTagName(
+            CONST.XML_RAW_FILE_NAME_ELEMENT);
+        NodeList pathList = ((Element) filesList.item(i)).getElementsByTagName(
+            CONST.XML_RAW_FILE_PATH_ELEMENT);
         String name = nameList.item(0).getTextContent();
         String path = pathList.item(0).getTextContent();
 
@@ -339,16 +340,16 @@ public class FeatureListLoadTask extends AbstractTask {
                     : r.getAbsolutePath().equals(path))*/).findFirst();
         if (f.isEmpty()) {
           throw new IllegalStateException("Raw data file with name " + name + " and path " + path
-                                          + " not imported to project.");
+              + " not imported to project.");
         }
         flist.getRawDataFiles().add(f.get());
 
         final Element selectedScansElement = (Element) ((Element) filesList.item(i))
             .getElementsByTagName(CONST.XML_FLIST_SELECTED_SCANS_ELEMENT).item(0);
-        final int[] selectedScanIndices = ParsingUtils
-            .stringToIntArray(selectedScansElement.getTextContent());
-        final List<Scan> selectedScans = ParsingUtils
-            .getSublistFromIndices(f.get().getScans(), selectedScanIndices);
+        final int[] selectedScanIndices = ParsingUtils.stringToIntArray(
+            selectedScansElement.getTextContent());
+        final List<Scan> selectedScans = ParsingUtils.getSublistFromIndices(f.get().getScans(),
+            selectedScanIndices);
         flist.setSelectedScans(f.get(), selectedScans);
 
       }
@@ -381,13 +382,13 @@ public class FeatureListLoadTask extends AbstractTask {
               .filter(f -> f.getName().equals(fileName)).findFirst().orElse(null);
           if (file == null) {
             logger.warning(() -> "Cannot load feature for row id " + id + " for file " + fileName
-                                 + ". File does not exist in project.");
+                + ". File does not exist in project.");
             continue;
           }
           parseFeature(reader, storage, flist, row, file);
         } else if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
-          DataType type = DataTypes
-              .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+          DataType type = DataTypes.getTypeForId(
+              reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
           Object value = parseDataType(reader, type, flist, row, null, null);
           if (type != null && value != null) {
             try {
@@ -411,7 +412,8 @@ public class FeatureListLoadTask extends AbstractTask {
       @NotNull RawDataFile file) throws XMLStreamException {
 
     // create feature with original file, but use buffered file for data type loading.
-    final RawDataFile originalFile = file instanceof CachedIMSRawDataFile c ? c.getOriginalFile() : file;
+    final RawDataFile originalFile =
+        file instanceof CachedIMSRawDataFile c ? c.getOriginalFile() : file;
     final ModularFeature feature = new ModularFeature(flist, originalFile, null, null);
 
     while (!(reader.getEventType() == XMLEvent.END_ELEMENT && reader.getLocalName()
@@ -422,8 +424,8 @@ public class FeatureListLoadTask extends AbstractTask {
 
       if (reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         // the data types are responsible for loading their values
-        DataType type = DataTypes
-            .getTypeForId(reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
         Object value = parseDataType(reader, type, flist, row, feature, file);
         if (type != null && value != null) {
           try {
