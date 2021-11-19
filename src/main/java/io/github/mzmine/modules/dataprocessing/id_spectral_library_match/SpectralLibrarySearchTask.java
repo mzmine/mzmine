@@ -21,15 +21,14 @@ package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
@@ -43,12 +42,11 @@ class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
     this.featureLists = featureLists;
   }
 
-
   public static List<FeatureListRow> combineRows(FeatureList[] featureLists) {
     List<FeatureListRow> rows = new ArrayList<>();
     // add row type
     for (var flist : featureLists) {
-      flist.addRowType(new SpectralLibraryMatchesType());
+      flist.addRowType(DataTypes.get(SpectralLibraryMatchesType.class));
       rows.addAll(flist.getRows());
     }
     return rows;
@@ -60,8 +58,7 @@ class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
 
     logger.info(() -> String
         .format("Spectral library matching in %d feature lists (%d rows) against libraries: %s",
-            featureLists.length, rows.size(),
-            libraries.stream().map(Objects::toString).collect(Collectors.joining(", "))));
+            featureLists.length, rows.size(), librariesJoined));
 
     // run the actual subtask
     super.run();
@@ -70,8 +67,7 @@ class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
     if (!isCanceled()) {
       for (var flist : featureLists) {
         flist.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-            "Spectral library matching with libraries: " + libraries.stream().map(Objects::toString)
-                .collect(Collectors.joining(", ")),
+            "Spectral library matching with libraries: " + librariesJoined,
             SpectralLibrarySearchModule.class, parameters, getModuleCallDate()));
       }
 

@@ -18,25 +18,25 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.RowsSpectralMatchTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
-import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
-import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
-import java.io.File;
-import java.io.IOException;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.scans.ScanAlignment;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.awt.Color;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,157 +44,91 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-class SingleSpectrumLibrarySearchTask extends AbstractTask {
+class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private final File dataBaseFile;
-
-  private ParameterSet parameters;
-
-  private Scan currentScan;
-  private SpectraPlot spectraPlot;
-
-  private List<SpectralMatchTask> tasks;
-
+  private static final Logger logger = Logger
+      .getLogger(SingleSpectrumLibrarySearchTask.class.getName());
+  private final SpectraPlot spectraPlot;
   private SpectraIdentificationResultsWindowFX resultWindow;
-
-  private int totalTasks;
 
   SingleSpectrumLibrarySearchTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // no new data stored -> null
+    super(parameters, currentScan, moduleCallDate); // no new data stored -> null
 
-    this.parameters = parameters;
-    dataBaseFile = parameters
-        .getParameter(SingleSpectrumLibrarySearchParameters.dataBaseFile).getValue();
-    this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
-
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
-  @Override
-  public double getFinishedPercentage() {
-    if (totalTasks == 0 || tasks == null) {
-      return 0;
-    }
-    return ((double) totalTasks - tasks.size()) / totalTasks;
-  }
-
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of spectrum " + currentScan.getScanDefinition()
-        + " using database " + dataBaseFile;
+    return "Spectral database identification of spectrum " + scan.getScanDefinition()
+           + " using libraries " + librariesJoined;
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    int count = 0;
 
-    Platform.runLater(() -> {
-      // add result frame
-      resultWindow = new SpectraIdentificationResultsWindowFX();
-//    resultWindow.setVisible(true);
-      resultWindow.show();
-    });
+    // add result frame
+    resultWindow = new SpectraIdentificationResultsWindowFX();
+    MZmineCore.runLater(() -> resultWindow.show());
 
-    try {
-      tasks = parseFile(dataBaseFile);
-      totalTasks = tasks.size();
-      if (!tasks.isEmpty()) {
-        // wait for the tasks to finish
-        while (!isCanceled() && !tasks.isEmpty()) {
-          for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
-              count += tasks.get(i).getCount();
-              tasks.remove(i);
-              i--;
-            }
-          }
-          // wait for all sub tasks to finish
-          try {
-            Thread.sleep(100);
-          } catch (Exception e) {
-            cancel();
-          }
-        }
-        // cancelled
-        if (isCanceled()) {
-          tasks.stream().forEach(AbstractTask::cancel);
-        }
-      } else {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
-        return;
-      }
+    // do the actual matching
+    super.run();
 
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.toString());
-    }
-    logger.info("Added " + count + " spectral library matches");
-    final int fcount = count;
-    Platform.runLater(() -> {
+    final int fcount = matches.get();
+    MZmineCore.runLater(() -> {
       resultWindow
-          .setTitle("Matched " + fcount + " compounds for scan#" + currentScan.getScanNumber());
+          .setTitle("Matched " + fcount + " compounds for scan#" + scan.getScanNumber());
       resultWindow.setMatchingFinished();
     });
-//    resultWindow.revalidate();
-//    resultWindow.repaint();
 
-    setStatus(TaskStatus.FINISHED);
-
-  }
-
-  /**
-   * Load all library entries from data base file
-   *
-   * @param dataBaseFile
-   * @return
-   */
-  private List<SpectralMatchTask> parseFile(File dataBaseFile) {
-    // one task for every 1000 entries
-    List<SpectralMatchTask> tasks = new ArrayList<>();
-    AutoLibraryParser parser = new AutoLibraryParser(1000, new LibraryEntryProcessor() {
-      @Override
-      public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
-        // start last task
-        SpectralMatchTask task = new SpectralMatchTask(parameters, alreadyProcessed + 1, list,
-            spectraPlot, currentScan, resultWindow, getModuleCallDate());
-        MZmineCore.getTaskController().addTask(task);
-        tasks.add(task);
-      }
-    });
-
-    // return tasks
-    try {
-      // parse and create spectral matching tasks for batches of entries
-      parser.parse(this, dataBaseFile);
-      return tasks;
-    } catch (UnsupportedFormatException | IOException e) {
-      logger.log(Level.WARNING, "Library parsing error for file " + dataBaseFile.getAbsolutePath(),
-          e);
-      return new ArrayList<>();
+    if (!isCanceled()) {
+      setStatus(TaskStatus.FINISHED);
     }
   }
 
-  public SpectraIdentificationResultsWindowFX getResultWindow() {
-    return resultWindow;
+  @Override
+  protected void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
+    // we dont need row here
+    addIdentities(matches);
   }
 
-  public void setResultWindow(SpectraIdentificationResultsWindowFX resultWindow) {
-    this.resultWindow = resultWindow;
-  }
+  private void addIdentities(List<SpectralDBFeatureIdentity> matches) {
+    for (SpectralDBFeatureIdentity match : matches) {
+      try {
+        // TODO put into separate method and add comments
+        // get data points of matching scans
+        DataPoint[] spectraMassList = getDataPoints(scan, true);
+        List<DataPoint[]> alignedDataPoints = ScanAlignment.align(mzToleranceSpectra,
+            match.getEntry().getDataPoints(), spectraMassList);
+        List<DataPoint[]> alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);
+        // add new mass list to the spectra for match
+        DataPoint[] dataset = new DataPoint[alignedSignals.size()];
+        for (int i = 0; i < dataset.length; i++) {
+          dataset[i] = alignedSignals.get(i)[1];
+        }
 
+        String compoundName = match.getEntry().getField(DBEntryField.NAME).toString();
+        String shortName = compoundName;
+        // TODO remove or specify more - special naming format?
+        int start = compoundName.indexOf("[");
+        int end = compoundName.indexOf("]");
+        if (start != -1 && start + 1 < compoundName.length() && end != -1
+            && end < compoundName.length()) {
+          shortName = compoundName.substring(start + 1, end);
+        }
+
+        DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
+            shortName + " " + "Score: " + MZmineCore.getConfiguration().getScoreFormat()
+                .format(match.getSimilarity().getScore()), dataset);
+        spectraPlot.addDataSet(detectedCompoundsDataset,
+            new Color((int) (Math.random() * 0x1000000)), true);
+
+      } catch (MissingMassListException e) {
+        logger.log(Level.WARNING, "No mass list for the selected spectrum", e);
+      }
+    }
+    MZmineCore.runLater(() -> resultWindow.addMatches(matches));
+    setStatus(TaskStatus.FINISHED);
+  }
 }

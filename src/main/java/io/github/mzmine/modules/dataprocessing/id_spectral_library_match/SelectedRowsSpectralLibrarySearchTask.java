@@ -30,9 +30,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -59,8 +57,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
 
     logger.info(() -> String
         .format("Spectral library matching of %d rows against libraries: %s",
-            rows.size(),
-            libraries.stream().map(Objects::toString).collect(Collectors.joining(", "))));
+            rows.size(), librariesJoined));
 
     // add type to featureLists
     for (var row : rows) {
