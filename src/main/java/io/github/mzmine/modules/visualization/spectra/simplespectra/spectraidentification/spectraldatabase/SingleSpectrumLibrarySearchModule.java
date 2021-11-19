@@ -28,15 +28,15 @@ import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Module to compare single spectra with spectral databases
+ * Module to compare single spectra with spectral libraries
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SingleSpectrumLibrarySearchModule implements MZmineModule {
 
-  public static final String MODULE_NAME = "Local spectral database search for single spectra";
+  public static final String MODULE_NAME = "Single spectra spectral library search";
   private static final String MODULE_DESCRIPTION =
-      "This method compares a scan with a spectral database";
+      "This method compares a scan with a spectral libraries";
 
   @Override
   public @NotNull String getName() {

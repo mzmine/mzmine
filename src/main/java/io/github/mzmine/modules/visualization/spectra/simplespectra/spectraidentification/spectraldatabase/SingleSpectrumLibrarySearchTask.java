@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Task to compare single spectra with spectral databases
+ * Task to compare single spectra with spectral libraries
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
@@ -60,7 +60,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
 
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of spectrum " + scan.getScanDefinition()
+    return "Spectral libraries identification of spectrum " + scan.getScanDefinition()
            + " using libraries " + librariesJoined;
   }
 

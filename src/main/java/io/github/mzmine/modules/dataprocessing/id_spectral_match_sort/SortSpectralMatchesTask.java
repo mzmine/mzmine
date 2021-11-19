@@ -101,7 +101,7 @@ public class SortSpectralMatchesTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Sort spectral database identities of data base search in " + featureList;
+    return "Sort spectral library matches in " + featureList;
   }
 
   /**
@@ -124,7 +124,7 @@ public class SortSpectralMatchesTask extends AbstractTask {
 
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Sorted spectral database identities of DB search ",
+        "Sorted spectral library matches search ",
         SortSpectralMatchesModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);

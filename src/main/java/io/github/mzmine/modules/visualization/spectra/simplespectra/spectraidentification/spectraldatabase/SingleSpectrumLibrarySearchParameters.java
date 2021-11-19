@@ -41,7 +41,7 @@ import java.util.Collection;
 import javafx.scene.control.CheckBox;
 
 /**
- * Module to compare single spectra with spectral databases
+ * Module to compare single spectra with spectral libraries
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */

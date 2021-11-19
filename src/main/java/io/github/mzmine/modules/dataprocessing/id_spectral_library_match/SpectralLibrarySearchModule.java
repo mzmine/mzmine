@@ -35,9 +35,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Local spectra database search";
+  public static final String MODULE_NAME = "Spectral library search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches all feature list rows (from all feature lists) against a local spectral database (needs to be loaded first).";
+      "This method searches all feature list rows (from all feature lists) against a local spectral libraries (needs to be loaded first).";
 
   /**
    * Show dialog for identifying multiple selected peak-list rows.

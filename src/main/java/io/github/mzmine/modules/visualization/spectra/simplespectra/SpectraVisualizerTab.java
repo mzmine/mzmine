@@ -234,7 +234,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     });
 
     dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
-    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral database"));
+    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral libraries"));
     dbSpectraButton.setOnAction(e -> {
       SingleSpectrumLibrarySearchModule.showSpectraIdentificationDialog(currentScan,
           spectrumPlot, Instant.now());

@@ -31,9 +31,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class SortSpectralMatchesModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Sort results of spectra database search";
+  public static final String MODULE_NAME = "Sort results of spectra library search";
   private static final String MODULE_DESCRIPTION =
-      "This method sorts all results of spectral database search.";
+      "This method sorts all results of spectral library search.";
 
   @Override
   public @NotNull String getName() {

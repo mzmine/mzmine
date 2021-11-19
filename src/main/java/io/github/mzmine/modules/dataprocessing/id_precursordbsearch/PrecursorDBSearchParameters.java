@@ -32,7 +32,7 @@ public class PrecursorDBSearchParameters extends SimpleParameterSet {
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter(
-      "Spectral database file (MS/MS)",
+      "Spectral libraries file (MS/MS)",
       "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
       FileSelectionType.OPEN);
 
