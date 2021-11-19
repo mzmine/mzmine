@@ -49,7 +49,7 @@ public class ScanFiltersParameters extends SimpleParameterSet {
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove source file after filtering",
-          "If checked, original file will be removed and only filtered version remains");
+          "If checked, original file will be removed and only filtered version remains", true);
 
   public ScanFiltersParameters() {
     super(new Parameter[] {dataFiles, scanSelect, suffix, filter, autoRemove});

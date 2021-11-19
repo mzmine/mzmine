@@ -47,7 +47,8 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
       "Used in distance measuring as multiplier of m/z difference");
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+      "Remove original feature list", "If checked, the original feature list will be removed",
+      true);
 
   public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
       "Standard compounds", "List of features for choosing the normalization standards", null);

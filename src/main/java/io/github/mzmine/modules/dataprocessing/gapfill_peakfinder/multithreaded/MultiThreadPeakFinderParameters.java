@@ -44,7 +44,8 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+      "Remove original feature list", "If checked, the original feature list will be removed",
+      true);
 
   public MultiThreadPeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance,

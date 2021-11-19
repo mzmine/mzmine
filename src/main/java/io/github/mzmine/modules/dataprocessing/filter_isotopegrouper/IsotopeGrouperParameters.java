@@ -60,13 +60,15 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
   public static final ComboParameter<String> representativeIsotope = new ComboParameter<String>(
       "Representative isotope",
       "Which peak should represent the whole isotope pattern. For small molecular weight\n"
-          + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
-          + "should be representative. For high molecular weight peptides, the lowest m/z\n"
-          + "peptides, the lowest m/z isotope may be the representative.",
+      + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
+      + "should be representative. For high molecular weight peptides, the lowest m/z\n"
+      + "peptides, the lowest m/z isotope may be the representative.",
       representativeIsotopeValues);
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original peaklist",
-      "If checked, original peaklist will be removed and only deisotoped version remains");
+  public static final BooleanParameter autoRemove = new BooleanParameter(
+      "Remove original feature list",
+      "If checked, original feature list will be removed and only deisotoped version remains",
+      true);
 
   public IsotopeGrouperParameters() {
     super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, mobilityTolerace,

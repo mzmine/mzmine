@@ -46,7 +46,8 @@ public class RTCalibrationParameters extends SimpleParameterSet {
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove original feature list",
-          "If checked, original feature list will be removed and only normalized version remains");
+          "If checked, original feature list will be removed and only normalized version remains",
+          true);
 
   public RTCalibrationParameters() {
     super(new Parameter[] {featureLists, suffix, MZTolerance, RTTolerance, minHeight, autoRemove});

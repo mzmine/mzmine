@@ -41,7 +41,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove original feature list",
-      "If checked, original chromatogram will be removed and only the deconvolved version remains");
+      "If checked, original chromatogram will be removed and only the deconvolved version remains",
+      true);
 
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());

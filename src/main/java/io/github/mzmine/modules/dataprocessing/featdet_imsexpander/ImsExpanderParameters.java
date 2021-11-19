@@ -60,7 +60,8 @@ public class ImsExpanderParameters extends SimpleParameterSet {
 
   public static final BooleanParameter removeOriginalFeatureList = new BooleanParameter(
       "Remove original feature list",
-      "If checked, the original feature list will be removed.\nUseful to minimize ram consumption.", false);
+      "If checked, the original feature list will be removed.\nUseful to minimize ram consumption.",
+      true);
 
   public ImsExpanderParameters() {
     super(new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth, removeOriginalFeatureList});

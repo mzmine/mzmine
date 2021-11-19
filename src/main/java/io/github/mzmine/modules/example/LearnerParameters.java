@@ -43,8 +43,10 @@ public class LearnerParameters extends SimpleParameterSet {
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original feature list",
-      "If checked, original feature list will be removed and only deisotoped version remains");
+  public static final BooleanParameter autoRemove = new BooleanParameter(
+      "Remove original feature list",
+      "If checked, original feature list will be removed and only deisotoped version remains",
+      true);
 
   /**
    * Create a new parameterset

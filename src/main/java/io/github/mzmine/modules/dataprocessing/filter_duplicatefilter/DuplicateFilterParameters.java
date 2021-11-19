@@ -57,11 +57,13 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
       new BooleanParameter("Require same identification",
           "If checked, duplicate peaks must have same identification(s)");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original peaklist",
-      "If checked, original peaklist will be removed and only deisotoped version remains");
+  public static final BooleanParameter autoRemove = new BooleanParameter(
+      "Remove original feature list",
+      "If checked, original feature list will be removed and only deisotoped version remains",
+      true);
 
   public DuplicateFilterParameters() {
-    super(new Parameter[] {peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
+    super(new Parameter[]{peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
         requireSameIdentification, autoRemove,});
   }
 

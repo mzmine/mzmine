@@ -47,7 +47,7 @@ public class SmoothingParameters extends SimpleParameterSet {
 
   public static final BooleanParameter removeOriginal = new BooleanParameter(
       "Remove original feature list",
-      "The originial feature list is removed after the processing has finished");
+      "The originial feature list is removed after the processing has finished", true);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix to be added to processed feature lists.", " sm");

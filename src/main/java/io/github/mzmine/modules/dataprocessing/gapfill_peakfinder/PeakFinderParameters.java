@@ -52,7 +52,8 @@ public class PeakFinderParameters extends SimpleParameterSet {
           "Parallel processing of gaps (RT correction is always on a single thread)");
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+      "Remove original feature list", "If checked, the original feature list will be removed",
+      true);
 
   public PeakFinderParameters() {
     super(new Parameter[] {peakLists, suffix, intTolerance, MZTolerance, RTTolerance, RTCorrection,

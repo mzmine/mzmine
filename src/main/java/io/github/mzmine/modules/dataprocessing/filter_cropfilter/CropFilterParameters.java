@@ -40,7 +40,7 @@ public class CropFilterParameters extends SimpleParameterSet {
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove source file after filtering",
-          "If checked, original file will be removed and only filtered version remains");
+          "If checked, original file will be removed and only filtered version remains", true);
 
   public CropFilterParameters() {
     super(new Parameter[] {dataFiles, scanSelection, mzRange, suffix, autoRemove});

@@ -38,15 +38,18 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
           NormalizationType.values());
 
   public static final ComboParameter<FeatureMeasurementType> featureMeasurementType =
-      new ComboParameter<FeatureMeasurementType>("Feature measurement type", "Measure features using",
+      new ComboParameter<FeatureMeasurementType>("Feature measurement type",
+          "Measure features using",
           FeatureMeasurementType.values());
 
   public static final BooleanParameter autoRemove =
       new BooleanParameter("Remove original feature list",
-          "If checked, original feature list will be removed and only normalized version remains");
+          "If checked, original feature list will be removed and only normalized version remains",
+          true);
 
   public LinearNormalizerParameters() {
-    super(new Parameter[] {featureLists, suffix, normalizationType, featureMeasurementType, autoRemove});
+    super(new Parameter[]{featureLists, suffix, normalizationType, featureMeasurementType,
+        autoRemove});
   }
 
 }

@@ -35,7 +35,8 @@ public class SameRangeGapFillerParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+      "Remove original feature list", "If checked, the original feature list will be removed",
+      true);
 
   public SameRangeGapFillerParameters() {
     super(new Parameter[] {peakLists, suffix, mzTolerance, autoRemove});
