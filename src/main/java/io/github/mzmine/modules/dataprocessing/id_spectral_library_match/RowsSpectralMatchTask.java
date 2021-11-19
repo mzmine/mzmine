@@ -292,6 +292,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
         final SpectralSimilarity sim = matchSpectrum(scan.getRetentionTime(),
             scanPrecursorMZ, masses, entry);
         if (sim != null) {
+          matches.incrementAndGet();
           addIdentities(null, List.of(new SpectralDBFeatureIdentity(scan, entry, sim,
               SingleSpectrumLibrarySearchModule.MODULE_NAME)));
         }
