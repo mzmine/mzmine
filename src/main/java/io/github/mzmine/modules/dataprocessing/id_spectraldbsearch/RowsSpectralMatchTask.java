@@ -1,18 +1,21 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  * Copyright 2006-2021 The MZmine Development Team
+ *  *
+ *  * This file is part of MZmine.
+ *  *
+ *  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  * General Public License as published by the Free Software Foundation; either version 2 of the
+ *  * License, or (at your option) any later version.
+ *  *
+ *  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *  * General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *  *
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
@@ -22,7 +25,7 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
+import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectralMatchTask;
@@ -212,7 +215,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
       // add and sort identities based on similarity score
       addIdentities(row, ids);
-      SortSpectralDBIdentitiesTask.sortIdentities(row);
+      SortSpectralMatchesTask.sortIdentities(row);
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
       errorCounter.getAndIncrement();

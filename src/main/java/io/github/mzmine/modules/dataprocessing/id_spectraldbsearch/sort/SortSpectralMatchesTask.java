@@ -1,18 +1,21 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  * Copyright 2006-2021 The MZmine Development Team
+ *  *
+ *  * This file is part of MZmine.
+ *  *
+ *  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  * General Public License as published by the Free Software Foundation; either version 2 of the
+ *  * License, or (at your option) any later version.
+ *  *
+ *  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ *  * General Public License for more details.
+ *  *
+ *  * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *  *
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
@@ -24,14 +27,14 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.util.Comparator;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class SortSpectralDBIdentitiesTask extends AbstractTask {
+public class SortSpectralMatchesTask extends AbstractTask {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -42,14 +45,14 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
   private int finishedRows;
   private Double minScore;
 
-  SortSpectralDBIdentitiesTask(FeatureList featureList, ParameterSet parameters,
+  SortSpectralMatchesTask(FeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureList = featureList;
     this.parameters = parameters;
     filterByMinScore =
-        parameters.getParameter(SortSpectralDBIdentitiesParameters.minScore).getValue();
-    minScore = parameters.getParameter(SortSpectralDBIdentitiesParameters.minScore)
+        parameters.getParameter(SortSpectralMatchesParameters.minScore).getValue();
+    minScore = parameters.getParameter(SortSpectralMatchesParameters.minScore)
         .getEmbeddedParameter().getValue();
     if (minScore == null) {
       minScore = 0d;
@@ -124,7 +127,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     // Add task description to peakList
     featureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Sorted spectral database identities of DB search ",
-        SortSpectralDBIdentitiesModule.class, parameters, getModuleCallDate()));
+        SortSpectralMatchesModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
   }
