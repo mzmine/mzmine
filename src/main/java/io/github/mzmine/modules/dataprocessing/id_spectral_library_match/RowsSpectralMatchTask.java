@@ -346,8 +346,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
       }
 
       // add and sort identities based on similarity score
-      addIdentities(row, ids);
-      SortSpectralMatchesTask.sortIdentities(row);
+      if (ids != null) {
+        addIdentities(row, ids);
+        SortSpectralMatchesTask.sortIdentities(row);
+      }
     } catch (MissingMassListException e) {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
       errorCounter.getAndIncrement();
