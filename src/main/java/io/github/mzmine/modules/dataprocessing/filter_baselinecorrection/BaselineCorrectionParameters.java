@@ -16,12 +16,6 @@
  *
  */
 
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
 import io.github.mzmine.main.MZmineCore;
@@ -38,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.ExitCode;
@@ -121,7 +116,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
    * Remove original data file.
    */
   public static final BooleanParameter REMOVE_ORIGINAL =
-      new BooleanParameter("Remove source file after baseline correction",
+      new RemoveOriginalSourcesParameter("Remove source file after baseline correction",
           "If checked, original file will be replaced by the corrected version", true);
 
   /**

@@ -23,6 +23,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureSelectionParameter;
@@ -46,9 +47,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
   public static final DoubleParameter MZvsRTBalance = new DoubleParameter("m/z vs RT balance",
       "Used in distance measuring as multiplier of m/z difference");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed",
-      true);
+  public static final BooleanParameter autoRemove = new RemoveOriginalSourcesParameter();
 
   public static final FeatureSelectionParameter standardCompounds = new FeatureSelectionParameter(
       "Standard compounds", "List of features for choosing the normalization standards", null);

@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
@@ -45,9 +46,7 @@ public class SmoothingParameters extends SimpleParameterSet {
           "Enables intensity smoothing of the summed mobilogram.",
           new Integer[]{0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25}, 5));
 
-  public static final BooleanParameter removeOriginal = new BooleanParameter(
-      "Remove original feature list",
-      "The originial feature list is removed after the processing has finished", true);
+  public static final BooleanParameter removeOriginal = new RemoveOriginalSourcesParameter();
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix to be added to processed feature lists.", " sm");

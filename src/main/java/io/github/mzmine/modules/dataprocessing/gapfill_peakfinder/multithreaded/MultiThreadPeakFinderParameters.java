@@ -23,6 +23,7 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -43,9 +44,7 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed",
-      true);
+  public static final BooleanParameter autoRemove = new RemoveOriginalSourcesParameter();
 
   public MultiThreadPeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance,

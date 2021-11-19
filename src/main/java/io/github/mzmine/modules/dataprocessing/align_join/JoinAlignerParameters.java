@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -68,9 +69,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
       "If checked, only rows having same compound identities (or no identities) can be aligned",
       false);
 
-  public static final BooleanParameter removeOriginalFeatureLists = new BooleanParameter(
-      "Remove original feature lists",
-      "Remove original feature lists after merging", true);
+  public static final BooleanParameter removeOriginalFeatureLists = new RemoveOriginalSourcesParameter();
 
   public static final OptionalModuleParameter compareIsotopePattern =
       new OptionalModuleParameter("Compare isotope pattern",

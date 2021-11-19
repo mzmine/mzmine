@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import java.util.Collection;
@@ -58,10 +59,7 @@ public class ImsExpanderParameters extends SimpleParameterSet {
               + "in TIMS might require a higher bin width to achieve a constant ion current for a "
               + "mobilogram.", 1, true));
 
-  public static final BooleanParameter removeOriginalFeatureList = new BooleanParameter(
-      "Remove original feature list",
-      "If checked, the original feature list will be removed.\nUseful to minimize ram consumption.",
-      true);
+  public static final BooleanParameter removeOriginalFeatureList = new RemoveOriginalSourcesParameter();
 
   public ImsExpanderParameters() {
     super(new Parameter[]{featureLists, mzTolerance, useRawData, mobilogramBinWidth, removeOriginalFeatureList});

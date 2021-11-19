@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -102,10 +103,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "ADAP-GC 3 Peak Decomposition");
 
-  public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-      "Remove original feature list",
-      "If checked, original chromatogram will be removed and only the deconvolved version remains",
-      true);
+  public static final BooleanParameter AUTO_REMOVE = new RemoveOriginalSourcesParameter();
 
   public ADAP3DecompositionV1_5Parameters() {
     super(

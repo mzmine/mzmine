@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -45,14 +46,15 @@ public class ScanFiltersParameters extends SimpleParameterSet {
       new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
 
   public static final ModuleComboParameter<ScanFilter> filter =
-      new ModuleComboParameter<ScanFilter>("Filter", "Raw data filter", rawDataFilters, rawDataFilters[0]);
+      new ModuleComboParameter<ScanFilter>("Filter", "Raw data filter", rawDataFilters,
+          rawDataFilters[0]);
 
   public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove source file after filtering",
+      new RemoveOriginalSourcesParameter("Remove source file after filtering",
           "If checked, original file will be removed and only filtered version remains", true);
 
   public ScanFiltersParameters() {
-    super(new Parameter[] {dataFiles, scanSelect, suffix, filter, autoRemove});
+    super(new Parameter[]{dataFiles, scanSelect, suffix, filter, autoRemove});
   }
 
 }

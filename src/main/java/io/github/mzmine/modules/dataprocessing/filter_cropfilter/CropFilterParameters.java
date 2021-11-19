@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.filter_cropfilter;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -39,7 +40,7 @@ public class CropFilterParameters extends SimpleParameterSet {
       new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
 
   public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove source file after filtering",
+      new RemoveOriginalSourcesParameter("Remove source file after filtering",
           "If checked, original file will be removed and only filtered version remains", true);
 
   public CropFilterParameters() {

@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
@@ -77,9 +78,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "Spectral Deconvolution");
 
-  public static final BooleanParameter AUTO_REMOVE =
-      new BooleanParameter("Remove original feature lists",
-          "If checked, original chromomatogram and feature lists will be removed", true);
+  public static final BooleanParameter AUTO_REMOVE = new RemoveOriginalSourcesParameter();
 
   public ADAP3DecompositionV2Parameters() {
     super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH, RET_TIME_TOLERANCE,

@@ -22,6 +22,7 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.RemoveOriginalSourcesParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -43,10 +44,7 @@ public class LearnerParameters extends SimpleParameterSet {
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list",
-      "If checked, original feature list will be removed and only deisotoped version remains",
-      true);
+  public static final BooleanParameter autoRemove = new RemoveOriginalSourcesParameter();
 
   /**
    * Create a new parameterset
