@@ -1,18 +1,18 @@
 /*
  * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- *  General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
@@ -124,6 +124,7 @@ import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
@@ -154,6 +155,7 @@ public class BatchModeModulesList {
       ThermoRawImportModule.class, //
       WatersRawImportModule.class, //
       ZipImportModule.class, //
+      SpectralLibraryImportModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
