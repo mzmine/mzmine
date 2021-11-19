@@ -16,20 +16,19 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort;
-
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.DecimalFormat;
+package io.github.mzmine.modules.dataprocessing.id_spectral_match_sort;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.text.DecimalFormat;
 
 /**
  * Sort the results of spectral library search
  */
-public class SortSpectralDBIdentitiesParameters extends SimpleParameterSet {
+public class SortSpectralMatchesParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
@@ -37,8 +36,8 @@ public class SortSpectralDBIdentitiesParameters extends SimpleParameterSet {
       new OptionalParameter<>(new DoubleParameter("Minimum similarity score",
           "Minimum similarity score", new DecimalFormat("0.00##"), 0.75d));
 
-  public SortSpectralDBIdentitiesParameters() {
-    super(new Parameter[] {peakLists, minScore});
+  public SortSpectralMatchesParameters() {
+    super(new Parameter[]{peakLists, minScore});
   }
 
 }

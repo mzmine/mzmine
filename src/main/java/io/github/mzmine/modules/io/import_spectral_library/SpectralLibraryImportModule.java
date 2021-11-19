@@ -15,55 +15,59 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist;
+
+package io.github.mzmine.modules.io.import_spectral_library;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-public class FormulaPredictionFeatureListModule implements MZmineProcessingModule {
+public class SpectralLibraryImportModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Formula prediction";
+  public static final String MODULE_NAME = "Import spectral library";
   private static final String MODULE_DESCRIPTION =
-      "This method gets the predicted formula for each unknown compound";
+      "This method imports spectral libraries to speed up spectral library matching";
 
   @Override
   public @NotNull String getName() {
     return MODULE_NAME;
   }
 
-  public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
-  }
-
   @Override
-  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return FormulaPredictionFeatureListParameters.class;
-  }
-
   public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
-      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Instant moduleCallDate) {
-    ModularFeatureList featureLists[] = parameters
-        .getParameter(FormulaPredictionFeatureListParameters.FEATURE_LISTS)
-        .getValue().getMatchingFeatureLists();
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    for (ModularFeatureList featureList : featureLists) {
-      Task newTask = new FormulaPredictionFeatureListTask(featureList, parameters, moduleCallDate);
+    final File[] files = parameters.getParameter(SpectralLibraryImportParameters.dataBaseFiles)
+        .getValue();
+    for (File f : files) {
+      Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
       tasks.add(newTask);
     }
+
     return ExitCode.OK;
   }
+
+  @Override
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.RAWDATAIMPORT;
+  }
+
+  @Override
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return SpectralLibraryImportParameters.class;
+  }
+
 }

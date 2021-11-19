@@ -24,6 +24,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +87,11 @@ public class HeadLessDesktop implements Desktop {
 
   @Override
   public FeatureList[] getSelectedPeakLists() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public SpectralLibrary[] getSelectedSpectralLibraries() {
     throw new UnsupportedOperationException();
   }
 

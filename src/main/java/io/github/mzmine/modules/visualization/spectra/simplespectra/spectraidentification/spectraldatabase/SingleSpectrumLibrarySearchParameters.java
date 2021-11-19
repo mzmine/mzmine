@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.SpectralLibrariesSelectionParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -30,8 +31,6 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -42,15 +41,14 @@ import java.util.Collection;
 import javafx.scene.control.CheckBox;
 
 /**
- * Module to compare single spectra with spectral databases
+ * Module to compare single spectra with spectral libraries
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParameterSet {
+public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
-      FileSelectionType.OPEN);
+  public static final SpectralLibrariesSelectionParameter libraries =
+      new SpectralLibrariesSelectionParameter(1);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Spectral m/z tolerance",
@@ -96,8 +94,8 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       "Similarity", "Algorithm to calculate similarity and filter matches",
       SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
-  public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[]{dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, removePrecursor,
+  public SingleSpectrumLibrarySearchParameters() {
+    super(new Parameter[]{libraries, usePrecursorMZ, mzTolerancePrecursor, removePrecursor,
         noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance, minMatch,
         similarityFunction});
   }

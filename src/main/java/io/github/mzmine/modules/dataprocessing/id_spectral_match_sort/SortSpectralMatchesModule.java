@@ -16,29 +16,24 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
-
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
+package io.github.mzmine.modules.dataprocessing.id_spectral_match_sort;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
-public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
+public class SortSpectralMatchesModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Local spectra database search";
+  public static final String MODULE_NAME = "Sort results of spectra library search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches all peaklist rows against a local spectral database.";
+      "This method sorts all results of spectral library search.";
 
   @Override
   public @NotNull String getName() {
@@ -55,33 +50,15 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    FeatureList featureLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
+    FeatureList featureLists[] = parameters.getParameter(SortSpectralMatchesParameters.peakLists)
         .getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
-      Task newTask = new LocalSpectralDBSearchTask(featureList, parameters, moduleCallDate);
+      Task newTask = new SortSpectralMatchesTask(featureList, parameters, moduleCallDate);
       tasks.add(newTask);
     }
 
     return ExitCode.OK;
-
-  }
-
-  /**
-   * Show dialog for identifying multiple selected peak-list rows.
-   * 
-   * @param row the feature list row.
-   */
-  public static void showSelectedRowsIdentificationDialog(final FeatureListRow[] rows,
-      FeatureTableFX table, @NotNull Instant moduleCallDate) {
-
-    final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
-
-    if (parameters.showSetupDialog(true) == ExitCode.OK) {
-
-      MZmineCore.getTaskController().addTask(
-          new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet(), moduleCallDate));
-    }
   }
 
   @Override
@@ -91,7 +68,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return LocalSpectralDBSearchParameters.class;
+    return SortSpectralMatchesParameters.class;
   }
 
 }

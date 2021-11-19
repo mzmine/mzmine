@@ -42,7 +42,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sin
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.ColorUtils;
@@ -58,7 +58,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -235,9 +234,9 @@ public class SpectraVisualizerTab extends MZmineTab {
     });
 
     dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
-    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral database"));
+    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral libraries"));
     dbSpectraButton.setOnAction(e -> {
-      SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
+      SingleSpectrumLibrarySearchModule.showSpectraIdentificationDialog(currentScan,
           spectrumPlot, Instant.now());
     });
 

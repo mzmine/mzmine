@@ -16,11 +16,12 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectraldbsearch;
+package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.SpectralLibrariesSelectionParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -29,8 +30,6 @@ import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -41,14 +40,12 @@ import java.util.Collection;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 
-public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
+public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final FileNameParameter dataBaseFile = new FileNameParameter(
-      "Spectral database file",
-      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification",
-      FileSelectionType.OPEN);
+  public static final SpectralLibrariesSelectionParameter libraries =
+      new SpectralLibrariesSelectionParameter(1);
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
       new OptionalModuleParameter<>("13C deisotoping",
@@ -107,12 +104,12 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
    *
    * @param parameters
    */
-  protected LocalSpectralDBSearchParameters(Parameter[] parameters) {
+  protected SpectralLibrarySearchParameters(Parameter[] parameters) {
     super(parameters);
   }
 
-  public LocalSpectralDBSearchParameters() {
-    super(new Parameter[]{peakLists, dataBaseFile, msLevel, allMS2Spectra,
+  public SpectralLibrarySearchParameters() {
+    super(new Parameter[]{peakLists, libraries, msLevel, allMS2Spectra,
         mzTolerancePrecursor, removePrecursor, noiseLevel, deisotoping, needsIsotopePattern,
         cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
   }

@@ -27,9 +27,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -41,6 +44,7 @@ import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
+import org.jetbrains.annotations.Nullable;
 
 // top level json objects/arrays
 
@@ -49,7 +53,7 @@ import javax.json.JsonValue.ValueType;
  *
  * @author Robin Schmid
  */
-public class MonaJsonParser extends SpectralDBParser {
+public class MonaJsonParser extends SpectralDBTextParser {
 
   private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData",
       SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
@@ -62,43 +66,70 @@ public class MonaJsonParser extends SpectralDBParser {
 
   @Override
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+    super.parse(mainTask, dataBaseFile);
     logger.info("Parsing MONA spectral json library " + dataBaseFile.getAbsolutePath());
-    // create db
-    int correct = 0;
-    int error = 0;
 
+    AtomicInteger correct = new AtomicInteger(0);
+    AtomicInteger error = new AtomicInteger(0);
+
+    List<SpectralDBEntry> results = new ArrayList<>();
+
+    // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      String l;
-      do {
-        // main task was canceled?
-        if (mainTask != null && mainTask.isCanceled()) {
-          return false;
+      // test on first ten if it is really a MoNA file
+      String l = br.readLine();
+      while (l != null) {
+        if (l.length() > 2) {
+          final SpectralDBEntry entry = parseToEntry(correct, error, l);
+          if (entry != null) {
+            results.add(entry);
+          }
         }
+        processedLines.incrementAndGet();
+
+        if ((correct.get() + error.get()) >= 4) {
+          break;
+        }
+
         l = br.readLine();
-        if (l != null && l.length() > 2) {
-          try (JsonReader reader = Json.createReader(new StringReader(l))) {
-            JsonObject json = reader.readObject();
-            SpectralDBEntry entry = getDBEntry(json);
-            if (entry != null) {
-              addLibraryEntry(entry);
-              correct++;
-            } else {
-              error++;
-            }
-          } catch (Exception ex) {
-            error++;
-            logger.log(Level.WARNING, "Error for entry", ex);
-          }
-          if (error >= 4) {
-            logger.log(Level.WARNING, "This file was no MONA spectral json library");
-            return false;
-          }
-        }
-      } while (l != null);
+      }
+
+      if (error.get() > correct.get()) {
+        logger.log(Level.WARNING, "This file was no MONA spectral json library");
+        return false;
+      }
+
+      // read the rest in parallel
+      final List<SpectralDBEntry> entries = br.lines().parallel().filter(line -> {
+        processedLines.incrementAndGet();
+        return line.length() > 2;
+      }).map(line -> parseToEntry(correct, error, line)).filter(Objects::nonNull)
+          .collect(Collectors.toList());
+
+      // combine
+      results.addAll(entries);
+      processor.processNextEntries(results, 0);
+      return true;
     }
-    //
-    finish();
-    return true;
+  }
+
+  @Nullable
+  private SpectralDBEntry parseToEntry(AtomicInteger correct, AtomicInteger error,
+      String line) {
+    try (JsonReader reader = Json.createReader(new StringReader(line))) {
+      JsonObject json = reader.readObject();
+      SpectralDBEntry entry = getDBEntry(json);
+      if (entry != null) {
+        correct.getAndIncrement();
+      } else {
+        error.getAndIncrement();
+      }
+      return entry;
+    } catch (Exception ex) {
+      error.getAndIncrement();
+      logger.log(Level.WARNING, "Error for entry", ex);
+      return null;
+    }
   }
 
   public SpectralDBEntry getDBEntry(JsonObject main) {
@@ -113,10 +144,10 @@ public class MonaJsonParser extends SpectralDBParser {
     return new SpectralDBEntry(map, dps);
   }
 
-  private void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {
+  public void extractAllFields(JsonObject main, Map<DBEntryField, Object> map) {
     for (DBEntryField f : DBEntryField.values()) {
       Object value = null;
-      JsonValue j;
+      JsonValue j = null;
 
       switch (f) {
         case INCHI:
@@ -338,4 +369,5 @@ public class MonaJsonParser extends SpectralDBParser {
     }
     return dps;
   }
+
 }

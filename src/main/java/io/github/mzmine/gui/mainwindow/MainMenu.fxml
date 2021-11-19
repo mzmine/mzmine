@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2020 The MZmine Development Team
+  ~ Copyright 2006-2021 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -10,11 +10,12 @@
   ~ License, or (at your option) any later version.
   ~
   ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-  ~ Public License for more details.
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
   -->
 
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
@@ -39,25 +40,26 @@
     <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
       <accelerator>
-          <KeyCodeCombination alt="UP" code="S"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="saveProjectAs" text="Save project as" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule">
-        <accelerator>
-          <KeyCodeCombination alt="DOWN" code="S"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
-      <MenuItem fx:id="closeProject" text="Close project" onAction="#closeProject">
-        <accelerator>
-          <KeyCodeCombination alt="UP" code="W"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-        </accelerator>
-      </MenuItem>
+        <KeyCodeCombination alt="UP" code="S"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#runModule" text="Save project as"
+      userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule"
+      fx:id="saveProjectAs">
+      <accelerator>
+        <KeyCodeCombination alt="DOWN" code="S"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
+    <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="W"
+          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+      </accelerator>
+    </MenuItem>
 
-      <SeparatorMenuItem/>
+    <SeparatorMenuItem/>
 
     <MenuItem text="Batch mode" onAction="#runModule"
       userData="io.github.mzmine.modules.batchmode.BatchModeModule">
@@ -122,7 +124,8 @@
         userData="io.github.mzmine.modules.io.import_rawdata_bruker_tsf.TSFImportModule"/>
       <MenuItem onAction="#runModule" text="ZIP / gzip"
         userData="io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule"/>
-
+      <MenuItem onAction="#runModule" text="Import spectral libraries"
+        userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="ICP-MS CVS"
@@ -314,17 +317,17 @@
       <MenuItem text="Ion identity networking" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingModule"/>
       <MenuItem text="Add more ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
       <MenuItem text="Refine ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
       <MenuItem text="Formula prediction on ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
       <MenuItem text="Average formulas" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.createavgformulas.CreateAvgNetworkFormulasModule"/>
       <MenuItem text="Check MS/MS ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule"/>
       <MenuItem text="Clear ion identities" onAction="#runModule"
-      userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
     </Menu>
@@ -403,15 +406,18 @@
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule"/>
         <MenuItem
-          text="Precursor search in local spectral database"
+          text="Precursor search in spectral libraries"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>
       </Menu>
 
       <Menu text="Search spectra">
-        <MenuItem text="Local spectral database search"
+        <MenuItem onAction="#runModule"
+          text="Import spectral libraries"
+          userData="io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule"/>
+        <MenuItem text="Spectral library search"
           onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule"/>
+          userData="io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule"/>
         <MenuItem text="NIST MS search" onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule"/>
         <MenuItem text="Chemical formula prediction"

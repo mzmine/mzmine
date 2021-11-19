@@ -18,23 +18,22 @@
 
 package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.time.Instant;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class PrecursorDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Precursor search in local spectral DB";
+  public static final String MODULE_NAME = "Precursor search in spectral libraries";
   private static final String MODULE_DESCRIPTION =
-      "This method searches all peaklist rows against a local spectral database to identify possible precursor ions";
+      "This method searches all peaklist rows against a local spectral libraries to identify possible precursor ions";
 
   @Override
   public @NotNull String getName() {
