@@ -18,23 +18,21 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
-import java.time.Instant;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Module to compare single spectra with spectral databases
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationSpectralDatabaseModule implements MZmineModule {
+public class SingleSpectrumLibrarySearchModule implements MZmineModule {
 
   public static final String MODULE_NAME = "Local spectral database search for single spectra";
   private static final String MODULE_DESCRIPTION =
@@ -56,21 +54,21 @@ public class SpectraIdentificationSpectralDatabaseModule implements MZmineModule
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
 
-    final SpectraIdentificationSpectralDatabaseParameters parameters =
-        (SpectraIdentificationSpectralDatabaseParameters) MZmineCore.getConfiguration()
-            .getModuleParameters(SpectraIdentificationSpectralDatabaseModule.class);
+    final SingleSpectrumLibrarySearchParameters parameters =
+        (SingleSpectrumLibrarySearchParameters) MZmineCore.getConfiguration()
+            .getModuleParameters(SingleSpectrumLibrarySearchModule.class);
 
     // Run task.
     if (parameters.showSetupDialog(scan, null, true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(new SpectraIdentificationSpectralDatabaseTask(
+      MZmineCore.getTaskController().addTask(new SingleSpectrumLibrarySearchTask(
           parameters.cloneParameterSet(), scan, spectraPlot, moduleCallDate));
     }
   }
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return SpectraIdentificationSpectralDatabaseParameters.class;
+    return SingleSpectrumLibrarySearchParameters.class;
   }
 
 }

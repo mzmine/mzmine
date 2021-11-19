@@ -1,18 +1,18 @@
 /*
  * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- *  General Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -40,8 +41,8 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.awt.Color;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.time.Instant;
@@ -50,7 +51,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -60,13 +60,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SpectralMatchTask extends AbstractTask {
 
+  private final List<SpectralLibrary> libraries;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public final static double[] DELTA_ISOTOPES = new double[]{1.0034, 1.0078, 2.0157, 1.9970};
 
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
-  private final File dataBaseFile;
   private final MZTolerance mzToleranceSpectra;
   private final MZTolerance mzTolerancePrecursor;
   private int finishedSteps = 0;
@@ -109,7 +109,7 @@ public class SpectralMatchTask extends AbstractTask {
   private boolean needsIsotopePattern;
   private int minMatchedIsoSignals;
 
-  public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
+  public SpectralMatchTask(ParameterSet parameters, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan,
       SpectraIdentificationResultsWindowFX resultWindow, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -121,49 +121,46 @@ public class SpectralMatchTask extends AbstractTask {
     this.resultWindow = resultWindow;
 
     listsize = list.size();
-    dataBaseFile = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
+    libraries = parameters
+        .getParameter(SingleSpectrumLibrarySearchParameters.libraries).getValue();
     mzToleranceSpectra = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
+        .getParameter(SingleSpectrumLibrarySearchParameters.mzTolerance).getValue();
     mzTolerancePrecursor = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerancePrecursor)
+        .getParameter(SingleSpectrumLibrarySearchParameters.mzTolerancePrecursor)
         .getValue();
 
-    noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
+    noiseLevel = parameters.getParameter(SingleSpectrumLibrarySearchParameters.noiseLevel)
         .getValue();
 
-    minMatch = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.minMatch)
+    minMatch = parameters.getParameter(SingleSpectrumLibrarySearchParameters.minMatch)
         .getValue();
     usePrecursorMZ = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.usePrecursorMZ).getValue();
+        .getParameter(SingleSpectrumLibrarySearchParameters.usePrecursorMZ).getValue();
     precursorMZ =
-        parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.usePrecursorMZ)
+        parameters.getParameter(SingleSpectrumLibrarySearchParameters.usePrecursorMZ)
             .getEmbeddedParameter().getValue();
     simFunction =
-        parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.similarityFunction)
+        parameters.getParameter(SingleSpectrumLibrarySearchParameters.similarityFunction)
             .getValue();
     needsIsotopePattern =
-        parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.needsIsotopePattern)
+        parameters.getParameter(SingleSpectrumLibrarySearchParameters.needsIsotopePattern)
             .getValue();
     minMatchedIsoSignals = !needsIsotopePattern ? 0
         : parameters.getParameter(SpectralLibrarySearchParameters.needsIsotopePattern)
             .getEmbeddedParameter().getValue();
     removeIsotopes = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.deisotoping).getValue();
+        .getParameter(SingleSpectrumLibrarySearchParameters.deisotoping).getValue();
     deisotopeParam =
-        parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.deisotoping)
+        parameters.getParameter(SingleSpectrumLibrarySearchParameters.deisotoping)
             .getEmbeddedParameters();
     cropSpectraToOverlap = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.cropSpectraToOverlap)
+        .getParameter(SingleSpectrumLibrarySearchParameters.cropSpectraToOverlap)
         .getValue();
 
     removePrecursor =
         parameters.getParameter(SpectralLibrarySearchParameters.removePrecursor).getValue();
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalSteps == 0) {
@@ -172,9 +169,6 @@ public class SpectralMatchTask extends AbstractTask {
     return ((double) finishedSteps) / totalSteps;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return MessageFormat.format(
@@ -182,9 +176,6 @@ public class SpectralMatchTask extends AbstractTask {
         dataBaseFile.getName(), startEntry, startEntry + listsize - 1);
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     // check for mass list
@@ -222,7 +213,7 @@ public class SpectralMatchTask extends AbstractTask {
           // use SpectralDBFeatureIdentity to store all results similar
           // to peaklist method
           matches.add(new SpectralDBFeatureIdentity(currentScan, ident, sim,
-              SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
+              SingleSpectrumLibrarySearchModule.MODULE_NAME));
         }
         // next row
         finishedSteps++;
@@ -413,9 +404,7 @@ public class SpectralMatchTask extends AbstractTask {
         errorCounter++;
       }
     }
-    Platform.runLater(() -> resultWindow.addMatches(matches));
-//    resultWindow.revalidate();
-//    resultWindow.repaint();
+    MZmineCore.runLater(() -> resultWindow.addMatches(matches));
     setStatus(TaskStatus.FINISHED);
   }
 

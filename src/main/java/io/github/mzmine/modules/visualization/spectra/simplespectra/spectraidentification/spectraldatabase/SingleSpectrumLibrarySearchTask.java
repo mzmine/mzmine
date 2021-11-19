@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
+class SingleSpectrumLibrarySearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -62,13 +61,13 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
 
   private int totalTasks;
 
-  SpectraIdentificationSpectralDatabaseTask(ParameterSet parameters, Scan currentScan,
+  SingleSpectrumLibrarySearchTask(ParameterSet parameters, Scan currentScan,
       SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.parameters = parameters;
     dataBaseFile = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
+        .getParameter(SingleSpectrumLibrarySearchParameters.dataBaseFile).getValue();
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
 
