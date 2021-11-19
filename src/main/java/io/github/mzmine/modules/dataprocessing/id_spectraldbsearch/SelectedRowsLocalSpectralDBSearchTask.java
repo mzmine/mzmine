@@ -27,7 +27,7 @@ import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.Spect
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -47,7 +47,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends RowsSpectralMatchTask
   private FeatureTableFX table;
 
   public SelectedRowsLocalSpectralDBSearchTask(List<FeatureListRow> rows, FeatureTableFX table,
-      ParameterSet parameters, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(parameters, rows, moduleCallDate); // no new data stored -> null
     this.table = table;
   }

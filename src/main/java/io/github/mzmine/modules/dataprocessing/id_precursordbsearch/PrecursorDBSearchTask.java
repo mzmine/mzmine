@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -66,7 +67,7 @@ class PrecursorDBSearchTask extends AbstractTask {
   private int totalTasks;
   private AtomicInteger matches = new AtomicInteger(0);
 
-  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.peakList = peakList;
     this.parameters = parameters;
@@ -161,7 +162,7 @@ class PrecursorDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
 
-        AbstractTask task = new AbstractTask(null, new Date()) {
+        AbstractTask task = new AbstractTask(null, Instant.now()) {
           private int total = peakList.getNumberOfRows();
           private int done = 0;
 

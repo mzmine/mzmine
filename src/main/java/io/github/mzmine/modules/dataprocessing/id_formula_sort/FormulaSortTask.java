@@ -24,7 +24,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public class FormulaSortTask extends AbstractTask {
   /**
    * @param parameters
    */
-  public FormulaSortTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public FormulaSortTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     weightIsotopeScore =
         parameters.getParameter(FormulaSortParameters.ISOTOPE_SCORE_WEIGHT).getValue().floatValue();
@@ -56,7 +56,7 @@ public class FormulaSortTask extends AbstractTask {
   }
 
   public FormulaSortTask(ModularFeatureList featureList, ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     this(parameters, moduleCallDate);
     this.featureList = featureList;
     message = "Sorting formula lists of feature list " + featureList.getName();

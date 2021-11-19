@@ -28,6 +28,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sca
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,7 +50,7 @@ public class SpectraDataSetCalc extends AbstractTask {
       final ChromatogramCursorPosition pos, final ScanSelection scanSelection,
       boolean showSpectraOfEveryRawFile, SpectraPlot spectrumPlot,
       BooleanProperty showMassListProperty) {
-    super(null, new Date());
+    super(null, Instant.now());
     filesAndDataSets = new HashMap<>();
     this.rawDataFiles = rawDataFiles;
     this.pos = pos;

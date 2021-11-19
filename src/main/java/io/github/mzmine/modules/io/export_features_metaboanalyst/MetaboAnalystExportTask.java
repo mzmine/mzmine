@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Pattern;
@@ -50,7 +51,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   private File fileName;
   private UserParameter<?, ?> groupParameter;
 
-  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.project = project;

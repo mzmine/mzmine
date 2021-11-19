@@ -38,7 +38,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -70,7 +70,7 @@ public class AddIonNetworkingTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public AddIonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+      final ModularFeatureList featureLists, @NotNull Instant moduleCallDate) {
     super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureLists;

@@ -31,6 +31,7 @@ import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -52,7 +53,7 @@ public class MobilityMzRegionExtractionTask extends AbstractTask {
 
   public MobilityMzRegionExtractionTask(ParameterSet parameterSet,
       ModularFeatureList originalFeatureList, MZmineProject project,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.originalFeatureList = originalFeatureList;
     this.parameterSet = parameterSet;

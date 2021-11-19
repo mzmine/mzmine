@@ -31,17 +31,16 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.gc;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Exports all files needed for GNPS GC-MS (quant table (csv export)), mgf (ADAP mgf export)
@@ -65,7 +64,7 @@ public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     // add gnps export task
     GnpsGcExportAndSubmitTask task = new GnpsGcExportAndSubmitTask(parameters, moduleCallDate);
     /*

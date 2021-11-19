@@ -19,6 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import static io.github.mzmine.modules.dataprocessing.id_sirius.PeakListIdentificationTask.addSiriusCompounds;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -167,7 +169,7 @@ public class SiriusThread implements Runnable {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
           try {
             FingerIdWebMethodTask task =
-                new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, peakListRow, new Date()); // new date here might be a problem
+                new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, peakListRow, Instant.now()); // new date here might be a problem
             MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
             Thread.sleep(1000);
           } catch (InterruptedException interrupt) {

@@ -44,10 +44,10 @@ import io.github.mzmine.util.io.TxtWriter;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +85,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public ExportCorrAnnotationTask(final ParameterSet parameterSet,
-      final ModularFeatureList[] featureLists, @NotNull Date moduleCallDate) {
+      final ModularFeatureList[] featureLists, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureLists = featureLists;
 
@@ -107,7 +107,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
    */
   public ExportCorrAnnotationTask(FeatureList[] featureLists, File filename, double minR,
       FeatureListRowsFilter filter, boolean exportAnnotationEdges, boolean exportIinRelationships,
-      boolean mergeLists, boolean allInOneFile, @NotNull Date moduleCallDate) {
+      boolean mergeLists, boolean allInOneFile, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureLists = featureLists;
     this.filename = filename;

@@ -40,12 +40,14 @@ import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.impl.TaskControllerImpl;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Runtime.Version;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,6 +56,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -120,36 +123,56 @@ public final class MZmineCore {
     MZmineArgumentParser argsParser = new MZmineArgumentParser();
     argsParser.parse(args);
 
-    // keep all in memory? (features, scans, ... in RAM instead of MemoryMapStorage
-    switch (argsParser.isKeepInRam()) {
-      case NONE -> {
-        // nothing in RAM
-      }
-      case ALL -> MemoryMapStorage.setStoreAllInRam(true);
-      case FEATURES -> MemoryMapStorage.setStoreFeaturesInRam(true);
-      case MASS_LISTS -> MemoryMapStorage.setStoreMassListsInRam(true);
-      case RAW_SCANS -> MemoryMapStorage.setStoreRawFilesInRam(true);
-      case MASSES_AND_FEATURES -> {
-        MemoryMapStorage.setStoreMassListsInRam(true);
-        MemoryMapStorage.setStoreFeaturesInRam(true);
-      }
-    }
-
     // override preferences file by command line argument pref
-    File prefFile = argsParser.getPreferencesFile();
-    if (prefFile == null) {
-      prefFile = MZmineConfiguration.CONFIG_FILE;
-    }
+    final File prefFile = Objects
+        .requireNonNullElse(argsParser.getPreferencesFile(), MZmineConfiguration.CONFIG_FILE);
 
+    boolean updateTempDir = false;
     // Load configuration
     if (prefFile.exists() && prefFile.canRead()) {
       try {
         getInstance().configuration.loadConfiguration(prefFile);
-        setTempDirToPreference();
+        updateTempDir = true;
       } catch (Exception e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
+            e);
+      }
+    } else {
+      logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
+    }
+
+    // override temp directory
+    final File tempDirectory = argsParser.getTempDirectory();
+    if (tempDirectory != null) {
+      // needs to be accessible
+      if (FileAndPathUtil.createDirectory(tempDirectory)) {
+        getInstance().configuration.getPreferences().setParameter(MZminePreferences.tempDirectory, tempDirectory);
+        updateTempDir = true;
+      } else {
+        logger.log(Level.WARNING,
+            "Cannot create or access temp file directory that was set via program argument: "
+            + tempDirectory.getAbsolutePath());
       }
     }
+
+    // set temp directory
+    if (updateTempDir) {
+      setTempDirToPreference();
+    }
+
+    KeepInMemory keepInMemory = argsParser.isKeepInMemory();
+    if (keepInMemory != null) {
+      // set to preferences
+      getInstance().configuration.getPreferences()
+          .setParameter(MZminePreferences.memoryOption, keepInMemory);
+    } else {
+      keepInMemory = getInstance().configuration.getPreferences()
+          .getParameter(MZminePreferences.memoryOption)
+          .getValue();
+    }
+
+    // apply memory management option
+    keepInMemory.enforceToMemoryMapping();
 
     // batch mode defined by command line argument
     File batchFile = argsParser.getBatchFile();
@@ -185,7 +208,7 @@ public final class MZmineCore {
 
         // run batch file
         getInstance().batchExitCode = BatchModeModule
-            .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, new Date());
+            .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
       }
 
       // option to keep MZmine running after the batch is finished
@@ -339,7 +362,8 @@ public final class MZmineCore {
     // Run the module
     final List<Task> newTasks = new ArrayList<>();
     final MZmineProject currentProject = getInstance().projectManager.getCurrentProject();
-    final Date date = new Date();
+    final Instant date = Instant.now();
+    logger.finest(() -> "Module " + module.getName() + " called at " + date.toString());
     module.runModule(currentProject, parameters, newTasks, date);
     getInstance().taskController.addTasks(newTasks.toArray(new Task[0]));
 

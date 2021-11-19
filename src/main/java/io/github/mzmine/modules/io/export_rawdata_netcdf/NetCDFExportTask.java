@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.export_rawdata_netcdf;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -46,7 +47,7 @@ public class NetCDFExportTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public NetCDFExportTask(RawDataFile dataFile, File outFilename, @NotNull Date moduleCallDate) {
+  public NetCDFExportTask(RawDataFile dataFile, File outFilename, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;

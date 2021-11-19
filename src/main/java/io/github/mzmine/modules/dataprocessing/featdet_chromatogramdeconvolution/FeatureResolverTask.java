@@ -46,7 +46,7 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.maths.CenterFunction;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -83,7 +83,7 @@ public class FeatureResolverTask extends AbstractTask {
    */
   public FeatureResolverTask(final MZmineProject project, MemoryMapStorage storage,
       final FeatureList list, final ParameterSet parameterSet, CenterFunction mzCenterFunction,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.

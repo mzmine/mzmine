@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,7 +38,7 @@ class LocalSpectralDBSearchTask extends RowsSpectralMatchTask {
   private final FeatureList[] featureLists;
 
   public LocalSpectralDBSearchTask(ParameterSet parameters, FeatureList[] featureLists,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(parameters, combineRows(featureLists), moduleCallDate);
     this.featureLists = featureLists;
   }

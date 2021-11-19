@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +66,7 @@ public class MassDetectionTask extends AbstractTask {
    * @param storageMemoryMap
    */
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storageMemoryMap, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storageMemoryMap, @NotNull Instant moduleCallDate) {
     super(storageMemoryMap, moduleCallDate);
 
     this.dataFile = dataFile;

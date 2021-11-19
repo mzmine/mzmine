@@ -41,6 +41,7 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -75,7 +76,7 @@ public class RowsFilterTask extends AbstractTask {
    */
   public RowsFilterTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet, @Nullable MemoryMapStorage storage,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.

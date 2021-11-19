@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,7 +73,7 @@ public class IonNetworkingTask extends AbstractTask {
    * @param parameterSet the parameters.
    */
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists, MinimumFeatureFilter minFeaturesFilter, @NotNull Date moduleCallDate) {
+      final ModularFeatureList featureLists, MinimumFeatureFilter minFeaturesFilter, @NotNull Instant moduleCallDate) {
     super(featureLists.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureLists;
@@ -91,7 +92,7 @@ public class IonNetworkingTask extends AbstractTask {
   }
 
   public IonNetworkingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureLists, @NotNull Date moduleCallDate) {
+      final ModularFeatureList featureLists, @NotNull Instant moduleCallDate) {
     this(project, parameterSet, featureLists, null, moduleCallDate);
   }
 

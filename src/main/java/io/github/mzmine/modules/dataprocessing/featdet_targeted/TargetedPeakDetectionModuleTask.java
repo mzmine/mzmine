@@ -37,6 +37,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -67,7 +68,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private double noiseLevel;
 
   TargetedPeakDetectionModuleTask(MZmineProject project, ParameterSet parameters,
-      RawDataFile dataFile, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      RawDataFile dataFile, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

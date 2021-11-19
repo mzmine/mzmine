@@ -25,6 +25,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ImageToCsvExportModule implements MZmineModule {
 
-  public static void showExportDialog(Collection<ModularFeatureListRow> rows, @NotNull Date moduleCallDate) {
+  public static void showExportDialog(Collection<ModularFeatureListRow> rows, @NotNull Instant moduleCallDate) {
 
     final List<ModularFeature> features = rows.stream()
         .flatMap(ModularFeatureListRow::streamFeatures)

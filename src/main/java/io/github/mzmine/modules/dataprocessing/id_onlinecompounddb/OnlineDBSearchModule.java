@@ -20,6 +20,7 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +54,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] featureLists = parameters
         .getParameter(PeakListIdentificationParameters.peakLists).getValue()
@@ -72,7 +73,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
    * @param row the feature list row.
    */
   public static void showSingleRowIdentificationDialog(final FeatureListRow row,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
 
     assert Platform.isFxApplicationThread();
 

@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +56,7 @@ public class VennExportTask extends AbstractTask {
   private int processedRows;
 
 
-  protected VennExportTask(@Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate,
+  protected VennExportTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
       ModularFeatureList flist, ParameterSet parameterSet) {
     super(storage, moduleCallDate);
     this.flist = flist;

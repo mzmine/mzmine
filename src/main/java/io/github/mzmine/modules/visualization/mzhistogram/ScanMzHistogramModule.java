@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.visualization.mzhistogram;
 
+import java.time.Instant;
 import java.util.Collection;
 
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -50,7 +50,7 @@ public class ScanMzHistogramModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     RawDataFile[] dataFiles = parameters.getParameter(ScanMzHistogramParameters.dataFiles)
         .getValue().getMatchingRawDataFiles();

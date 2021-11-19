@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Objects;
@@ -60,7 +61,7 @@ class LinearNormalizerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate); // no new data stored -> null
 
     this.project = project;

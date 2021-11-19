@@ -18,9 +18,9 @@
 
 package io.github.mzmine.modules.io.projectload;
 
+import java.time.Instant;
 import java.util.Collection;
 
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -53,7 +53,7 @@ public class ProjectLoadModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ProjectOpeningTask newTask = new ProjectOpeningTask(parameters, moduleCallDate);
     tasks.add(newTask);
     return ExitCode.OK;

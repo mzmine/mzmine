@@ -27,8 +27,8 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class FeatureResolverModule implements MZmineProcessingModule {
@@ -44,7 +44,7 @@ public abstract class FeatureResolverModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     // one memory map storage per module call to reduce number of files and connect related feature lists
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 

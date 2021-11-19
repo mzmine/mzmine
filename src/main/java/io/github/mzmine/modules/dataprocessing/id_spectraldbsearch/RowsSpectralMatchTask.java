@@ -41,7 +41,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.util.ArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -82,7 +82,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
   private final int minMatchedIsoSignals;
 
   public RowsSpectralMatchTask(ParameterSet parameters, @NotNull List<FeatureListRow> rows,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     this.rows = rows;

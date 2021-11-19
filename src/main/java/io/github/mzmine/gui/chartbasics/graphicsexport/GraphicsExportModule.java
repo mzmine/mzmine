@@ -18,16 +18,16 @@
 
 package io.github.mzmine.gui.chartbasics.graphicsexport;
 
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.JFreeChart;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.JFreeChart;
 
 public class GraphicsExportModule implements MZmineRunnableModule {
 
@@ -60,7 +60,7 @@ public class GraphicsExportModule implements MZmineRunnableModule {
 
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters, Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     return null;
   }
 

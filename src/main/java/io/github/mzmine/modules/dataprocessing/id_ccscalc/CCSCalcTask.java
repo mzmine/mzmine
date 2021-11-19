@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ public class CCSCalcTask extends AbstractTask {
   private int annotatedFeatures;
 
   public CCSCalcTask(MZmineProject project, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.assumeChargeState = parameters.getParameter(CCSCalcParameters.assumeChargeStage)
         .getValue();

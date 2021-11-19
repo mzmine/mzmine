@@ -47,6 +47,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -98,7 +99,7 @@ public class LibrarySubmitTask extends AbstractTask {
   private final MSMSLibrarySubmissionWindow window;
 
   public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
-      Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Date moduleCallDate) {
+      Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.window = window;
     this.map = map;
@@ -127,7 +128,7 @@ public class LibrarySubmitTask extends AbstractTask {
     }
   }
 
-  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Date moduleCallDate) {
+  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map, @NotNull Instant moduleCallDate) {
     this(null, map, moduleCallDate);
   }
 

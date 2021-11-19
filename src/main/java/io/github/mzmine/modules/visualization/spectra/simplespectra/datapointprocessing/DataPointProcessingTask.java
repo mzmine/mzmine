@@ -26,8 +26,8 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import java.awt.Color;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +76,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   public DataPointProcessingTask(@NotNull MassSpectrum dataPoints, @NotNull SpectraPlot plot,
       @NotNull ParameterSet parameterSet, @NotNull DataPointProcessingController controller,
       @NotNull TaskStatusListener listener) {
-    super(null, new Date()); // no new data stored -> null, date irrelevant (not executed in batch)
+    super(null, Instant.now()); // no new data stored -> null, date irrelevant (not executed in batch)
     logger.warning("Rethink storage creation when re-implementing data point processing");
 
     setDataPoints(dataPoints);

@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ public class FeatureCorrelationHistogramTask extends AbstractTask {
   private FeatureCorrelationHistogramTab tab;
 
   public FeatureCorrelationHistogramTask(ModularFeatureList flist, ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.flist = flist;
     startBinWidth = parameters.getParameter(FeatureCorrelationHistogramParameters.binWidth)
