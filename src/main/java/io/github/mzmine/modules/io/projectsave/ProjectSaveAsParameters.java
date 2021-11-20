@@ -18,6 +18,8 @@
 
 package io.github.mzmine.modules.io.projectsave;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -66,6 +68,16 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
         <b>Referencing</b>: The project will point to the current files used. Any rename, move, or 
         remove of a file from their current directory might lead to incompatibility of the project.</br>
         <b>WARNING:</b> If this is an existing project, it is recommended to save it in the same way.""";
+
+    // set parameters to current project if already saved to file
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final File currentProjectFile = project.getProjectFile();
+
+    if ((currentProjectFile != null) && (currentProjectFile.canWrite())) {
+      setParameter(projectFile, currentProjectFile);
+      setParameter(option,
+          project.isStandalone() ? ProjectSaveOption.STANDALONE : ProjectSaveOption.REFERENCING);
+    }
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();

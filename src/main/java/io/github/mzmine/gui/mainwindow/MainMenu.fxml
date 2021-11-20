@@ -48,8 +48,8 @@
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule"
       fx:id="saveProjectAs">
       <accelerator>
-        <KeyCodeCombination alt="DOWN" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        <KeyCodeCombination alt="UP" code="S"
+          control="DOWN" meta="UP" shift="DOWN" shortcut="UP"/>
       </accelerator>
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
