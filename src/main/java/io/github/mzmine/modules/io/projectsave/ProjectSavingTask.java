@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -35,14 +34,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javafx.scene.control.ButtonType;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import org.jetbrains.annotations.NotNull;
@@ -54,11 +51,11 @@ public class ProjectSavingTask extends AbstractTask {
   public static final String STANDALONE_FILENAME = "STANDALONE"; // only exists if it's a standalone project.
   public static final String CONFIG_FILENAME = "configuration.xml";
   public static final String PARAMETERS_FILENAME = "User parameters.xml";
+  private static final Logger logger = Logger.getLogger(ProjectSavingTask.class.getName());
+  private final ProjectSaveOption projectType;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private File saveFile;
-  private MZmineProjectImpl savedProject;
+  private final File saveFile;
+  private final MZmineProjectImpl savedProject;
 
   private RawDataFileSaveHandler rawDataFileSaveHandler;
   private PeakListSaveHandler peakListSaveHandler;
@@ -69,20 +66,18 @@ public class ProjectSavingTask extends AbstractTask {
   private String currentSavedObjectName;
 
   // This hashtable maps raw data files to their ID within the saved project
-  private Hashtable<RawDataFile, String> dataFilesIDMap;
+  private final Hashtable<RawDataFile, String> dataFilesIDMap;
 
   public ProjectSavingTask(MZmineProject project, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.savedProject = (MZmineProjectImpl) project;
-    this.saveFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
-    dataFilesIDMap = new Hashtable<RawDataFile, String>();
+    this.saveFile = parameters.getValue(ProjectSaveAsParameters.projectFile);
+    this.projectType = parameters.getValue(ProjectSaveAsParameters.option);
+    dataFilesIDMap = new Hashtable<>();
     this.totalSaveItems = project.getDataFiles().length + project.getFeatureLists().size();
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     if (currentSavedObjectName == null) {
@@ -91,9 +86,6 @@ public class ProjectSavingTask extends AbstractTask {
     return "Saving project (" + currentSavedObjectName + ")";
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
 
@@ -121,14 +113,9 @@ public class ProjectSavingTask extends AbstractTask {
         return 0;
     }
 
-    double progress = (finishedSaveItems + currentItemProgress) / totalSaveItems;
-
-    return progress;
+    return (finishedSaveItems + currentItemProgress) / totalSaveItems;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#cancel()
-   */
   @Override
   public void cancel() {
 
@@ -150,33 +137,15 @@ public class ProjectSavingTask extends AbstractTask {
 
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
     try {
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
 
-      if (!MZmineCore.isHeadLessMode() && (savedProject.isStandalone() == null || (
-          savedProject.isStandalone() != null && savedProject.isStandalone() == false))) {
-        ButtonType btn = MZmineCore.getDesktop().displayConfirmation(
-            "Would you like to save a standalone project?\n\nIf yes, raw data files will be "
-                + "copied into the project file. Otherwise the project will require that all raw "
-                + "files stay in the same directories.\n<b>WARNING</b> If this is an existing "
-                + "project, it is recommended to save it in the same way.", ButtonType.YES,
-            ButtonType.NO, ButtonType.CANCEL);
-        if (btn == ButtonType.CANCEL) {
-          setStatus(TaskStatus.FINISHED);
-          return;
-        } else if (btn == ButtonType.YES) {
-          savedProject.setStandalone(true);
-        } else {
-          savedProject.setStandalone(false);
-        }
-      } else {
-        savedProject.setStandalone(true);
+      switch (projectType) {
+        case STANDALONE -> savedProject.setStandalone(true);
+        case REFERENCING -> savedProject.setStandalone(false);
       }
 
       // Prepare a temporary ZIP file. We create this file in the same
