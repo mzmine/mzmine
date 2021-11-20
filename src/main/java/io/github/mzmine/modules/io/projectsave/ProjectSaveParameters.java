@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
+import java.util.Objects;
 
 public class ProjectSaveParameters extends ProjectSaveAsParameters {
 
@@ -37,9 +38,12 @@ public class ProjectSaveParameters extends ProjectSaveAsParameters {
     final File currentProjectFile = project.getProjectFile();
 
     if ((currentProjectFile != null) && (currentProjectFile.canWrite())) {
+      final ProjectSaveOption projectType =
+          Objects.requireNonNullElse(project.isStandalone(), true) ? ProjectSaveOption.STANDALONE
+              : ProjectSaveOption.REFERENCING;
+
       setParameter(projectFile, currentProjectFile);
-      setParameter(option,
-          project.isStandalone() ? ProjectSaveOption.STANDALONE : ProjectSaveOption.REFERENCING);
+      setParameter(option, projectType);
       return ExitCode.OK;
     } else {
       return super.showSetupDialog(valueCheckRequired);

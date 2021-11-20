@@ -30,6 +30,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -74,9 +75,11 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
     final File currentProjectFile = project.getProjectFile();
 
     if ((currentProjectFile != null) && (currentProjectFile.canWrite())) {
+      final ProjectSaveOption projectType =
+          Objects.requireNonNullElse(project.isStandalone(), true) ? ProjectSaveOption.STANDALONE
+              : ProjectSaveOption.REFERENCING;
       setParameter(projectFile, currentProjectFile);
-      setParameter(option,
-          project.isStandalone() ? ProjectSaveOption.STANDALONE : ProjectSaveOption.REFERENCING);
+      setParameter(option, projectType);
     }
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
