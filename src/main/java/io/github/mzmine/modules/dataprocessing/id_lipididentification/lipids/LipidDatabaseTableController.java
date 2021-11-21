@@ -232,7 +232,7 @@ public class LipidDatabaseTableController {
               Arrays.asList(selectedLipids[i].getFragmentationRules());
           StringBuilder fragmentationRuleSB = new StringBuilder();
           fragmentationRules.stream().forEach(rule -> {
-            fragmentationRuleSB.append(rule.toString() + "\n");
+            fragmentationRuleSB.append(rule.toString()).append("\n");
           });
           StringBuilder exactMassSB = new StringBuilder();
           Set<IonizationType> ionizationTypes = fragmentationRules.stream()
@@ -240,8 +240,8 @@ public class LipidDatabaseTableController {
           for (IonizationType ionizationType : ionizationTypes) {
             double mz = MolecularFormulaManipulator.getMass(lipid.getMolecularFormula(),
                 AtomContainerManipulator.MonoIsotopic) + ionizationType.getAddedMass();
-            exactMassSB.append(ionizationType.getAdductName() + " "
-                + MZmineCore.getConfiguration().getMZFormat().format(mz) + "\n");
+            exactMassSB.append(ionizationType.getAdductName()).append(" ")
+                .append(MZmineCore.getConfiguration().getMZFormat().format(mz)).append("\n");
           }
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipids[i].getName(), // lipid class
@@ -282,17 +282,18 @@ public class LipidDatabaseTableController {
               if (!sb.isEmpty()) {
                 sb.append("\n");
               }
-              sb.append(entryCompare.getKey() + " interference with "
-                  + tableData.get(i).getAbbreviation() + " " + entry.getKey());
+              sb.append(entryCompare.getKey()).append(" interference with ")
+                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey());
             } else if (mzTolerance.checkWithinTolerance(valueOne, valueTwo) && j != i
                 && isSamePolarity(entry.getKey(), entryCompare.getKey())) {
               double delta = valueOne - valueTwo;
               if (!sb.isEmpty()) {
                 sb.append("\n");
               }
-              sb.append(entryCompare.getKey() + " possible interference with "
-                  + tableData.get(i).getAbbreviation() + " " + entry.getKey() + " \u0394 "
-                  + MZmineCore.getConfiguration().getMZFormat().format(delta));
+              sb.append(entryCompare.getKey()).append(" possible interference with ")
+                  .append(tableData.get(i).getAbbreviation()).append(" ").append(entry.getKey())
+                  .append(" \u0394 ")
+                  .append(MZmineCore.getConfiguration().getMZFormat().format(delta));
             }
           }
           if (!sb.isEmpty()) {
@@ -413,7 +414,7 @@ public class LipidDatabaseTableController {
     return ionSpecificMzValues;
   }
 
-  class DataPointXYZ {
+  static class DataPointXYZ {
 
     private double x;
     private double y;

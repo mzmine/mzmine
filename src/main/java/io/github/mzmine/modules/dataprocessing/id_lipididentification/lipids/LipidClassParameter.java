@@ -64,9 +64,6 @@ public class LipidClassParameter<ValueType>
     this.minNumber = minNumber;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
@@ -80,9 +77,6 @@ public class LipidClassParameter<ValueType>
     return choices;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
@@ -114,7 +108,7 @@ public class LipidClassParameter<ValueType>
   @SuppressWarnings("unchecked")
   @Override
   public void setValueFromComponent(LipidClassComponent component) {
-    Object componentValue[] = component.getValue();
+    Object[] componentValue = component.getValue();
     Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass().getComponentType();
     this.values = CollectionUtils.changeArrayType(componentValue, arrayType);
   }

@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
