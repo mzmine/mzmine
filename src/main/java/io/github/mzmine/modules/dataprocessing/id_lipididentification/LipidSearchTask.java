@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.*;
@@ -289,7 +290,8 @@ public class LipidSearchTask extends AbstractTask {
           for (DataPoint dataPoint : massList) {
             Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(dataPoint.getMZ());
             LipidFragment annotatedFragment = msmsLipidTools.checkForClassSpecificFragment(
-                mzTolRangeMSMS, lipid, ionization, rules, dataPoint, msmsScan);
+                mzTolRangeMSMS, lipid, ionization, rules,
+                new SimpleDataPoint(dataPoint.getMZ(), dataPoint.getIntensity()), msmsScan);
             if (annotatedFragment != null) {
               annotatedFragments.add(annotatedFragment);
             }
