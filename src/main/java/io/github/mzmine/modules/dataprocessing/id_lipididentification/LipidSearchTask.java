@@ -40,10 +40,10 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -59,30 +59,24 @@ public class LipidSearchTask extends AbstractTask {
 
   private static final LipidFactory LIPID_FACTORY = new LipidFactory();
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedSteps;
   private double totalSteps;
-  private FeatureList featureList;
-  private Object[] selectedObjects;
-  private LipidClasses[] selectedLipids;
-  private Boolean searchForCustomLipidClasses;
+  private final FeatureList featureList;
+  private final LipidClasses[] selectedLipids;
   private CustomLipidClass[] customLipidClasses;
-  private int minChainLength;
-  private int maxChainLength;
-  private int maxDoubleBonds;
-  private int minDoubleBonds;
-  private MZTolerance mzTolerance;
+  private final int minChainLength;
+  private final int maxChainLength;
+  private final int maxDoubleBonds;
+  private final int minDoubleBonds;
+  private final MZTolerance mzTolerance;
   private MZTolerance mzToleranceMS2;
-  private Boolean searchForMSMSFragments;
-  private Boolean keepUnconfirmedAnnotations;
+  private final Boolean searchForMSMSFragments;
+  private final Boolean keepUnconfirmedAnnotations;
   private double minMsMsScore;
 
-  private ParameterSet parameters;
+  private final ParameterSet parameters;
 
-  /**
-   * @param parameters
-   * @param featureList
-   */
   public LipidSearchTask(ParameterSet parameters, FeatureList featureList,
       @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
@@ -98,7 +92,8 @@ public class LipidSearchTask extends AbstractTask {
     this.maxDoubleBonds =
         parameters.getParameter(LipidSearchParameters.doubleBonds).getValue().upperEndpoint();
     this.mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
-    this.selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
+    Object[] selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses)
+        .getValue();
     this.searchForMSMSFragments =
         parameters.getParameter(LipidSearchParameters.searchForMSMSFragments).getValue();
     if (searchForMSMSFragments.booleanValue()) {
@@ -114,8 +109,8 @@ public class LipidSearchTask extends AbstractTask {
     } else {
       this.keepUnconfirmedAnnotations = true;
     }
-    this.searchForCustomLipidClasses =
-        parameters.getParameter(LipidSearchParameters.customLipidClasses).getValue();
+    Boolean searchForCustomLipidClasses = parameters.getParameter(
+        LipidSearchParameters.customLipidClasses).getValue();
     if (searchForCustomLipidClasses.booleanValue()) {
       this.customLipidClasses =
           LipidSearchParameters.customLipidClasses.getEmbeddedParameter().getChoices();
@@ -197,7 +192,7 @@ public class LipidSearchTask extends AbstractTask {
   private void buildLipidCombinations(Set<ILipidAnnotation> lipidDatabase,
       ILipidClass[] lipidClasses) {
     // Try all combinations of fatty acid lengths and double bonds
-    for (int i = 0; i < lipidClasses.length; i++) {
+    for (ILipidClass lipidClass : lipidClasses) {
       for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
@@ -207,7 +202,7 @@ public class LipidSearchTask extends AbstractTask {
           }
 
           // Prepare a lipid instance
-          ILipidAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(lipidClasses[i],
+          ILipidAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(lipidClass,
               chainLength, chainDoubleBonds);
           if (lipid != null) {
             lipidDatabase.add(lipid);
@@ -219,9 +214,6 @@ public class LipidSearchTask extends AbstractTask {
 
   /**
    * Check if candidate peak may be a possible adduct of a given main peak
-   *
-   * @param mainPeak
-   * @param possibleFragment
    */
   private void findPossibleLipid(ILipidAnnotation lipid, FeatureListRow row) {
     if (isCanceled()) {
@@ -230,11 +222,11 @@ public class LipidSearchTask extends AbstractTask {
     Set<MatchedLipid> possibleRowAnnotations = new HashSet<>();
     Set<IonizationType> ionizationTypeList = new HashSet<>();
     LipidFragmentationRule[] fragmentationRules = lipid.getLipidClass().getFragmentationRules();
-    for (int i = 0; i < fragmentationRules.length; i++) {
-      ionizationTypeList.add(fragmentationRules[i].getIonizationType());
+    for (LipidFragmentationRule fragmentationRule : fragmentationRules) {
+      ionizationTypeList.add(fragmentationRule.getIonizationType());
     }
     for (IonizationType ionization : ionizationTypeList) {
-      if (!row.getBestFeature().getRepresentativeScan().getPolarity()
+      if (!Objects.requireNonNull(row.getBestFeature().getRepresentativeScan()).getPolarity()
           .equals(ionization.getPolarity())) {
         continue;
       }
@@ -294,10 +286,10 @@ public class LipidSearchTask extends AbstractTask {
         LipidFragmentationRule[] rules = lipid.getLipidClass().getFragmentationRules();
         Set<LipidFragment> annotatedFragments = new HashSet<>();
         if (rules != null && rules.length > 0) {
-          for (int j = 0; j < massList.length; j++) {
-            Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(massList[j].getMZ());
+          for (DataPoint dataPoint : massList) {
+            Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(dataPoint.getMZ());
             LipidFragment annotatedFragment = msmsLipidTools.checkForClassSpecificFragment(
-                mzTolRangeMSMS, lipid, ionization, rules, massList[j], msmsScan);
+                mzTolRangeMSMS, lipid, ionization, rules, dataPoint, msmsScan);
             if (annotatedFragment != null) {
               annotatedFragments.add(annotatedFragment);
             }
@@ -320,8 +312,11 @@ public class LipidSearchTask extends AbstractTask {
             combineMsMsScores(matchedLipid, molecularSpeciesLevelMatchedLipids);
           }
 
-          for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
-            addUniqueMatchedLipid(molecularSpeciesLevelMatchedLipid, matchedLipids);
+          if (molecularSpeciesLevelMatchedLipids != null
+              && !molecularSpeciesLevelMatchedLipids.isEmpty()) {
+            for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
+              addUniqueMatchedLipid(molecularSpeciesLevelMatchedLipid, matchedLipids);
+            }
           }
         }
       }
