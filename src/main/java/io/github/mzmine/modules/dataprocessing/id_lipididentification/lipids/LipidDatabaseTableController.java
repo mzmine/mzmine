@@ -184,7 +184,7 @@ public class LipidDatabaseTableController {
       public void updateItem(String item, boolean empty) {
         // Always invoke super constructor.
         super.updateItem(item, empty);
-        if (getIndex() >= 0) {
+        if (getIndex() >= 0 && item != null) {
           if (tableData.get(getIndex()).getInfo().contains("interference")) {
             this.setStyle("-fx-background-color:" + ColorsFX.toHexString(interFX));
           } else if (tableData.get(getIndex()).getInfo().contains("possible interference")) {
