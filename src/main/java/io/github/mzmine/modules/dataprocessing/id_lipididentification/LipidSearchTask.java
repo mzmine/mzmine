@@ -204,16 +204,7 @@ public class LipidSearchTask extends AbstractTask {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
 
-          // If we have non-zero fatty acid, which is shorter
-          // than minimal length, skip this lipid
-          if (((chainLength > 0) && (chainLength < minChainLength))) {
-            finishedSteps++;
-            continue;
-          }
-
-          // If we have more double bonds than carbons, it
-          // doesn't make sense, so let's skip such lipids
-          if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
+          if(chainLength /2 < chainDoubleBonds|| chainLength == 0){
             finishedSteps++;
             continue;
           }

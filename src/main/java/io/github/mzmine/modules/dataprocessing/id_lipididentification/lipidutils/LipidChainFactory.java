@@ -34,7 +34,7 @@ public class LipidChainFactory {
 
   public ILipidChain buildLipidChain(LipidChainType chainType, int chainLength, int numberOfDBE) {
     IMolecularFormula chainFormula = buildLipidChainFormula(chainType, chainLength, numberOfDBE);
-    String chainAnnotation = builLipidChainAnnotation(chainType, chainLength, numberOfDBE);
+    String chainAnnotation = buildLipidChainAnnotation(chainType, chainLength, numberOfDBE);
 
     if (chainType.equals(LipidChainType.ACYL_CHAIN)) {
       return new AcylLipidChain(chainAnnotation, chainFormula, chainLength, numberOfDBE);
@@ -47,42 +47,32 @@ public class LipidChainFactory {
 
   public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength,
       int numberOfDBE) {
-    switch (chainType) {
-      case ACYL_CHAIN:
-        return calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
-      case ALKYL_CHAIN:
-        return calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
-      default:
-        return calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
-    }
+    return switch (chainType) {
+      case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
+      case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
+    };
   }
 
   private IMolecularFormula calculateMolecularFormulaAcylChain(int chainLength,
       int numberOfDoubleBonds) {
-    int numberOfCAtoms = chainLength;
-    int numberOfHAtoms = numberOfCAtoms * 2 - numberOfDoubleBonds * 2;
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2;
     int numberOfOAtoms = 2;
     return FormulaUtils.createMajorIsotopeMolFormula(
-        "C" + numberOfCAtoms + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
+        "C" + chainLength + "H" + numberOfHAtoms + "O" + numberOfOAtoms);
   }
 
   private IMolecularFormula calculateMolecularFormulaAlkylChain(int chainLength,
       int numberOfDoubleBonds) {
-    int numberOfCAtoms = chainLength;
-    int numberOfHAtoms = numberOfCAtoms * 2 - numberOfDoubleBonds * 2 + 2;
-    return FormulaUtils.createMajorIsotopeMolFormula("C" + numberOfCAtoms + "H" + numberOfHAtoms);
+    int numberOfHAtoms = chainLength * 2 - numberOfDoubleBonds * 2 + 2;
+    return FormulaUtils.createMajorIsotopeMolFormula("C" + chainLength + "H" + numberOfHAtoms);
   }
 
-  private String builLipidChainAnnotation(LipidChainType chainType, int chainLength,
+  private String buildLipidChainAnnotation(LipidChainType chainType, int chainLength,
       int numberOfDBE) {
-    switch (chainType) {
-      case ACYL_CHAIN:
-        return chainLength + ":" + numberOfDBE;
-      case ALKYL_CHAIN:
-        return "O-" + chainLength + ":" + numberOfDBE;
-      default:
-        return chainLength + ":" + numberOfDBE;
-    }
+    return switch (chainType) {
+      case ACYL_CHAIN -> chainLength + ":" + numberOfDBE;
+      case ALKYL_CHAIN -> "O-" + chainLength + ":" + numberOfDBE;
+    };
   }
 
   public String connectLipidChainAnnotations(List<ILipidChain> chains) {
@@ -112,9 +102,9 @@ public class LipidChainFactory {
         sb.append(chains.get(i).getChainAnnotation());
       } else {
         if (allChainsAreSame) {
-          sb.append("/" + chains.get(i).getChainAnnotation());
+          sb.append("/").append(chains.get(i).getChainAnnotation());
         } else {
-          sb.append("_" + chains.get(i).getChainAnnotation());
+          sb.append("_").append(chains.get(i).getChainAnnotation());
         }
       }
     }

@@ -43,6 +43,7 @@ public class LipidFactory {
       for (LipidChainType type : lipidClass.getChainTypes()) {
         if (type.equals(LipidChainType.ALKYL_CHAIN)) {
           hasAlkylChain = true;
+          break;
         }
       }
     }
