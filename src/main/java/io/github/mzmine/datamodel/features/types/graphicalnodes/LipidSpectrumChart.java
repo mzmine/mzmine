@@ -91,9 +91,11 @@ public class LipidSpectrumChart extends StackPane {
       chart.getXYPlot().getRenderer().setSeriesItemLabelGenerator(
           chart.getXYPlot().getSeriesCount(), matchedLipidLabelGenerator);
 
-      Platform.runLater(() -> chart.addDatasets(datasets));
       setPrefHeight(GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);
-      getChildren().add(chart);
+      Platform.runLater(() -> {
+        getChildren().add(chart);
+        chart.addDatasets(datasets);
+      });
     }
 
   }
@@ -103,7 +105,7 @@ public class LipidSpectrumChart extends StackPane {
         .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
       StringBuilder sb = new StringBuilder();
       sb.append(lipidFragment.getLipidChainType() + " " + lipidFragment.getChainLength() + ":"
-                + lipidFragment.getNumberOfDBEs());
+          + lipidFragment.getNumberOfDBEs());
       System.out.println(sb);
       return sb.toString();
     } else {
