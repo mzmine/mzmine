@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -69,6 +68,9 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
 
       @Override
       public MassSpectrumType getSpectrumType() {
+        if(spectrum != null){
+          return spectrum.getSpectrumType();
+        }
         return null;
       }
 
@@ -150,30 +152,6 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
     return FxColorUtil.awtColorToFX(color);
   }
 
-  @Nullable
-  @Override
-  public String getLabel(int index) {
-    if (matchedFragments != null) {
-      return buildFragmentAnnotation(matchedFragments.get(index));
-    } else {
-      return null;
-    }
-  }
-
-  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
-    if (lipidFragment.getLipidFragmentInformationLevelType()
-        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getLipidChainType() + " " + lipidFragment.getChainLength() + ":"
-          + lipidFragment.getNumberOfDBEs());
-      System.out.println(sb.toString());
-      return sb.toString();
-    } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getRuleType());
-      return sb.toString();
-    }
-  }
 
   @Nonnull
   @Override
@@ -181,15 +159,6 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
     return seriesKey;
   }
 
-  @Nullable
-  @Override
-  public String getToolTipText(int itemIndex) {
-    if (matchedFragments != null) {
-      return buildFragmentAnnotation(matchedFragments.get(itemIndex));
-    } else {
-      return null;
-    }
-  }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
@@ -214,5 +183,15 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 1d;
+  }
+
+  @Override
+  public @org.jetbrains.annotations.Nullable String getLabel(int index) {
+    return null;
+  }
+
+  @Override
+  public @org.jetbrains.annotations.Nullable String getToolTipText(int itemIndex) {
+    return null;
   }
 }
