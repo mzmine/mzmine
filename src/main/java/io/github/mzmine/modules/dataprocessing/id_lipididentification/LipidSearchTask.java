@@ -28,11 +28,7 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.MSMSLipidTools;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.*;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -87,7 +83,8 @@ public class LipidSearchTask extends AbstractTask {
    * @param parameters
    * @param featureList
    */
-  public LipidSearchTask(ParameterSet parameters, FeatureList featureList, @NotNull Instant moduleCallDate) {
+  public LipidSearchTask(ParameterSet parameters, FeatureList featureList,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.featureList = featureList;
     this.parameters = parameters;
@@ -133,8 +130,9 @@ public class LipidSearchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalSteps == 0)
+    if (totalSteps == 0) {
       return 0;
+    }
     return (finishedSteps) / totalSteps;
   }
 
@@ -204,14 +202,16 @@ public class LipidSearchTask extends AbstractTask {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
 
-          if(chainLength /2 < chainDoubleBonds|| chainLength == 0){
-            finishedSteps++;
+          if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
             continue;
           }
 
           // Prepare a lipid instance
-          lipidDatabase.add(
-              LIPID_FACTORY.buildSpeciesLevelLipid(lipidClasses[i], chainLength, chainDoubleBonds));
+          ILipidAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(lipidClasses[i],
+              chainLength, chainDoubleBonds);
+          if (lipid != null) {
+            lipidDatabase.add(lipid);
+          }
         }
       }
     }
@@ -345,13 +345,13 @@ public class LipidSearchTask extends AbstractTask {
     for (MatchedLipid molecularSpeciesLevelMatchedLipid : molecularSpeciesLevelMatchedLipids) {
       if (speciesLevelMatchedLipid != null && molecularSpeciesLevelMatchedLipid != null
           && speciesLevelMatchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
-              .equals(LipidAnnotationLevel.SPECIES_LEVEL)
+          .equals(LipidAnnotationLevel.SPECIES_LEVEL)
           && molecularSpeciesLevelMatchedLipid.getLipidAnnotation().getLipidAnnotationLevel()
-              .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)
+          .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)
           && molecularSpeciesLevelMatchedLipid.getLipidAnnotation().getLipidClass()
-              .equals(speciesLevelMatchedLipid.getLipidAnnotation().getLipidClass())
+          .equals(speciesLevelMatchedLipid.getLipidAnnotation().getLipidClass())
           && molecularSpeciesLevelMatchedLipid.getLipidAnnotation().getMolecularFormula()
-              .equals(speciesLevelMatchedLipid.getLipidAnnotation().getMolecularFormula())) {
+          .equals(speciesLevelMatchedLipid.getLipidAnnotation().getMolecularFormula())) {
         molecularSpeciesLevelMatchedLipid.getMatchedFragments()
             .addAll(speciesLevelMatchedLipid.getMatchedFragments());
         molecularSpeciesLevelMatchedLipid
@@ -374,7 +374,7 @@ public class LipidSearchTask extends AbstractTask {
             lipidsToAdd.add(matchedLipid);
           } else if (matchedLipid2 != null
               && matchedLipid.getLipidAnnotation().getAnnotation()
-                  .equals(matchedLipid2.getLipidAnnotation().getAnnotation())
+              .equals(matchedLipid2.getLipidAnnotation().getAnnotation())
               && matchedLipid.getMsMsScore() > matchedLipid2.getMsMsScore()) {
             lipidsToRemove.add(matchedLipid2);
             lipidsToAdd.add(matchedLipid);

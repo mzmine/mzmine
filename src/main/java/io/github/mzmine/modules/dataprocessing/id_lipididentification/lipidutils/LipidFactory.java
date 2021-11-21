@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -36,6 +37,9 @@ public class LipidFactory {
     String annotation;
     boolean hasAlkylChain = false;
     boolean hasNoChain = false;
+    if (numberOfCarbons < lipidClass.getChainTypes().length) {
+      return null;
+    }
 
     if (lipidClass.getChainTypes().length == 0) {
       hasNoChain = true;
@@ -56,8 +60,12 @@ public class LipidFactory {
     }
     IMolecularFormula molecularFormula = synthesisLipidMolecularFormula(
         lipidClass.getBackBoneFormula(), numberOfCarbons, numberOfDBEs, lipidClass.getChainTypes());
-    return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
-        numberOfDBEs);
+    if (molecularFormula != null) {
+      return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
+          numberOfDBEs);
+    } else {
+      return null;
+    }
   }
 
   public MolecularSpeciesLevelAnnotation buildMolecularSpeciesLevelLipid(ILipidClass lipidClass,
@@ -75,8 +83,12 @@ public class LipidFactory {
     IMolecularFormula molecularFormula =
         synthesisLipidMolecularFormula(lipidClass.getBackBoneFormula(), totalNumberOfCarbons,
             totalNumberOfDBEs, lipidClass.getChainTypes());
-    return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
-        lipidChains);
+    if (molecularFormula != null) {
+      return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
+          lipidChains);
+    } else {
+      return null;
+    }
   }
 
   public MolecularSpeciesLevelAnnotation buildMolecularSpeciesLevelLipidFromChains(
@@ -88,13 +100,17 @@ public class LipidFactory {
     IMolecularFormula molecularFormula =
         synthesisLipidMolecularFormula(lipidClass.getBackBoneFormula(), totalNumberOfCarbons,
             totalNumberOfDBEs, lipidClass.getChainTypes());
-    return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
-        lipidChains);
+    if (molecularFormula != null) {
+      return new MolecularSpeciesLevelAnnotation(lipidClass, annotation, molecularFormula,
+          lipidChains);
+    } else {
+      return null;
+    }
   }
 
 
   // lipid synthesis
-  public IMolecularFormula synthesisLipidMolecularFormula(String lipidBackbone, int chainLength,
+  private IMolecularFormula synthesisLipidMolecularFormula(String lipidBackbone, int chainLength,
       int chainDoubleBonds, LipidChainType[] chainTypes) {
 
     IMolecularFormula lipidBackboneFormula =
@@ -115,6 +131,9 @@ public class LipidFactory {
       }
       IMolecularFormula chainFormula = LIPID_CHAIN_FACTORY.buildLipidChainFormula(chainTypes[i],
           numberOfCarbonsPerChain, numberOfDoubleBondsPerChain);
+      if (chainFormula == null) {
+        return null;
+      }
       lipidBackboneFormula =
           doChainTypeSpecificSynthesis(chainTypes[i], lipidBackboneFormula, chainFormula);
     }
@@ -124,14 +143,10 @@ public class LipidFactory {
   // Chemical reactions
   private IMolecularFormula doChainTypeSpecificSynthesis(LipidChainType type,
       IMolecularFormula lipidBackbone, IMolecularFormula chainFormula) {
-    switch (type) {
-      case ACYL_CHAIN:
-        return doEsterBonding(lipidBackbone, chainFormula);
-      case ALKYL_CHAIN:
-        return doEtherBonding(lipidBackbone, chainFormula);
-      default:
-        return null;
-    }
+    return switch (type) {
+      case ACYL_CHAIN -> doEsterBonding(lipidBackbone, chainFormula);
+      case ALKYL_CHAIN -> doEtherBonding(lipidBackbone, chainFormula);
+    };
   }
 
   // create ester bonding
@@ -151,7 +166,6 @@ public class LipidFactory {
     product = FormulaUtils.subtractFormula(product, secondaryProduct);
     return product;
   }
-
 
 
 }

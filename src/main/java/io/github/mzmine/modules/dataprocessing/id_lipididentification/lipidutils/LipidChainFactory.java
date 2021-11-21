@@ -27,12 +27,15 @@ import io.github.mzmine.util.FormulaUtils;
 
 /**
  * This class constructs alkyl and acyl chains for lipids.
- * 
+ *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidChainFactory {
 
   public ILipidChain buildLipidChain(LipidChainType chainType, int chainLength, int numberOfDBE) {
+    if (chainLength / 2 < numberOfDBE) {
+      return null;
+    }
     IMolecularFormula chainFormula = buildLipidChainFormula(chainType, chainLength, numberOfDBE);
     String chainAnnotation = buildLipidChainAnnotation(chainType, chainLength, numberOfDBE);
 
@@ -47,6 +50,9 @@ public class LipidChainFactory {
 
   public IMolecularFormula buildLipidChainFormula(LipidChainType chainType, int chainLength,
       int numberOfDBE) {
+    if (chainLength / 2 < numberOfDBE) {
+      return null;
+    }
     return switch (chainType) {
       case ACYL_CHAIN -> calculateMolecularFormulaAcylChain(chainLength, numberOfDBE);
       case ALKYL_CHAIN -> calculateMolecularFormulaAlkylChain(chainLength, numberOfDBE);
@@ -113,10 +119,11 @@ public class LipidChainFactory {
 
   private boolean allChainsAreSame(List<ILipidChain> chains) {
     String firstChainAnnotation = chains.get(0).getChainAnnotation();
-    for (int i = 1; i < chains.size(); i++)
+    for (int i = 1; i < chains.size(); i++) {
       if (!chains.get(i).getChainAnnotation().equals(firstChainAnnotation)) {
         return false;
       }
+    }
     return true;
   }
 

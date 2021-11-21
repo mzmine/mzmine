@@ -219,12 +219,15 @@ public class LipidDatabaseTableController {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
 
-          if(chainLength /2 < chainDoubleBonds|| chainLength == 0){
+          if (chainLength / 2 < chainDoubleBonds || chainLength == 0) {
             continue;
           }
           // Prepare a lipid instance
           SpeciesLevelAnnotation lipid = LIPID_FACTORY.buildSpeciesLevelLipid(selectedLipids[i],
               chainLength, chainDoubleBonds);
+          if (lipid == null) {
+            continue;
+          }
           List<LipidFragmentationRule> fragmentationRules =
               Arrays.asList(selectedLipids[i].getFragmentationRules());
           StringBuilder fragmentationRuleSB = new StringBuilder();
@@ -243,7 +246,7 @@ public class LipidDatabaseTableController {
           tableData.add(new LipidClassDescription(String.valueOf(id), // id
               selectedLipids[i].getName(), // lipid class
               MolecularFormulaManipulator.getString(lipid.getMolecularFormula()), // molecular
-                                                                                  // formula
+              // formula
               lipid.getAnnotation(),
               // abbr
               exactMassSB.toString(), // exact mass
