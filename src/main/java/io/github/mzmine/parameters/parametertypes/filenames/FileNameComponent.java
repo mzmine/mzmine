@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
@@ -27,6 +28,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  *
@@ -39,7 +41,8 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
   private LastFilesButton btnLastFiles;
   private FileSelectionType type;
 
-  public FileNameComponent(int textfieldcolumns, List<File> lastFiles, FileSelectionType type) {
+  public FileNameComponent(int textfieldcolumns, List<File> lastFiles, FileSelectionType type,
+      final List<ExtensionFilter> filters) {
     // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
     this.type = type;
@@ -57,25 +60,32 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
       fileChooser.setTitle("Select file");
-
-      // Set current directory.
-      final String currentPath = txtFilename.getText();
-      if (currentPath.length() > 0) {
-
-        final File currentFile = new File(currentPath);
-        final File currentDir = currentFile.getParentFile();
-        if (currentDir != null && currentDir.exists()) {
-          fileChooser.setInitialDirectory(currentDir);
-        }
-      } else {
-        if (lastFiles != null && !lastFiles.isEmpty()) {
-          final File lastDir = lastFiles.get(0).getParentFile();
-          if (lastDir != null && lastDir.exists()) {
-            fileChooser.setInitialDirectory(lastDir);
-          }
-        }
+      if (filters != null) {
+        fileChooser.getExtensionFilters().addAll(filters);
       }
 
+      // Set current directory.
+      boolean initDirFound = false;
+      final String currentPath = txtFilename.getText();
+      try {
+        if (currentPath.length() > 0) {
+
+          final File currentFile = new File(currentPath);
+          final File currentDir = currentFile.getParentFile();
+          if (currentDir != null && currentDir.exists()) {
+            fileChooser.setInitialDirectory(currentDir);
+            initDirFound = true;
+          }
+        }
+      } catch (Exception ex) {
+      }
+
+      if (!initDirFound && lastFiles != null && !lastFiles.isEmpty()) {
+        final File lastDir = lastFiles.get(0).getParentFile();
+        if (lastDir != null && lastDir.exists()) {
+          fileChooser.setInitialDirectory(lastDir);
+        }
+      }
       // Open chooser.
       File selectedFile = null;
       if (type == FileSelectionType.OPEN) {

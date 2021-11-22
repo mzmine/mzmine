@@ -24,16 +24,23 @@ import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MZTabmExportParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("mzTab files for feature lists", "*.mzTab") //
+  );
+
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
-          + "If the file already exists, it will be overwritten.",
-      "mzTab", 32, FileSelectionType.SAVE);
+      + "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). "
+      + "If the file already exists, it will be overwritten.",
+      extensions, 32, FileSelectionType.SAVE);
 
   public static final BooleanParameter exportAll = new BooleanParameter("Include all peaks"//
       , "Include peaks with unknown identity");

@@ -26,17 +26,25 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class CSVExportModularParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter(1);
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
       "Name of the output CSV file. "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
-          + "If the file already exists, it will be overwritten.",
-      "csv", FileSelectionType.SAVE);
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.csv\" would become \"blahSourceFeatureListNameblah.csv\"). "
+      + "If the file already exists, it will be overwritten.",
+      extensions, FileSelectionType.SAVE);
 
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the exported file", ",");

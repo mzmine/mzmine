@@ -57,9 +57,9 @@ public class CustomLipidClassFragmentationRulesChoiceParameters implements
   @Override
   public void setValueFromComponent(
       final CustomLipidClassFragmentationRulesChoiceComponent component) {
-    values = component.getValue().toArray(new LipidFragmentationRule[component.getValue().size()]);
+    values = component.getValue().toArray(new LipidFragmentationRule[0]);
     choices =
-        component.getChoices().toArray(new LipidFragmentationRule[component.getChoices().size()]);
+        component.getChoices().toArray(new LipidFragmentationRule[0]);
   }
 
   @Override

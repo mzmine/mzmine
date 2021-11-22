@@ -48,8 +48,8 @@
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule"
       fx:id="saveProjectAs">
       <accelerator>
-        <KeyCodeCombination alt="DOWN" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        <KeyCodeCombination alt="UP" code="S"
+          control="DOWN" meta="UP" shift="DOWN" shortcut="UP"/>
       </accelerator>
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
@@ -95,8 +95,12 @@
   <Menu text="Raw data methods">
     <Menu text="Raw data import">
       <MenuItem onAction="#runModule" text="MS data (advanced)"
-        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule"/>
-
+        userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
+        <accelerator>
+          <KeyCodeCombination alt="UP" code="I"
+            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        </accelerator>
+      </MenuItem>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="mzML"

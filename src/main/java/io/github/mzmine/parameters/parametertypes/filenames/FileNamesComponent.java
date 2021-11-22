@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
 import com.google.common.collect.ImmutableList;
 import io.github.mzmine.util.files.FileAndPathUtil;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,8 +41,8 @@ public class FileNamesComponent extends FlowPane {
 
   public static final Font smallFont = new Font("SansSerif", 10);
 
-  private TextArea txtFilename;
-  private CheckBox useSubFolders;
+  private final TextArea txtFilename;
+  private final CheckBox useSubFolders;
 
   private final List<ExtensionFilter> filters;
 
@@ -58,7 +58,7 @@ public class FileNamesComponent extends FlowPane {
     txtFilename.setFont(smallFont);
     initDragDropped();
 
-    Button btnFileBrowser = new Button("Select");
+    Button btnFileBrowser = new Button("Select files");
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
@@ -87,9 +87,7 @@ public class FileNamesComponent extends FlowPane {
     useSubFolders.setSelected(false);
 
     Button btnClear = new Button("Clear");
-    btnClear.setOnAction(e -> {
-      txtFilename.setText("");
-    });
+    btnClear.setOnAction(e -> txtFilename.setText(""));
 
     VBox vbox = new VBox(btnFileBrowser, btnClear, useSubFolders);
 
@@ -106,8 +104,8 @@ public class FileNamesComponent extends FlowPane {
       if (filter.getExtensions().isEmpty() || filter.getExtensions().get(0).equals("*.*")) {
         continue;
       }
-      String name =
-          filter.getExtensions().size() > 3 ? "Multiple" : "All " + filter.getExtensions().get(0);
+      String name = filter.getExtensions().size() > 3 ? "From folder"
+          : "All " + filter.getExtensions().get(0);
 
       Button btnFromDirectory = new Button(name);
       btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
@@ -116,15 +114,7 @@ public class FileNamesComponent extends FlowPane {
         // Create chooser.
         DirectoryChooser fileChooser = new DirectoryChooser();
         fileChooser.setTitle("Select a folder");
-
-        String currentPaths[] = txtFilename.getText().split("\n");
-        if (currentPaths.length > 0) {
-          File currentFile = new File(currentPaths[0].trim());
-          File currentDir = currentFile.getParentFile();
-          if (currentDir != null && currentDir.exists()) {
-            fileChooser.setInitialDirectory(currentDir);
-          }
-        }
+        setInitialDirectory(fileChooser);
 
         // Open chooser.
         File dir = fileChooser.showDialog(null);
@@ -132,17 +122,34 @@ public class FileNamesComponent extends FlowPane {
           return;
         }
 
+        // list all files in sub directories
         List<File[]> filesInDir = FileAndPathUtil
             .findFilesInDir(dir, filter, useSubFolders.isSelected());
         // all files in dir or sub dirs
-        setValue(filesInDir.stream().flatMap(sub -> Arrays.stream(sub)).toArray(File[]::new));
+        setValue(filesInDir.stream().flatMap(Arrays::stream).toArray(File[]::new));
       });
     }
     return btns;
   }
 
+  /**
+   * When creating a new chooser set the initial directory to the currently selected files
+   *
+   * @param fileChooser target chooser
+   */
+  private void setInitialDirectory(DirectoryChooser fileChooser) {
+    String[] currentPaths = txtFilename.getText().split("\n");
+    if (currentPaths.length > 0) {
+      File currentFile = new File(currentPaths[0].trim());
+      File currentDir = currentFile.getParentFile();
+      if (currentDir != null && currentDir.exists()) {
+        fileChooser.setInitialDirectory(currentDir);
+      }
+    }
+  }
+
   public File[] getValue() {
-    String fileNameStrings[] = txtFilename.getText().split("\n");
+    String[] fileNameStrings = txtFilename.getText().split("\n");
     List<File> files = new ArrayList<>();
     for (String fileName : fileNameStrings) {
       if (fileName.trim().equals("")) {
@@ -164,10 +171,6 @@ public class FileNamesComponent extends FlowPane {
       b.append("\n");
     }
     txtFilename.setText(b.toString());
-  }
-
-  public void actionPerformed(ActionEvent event) {
-
   }
 
   public void setToolTipText(String toolTip) {

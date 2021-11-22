@@ -27,11 +27,9 @@ import javax.xml.stream.XMLStreamWriter;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRule;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
-import io.github.mzmine.util.ParsingUtils;
 
 public class CustomLipidClass implements ILipidClass {
 

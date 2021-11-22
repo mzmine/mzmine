@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.tools.kovats;
 
-import java.text.DecimalFormat;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
@@ -36,18 +35,24 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
+import java.text.DecimalFormat;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  * Calc Kovats retention idex and save to file (also for GNPS GC-MS workflow)
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class KovatsIndexExtractionParameters extends SimpleParameterSet {
 
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv") //
+  );
+
   // last saved file
   public static final FileNameParameter lastSavedFile =
-      new FileNameParameter("Last file", "Last saved file", "csv", FileSelectionType.SAVE);
+      new FileNameParameter("Last file", "Last saved file", extensions, FileSelectionType.SAVE);
 
   public static final StringParameter pickedKovatsValues =
       new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");

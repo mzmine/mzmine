@@ -30,17 +30,25 @@ import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ExportCorrAnnotationParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
 
   // NOT INCLUDED in sub
   // General parameters
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final FileNameParameter filename =
-      new FileNameParameter("Filename", "File name", "csv", FileSelectionType.SAVE);
+      new FileNameParameter("Filename", "File name", extensions, FileSelectionType.SAVE);
   public static final BooleanParameter exportIIN =
-      new BooleanParameter("Export IIN edges", "Export all edges of Ion Identity Networks (IIN)", true);
+      new BooleanParameter("Export IIN edges", "Export all edges of Ion Identity Networks (IIN)",
+          true);
   public static final BooleanParameter exportIINRelationship =
       new BooleanParameter("Export IIN relationship edges", "Export relationships between Ion Identity Networks (IIN)", false);
 
