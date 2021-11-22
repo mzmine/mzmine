@@ -27,7 +27,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import org.apache.commons.lang.StringUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
@@ -36,7 +35,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidchain.ILipidChain;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.ParsingUtils;
 
 public class MolecularSpeciesLevelAnnotation implements ILipidAnnotation {
 

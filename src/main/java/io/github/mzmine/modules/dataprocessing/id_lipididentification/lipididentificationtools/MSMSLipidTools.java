@@ -653,8 +653,11 @@ public class MSMSLipidTools {
     for (LipidFragment lipidFragment : detectedFragments) {
       if (lipidFragment.getLipidChainType() != null && lipidFragment.getChainLength() != null
           && lipidFragment.getNumberOfDBEs() != null) {
-        chains.add(chainFactory.buildLipidChain(lipidFragment.getLipidChainType(),
-            lipidFragment.getChainLength(), lipidFragment.getNumberOfDBEs()));
+        ILipidChain lipidChain = chainFactory.buildLipidChain(lipidFragment.getLipidChainType(),
+            lipidFragment.getChainLength(), lipidFragment.getNumberOfDBEs());
+        if(lipidChain != null) {
+          chains.add(lipidChain);
+        }
       }
     }
     return chains.stream().distinct().collect(Collectors.toList());

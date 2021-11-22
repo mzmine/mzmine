@@ -25,7 +25,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
-import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -34,7 +33,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidident
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import io.github.mzmine.util.ParsingUtils;
 
 public class LipidFragment {
 
