@@ -235,28 +235,32 @@ public class FileAndPathUtil {
    * @return sorted array of files
    */
   public static File[] sortFilesByNumber(File[] files, boolean reverse) {
-    Comparator<File> fileNumberComparator = new Comparator<>() {
-      private Boolean endsWithNumber = null;
+    try {
+      Comparator<File> fileNumberComparator = new Comparator<>() {
+        private Boolean endsWithNumber = null;
 
-      @Override
-      public int compare(File o1, File o2) {
-        try {
-          if (endsWithNumber == null) {
-            endsWithNumber = checkEndsWithNumber(o1.getName());
+        @Override
+        public int compare(File o1, File o2) {
+          try {
+            if (endsWithNumber == null) {
+              endsWithNumber = checkEndsWithNumber(o1.getName());
+            }
+            int n1 = extractNumber(o1, endsWithNumber);
+            int n2 = extractNumber(o2, endsWithNumber);
+            return Integer.compare(n1, n2);
+          } catch (Exception e) {
+            return o1.compareTo(o2);
           }
-          int n1 = extractNumber(o1, endsWithNumber);
-          int n2 = extractNumber(o2, endsWithNumber);
-          return Integer.compare(n1, n2);
-        } catch (Exception e) {
-          return o1.compareTo(o2);
         }
+      };
+      if (reverse) {
+        fileNumberComparator = fileNumberComparator.reversed();
       }
-    };
-    if (reverse) {
-      fileNumberComparator = fileNumberComparator.reversed();
+      Arrays.sort(files, fileNumberComparator);
+      return files;
+    } catch (Exception ex) {
+      return files;
     }
-    Arrays.sort(files, fileNumberComparator);
-    return files;
   }
 
   public static boolean isNumber(char c) {
@@ -369,8 +373,8 @@ public class FileAndPathUtil {
     // add all files as first
     // sort all files and return them
     File[] files = dir.listFiles(fileFilter);
-    files = FileAndPathUtil.sortFilesByNumber(files, false);
     if (files != null && files.length > 0) {
+      files = FileAndPathUtil.sortFilesByNumber(files, false);
       list.add(files);
     }
 
