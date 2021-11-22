@@ -55,6 +55,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -110,7 +111,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         useAdvancedOptions ? parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
             .getEmbeddedParameters() : null;
 
-    if (Arrays.asList(fileNames).contains(null)) {
+    if (Arrays.stream(fileNames).anyMatch(Objects::isNull)) {
       logger.warning("List of filenames contains null");
       return ExitCode.ERROR;
     }
