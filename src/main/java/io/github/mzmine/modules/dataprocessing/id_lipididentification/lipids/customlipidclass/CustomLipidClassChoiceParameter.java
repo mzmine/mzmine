@@ -55,8 +55,8 @@ public class CustomLipidClassChoiceParameter
 
   @Override
   public void setValueFromComponent(final CustomLipidClassChoiceComponent component) {
-    values = component.getValue().toArray(new CustomLipidClass[component.getValue().size()]);
-    choices = component.getChoices().toArray(new CustomLipidClass[component.getChoices().size()]);
+    values = component.getValue().toArray(new CustomLipidClass[0]);
+    choices = component.getChoices().toArray(new CustomLipidClass[0]);
   }
 
   @Override
