@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
@@ -49,7 +50,6 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -412,9 +412,22 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     progress = 1.0;
 
+    clearObjects();
     setStatus(TaskStatus.FINISHED);
 
     logger.info(() -> "Finished chromatogram builder on " + dataFile);
+  }
+
+  private void clearObjects() {
+    rangeSet = null;
+    rangeToChromMap = null;
+
+    scanSelection = null;
+    scans = null;
+
+    // User parameters
+    newFeatureList = null;
+    parameters = null;
   }
 
 }
