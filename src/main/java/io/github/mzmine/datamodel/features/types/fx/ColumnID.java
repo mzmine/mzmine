@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.features.types.fx;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +35,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ColumnID {
 
-//  private static final Logger logger = Logger.getLogger(ColumnID.class.getName());
-
   @NotNull
   private final ColumnType type;
 
@@ -44,6 +43,9 @@ public class ColumnID {
 
   @Nullable
   private final RawDataFile raw;
+  private final int subcolumnIndex;
+  @NotNull
+  private final String combinedHeader;
 
   /**
    * @param dt   The {@link DataType} this column represents
@@ -51,15 +53,20 @@ public class ColumnID {
    * @param raw  The {@link RawDataFile} this column belongs to or null if not a features type
    *             column.
    */
-  public ColumnID(@NotNull DataType dt, @NotNull ColumnType type, @Nullable RawDataFile raw) {
+  public ColumnID(@NotNull DataType dt, @NotNull ColumnType type, @Nullable RawDataFile raw,
+      int subcolumnIndex) {
     assert dt != null;
     assert type != null;
 
+    this.subcolumnIndex = subcolumnIndex;
     this.dt = dt;
     this.type = type;
     this.raw = raw;
-
-//    logger.info("Created " + getFormattedString());
+    if (subcolumnIndex >= 0 && dt instanceof SubColumnsFactory sub) {
+      this.combinedHeader = dt.getHeaderString() + ":" + sub.getHeader(subcolumnIndex);
+    } else {
+      this.combinedHeader = dt.getHeaderString();
+    }
   }
 
   @Override
@@ -71,9 +78,7 @@ public class ColumnID {
       return false;
     }
     ColumnID columnID = (ColumnID) o;
-    return type == columnID.type &&
-        dt.equals(columnID.dt) &&
-        Objects.equals(raw, columnID.raw);
+    return type == columnID.type && dt.equals(columnID.dt) && Objects.equals(raw, columnID.raw);
   }
 
   @Override
@@ -98,6 +103,14 @@ public class ColumnID {
 
   public String getFormattedString() {
     return "DataType: " + dt.getHeaderString() + "\tType: " + type.toString() + "\tRawDataFile: "
-        + raw;
+           + raw;
+  }
+
+  public String getCombinedHeaderString() {
+    return combinedHeader;
+  }
+
+  public int getSubColIndex() {
+    return subcolumnIndex;
   }
 }

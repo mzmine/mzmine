@@ -98,6 +98,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   private final ParameterSet parameters;
   private final DataTypeCheckListParameter rowTypesParameter;
   private final DataTypeCheckListParameter featureTypesParameter;
+
   // column map to keep track of columns
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
@@ -118,14 +119,21 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
-    featureTypesParameter = parameters.getParameter(
-        FeatureTableFXParameters.showFeatureTypeColumns);
+    featureTypesParameter = parameters
+        .getParameter(FeatureTableFXParameters.showFeatureTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
     setContextMenu(new FeatureTableContextMenu(this));
+
+    // create custom button context menu to select columns
+    TableColumnMenuHelper contextMenuHelper = new TableColumnMenuHelper(this);
+    // Adding additional menu options
+    MenuItem exportMenuItem = new MenuItem("Small XC-MS");
+    exportMenuItem.setOnAction(e -> showSmallXCMSTableColumns());
+    contextMenuHelper.getAdditionalMenuItems().add(exportMenuItem);
   }
 
   private void setTableEditable(boolean state) {
@@ -193,7 +201,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(FeatureList flist) {
-//    logger.info("Adding columns to table");
+    //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
     ModularFeatureList featureList = (ModularFeatureList) flist;
@@ -221,8 +229,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     if (dataType.getClass().equals(FeaturesType.class)) {
       addFeaturesColumns();
     } else {
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null,
-          null);
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType
+          .createColumn(null, null);
       if (col == null) {
         return;
       }
@@ -253,13 +261,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void registerColumn(@NotNull TreeTableColumn<ModularFeatureListRow, ?> column,
       @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {
-    newColumnMap.put(column, new ColumnID(dataType, type, file));
+    newColumnMap.put(column, new ColumnID(dataType, type, file, -1));
 
     if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()) {
+      int i = 0;
       for (TreeTableColumn<ModularFeatureListRow, ?> subCol : column.getColumns()) {
-        if (subCol.getUserData() instanceof DataType) {
-          registerColumn(subCol, type, (DataType<?>) subCol.getUserData(), file);
-        }
+        newColumnMap.put(subCol, new ColumnID(dataType, type, file, i));
+        i++;
       }
     }
   }
@@ -270,11 +278,12 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     TreeTableColumn<ModularFeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
     // Find column's buddy
-    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap.entrySet()) {
+    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap
+        .entrySet()) {
       if (Objects.equals(entry.getValue().getDataType().getClass(),
-          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects.equals(
-          entry.getValue().getType(), colType) && Objects.equals(entry.getValue().getRaw(),
-          dataFile)) {
+          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects
+              .equals(entry.getValue().getType(), colType) && Objects
+              .equals(entry.getValue().getRaw(), dataFile)) {
         buddyCol = entry.getKey();
         buddyDataType = entry.getValue().getDataType();
       }
@@ -378,8 +387,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @param rowVisibilityMap     Map containing row types names and their visibility values
    * @param featureVisibilityMap Map containing feature types names and their visibility values
    */
-  protected void updateColumnsVisibilityParameters(Map<String, Boolean> rowVisibilityMap,
-      Map<String, Boolean> featureVisibilityMap) {
+  protected void updateColumnsVisibilityParameters(Map<ColumnID, Boolean> rowVisibilityMap,
+      Map<ColumnID, Boolean> featureVisibilityMap) {
     if (getFeatureList() == null) {
       return;
     }
@@ -406,9 +415,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
 
     if (id.getType() == ColumnType.ROW_TYPE) {
-      column.setVisible(rowTypesParameter.isDataTypeVisible(id.getDataType()));
+      column.setVisible(rowTypesParameter.isDataTypeVisible(id));
     } else {
-      column.setVisible(featureTypesParameter.isDataTypeVisible(id.getDataType()));
+      column.setVisible(featureTypesParameter.isDataTypeVisible(id));
     }
   }
 
@@ -449,7 +458,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
           }
           sampleCol.getColumns().add(subCol);
           registerColumn(subCol, ColumnType.FEATURE_TYPE, ftype, dataFile);
-//          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
+          //          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
           if (!(ftype instanceof ExpandableType)) {
             recursivelyApplyVisibilityParameterToColumn(subCol);
           }
@@ -522,7 +531,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * type were selected. Does not contain null.
    */
   public Set<DataType<?>> getSelectedDataTypes(@NotNull ColumnType columnType) {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<DataType<?>> dataTypes = new HashSet<>();
@@ -540,7 +550,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * file were selected. Does not contain null.
    */
   public Set<RawDataFile> getSelectedRawDataFiles() {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<RawDataFile> rawDataFiles = new HashSet<>();
@@ -557,7 +568,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @return A list of the selected features.
    */
   public List<ModularFeature> getSelectedFeatures() {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<ModularFeature> features = new LinkedHashSet<>();
@@ -631,14 +643,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
         // reflect the changes to the feature list in the table
         newValue.getRows().addListener(this);
-
-        // create custom button context menu to select columns
-        TreeColumnMenuHelper contextMenuHelper = new TreeColumnMenuHelper(this);
-        // Adding additional menu options
-        MenuItem exportMenuItem = new MenuItem("Small XC-MS");
-        exportMenuItem.setOnAction(e -> showSmallXCMSTableColumns());
-        contextMenuHelper.getAdditionalMenuItems().add(exportMenuItem);
-        //        TableUtils.addCustomTableMenu(this);
       });
     });
   }
@@ -657,6 +661,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     featureTypesParameter.getValue().keySet().stream().forEach(type -> featureTypesParameter
         .setDataTypeVisible(type,
             featureTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
+
+    applyVisibilityParametersToAllColumns();
   }
 
   public void closeTable() {
@@ -667,5 +673,17 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     flist.getRows().removeListener(this);
     flist.modularParallelStream().forEach(ModularFeatureListRow::clearBufferedColCharts);
     flist.parallelStreamFeatures().forEach(ModularFeature::clearBufferedColCharts);
+  }
+
+  public DataTypeCheckListParameter getRowTypesParameter() {
+    return rowTypesParameter;
+  }
+
+  public DataTypeCheckListParameter getFeatureTypesParameter() {
+    return featureTypesParameter;
+  }
+
+  public Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> getNewColumnMap() {
+    return newColumnMap;
   }
 }

@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.featurelisttable_modular;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.geometry.Side;
@@ -41,6 +42,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper class to replace default column selection popup for TableView.
@@ -77,18 +79,26 @@ import javafx.scene.layout.Region;
  * @author Roland
  * @author bvissy
  */
-public class TreeColumnMenuHelper {
+public class TableColumnMenuHelper {
 
-  private final TreeTableView tableView;
-  private final List<MenuItem> additionalMenuItems = new ArrayList<>();
-  private ContextMenu columnPopupMenu;
-  private boolean showAllColumnsOperators = true;
+  protected final Control tableView;
+  protected final List<MenuItem> additionalMenuItems = new ArrayList<>();
+  protected ContextMenu columnPopupMenu;
+  protected boolean showAllColumnsOperators = true;
   // Default key to show menu: Shortcut (CTRL on windows) + Shift + Space
-  private Function<KeyEvent, Boolean> showMenuByKeyboardCheck = ke ->
+  protected Function<KeyEvent, Boolean> showMenuByKeyboardCheck = ke ->
       ke.getCode().equals(KeyCode.SPACE) && ke.isShortcutDown() && ke.isShiftDown();
 
 
-  public TreeColumnMenuHelper(TreeTableView tableView) {
+  public TableColumnMenuHelper(TableView tableView) {
+    this((Control) tableView);
+  }
+
+  public TableColumnMenuHelper(TreeTableView tableView) {
+    this((Control) tableView);
+  }
+
+  private TableColumnMenuHelper(Control tableView) {
     super();
     this.tableView = tableView;
 
@@ -99,25 +109,48 @@ public class TreeColumnMenuHelper {
 
     // listen to skin change - this should happen once the table is shown
     tableView.skinProperty().addListener((a, b, newSkin) -> {
-      tableView.tableMenuButtonVisibleProperty().addListener((ob, o, n) -> {
-        if (n == true) {
+      final BooleanProperty tableMenuButtonVisibleProperty = getTableMenuButtonVisibleProperty(
+          tableView);
+      tableMenuButtonVisibleProperty.addListener((ob, o, n) -> {
+        if (n) {
           registerListeners();
         }
       });
-      if (tableView.isTableMenuButtonVisible()) {
+      if (tableMenuButtonVisibleProperty.get()) {
         registerListeners();
       }
     });
   }
 
-  private static List<? extends TableColumnBase> getColumns(Control table) {
-    if (table instanceof TableView tab) {
+  /**
+   * @return property that controls the menu button in the corner of the table
+   */
+  private BooleanProperty getTableMenuButtonVisibleProperty(@NotNull Control tableView) {
+
+    if (tableView instanceof TableView tab) {
+      return tab.tableMenuButtonVisibleProperty();
+    }
+    if (tableView instanceof TreeTableView tree) {
+      return tree.tableMenuButtonVisibleProperty();
+    }
+    throw new IllegalArgumentException(
+        "Argument is no TableView or TreeTableView. Actual class: " + tableView.getClass()
+            .getName());
+  }
+
+  /**
+   * Get columns of the table or treetable
+   *
+   * @return list of columns
+   */
+  public List<? extends TableColumnBase> getColumns() {
+    if (tableView instanceof TableView tab) {
       return tab.getColumns();
-    } else if (table instanceof TreeTableView tree) {
+    } else if (tableView instanceof TreeTableView tree) {
       return tree.getColumns();
     } else {
       throw new IllegalArgumentException(
-          "Table argument is no TreeTableView or TableView. Actual class: " + table.getClass()
+          "Table argument is no TreeTableView or TableView. Actual class: " + tableView.getClass()
               .getName());
     }
   }
@@ -217,7 +250,7 @@ public class TreeColumnMenuHelper {
    * Create a menu with custom items. The important thing is that the menu remains open while you
    * click on the menu items.
    */
-  private ContextMenu createContextMenu() {
+  protected ContextMenu createContextMenu() {
 
     ContextMenu cm = new ContextMenu();
 
@@ -248,12 +281,12 @@ public class TreeColumnMenuHelper {
     }
 
     if (!additionalMenuItems.isEmpty()) {
-      cm.getItems().add(new SeparatorMenuItem());
       cm.getItems().addAll(additionalMenuItems);
+      cm.getItems().add(new SeparatorMenuItem());
     }
 
     // menu item for each of the available columns
-    for (TableColumnBase col : getColumns(tableView)) {
+    for (TableColumnBase col : getColumns()) {
 
       CheckBox cb = new CheckBox(col.getText());
       cb.selectedProperty().bindBidirectional(col.visibleProperty());
@@ -272,7 +305,7 @@ public class TreeColumnMenuHelper {
   }
 
   protected void setAllVisible(boolean visible) {
-    for (TableColumnBase col : getColumns(tableView)) {
+    for (TableColumnBase col : getColumns()) {
       col.setVisible(visible);
     }
   }

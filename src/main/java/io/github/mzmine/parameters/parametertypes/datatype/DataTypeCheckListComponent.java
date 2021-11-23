@@ -18,6 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
+import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +30,9 @@ import org.controlsfx.control.CheckListView;
 
 public class DataTypeCheckListComponent extends StackPane {
 
-  private final CheckListView<String> checkList;
-  private final ObservableList<String> dataTypes;
-  private final Map<String, Boolean> dataMap;
+  private final CheckListView<ColumnID> checkList;
+  private final ObservableList<ColumnID> dataTypes;
+  private final Map<ColumnID, Boolean> dataMap;
 
   public DataTypeCheckListComponent() {
     super();
@@ -45,21 +46,17 @@ public class DataTypeCheckListComponent extends StackPane {
     setPrefSize(200, 200);
   }
 
-  public void addListener(ListChangeListener<String> listener) {
+  public void addListener(ListChangeListener<ColumnID> listener) {
     checkList.getCheckModel().getCheckedItems().addListener(listener);
   }
 
-  public Map<String, Boolean> getValue() {
+  public Map<ColumnID, Boolean> getValue() {
     dataMap.clear();
     dataTypes.forEach(dt -> dataMap.put(dt, checkList.getCheckModel().isChecked(dt)));
     return dataMap;
   }
 
-  public List<String> getItems() {
-    return dataTypes;
-  }
-
-  public void setValue(Map<String, Boolean> map) {
+  public void setValue(Map<ColumnID, Boolean> map) {
     dataTypes.clear();
     map.keySet().forEach(dt -> dataTypes.add(dt));
     map.forEach((dt, b) -> {
@@ -67,5 +64,9 @@ public class DataTypeCheckListComponent extends StackPane {
         checkList.getCheckModel().check(dt);
       }
     });
+  }
+
+  public List<ColumnID> getItems() {
+    return dataTypes;
   }
 }
