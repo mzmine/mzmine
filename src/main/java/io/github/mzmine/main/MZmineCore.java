@@ -97,127 +97,132 @@ public final class MZmineCore {
    * Main method
    */
   public static void main(final String[] args) {
-    logger.info("Starting MZmine " + getMZmineVersion());
-    /*
-     * Dump the MZmine and JVM arguments for debugging purposes
-     */
-    final String mzmineArgsString = String.join(" ", args);
-    final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
-    final String jvmArgsString = String.join(" ", jvmArgs);
-    final String classPathString = System.getProperty("java.class.path");
-    logger.finest("MZmine arguments: " + mzmineArgsString);
-    logger.finest("Java VM arguments: " + jvmArgsString);
-    logger.finest("Java class path: " + classPathString);
+    try {
+      logger.info("Starting MZmine " + getMZmineVersion());
+      /*
+       * Dump the MZmine and JVM arguments for debugging purposes
+       */
+      final String mzmineArgsString = String.join(" ", args);
+      final List<String> jvmArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
+      final String jvmArgsString = String.join(" ", jvmArgs);
+      final String classPathString = System.getProperty("java.class.path");
+      logger.finest("MZmine arguments: " + mzmineArgsString);
+      logger.finest("Java VM arguments: " + jvmArgsString);
+      logger.finest("Java class path: " + classPathString);
 
-    /*
-     * Report current working and temporary directory
-     */
-    final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
-    logger.finest("Working directory is " + cwd);
-    logger.finest("Default temporary directory is " + System.getProperty("java.io.tmpdir"));
+      /*
+       * Report current working and temporary directory
+       */
+      final String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
+      logger.finest("Working directory is " + cwd);
+      logger.finest("Default temporary directory is " + System.getProperty("java.io.tmpdir"));
 
-    // Remove old temporary files on a new thread
-    Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir
-    cleanupThread.setPriority(Thread.MIN_PRIORITY);
-    cleanupThread.start();
+      // Remove old temporary files on a new thread
+      Thread cleanupThread = new Thread(new TmpFileCleanup()); // check regular temp dir
+      cleanupThread.setPriority(Thread.MIN_PRIORITY);
+      cleanupThread.start();
 
-    MZmineArgumentParser argsParser = new MZmineArgumentParser();
-    argsParser.parse(args);
+      MZmineArgumentParser argsParser = new MZmineArgumentParser();
+      argsParser.parse(args);
 
-    // override preferences file by command line argument pref
-    final File prefFile = Objects
-        .requireNonNullElse(argsParser.getPreferencesFile(), MZmineConfiguration.CONFIG_FILE);
+      // override preferences file by command line argument pref
+      final File prefFile = Objects
+          .requireNonNullElse(argsParser.getPreferencesFile(), MZmineConfiguration.CONFIG_FILE);
 
-    boolean updateTempDir = false;
-    // Load configuration
-    if (prefFile.exists() && prefFile.canRead()) {
-      try {
-        getInstance().configuration.loadConfiguration(prefFile);
-        updateTempDir = true;
-      } catch (Exception e) {
-        logger.log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
-            e);
-      }
-    } else {
-      logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
-    }
-
-    // override temp directory
-    final File tempDirectory = argsParser.getTempDirectory();
-    if (tempDirectory != null) {
-      // needs to be accessible
-      if (FileAndPathUtil.createDirectory(tempDirectory)) {
-        getInstance().configuration.getPreferences()
-            .setParameter(MZminePreferences.tempDirectory, tempDirectory);
-        updateTempDir = true;
+      boolean updateTempDir = false;
+      // Load configuration
+      if (prefFile.exists() && prefFile.canRead()) {
+        try {
+          getInstance().configuration.loadConfiguration(prefFile);
+          updateTempDir = true;
+        } catch (Exception e) {
+          logger
+              .log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
+                  e);
+        }
       } else {
-        logger.log(Level.WARNING,
-            "Cannot create or access temp file directory that was set via program argument: "
-            + tempDirectory.getAbsolutePath());
+        logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
       }
-    }
 
-    // set temp directory
-    if (updateTempDir) {
-      setTempDirToPreference();
-    }
-
-    KeepInMemory keepInMemory = argsParser.isKeepInMemory();
-    if (keepInMemory != null) {
-      // set to preferences
-      getInstance().configuration.getPreferences()
-          .setParameter(MZminePreferences.memoryOption, keepInMemory);
-    } else {
-      keepInMemory = getInstance().configuration.getPreferences()
-          .getParameter(MZminePreferences.memoryOption)
-          .getValue();
-    }
-
-    // apply memory management option
-    keepInMemory.enforceToMemoryMapping();
-
-    // batch mode defined by command line argument
-    File batchFile = argsParser.getBatchFile();
-    boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
-
-    getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
-    // If we have no arguments, run in GUI mode, otherwise run in batch mode
-    if (!getInstance().headLessMode) {
-      try {
-        logger.info("Starting MZmine GUI");
-        Application.launch(MZmineGUI.class, args);
-      } catch (Throwable e) {
-        e.printStackTrace();
-        logger.log(Level.SEVERE, "Could not initialize GUI", e);
-        System.exit(1);
+      // override temp directory
+      final File tempDirectory = argsParser.getTempDirectory();
+      if (tempDirectory != null) {
+        // needs to be accessible
+        if (FileAndPathUtil.createDirectory(tempDirectory)) {
+          getInstance().configuration.getPreferences()
+              .setParameter(MZminePreferences.tempDirectory, tempDirectory);
+          updateTempDir = true;
+        } else {
+          logger.log(Level.WARNING,
+              "Cannot create or access temp file directory that was set via program argument: "
+              + tempDirectory.getAbsolutePath());
+        }
       }
-    } else {
-      getInstance().desktop = getInstance().defaultHeadlessDesktop;
 
-      // Tracker
-      GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)",
-          "/JAVA/Main/GUI");
-      Thread gatThread = new Thread(GAT);
-      gatThread.setPriority(Thread.MIN_PRIORITY);
-      gatThread.start();
+      // set temp directory
+      if (updateTempDir) {
+        setTempDirToPreference();
+      }
 
-      if (batchFile != null) {
-        // load batch
-        if ((!batchFile.exists()) || (!batchFile.canRead())) {
-          logger.severe("Cannot read batch file " + batchFile);
+      KeepInMemory keepInMemory = argsParser.isKeepInMemory();
+      if (keepInMemory != null) {
+        // set to preferences
+        getInstance().configuration.getPreferences()
+            .setParameter(MZminePreferences.memoryOption, keepInMemory);
+      } else {
+        keepInMemory = getInstance().configuration.getPreferences()
+            .getParameter(MZminePreferences.memoryOption).getValue();
+      }
+
+      // apply memory management option
+      keepInMemory.enforceToMemoryMapping();
+
+      // batch mode defined by command line argument
+      File batchFile = argsParser.getBatchFile();
+      boolean keepRunningInHeadless = argsParser.isKeepRunningAfterBatch();
+
+      getInstance().headLessMode = (batchFile != null || keepRunningInHeadless);
+      // If we have no arguments, run in GUI mode, otherwise run in batch mode
+      if (!getInstance().headLessMode) {
+        try {
+          logger.info("Starting MZmine GUI");
+          Application.launch(MZmineGUI.class, args);
+        } catch (Throwable e) {
+          e.printStackTrace();
+          logger.log(Level.SEVERE, "Could not initialize GUI", e);
           System.exit(1);
         }
+      } else {
+        getInstance().desktop = getInstance().defaultHeadlessDesktop;
 
-        // run batch file
-        getInstance().batchExitCode = BatchModeModule
-            .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
-      }
+        // Tracker
+        GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)",
+            "/JAVA/Main/GUI");
+        Thread gatThread = new Thread(GAT);
+        gatThread.setPriority(Thread.MIN_PRIORITY);
+        gatThread.start();
 
-      // option to keep MZmine running after the batch is finished
-      // currently used to test - maybe useful to provide an API to access more data or to run other modules on demand
-      if (!keepRunningInHeadless) {
-        exit();
+        if (batchFile != null) {
+          // load batch
+          if ((!batchFile.exists()) || (!batchFile.canRead())) {
+            logger.severe("Cannot read batch file " + batchFile);
+            System.exit(1);
+          }
+
+          // run batch file
+          getInstance().batchExitCode = BatchModeModule
+              .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
+        }
+
+        // option to keep MZmine running after the batch is finished
+        // currently used to test - maybe useful to provide an API to access more data or to run other modules on demand
+        if (!keepRunningInHeadless) {
+          exit();
+        }
       }
+    } catch (Exception ex) {
+      logger.log(Level.SEVERE, "Error during MZmine start up", ex);
+      exit();
     }
   }
 
