@@ -18,15 +18,18 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -36,46 +39,44 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FeatureListClearAnnotationsTask extends AbstractTask {
 
-  // Logger.
-  private static final Logger logger =
-      Logger.getLogger(FeatureListClearAnnotationsTask.class.getName());
-  // Feature lists.
-  private final MZmineProject project;
+  private static final Logger logger = Logger.getLogger(
+      FeatureListClearAnnotationsTask.class.getName());
   private final FeatureList origPeakList;
-  private FeatureList filteredPeakList;
-  // Processed rows counter
-  private int processedRows, totalRows;
-  // Parameters.
   private final ParameterSet parameters;
+  private final List<DataType<?>> typesToClear;
+  private int processedRows, totalRows;
 
   /**
    * Create the task.
    *
-   * @param list feature list to process.
+   * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
   public FeatureListClearAnnotationsTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     // Initialize.
-    this.project = project;
     parameters = parameterSet;
     origPeakList = list;
-    filteredPeakList = null;
     processedRows = 0;
     totalRows = 0;
+
+    final Map<DataType<?>, Boolean> annotationTypes = parameterSet.getValue(
+        FeatureListClearAnnotationsParameters.clear);
+
+    typesToClear = (List) annotationTypes.entrySet().stream().filter(Entry::getValue)
+        .map(Entry::getKey).filter(t -> list.getRowTypes().containsValue(t)).toList();
   }
 
   @Override
   public double getFinishedPercentage() {
-
     return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
   }
 
   @Override
   public String getTaskDescription() {
 
-    return "Clearing annotation from peaklist";
+    return "Clearing annotation from feature list";
   }
 
   @Override
@@ -85,40 +86,26 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Filtering feature list rows");
 
-      totalRows = origPeakList.getRows().size();
-      // Filter the feature list.
-      for (FeatureListRow row : origPeakList.getRows()) {
+      totalRows = origPeakList.getRows().size() * typesToClear.size();
 
-        if (parameters.getParameter(FeatureListClearAnnotationsParameters.CLEAR_IDENTITY)
-            .getValue()) {
-          for (FeatureIdentity identity : row.getPeakIdentities())
-            row.removeFeatureIdentity(identity);
+      for (DataType<?> dataType : typesToClear) {
+        if (!origPeakList.getRowTypes().containsKey(dataType.getClass())) {
+          continue;
         }
+        // Filter the feature list.
+        for (FeatureListRow row : origPeakList.getRows()) {
+          if (isCanceled()) {
+            return;
+          }
 
-        if (parameters.getParameter(FeatureListClearAnnotationsParameters.CLEAR_COMMENT)
-            .getValue()) {
-          row.setComment("");
+          row.set(dataType, null);
+          processedRows += 1;
         }
-        processedRows += 1;
-
       }
 
-      if (getStatus() == TaskStatus.ERROR)
-        return;
-
-      if (isCanceled())
-        return;
-
-      // Add new peaklist to the project
-//      project.addFeatureList(filteredPeakList); // the origList is processed, this doesnt make sense
-      origPeakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-          FeatureListClearAnnotationsModule.class, parameters, getModuleCallDate()));
-
-      // Remove the original peaklist if requested
-      /*
-       * if (parameters .getParameter(PeaklistClearAnnotationsParameters.AUTO_REMOVE) .getValue()) {
-       * project.removePeakList(origPeakList); }
-       */
+      origPeakList.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(FeatureListClearAnnotationsModule.class, parameters,
+              getModuleCallDate()));
 
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished peak comparison rows filter");

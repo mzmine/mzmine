@@ -18,30 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
 public class FeatureListClearAnnotationsParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
 
-  public static final BooleanParameter CLEAR_IDENTITY = new BooleanParameter("Clear identities?",
-      "If checked, the identities will be removed from the selected peaklists");
-
-  public static final BooleanParameter CLEAR_COMMENT = new BooleanParameter("Clear comments?",
-      "If checked, the comments will be removed from the selected peaklists");
-
-  /*
-   * public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-   * "Remove source feature list after filtering",
-   * "If checked, the original feature list will be removed leaving only the filtered version" );
-   */
+  public static final ClearAnnotationsParameter clear = new ClearAnnotationsParameter(
+      "Clear annotations", "Clears the selected annotation types.");
 
   public FeatureListClearAnnotationsParameters() {
-    super(new Parameter[] {PEAK_LISTS, CLEAR_IDENTITY, CLEAR_COMMENT});
+    super(new Parameter[]{PEAK_LISTS, clear});
   }
 
 }

@@ -60,10 +60,8 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
             .getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
-
       Task newTask = new FeatureListClearAnnotationsTask(project, peakList, parameters, moduleCallDate);
       tasks.add(newTask);
-
     }
 
     return ExitCode.OK;
