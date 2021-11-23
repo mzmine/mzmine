@@ -29,13 +29,20 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -61,6 +68,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -196,6 +204,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
       addColumn(featureList.getRowTypes().get(FeaturesType.class));
     }
+
   }
 
   /**
@@ -622,8 +631,32 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
         // reflect the changes to the feature list in the table
         newValue.getRows().addListener(this);
+
+        // create custom button context menu to select columns
+        TreeColumnMenuHelper contextMenuHelper = new TreeColumnMenuHelper(this);
+        // Adding additional menu options
+        MenuItem exportMenuItem = new MenuItem("Small XC-MS");
+        exportMenuItem.setOnAction(e -> showSmallXCMSTableColumns());
+        contextMenuHelper.getAdditionalMenuItems().add(exportMenuItem);
+        //        TableUtils.addCustomTableMenu(this);
       });
     });
+  }
+
+  private void showSmallXCMSTableColumns() {
+    List<DataType> rowTypes = List
+        .of(DataTypes.get(RTType.class), DataTypes.get(IDType.class), DataTypes.get(MZType.class),
+            DataTypes.get(HeightType.class), DataTypes.get(FeatureShapeType.class),
+            DataTypes.get(AreaType.class));
+    List<DataType> featureTypes = List.of(DataTypes.get(HeightType.class));
+
+    rowTypesParameter.getValue().keySet().stream().forEach(type -> rowTypesParameter
+        .setDataTypeVisible(type,
+            rowTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
+
+    featureTypesParameter.getValue().keySet().stream().forEach(type -> featureTypesParameter
+        .setDataTypeVisible(type,
+            featureTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
   }
 
   public void closeTable() {
