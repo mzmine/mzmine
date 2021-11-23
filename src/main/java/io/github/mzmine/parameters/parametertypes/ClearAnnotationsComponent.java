@@ -40,6 +40,7 @@ public class ClearAnnotationsComponent extends BorderPane {
 
     final CheckBoxTreeItem<DataType<?>> root = new CheckBoxTreeItem<>();
     treeView.setRoot(root);
+    root.setExpanded(true);
 
     setCenter(treeView);
     setValue(value);
