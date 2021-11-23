@@ -60,7 +60,6 @@ public class ClearAnnotationsParameter implements
               }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 //               can go silent
-//              logger.log(Level.INFO, e.getMessage(), e);
             }
           });
     } catch (IOException e) {
@@ -76,7 +75,7 @@ public class ClearAnnotationsParameter implements
   public ClearAnnotationsParameter(String name, String description) {
     this.name = name;
     this.description = description;
-    annotationTypes.stream().forEach(t -> value.put(t, false));
+    annotationTypes.forEach(t -> value.put(t, false));
   }
 
   @Override
@@ -102,7 +101,7 @@ public class ClearAnnotationsParameter implements
           .filter(type -> type.getClass().getName().equals(element.getAttribute(DATA_TYPE_ATTR)))
           .findFirst();
 
-      if(!opt.isPresent()) {
+      if (opt.isEmpty()) {
         continue;
       }
 
