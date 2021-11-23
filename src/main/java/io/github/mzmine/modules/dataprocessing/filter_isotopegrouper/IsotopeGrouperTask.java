@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -209,6 +210,7 @@ class IsotopeGrouperTask extends AbstractTask {
       // Convert the peak pattern to array
       final DataPoint[] isotopes = bestFitRows.stream()
           .map(r -> new SimpleDataPoint(r.getAverageMZ(), r.getAverageHeight()))
+          .sorted(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending))
           .toArray(DataPoint[]::new);
       SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes,
           IsotopePatternStatus.DETECTED, mostIntenseRow.toString());
