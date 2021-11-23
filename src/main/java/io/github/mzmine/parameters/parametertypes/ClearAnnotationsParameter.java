@@ -30,14 +30,23 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-public class ClearAnnotationsParameter implements UserParameter<Map<DataType<?>, Boolean>, ClearAnnotationsComponent> {
+public class ClearAnnotationsParameter implements
+    UserParameter<Map<DataType<?>, Boolean>, ClearAnnotationsComponent> {
 
   /**
    * List of all annotation types
    */
   private static final List<DataType<?>> annotationTypes;
+  private static final String DATA_TYPE_ELEMENT = "datatype";
+  private static final String DATA_TYPE_ATTR = "type";
+
   static {
     final List<DataType<?>> types = new ArrayList<>();
     try {
@@ -67,16 +76,12 @@ public class ClearAnnotationsParameter implements UserParameter<Map<DataType<?>,
   public ClearAnnotationsParameter(String name, String description) {
     this.name = name;
     this.description = description;
+    annotationTypes.stream().forEach(t -> value.put(t, false));
   }
 
   @Override
   public String getName() {
     return name;
-  }
-
-  @Override
-  public void setValue(Map<DataType<?>, Boolean> newValue) {
-    this.value = newValue;
   }
 
   @Override
@@ -86,12 +91,36 @@ public class ClearAnnotationsParameter implements UserParameter<Map<DataType<?>,
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
+    final NodeList childNodes = xmlElement.getChildNodes();
+    final int length = childNodes.getLength();
+    for (int i = 0; i < length; i++) {
+      final Node item = childNodes.item(i);
+      if (!(item instanceof Element element)) {
+        continue;
+      }
+      final Optional<DataType<?>> opt = annotationTypes.stream()
+          .filter(type -> type.getClass().getName().equals(element.getAttribute(DATA_TYPE_ATTR)))
+          .findFirst();
 
+      if(!opt.isPresent()) {
+        continue;
+      }
+
+      final DataType<?> dataType = opt.get();
+      value.put(dataType, Boolean.valueOf(element.getTextContent()));
+    }
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
+    final Document ownerDocument = xmlElement.getOwnerDocument();
 
+    for (Entry<DataType<?>, Boolean> entry : value.entrySet()) {
+      final Element element = ownerDocument.createElement(DATA_TYPE_ELEMENT);
+      element.setAttribute(DATA_TYPE_ATTR, entry.getKey().getClass().getName());
+      element.setTextContent(String.valueOf(entry.getValue()));
+      xmlElement.appendChild(element);
+    }
   }
 
   @Override
@@ -118,6 +147,11 @@ public class ClearAnnotationsParameter implements UserParameter<Map<DataType<?>,
   @Override
   public Map<DataType<?>, Boolean> getValue() {
     return value;
+  }
+
+  @Override
+  public void setValue(Map<DataType<?>, Boolean> newValue) {
+    this.value = newValue;
   }
 
   @Override
