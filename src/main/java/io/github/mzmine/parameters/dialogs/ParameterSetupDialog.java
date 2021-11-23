@@ -178,7 +178,7 @@ public class ParameterSetupDialog extends Stage {
       UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      addToolTipToControls(comp, up.getDescription());
+//      addToolTipToControls(comp, up.getDescription());
       if (comp instanceof Region) {
         double minWidth = ((Region) comp).getMinWidth();
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
@@ -203,6 +203,7 @@ public class ParameterSetupDialog extends Stage {
       Label label = new Label(p.getName());
       label.minWidthProperty().bind(label.widthProperty());
       label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
+      label.setTooltip(new Tooltip(up.getDescription()));
 
       label.setStyle("-fx-font-weight: bold");
       paramsPane.add(label, 0, rowCounter);
