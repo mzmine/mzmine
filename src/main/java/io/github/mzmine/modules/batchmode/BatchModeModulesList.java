@@ -49,7 +49,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureD
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
-import io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule;
+import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
@@ -246,7 +246,7 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
        */
-      FeatureListClearAnnotationsModule.class, //
+      ClearFeatureAnnotationsModule.class, //
       LinearNormalizerModule.class, //
       RTCalibrationModule.class, //
       StandardCompoundNormalizerModule.class, //

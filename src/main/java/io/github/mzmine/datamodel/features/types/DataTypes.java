@@ -19,6 +19,8 @@
 package io.github.mzmine.datamodel.features.types;
 
 import com.google.common.reflect.ClassPath;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -72,4 +74,7 @@ public class DataTypes {
     return TYPES.get(clazz);
   }
 
+  public static boolean isMainAnnotation(DataType<?> dataType) {
+    return dataType instanceof AnnotationType && dataType instanceof SubColumnsFactory;
+  }
 }

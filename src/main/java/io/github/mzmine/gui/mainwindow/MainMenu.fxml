@@ -357,9 +357,6 @@
       <MenuItem text="Peak comparison rows filter"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_peakcomparisonrowfilter.PeakComparisonRowFilterModule"/>
-      <MenuItem text="Clear feature list annotations"
-        onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule"/>
       <MenuItem text="Neutral loss filter" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_neutralloss.NeutralLossFilterModule"/>
       <MenuItem onAction="#runModule" text="mobility-m/z region filter"
@@ -450,6 +447,10 @@
           userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>
       </Menu>
 
+      <SeparatorMenuItem/>
+      <MenuItem text="Clear feature list annotations"
+        onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
     <Menu text="Data analysis">
