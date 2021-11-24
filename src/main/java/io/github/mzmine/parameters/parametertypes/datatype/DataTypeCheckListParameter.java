@@ -213,4 +213,7 @@ public class DataTypeCheckListParameter implements
     return null;
   }
 
+  public void setAll(boolean visible) {
+    value.keySet().forEach(key -> value.put(key, visible));
+  }
 }

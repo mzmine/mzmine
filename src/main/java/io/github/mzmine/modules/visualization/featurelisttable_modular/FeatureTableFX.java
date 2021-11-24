@@ -408,11 +408,12 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
+    column.getColumns()
+        .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
+
     if (id == null) {
       return;
     }
-    column.getColumns()
-        .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
 
     if (id.getType() == ColumnType.ROW_TYPE) {
       column.setVisible(rowTypesParameter.isDataTypeVisible(id));
@@ -648,21 +649,33 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   private void showSmallXCMSTableColumns() {
-    List<DataType> rowTypes = List
-        .of(DataTypes.get(RTType.class), DataTypes.get(IDType.class), DataTypes.get(MZType.class),
-            DataTypes.get(HeightType.class), DataTypes.get(FeatureShapeType.class),
-            DataTypes.get(AreaType.class), DataTypes.get(FeaturesType.class));
-    List<DataType> featureTypes = List.of(DataTypes.get(HeightType.class));
+    rowTypesParameter.setAll(false);
+    featureTypesParameter.setAll(false);
 
-    rowTypesParameter.getValue().keySet().stream().forEach(type -> rowTypesParameter
-        .setDataTypeVisible(type,
-            rowTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
+    // set row types
+    setVisible(ColumnType.ROW_TYPE, RTType.class, true);
+    setVisible(ColumnType.ROW_TYPE, IDType.class, true);
+    setVisible(ColumnType.ROW_TYPE, MZType.class, true);
+    setVisible(ColumnType.ROW_TYPE, HeightType.class, true);
+    setVisible(ColumnType.ROW_TYPE, AreaType.class, true);
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class,
+        getFeatureList().getNumberOfRawDataFiles() <= 10);
+    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, true);
 
-    featureTypesParameter.getValue().keySet().forEach(type -> featureTypesParameter
-        .setDataTypeVisible(type,
-            featureTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
+    // set feature types
+    setVisible(ColumnType.FEATURE_TYPE, HeightType.class, true);
 
     applyVisibilityParametersToAllColumns();
+  }
+
+  private void setVisible(ColumnType columnType, Class clazz, boolean visible) {
+    final DataType type = DataTypes.get(clazz);
+    final String key = type.getHeaderString();
+    if (columnType == ColumnType.ROW_TYPE) {
+      rowTypesParameter.setDataTypeVisible(key, visible);
+    } else {
+      featureTypesParameter.setDataTypeVisible("Feature:" + type.getHeaderString(), visible);
+    }
   }
 
   public void closeTable() {
