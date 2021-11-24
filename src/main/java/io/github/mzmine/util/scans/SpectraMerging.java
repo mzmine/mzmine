@@ -86,6 +86,8 @@ public class SpectraMerging {
 
   // for merging IMS-TOF MS1 scans ~Steffen
   public static final MZTolerance defaultMs1MergeTol = new MZTolerance(0.005, 15);
+  // for merging IMS-TOF MS2 scans ~Steffen
+  public static final MZTolerance pasefMS2MergeTol = new MZTolerance(0.008, 25);
 
   private static final DataPointSorter sorter = new DataPointSorter(SortingProperty.Intensity,
       SortingDirection.Descending);
@@ -327,13 +329,13 @@ public class SpectraMerging {
    * @param storage     The storage to use.
    * @return A list of all merged spectra (Spectra with the same collision energy have been merged).
    */
-  public static List<MergedMsMsSpectrum> mergeMsMsSpectra(
+  public static List<Scan> mergeMsMsSpectra(
       @NotNull final Collection<MergedMsMsSpectrum> spectra, @NotNull final MZTolerance tolerance,
       @NotNull final MergingType mergingType, @Nullable final MemoryMapStorage storage) {
 
     final CenterFunction cf = new CenterFunction(CenterMeasure.AVG, Weighting.LINEAR);
 
-    final List<MergedMsMsSpectrum> mergedSpectra = new ArrayList<>();
+    final List<Scan> mergedSpectra = new ArrayList<>();
     // group spectra with the same CE into the same list
     final Map<Float, List<MergedMsMsSpectrum>> grouped = spectra.stream()
         .collect(Collectors.groupingBy(spectrum -> spectrum.getCollisionEnergy()));
