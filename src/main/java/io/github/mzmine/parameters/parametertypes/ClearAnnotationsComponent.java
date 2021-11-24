@@ -19,10 +19,9 @@
 package io.github.mzmine.parameters.parametertypes;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
@@ -32,9 +31,7 @@ public class ClearAnnotationsComponent extends BorderPane {
 
   private final CheckTreeView<DataType<?>> treeView;
 
-  public ClearAnnotationsComponent(List<DataType<?>> annotationTypes) {
-    Map<DataType<?>, Boolean> value = new LinkedHashMap<>();
-    annotationTypes.forEach(t -> value.put(t, false));
+  public ClearAnnotationsComponent(Map<DataType<?>, Boolean> value) {
 
     treeView = new CheckTreeView<>();
 
@@ -48,11 +45,12 @@ public class ClearAnnotationsComponent extends BorderPane {
 
   public void setValue(Map<DataType<?>, Boolean> value) {
     treeView.getRoot().getChildren().clear();
-    for (Entry<DataType<?>, Boolean> entry : value.entrySet()) {
-      CheckBoxTreeItem<DataType<?>> item = new CheckBoxTreeItem<>(entry.getKey(), null,
-          entry.getValue());
-      treeView.getRoot().getChildren().add(item);
-    }
+    value.entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getHeaderString()))
+        .forEach(entry -> {
+          final CheckBoxTreeItem<DataType<?>> item = new CheckBoxTreeItem<>(entry.getKey(), null,
+              entry.getValue());
+          treeView.getRoot().getChildren().add(item);
+        });
   }
 
   public Map<DataType<?>, Boolean> getValue() {

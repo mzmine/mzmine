@@ -18,20 +18,16 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import com.google.common.reflect.ClassPath;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.parameters.UserParameter;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,42 +36,18 @@ import org.w3c.dom.NodeList;
 public class ClearAnnotationsParameter implements
     UserParameter<Map<DataType<?>, Boolean>, ClearAnnotationsComponent> {
 
-  /**
-   * List of all annotation types
-   */
-  private static final List<DataType<?>> annotationTypes;
   private static final String DATA_TYPE_ELEMENT = "datatype";
   private static final String DATA_TYPE_ATTR = "type";
 
-  static {
-    final List<DataType<?>> types = new ArrayList<>();
-    try {
-      ClassPath path = ClassPath.from(DataType.class.getClassLoader());
-      path.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
-          .forEach(info -> {
-            try {
-              Object o = info.load().getDeclaredConstructor().newInstance();
-              if (o instanceof DataType && o instanceof AnnotationType) {
-                types.add((DataType<?>) o);
-              }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//               can go silent
-            }
-          });
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    annotationTypes = Collections.unmodifiableList(types);
-  }
-
   private final String name;
   private final String description;
-  private Map<DataType<?>, Boolean> value = new LinkedHashMap<>();
+  private Map<DataType<?>, Boolean> value;
 
   public ClearAnnotationsParameter(String name, String description) {
     this.name = name;
     this.description = description;
-    annotationTypes.forEach(t -> value.put(t, false));
+    value = DataTypes.TYPES.values().stream().filter(DataTypes::isAnnotation)
+        .collect(Collectors.toMap(t -> t, t -> false));
   }
 
   @Override
@@ -90,6 +62,10 @@ public class ClearAnnotationsParameter implements
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
+
+    value = DataTypes.TYPES.values().stream().filter(DataTypes::isAnnotation)
+        .collect(Collectors.toMap(t -> t, t -> false));
+
     final NodeList childNodes = xmlElement.getChildNodes();
     final int length = childNodes.getLength();
     for (int i = 0; i < length; i++) {
@@ -97,7 +73,7 @@ public class ClearAnnotationsParameter implements
       if (!(item instanceof Element element)) {
         continue;
       }
-      final Optional<DataType<?>> opt = annotationTypes.stream()
+      final Optional<DataType<?>> opt = value.keySet().stream()
           .filter(type -> type.getClass().getName().equals(element.getAttribute(DATA_TYPE_ATTR)))
           .findFirst();
 
@@ -129,7 +105,7 @@ public class ClearAnnotationsParameter implements
 
   @Override
   public ClearAnnotationsComponent createEditingComponent() {
-    return new ClearAnnotationsComponent(annotationTypes);
+    return new ClearAnnotationsComponent(new HashMap<>(value));
   }
 
   @Override

@@ -450,7 +450,7 @@
       <SeparatorMenuItem/>
       <MenuItem text="Clear feature list annotations"
         onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule"/>
+        userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
     <Menu text="Data analysis">

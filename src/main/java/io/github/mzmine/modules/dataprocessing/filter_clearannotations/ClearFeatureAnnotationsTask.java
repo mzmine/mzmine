@@ -37,11 +37,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Filters out feature list rows.
  */
-public class FeatureListClearAnnotationsTask extends AbstractTask {
+public class ClearFeatureAnnotationsTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(
-      FeatureListClearAnnotationsTask.class.getName());
-  private final FeatureList origPeakList;
+      ClearFeatureAnnotationsTask.class.getName());
+  private final FeatureList origFeatureList;
   private final ParameterSet parameters;
   private final List<DataType<?>> typesToClear;
   private int processedRows, totalRows;
@@ -52,17 +52,17 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
    * @param list         feature list to process.
    * @param parameterSet task parameters.
    */
-  public FeatureListClearAnnotationsTask(final MZmineProject project, final FeatureList list,
+  public ClearFeatureAnnotationsTask(final MZmineProject project, final FeatureList list,
       final ParameterSet parameterSet, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     // Initialize.
     parameters = parameterSet;
-    origPeakList = list;
+    origFeatureList = list;
     processedRows = 0;
     totalRows = 0;
 
     final Map<DataType<?>, Boolean> annotationTypes = parameterSet.getValue(
-        FeatureListClearAnnotationsParameters.clear);
+        ClearFeatureAnnotationsParameters.clear);
 
     typesToClear = (List) annotationTypes.entrySet().stream().filter(Entry::getValue)
         .map(Entry::getKey).filter(t -> list.getRowTypes().containsValue(t)).toList();
@@ -86,14 +86,14 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
       setStatus(TaskStatus.PROCESSING);
       logger.info("Filtering feature list rows");
 
-      totalRows = origPeakList.getRows().size() * typesToClear.size();
+      totalRows = origFeatureList.getRows().size() * typesToClear.size();
 
       for (DataType<?> dataType : typesToClear) {
-        if (!origPeakList.getRowTypes().containsKey(dataType.getClass())) {
+        if (!origFeatureList.getRowTypes().containsKey(dataType.getClass())) {
           continue;
         }
         // Filter the feature list.
-        for (FeatureListRow row : origPeakList.getRows()) {
+        for (FeatureListRow row : origFeatureList.getRows()) {
           if (isCanceled()) {
             return;
           }
@@ -103,18 +103,18 @@ public class FeatureListClearAnnotationsTask extends AbstractTask {
         }
       }
 
-      origPeakList.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(FeatureListClearAnnotationsModule.class, parameters,
+      origFeatureList.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(ClearFeatureAnnotationsModule.class, parameters,
               getModuleCallDate()));
 
       setStatus(TaskStatus.FINISHED);
-      logger.info("Finished peak comparison rows filter");
+      logger.info("Finished feature list clear annotations.");
 
     } catch (Throwable t) {
       t.printStackTrace();
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      logger.log(Level.SEVERE, "Peak comparison row filter error", t);
+      logger.log(Level.SEVERE, "Feature list clear annotations error", t);
     }
 
   }

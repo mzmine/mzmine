@@ -23,15 +23,15 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-public class FeatureListClearAnnotationsParameters extends SimpleParameterSet {
+public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
 
-  public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final ClearAnnotationsParameter clear = new ClearAnnotationsParameter(
       "Clear annotations", "Clears the selected annotation types.");
 
-  public FeatureListClearAnnotationsParameters() {
-    super(new Parameter[]{PEAK_LISTS, clear});
+  public ClearFeatureAnnotationsParameters() {
+    super(new Parameter[]{featureLists, clear});
   }
 
 }
