@@ -67,7 +67,7 @@ public class MZmineArgumentParser {
     options.addOption(keepRunning);
 
     Option keepInMemory = new Option("m", "memory", true,
-        "keep objects (scan data, features, etc) in memory. Options: all, features, centroids, raw, masses_features (masses_features for features and centroids)");
+        "keep objects (scan data, features, etc) in memory. Options: none, all, features, centroids, raw, masses_features (masses_features for features and centroids)");
     keepInMemory.setRequired(false);
     options.addOption(keepInMemory);
 
