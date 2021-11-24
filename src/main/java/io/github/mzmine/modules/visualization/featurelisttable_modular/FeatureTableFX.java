@@ -405,13 +405,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
-    if (id == null) {
-      if (!column.getColumns().isEmpty()) {
         column.getColumns()
             .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
-      }
-      return;
-    }
 
     if (id.getType() == ColumnType.ROW_TYPE) {
       column.setVisible(rowTypesParameter.isDataTypeVisible(id));
