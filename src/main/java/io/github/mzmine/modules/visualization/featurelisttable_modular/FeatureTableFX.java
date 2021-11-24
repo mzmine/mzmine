@@ -630,8 +630,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         if (oldValue != null) {
           oldValue.getRows().removeListener(this);
         }
-
         addColumns(newValue);
+        // first check if feature list is too large
+        if (newValue.getNumberOfRawDataFiles() > 10) {
+          showCompactChromatographyColumns();
+        }
 
         // add rows
         for (FeatureListRow row : newValue.getRows()) {
