@@ -27,9 +27,9 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.features.types.annotations.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -45,9 +45,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +72,8 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
   private int finishedLines = 0;
   private FeatureList peakList;
 
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
@@ -146,9 +147,9 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Peak identification using database " + dataBaseFile,
-        LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
+    peakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
+            LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -189,22 +190,26 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     Range<Double> mzRange =
         lineMZ != null && Double.compare(lineMZ, 0d) != 0 ? mzTolerance.getToleranceRange(lineMZ)
             : null;
-    Range<Float> rtRange = lineRT != null && Double.compare(lineRT, 0d) != 0 ? rtTolerance
-        .getToleranceRange(lineRT.floatValue()) : null;
-    Range<Float> mobRange = lineMob != null && Double.compare(lineMob, 0d) != 0 ? mobTolerance
-        .getToleranceRange(lineMob.floatValue()) : null;
-    Range<Float> ccsRange = lineCCS != null && Double.compare(lineCCS, 0d) != 0 ? Range
-        .closed((float) (lineCCS - lineCCS * ccsTolerance),
-            (float) (lineCCS + lineCCS * ccsTolerance)) : null;
+    Range<Float> rtRange =
+        lineRT != null && Double.compare(lineRT, 0d) != 0 ? rtTolerance.getToleranceRange(
+            lineRT.floatValue()) : null;
+    Range<Float> mobRange =
+        lineMob != null && Double.compare(lineMob, 0d) != 0 ? mobTolerance.getToleranceRange(
+            lineMob.floatValue()) : null;
+    Range<Float> ccsRange = lineCCS != null && Double.compare(lineCCS, 0d) != 0 ? Range.closed(
+        (float) (lineCCS - lineCCS * ccsTolerance), (float) (lineCCS + lineCCS * ccsTolerance))
+        : null;
 
     for (FeatureListRow peakRow : peakList.getRows()) {
 
       boolean mzMatches = mzRange == null || mzRange.contains(peakRow.getAverageMZ());
       boolean rtMatches = rtRange == null || rtRange.contains(peakRow.getAverageRT());
-      boolean ccsMatches = ccsRange == null || (peakRow.getAverageCCS() != null && ccsRange
-          .contains(peakRow.getAverageCCS()));
-      boolean mobMatches = mobRange == null || (peakRow.getAverageMobility() != null && mobRange
-          .contains(peakRow.getAverageMobility()));
+      boolean ccsMatches =
+          ccsRange == null || (peakRow.getAverageCCS() != null && ccsRange.contains(
+              peakRow.getAverageCCS()));
+      boolean mobMatches =
+          mobRange == null || (peakRow.getAverageMobility() != null && mobRange.contains(
+              peakRow.getAverageMobility()));
 
       if (mzMatches && rtMatches && mobMatches && ccsMatches) {
 
@@ -253,8 +258,8 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
         .toList();
     if (!nullMappings.isEmpty()) {
-      setErrorMessage("Did not find specified column " + Arrays
-          .toString(nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file "
+      setErrorMessage("Did not find specified column " + Arrays.toString(
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file "
           + dataBaseFile.getAbsolutePath());
       setStatus(TaskStatus.ERROR);
     }
