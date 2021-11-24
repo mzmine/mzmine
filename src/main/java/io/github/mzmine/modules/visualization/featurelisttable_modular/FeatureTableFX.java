@@ -29,13 +29,21 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.AreaBarType;
 import io.github.mzmine.datamodel.features.types.AreaShareType;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
+import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.HeightType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -61,6 +69,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -84,16 +93,17 @@ import org.jetbrains.annotations.Nullable;
 public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> implements
     ListChangeListener<FeatureListRow> {
 
+  private static final Logger logger = Logger.getLogger(FeatureTableFX.class.getName());
   private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
   // parameters
   private final ParameterSet parameters;
   private final DataTypeCheckListParameter rowTypesParameter;
   private final DataTypeCheckListParameter featureTypesParameter;
+
   // column map to keep track of columns
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeatureTableFX() {
     // add dummy root
@@ -110,14 +120,21 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
-    featureTypesParameter = parameters.getParameter(
-        FeatureTableFXParameters.showFeatureTypeColumns);
+    featureTypesParameter = parameters
+        .getParameter(FeatureTableFXParameters.showFeatureTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
     newColumnMap = new HashMap<>();
     initHandleDoubleClicks();
     setContextMenu(new FeatureTableContextMenu(this));
+
+    // create custom button context menu to select columns
+    FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
+    // Adding additional menu options
+    MenuItem showSmallItem = new MenuItem("Compact LC/GC-MS");
+    showSmallItem.setOnAction(e -> showCompactChromatographyColumns());
+    contextMenuHelper.getAdditionalMenuItems().add(showSmallItem);
   }
 
   private void setTableEditable(boolean state) {
@@ -185,7 +202,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @param flist a summary RowData instance with all present {@link DataType}
    */
   public void addColumns(FeatureList flist) {
-//    logger.info("Adding columns to table");
+    //    logger.info("Adding columns to table");
     // for all data columns available in "data"
     assert flist instanceof ModularFeatureList : "Feature list is not modular";
     ModularFeatureList featureList = (ModularFeatureList) flist;
@@ -196,6 +213,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     if (featureList.getRowTypes().containsKey(FeaturesType.class)) {
       addColumn(featureList.getRowTypes().get(FeaturesType.class));
     }
+
   }
 
   /**
@@ -212,8 +230,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     if (dataType.getClass().equals(FeaturesType.class)) {
       addFeaturesColumns();
     } else {
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null,
-          null);
+      var col = dataType.createColumn(null, null);
       if (col == null) {
         return;
       }
@@ -244,13 +261,15 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void registerColumn(@NotNull TreeTableColumn<ModularFeatureListRow, ?> column,
       @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {
-    newColumnMap.put(column, new ColumnID(dataType, type, file));
+    newColumnMap.put(column, new ColumnID(dataType, type, file, -1));
 
-    if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()) {
+    // add all sub columns to the list (not for range types - no need to only show one)
+    if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()
+        && !(dataType instanceof NumberRangeType)) {
+      int i = 0;
       for (TreeTableColumn<ModularFeatureListRow, ?> subCol : column.getColumns()) {
-        if (subCol.getUserData() instanceof DataType) {
-          registerColumn(subCol, type, (DataType<?>) subCol.getUserData(), file);
-        }
+        newColumnMap.put(subCol, new ColumnID(dataType, type, file, i));
+        i++;
       }
     }
   }
@@ -261,11 +280,12 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     TreeTableColumn<ModularFeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
     // Find column's buddy
-    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap.entrySet()) {
+    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap
+        .entrySet()) {
       if (Objects.equals(entry.getValue().getDataType().getClass(),
-          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects.equals(
-          entry.getValue().getType(), colType) && Objects.equals(entry.getValue().getRaw(),
-          dataFile)) {
+          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects
+              .equals(entry.getValue().getType(), colType) && Objects
+              .equals(entry.getValue().getRaw(), dataFile)) {
         buddyCol = entry.getKey();
         buddyDataType = entry.getValue().getDataType();
       }
@@ -388,22 +408,21 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
+    column.getColumns()
+        .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
+
     if (id == null) {
-      if (!column.getColumns().isEmpty()) {
-        column.getColumns()
-            .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
-      }
       return;
     }
 
     if (id.getType() == ColumnType.ROW_TYPE) {
-      column.setVisible(rowTypesParameter.isDataTypeVisible(id.getDataType()));
+      column.setVisible(rowTypesParameter.isDataTypeVisible(id));
     } else {
-      column.setVisible(featureTypesParameter.isDataTypeVisible(id.getDataType()));
+      column.setVisible(featureTypesParameter.isDataTypeVisible(id));
     }
   }
 
-  private void applyVisibilityParametersToAllColumns() {
+  public void applyVisibilityParametersToAllColumns() {
     this.getColumns().forEach(this::recursivelyApplyVisibilityParameterToColumn);
   }
 
@@ -440,7 +459,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
           }
           sampleCol.getColumns().add(subCol);
           registerColumn(subCol, ColumnType.FEATURE_TYPE, ftype, dataFile);
-//          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
+          //          newColumnMap.put(subCol, new ColumnID(ftype, ColumnType.FEATURE_TYPE, dataFile));
           if (!(ftype instanceof ExpandableType)) {
             recursivelyApplyVisibilityParameterToColumn(subCol);
           }
@@ -513,7 +532,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * type were selected. Does not contain null.
    */
   public Set<DataType<?>> getSelectedDataTypes(@NotNull ColumnType columnType) {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<DataType<?>> dataTypes = new HashSet<>();
@@ -531,7 +551,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * file were selected. Does not contain null.
    */
   public Set<RawDataFile> getSelectedRawDataFiles() {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<RawDataFile> rawDataFiles = new HashSet<>();
@@ -548,7 +569,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @return A list of the selected features.
    */
   public List<ModularFeature> getSelectedFeatures() {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
+        .getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<ModularFeature> features = new LinkedHashSet<>();
@@ -608,8 +630,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         if (oldValue != null) {
           oldValue.getRows().removeListener(this);
         }
-
         addColumns(newValue);
+        // first check if feature list is too large
+        if (newValue.getNumberOfRawDataFiles() > 10) {
+          showCompactChromatographyColumns();
+        }
 
         // add rows
         for (FeatureListRow row : newValue.getRows()) {
@@ -626,6 +651,36 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     });
   }
 
+  private void showCompactChromatographyColumns() {
+    rowTypesParameter.setAll(false);
+    featureTypesParameter.setAll(false);
+
+    // set row types
+    setVisible(ColumnType.ROW_TYPE, IDType.class, true);
+    setVisible(ColumnType.ROW_TYPE, RTType.class, true);
+    setVisible(ColumnType.ROW_TYPE, MZType.class, true);
+    setVisible(ColumnType.ROW_TYPE, HeightType.class, true);
+    setVisible(ColumnType.ROW_TYPE, AreaType.class, true);
+    setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class,
+        getFeatureList().getNumberOfRawDataFiles() <= 10);
+    setVisible(ColumnType.ROW_TYPE, FeaturesType.class, true);
+
+    // set feature types
+    setVisible(ColumnType.FEATURE_TYPE, HeightType.class, true);
+
+    applyVisibilityParametersToAllColumns();
+  }
+
+  private void setVisible(ColumnType columnType, Class clazz, boolean visible) {
+    final DataType type = DataTypes.get(clazz);
+    final String key = type.getHeaderString();
+    if (columnType == ColumnType.ROW_TYPE) {
+      rowTypesParameter.setDataTypeVisible(key, visible);
+    } else {
+      featureTypesParameter.setDataTypeVisible("Feature:" + type.getHeaderString(), visible);
+    }
+  }
+
   public void closeTable() {
     final ModularFeatureList flist = featureListProperty.get();
     if (flist == null) {
@@ -634,5 +689,17 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     flist.getRows().removeListener(this);
     flist.modularParallelStream().forEach(ModularFeatureListRow::clearBufferedColCharts);
     flist.parallelStreamFeatures().forEach(ModularFeature::clearBufferedColCharts);
+  }
+
+  public DataTypeCheckListParameter getRowTypesParameter() {
+    return rowTypesParameter;
+  }
+
+  public DataTypeCheckListParameter getFeatureTypesParameter() {
+    return featureTypesParameter;
+  }
+
+  public Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> getNewColumnMap() {
+    return newColumnMap;
   }
 }
