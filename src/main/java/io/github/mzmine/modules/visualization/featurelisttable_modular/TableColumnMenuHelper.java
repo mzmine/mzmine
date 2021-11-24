@@ -354,4 +354,46 @@ public class TableColumnMenuHelper {
     this.showMenuByKeyboardCheck = showMenuByKeyboardCheck;
   }
 
+  /**
+   * Creates the base context menu with the select all and custom menu items but without checkboxes
+   * for the buttons
+   *
+   * @return a new context menu
+   */
+  @NotNull
+  protected ContextMenu createBaseMenu() {
+    ContextMenu cm = new ContextMenu();
+
+    // create new context menu
+    CustomMenuItem cmi;
+
+    if (showAllColumnsOperators) {
+      // select all item
+      Label selectAll = new Label("Select all");
+      selectAll.addEventHandler(MouseEvent.MOUSE_CLICKED, this::doSelectAll);
+
+      cmi = new CustomMenuItem(selectAll);
+      cmi.setOnAction(this::doSelectAll);
+      cmi.setHideOnClick(false);
+      cm.getItems().add(cmi);
+
+      // deselect all item
+      Label deselectAll = new Label("Deselect all");
+      deselectAll.addEventHandler(MouseEvent.MOUSE_CLICKED, this::doDeselectAll);
+
+      cmi = new CustomMenuItem(deselectAll);
+      cmi.setOnAction(this::doDeselectAll);
+      cmi.setHideOnClick(false);
+      cm.getItems().add(cmi);
+
+      // separator
+      cm.getItems().add(new SeparatorMenuItem());
+    }
+
+    if (!additionalMenuItems.isEmpty()) {
+      cm.getItems().addAll(additionalMenuItems);
+      cm.getItems().add(new SeparatorMenuItem());
+    }
+    return cm;
+  }
 }

@@ -18,15 +18,16 @@
 
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
-import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
-import javafx.scene.control.CheckMenuItem;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Map.Entry;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.Label;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.control.TreeTableColumn;
 
 /**
  * Helper class to replace default column selection popup for TableView.
@@ -78,67 +79,50 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
    */
   @Override
   protected ContextMenu createContextMenu() {
-
-    ContextMenu cm = new ContextMenu();
-
-    // create new context menu
-    CustomMenuItem cmi;
-
-    if (showAllColumnsOperators) {
-      // select all item
-      Label selectAll = new Label("Select all");
-      selectAll.addEventHandler(MouseEvent.MOUSE_CLICKED, this::doSelectAll);
-
-      cmi = new CustomMenuItem(selectAll);
-      cmi.setOnAction(this::doSelectAll);
-      cmi.setHideOnClick(false);
-      cm.getItems().add(cmi);
-
-      // deselect all item
-      Label deselectAll = new Label("Deselect all");
-      deselectAll.addEventHandler(MouseEvent.MOUSE_CLICKED, this::doDeselectAll);
-
-      cmi = new CustomMenuItem(deselectAll);
-      cmi.setOnAction(this::doDeselectAll);
-      cmi.setHideOnClick(false);
-      cm.getItems().add(cmi);
-
-      // separator
-      cm.getItems().add(new SeparatorMenuItem());
-    }
-
-    if (!additionalMenuItems.isEmpty()) {
-      cm.getItems().addAll(additionalMenuItems);
-      cm.getItems().add(new SeparatorMenuItem());
-    }
+    ContextMenu cm = createBaseMenu();
 
     final DataTypeCheckListParameter rowParam = featureTable.getRowTypesParameter();
     final var colMap = featureTable.getNewColumnMap();
     // menu item for each of the available columns
-    for (var entry : colMap.entrySet()) {
-      var col = entry.getKey();
-      final ColumnID value = entry.getValue();
-      if (value.getType() != ColumnType.ROW_TYPE) {
-        continue;
-      }
-
-      String header = value.getCombinedHeaderString();
-
-      CheckMenuItem cb = new CheckMenuItem(header);
-      cb.selectedProperty().bindBidirectional(col.visibleProperty());
-      cb.setOnAction(e -> {
-        cb.setSelected(!cb.isSelected());
-        rowParam.setDataTypeVisible(value, cb.isSelected());
-
-        e.consume();
-      });
-
-      cm.getItems().add(cb);
-    }
+    addTypeCheckList(cm, colMap, rowParam);
 
     final DataTypeCheckListParameter fParam = featureTable.getFeatureTypesParameter();
-
+    addTypeCheckList(cm, colMap, fParam);
     return cm;
+  }
+
+  private void addTypeCheckList(ContextMenu cm,
+      Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> colMap,
+      DataTypeCheckListParameter param) {
+    // do not add range sub columns
+    param.getValue().entrySet().stream()
+        .filter(e -> !e.getKey().contains("range:min") && !e.getKey().contains("range:max"))
+        .sorted(Comparator.comparing(Entry::getKey)).forEach(entry -> {
+      final String combinedHeader = entry.getKey();
+
+      CheckBox cb = new CheckBox(combinedHeader);
+      cb.setSelected(entry.getValue());
+
+      CustomMenuItem cmi = new CustomMenuItem(cb);
+      cmi.setHideOnClick(false);
+      cmi.setOnAction(event -> {
+        cb.setSelected(!cb.isSelected());
+        event.consume();
+      });
+      cb.selectedProperty().addListener((observable, oldValue, newValue) -> {
+        param.setDataTypeVisible(combinedHeader, cb.isSelected());
+        setColsVisible(colMap, combinedHeader, cb.isSelected());
+      });
+      cm.getItems().add(cmi);
+
+    });
+  }
+
+  private void setColsVisible(Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> colMap,
+      String combinedColHeader, boolean visible) {
+    colMap.entrySet().stream().filter(mapEntry -> mapEntry.getValue().typesMatch(combinedColHeader))
+        .map(Entry::getKey).forEach(col -> col.setVisible(visible));
+    featureTable.applyVisibilityParametersToAllColumns();
   }
 
 }

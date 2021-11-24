@@ -82,6 +82,15 @@ public class ColumnID {
     return type == other.type && dt.equals(other.dt) && subcolumnIndex == other.subcolumnIndex;
   }
 
+  /**
+   * Match if combined headers equal
+   *
+   * @return true if combined headers equal
+   */
+  public boolean typesMatch(String combinedHeader) {
+    return this.combinedHeader.equals(combinedHeader);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

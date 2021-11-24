@@ -130,11 +130,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     setContextMenu(new FeatureTableContextMenu(this));
 
     // create custom button context menu to select columns
-    TableColumnMenuHelper contextMenuHelper = new TableColumnMenuHelper(this);
+    FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
-    MenuItem exportMenuItem = new MenuItem("Small XC-MS");
-    exportMenuItem.setOnAction(e -> showSmallXCMSTableColumns());
-    contextMenuHelper.getAdditionalMenuItems().add(exportMenuItem);
+    MenuItem showSmallItem = new MenuItem("Small XC-MS");
+    showSmallItem.setOnAction(e -> showSmallXCMSTableColumns());
+    contextMenuHelper.getAdditionalMenuItems().add(showSmallItem);
   }
 
   private void setTableEditable(boolean state) {
@@ -408,6 +408,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
+    if (id == null) {
+      return;
+    }
     column.getColumns()
         .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
 
@@ -418,7 +421,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     }
   }
 
-  private void applyVisibilityParametersToAllColumns() {
+  public void applyVisibilityParametersToAllColumns() {
     this.getColumns().forEach(this::recursivelyApplyVisibilityParameterToColumn);
   }
 
@@ -648,7 +651,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     List<DataType> rowTypes = List
         .of(DataTypes.get(RTType.class), DataTypes.get(IDType.class), DataTypes.get(MZType.class),
             DataTypes.get(HeightType.class), DataTypes.get(FeatureShapeType.class),
-            DataTypes.get(AreaType.class));
+            DataTypes.get(AreaType.class), DataTypes.get(FeaturesType.class));
     List<DataType> featureTypes = List.of(DataTypes.get(HeightType.class));
 
     rowTypesParameter.getValue().keySet().stream().forEach(type -> rowTypesParameter
