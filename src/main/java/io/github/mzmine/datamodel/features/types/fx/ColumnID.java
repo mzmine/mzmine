@@ -106,7 +106,7 @@ public class ColumnID {
 
   @Override
   public int hashCode() {
-    return Objects.hash(type, dt, raw);
+    return Objects.hash(type, dt, raw, subcolumnIndex);
   }
 
   @NotNull

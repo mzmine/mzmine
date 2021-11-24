@@ -122,8 +122,8 @@ public class FeatureListLoadTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return (double) processedFlists / numFlists + ((double) 1 / numFlists) * ((double) processedRows
-                                                                              / totalRows);
+    return (double) processedFlists / numFlists // overall progress finished flists
+           + (double) processedRows / totalRows / numFlists; // current flist progress
   }
 
   @Override
