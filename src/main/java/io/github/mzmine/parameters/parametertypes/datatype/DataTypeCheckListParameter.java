@@ -19,9 +19,9 @@
 package io.github.mzmine.parameters.parametertypes.datatype;
 
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
-import io.github.mzmine.modules.io.projectload.version_3_0.DataTypes;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
