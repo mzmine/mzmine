@@ -132,8 +132,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // create custom button context menu to select columns
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
-    MenuItem showSmallItem = new MenuItem("Small XC-MS");
-    showSmallItem.setOnAction(e -> showSmallXCMSTableColumns());
+    MenuItem showSmallItem = new MenuItem("Compact LC/GC-MS");
+    showSmallItem.setOnAction(e -> showCompactChromatographyColumns());
     contextMenuHelper.getAdditionalMenuItems().add(showSmallItem);
   }
 
@@ -648,13 +648,13 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     });
   }
 
-  private void showSmallXCMSTableColumns() {
+  private void showCompactChromatographyColumns() {
     rowTypesParameter.setAll(false);
     featureTypesParameter.setAll(false);
 
     // set row types
-    setVisible(ColumnType.ROW_TYPE, RTType.class, true);
     setVisible(ColumnType.ROW_TYPE, IDType.class, true);
+    setVisible(ColumnType.ROW_TYPE, RTType.class, true);
     setVisible(ColumnType.ROW_TYPE, MZType.class, true);
     setVisible(ColumnType.ROW_TYPE, HeightType.class, true);
     setVisible(ColumnType.ROW_TYPE, AreaType.class, true);
