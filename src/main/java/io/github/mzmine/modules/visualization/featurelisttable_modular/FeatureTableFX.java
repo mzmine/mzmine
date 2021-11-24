@@ -43,6 +43,7 @@ import io.github.mzmine.datamodel.features.types.numbers.HeightType;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -92,6 +93,7 @@ import org.jetbrains.annotations.Nullable;
 public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> implements
     ListChangeListener<FeatureListRow> {
 
+  private static final Logger logger = Logger.getLogger(FeatureTableFX.class.getName());
   private final FilteredList<TreeItem<ModularFeatureListRow>> filteredRowItems;
   private final ObservableList<TreeItem<ModularFeatureListRow>> rowItems;
   // parameters
@@ -102,7 +104,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   // column map to keep track of columns
   private final Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> newColumnMap;
   private final ObjectProperty<ModularFeatureList> featureListProperty = new SimpleObjectProperty<>();
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public FeatureTableFX() {
     // add dummy root
@@ -262,7 +263,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       @NotNull ColumnType type, @NotNull DataType<?> dataType, @Nullable RawDataFile file) {
     newColumnMap.put(column, new ColumnID(dataType, type, file, -1));
 
-    if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()) {
+    // add all sub columns to the list (not for range types - no need to only show one)
+    if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()
+        && !(dataType instanceof NumberRangeType)) {
       int i = 0;
       for (TreeTableColumn<ModularFeatureListRow, ?> subCol : column.getColumns()) {
         newColumnMap.put(subCol, new ColumnID(dataType, type, file, i));
@@ -405,8 +408,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    */
   private void recursivelyApplyVisibilityParameterToColumn(TreeTableColumn column) {
     ColumnID id = newColumnMap.get(column);
-        column.getColumns()
-            .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
+    column.getColumns()
+        .forEach(col -> recursivelyApplyVisibilityParameterToColumn((TreeTableColumn) col));
 
     if (id.getType() == ColumnType.ROW_TYPE) {
       column.setVisible(rowTypesParameter.isDataTypeVisible(id));
@@ -652,7 +655,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         .setDataTypeVisible(type,
             rowTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
 
-    featureTypesParameter.getValue().keySet().stream().forEach(type -> featureTypesParameter
+    featureTypesParameter.getValue().keySet().forEach(type -> featureTypesParameter
         .setDataTypeVisible(type,
             featureTypes.stream().anyMatch(t -> t.getHeaderString().equals(type))));
 
