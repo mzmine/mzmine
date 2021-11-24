@@ -118,5 +118,6 @@ public abstract class AbstractStorableSpectrum extends AbstractMassSpectrum {
     intensityValues.get(0, dst, 0, getNumberOfDataPoints());
     return dst;
   }
+
 }
 

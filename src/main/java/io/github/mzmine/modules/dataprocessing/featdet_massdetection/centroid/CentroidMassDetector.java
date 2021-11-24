@@ -104,6 +104,11 @@ public class CentroidMassDetector implements MassDetector {
 
     final double noiseLevel =
         parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
+    return getMassValues(mzs, intensities, noiseLevel);
+  }
+
+  public double[][] getMassValues(double[] mzs, double[] intensities, double noiseLevel) {
+    assert mzs.length == intensities.length;
 
     // use number of centroid signals as base array list capacity
     final int points = mzs.length;

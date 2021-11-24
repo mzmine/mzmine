@@ -30,7 +30,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType>> {
+public class MobilityUnitType extends DataType<MobilityType> {
 
   @NotNull
   @Override
@@ -50,13 +50,14 @@ public class MobilityUnitType extends DataType<SimpleObjectProperty<MobilityType
     return new SimpleObjectProperty<>(MobilityType.NONE);
   }
 
-  @NotNull
   @Override
-  public String getFormattedString(@Nullable Object value) {
-    if (value instanceof MobilityType mt) {
-      return mt.getUnit();
-    }
-    return super.getFormattedString(value);
+  public Class<MobilityType> getValueClass() {
+    return MobilityType.class;
+  }
+
+  @Override
+  public @NotNull String getFormattedString(MobilityType value) {
+    return value == null? "" : value.getUnit();
   }
 
   @Override

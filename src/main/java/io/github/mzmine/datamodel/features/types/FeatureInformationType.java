@@ -36,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureInformationType extends
-    DataType<ObjectProperty<SimpleFeatureInformation>> implements NullColumnType {
+    DataType<FeatureInformation> implements NullColumnType {
 
   @NotNull
   @Override
@@ -53,13 +53,13 @@ public class FeatureInformationType extends
 
   @Override
   @NotNull
-  public String getFormattedString(@NotNull ObjectProperty<SimpleFeatureInformation> property) {
-    return property.getValue() != null ? property.getValue().getAllProperties().entrySet().stream()
+  public String getFormattedString(@Nullable FeatureInformation value) {
+    return value != null ? value.getAllProperties().entrySet().stream()
         .map(Object::toString).collect(Collectors.joining(";")) : "";
   }
 
   @Override
-  public ObjectProperty<SimpleFeatureInformation> createProperty() {
+  public ObjectProperty<FeatureInformation> createProperty() {
     return new SimpleObjectProperty<>();
   }
 
@@ -67,12 +67,13 @@ public class FeatureInformationType extends
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(value == null) {
+    if (value == null) {
       return;
     }
-    if (!(value instanceof SimpleFeatureInformation info)) {
+    if (!(value instanceof FeatureInformation info)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
 
     info.saveToXML(writer);
@@ -84,7 +85,7 @@ public class FeatureInformationType extends
       @Nullable RawDataFile file) throws XMLStreamException {
     while (
         !(reader.isStartElement() && reader.getLocalName().equals(FeatureInformation.XML_ELEMENT))
-            && reader.hasNext()) {
+        && reader.hasNext()) {
       if (reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
         return null;
       }
@@ -92,9 +93,14 @@ public class FeatureInformationType extends
     }
 
     if (reader.isStartElement() && reader.getLocalName()
-        .equals(SimpleFeatureInformation.XML_ELEMENT)) {
+        .equals(FeatureInformation.XML_ELEMENT)) {
       return SimpleFeatureInformation.loadFromXML(reader);
     }
     return null;
+  }
+
+  @Override
+  public Class<FeatureInformation> getValueClass() {
+    return FeatureInformation.class;
   }
 }

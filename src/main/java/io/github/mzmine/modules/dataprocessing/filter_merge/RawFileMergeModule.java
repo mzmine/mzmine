@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.dataprocessing.filter_merge;
 
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import io.github.msdk.MSDKRuntimeException;
@@ -57,7 +57,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     // one storage for all files in the same module call
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 

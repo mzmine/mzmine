@@ -55,9 +55,9 @@ import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.awt.Desktop;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,7 +85,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   private boolean submit;
   private boolean openFolder;
 
-  GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsGcExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
 

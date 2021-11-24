@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 
 import java.awt.Color;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -92,7 +93,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
    * @param parameters task parameters.
    */
   public SpectraIdentificationLipidSearchTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;

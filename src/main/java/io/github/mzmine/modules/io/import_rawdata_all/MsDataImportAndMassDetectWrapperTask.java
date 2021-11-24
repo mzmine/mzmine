@@ -28,6 +28,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecto
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +62,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    * @param advancedParam    advanced parameters to apply mass detection
    */
   public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists, RawDataFile newMZmineFile,
-      AbstractTask importTask, @NotNull AdvancedSpectraImportParameters advancedParam, @NotNull Date moduleCallDate) {
+      AbstractTask importTask, @NotNull AdvancedSpectraImportParameters advancedParam, @NotNull Instant moduleCallDate) {
     super(storageMassLists, moduleCallDate);
     this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;

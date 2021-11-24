@@ -37,9 +37,8 @@ public interface AddElementDialog {
    * Shows a dialog to create a new element. e.g., to add an element to a {@link ListDataType}
    * @param model
    * @param type
-   * @param <T>
    */
-  default <T extends Property<?>>  void createNewElementDialog(ModularDataModel model, DataType<T> type) {
+  default void createNewElementDialog(ModularDataModel model, DataType type) {
     assert type instanceof StringParser : "Cannot use the default dialog without a StringParser type";
     assert type instanceof ListDataType : "Cannot use the default dialog for a non ListDataType";
     TextInputDialog dialog = new TextInputDialog("Enter new element");

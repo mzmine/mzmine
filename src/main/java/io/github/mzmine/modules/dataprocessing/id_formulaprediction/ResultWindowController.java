@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
@@ -52,6 +51,7 @@ import javafx.stage.FileChooser;
 
 
 public class ResultWindowController {
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
@@ -64,15 +64,19 @@ public class ResultWindowController {
   @FXML
   private TableColumn<ResultFormula, String> Formula;
   @FXML
-  private TableColumn<ResultFormula, Double> absoluteMassDifference;
+  private TableColumn<ResultFormula, Float> absoluteMassDifference;
   @FXML
-  private TableColumn<ResultFormula, Double> massDifference;
+  private TableColumn<ResultFormula, Float> massDifference;
   @FXML
-  private TableColumn<ResultFormula, Double> RDBE;
+  private TableColumn<ResultFormula, Float> RDBE;
   @FXML
   private TableColumn<ResultFormula, String> isotopePattern;
   @FXML
   private TableColumn<ResultFormula, String> msScore;
+  private FeatureListRow peakListRow;
+  private Task searchTask;
+  private String title;
+  private double searchedMass;
 
   @FXML
   private void initialize() {
@@ -92,16 +96,15 @@ public class ResultWindowController {
       double exactMass = cell.getValue().getExactMass();
       double massDiff = searchedMass - exactMass;
 
-      return new ReadOnlyObjectWrapper<>(Double.parseDouble(massFormat.format(massDiff)));
+      return new ReadOnlyObjectWrapper<>(Float.parseFloat(massFormat.format(massDiff)));
     });
     massDifference.setCellValueFactory(cell -> {
       double ExactMass = cell.getValue().getExactMass();
       double MassDiff = searchedMass - ExactMass;
       MassDiff = (MassDiff / ExactMass) * 1E6;
 
-      return new ReadOnlyObjectWrapper<>(Double.parseDouble(ppmFormat.format(MassDiff)));
+      return new ReadOnlyObjectWrapper<>(Float.parseFloat(ppmFormat.format(MassDiff)));
     });
-
 
     isotopePattern.setCellValueFactory(cell -> {
       String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
@@ -124,12 +127,6 @@ public class ResultWindowController {
 
     resultTable.setItems(formulas);
   }
-
-
-  private FeatureListRow peakListRow;
-  private Task searchTask;
-  private String title;
-  private double searchedMass;
 
   public void initValues(String title, FeatureListRow peakListRow, double searchedMass, int charge,
       Task searchTask) {
@@ -179,14 +176,17 @@ public class ResultWindowController {
         writer.write(",");
         writer.write(String.valueOf(formula.getExactMass()));
         writer.write(",");
-        if (formula.getRDBE() != null)
+        if (formula.getRDBE() != null) {
           writer.write(String.valueOf(formula.getRDBE()));
+        }
         writer.write(",");
-        if (formula.getIsotopeScore() != null)
+        if (formula.getIsotopeScore() != null) {
           writer.write(String.valueOf(formula.getIsotopeScore()));
+        }
         writer.write(",");
-        if (formula.getMSMSScore() != null)
+        if (formula.getMSMSScore() != null) {
           writer.write(String.valueOf(formula.getMSMSScore()));
+        }
         writer.newLine();
       }
 
@@ -211,8 +211,9 @@ public class ResultWindowController {
     logger.finest("Showing isotope pattern for formula " + formula.getFormulaAsString());
     IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
-    if (predictedPattern == null)
+    if (predictedPattern == null) {
       return;
+    }
 
     Feature peak = peakListRow.getBestFeature();
 
@@ -249,18 +250,21 @@ public class ResultWindowController {
     RawDataFile dataFile = bestPeak.getRawDataFile();
     Scan msmsScanNumber = bestPeak.getMostIntenseFragmentScan();
 
-    if (msmsScanNumber == null)
+    if (msmsScanNumber == null) {
       return;
+    }
 
     SpectraVisualizerTab msmsPlot =
         SpectraVisualizerModule.addNewSpectrumTab(dataFile, msmsScanNumber);
 
-    if (msmsPlot == null)
+    if (msmsPlot == null) {
       return;
+    }
     Map<Double, String> annotation = formula.getMSMSannotation();
 
-    if (annotation == null)
+    if (annotation == null) {
       return;
+    }
     msmsPlot.addMzAnnotation(annotation);
   }
 

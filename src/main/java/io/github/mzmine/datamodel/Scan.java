@@ -21,6 +21,9 @@ package io.github.mzmine.datamodel;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
@@ -36,69 +39,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
   public static final String XML_SCAN_ELEMENT = CONST.XML_RAW_FILE_SCAN_ELEMENT;
   public static final String XML_SCAN_TYPE_ATTR = "scantype";
-
-  /**
-   * @return RawDataFile containing this Scan
-   */
-  @NotNull RawDataFile getDataFile();
-
-  /**
-   * @return Scan number
-   */
-  int getScanNumber();
-
-  /**
-   * @return Instrument-specific scan definition as String
-   */
-  @NotNull String getScanDefinition();
-
-  /**
-   * @return MS level
-   */
-  int getMSLevel();
-
-  /**
-   * @return Retention time of this scan in minutes
-   */
-  float getRetentionTime();
-
-  /**
-   * @return The actual scanning range of the instrument
-   */
-  @NotNull Range<Double> getScanningMZRange();
-
-  /**
-   * @return Precursor m/z or 0 if this is not MSn scan
-   */
-  double getPrecursorMZ();
-
-  @NotNull PolarityType getPolarity();
-
-  /**
-   * @return Precursor charge, 0 if this is not MSn scan, -1 if charge is unknown
-   */
-  int getPrecursorCharge();
-
-  @Nullable MassList getMassList();
-
-  void addMassList(@NotNull MassList massList);
-
-  /**
-   * Standard method to sort scans based on scan number (or if not available retention time)
-   *
-   * @param s other scan
-   * @return
-   */
-  @Override
-  default int compareTo(@NotNull Scan s) {
-    assert s != null;
-    int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
-    if (result != 0) {
-      return result;
-    } else {
-      return Float.compare(this.getRetentionTime(), s.getRetentionTime());
-    }
-  }
 
   /**
    * Appends a scan to the current xml element.
@@ -150,9 +90,10 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
 
     switch (reader.getAttributeValue(null, Scan.XML_SCAN_TYPE_ATTR)) {
       case SimpleScan.XML_SCAN_TYPE -> {
-        final int index = Integer
-            .parseInt(reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
-        return file.getScan(index);
+        final int index = Integer.parseInt(
+            reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
+        final Scan scan = file.getScan(index);
+        return scan instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : scan;
       }
       case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
         return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);
@@ -160,6 +101,81 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       default -> {
         throw new IllegalArgumentException("Cannot load scan from xml. Scan type not recognized.");
       }
+    }
+  }
+
+  /**
+   * @return RawDataFile containing this Scan
+   */
+  @NotNull RawDataFile getDataFile();
+
+  /**
+   * @return Scan number
+   */
+  int getScanNumber();
+
+  /**
+   * @return Instrument-specific scan definition as String
+   */
+  @NotNull String getScanDefinition();
+
+  /**
+   * @return MS level
+   */
+  int getMSLevel();
+
+  /**
+   * @return Retention time of this scan in minutes
+   */
+  float getRetentionTime();
+
+  /**
+   * @return The actual scanning range of the instrument
+   */
+  @NotNull Range<Double> getScanningMZRange();
+
+  /**
+   *
+   * @return The {@link MsMsInfo}. If null, this is not an MSn scan.
+   */
+  @Nullable MsMsInfo getMsMsInfo();
+
+  /**
+   *
+   * @return The charge or null. Works for subclasses of {@link DDAMsMsInfo}.
+   */
+  default Integer getPrecursorCharge() {
+    return getMsMsInfo() instanceof DDAMsMsInfo info ? info.getPrecursorCharge() : null;
+  }
+
+  /**
+   *
+   * @return The precursor mz or null. Works for subclasses of {@link DDAMsMsInfo}.
+   */
+  default Double getPrecursorMz() {
+    return getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : null;
+  }
+
+  @NotNull PolarityType getPolarity();
+
+  @Nullable MassList getMassList();
+
+  void addMassList(@NotNull MassList massList);
+
+  /**
+   * Standard method to sort scans based on scan number (or if not available retention time)
+   *
+   * @param s other scan
+   * @return
+   */
+  @Override
+  default int compareTo(@NotNull Scan s) {
+    assert s != null;
+    int result = Integer.compare(this.getScanNumber(), s.getScanNumber());
+    if (result != 0) {
+      return result;
+    } else {
+      return Float.compare(this.getRetentionTime(), s.getRetentionTime());
     }
   }
 }

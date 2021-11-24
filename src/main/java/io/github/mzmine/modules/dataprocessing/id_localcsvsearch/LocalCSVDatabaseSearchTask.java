@@ -72,7 +72,7 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
   private int finishedLines = 0;
   private FeatureList peakList;
 
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;

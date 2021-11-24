@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.visualization.histogram;
 
 import io.github.mzmine.main.MZmineCore;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -47,7 +47,7 @@ public class HistogramVisualizerModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     HistogramTab newTab = new HistogramTab(parameters);
     //newTab.show();
     MZmineCore.getDesktop().addTab(newTab);

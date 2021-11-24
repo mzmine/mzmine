@@ -23,7 +23,10 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -34,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -100,7 +104,7 @@ public class MzDataImportTask extends AbstractTask {
   private LinkedList<SimpleScan> parentStack;
 
   public MzDataImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.parameters = parameters;
     this.module = module;
@@ -315,8 +319,12 @@ public class MzDataImportTask extends AbstractTask {
         MassSpectrumType spectrumType = ScanUtils
             .detectSpectrumType(mzDataPoints, intensityDataPoints);
 
+        final DDAMsMsInfo info =
+            msLevel != 1 && Double.compare(precursorMz, 0d) != 0 ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
+                null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
+
         buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-            precursorMz, precursorCharge, mzDataPoints, intensityDataPoints, spectrumType, polarity,
+            info, mzDataPoints, intensityDataPoints, spectrumType, polarity,
             "", null);
 
         /*

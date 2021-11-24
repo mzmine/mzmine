@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,12 +72,12 @@ public class ProjectOpeningTask extends AbstractTask {
 //  private final Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<>();
 //  private final Hashtable<String, File> scanFilesIDMap = new Hashtable<>();
 
-  public ProjectOpeningTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public ProjectOpeningTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
   }
 
-  public ProjectOpeningTask(File openFile, @NotNull Date moduleCallDate) {
+  public ProjectOpeningTask(File openFile, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.openFile = openFile;
   }
@@ -139,6 +140,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
       newProject = new MZmineProjectImpl();
       newProject.setProjectFile(openFile);
+      newProject.setStandalone(false); // set to false by default, we check for existing files later
       GUIUtils.closeAllWindows();
       projectManager.setCurrentProject(newProject);
 
@@ -175,6 +177,8 @@ public class ProjectOpeningTask extends AbstractTask {
           loadUserParameters(cis);
         } else if (entryName.equals(RawDataFileSaveHandler.RAW_DATA_IMPORT_BATCH_FILENAME)) {
           loadRawDataFiles(cis, zipFile);
+        } else if(entryName.equals(ProjectSavingTask.STANDALONE_FILENAME)) {
+          newProject.setStandalone(true);
         }
 
         // Close the ZIP entry

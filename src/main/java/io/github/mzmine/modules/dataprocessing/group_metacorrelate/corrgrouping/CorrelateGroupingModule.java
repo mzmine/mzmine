@@ -26,8 +26,8 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class CorrelateGroupingModule implements MZmineProcessingModule {
@@ -65,7 +65,7 @@ public class CorrelateGroupingModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull final ParameterSet parameters,
-      @NotNull final Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull final Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     ModularFeatureList[] featureLists = parameters
         .getParameter(CorrelateGroupingParameters.PEAK_LISTS).getValue().getMatchingFeatureLists();

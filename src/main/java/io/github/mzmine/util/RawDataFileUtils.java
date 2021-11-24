@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +66,7 @@ public class RawDataFileUtils {
 
   public static void createRawDataImportTasks(MZmineProject project, List<Task> taskList,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate, File... fileNames) throws IOException {
+      @NotNull Instant moduleCallDate, File... fileNames) throws IOException {
 
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
@@ -157,6 +158,12 @@ public class RawDataFileUtils {
    * Assumes that fileNames doesn't contain null entries.
    */
   public static @Nullable String askToRemoveCommonPrefix(@NotNull File fileNames[]) {
+
+    if(true) {
+      // currently this will break project load/save, because the files are renamed before they
+      // exist. So let's just deactivate it for now.
+      return null;
+    }
 
     // If we're running in batch mode or not on the JavaFX thread, give up
     if ((MZmineCore.getDesktop().getMainWindow() == null) || (!Platform.isFxApplicationThread())) {

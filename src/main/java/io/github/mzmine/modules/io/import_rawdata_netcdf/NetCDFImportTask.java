@@ -33,6 +33,7 @@ import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.logging.Level;
@@ -73,7 +74,7 @@ public class NetCDFImportTask extends AbstractTask {
   private double intensityValueScaleFactor = 1;
 
   public NetCDFImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -395,7 +396,7 @@ public class NetCDFImportTask extends AbstractTask {
     if (scanLength[0] == 0) {
       scanNum++;
 
-      return new SimpleScan(newMZmineFile, scanNum, 1, retentionTime, 0, 0, new double[0],
+      return new SimpleScan(newMZmineFile, scanNum, 1, retentionTime, null, new double[0],
           new double[0], MassSpectrumType.CENTROIDED, PolarityType.UNKNOWN, "", null);
     }
 
@@ -441,7 +442,7 @@ public class NetCDFImportTask extends AbstractTask {
     // Auto-detect whether this scan is centroided
     MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
-    SimpleScan buildingScan = new SimpleScan(newMZmineFile, scanNum, 1, retentionTime, 0, 0,
+    SimpleScan buildingScan = new SimpleScan(newMZmineFile, scanNum, 1, retentionTime, null,
         mzValues, intensityValues, spectrumType, polarity, scanDefinition, null);
 
     return buildingScan;

@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ class RTCalibrationTask extends AbstractTask {
   private ParameterSet parameters;
 
   public RTCalibrationTask(MZmineProject project, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

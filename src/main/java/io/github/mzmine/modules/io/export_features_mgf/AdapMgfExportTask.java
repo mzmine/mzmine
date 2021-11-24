@@ -16,15 +16,6 @@
 
 package io.github.mzmine.modules.io.export_features_mgf;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -36,6 +27,15 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -62,13 +62,13 @@ public class AdapMgfExportTask extends AbstractTask {
   private final int totalRows;
   private int finishedRows = 0;
 
-  public AdapMgfExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public AdapMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     this(parameters, parameters.getParameter(AdapMgfExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists(), moduleCallDate);
   }
 
   public AdapMgfExportTask(ParameterSet parameters, FeatureList[] featureLists,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     totalRows = (int) Stream.of(featureLists).map(FeatureList::getRows).count();

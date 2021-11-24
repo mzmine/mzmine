@@ -71,9 +71,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapChart extends StackPane 
     // todo: save min/max values of dataset in dataset iself so jfreechart does not have to loop
     //  over all data points (also means the renderers have to support it)
     chart.getXYPlot().getDomainAxis()
-        .setRange(RangeUtils.guavaToJFree(dataset.getDomainValueRange()), false, true);
+        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getDomainValueRange(), 0.001d)), false, true);
     chart.getXYPlot().getRangeAxis()
-        .setRange(RangeUtils.guavaToJFree(dataset.getRangeValueRange()), false, true);
+        .setRange(RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(dataset.getRangeValueRange(), 0.0001d)), false, true);
     BufferedImage img = chart.getChart()
         .createBufferedImage(GraphicalColumType.LARGE_GRAPHICAL_CELL_WIDTH,
             GraphicalColumType.DEFAULT_GRAPHICAL_CELL_HEIGHT);

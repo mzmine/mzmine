@@ -26,6 +26,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,7 @@ class PathAlignerTask extends AbstractTask {
   private ParameterSet parameters;
   private Aligner aligner;
 
-  PathAlignerTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+  PathAlignerTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

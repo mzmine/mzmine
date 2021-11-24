@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.featdet_imsexpander;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -32,14 +33,17 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -54,27 +58,24 @@ import org.jetbrains.annotations.Nullable;
 public class ImsExpanderTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(ImsExpanderTask.class.getName());
-  private static final int NUM_THREADS = 5;
-
-  private final MZmineProject project;
+  private static final int NUM_THREADS = MZmineCore.getConfiguration().getPreferences()
+      .getParameter(MZminePreferences.numOfThreads).getValue();
   protected final ParameterSet parameters;
   protected final ModularFeatureList flist;
+  final List<AbstractTask> tasks = new ArrayList<>();
+  private final MZmineProject project;
   private final MZTolerance mzTolerance;
   private final boolean useMzToleranceRange;
-
-  private String desc = "Mobility expanding.";
   private final AtomicInteger processedFrames = new AtomicInteger(0);
   private final AtomicInteger processedRows = new AtomicInteger(0);
-
-  final List<AbstractTask> tasks = new ArrayList<>();
-
+  private final int binWidth;
+  private String desc = "Mobility expanding.";
   private long totalFrames = 1;
   private long totalRows = 1;
-  private final int binWidth;
 
   public ImsExpanderTask(@Nullable final MemoryMapStorage storage,
       @NotNull final ParameterSet parameters, @NotNull final ModularFeatureList flist,
-      MZmineProject project, final int allowedThreads, @NotNull Date moduleCallDate) {
+      MZmineProject project, final int allowedThreads, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
@@ -82,7 +83,10 @@ public class ImsExpanderTask extends AbstractTask {
     useMzToleranceRange = parameters.getParameter(ImsExpanderParameters.mzTolerance).getValue();
     mzTolerance = parameters.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter()
         .getValue();
-    binWidth = parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue();
+    binWidth = parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getValue()
+        ? parameters.getParameter(ImsExpanderParameters.mobilogramBinWidth).getEmbeddedParameter()
+        .getValue() : BinningMobilogramDataAccess.getRecommendedBinWidth(
+        (IMSRawDataFile) flist.getRawDataFile(0));
   }
 
   @Override
@@ -100,8 +104,8 @@ public class ImsExpanderTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    if (flist.getNumberOfRawDataFiles() != 1 || !(flist
-        .getRawDataFile(0) instanceof IMSRawDataFile imsFile)) {
+    if (flist.getNumberOfRawDataFiles() != 1 || !(flist.getRawDataFile(
+        0) instanceof IMSRawDataFile imsFile)) {
       setErrorMessage("More than one raw data file in feature list " + flist.getName()
           + " or no mobility dimension in raw data file.");
       setStatus(TaskStatus.ERROR);
@@ -122,13 +126,20 @@ public class ImsExpanderTask extends AbstractTask {
     final List<Frame> frames = (List<Frame>) flist.getSeletedScans(flist.getRawDataFile(0));
     assert frames != null;
 
-    // we have to partition the traces and not the frames. This way, we can go through the scans
-    // consecutively in each subtask and don't have to sort in the end.
-    final List<List<ExpandingTrace>> subLists = Lists
-        .partition(expandingTraces, expandingTraces.size() / NUM_THREADS);
+    // we partition the frames so we can use multiple MobilityScanDataAccesses on the same raw data
+    // file and don't have to extract the data points multiple times for each frame, if we use
+    // a TdfRawDataFileImpl (no memory mapped data points)
+    final List<List<Frame>> subLists = Lists.partition(frames, frames.size() / NUM_THREADS);
 
-    for (final List<ExpandingTrace> subList : subLists) {
-      tasks.add(new ImsExpanderSubTask(getMemoryMapStorage(), parameters, frames, flist, subList));
+    for (final List<Frame> subList : subLists) {
+      final Frame first = subList.get(0);
+      final Frame last = subList.get(subList.size() - 1);
+      Range<Float> rtRange = Range.closed(first.getRetentionTime(), last.getRetentionTime());
+      final List<ExpandingTrace> eligibleTraces = expandingTraces.stream()
+          .filter(trace -> trace.getRtRange().isConnected(rtRange)).toList();
+      tasks.add(
+          new ImsExpanderSubTask(getMemoryMapStorage(), parameters, subList, flist,
+              eligibleTraces));
     }
 
     final AtomicBoolean allThreadsFinished = new AtomicBoolean(false);
@@ -162,8 +173,8 @@ public class ImsExpanderTask extends AbstractTask {
       return;
     }
 
-    final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess
-        .of(imsFile, binWidth);
+    final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
+        binWidth);
 
     final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + " expanded ",
         getMemoryMapStorage(), imsFile);
@@ -175,8 +186,8 @@ public class ImsExpanderTask extends AbstractTask {
       desc = "Creating new features " + processedRows.getAndIncrement() + "/" + totalRows;
 
       if (expandingTrace.getNumberOfMobilityScans() > 1) {
-        final IonMobilogramTimeSeries series = expandingTrace
-            .toIonMobilogramTimeSeries(getMemoryMapStorage(), mobilogramDataAccess);
+        final IonMobilogramTimeSeries series = expandingTrace.toIonMobilogramTimeSeries(
+            getMemoryMapStorage(), mobilogramDataAccess);
         final ModularFeatureListRow row = new ModularFeatureListRow(newFlist,
             expandingTrace.getRow(), false);
         final ModularFeature f = new ModularFeature(newFlist,
@@ -190,13 +201,20 @@ public class ImsExpanderTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-
-      processedRows.getAndIncrement();
     }
 
-    newFlist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters, getModuleCallDate()));
+    newFlist.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
+            getModuleCallDate()));
     project.addFeatureList(newFlist);
+    if (parameters.getParameter(ImsExpanderParameters.removeOriginalFeatureList).getValue()) {
+      project.removeFeatureList(flist);
+    }
     setStatus(TaskStatus.FINISHED);
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH; // master task needs high priority, so it does not brick the task controller
   }
 }

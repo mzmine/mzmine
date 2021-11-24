@@ -19,9 +19,9 @@
 package io.github.mzmine.modules.tools.sortfeaturelists;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -58,7 +58,7 @@ public class SortFeatureListsModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     List<FeatureList> featureLists = Arrays.asList(parameters
         .getParameter(SortFeatureListsParameters.featureLists).getValue().getMatchingFeatureLists());

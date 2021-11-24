@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -56,7 +57,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
   private int totalScans, parsedScans;
 
   public IcpMsCVSImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -160,7 +161,7 @@ public class IcpMsCVSImportTask extends AbstractTask {
           intensityValues[i] = Double.valueOf(intensity);
         }
 
-        Scan scan = new SimpleScan(newMZmineFile, scanNumber, 1, rt, 0.0, 1, mzValues,
+        Scan scan = new SimpleScan(newMZmineFile, scanNumber, 1, rt, null, mzValues,
             intensityValues, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
             "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
 

@@ -8,23 +8,40 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA.
  *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.customlipidclass.CustomLipidClass;
+import io.github.mzmine.util.FormulaUtils;
 
 public class SpeciesLevelAnnotation implements ILipidAnnotation {
 
+  private static final String XML_ELEMENT = "lipidannotation";
+  private static final String XML_LIPID_CLASS = "lipidclass";
+  private static final String XML_NAME = "name";
+  private static final String XML_LIPID_ANNOTAION_LEVEL = "lipidannotationlevel";
+  private static final String XML_LIPID_FORMULA = "molecularformula";
+  private static final String XML_NUMBER_OF_CARBONS = "numberOfCarbons";
+  private static final String XML_NUMBER_OF_DBES = "numberofdbes";
+
   private ILipidClass lipidClass;
   private String annotation;
-  private static final LipidAnnotationLevel lipidAnnotationLevel =
+  private static final LipidAnnotationLevel LIPID_ANNOTATION_LEVEL =
       LipidAnnotationLevel.SPECIES_LEVEL;
   private IMolecularFormula molecularFormula;
   private int numberOfCarbons;
@@ -61,7 +78,7 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
 
   @Override
   public LipidAnnotationLevel getLipidAnnotationLevel() {
-    return lipidAnnotationLevel;
+    return LIPID_ANNOTATION_LEVEL;
   }
 
   @Override
@@ -116,4 +133,83 @@ public class SpeciesLevelAnnotation implements ILipidAnnotation {
     return true;
   }
 
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(XML_ELEMENT, LIPID_ANNOTATION_LEVEL.name());
+    lipidClass.saveToXML(writer);
+    writer.writeStartElement(XML_NAME);
+    writer.writeCharacters(annotation);
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_ANNOTAION_LEVEL);
+    writer.writeCharacters(LIPID_ANNOTATION_LEVEL.name());
+    writer.writeEndElement();
+    writer.writeStartElement(XML_LIPID_FORMULA);
+    writer.writeCharacters(MolecularFormulaManipulator.getString(molecularFormula));
+    writer.writeEndElement();
+    writer.writeStartElement(XML_NUMBER_OF_CARBONS);
+    writer.writeCharacters(String.valueOf(numberOfCarbons));
+    writer.writeEndElement();
+    writer.writeStartElement(XML_NUMBER_OF_DBES);
+    writer.writeCharacters(String.valueOf(numberOfDBEs));
+    writer.writeEndElement();
+    writer.writeEndElement();
+  }
+
+  public static ILipidAnnotation loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException(
+          "Cannot load lipid class from the current element. Wrong name.");
+    }
+
+    ILipidClass lipidClass = null;
+    String annotation = null;
+    LipidAnnotationLevel lipidAnnotationLevel = null;
+    IMolecularFormula molecularFormula = null;
+    Integer numberOfCarbons = null;
+    Integer numberOfDBEs = null;
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case XML_LIPID_CLASS:
+          if (reader.getAttributeValue(null, XML_LIPID_CLASS)
+              .equals(LipidClasses.class.getSimpleName())) {
+            lipidClass = LipidClasses.loadFromXML(reader);
+          } else if (reader.getAttributeValue(null, XML_LIPID_CLASS)
+              .equals(CustomLipidClass.class.getSimpleName())) {
+            lipidClass = CustomLipidClass.loadFromXML(reader);
+          }
+          break;
+        case XML_NAME:
+          annotation = reader.getElementText();
+          break;
+        case XML_LIPID_ANNOTAION_LEVEL:
+          lipidAnnotationLevel =
+                  LipidParsingUtils.lipidAnnotationLevelNameToLipidAnnotationLevel(reader.getElementText());
+          break;
+        case XML_LIPID_FORMULA:
+          molecularFormula = FormulaUtils.createMajorIsotopeMolFormula(reader.getElementText());
+          break;
+        case XML_NUMBER_OF_CARBONS:
+          numberOfCarbons = Integer.parseInt(reader.getElementText());
+          break;
+        case XML_NUMBER_OF_DBES:
+          numberOfDBEs = Integer.parseInt(reader.getElementText());
+          break;
+        default:
+          break;
+      }
+    }
+
+    if (lipidAnnotationLevel != null
+        && lipidAnnotationLevel.equals(LipidAnnotationLevel.SPECIES_LEVEL)) {
+      return new SpeciesLevelAnnotation(lipidClass, annotation, molecularFormula, numberOfCarbons,
+          numberOfDBEs);
+    }
+    return null;
+  }
 }

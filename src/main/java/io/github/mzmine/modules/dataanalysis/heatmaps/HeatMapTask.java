@@ -18,22 +18,11 @@
 
 package io.github.mzmine.modules.dataanalysis.heatmaps;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Vector;
-import java.util.logging.Logger;
-
-import org.apache.commons.math.MathException;
-import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math.stat.inference.TTestImpl;
-
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -42,6 +31,15 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.R.Rsession.Rsession;
+import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+import java.util.logging.Logger;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math.stat.inference.TTestImpl;
 import org.jetbrains.annotations.NotNull;
 
 public class HeatMapTask extends AbstractTask {
@@ -65,7 +63,7 @@ public class HeatMapTask extends AbstractTask {
   private final Object referenceGroup;
   private final FeatureList featureList;
 
-  public HeatMapTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public HeatMapTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.project = project;

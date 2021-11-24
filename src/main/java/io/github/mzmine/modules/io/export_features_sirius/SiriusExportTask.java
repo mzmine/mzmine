@@ -50,6 +50,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -57,11 +58,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -81,19 +81,6 @@ public class SiriusExportTask extends AbstractTask {
   // ION
   public static final String ION = "ION=";
 
-  protected static final Comparator<DataPoint> CompareDataPointsByMz = new Comparator<DataPoint>() {
-    @Override
-    public int compare(DataPoint o1, DataPoint o2) {
-      return Double.compare(o1.getMZ(), o2.getMZ());
-    }
-  };
-  protected static final Comparator<DataPoint> CompareDataPointsByDecreasingInt =
-      new Comparator<DataPoint>() {
-        @Override
-        public int compare(DataPoint o1, DataPoint o2) {
-          return Double.compare(o2.getIntensity(), o1.getIntensity());
-        }
-      };
   private static final Logger logger = Logger.getLogger(SiriusExportTask.class.getName());
   private static final String plNamePattern = "{}";
   private final FeatureList[] featureLists;
@@ -118,7 +105,7 @@ public class SiriusExportTask extends AbstractTask {
   private int nextID = 1;
   private boolean renumberID;
 
-  SiriusExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();
@@ -174,7 +161,9 @@ public class SiriusExportTask extends AbstractTask {
         String newFilename =
             fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
+
       }
+      curFile = FileAndPathUtil.getRealFilePath(curFile, ".mgf");
 
       // Open file
       try (final BufferedWriter bw = new BufferedWriter(new FileWriter(curFile))) {
@@ -191,7 +180,7 @@ public class SiriusExportTask extends AbstractTask {
       }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING) {
+    if (!isCanceled()) {
       setStatus(TaskStatus.FINISHED);
     }
   }

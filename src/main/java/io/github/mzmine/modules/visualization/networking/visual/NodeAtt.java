@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.networking.visual;
@@ -22,6 +21,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.List;
 
 /**
@@ -32,7 +33,8 @@ import java.util.List;
 public enum NodeAtt {
 
   NONE, ROW, TYPE, RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, FORMULA,
-  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID;
+  NEUTRAL_MASS, CHARGE, ION_TYPE, MS2_VERIFICATION, LABEL, NET_ID, GROUP_ID,
+  SPECTRAL_LIB_MATCH_SUMMARY, SPECTRAL_LIB_MATCH, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY;
 
   @Override
   public String toString() {
@@ -41,8 +43,10 @@ public enum NodeAtt {
 
   public boolean isNumber() {
     return switch (this) {
-      case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION -> false;
-      case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE, NET_ID, GROUP_ID -> true;
+      case NONE, ROW, TYPE, FORMULA, ION_TYPE, LABEL, MS2_VERIFICATION, SPECTRAL_LIB_MATCH,
+          SPECTRAL_LIB_MATCH_SUMMARY -> false;
+      case RT, MZ, ID, MAX_INTENSITY, SUM_INTENSITY, LOG10_SUM_INTENSITY, NEUTRAL_MASS, CHARGE,
+          NET_ID, GROUP_ID, SPECTRAL_LIB_SCORE, SPECTRAL_LIB_EXPLAINED_INTENSITY -> true;
     };
   }
 
@@ -77,6 +81,16 @@ public enum NodeAtt {
         yield ion == null ? null : ion.getNetID();
       }
       case GROUP_ID -> row.getGroupID();
+      case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
+          .map(SpectralDBFeatureIdentity::getName).findFirst().orElse(null);
+      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
+          match -> match.getEntry().getOrElse(DBEntryField.NAME, (String) null)).findFirst()
+          .orElse(null);
+      case SPECTRAL_LIB_SCORE -> row.getSpectralLibraryMatches().stream()
+          .map(match -> match.getSimilarity().getScore()).findFirst().orElse(null);
+      case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
+          .map(match -> match.getSimilarity().getExplainedLibraryIntensity()).findFirst()
+          .orElse(null);
     };
   }
 
@@ -116,6 +130,18 @@ public enum NodeAtt {
         int i = row.getGroupID();
         yield i > -1 ? String.valueOf(i) : "";
       }
+      case SPECTRAL_LIB_MATCH_SUMMARY -> row.getSpectralLibraryMatches().stream()
+          .map(SpectralDBFeatureIdentity::getName).findFirst()
+          .orElse("");
+      case SPECTRAL_LIB_MATCH -> row.getSpectralLibraryMatches().stream().map(
+          match -> match.getEntry().getOrElse(DBEntryField.NAME, "")).findFirst().orElse("");
+      case SPECTRAL_LIB_SCORE -> row.getSpectralLibraryMatches().stream()
+          .map(match -> String.format("%1.2G", match.getSimilarity().getScore())).findFirst()
+          .orElse("");
+      case SPECTRAL_LIB_EXPLAINED_INTENSITY -> row.getSpectralLibraryMatches().stream()
+          .map(
+              match -> String.format("%1.2G", match.getSimilarity().getExplainedLibraryIntensity()))
+          .findFirst().orElse("");
     };
 
   }

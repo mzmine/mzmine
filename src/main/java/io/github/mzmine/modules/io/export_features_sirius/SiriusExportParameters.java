@@ -41,8 +41,15 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class SiriusExportParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("mgf format for SIRIUS", "*.mgf") //
+  );
+
 
   public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
       new OptionalModuleParameter<>("Merge MS/MS",
@@ -73,7 +80,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
       + "Use pattern \"{}\" in the file name to substitute with feature list name. "
       + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
       + "If the file already exists, it will be overwritten.",
-      "mgf", FileSelectionType.SAVE);
+      extensions, FileSelectionType.SAVE);
 
   public SiriusExportParameters() {
     super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, MZ_TOL, RENUMBER_ID,

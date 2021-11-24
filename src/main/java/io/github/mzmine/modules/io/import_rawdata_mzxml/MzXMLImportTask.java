@@ -24,9 +24,12 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleMassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -41,6 +44,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -113,13 +117,15 @@ public class MzXMLImportTask extends AbstractTask {
 
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MzXMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.parameters = parameters;
     this.module = module;
@@ -132,14 +138,12 @@ public class MzXMLImportTask extends AbstractTask {
 
     if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-        this.ms1Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-            .getValue();
+        this.ms1Detector = advancedParam.getParameter(
+            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-        this.ms2Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-            .getValue();
+        this.ms2Detector = advancedParam.getParameter(
+            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
       }
     }
 
@@ -173,7 +177,8 @@ public class MzXMLImportTask extends AbstractTask {
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(file, handler);
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -316,9 +321,6 @@ public class MzXMLImportTask extends AbstractTask {
         String precursorChargeStr = attrs.getValue("precursorCharge");
         if (precursorChargeStr != null) {
           precursorCharge = Integer.parseInt(precursorChargeStr);
-          if (buildingScan != null) {
-            buildingScan.setPrecursorCharge(precursorCharge);
-          }
         }
       }
 
@@ -379,9 +381,6 @@ public class MzXMLImportTask extends AbstractTask {
           precursorMz = Double.parseDouble(textContent);
         }
 
-        if (buildingScan != null) {
-          buildingScan.setPrecursorMZ(precursorMz);
-        }
         return;
       }
 
@@ -443,10 +442,14 @@ public class MzXMLImportTask extends AbstractTask {
           }
 
           if (mzIntensities != null) {
+            final DDAMsMsInfo info =
+                msLevel != 1 && Double.compare(precursorMz, 0d) != 0 ? new DDAMsMsInfoImpl(
+                    precursorMz, precursorCharge, null, null, null, msLevel,
+                    ActivationMethod.UNKNOWN, null) : null;
             // Set the centroided / thresholded data points to the scan
-            buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-                precursorMz, precursorCharge, mzIntensities[0], mzIntensities[1],
-                MassSpectrumType.CENTROIDED, polarity, scanId, null);
+            buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
+                mzIntensities[0], mzIntensities[1], MassSpectrumType.CENTROIDED, polarity, scanId,
+                null);
 
             // create mass list and scan. Override data points and spectrum type
             ScanPointerMassList newMassList = new ScanPointerMassList(buildingScan);
@@ -459,10 +462,13 @@ public class MzXMLImportTask extends AbstractTask {
           // Auto-detect whether this scan is centroided
           MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
+          final DDAMsMsInfo info =
+              msLevel != 1 && precursorMz != 0d ? new DDAMsMsInfoImpl(precursorMz, precursorCharge,
+                  null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
+
           // Set the final data points to the scan
-          buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-              precursorMz, precursorCharge, mzValues, intensityValues, spectrumType, polarity,
-              scanId, null);
+          buildingScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
+              mzValues, intensityValues, spectrumType, polarity, scanId, null);
         }
 
         return;

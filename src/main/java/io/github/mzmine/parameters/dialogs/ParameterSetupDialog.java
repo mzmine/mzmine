@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -105,8 +103,6 @@ public class ParameterSetupDialog extends Stage {
    */
   protected HelpWindow helpWindow = null;
   private ExitCode exitCode = ExitCode.UNKNOWN;
-  private BooleanProperty parametersChangeProperty = new SimpleBooleanProperty(false);
-
 
   /**
    * Constructor
@@ -182,7 +178,7 @@ public class ParameterSetupDialog extends Stage {
       UserParameter up = (UserParameter) p;
 
       Node comp = up.createEditingComponent();
-      addToolTipToControls(comp, up.getDescription());
+//      addToolTipToControls(comp, up.getDescription());
       if (comp instanceof Region) {
         double minWidth = ((Region) comp).getMinWidth();
         // if (minWidth > column2.getMinWidth()) column2.setMinWidth(minWidth);
@@ -207,6 +203,7 @@ public class ParameterSetupDialog extends Stage {
       Label label = new Label(p.getName());
       label.minWidthProperty().bind(label.widthProperty());
       label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
+      label.setTooltip(new Tooltip(up.getDescription()));
 
       label.setStyle("-fx-font-weight: bold");
       paramsPane.add(label, 0, rowCounter);
@@ -452,13 +449,6 @@ public class ParameterSetupDialog extends Stage {
         addToolTipToControls(child, toolTipText);
       }
     }
-  }
-
-  /**
-   * @see ParameterSet#parametersChangeProperty()
-   */
-  public BooleanProperty parametersChangeProperty() {
-    return parametersChangeProperty;
   }
 
   public GridPane getParamsPane() {

@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class SpectraIdentificationResultsModule implements MZmineModule {
 
-  public static final String MODULE_NAME = "Local spectral database search results";
+  public static final String MODULE_NAME = "Local spectral libraries search results";
 
   public static void showNewTab(List<ModularFeatureListRow> rows) {
     List<SpectralDBFeatureIdentity> spectralID =

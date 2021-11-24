@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.featuredata;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.util.List;
@@ -68,5 +69,10 @@ public interface IonTimeSeries<T extends Scan> extends IonSpectrumSeries<T>, Tim
   IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
       @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
 
+  /**
+   * @param writer   The writer.
+   * @param allScans All scans of the given raw data file (those are used during import). NOT the
+   *                 preselected scans obtained from {@link io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   */
   public void saveValueToXML(XMLStreamWriter writer, List<T> allScans) throws XMLStreamException;
 }

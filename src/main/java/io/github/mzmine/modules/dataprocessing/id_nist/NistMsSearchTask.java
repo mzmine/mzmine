@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
@@ -142,7 +143,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @param list   the feature list to search.
    * @param params search parameters.
    */
-  public NistMsSearchTask(final FeatureList list, final ParameterSet params, @NotNull Date moduleCallDate) {
+  public NistMsSearchTask(final FeatureList list, final ParameterSet params, @NotNull Instant moduleCallDate) {
 
     this(null, list, params, moduleCallDate);
   }
@@ -155,7 +156,7 @@ public class NistMsSearchTask extends AbstractTask {
    * @param params search parameters.
    */
   public NistMsSearchTask(final FeatureListRow row, final FeatureList list,
-      final ParameterSet params, @NotNull Date moduleCallDate) {
+      final ParameterSet params, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     // Initialize.

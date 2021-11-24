@@ -42,7 +42,7 @@ public interface IonMobilitySeries extends IonSpectrumSeries<MobilityScan>, Mobi
     final Frame frame = series.getSpectrum(0).getFrame();
     final int frameIndex = frame.getDataFile().getScans().indexOf(frame);
     if (frameIndex == -1) {
-      throw new IllegalArgumentException("Cannot find frame.");
+      throw new IllegalArgumentException("Cannot find frame in data file.");
     }
     writer.writeAttribute(XML_FRAME_INDEX_ELEMENT, String.valueOf(frameIndex));
 

@@ -49,8 +49,9 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -83,7 +84,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
   private FeatureListRowsFilter filter;
 
-  GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
@@ -216,7 +217,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
           writer.write("RTINSECONDS=" + rtsForm.format(retTimeInSeconds) + newLine);
         }
 
-        int msmsCharge = msmsScan.getPrecursorCharge();
+        int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 0);
         String msmsPolarity = msmsScan.getPolarity().asSingleChar();
         if (msmsPolarity.equals("0"))
           msmsPolarity = "";

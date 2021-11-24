@@ -29,9 +29,9 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormul
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,7 +58,7 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
     message = "Creation of average molecular formulas for MS annotation networks";
   }*/
 
-  public CreateAvgNetworkFormulasTask(FormulaSortTask sorter, @NotNull Date moduleCallDate) {
+  public CreateAvgNetworkFormulasTask(FormulaSortTask sorter, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     sortResults = sorter != null;
     this.sorter = sorter;
@@ -74,7 +74,7 @@ public class CreateAvgNetworkFormulasTask extends AbstractTask {
     message = "Creation of average molecular formulas for MS annotation networks";
   }*/
 
-  public CreateAvgNetworkFormulasTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public CreateAvgNetworkFormulasTask(ModularFeatureList featureList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
 

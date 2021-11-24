@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.gui;
@@ -47,8 +46,10 @@ import io.github.mzmine.util.GUIUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -61,8 +62,10 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -78,7 +81,9 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.commons.io.FilenameUtils;
@@ -93,11 +98,10 @@ public class MZmineGUI extends Application implements Desktop {
   public static final int MAX_TABS = 7;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
-
+  private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
-  private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -172,32 +176,40 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
+      if (mainWindowController != null) {
+        GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
+        rawDataList.setValues(project.rawDataFilesProperty().getValue());
 
-      GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-      rawDataList.setValues(project.getRawDataFiles());
+        GroupableListView<FeatureList> featureListsList = mainWindowController
+            .getFeatureListsList();
+        featureListsList.setValues(project.featureListsProperty().getValue());
 
-      GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
-      featureListsList.setValues(project.getFeatureLists());
+        var libraryList = mainWindowController.getSpectralLibraryList();
+        libraryList.setItems(project.spectralLibrariesProperty().getValue());
 
+      }
     });
 
   }
 
   @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
-
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
     return ImmutableList.copyOf(rawDataListView.getSelectedValues());
-
   }
 
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-
     final GroupableListView<FeatureList> featureListView = mainWindowController
         .getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
+  }
 
+  @NotNull
+  public static List<SpectralLibrary> getSelectedSpectralLibraryList() {
+    final var spectralLibraryView = mainWindowController.getSpectralLibraryList();
+    return FXCollections
+        .unmodifiableObservableList(spectralLibraryView.getSelectionModel().getSelectedItems());
   }
 
   @NotNull
@@ -277,19 +289,20 @@ public class MZmineGUI extends Application implements Desktop {
       }
 
       if (!rawDataFiles.isEmpty()) {
-        logger.finest(
-            () -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: " + Arrays
-                .toString(rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
+        logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
+                            + Arrays.toString(
+            rawDataFiles.stream().map(File::getAbsolutePath).toArray()));
         ParameterSet param = MZmineCore.getConfiguration()
             .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
         param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
         param.getParameter(AllSpectralDataImportParameters.fileNames)
             .setValue(rawDataFiles.toArray(File[]::new));
-        AllSpectralDataImportModule module = MZmineCore
-            .getModuleInstance(AllSpectralDataImportModule.class);
+        AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
+            AllSpectralDataImportModule.class);
         if (module != null) {
           List<Task> tasks = new ArrayList<>();
-          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks, new Date());
+          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
+              Instant.now());
           MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
         }
       }
@@ -475,14 +488,22 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void displayMessage(String title, String msg) {
     MZmineCore.runLater(() -> {
+
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
-      dialog.setContentText(msg);
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+
+      final Text text = new Text();
+      text.setWrappingWidth(300);
+      text.setText(msg);
+      StackPane pane = new StackPane(text);
+      pane.setPadding(new Insets(5));
+      dialog.getDialogPane().setContent(pane);
+
       dialog.showAndWait();
     });
   }
@@ -530,6 +551,11 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public FeatureList[] getSelectedPeakLists() {
     return getSelectedFeatureLists().toArray(new FeatureList[0]);
+  }
+
+  @Override
+  public SpectralLibrary[] getSelectedSpectralLibraries() {
+    return getSelectedSpectralLibraryList().toArray(new SpectralLibrary[0]);
   }
 
   @Override

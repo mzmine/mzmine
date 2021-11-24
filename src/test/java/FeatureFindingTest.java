@@ -58,7 +58,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
-import io.github.mzmine.util.maths.CenterMeasure;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Objects;
@@ -107,10 +106,16 @@ public class FeatureFindingTest {
    */
   @BeforeAll
   public void init() {
-    logger.info("Running MZmine");
-    MZmineCore.main(new String[]{"-r", "-m", "all"});
+//    logger.info("Running MZmine");
+//    MZmineCore.main(new String[]{"-r", "-m", "all"});
     logger.info("Getting project");
     project = MZmineCore.getProjectManager().getCurrentProject();
+  }
+
+  @AfterAll
+  public void tearDown() {
+    // we need to clean the project after this integration test
+    MZmineTestUtil.cleanProject();
   }
 
 
@@ -149,7 +154,7 @@ public class FeatureFindingTest {
 
     assertEquals(2, project.getDataFiles().length);
     // sort by name
-    project.getRawDataFiles().sort(Comparator.comparing(RawDataFile::getName));
+    project.rawDataFilesProperty().sort(Comparator.comparing(RawDataFile::getName));
     int filesTested = 0;
     for (RawDataFile raw : project.getRawDataFiles()) {
       // check all scans and mass lists
@@ -394,8 +399,6 @@ public class FeatureFindingTest {
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 4);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 1.8);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
-    generalParam.getParameter(MinimumSearchFeatureResolverParameters.MZ_CENTER_FUNCTION)
-        .setValue(CenterMeasure.MEDIAN);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION,
         Range.closed(0.02, 1d));
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, 0.15);
@@ -588,12 +591,6 @@ public class FeatureFindingTest {
     assertTrue(processed1.stream()
             .anyMatch(row -> row.getFeatures().stream().filter(Objects::nonNull).count() == 2),
         "No row found with 2 features");
-  }
-
-  @AfterAll
-  public void tearDown() {
-    // System.exit in tests are bad
-    // MZmineCore.exit();
   }
 
   private MZmineProcessingStep<MassDetector> createCentroidMassDetector(double noise) {

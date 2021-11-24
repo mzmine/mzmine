@@ -36,6 +36,7 @@ import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -59,7 +60,7 @@ public class LegacyCSVExportTask extends AbstractTask {
   private final FeatureListRowsFilter filter;
   private int processedRows = 0, totalRows = 0;
 
-  public LegacyCSVExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public LegacyCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists =
         parameters.getParameter(LegacyCSVExportParameters.featureLists).getValue()
@@ -101,7 +102,7 @@ public class LegacyCSVExportTask extends AbstractTask {
       LegacyExportRowCommonElement[] commonElements,
       LegacyExportRowDataFileElement[] dataFileElements,
       Boolean exportAllFeatureInfo, String idSeparator, FeatureListRowsFilter filter,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = featureLists;
     this.fileName = fileName;

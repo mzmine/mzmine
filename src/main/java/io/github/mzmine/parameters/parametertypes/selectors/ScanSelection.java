@@ -26,7 +26,9 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.TextUtils;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -123,6 +125,7 @@ public class ScanSelection {
 
   /**
    * This method is deprecated as MZmine now uses the scans instead of the scan numbers
+   *
    * @param dataFile
    * @return
    */
@@ -169,8 +172,8 @@ public class ScanSelection {
       return false;
     }
 
-    if ((baseFilteringInteger != null)
-        && ((scan.getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
+    if ((baseFilteringInteger != null) && (
+        (scan.getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
       return false;
     }
 
@@ -179,7 +182,8 @@ public class ScanSelection {
     }
 
     if (scan instanceof Frame) {
-      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange().isConnected(scanMobilityRange)) {
+      if (scanMobilityRange != null && !((Frame) scan).getMobilityRange()
+          .isConnected(scanMobilityRange)) {
         return false;
       }
     } /*else {
@@ -245,8 +249,8 @@ public class ScanSelection {
       return false;
     }
 
-    if ((baseFilteringInteger != null)
-        && ((scan.getFrame().getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
+    if ((baseFilteringInteger != null) && (
+        (scan.getFrame().getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0)) {
       return false;
     }
 
@@ -284,19 +288,55 @@ public class ScanSelection {
       return false;
     }
     ScanSelection that = (ScanSelection) o;
-    return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects
-        .equals(getScanMobilityRange(), that.getScanMobilityRange()) && Objects
-        .equals(getScanRTRange(), that.getScanRTRange()) && getPolarity() == that.getPolarity()
-        && getSpectrumType() == that.getSpectrumType() && Objects
-        .equals(getMsLevel(), that.getMsLevel()) && Objects
-        .equals(getBaseFilteringInteger(), that.getBaseFilteringInteger()) && Objects
-        .equals(getScanDefinition(), that.getScanDefinition());
+    return Objects.equals(getScanNumberRange(), that.getScanNumberRange()) && Objects.equals(
+        getScanMobilityRange(), that.getScanMobilityRange()) && Objects.equals(getScanRTRange(),
+        that.getScanRTRange()) && getPolarity() == that.getPolarity()
+        && getSpectrumType() == that.getSpectrumType() && Objects.equals(getMsLevel(),
+        that.getMsLevel()) && Objects.equals(getBaseFilteringInteger(),
+        that.getBaseFilteringInteger()) && Objects.equals(getScanDefinition(),
+        that.getScanDefinition());
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(), getPolarity(),
-            getSpectrumType(), getMsLevel(), getBaseFilteringInteger(), getScanDefinition());
+    return Objects.hash(getScanNumberRange(), getScanMobilityRange(), getScanRTRange(),
+        getPolarity(), getSpectrumType(), getMsLevel(), getBaseFilteringInteger(),
+        getScanDefinition());
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder b = new StringBuilder();
+    DecimalFormat threeDecimals = new DecimalFormat("0.000");
+
+    if (msLevel != null) {
+      b.append("MS level (").append(msLevel).append("), ");
+    }
+    if (scanNumberRange != null) {
+      b.append("Scan (#").append(scanNumberRange.lowerEndpoint()).append(" - ")
+          .append(scanNumberRange.upperEndpoint()).append("), ");
+    }
+    if (scanRTRange != null) {
+      b.append("RT range (").append(RangeUtils.formatRange(scanRTRange, threeDecimals))
+          .append("), ");
+    }
+    if (scanMobilityRange != null) {
+      b.append("Mobility range (").append(RangeUtils.formatRange(scanMobilityRange, threeDecimals))
+          .append("), ");
+    }
+    if (polarity != null) {
+      b.append("Polarity (").append(polarity.asSingleChar()).append("), ");
+    }
+    if (spectrumType != null) {
+      b.append("Spectrum type (").append(spectrumType).append("), ");
+    }
+    if (baseFilteringInteger != null) {
+      b.append("Base filtering interger (").append(baseFilteringInteger).append("), ");
+    }
+    if (scanDefinition != null) {
+      b.append("Scan definition (").append(scanDefinition).append(") ");
+    }
+
+    return b.toString();
   }
 }

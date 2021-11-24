@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -57,6 +56,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -105,6 +105,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     ParameterSet parameters = moduleParameters.get(moduleClass);
     if (parameters == null) {
       // Create an instance of parameter set
+      try {
       MZmineModule moduleInstance = MZmineCore.getModuleInstance(moduleClass);
       if (moduleInstance == null) {
         logger.log(Level.WARNING,
@@ -119,14 +120,21 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         return null;
       }
 
-      try {
-        parameters = parameterSetClass.getDeclaredConstructor().newInstance();
-      } catch (Exception e) {
+        try {
+          parameters = parameterSetClass.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+          e.printStackTrace();
+          logger.log(Level.SEVERE,
+              "Could not create an instance of parameter set class " + parameterSetClass, e);
+          return null;
+        }
+      } catch (NoClassDefFoundError | Exception e) {
         e.printStackTrace();
-        logger.log(Level.SEVERE,
-            "Could not create an instance of parameter set class " + parameterSetClass, e);
+        logger.log(Level.WARNING,
+            "Could not find the module or parameter class " + moduleClass.toString(), e);
         return null;
       }
+
 
       // Add the parameter set to the configuration
       moduleParameters.put(moduleClass, parameters);

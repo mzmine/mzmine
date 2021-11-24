@@ -24,15 +24,15 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -58,7 +58,7 @@ public class ExportChromatogramTask extends AbstractTask {
    * @param data data set to export.
    * @param file file to write to.
    */
-  public ExportChromatogramTask(final TICDataSet data, final File file, @NotNull Date moduleCallDate) {
+  public ExportChromatogramTask(final TICDataSet data, final File file, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
     dataSet = data;

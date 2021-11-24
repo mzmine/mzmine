@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,23 +8,21 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
+import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.ParameterSet;
@@ -33,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -67,7 +66,7 @@ public class MassDetectionTask extends AbstractTask {
    * @param storageMemoryMap
    */
   public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storageMemoryMap, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storageMemoryMap, @NotNull Instant moduleCallDate) {
     super(storageMemoryMap, moduleCallDate);
 
     this.dataFile = dataFile;
@@ -136,8 +135,8 @@ public class MassDetectionTask extends AbstractTask {
       logger.info("Started mass detector on " + dataFile);
 
       // uses only a single array for each (mz and intensity) to loop over all scans
-      ScanDataAccess data = EfficientDataAccess.of(dataFile,
-          EfficientDataAccess.ScanDataType.RAW, scanSelection);
+      ScanDataAccess data = EfficientDataAccess.of(dataFile, EfficientDataAccess.ScanDataType.RAW,
+          scanSelection);
       totalScans = data.getNumberOfScans();
 
       // all scans
@@ -154,18 +153,14 @@ public class MassDetectionTask extends AbstractTask {
         // [mzs, intensities]
         double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
-        if (scan instanceof Frame) {
+        // add mass list to scans and frames
+        scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
+
+        if (scan instanceof SimpleFrame frame) {
           // for ion mobility, detect subscans, too
-          FrameMassList frameMassList = new FrameMassList(getMemoryMapStorage(), mzPeaks[0],
-              mzPeaks[1]);
-          Frame frame = (Frame) scan;
-          frameMassList.generateAndAddMobilityScanMassLists(frame.getMobilityScans(),
-              getMemoryMapStorage(), detector, massDetector.getParameterSet());
-          frame.addMassList(frameMassList);
-        } else {
-          SimpleMassList newMassList = new SimpleMassList(getMemoryMapStorage(), mzPeaks[0],
-              mzPeaks[1]);
-          scan.addMassList(newMassList);
+          frame.getMobilityScanStorage()
+              .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
+                  massDetector.getParameterSet());
         }
 
         if (this.saveToCDF) {
@@ -195,19 +190,19 @@ public class MassDetectionTask extends AbstractTask {
         // *******************************
         final String outFileNamePath = outFilename.getPath();
         logger.info("Saving mass detector results to netCDF file " + outFileNamePath);
-        NetcdfFileWriter writer =
-            NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, outFileNamePath, null);
+        NetcdfFileWriter writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3,
+            outFileNamePath, null);
 
         Dimension dim_massValues = writer.addDimension(null, "mass_values", allMZ.size());
-        Dimension dim_intensityValues =
-            writer.addDimension(null, "intensity_values", allIntensities.size());
+        Dimension dim_intensityValues = writer.addDimension(null, "intensity_values",
+            allIntensities.size());
         Dimension dim_scanIndex = writer.addDimension(null, "scan_index", startIndex.size() - 1);
-        Dimension dim_scanAcquisitionTime =
-            writer.addDimension(null, "scan_acquisition_time", scanAcquisitionTime.size());
-        Dimension dim_totalIntensity =
-            writer.addDimension(null, "total_intensity", totalIntensity.size());
-        Dimension dim_pointsInScans =
-            writer.addDimension(null, "point_count", pointsInScans.size());
+        Dimension dim_scanAcquisitionTime = writer.addDimension(null, "scan_acquisition_time",
+            scanAcquisitionTime.size());
+        Dimension dim_totalIntensity = writer.addDimension(null, "total_intensity",
+            totalIntensity.size());
+        Dimension dim_pointsInScans = writer.addDimension(null, "point_count",
+            pointsInScans.size());
 
         // add dimensions to list
         List<Dimension> dims = new ArrayList<>();
@@ -219,17 +214,17 @@ public class MassDetectionTask extends AbstractTask {
         dims.add(dim_pointsInScans);
 
         // make the variables that contain the actual data I think.
-        Variable var_massValues =
-            writer.addVariable(null, "mass_values", DataType.DOUBLE, "mass_values");
-        Variable var_intensityValues =
-            writer.addVariable(null, "intensity_values", DataType.DOUBLE, "intensity_values");
+        Variable var_massValues = writer.addVariable(null, "mass_values", DataType.DOUBLE,
+            "mass_values");
+        Variable var_intensityValues = writer.addVariable(null, "intensity_values", DataType.DOUBLE,
+            "intensity_values");
         Variable var_scanIndex = writer.addVariable(null, "scan_index", DataType.INT, "scan_index");
         Variable var_scanAcquisitionTime = writer.addVariable(null, "scan_acquisition_time",
             DataType.DOUBLE, "scan_acquisition_time");
-        Variable var_totalIntensity =
-            writer.addVariable(null, "total_intensity", DataType.DOUBLE, "total_intensity");
-        Variable var_pointsInScans =
-            writer.addVariable(null, "point_count", DataType.INT, "point_count");
+        Variable var_totalIntensity = writer.addVariable(null, "total_intensity", DataType.DOUBLE,
+            "total_intensity");
+        Variable var_pointsInScans = writer.addVariable(null, "point_count", DataType.INT,
+            "point_count");
 
         var_massValues.addAttribute(new Attribute("units", "M/Z"));
         var_intensityValues.addAttribute(new Attribute("units", "Arbitrary Intensity Units"));
@@ -251,8 +246,8 @@ public class MassDetectionTask extends AbstractTask {
         ArrayDouble.D1 arr_massValues = new ArrayDouble.D1(dim_massValues.getLength());
         ArrayDouble.D1 arr_intensityValues = new ArrayDouble.D1(dim_intensityValues.getLength());
         ArrayDouble.D1 arr_scanIndex = new ArrayDouble.D1(dim_scanIndex.getLength());
-        ArrayDouble.D1 arr_scanAcquisitionTime =
-            new ArrayDouble.D1(dim_scanAcquisitionTime.getLength());
+        ArrayDouble.D1 arr_scanAcquisitionTime = new ArrayDouble.D1(
+            dim_scanAcquisitionTime.getLength());
         ArrayDouble.D1 arr_totalIntensity = new ArrayDouble.D1(dim_totalIntensity.getLength());
         ArrayDouble.D1 arr_pointsInScans = new ArrayDouble.D1(dim_pointsInScans.getLength());
 
@@ -290,8 +285,9 @@ public class MassDetectionTask extends AbstractTask {
         writer.write(var_pointsInScans, arr_pointsInScans);
         writer.close();
       }
-      dataFile.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters, getModuleCallDate()));
+      dataFile.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters,
+              getModuleCallDate()));
     } catch (Exception e) {
       e.printStackTrace();
       setErrorMessage(e.getMessage());

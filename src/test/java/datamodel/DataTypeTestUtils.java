@@ -1,19 +1,18 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package datamodel;
@@ -50,12 +49,13 @@ public class DataTypeTestUtils {
   /**
    * Saves and loads the data type and it's value to an ByteArrayStream. Fails the test if the
    * loaded value does not equal the saved value. The value is processed as a row type (feature and
-   * file = null) and as a feature type. Also tests null as a value and expects null to be returned.
+   * file = null) and as a feature type. Also tests null as a value and expects null to be
+   * returned.
    *
    * @param type  The data type.
    * @param value The value.
    */
-  public static void simpleDataTypeSaveLoadTest(DataType<?> type, Object value) {
+  public static <T> void simpleDataTypeSaveLoadTest(DataType<T> type, T value) {
 
     RawDataFile file = null;
     try {

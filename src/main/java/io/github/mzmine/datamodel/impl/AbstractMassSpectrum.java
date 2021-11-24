@@ -23,7 +23,6 @@ import com.google.common.collect.Streams;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
-import io.github.mzmine.datamodel.Scan;
 import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -79,9 +78,9 @@ public abstract class AbstractMassSpectrum implements MassSpectrum {
 
       // Update TIC
       totalIonCurrent += intensityValues.get(i);
-
     }
 
+    totalIonCurrent += intensityValues.get(intensityValues.capacity() - 1);
   }
 
 

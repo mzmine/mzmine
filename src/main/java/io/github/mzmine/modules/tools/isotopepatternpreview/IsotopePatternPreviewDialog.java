@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYLineRenderer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
@@ -69,53 +70,44 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  */
 public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
+  IsotopePatternPreviewTask task;
+  Color aboveMin, belowMin;
+  ParameterSet customParameters;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intFormat = new DecimalFormat("0.00 %");
   private NumberFormat relFormat = new DecimalFormat("0.00000");
-
   private double minIntensity, mergeWidth;
   private int charge;
   private PolarityType pol;
   private String formula;
-
   private SpectraPlot spectraPlot;
   private EStandardChartTheme theme;
   private BorderPane newMainPanel;
   private HBox pnlParameters;
   private SplitPane pnSplit;
   private VBox pnlControl;
-
   private TableView<IsotopePatternTableData> table;
   private ObservableList<IsotopePatternTableData> tableData;
-
   private DoubleParameter pMergeWidth;
   private PercentParameter pMinIntensity;
   private StringParameter pFormula;
   private IntegerParameter pCharge;
-
   private DoubleComponent cmpMergeWidth;
   private PercentComponent cmpMinIntensity;
   private TextField cmpFormula;
   private IntegerComponent cmpCharge;
-
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
-
-  IsotopePatternPreviewTask task;
   private boolean newParameters;
-
   private long lastCalc;
-
-  Color aboveMin, belowMin;
-
-  ParameterSet customParameters;
 
   public IsotopePatternPreviewDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
@@ -152,7 +144,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     newMainPanel.setPadding(new Insets(5));
 
     table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
+        KeyCombination.CONTROL_ANY);
     table.setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
         copySelectionToClipboard(table);
@@ -162,8 +155,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     tableData = FXCollections.observableArrayList();
     TableColumn<IsotopePatternTableData, String> mzColumn = new TableColumn<>("m/z");
     TableColumn<IsotopePatternTableData, String> intensityColumn = new TableColumn<>("Intensity");
-    TableColumn<IsotopePatternTableData, String> compositionColumn =
-        new TableColumn<>("Composition");
+    TableColumn<IsotopePatternTableData, String> compositionColumn = new TableColumn<>(
+        "Composition");
     mzColumn.setCellValueFactory(
         data -> new SimpleStringProperty(mzFormat.format(data.getValue().getMz())));
     intensityColumn.setCellValueFactory(
@@ -193,7 +186,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   @Override
   protected void parametersChanged() {
-    updateWindow();
+    updateParameterSetFromComponents();
+    if(checkParameters()) {
+      updateWindow();
+    }
   }
 
   // -----------------------------------------------------
@@ -206,8 +202,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       return;
     }
 
-    if (FormulaUtils.getFormulaSize(formula) > 5E3
-        && ((System.nanoTime() - lastCalc) * 1E-6 < 150)) {
+    if (FormulaUtils.getFormulaSize(formula) > 5E3 && ((System.nanoTime() - lastCalc) * 1E-6
+        < 150)) {
       logger.finest("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula)
           + " or last calculation recent: " + (System.nanoTime() - lastCalc) / 1E6 + " ms");
     }
@@ -234,7 +230,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    *
    * @param pattern
    */
-  protected void updateChart(SimpleIsotopePattern pattern) {
+  protected void updateChart(SimpleIsotopePattern pattern, XYDataset fit) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
 
     if (pol == PolarityType.NEUTRAL) {
@@ -245,6 +241,12 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     spectraPlot.removeAllDataSets();
     spectraPlot.addDataSet(dataset,
         MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true);
+    if (fit != null) {
+      spectraPlot.addDataSet(fit,
+          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
+      spectraPlot.getXYPlot().setRenderer(spectraPlot.getXYPlot().indexOf(fit),
+          new ColoredXYLineRenderer());
+    }
     formatChart();
   }
 
@@ -317,7 +319,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       logger.fine("Minimum intensity invalid. " + pMinIntensity.getValue());
       return false;
     }
-    if (pMergeWidth.getValue() == null || pMergeWidth.getValue() < 0.0d) {
+    if (pMergeWidth.getValue() == null || pMergeWidth.getValue() <= 0.000001d) {
       logger.fine("Merge width invalid. " + pMergeWidth.getValue());
       return false;
     }

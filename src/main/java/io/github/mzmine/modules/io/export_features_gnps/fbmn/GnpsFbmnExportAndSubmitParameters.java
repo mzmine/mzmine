@@ -41,17 +41,25 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureMeasurementType;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("MGF mascot file (spectra)", "*.mgf"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Base name of the output files (.MGF and .CSV). "
-          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-          + "If the file already exists, it will be overwritten.",
-      "mgf", FileSelectionType.SAVE);
+      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+      + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+      + "If the file already exists, it will be overwritten.",
+      extensions, FileSelectionType.SAVE);
 
   public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT =
       new OptionalModuleParameter<>("Submit to GNPS",

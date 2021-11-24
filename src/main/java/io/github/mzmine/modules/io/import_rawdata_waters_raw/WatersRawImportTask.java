@@ -24,7 +24,10 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -38,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -74,7 +78,7 @@ public class WatersRawImportTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
@@ -313,8 +317,12 @@ public class WatersRawImportTask extends AbstractTask {
         // Auto-detect whether this scan is centroided
         MassSpectrumType spectrumType = ScanUtils.detectSpectrumType(mzValues, intensityValues);
 
+        final DDAMsMsInfo info =
+            msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
+                null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
+
         SimpleScan newScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-            precursorMZ, precursorCharge, mzValues, intensityValues, spectrumType, polarity, scanId,
+            info, mzValues, intensityValues, spectrumType, polarity, scanId,
             mzRange);
         newMZmineFile.addScan(newScan);
 

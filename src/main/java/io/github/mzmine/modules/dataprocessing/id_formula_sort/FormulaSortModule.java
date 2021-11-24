@@ -17,16 +17,16 @@
  */
 package io.github.mzmine.modules.dataprocessing.id_formula_sort;
 
-import io.github.mzmine.datamodel.features.ModularFeatureList;
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class FormulaSortModule implements MZmineProcessingModule {
 
@@ -57,7 +57,7 @@ public class FormulaSortModule implements MZmineProcessingModule {
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     ModularFeatureList featureLists[] =
         parameters.getParameter(FormulaSortParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 

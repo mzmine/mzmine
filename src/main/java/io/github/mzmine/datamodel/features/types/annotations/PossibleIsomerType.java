@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -30,7 +29,6 @@ import io.github.mzmine.util.ParsingUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javafx.beans.property.ListProperty;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -52,22 +50,8 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   }
 
   @Override
-  public @NotNull String getFormattedString(@Nullable Object value) {
-    if (value == null) {
-      return "";
-    }
-    if (value instanceof List list) {
-      return list.isEmpty() ? "" : list.size() + ": " + list.toString();
-    }
-    if (value instanceof ListProperty list) {
-      return list.isEmpty() ? "" : list.size() + ": " + list.toString();
-    }
-    return super.getFormattedString(value);
-  }
-
-  @Override
-  public @NotNull String getFormattedString(@NotNull ListProperty<Integer> property) {
-    return property.isEmpty() ? "" : property.size() + ": " + property.toString();
+  public @NotNull String getFormattedString(@NotNull List<Integer> list) {
+    return list.isEmpty() ? "" : list.size() + ": " + list.toString();
   }
 
   @Override
@@ -137,10 +121,11 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if(!(value instanceof List<?> list)) {
+    if (!(value instanceof List<?> list)) {
       return;
     }
-    int[] objects = list.stream().filter(i -> i instanceof Integer).mapToInt(i -> (Integer) i).toArray();
+    int[] objects = list.stream().filter(i -> i instanceof Integer).mapToInt(i -> (Integer) i)
+        .toArray();
     String str = ParsingUtils.intArrayToString(objects, objects.length);
     writer.writeCharacters(str);
   }
@@ -150,7 +135,7 @@ public class PossibleIsomerType extends ListDataType<Integer> implements Annotat
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     final String text = reader.getElementText();
-    if(text.isEmpty()) {
+    if (text.isEmpty()) {
       return null;
     }
     int[] array = ParsingUtils.stringToIntArray(text);

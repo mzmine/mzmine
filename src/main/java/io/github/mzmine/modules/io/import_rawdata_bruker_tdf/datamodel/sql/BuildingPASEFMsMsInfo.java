@@ -28,17 +28,19 @@ public class BuildingPASEFMsMsInfo {
   private final int precursorCharge;
   private final int parentFrameNumber;
   private final int fragmentFrameNumber;
+  private final double isolationWidth;
 
 
-  public BuildingPASEFMsMsInfo(double precursorMz,
-      Range<Integer> spectrumNumberRange, float collisionEnergy, int precursorCharge,
-      int parentFrameNumber, int fragmentFrameNumber) {
+  public BuildingPASEFMsMsInfo(double precursorMz, Range<Integer> spectrumNumberRange,
+      float collisionEnergy, int precursorCharge, int parentFrameNumber, int fragmentFrameNumber,
+      double isolationWidth) {
     this.precursorMz = precursorMz;
     this.spectrumNumberRange = spectrumNumberRange;
     this.collisionEnergy = collisionEnergy;
     this.precursorCharge = precursorCharge;
     this.parentFrameNumber = parentFrameNumber;
     this.fragmentFrameNumber = fragmentFrameNumber;
+    this.isolationWidth = isolationWidth;
   }
 
   public double getLargestPeakMz() {
@@ -63,5 +65,9 @@ public class BuildingPASEFMsMsInfo {
 
   public int getFrameNumber() {
     return fragmentFrameNumber;
+  }
+
+  public Range<Double> getIsolationWindow() {
+    return Range.closed(precursorMz - isolationWidth / 2, precursorMz + isolationWidth / 2);
   }
 }
