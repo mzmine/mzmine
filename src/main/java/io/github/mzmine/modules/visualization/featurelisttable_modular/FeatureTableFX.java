@@ -229,8 +229,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     if (dataType.getClass().equals(FeaturesType.class)) {
       addFeaturesColumns();
     } else {
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType
-          .createColumn(null, null);
+      var col = dataType.createColumn(null, null);
       if (col == null) {
         return;
       }
@@ -387,8 +386,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @param rowVisibilityMap     Map containing row types names and their visibility values
    * @param featureVisibilityMap Map containing feature types names and their visibility values
    */
-  protected void updateColumnsVisibilityParameters(Map<ColumnID, Boolean> rowVisibilityMap,
-      Map<ColumnID, Boolean> featureVisibilityMap) {
+  protected void updateColumnsVisibilityParameters(Map<String, Boolean> rowVisibilityMap,
+      Map<String, Boolean> featureVisibilityMap) {
     if (getFeatureList() == null) {
       return;
     }

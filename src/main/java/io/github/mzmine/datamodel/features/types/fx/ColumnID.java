@@ -44,6 +44,9 @@ public class ColumnID {
   @Nullable
   private final RawDataFile raw;
   private final int subcolumnIndex;
+  /**
+   * This is the raw data independent header: can be used for maps
+   */
   @NotNull
   private final String combinedHeader;
 
@@ -55,18 +58,28 @@ public class ColumnID {
    */
   public ColumnID(@NotNull DataType dt, @NotNull ColumnType type, @Nullable RawDataFile raw,
       int subcolumnIndex) {
-    assert dt != null;
-    assert type != null;
 
     this.subcolumnIndex = subcolumnIndex;
     this.dt = dt;
     this.type = type;
     this.raw = raw;
+    String featPre = type == ColumnType.FEATURE_TYPE ? "Feature:" : "";
     if (subcolumnIndex >= 0 && dt instanceof SubColumnsFactory sub) {
-      this.combinedHeader = dt.getHeaderString() + ":" + sub.getHeader(subcolumnIndex);
+      this.combinedHeader = featPre + dt.getHeaderString() + ":" + sub.getHeader(subcolumnIndex);
     } else {
-      this.combinedHeader = dt.getHeaderString();
+      this.combinedHeader = featPre + dt.getHeaderString();
     }
+  }
+
+  /**
+   * Checks if all column Disregards the raw data file. Used to check if a column is visible for
+   * example
+   *
+   * @param other
+   * @return true if equal (without raw)
+   */
+  public boolean typesMatch(ColumnID other) {
+    return type == other.type && dt.equals(other.dt) && subcolumnIndex == other.subcolumnIndex;
   }
 
   @Override
@@ -78,7 +91,8 @@ public class ColumnID {
       return false;
     }
     ColumnID columnID = (ColumnID) o;
-    return type == columnID.type && dt.equals(columnID.dt) && Objects.equals(raw, columnID.raw);
+    return type == columnID.type && dt.equals(columnID.dt) && Objects.equals(raw, columnID.raw)
+           && subcolumnIndex == columnID.subcolumnIndex;
   }
 
   @Override
@@ -106,6 +120,18 @@ public class ColumnID {
            + raw;
   }
 
+  @Override
+  public String toString() {
+    return combinedHeader;
+  }
+
+  /**
+   * The combined header disregards the raw data file and can therefore be used in maps to point at
+   * all feature columns of this type
+   *
+   * @return the combined header e.g., Height or Feature:rt range:min for a row type or feature
+   * type, respectively
+   */
   public String getCombinedHeaderString() {
     return combinedHeader;
   }
@@ -113,4 +139,5 @@ public class ColumnID {
   public int getSubColIndex() {
     return subcolumnIndex;
   }
+
 }

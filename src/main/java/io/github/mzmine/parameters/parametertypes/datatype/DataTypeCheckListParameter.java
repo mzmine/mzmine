@@ -18,10 +18,7 @@
 
 package io.github.mzmine.parameters.parametertypes.datatype;
 
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
-import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,24 +30,22 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class DataTypeCheckListParameter implements
-    UserParameter<Map<ColumnID, Boolean>, DataTypeCheckListComponent> {
+    UserParameter<Map<String, Boolean>, DataTypeCheckListComponent> {
 
   private static final Logger logger = Logger.getLogger(DataTypeCheckListParameter.class.getName());
   private static final String DATA_TYPE_ELEMENT = "datatype";
   private static final String DATA_TYPE_VISIBLE_ATTR = "visible";
+  private static final String DATA_TYPE_KEY_ATTR = "key";
   private static final String DATA_TYPE_NAME_ATTR = "name";
   private static final String DATA_TYPE_SUB_COL_INDEX_ATTR = "sub_col_index";
   private static final String DATA_TYPE_COLUMN_TYPE_ATTR = "col_type";
   private final String name;
   private final String desc;
   private DataTypeCheckListComponent comp;
-  private Map<ColumnID, Boolean> value;
+  private Map<String, Boolean> value;
 
 
   public DataTypeCheckListParameter(@NotNull String name, @NotNull String description) {
-    assert name != null;
-    assert description != null;
-
     this.name = name;
     this.desc = description;
     this.value = new HashMap<>();
@@ -72,11 +67,12 @@ public class DataTypeCheckListParameter implements
    * @param b  Selected or not.
    */
   public void addDataType(ColumnID dt, Boolean b) {
-    if (value.keySet().contains(dt)) {
+    final String key = getKey(dt);
+    if (value.keySet().contains(key)) {
       logger.info("Already contains data type " + dt + ". Overwriting...");
     }
 
-    value.put(dt, b);
+    value.put(key, b);
   }
 
   /**
@@ -87,7 +83,7 @@ public class DataTypeCheckListParameter implements
    * @return true/false
    */
   public boolean isDataTypeVisible(ColumnID dataType) {
-    Boolean val = value.get(dataType);
+    Boolean val = value.get(getKey(dataType));
     if (val == null) {
       val = true;
       addDataType(dataType, val);
@@ -96,12 +92,33 @@ public class DataTypeCheckListParameter implements
   }
 
   /**
+   * Uses the combined header string as key (raw data unspecific)
+   *
+   * @param dataType the column
+   * @return combined header key
+   */
+  public String getKey(ColumnID dataType) {
+    return dataType.getCombinedHeaderString();
+  }
+
+
+  /**
+   * Sets data type visibility value
+   *
+   * @param type data type
+   * @param val  true/false
+   */
+  public void setDataTypeVisible(ColumnID type, Boolean val) {
+    setDataTypeVisible(type.getCombinedHeaderString(), val);
+  }
+
+  /**
    * Sets data type visibility value
    *
    * @param typeHeader Name of the data type
    * @param val        true/false
    */
-  public void setDataTypeVisible(ColumnID typeHeader, Boolean val) {
+  public void setDataTypeVisible(String typeHeader, Boolean val) {
     value.put(typeHeader, val);
   }
 
@@ -110,7 +127,7 @@ public class DataTypeCheckListParameter implements
    *
    * @param map Map containing new data types and their values
    */
-  public void setDataTypesAndVisibility(Map<ColumnID, Boolean> map) {
+  public void setDataTypesAndVisibility(Map<String, Boolean> map) {
     value = new HashMap<>(map);
   }
 
@@ -134,7 +151,7 @@ public class DataTypeCheckListParameter implements
 
   @Override
   public void setValueToComponent(DataTypeCheckListComponent dataTypeCheckListComponent,
-      Map<ColumnID, Boolean> newValue) {
+      Map<String, Boolean> newValue) {
     assert dataTypeCheckListComponent == comp;
     if (!(newValue instanceof HashMap)) {
       return;
@@ -148,12 +165,12 @@ public class DataTypeCheckListParameter implements
   }
 
   @Override
-  public Map<ColumnID, Boolean> getValue() {
+  public Map<String, Boolean> getValue() {
     return value;
   }
 
   @Override
-  public void setValue(Map<ColumnID, Boolean> newValue) {
+  public void setValue(Map<String, Boolean> newValue) {
     this.value = newValue;
   }
 
@@ -163,15 +180,9 @@ public class DataTypeCheckListParameter implements
 
     for (int i = 0; i < childs.getLength(); i++) {
       Element e = (Element) childs.item(i);
-      String typeUniqueID = e.getAttribute(DATA_TYPE_NAME_ATTR);
-      final DataType<?> type = DataTypes.getTypeForId(typeUniqueID);
-      if (type != null) {
-        Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
-        ColumnType columnType = ColumnType.valueOf(e.getAttribute(DATA_TYPE_COLUMN_TYPE_ATTR));
-        final String subColString = e.getAttribute(DATA_TYPE_SUB_COL_INDEX_ATTR);
-        int subColVal = subColString.isEmpty() ? -1 : Integer.valueOf(subColString);
-        value.put(new ColumnID(type, columnType, null, subColVal), val);
-      }
+      String key = e.getAttribute(DATA_TYPE_KEY_ATTR);
+      Boolean val = Boolean.valueOf(e.getAttribute(DATA_TYPE_VISIBLE_ATTR));
+      value.put(key, val);
     }
   }
 
@@ -181,10 +192,8 @@ public class DataTypeCheckListParameter implements
 
     value.forEach((dt, b) -> {
       Element element = doc.createElement(DATA_TYPE_ELEMENT);
-      element.setAttribute(DATA_TYPE_NAME_ATTR, dt.getDataType().getUniqueID());
-      element.setAttribute(DATA_TYPE_SUB_COL_INDEX_ATTR, String.valueOf(dt.getSubColIndex()));
+      element.setAttribute(DATA_TYPE_KEY_ATTR, dt);
       element.setAttribute(DATA_TYPE_VISIBLE_ATTR, b.toString());
-      element.setAttribute(DATA_TYPE_COLUMN_TYPE_ATTR, dt.getType().toString());
       xmlElement.appendChild(element);
     });
   }
