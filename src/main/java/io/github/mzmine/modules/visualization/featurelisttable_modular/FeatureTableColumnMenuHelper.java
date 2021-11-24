@@ -101,6 +101,7 @@ public class FeatureTableColumnMenuHelper extends TableColumnMenuHelper {
       final String combinedHeader = entry.getKey();
 
       CheckBox cb = new CheckBox(combinedHeader);
+      cb.getStyleClass().add("small-check-box");
       cb.setSelected(entry.getValue());
 
       CustomMenuItem cmi = new CustomMenuItem(cb);
