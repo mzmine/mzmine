@@ -693,6 +693,6 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public String toString() {
-    return FeatureUtils.rowToString();
+    return FeatureUtils.rowToString(this);
   }
 }
