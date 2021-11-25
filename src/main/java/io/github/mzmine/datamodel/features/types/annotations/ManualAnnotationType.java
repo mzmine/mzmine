@@ -193,6 +193,8 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
       } else if (subType.getClass().equals(CompoundNameType.class)) {
         manual.setCompoundName((String) newValue);
       }
+      // finally set annotation
+      model.set(ManualAnnotationType.class, manual);
     } catch (Exception ex) {
       logger.log(Level.WARNING, () -> String.format(
           "Cannot handle change in subtype %s at index %d in parent type %s with new value %s",

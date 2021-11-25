@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -93,27 +94,29 @@ public abstract class DataType<T> {
 
           // if parent type is different than type - parent type will handle the value change
           // e.g. see io.github.mzmine.datamodel.features.types.ListWithSubsType
-          if (parentType != null && !parentType.equals(type)) {
+          if (type instanceof ListDataType && type instanceof AddElementDialog addDialog
+              && data instanceof String && AddElementDialog.BUTTON_TEXT.equals(data)) {
+            addDialog.createNewElementDialog(model, parentType, type, subColumnIndex,
+                (newElement) -> { // refresh table due to change
+                  col.getTreeTableView().refresh();
+                });
+          } else if (parentType != null && !parentType.equals(type)) {
             parentType.valueChanged(model, (DataType) type, subColumnIndex, data);
+            col.getTreeTableView().refresh();
           } else {
             if (type instanceof ListDataType) {
-              if (type instanceof AddElementDialog addDialog && data instanceof String
-                  && AddElementDialog.BUTTON_TEXT.equals(data)) {
-                addDialog.createNewElementDialog(model, type);
-              } else {
-                try {
-                  List list = (List) model.get(type);
-                  if (list != null) {
-                    list = new ArrayList<>(list);
-                    list.remove(data);
-                    list.add(0, (T) data);
-                    model.set((DataType) type, list);
-                  }
-                } catch (Exception ex) {
-                  logger.log(Level.SEVERE,
-                      "Cannot set value from table cell to data type: " + type.getHeaderString());
-                  logger.log(Level.SEVERE, ex.getMessage(), ex);
+              try {
+                List list = (List) model.get(type);
+                if (list != null) {
+                  list = new ArrayList<>(list);
+                  list.remove(data);
+                  list.add(0, (T) data);
+                  model.set((DataType) type, list);
                 }
+              } catch (Exception ex) {
+                logger.log(Level.SEVERE,
+                    "Cannot set value from table cell to data type: " + type.getHeaderString());
+                logger.log(Level.SEVERE, ex.getMessage(), ex);
               }
             } else {
               // TODO check if this cast is safe
