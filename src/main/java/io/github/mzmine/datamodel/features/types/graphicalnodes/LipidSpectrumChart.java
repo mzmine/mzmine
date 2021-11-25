@@ -80,7 +80,7 @@ public class LipidSpectrumChart extends StackPane {
               matchedLipidLabelGenerator);
         }
       }
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         getChildren().add(spectraPlot);
       });
     }
