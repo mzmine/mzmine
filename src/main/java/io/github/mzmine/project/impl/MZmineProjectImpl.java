@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,24 +8,27 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.project.impl;
 
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.javafx.FxThreadUtil;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
@@ -43,17 +46,25 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
+  private static final Logger logger = Logger.getLogger(MZmineProjectImpl.class.getName());
+
   private final SimpleListProperty<RawDataFile> rawDataFilesProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
           ));
+
   private final SimpleListProperty<FeatureList> featureListsProperty = //
       new SimpleListProperty<>(//
           FXCollections.synchronizedObservableList(//
               FXCollections.observableArrayList()//
           ));
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private final SimpleListProperty<SpectralLibrary> spectralLibrariesProperty = //
+      new SimpleListProperty<>(FXCollections.synchronizedObservableList(
+          FXCollections.observableArrayList()
+      ));
+
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
 
@@ -185,12 +196,12 @@ public class MZmineProjectImpl implements MZmineProject {
     if (names.contains(name)) {
       if (!MZmineCore.isHeadLessMode()) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-            + " because a file with the same name already exists in the project. Please copy "
-            + "the file and rename it, if you want to import it twice.");
+                                                    + " because a file with the same name already exists in the project. Please copy "
+                                                    + "the file and rename it, if you want to import it twice.");
       }
       logger.warning(
           "Cannot add file with an original name that already exists in project. (filename="
-              + newFile.getName() + ")");
+          + newFile.getName() + ")");
       return;
     }
 
@@ -321,6 +332,11 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
+  public ListProperty<SpectralLibrary> spectralLibrariesProperty() {
+    return spectralLibrariesProperty;
+  }
+
+  @Override
   public @Nullable Boolean isStandalone() {
     return standalone;
   }
@@ -329,4 +345,51 @@ public class MZmineProjectImpl implements MZmineProject {
   public void setStandalone(Boolean standalone) {
     this.standalone = standalone;
   }
+
+  @Override
+  public void setProjectLoadImsImportCaching(boolean enabled) {
+    MZmineCore.runLater(() -> {
+      for (int i = 0; i < getRawDataFiles().size(); i++) {
+        RawDataFile file = rawDataFilesProperty.get(i);
+        if (file instanceof IMSRawDataFile imsfile) {
+          if (enabled) {
+            if (!(file instanceof CachedIMSRawDataFile)) {
+              rawDataFilesProperty.set(i, new CachedIMSRawDataFile(imsfile));
+            }
+          } else {
+            if (file instanceof CachedIMSRawDataFile cached) {
+              rawDataFilesProperty.set(i, cached.getOriginalFile());
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @Override
+  public void addSpectralLibrary(final SpectralLibrary... library) {
+    synchronized (spectralLibrariesProperty) {
+      FxThreadUtil.runOnFxThreadAndWait(() -> {
+        // remove all with same path
+        spectralLibrariesProperty.removeIf(lib -> Arrays.stream(library)
+            .anyMatch(newlib -> lib.getPath().equals(newlib.getPath())));
+        spectralLibrariesProperty.addAll(library);
+      });
+    }
+  }
+
+  @Override
+  public ObservableList<SpectralLibrary> getSpectralLibraries() {
+    return FXCollections.unmodifiableObservableList(spectralLibrariesProperty.get());
+  }
+
+  @Override
+  public void removeSpectralLibrary(SpectralLibrary... library) {
+    synchronized (spectralLibrariesProperty) {
+      FxThreadUtil.runOnFxThreadAndWait(() -> {
+        spectralLibrariesProperty.removeAll(library);
+      });
+    }
+  }
+
 }

@@ -30,9 +30,9 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +63,7 @@ public class TSFImportModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     File fileNames[] = parameters.getParameter(TDFImportParameters.fileNames).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 

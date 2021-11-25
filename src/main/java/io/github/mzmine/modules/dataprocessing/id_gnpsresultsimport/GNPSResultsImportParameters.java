@@ -23,13 +23,20 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class GNPSResultsImportParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("Graphml networking file", "*.graphml"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
 
   public static final FeatureListsParameter FEATURE_LIST = new FeatureListsParameter(1, 1);
 
   public static final FileNameParameter FILE = new FileNameParameter("GNPS graphml file",
-      "GNPS results in the graphml file (download cytoscape data)", "graphml",
+      "GNPS results in the graphml file (download cytoscape data)", extensions,
       FileSelectionType.OPEN);
 
   public GNPSResultsImportParameters() {

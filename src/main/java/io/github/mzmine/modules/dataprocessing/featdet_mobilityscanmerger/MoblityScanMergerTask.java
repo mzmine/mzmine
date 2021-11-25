@@ -33,6 +33,7 @@ import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -52,7 +53,7 @@ public class MoblityScanMergerTask extends AbstractTask {
   private int totalFrames;
   private int processedFrames;
 
-  public MoblityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public MoblityScanMergerTask(final IMSRawDataFile file, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // for now, the merged data points are added to the frame on the raw data
     // level. In the future, we will generate a mass list.
     processedFrames = 0;

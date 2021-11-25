@@ -18,21 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_baselinecorrection;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -48,8 +33,23 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.control.ProgressBar;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview class. This is used
@@ -158,7 +158,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     private boolean userCanceled;
 
     public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile,
-        Range<Float> rtRange, Range<Double> mzRange, @NotNull Date moduleCallDate) {
+        Range<Float> rtRange, Range<Double> mzRange, @NotNull Instant moduleCallDate) {
       super(null, moduleCallDate); // no new data stored -> null
 
       this.dialog = dialog;
@@ -419,7 +419,7 @@ public class BaselineCorrectorSetupDialog extends ParameterSetupDialogWithChroma
     if (ready && (previewTask == null || previewTask.getStatus() != TaskStatus.PROCESSING)) {
 
       baselineCorrector.initProgress(dataFile);
-      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange, new Date()); // date does not matter for preview
+      previewTask = new PreviewTask(this, ticPlot, dataFile, rtRange, mzRange, Instant.now()); // date does not matter for preview
       previewThread = new Thread(previewTask);
       logger.info("Launch preview task.");
       previewThread.start();

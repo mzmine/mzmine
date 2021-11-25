@@ -48,7 +48,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.text.MessageFormat;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -104,7 +104,7 @@ public class CorrelateGroupingTask extends AbstractTask {
    * @param featureList  feature list.
    */
   public CorrelateGroupingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureList, @NotNull Date moduleCallDate) {
+      final ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureList;
@@ -171,7 +171,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     autoSuffix = !parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getValue();
 
     if (autoSuffix) {
-      suffix = MessageFormat.format("corr {2} r>={0} dp>={1}", minShapeCorrR,
+      suffix = MessageFormat.format("corr {2} r greq {0} dp greq {1}", minShapeCorrR,
           minCorrelatedDataPoints, shapeSimMeasure);
     } else {
       suffix = parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getEmbeddedParameter()

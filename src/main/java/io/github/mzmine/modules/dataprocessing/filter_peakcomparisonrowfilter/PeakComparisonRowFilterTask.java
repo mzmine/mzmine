@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +62,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public PeakComparisonRowFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.

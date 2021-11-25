@@ -42,13 +42,21 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureMeasurementType;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("mgf Mascot file (spectra)", "*.mgf"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter(1);
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Base name of the output files (.MGF and .CSV).", "mgf", FileSelectionType.SAVE);
+      "Base name of the output files (.MGF and .CSV).", extensions, FileSelectionType.SAVE);
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
       new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",

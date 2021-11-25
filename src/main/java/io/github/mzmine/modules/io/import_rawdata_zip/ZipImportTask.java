@@ -34,6 +34,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +61,7 @@ public class ZipImportTask extends AbstractTask {
   private Task decompressedOpeningTask = null;
 
   public ZipImportTask(@NotNull MZmineProject project, File fileToOpen, RawDataFileType fileType,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;

@@ -37,7 +37,7 @@ import io.github.mzmine.util.R.REngineType;
 import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +82,7 @@ public class BaselineCorrectionTask extends AbstractTask {
    * @param storage
    */
   public BaselineCorrectionTask(MZmineProject project, final RawDataFile dataFile,
-      final ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final ParameterSet parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.

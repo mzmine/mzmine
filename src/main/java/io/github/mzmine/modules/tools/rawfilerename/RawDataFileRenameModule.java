@@ -1,3 +1,20 @@
+/*
+ * Copyright 2006-2020 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package io.github.mzmine.modules.tools.rawfilerename;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -12,11 +29,10 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +68,7 @@ public class RawDataFileRenameModule implements MZmineProcessingModule {
       synchronized (project.getFeatureLists()) {
         final List<String> names = new ArrayList<>(
             project.getRawDataFiles().stream().map(RawDataFile::getName).toList());
-        if(fileAlreadyInProject) {
+        if (fileAlreadyInProject) {
           names.remove(file.getName());
         }
         name = names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
@@ -86,27 +102,9 @@ public class RawDataFileRenameModule implements MZmineProcessingModule {
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
-    final RawDataFile[] matchingRawDataFiles = parameters.getParameter(
-        RawDataFileRenameParameters.files).getValue().getMatchingRawDataFiles();
-    final String newName = parameters.getParameter(RawDataFileRenameParameters.newName).getValue();
-    if (matchingRawDataFiles.length == 0) {
-      return ExitCode.OK;
-    }
+      @NotNull Instant moduleCallDate) {
 
-    RawDataFile file = matchingRawDataFiles[0];
-    Optional<RawDataFile> any = project.getRawDataFiles().stream()
-        .filter(f -> f.getName().equals(newName)).findAny();
-
-    if (any.isPresent() && !any.get().equals(file)) {
-      MZmineCore.getDesktop().displayErrorMessage("File with name " + newName + " already exists");
-      return ExitCode.OK;
-    }
-
-    MZmineCore.runLater(() -> file.setName(newName));
-    file.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(this, parameters, moduleCallDate));
-
+    tasks.add(new RawDataFileRenameTask(null, moduleCallDate, parameters));
     return ExitCode.OK;
   }
 

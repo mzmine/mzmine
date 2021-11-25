@@ -71,7 +71,7 @@ public class BuildingMobilityScan implements MobilityScan {
     this.scanNumber = scanNumber;
     boolean haveToSort = false;
 
-    // -1 is intended to be used in mobility scans. The SimpleMobilityScan will return null,
+    // -1 is intended to be used in mobility scans. The MobilityScan will return null,
     // it this value is -1
     basePeakIndex = -1;
     if (mzs.length > 1) {
@@ -243,4 +243,5 @@ public class BuildingMobilityScan implements MobilityScan {
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
+
 }

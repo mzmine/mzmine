@@ -49,8 +49,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,7 +84,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
   private FeatureListRowsFilter filter;
 
-  GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();

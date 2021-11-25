@@ -37,8 +37,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -70,7 +70,7 @@ public class GNPSResultsImportTask extends AbstractTask {
   private final FeatureListRowIdCache rowIdCache;
 
   public GNPSResultsImportTask(ParameterSet parameters, ModularFeatureList featureList,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     this.featureList = featureList;
@@ -142,7 +142,8 @@ public class GNPSResultsImportTask extends AbstractTask {
       Path path = Paths.get(file.getAbsolutePath());
       Stream<String> lines = Files.lines(path);
       List<String> replaced =
-          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")).collect(Collectors.toList());
+          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")
+              .replaceAll("edge id=\"Cosine\"", "edge")).collect(Collectors.toList());
       Files.write(path, replaced);
       lines.close();
       logger.info("zero ids in graphml replaces");

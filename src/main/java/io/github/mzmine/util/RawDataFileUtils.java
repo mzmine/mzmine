@@ -41,6 +41,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +66,7 @@ public class RawDataFileUtils {
 
   public static void createRawDataImportTasks(MZmineProject project, List<Task> taskList,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate, File... fileNames) throws IOException {
+      @NotNull Instant moduleCallDate, File... fileNames) throws IOException {
 
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();

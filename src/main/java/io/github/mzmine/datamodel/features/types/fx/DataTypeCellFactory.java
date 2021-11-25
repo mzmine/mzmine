@@ -79,8 +79,10 @@ public class DataTypeCellFactory implements
           super.updateItem(item, empty);
 //        logger.log(Level.INFO, "updateItem in Cell (DataTypeCellFactory)");
           if (type instanceof LinkedGraphicalType lgType) {
+            // convert Boolean to boolean
+            boolean cellActive = item != null && ((Boolean) item).booleanValue();
             // first handle linked graphical types (like charts) that are dependent on other data
-            Node node = lgType.getCellNode(this, param, null, raw);
+            Node node = ((GraphicalColumType) lgType).getCellNode(this, param, cellActive, raw);
             getTableColumn().setMinWidth(lgType.getColumnWidth());
             setGraphic(node);
             setText(null);

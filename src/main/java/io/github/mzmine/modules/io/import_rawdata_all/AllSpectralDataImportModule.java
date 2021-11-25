@@ -51,10 +51,11 @@ import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -100,7 +101,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     File[] fileNames = parameters.getParameter(AllSpectralDataImportParameters.fileNames)
         .getValue();
@@ -110,7 +111,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         useAdvancedOptions ? parameters.getParameter(AllSpectralDataImportParameters.advancedImport)
             .getEmbeddedParameters() : null;
 
-    if (Arrays.asList(fileNames).contains(null)) {
+    if (Arrays.stream(fileNames).anyMatch(Objects::isNull)) {
       logger.warning("List of filenames contains null");
       return ExitCode.ERROR;
     }
@@ -198,7 +199,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
   private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
       RawDataFile newMZmineFile, Class<? extends MZmineModule> module, ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     return switch (fileType) {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile, module,
@@ -232,7 +233,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
       File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
-      Class<? extends MZmineModule> module, ParameterSet parameters, @NotNull Date moduleCallDate) {
+      Class<? extends MZmineModule> module, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     return switch (fileType) {
       // MS
       case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam, module,
@@ -250,7 +251,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
   private AbstractTask createWrappedAdvancedTask(RawDataFileType fileType, MZmineProject project,
       File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
-      Class<? extends MZmineModule> module, ParameterSet parameters, @NotNull Date moduleCallDate) {
+      Class<? extends MZmineModule> module, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
         + " and file " + file.getAbsolutePath());

@@ -130,7 +130,7 @@ public class FeatureDataTypeTest {
           MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d),
           MobilityType.TIMS, null);
       frame.setMobilities(new double[]{5d, 4d, 3d, 2d, 1d});
-      frame.setMobilityScans(scans);
+      frame.setMobilityScans(scans, true);
       try {
         file.addScan(frame);
       } catch (IOException e) {

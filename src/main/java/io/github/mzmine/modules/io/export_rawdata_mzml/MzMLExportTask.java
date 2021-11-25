@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.export_rawdata_mzml;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -46,7 +47,7 @@ public class MzMLExportTask extends AbstractTask {
    * @param dataFile
    * @param parameters
    */
-  public MzMLExportTask(RawDataFile dataFile, File outFilename, @NotNull Date moduleCallDate) {
+  public MzMLExportTask(RawDataFile dataFile, File outFilename, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.dataFile = dataFile;
     this.outFilename = outFilename;

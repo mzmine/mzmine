@@ -47,6 +47,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -106,7 +107,7 @@ public class MassCalibrationTask extends AbstractTask {
    * @param previewRun
    */
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun, @NotNull Instant moduleCallDate) {
     super(storageMemoryMap, moduleCallDate);
     this.dataFile = dataFile;
     this.parameters = parameters;
@@ -116,7 +117,7 @@ public class MassCalibrationTask extends AbstractTask {
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storageMemoryMap, @NotNull Date moduleCallDate) {
+      MemoryMapStorage storageMemoryMap, @NotNull Instant moduleCallDate) {
     this(dataFile, parameters, storageMemoryMap, false, moduleCallDate);
   }
 

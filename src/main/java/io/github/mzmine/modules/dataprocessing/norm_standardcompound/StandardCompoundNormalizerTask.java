@@ -31,6 +31,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
   private ParameterSet parameters;
 
   public StandardCompoundNormalizerTask(MZmineProject project, FeatureList featureList,
-      ParameterSet parameters,  @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      ParameterSet parameters,  @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

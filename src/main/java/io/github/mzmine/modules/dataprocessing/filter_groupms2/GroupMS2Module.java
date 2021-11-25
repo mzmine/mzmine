@@ -18,17 +18,16 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.Collection;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Group all MS2 scans to their features
@@ -52,7 +51,7 @@ public class GroupMS2Module implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] peakLists =
         parameters.getParameter(GroupMS2Parameters.PEAK_LISTS).getValue().getMatchingFeatureLists();

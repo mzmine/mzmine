@@ -49,31 +49,20 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.DialogLoggerUtil;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
 import javafx.scene.control.Button;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  * GC-GNPS
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class GnpsGcSubmitParameters extends SimpleParameterSet {
-
-  public enum Preset {
-    HIGHRES, LOWRES;
-  }
-
-  /**
-   * Optional: Select meta data file
-   */
-  public static final OptionalParameter<FileNameParameter> KOVATS_FILE =
-      new OptionalParameter<>(new FileNameParameter("Kovats RI file",
-          "File with Kovats retention indexes", "csv", FileSelectionType.OPEN), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
       Preset.HIGHRES);
-
   public static final StringParameter JOB_TITLE = new StringParameter("Job title",
       "The title of the new GNPS feature-based molecular networking job", "", false);
   /**
@@ -86,15 +75,24 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
   public static final PasswordParameter PASSWORD = new PasswordParameter("Password",
       "The password is sent without encryption, until the server has has moved to its final destination.",
       "", false);
-
   /**
    * Show GNPS job website
    */
   public static final BooleanParameter OPEN_WEBSITE =
       new BooleanParameter("Open website", "Website of GNPS job", true);
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("comma-separated values", "*.csv"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
+  /**
+   * Optional: Select meta data file
+   */
+  public static final OptionalParameter<FileNameParameter> KOVATS_FILE =
+      new OptionalParameter<>(new FileNameParameter("Kovats RI file",
+          "File with Kovats retention indexes", extensions, FileSelectionType.OPEN), false);
 
   public GnpsGcSubmitParameters() {
-    super(new Parameter[] {KOVATS_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
+    super(new Parameter[]{KOVATS_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
   }
 
   @Override
@@ -132,5 +130,9 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
     KovatsIndexExtractionDialog kd =
         new KovatsIndexExtractionDialog(param, savedFile -> pn.setValue(savedFile));
     kd.show();
+  }
+
+  public enum Preset {
+    HIGHRES, LOWRES;
   }
 }

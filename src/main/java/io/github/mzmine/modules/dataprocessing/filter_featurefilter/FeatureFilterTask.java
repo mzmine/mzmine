@@ -35,7 +35,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import java.util.Date;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +68,7 @@ public class FeatureFilterTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public FeatureFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize

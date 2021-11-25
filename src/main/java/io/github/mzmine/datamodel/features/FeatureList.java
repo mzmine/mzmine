@@ -18,16 +18,21 @@
 package io.github.mzmine.datamodel.features;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.correlation.R2RMap;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship;
 import io.github.mzmine.datamodel.features.correlation.RowsRelationship.Type;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.util.DataTypeUtils;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -49,12 +54,14 @@ public interface FeatureList {
    * @return Short descriptive name for the feature list
    */
   @NotNull
-  public String getName();
+  String getName();
 
   /**
    * Change the name of this feature list
+   *
+   * @return the actually set name after checking for resticted symbols and duplicate names
    */
-  public void setName(@NotNull String name);
+  String setName(@NotNull String name);
 
   void addRowBinding(@NotNull List<RowBinding> bindings);
 
@@ -412,6 +419,30 @@ public interface FeatureList {
    */
   default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw) {
     applyRowBindings(row);
+
+    if (newFeature != null) {
+      boolean isImagingFile = raw instanceof ImagingRawDataFile;
+      if (newFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+        DataTypeUtils.DEFAULT_ION_MOBILITY_COLUMNS_FEATURE.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (hasRowType(RTType.class) && !isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_CHROMATOGRAPHIC_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+      if (isImagingFile) {
+        // activate shape for this row
+        DataTypeUtils.DEFAULT_IMAGING_COLUMNS_ROW.stream()
+            .filter(type -> type instanceof LinkedGraphicalType)
+            .forEach(type -> row.set(type, true));
+      }
+    }
   }
 
   /**
@@ -434,7 +465,7 @@ public interface FeatureList {
 
     public MZmineModule getModule();
 
-    public Date getModuleCallDate();
+    public Instant getModuleCallDate();
 
     public void saveValueToXML(Element element);
   }

@@ -25,6 +25,8 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
@@ -38,13 +40,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class FeatureTableTab extends MZmineTab {
 
-  private final Image SELECTION_ICON = FxIconUtil.loadImageFromResources(
-      "icons/propertiesicon.png");
-
+  private static final Logger logger = Logger.getLogger(FeatureTableTab.class.getName());
   private final BorderPane mainPane;
   private final ToolBar toolBar;
 
-  private FeatureTableFXMLTabAnchorPaneController controller;
+  private final FeatureTableFXMLTabAnchorPaneController controller;
 
   public FeatureTableTab(FeatureList flist) {
     super("Feature Table", true, false);
@@ -60,7 +60,7 @@ public class FeatureTableTab extends MZmineTab {
       root = loader.load();
       logger.finest("Feature table anchor pane has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Error during feature list loading from fxml", e);
     }
 
     controller = loader.getController();
@@ -71,11 +71,10 @@ public class FeatureTableTab extends MZmineTab {
     // Setup tool bar
     toolBar.setOrientation(Orientation.VERTICAL);
 
+    Image SELECTION_ICON = FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
     Button selectColumnsButton = new Button(null, new ImageView(SELECTION_ICON));
     selectColumnsButton.setTooltip(new Tooltip("Select columns to show/hide"));
-    selectColumnsButton.setOnAction(e -> {
-      controller.miParametersOnAction(null);
-    });
+    selectColumnsButton.setOnAction(e -> controller.miParametersOnAction(null));
 
     toolBar.getItems().addAll(selectColumnsButton);
 

@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -86,7 +87,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private int totalSteps = 3, appliedSteps = 0;
   private ParameterSet parameters;
 
-  public VanKrevelenDiagramTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public VanKrevelenDiagramTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     featureList = parameters.getParameter(VanKrevelenDiagramParameters.featureList).getValue()

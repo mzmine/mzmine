@@ -19,16 +19,24 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.util.MemoryMapStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Mass spectrum acquired during an ion mobility experiment. Note that this class does not extend
- * {@link Scan} but just {@link MassSpectrum}.
+ * Mass spectrum acquired during an ion mobility experiment. The main implementation of this
+ * interface, ({@link io.github.mzmine.datamodel.impl.StoredMobilityScan}, is created on demand by
+ * the respective parent {@link Frame}. This means, that if available, existing instances shall be
+ * reused as done in, e.g. {@link io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries#copy(MemoryMapStorage)}
+ * and other methods that copy lists of scans.
+ * <p></p>
+ * During project import, the instances of this interface are cached in a {@link
+ * io.github.mzmine.modules.io.projectload.CachedIMSFrame} to minimize ram consumption by using the
+ * same instances throughout all feature lists.
  *
  * @author https://github.com/SteffenHeu
  */
-public interface MobilityScan extends MassSpectrum, Scan {
+public interface MobilityScan extends Scan {
 
   static final double DEFAULT_MOBILITY = -1.0d;
 

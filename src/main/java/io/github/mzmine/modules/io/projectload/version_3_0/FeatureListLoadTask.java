@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.projectload.version_3_0;
@@ -26,7 +27,10 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.IDType;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.modules.io.projectsave.FeatureListSaveTask;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -39,9 +43,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,7 +91,7 @@ public class FeatureListLoadTask extends AbstractTask {
 
   public FeatureListLoadTask(@Nullable MemoryMapStorage storage, @NotNull MZmineProject project,
       ZipFile zip) {
-    super(storage, new Date());
+    super(storage, Instant.now());
     this.project = project;
     this.zip = zip;
   }
@@ -118,8 +122,8 @@ public class FeatureListLoadTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return (double) processedFlists / numFlists + ((double) 1 / numFlists) * ((double) processedRows
-                                                                              / totalRows);
+    return (double) processedFlists / numFlists // overall progress finished flists
+           + (double) processedRows / totalRows / numFlists; // current flist progress
   }
 
   @Override
@@ -144,6 +148,9 @@ public class FeatureListLoadTask extends AbstractTask {
 
       final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
+      // enable caching of mobility scans during project import.
+      project.setProjectLoadImsImportCaching(true);
+
       for (File flistFile : files) {
         if (isCanceled()) {
           return;
@@ -162,14 +169,24 @@ public class FeatureListLoadTask extends AbstractTask {
           continue;
         }
         parseFeatureList(storage, flist, flistFile);
-        project.addFeatureList(flist);
 
+        // disable buffering after the import (replace references to CachedIMSRawDataFiles with IMSRawDataFiles
+        flist.replaceCachedFilesAndScans();
+
+        project.addFeatureList(flist);
         processedFlists++;
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      setStatus(TaskStatus.ERROR);
+      project.setProjectLoadImsImportCaching(false);
+      MZmineCore.getDesktop().displayErrorMessage(e.getMessage());
+      return;
     }
 
+    // disable caching on project level
+    project.setProjectLoadImsImportCaching(false);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -196,7 +213,8 @@ public class FeatureListLoadTask extends AbstractTask {
                 || !flist.getDateCreated()
                 .equals(reader.getAttributeValue(null, CONST.XML_DATE_CREATED_ATTR))) {
               throw new IllegalArgumentException(
-                  "Feature list names do not match. " + flist.getName() + " " + reader.getText());
+                  "Feature list names do not match. " + flist.getName() + " != " + reader
+                      .getAttributeValue(null, CONST.XML_FLIST_NAME_ATTR));
             }
           } else if (CONST.XML_ROW_ELEMENT.equals(localName)) {
             parseRow(reader, storage, flist);
@@ -395,7 +413,10 @@ public class FeatureListLoadTask extends AbstractTask {
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @NotNull RawDataFile file) throws XMLStreamException {
 
-    final ModularFeature feature = new ModularFeature(flist, file, null, null);
+    // create feature with original file, but use buffered file for data type loading.
+    final RawDataFile originalFile =
+        file instanceof CachedIMSRawDataFile c ? c.getOriginalFile() : file;
+    final ModularFeature feature = new ModularFeature(flist, originalFile, null, null);
 
     while (!(reader.getEventType() == XMLEvent.END_ELEMENT && reader.getLocalName()
         .equals(CONST.XML_FEATURE_ELEMENT)) && reader.hasNext()) {
@@ -422,6 +443,6 @@ public class FeatureListLoadTask extends AbstractTask {
       }
     }
 
-    row.addFeature(file, feature);
+    row.addFeature(originalFile, feature);
   }
 }

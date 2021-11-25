@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,7 +63,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
   private AbstractTask currentTask;
   private ZipFile zipFile;
 
-  public RawDataFileOpenHandler_3_0(@NotNull Date moduleCallDate) {
+  public RawDataFileOpenHandler_3_0(@NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
   }
 
@@ -188,7 +189,7 @@ public class RawDataFileOpenHandler_3_0 extends AbstractTask implements RawDataF
         param.setParameter(BatchModeParameters.batchQueue, batchQueue);
         final BatchModeModule batchModule = MZmineCore.getModuleInstance(BatchModeModule.class);
         final List<Task> tasks = new ArrayList<>();
-        batchModule.runModule(project, param, tasks, new Date());
+        batchModule.runModule(project, param, tasks, Instant.now());
 
         List<AbstractTask> abstractTasks = tasks.stream().filter(t -> t instanceof AbstractTask)
             .map(t -> (AbstractTask) t).toList();

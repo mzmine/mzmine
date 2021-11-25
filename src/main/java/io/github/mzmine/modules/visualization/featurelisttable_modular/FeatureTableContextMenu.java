@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 
@@ -41,7 +42,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
-import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -65,9 +66,10 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -171,7 +173,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem exportToSirius =
         new ConditionalMenuItem("Export to Sirius", () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(e -> SiriusExportModule
-        .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]), new Date()));
+        .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]), Instant.now()));
 
     final MenuItem exportMS1Library =
         new ConditionalMenuItem("Export to MS1 library", () -> !selectedRows.isEmpty());
@@ -194,7 +196,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
         () -> !selectedRows.isEmpty() && selectedRows.get(0).hasFeatureType(ImageType.class));
     exportImageToCsv
-        .setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows, new Date()));
+        .setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows, Instant.now()));
 
     // export menu
     exportMenu.getItems().addAll(exportIsotopesItem, exportMSMSItem, exportToSirius,
@@ -207,13 +209,13 @@ public class FeatureTableContextMenu extends ContextMenu {
         new ConditionalMenuItem("Online compound database search", () -> selectedRows.size() == 1);
     onlineDbSearchItem.setOnAction(
         e -> OnlineDBSearchModule
-            .showSingleRowIdentificationDialog(selectedRows.get(0), new Date()));
+            .showSingleRowIdentificationDialog(selectedRows.get(0), Instant.now()));
 
     final MenuItem spectralDbSearchItem =
-        new ConditionalMenuItem("Local spectral database search", () -> selectedRows.size() >= 1);
+        new ConditionalMenuItem("Spectral library search", () -> selectedRows.size() >= 1);
     spectralDbSearchItem
-        .setOnAction(e -> LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(
-            selectedRows.toArray(new ModularFeatureListRow[0]), table, new Date()));
+        .setOnAction(e -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
+            new ArrayList<>(selectedRows), table, Instant.now()));
 
     final MenuItem nistSearchItem =
         new ConditionalMenuItem("NIST MS search", () -> selectedRows.size() == 1);
@@ -227,7 +229,7 @@ public class FeatureTableContextMenu extends ContextMenu {
         new ConditionalMenuItem("Sirius structure prediction", () -> selectedRows.size() == 1);
     siriusItem.setOnAction(
         e -> SiriusIdentificationModule
-            .showSingleRowIdentificationDialog(selectedRows.get(0), new Date()));
+            .showSingleRowIdentificationDialog(selectedRows.get(0), Instant.now()));
 
     final MenuItem formulaPredictionItem =
         new ConditionalMenuItem("Predict molecular formula", () -> selectedRows.size() == 1);

@@ -24,8 +24,8 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 public class CSVExportModularModule implements MZmineProcessingModule {
@@ -47,7 +47,7 @@ public class CSVExportModularModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     CSVExportModularTask task = new CSVExportModularTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;

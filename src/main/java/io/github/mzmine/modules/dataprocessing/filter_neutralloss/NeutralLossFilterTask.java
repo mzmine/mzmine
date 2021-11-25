@@ -41,6 +41,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -75,7 +76,7 @@ public class NeutralLossFilterTask extends AbstractTask {
   private IMolecularFormula formula;
 
   NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.parameters = parameters;

@@ -26,6 +26,7 @@ import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_sirius.SiriusParameters.ionizationType;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -104,7 +105,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param peakListRow peak-list row to identify.
    */
-  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Date moduleCallDate) {
+  public SingleRowIdentificationTask(ParameterSet parameters, FeatureListRow peakListRow, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.peakListRow = peakListRow;
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();

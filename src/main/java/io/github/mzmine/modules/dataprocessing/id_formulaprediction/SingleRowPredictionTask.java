@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -77,7 +78,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 
   SingleRowPredictionTask(ParameterSet parameters, FeatureListRow peakListRow,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     searchedMass = parameters.getParameter(FormulaPredictionParameters.neutralMass).getValue();

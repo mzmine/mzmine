@@ -39,6 +39,7 @@ import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -65,7 +66,7 @@ class SameRangeTask extends AbstractTask {
   private ParameterSet parameters;
 
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;

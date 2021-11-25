@@ -18,18 +18,17 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import org.jetbrains.annotations.NotNull;
 
 public class FormulaPredictionModule implements MZmineModule {
 
@@ -72,7 +71,7 @@ public class FormulaPredictionModule implements MZmineModule {
     }
 
     SingleRowPredictionTask newTask =
-        new SingleRowPredictionTask(parameters.cloneParameterSet(), row, new Date());
+        new SingleRowPredictionTask(parameters.cloneParameterSet(), row, Instant.now());
 
     // execute the sequence
     MZmineCore.getTaskController().addTask(newTask);

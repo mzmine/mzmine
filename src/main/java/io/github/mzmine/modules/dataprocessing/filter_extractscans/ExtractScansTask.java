@@ -18,16 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_extractscans;
 
-import io.github.mzmine.util.exceptions.MissingMassListException;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import org.apache.commons.io.FilenameUtils;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
@@ -36,7 +26,17 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 class ExtractScansTask extends AbstractTask {
@@ -52,7 +52,7 @@ class ExtractScansTask extends AbstractTask {
   private double minTime, maxTime;
   private boolean useCenterTime;
 
-  ExtractScansTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  ExtractScansTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     dataFiles = Arrays.asList(parameters.getParameter(ExtractScansParameters.dataFiles).getValue()

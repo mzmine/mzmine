@@ -31,6 +31,7 @@
 package io.github.mzmine.modules.io.export_features_sirius;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
@@ -61,14 +62,14 @@ public class SiriusExportModule implements MZmineProcessingModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     SiriusExportTask task = new SiriusExportTask(parameters, moduleCallDate);
     tasks.add(task);
     return ExitCode.OK;
 
   }
 
-  public static void exportSingleFeatureList(FeatureListRow row, @NotNull Date moduleCallDate) {
+  public static void exportSingleFeatureList(FeatureListRow row, @NotNull Instant moduleCallDate) {
 
     try {
       ParameterSet parameters =
@@ -88,7 +89,7 @@ public class SiriusExportModule implements MZmineProcessingModule {
 
   }
 
-  public static void exportSingleRows(FeatureListRow[] row, @NotNull Date moduleCallDate) {
+  public static void exportSingleRows(FeatureListRow[] row, @NotNull Instant moduleCallDate) {
     try {
       ParameterSet parameters =
           MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);

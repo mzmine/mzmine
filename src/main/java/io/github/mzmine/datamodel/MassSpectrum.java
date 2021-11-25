@@ -58,6 +58,7 @@ public interface MassSpectrum extends Iterable<DataPoint> {
    */
   double[] getMzValues(@NotNull double[] dst);
 
+
   /**
    * @param dst A buffer the intensity values will be written into. The buffer should ideally have
    *            the size {@link #getNumberOfDataPoints()}. Some implementations of mass spectrum

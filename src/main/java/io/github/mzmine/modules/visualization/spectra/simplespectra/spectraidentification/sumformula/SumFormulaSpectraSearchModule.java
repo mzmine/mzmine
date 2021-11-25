@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
+import java.time.Instant;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +50,7 @@ public class SumFormulaSpectraSearchModule implements MZmineModule {
   }
 
   public static void showSpectraIdentificationDialog(final Scan scan,
-      final SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      final SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
 
     final SpectraIdentificationSumFormulaParameters parameters =
         (SpectraIdentificationSumFormulaParameters) MZmineCore.getConfiguration()

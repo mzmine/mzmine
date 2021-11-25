@@ -30,9 +30,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,7 +64,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
   private ModularFeatureList alignedFeatureList;
 
   public FeatureListBlankSubtractionTask(MZmineProject project,
-      FeatureListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      FeatureListBlankSubtractionParameters parameters, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     this.project = project;
@@ -122,6 +122,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     final ModularFeatureList result = new ModularFeatureList(
         alignedFeatureList.getName() + " " + suffix, getMemoryMapStorage(), nonBlankFiles);
     alignedFeatureList.getRowTypes().values().forEach(result::addRowType);
+    nonBlankFiles.forEach(f -> result.setSelectedScans(f, alignedFeatureList.getSeletedScans(f)));
 
     Set<ModularFeatureListRow> filteredRows = ConcurrentHashMap.newKeySet();
     alignedFeatureList.modularStream()/*.parallel()*/.forEach(row -> {
@@ -176,7 +177,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     for (RawDataFile file : blankRaws) {
       final ModularFeature f = row.getFeature(file);
-      if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+      if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
         if (intensityType == BlankIntensityType.Average) {
           intensity += f.getHeight();
           numDetections++;

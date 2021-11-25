@@ -18,6 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_duplicatefilter;
 
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
@@ -26,24 +29,21 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.FeatureListRowSorter;
-import io.github.mzmine.util.FeatureUtils;
-import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
+import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +68,7 @@ public class DuplicateFilterTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public DuplicateFilterTask(final MZmineProject project, final FeatureList list,
-      final ParameterSet params, @Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+      final ParameterSet params, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
 
     // Initialize.

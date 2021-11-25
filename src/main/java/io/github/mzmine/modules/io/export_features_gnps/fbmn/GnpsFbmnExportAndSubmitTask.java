@@ -29,25 +29,15 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
+import com.google.common.util.concurrent.AtomicDouble;
+import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowCommonElement;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDataFileElement;
-import io.github.mzmine.util.FeatureMeasurementType;
-import java.awt.Desktop;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.commons.io.FilenameUtils;
-import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -55,7 +45,17 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.awt.Desktop;
+import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,7 +72,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private AtomicDouble progress = new AtomicDouble(0);
   private FeatureMeasurementType featureMeasure;
 
-  GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
   }

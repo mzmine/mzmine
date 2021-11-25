@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.Collection;
 import javax.xml.stream.XMLStreamException;
@@ -91,7 +92,8 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       case SimpleScan.XML_SCAN_TYPE -> {
         final int index = Integer.parseInt(
             reader.getAttributeValue(null, CONST.XML_RAW_FILE_SCAN_INDEX_ATTR));
-        return file.getScan(index);
+        final Scan scan = file.getScan(index);
+        return scan instanceof CachedIMSFrame cached ? cached.getOriginalFrame() : scan;
       }
       case SimpleMergedMsMsSpectrum.XML_SCAN_TYPE -> {
         return SimpleMergedMsMsSpectrum.loadFromXML(reader, (IMSRawDataFile) file);

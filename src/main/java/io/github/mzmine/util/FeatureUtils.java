@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -21,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
@@ -56,24 +58,66 @@ public class FeatureUtils {
   public static String featureToString(Feature feature) {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
     buf.append("m/z ");
     buf.append(mzFormat.format(feature.getMZ()));
-    buf.append(" (");
-    buf.append(timeFormat.format(feature.getRT()));
-    buf.append(" min) [" + feature.getRawDataFile().getName() + "]");
+
+    final Float averageRT = feature.getRT();
+    if (averageRT != null) {
+      Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+      buf.append(" (");
+      buf.append(timeFormat.format(averageRT));
+      buf.append(" min)");
+    }
+
+    final Float mobility = feature.getMobility();
+    if (mobility != null) {
+      Format mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+      buf.append(" [");
+      buf.append(mobilityFormat.format(mobility));
+      buf.append(" ");
+      final MobilityType unit = feature.getMobilityUnit();
+      if (unit != null) {
+        buf.append(unit.getUnit());
+      }
+      buf.append("]");
+    }
+
+    buf.append(" : ");
+    buf.append(feature.getRawDataFile().getName());
     return buf.toString();
   }
 
   public static String rowToString(FeatureListRow row) {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
-    buf.append("m/z ");
+
+    buf.append("#");
+    buf.append(row.getID());
+
+    buf.append(" m/z ");
     buf.append(mzFormat.format(row.getAverageMZ()));
-    buf.append(" (");
-    buf.append(timeFormat.format(row.getAverageRT()));
-    buf.append(" min)");
+
+    final Float averageRT = row.getAverageRT();
+    if (averageRT != null) {
+      Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+      buf.append(" (");
+      buf.append(timeFormat.format(averageRT));
+      buf.append(" min)");
+    }
+
+    final Float mobility = row.getAverageMobility();
+    if (mobility != null) {
+      Format mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
+      buf.append(" [");
+      buf.append(mobilityFormat.format(mobility));
+      buf.append(" ");
+      final MobilityType unit = row.getBestFeature().getMobilityUnit();
+      if (unit != null) {
+        buf.append(unit.getUnit());
+      }
+      buf.append("]");
+    }
+
     return buf.toString();
   }
 

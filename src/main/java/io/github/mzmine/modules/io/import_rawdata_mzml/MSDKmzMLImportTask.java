@@ -44,6 +44,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -74,13 +75,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(newMZmineFile.getMemoryMapStorage(), moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.project = project;
@@ -233,7 +234,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
-          finishedFrame.setMobilityScans(mobilityScans);
+          finishedFrame.setMobilityScans(mobilityScans, false);
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
