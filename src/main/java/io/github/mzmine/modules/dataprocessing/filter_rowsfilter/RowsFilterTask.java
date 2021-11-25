@@ -473,18 +473,18 @@ public class RowsFilterTask extends AbstractTask {
             parameters.getParameter(RowsFilterParameters.massDefect).getEmbeddedParameter()
                 .getValue().replace(" ", ""));
         if (matcher.matches()) {
-          final double lower = Double.parseDouble(matcher.group(1));
-          final double upper = Double.parseDouble(matcher.group(2));
+          final double first = Double.parseDouble(matcher.group(1));
+          final double second = Double.parseDouble(matcher.group(2));
           final double massDefect = row.getAverageMZ() - Math.floor(row.getAverageMZ());
-          if (lower > upper) { // 0.90 - 0.15
+          if (first > second) { // 0.90 - 0.15
             final boolean massDefectOk =
-                (massDefect <= lower && massDefect >= 0.0d) || (massDefect >= upper
-                    && massDefect <= 1.0d);
+                (massDefect >= first && massDefect <= 1.0d) || (massDefect >= 0.0d
+                    && massDefect <= second);
             if(!massDefectOk) {
               filterRowCriteriaFailed = true;
             }
           } else { // 0.4 - 0.8
-            final boolean massDefectOk = lower <= massDefect && massDefect <= upper;
+            final boolean massDefectOk = first <= massDefect && massDefect <= second;
             if(!massDefectOk) {
               filterRowCriteriaFailed = true;
             }
