@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
@@ -41,7 +42,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -183,11 +183,9 @@ public class SingleRowPredictionTask extends AbstractTask {
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
                     + " formulas");
 
-      Platform.runLater(() -> resultWindowFX.setTitle("Finished searching for "
-                                                      + MZmineCore.getConfiguration().getMZFormat()
-                                                          .format(searchedMass)
-                                                      + " amu, "
-                                                      + foundFormulas + " formulas found"));
+      MZmineCore.runLater(() -> resultWindowFX.setTitle(
+          "Finished searching for " + MZmineCore.getConfiguration().getMZFormat()
+              .format(searchedMass) + " amu, " + foundFormulas + " formulas found"));
     } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);

@@ -56,6 +56,7 @@ import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansM
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
@@ -237,6 +238,7 @@ public class BatchModeModulesList {
       FeatureFilterModule.class, //
       RowsFilterModule.class, //
       IsotopeGrouperModule.class, //
+      IsotopeFinderModule.class, //
       FeatureListBlankSubtractionModule.class, //
       DuplicateFilterModule.class, //
       MobilityMzRegionExtractionModule.class, //
