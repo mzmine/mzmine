@@ -172,8 +172,9 @@ public class MZminePreferences extends SimpleParameterSet {
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, darkMode,
             presentationMode});
-    dialog.addParameterGroup("Other",
-        new Parameter[]{imsModuleWarnings, windowSetttings, sendErrorEMail});
+    dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
+        // imsModuleWarnings, windowSetttings  are hidden parameters
+    });
 
     // check
     dialog.showAndWait();
