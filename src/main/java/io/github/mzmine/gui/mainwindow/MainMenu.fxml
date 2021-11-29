@@ -34,14 +34,14 @@
       userData="io.github.mzmine.modules.io.projectload.ProjectLoadModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="O"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
     <MenuItem fx:id="saveProject" text="Save project" onAction="#runModule"
       userData="io.github.mzmine.modules.io.projectsave.ProjectSaveModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="S"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
     <MenuItem onAction="#runModule" text="Save project as"
@@ -49,13 +49,13 @@
       fx:id="saveProjectAs">
       <accelerator>
         <KeyCodeCombination alt="UP" code="S"
-          control="DOWN" meta="UP" shift="DOWN" shortcut="UP"/>
+          control="UP" meta="UP" shift="DOWN" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
 
@@ -65,7 +65,7 @@
       userData="io.github.mzmine.modules.batchmode.BatchModeModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="B"
-          control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
 
@@ -74,7 +74,12 @@
       onAction="#setSampleParams"/>
 
     <SeparatorMenuItem/>
-    <MenuItem text="Set preferences" onAction="#setPreferences"/>
+    <MenuItem onAction="#setPreferences" text="Set preferences">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="P"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
 
     <SeparatorMenuItem/>
     <MenuItem text="Save MZmine parameters" onAction="#runModule"
@@ -98,7 +103,7 @@
         userData="io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule">
         <accelerator>
           <KeyCodeCombination alt="UP" code="I"
-            control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+            control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
         </accelerator>
       </MenuItem>
       <SeparatorMenuItem/>
@@ -135,7 +140,7 @@
       <MenuItem onAction="#runModule" text="ICP-MS CVS"
         userData="io.github.mzmine.modules.io.import_rawdata_icpms_csv.IcpMsCVSImportModule"/>
       <accelerator>
-        <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+        <KeyCodeCombination alt="UP" code="I" control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
       </accelerator>
 
     </Menu>
