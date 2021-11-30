@@ -19,6 +19,8 @@
 package io.github.mzmine.util.dialogs;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -35,6 +37,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class PeriodicTableDialog extends Stage /*implements ICDKChangeListener*/ {
 
+  private static final Logger logger = Logger.getLogger(PeriodicTableDialog.class.getName());
   private PeriodicTableDialogController periodicTable;
   private IIsotope selectedIsotope;
 
@@ -59,7 +62,7 @@ public class PeriodicTableDialog extends Stage /*implements ICDKChangeListener*/
       periodicTable = loader.getController();
       periodicTable.setMultipleSelection(multipleSelection);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
     // Add OK button
