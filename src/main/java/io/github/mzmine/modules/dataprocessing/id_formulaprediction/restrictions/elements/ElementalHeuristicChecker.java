@@ -21,41 +21,43 @@ package io.github.mzmine.modules.dataprocessing.id_formulaprediction.restriction
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
-import io.github.mzmine.parameters.ParameterSet;
-
 public class ElementalHeuristicChecker {
 
-  public static boolean checkFormula(IMolecularFormula formula, ParameterSet parameters) {
+  public static boolean checkFormula(IMolecularFormula formula, boolean checkHC, boolean checkNOPS,
+      boolean checkMultiple) {
 
     double eH = 0, eC = 0, eN = 0, eO = 0, eP = 0, eS = 0;
     for (IIsotope isotope : formula.isotopes()) {
-      if (isotope.getSymbol().equals("C"))
+      if (isotope.getSymbol().equals("C")) {
         eC += formula.getIsotopeCount(isotope);
-      if (isotope.getSymbol().equals("N"))
+      }
+      if (isotope.getSymbol().equals("N")) {
         eN += formula.getIsotopeCount(isotope);
-      if (isotope.getSymbol().equals("O"))
+      }
+      if (isotope.getSymbol().equals("O")) {
         eO += formula.getIsotopeCount(isotope);
-      if (isotope.getSymbol().equals("P"))
+      }
+      if (isotope.getSymbol().equals("P")) {
         eP += formula.getIsotopeCount(isotope);
-      if (isotope.getSymbol().equals("S"))
+      }
+      if (isotope.getSymbol().equals("S")) {
         eS += formula.getIsotopeCount(isotope);
-      if (isotope.getSymbol().equals("H"))
+      }
+      if (isotope.getSymbol().equals("H")) {
         eH += formula.getIsotopeCount(isotope);
+      }
     }
 
     // If there is no carbon, consider the formula OK
-    if (eC == 0)
+    if (eC == 0) {
       return true;
-
-    boolean checkHC = parameters.getParameter(ElementalHeuristicParameters.checkHC).getValue();
-    boolean checkNOPS = parameters.getParameter(ElementalHeuristicParameters.checkNOPS).getValue();
-    boolean checkMultiple =
-        parameters.getParameter(ElementalHeuristicParameters.checkMultiple).getValue();
+    }
 
     if (checkHC) {
       double rHC = eH / eC;
-      if ((rHC < 0.1) || (rHC > 6))
+      if ((rHC < 0.1) || (rHC > 6)) {
         return false;
+      }
     }
 
     if (checkNOPS) {
@@ -63,40 +65,46 @@ public class ElementalHeuristicChecker {
       double rNC = eN / eC;
       double rOC = eO / eC;
       double rSC = eS / eC;
-      if ((rNC > 4) || (rOC > 3) || (rPC > 2) || (rSC > 3))
+      if ((rNC > 4) || (rOC > 3) || (rPC > 2) || (rSC > 3)) {
         return false;
+      }
     }
 
     if (checkMultiple) {
 
       // Multiple rule #1
       if ((eN > 1) && (eO > 1) && (eP > 1) && (eS > 1)) {
-        if ((eN >= 10) || (eO >= 20) || (eP >= 4) || (eS >= 3))
+        if ((eN >= 10) || (eO >= 20) || (eP >= 4) || (eS >= 3)) {
           return false;
+        }
       }
 
       // Multiple rule #2
       if ((eN > 3) && (eO > 3) && (eP > 3)) {
-        if ((eN >= 11) || (eO >= 22) || (eP >= 6))
+        if ((eN >= 11) || (eO >= 22) || (eP >= 6)) {
           return false;
+        }
       }
 
       // Multiple rule #3
       if ((eO > 1) && (eP > 1) && (eS > 1)) {
-        if ((eO >= 14) || (eP >= 3) || (eS >= 3))
+        if ((eO >= 14) || (eP >= 3) || (eS >= 3)) {
           return false;
+        }
       }
 
       // Multiple rule #4
       if ((eN > 1) && (eP > 1) && (eS > 1)) {
-        if ((eN >= 4) || (eP >= 3) || (eS >= 3))
+        if ((eN >= 4) || (eP >= 3) || (eS >= 3)) {
           return false;
+        }
       }
 
       // Multiple rule #5
       if ((eN > 6) && (eO > 6) && (eS > 6)) {
-        if ((eN >= 19) || (eO >= 14) || (eS >= 8))
+        if ((eN >= 19) || (eO >= 14) || (eS >= 8)) {
           return false;
+        }
       }
 
     }
