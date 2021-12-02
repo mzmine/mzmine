@@ -23,7 +23,9 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
@@ -65,7 +67,6 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private final Double minIsotopeScore;
   private final Double isotopeNoiseLevel;
   private final MZTolerance isotopeMZTolerance;
-  int currentIndex;
   private final Logger logger = Logger.getLogger(DPPSumFormulaPredictionTask.class.getName());
   private final MZTolerance mzTolerance;
   private final int foundFormulas = 0;
@@ -76,8 +77,13 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private final boolean checkRDBE;
   private final boolean checkIsotopes;
   private final int numResults;
-
   private final MolecularFormulaRange elementCounts;
+  int currentIndex;
+  private Boolean checkMultiple;
+  private Boolean checkNOPS;
+  private Boolean checkHC;
+  private Boolean rdbeIsInteger;
+  private Range<Double> rdbeRange;
   private MolecularFormulaGenerator generator;
   private Range<Double> massRange;
 
@@ -92,8 +98,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     checkRDBE = parameterSet.getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions)
         .getValue();
-    rdbeParameters = parameterSet.getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions)
-        .getEmbeddedParameters();
+    if (checkRDBE) {
+      RDBERestrictionParameters rdbeParameters = parameterSet
+          .getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions).getEmbeddedParameters();
+      rdbeIsInteger = rdbeParameters.getValue(RDBERestrictionParameters.rdbeWholeNum);
+      rdbeRange = rdbeParameters.getValue(RDBERestrictionParameters.rdbeRange);
+    }
 
     checkIsotopes = parameterSet.getParameter(DPPSumFormulaPredictionParameters.isotopeFilter)
         .getValue();
@@ -113,14 +123,18 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     checkRatios = parameterSet.getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
         .getValue();
-    ratiosParameters = parameterSet.getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
-        .getEmbeddedParameters();
-
+    if (checkRatios) {
+      ElementalHeuristicParameters ratiosParameters = parameterSet
+          .getParameter(DPPSumFormulaPredictionParameters.elementalRatios).getEmbeddedParameters();
+      checkHC = ratiosParameters.getValue(ElementalHeuristicParameters.checkHC);
+      checkNOPS = ratiosParameters.getValue(ElementalHeuristicParameters.checkNOPS);
+      checkMultiple = ratiosParameters.getValue(ElementalHeuristicParameters.checkMultiple);
+    }
     elementCounts = parameterSet.getParameter(DPPSumFormulaPredictionParameters.elements)
         .getValue();
 
-    mzTolerance =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
+    mzTolerance = parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance)
+        .getValue();
 
     setDisplayResults(
         parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue());
@@ -150,8 +164,9 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     }
 
     if (getDataPoints().getNumberOfDataPoints() == 0) {
-      logger.info("Data point/Spectra processing: 0 data points were passed to "
-                  + getTaskDescription() + " Please check the parameters.");
+      logger.info(
+          "Data point/Spectra processing: 0 data points were passed to " + getTaskDescription()
+          + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
@@ -184,8 +199,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
           .getToleranceRange((dataPoints.getMzValue(i) - ionType.getAddedMass()) / charge);
 
       ProcessedDataPoint tmp = null; // dataPoints[i]
-      MolecularFormulaRange elCounts =
-          DynamicParameterUtils.buildFormulaRangeOnIsotopePatternResults(tmp, elementCounts);
+      MolecularFormulaRange elCounts = DynamicParameterUtils
+          .buildFormulaRangeOnIsotopePatternResults(tmp, elementCounts);
 
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elCounts);
@@ -232,10 +247,10 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       double relMassDev = ((((dp.getMZ() - //
                               ionType.getAddedMass()) / charge)//
                             - (FormulaUtils.calculateExactMass(//
-          MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-                           / ((dp.getMZ() //
-                               - ionType.getAddedMass()) / charge))
-                          * 1000000;
+          MolecularFormulaManipulator.getString(cdkFormula))) / charge) / ((dp.getMZ() //
+                                                                            - ionType
+                                                                                .getAddedMass())
+                                                                           / charge)) * 1000000;
 
       // write to map
       if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
@@ -317,7 +332,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     // Check elemental ratios
     if (checkRatios) {
-      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
+      boolean check = ElementalHeuristicChecker
+          .checkFormula(cdkFormula, checkHC, checkNOPS, checkMultiple);
       if (!check) {
         return false;
       }
@@ -327,7 +343,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     // Check RDBE condition
     if (checkRDBE && (rdbeValue != null)) {
-      boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
+      boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeRange, rdbeIsInteger);
       if (!check) {
         return false;
       }
@@ -355,8 +371,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
       getTargetPlot().addDataSet(
           new DPPResultsDataSet("Sum formula prediction results (" + getResults().length + ")",
-              getResults()),
-          color, false, labelGen);
+              getResults()), color, false, labelGen);
     }
   }
 

@@ -44,6 +44,8 @@ import io.github.mzmine.modules.tools.msmsscore.MSMSScore;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreCalculator;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionForValues;
+import io.github.mzmine.parameters.parametertypes.ValueOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -56,8 +58,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -85,6 +87,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   private final Double isotopeNoiseLevel;
   private final boolean sortResults;
   private final CreateAvgNetworkFormulasTask netFormulaMerger;
+  private final OptionForValues handleHigherMz;
   private MolecularFormulaGenerator generator;
   private String message;
   private int totalRows;
@@ -102,11 +105,11 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
       @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.featureList = featureList;
-    mzTolerance = parameters.getParameter(FormulaPredictionIonNetworkParameters.mzTolerance)
-        .getValue();
-    elementCounts = parameters.getParameter(FormulaPredictionIonNetworkParameters.elements)
-        .getValue();
-    ppmOffset = parameters.getParameter(FormulaPredictionIonNetworkParameters.ppmOffset).getValue();
+    mzTolerance = parameters.getValue(FormulaPredictionIonNetworkParameters.mzTolerance);
+    elementCounts = parameters.getValue(FormulaPredictionIonNetworkParameters.elements);
+    ppmOffset = parameters.getValue(FormulaPredictionIonNetworkParameters.ppmOffset);
+
+    handleHigherMz = parameters.getValue(FormulaPredictionIonNetworkParameters.handleHigherMz);
 
     checkIsotopes = parameters.getParameter(FormulaPredictionIonNetworkParameters.isotopeFilter)
         .getValue();
@@ -124,7 +127,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
       isotopeMZTolerance = null;
     }
 
-    sortResults = parameters.getParameter(FormulaPredictionIonNetworkParameters.sorting).getValue();
+    sortResults = parameters.getValue(FormulaPredictionIonNetworkParameters.sorting);
     if (sortResults) {
       FormulaSortParameters sortingParam = parameters
           .getParameter(FormulaPredictionIonNetworkParameters.sorting).getEmbeddedParameters();
@@ -191,8 +194,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // get all networks (filter out undefined ion types)
-    List<IonNetwork> nets = IonNetworkLogic.streamNetworks(featureList, false)
-        .filter(net -> !net.isUndefined()).collect(Collectors.toList());
+    List<IonNetwork> nets = IonNetworkLogic.streamNetworks(featureList, true)
+        .filter(net -> !net.isUndefined()).toList();
     totalRows = nets.size();
     if (totalRows == 0) {
       setStatus(TaskStatus.ERROR);
@@ -213,18 +216,31 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
+  @Nullable
   public List<ResultFormula> predictFormulasForNetwork(IonNetwork net) {
-    for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
-      FeatureListRow row = e.getKey();
-      IonIdentity ion = e.getValue();
-      if (!ion.getIonType().isUndefinedAdduct()) {
-        ion.clearMolFormulas();
-        List<ResultFormula> list = predictFormulas(row, ion.getIonType());
-        if (!list.isEmpty()) {
-          if (sortResults && sorter != null) {
-            sorter.sort(list);
+    if (handleHigherMz.option() != ValueOption.INCLUDE && handleHigherMz
+        .checkValue(net.getNeutralMass())) {
+      if (handleHigherMz.option() == ValueOption.EXCLUDE) {
+        return null;
+      } else if (handleHigherMz.option() == ValueOption.SIMPLIFY) {
+        // predict formulas only for network and process all formula
+        // sorts and adds them to the ions
+        predictFormulasForWholeNetwork(net, sortResults, true);
+      }
+    } else {
+      // run on all rows
+      for (Entry<FeatureListRow, IonIdentity> e : net.entrySet()) {
+        FeatureListRow row = e.getKey();
+        IonIdentity ion = e.getValue();
+        if (!ion.getIonType().isUndefinedAdduct()) {
+          ion.clearMolFormulas();
+          List<ResultFormula> list = predictFormulas(row, ion.getIonType());
+          if (!list.isEmpty()) {
+            if (sortResults && sorter != null) {
+              sorter.sort(list);
+            }
+            ion.addMolFormulas(list);
           }
-          ion.addMolFormulas(list);
         }
       }
     }
@@ -263,6 +279,75 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     }
 
     return resultingFormulas;
+  }
+
+  /**
+   * Predict formulas only for the neutral mass of the network. Then score all rows. This is
+   * simplified. Some rows might be missing formulas
+   *
+   * @param net      network to predict formulas for
+   * @param sort     sort results
+   * @param addToIon add formulas to ions
+   */
+  private void predictFormulasForWholeNetwork(IonNetwork net, boolean sort, boolean addToIon) {
+    final var entries = new ArrayList<>(net.entrySet());
+
+    ArrayList<ResultFormula>[] resultingFormulas = new ArrayList[net.size()];
+    for (int i = 0; i < net.size(); i++) {
+      resultingFormulas[i] = new ArrayList<>();
+    }
+
+    double searchedMass = net.getNeutralMass();
+    // correct by ppm offset
+    searchedMass += searchedMass * ppmOffset / 1E6;
+
+    Range<Double> massRange = mzTolerance.getToleranceRange(searchedMass);
+
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
+        massRange.upperEndpoint(), elementCounts);
+
+    IMolecularFormula cdkFormula;
+    while ((cdkFormula = generator.getNextFormula()) != null) {
+      for (int i = 0; i < net.size(); i++) {
+        try {
+          final FeatureListRow row = entries.get(i).getKey();
+          final IonType ion = entries.get(i).getValue().getIonType();
+          if (ion.isUndefinedAdduct()) {
+            continue;
+          }
+          // ionized formula
+          IMolecularFormula cdkFormulaIon = ion.addToFormula(cdkFormula);
+
+          // correct by ppm offset
+          double rowMass = ion.getMass(row.getAverageMZ());
+          rowMass += rowMass * ppmOffset / 1E6;
+
+          // Mass is ok, so test other constraints
+          checkConstraints(resultingFormulas[i], cdkFormula, cdkFormulaIon, row, ion, rowMass);
+        } catch (CloneNotSupportedException e) {
+          logger.log(Level.SEVERE, "Cannot copy cdk formula", e);
+          throw new MSDKRuntimeException(e);
+        }
+      }
+    }
+
+    for (int i = 0; i < net.size(); i++) {
+      final FeatureListRow row = entries.get(i).getKey();
+      final IonIdentity ion = entries.get(i).getValue();
+      if (!ion.getIonType().isUndefinedAdduct()) {
+        ion.clearMolFormulas();
+        List<ResultFormula> list = predictFormulas(row, ion.getIonType());
+        if (!list.isEmpty()) {
+          if (sort && sortResults && sorter != null) {
+            sorter.sort(list);
+          }
+          if (addToIon) {
+            ion.addMolFormulas(list);
+          }
+        }
+      }
+    }
   }
 
   private void checkConstraints(List<ResultFormula> resultingFormulas,

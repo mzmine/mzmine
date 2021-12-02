@@ -74,9 +74,7 @@ public class RTScore implements ScoreCalculator {
         IsotopePattern ip2 = peak.getBestIsotopePattern();
 
         if ((ip1 != null) && (ip2 != null)) {
-          ParameterSet isotopeParams = parameters
-              .getParameter(PathAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
-          compareIsotopePattern = parameters
+          boolean compareIsotopePattern = parameters
               .getParameter(JoinAlignerParameters.compareIsotopePattern).getValue();
           final ParameterSet isoParam = parameters
               .getParameter(JoinAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
@@ -88,7 +86,7 @@ public class RTScore implements ScoreCalculator {
           MZTolerance isotopeMZTolerance = isoParam
               .getValue(IsotopePatternScoreParameters.mzTolerance);
 
-          if (!IsotopePatternScoreCalculator
+          if (compareIsotopePattern && !IsotopePatternScoreCalculator
               .checkMatch(ip1, ip2, isotopeMZTolerance, isotopeNoiseLevel, minIsotopeScore)) {
             return WORST_SCORE;
           }
