@@ -134,4 +134,8 @@ public class MSnInfoImpl implements DDAMsMsInfo {
   public MsMsInfo createCopy() {
     return new MSnInfoImpl(precursors);
   }
+
+  public double getMS2PrecursorMz() {
+    return precursors.get(0).getIsolationMz();
+  }
 }
