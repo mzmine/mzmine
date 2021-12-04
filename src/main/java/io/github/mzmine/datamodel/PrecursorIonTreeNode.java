@@ -20,7 +20,9 @@ package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.main.MZmineCore;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -29,15 +31,19 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class PrecursorIonTreeNode {
+public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
 
+  /**
+   * use accuracy for m/z in match
+   */
+  public static final int ACCURACY = 500;
   private static final Logger logger = Logger.getLogger(PrecursorIonTreeNode.class.getName());
   private final double precursorMZ;
   private final int msLevel;
   private final @Nullable PrecursorIonTreeNode parent;
   // can have multiple fragment scans per precursor (different energies etc)
   private final @NotNull List<Scan> fragmentScans;
-  private @Nullable List<PrecursorIonTreeNode> childFragmentScans;
+  private @Nullable List<PrecursorIonTreeNode> childPrecursors;
 
 
   public PrecursorIonTreeNode(int msLevel, double precursorMZ,
@@ -63,7 +69,7 @@ public class PrecursorIonTreeNode {
 
   @NotNull
   public List<PrecursorIonTreeNode> getChildPrecursors() {
-    return childFragmentScans == null ? List.of() : childFragmentScans;
+    return childPrecursors == null ? List.of() : childPrecursors;
   }
 
   @NotNull
@@ -76,14 +82,21 @@ public class PrecursorIonTreeNode {
   }
 
   public void addChildFragmentScan(PrecursorIonTreeNode precursor) {
-    if (childFragmentScans == null) {
-      childFragmentScans = new ArrayList<>();
+    if (childPrecursors == null) {
+      childPrecursors = new ArrayList<>();
     }
-    childFragmentScans.add(precursor);
+    childPrecursors.add(precursor);
   }
 
+  /**
+   * Uses {@link #ACCURACY} to compare mz values. Precursor ion selection is usually not very
+   * precise.
+   *
+   * @param precursorMZ other m/z
+   * @return true if precursor m/z matches to this precursor (within accuracy)
+   */
   public boolean matches(double precursorMZ) {
-    return (int) (this.precursorMZ * 10000) == (int) (precursorMZ * 10000);
+    return Math.round(this.precursorMZ * ACCURACY) == Math.round(precursorMZ * ACCURACY);
   }
 
   /**
@@ -99,21 +112,20 @@ public class PrecursorIonTreeNode {
 
   protected boolean addChildFragmentScan(Scan scan, MSnInfoImpl msnInfo, int msnIndex) {
     final DDAMsMsInfo prec = msnInfo.getPrecursors().get(msnIndex);
-    boolean added = false;
     final int msLevel = prec.getMsLevel();
-    if (msLevel != this.msLevel + 1) {
+    if (msLevel != msnIndex + 2) {
       logger.warning(() -> String.format(
-          "Wrong sequence in MSn info. msLevels are off. Expected: %d  Actual:%d",
-          (this.msLevel + 1), msLevel));
+          "Wrong sequence in MSn info. msLevels are off. Expected: %d  Actual:%d", (msnIndex),
+          msLevel));
       return false;
     }
     final double mz = prec.getIsolationMz();
     PrecursorIonTreeNode child = getChild(mz);
 
     // last element reached
-    if (msnInfo.getPrecursors().size() == msnIndex - 1) {
+    if (msnInfo.getPrecursors().size() - 1 == msnIndex) {
       if (child == null) {
-        child = new PrecursorIonTreeNode(msLevel + 1, mz, this);
+        child = new PrecursorIonTreeNode(msLevel, mz, this);
         addChildFragmentScan(child);
       }
       child.addFragmentScan(scan);
@@ -122,7 +134,9 @@ public class PrecursorIonTreeNode {
       if (child != null) {
         return child.addChildFragmentScan(scan, msnInfo, msnIndex + 1);
       } else {
-        logger.warning(() -> String.format("Child for msLevel %d not found", (this.msLevel + 1)));
+        logger.warning(
+            () -> String.format("Child for msLevel %d not found scan#%d", (this.msLevel + 1),
+                scan.getScanNumber()));
       }
     }
     return false;
@@ -136,5 +150,58 @@ public class PrecursorIonTreeNode {
       }
     }
     return null;
+  }
+
+  /**
+   * Traverses parents to find root.
+   *
+   * @return the root or this if this is the root (no parent)
+   */
+  public PrecursorIonTreeNode getRoot() {
+    if (parent == null) {
+      return this;
+    } else {
+      return parent.getRoot();
+    }
+  }
+
+  @Override
+  public String toString() {
+    final String mz = MZmineCore.getConfiguration().getMZFormat().format(precursorMZ);
+    final String scans = " (" + countSpectra() + ")";
+    if (parent == null) {
+      return "m/z " + mz + scans;
+    } else {
+      StringBuilder s = new StringBuilder();
+      s.append(parent);
+      s.append(" ↦ ");
+      s.append(mz);
+      s.append(scans);
+      return s.toString();
+    }
+  }
+
+  public int countChildren() {
+    return childPrecursors == null ? 0 : childPrecursors.size();
+  }
+
+  public int countSpectra() {
+    return fragmentScans.size();
+  }
+
+  @Override
+  public int compareTo(@NotNull PrecursorIonTreeNode o) {
+    // descending order
+    return Double.compare(getPrecursorMZ(), o.getPrecursorMZ()) * -1;
+  }
+
+  /**
+   * Sorts the whole tree structure by descending m/z
+   */
+  public void sort() {
+    if (childPrecursors != null) {
+      Collections.sort(childPrecursors);
+      childPrecursors.forEach(PrecursorIonTreeNode::sort);
+    }
   }
 }

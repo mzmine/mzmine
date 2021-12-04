@@ -18,21 +18,33 @@
 
 package io.github.mzmine.datamodel;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A tree structure to temporarily capture a precursor and all its fragment scans (MSn)
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class PrecursorIonTree {
+public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
   // root
-  private final PrecursorIonTreeNode parent;
+  private final PrecursorIonTreeNode root;
 
-  public PrecursorIonTree(PrecursorIonTreeNode parent) {
-    this.parent = parent;
+  public PrecursorIonTree(PrecursorIonTreeNode root) {
+    this.root = root;
   }
 
-  public PrecursorIonTreeNode getParent() {
-    return parent;
+  public PrecursorIonTreeNode getRoot() {
+    return root;
+  }
+
+  @Override
+  public int compareTo(@NotNull PrecursorIonTree o) {
+    // descending order
+    return root.compareTo(o.getRoot());
+  }
+
+  public void sort() {
+    root.sort();
   }
 }
