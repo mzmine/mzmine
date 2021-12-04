@@ -81,7 +81,7 @@ public class ScanUtils {
   /**
    * tolerance to compute and combine precursor m/z
    */
-  public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 500;
+  public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
 
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 

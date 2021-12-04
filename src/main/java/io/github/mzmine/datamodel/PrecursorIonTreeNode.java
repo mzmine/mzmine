@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel;
 import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,7 +97,8 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
    * @return true if precursor m/z matches to this precursor (within accuracy)
    */
   public boolean matches(double precursorMZ) {
-    return Math.round(this.precursorMZ * ACCURACY) == Math.round(precursorMZ * ACCURACY);
+    return Math.round(this.precursorMZ * ScanUtils.DEFAULT_PRECURSOR_MZ_TOLERANCE) == Math.round(
+        precursorMZ * ScanUtils.DEFAULT_PRECURSOR_MZ_TOLERANCE);
   }
 
   /**
