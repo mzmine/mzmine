@@ -20,6 +20,7 @@ package io.github.mzmine.util.scans;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -48,7 +49,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -69,7 +70,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import org.apache.commons.collections4.list.TreeList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +77,11 @@ import org.jetbrains.annotations.Nullable;
  * Scan related utilities
  */
 public class ScanUtils {
+
+  /**
+   * tolerance to compute and combine precursor m/z
+   */
+  public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
 
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 
@@ -1015,10 +1020,15 @@ public class ScanUtils {
 
 
   public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
+    return getMSnFragmentTrees(raw, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, AtomicDouble progress) {
     List<PrecursorIonTree> result = new ArrayList<>();
     // at any time in the flow there should only be the latest precursor with the same m/z
-    Int2ObjectOpenHashMap<PrecursorIonTreeNode> ms2Nodes = new Int2ObjectOpenHashMap<>();
+    Long2ObjectOpenHashMap<PrecursorIonTreeNode> ms2Nodes = new Long2ObjectOpenHashMap<>();
     PrecursorIonTreeNode parent = null;
+    final int totalScans = raw.getNumOfScans();
 
     for (Scan scan : raw.getScans()) {
       // add MS2 scans to existing or create new
@@ -1027,9 +1037,9 @@ public class ScanUtils {
         if (ms2PrecursorMz != null) {
           PrecursorIonTreeNode node = ms2Nodes.get(getMzKey(ms2PrecursorMz));
           if (node == null) {
-            final PrecursorIonTreeNode root = new PrecursorIonTreeNode(2, ms2PrecursorMz, null);
-            result.add(new PrecursorIonTree(root));
-            ms2Nodes.put(getMzKey(ms2PrecursorMz), root);
+            node = new PrecursorIonTreeNode(2, ms2PrecursorMz, null);
+            result.add(new PrecursorIonTree(node));
+            ms2Nodes.put(getMzKey(ms2PrecursorMz), node);
           }
           node.addFragmentScan(scan);
         }
@@ -1039,38 +1049,30 @@ public class ScanUtils {
         if (ms2PrecursorMz != null && (parent = ms2Nodes.get(getMzKey(ms2PrecursorMz))) != null) {
           boolean added = parent.addChildFragmentScan(scan, msn);
           if (!added) {
-            logger.warning(() -> "Scan was not added to parent " + ms2PrecursorMz);
+            logger.warning(
+                () -> String.format("Scan#%d was not added to parent %.4f", scan.getScanNumber(),
+                    ms2PrecursorMz));
           }
         } else {
-          logger.warning("Cannot find MS2 precursor scan for m/z: " + ms2PrecursorMz);
+          logger.warning(
+              () -> String.format("Scan#%d: Cannot find MS2 precursor scan for m/z: %.4f",
+                  scan.getScanNumber(), ms2PrecursorMz));
+        }
+        //
+        if (progress != null) {
+          progress.addAndGet(1d / totalScans);
         }
       }
+      // sort
+      Collections.sort(result);
+      result.forEach(PrecursorIonTree::sort);
     }
     return result;
   }
 
-  private static int getMzKey(double precursorMZ) {
-    return (int) (precursorMZ * 1000);
+  private static long getMzKey(double precursorMZ) {
+    return Math.round(precursorMZ * DEFAULT_PRECURSOR_MZ_TOLERANCE);
   }
-
-  /**
-   * @param child any part of the tree MS1, MS2, MS3 ....
-   */
-  public static List<Scan> getMSnFragmentTree(Scan child) {
-    TreeList<Scan> tree = new TreeList<>();
-    final RawDataFile raw = child.getDataFile();
-    int i = raw.getScans().indexOf(child) - 1;
-    int nextMSLevel = child.getMSLevel() - 1;
-    for (; i >= 0; i--) {
-      // check if preceding scan is next level
-      final Scan parent = raw.getScan(i);
-      if (parent.getMSLevel() == nextMSLevel) {
-        // TODO find precursor scans and return list
-      }
-    }
-    return List.of();
-  }
-
 
   /**
    * Sum of intensity of all data points >= noiseLevel
