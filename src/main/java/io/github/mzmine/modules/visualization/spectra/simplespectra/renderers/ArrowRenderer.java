@@ -27,34 +27,36 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 /**
  * Renderer for the mass list in spectrum plot
  */
-public class UnifyScansRenderer extends XYLineAndShapeRenderer {
+public class ArrowRenderer extends XYLineAndShapeRenderer {
 
-  private static final Shape rightArrow;
-  private static final Shape leftArrow;
-  private static final Shape downArrow;
+  public static final Shape rightArrow = new Polygon(new int[]{0, 0, 3}, new int[]{-3, 3, 0}, 3);
+  public static final Shape leftArrow = new Polygon(new int[]{0, 0, -3}, new int[]{-3, 3, 0}, 3);
+  public static final Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, -3}, 3);
+  public static final Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{-3, -3, 0}, 3);
+  public static final Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, -3, -6, -3},
+      4);
 
-  static {
-    rightArrow = new Polygon(new int[]{0, 0, 1}, new int[]{-1, 1, 0}, 3);
-    leftArrow = new Polygon(new int[]{0, 0, -1}, new int[]{-1, 1, 0}, 3);
-    downArrow = new Polygon(new int[]{-1, 1, 0}, new int[]{1, 1, 0}, 3);
+  private final Color[] color;
+  private final Shape shape;
+
+  public ArrowRenderer(Color... color) {
+    this(diamond, color);
   }
 
-  private final Color color;
-
-  public UnifyScansRenderer(Color color) {
+  public ArrowRenderer(Shape shape, Color... color) {
     super(false, true);
-
     this.color = color;
+    this.shape = shape;
   }
 
   @Override
   public Shape getItemShape(int series, int item) {
-    return downArrow;
+    return shape;
   }
 
   @Override
-  public Paint getItemPaint(int row, int column) {
-    return color;
+  public Paint getItemPaint(int series, int item) {
+    return series < color.length ? color[series] : color[0];
   }
 
 }

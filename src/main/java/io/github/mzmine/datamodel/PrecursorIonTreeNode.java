@@ -120,8 +120,8 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
   }
 
   /**
-   * Uses {@link #ACCURACY} to compare mz values. Precursor ion selection is usually not very
-   * precise.
+   * Uses {@link ScanUtils#DEFAULT_PRECURSOR_MZ_TOLERANCE} to compare mz values. Precursor ion
+   * selection is usually not very precise.
    *
    * @param precursorMZ other m/z
    * @return true if precursor m/z matches to this precursor (within accuracy)
@@ -232,4 +232,22 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
     }
   }
 
+  /**
+   * All fragments scans for all levels, sorted by level and precursor mz (Descending)
+   *
+   * @return list of all fragment scans
+   */
+  @NotNull
+  public List<Scan> getAllFragmentScans() {
+    List<Scan> scans = new ArrayList<>(getFragmentScans());
+    int level = 1;
+    while (true) {
+      final List<Scan> list = getFragmentScans(level);
+      if (list.isEmpty()) {
+        return scans;
+      }
+      scans.addAll(list);
+      level++;
+    }
+  }
 }

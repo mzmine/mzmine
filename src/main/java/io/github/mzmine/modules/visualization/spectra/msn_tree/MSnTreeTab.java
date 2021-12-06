@@ -22,18 +22,22 @@ import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
+import java.awt.Shape;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -185,12 +189,25 @@ public class MSnTreeTab extends SimpleTab {
     group.setShowCrosshair(true, false);
     // add spectra
     if (any != null) {
+      PrecursorIonTreeNode root = any.getRoot();
       // colors
       final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
 
       SpectraPlot previousPlot = null;
+      // distribute collision energies in three categories low, med, high
+      final List<Float> collisionEnergies = root.getAllFragmentScans().stream()
+          .map(Scan::getMsMsInfo).filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy)
+          .filter(Objects::nonNull).distinct().sorted().toList();
 
-      PrecursorIonTreeNode root = any.getRoot();
+      float minEnergy = 0f;
+      float maxEnergy = 0f;
+      float medEnergy = 0f;
+      if (!collisionEnergies.isEmpty()) {
+        minEnergy = collisionEnergies.get(0);
+        maxEnergy = collisionEnergies.get(collisionEnergies.size() - 1);
+        medEnergy = collisionEnergies.get(collisionEnergies.size() / 2);
+      }
+
       List<PrecursorIonTreeNode> levelPrecursors = List.of(root);
       int levelFromRoot = 0;
       do {
@@ -204,6 +221,11 @@ public class MSnTreeTab extends SimpleTab {
           for (int i = 0; i < fragmentScans.size(); i++) {
             ScanDataSet data = new ScanDataSet(fragmentScans.get(i));
             spectraPlot.addDataSet(data, color, false, false);
+            spectraPlot.addDataSet(data, color, false, null, false);
+            spectraPlot.getXYPlot().setRenderer(spectraPlot.getXYPlot().getDatasetCount() - 1,
+                new ArrowRenderer(getActivationEnergyShape(
+                    fragmentScans.get(i).getMsMsInfo().getActivationEnergy(), minEnergy, medEnergy,
+                    maxEnergy), color));
           }
 
           // add precursor markers for each different precursor only once
@@ -227,6 +249,22 @@ public class MSnTreeTab extends SimpleTab {
 
       group.applyAutoRange(true);
     }
+  }
+
+  /**
+   * Three groups of activation energies close to min, median, max
+   *
+   * @param ae current activation energy
+   * @return a shape from the {@link ArrowRenderer}
+   */
+  private Shape getActivationEnergyShape(Float ae, float minEnergy, float medEnergy,
+      float maxEnergy) {
+    if (ae == null) {
+      return ArrowRenderer.diamond;
+    }
+    final float med = Math.abs(medEnergy - ae);
+    return ae - minEnergy < med ? ArrowRenderer.downArrow
+        : (med < maxEnergy - ae ? ArrowRenderer.upArrow : ArrowRenderer.diamond);
   }
 
   private void expandTreeView(boolean expanded) {
