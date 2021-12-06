@@ -21,6 +21,7 @@ package io.github.mzmine.modules.tools.batchwizard;
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -59,9 +60,14 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       "An estimate of the maximum number of peaks in a chromatogram (number of same m/z features). Used to estimate the chromatographic threshold to filter noise chromatograms.",
       10, 1, Integer.MAX_VALUE);
 
+  public static final BooleanParameter stableIonizationAcrossSamples = new BooleanParameter(
+      "Stable ionization across samples",
+      "Only check if the ionization conditions are stable across all samples. Uncheck for varying salt content or variations in ionization conditions. Used in feature grouping.",
+      true);
+
   public BatchWizardHPLCParameters() {
-    super(new Parameter[]{cropRtRange, maximumIsomersInChromatogram, minNumberOfSamples,
-        minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
-        interSampleRTTolerance});
+    super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
+        minNumberOfSamples, minNumberOfDataPoints, approximateChromatographicFWHM,
+        intraSampleRTTolerance, interSampleRTTolerance});
   }
 }

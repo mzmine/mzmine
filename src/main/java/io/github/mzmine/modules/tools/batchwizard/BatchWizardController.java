@@ -81,6 +81,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.ArrayList;
 import java.util.List;
@@ -217,15 +218,15 @@ public class BatchWizardController {
     if (cbIonMobility.isSelected()) {
       q.add(makeImsTraceStep(msParameters));
     } else {
-      q.add(makeAdapStep(msParameters));
+      q.add(makeAdapStep(msParameters, hplcParameters));
     }
 
-    q.add(makeSmoothingStep(true, false));
-    q.add(makeRtResolvingStep(msParameters, hplcParameters));
+    q.add(makeSmoothingStep(hplcParameters, true, false));
+    q.add(makeRtResolvingStep(msParameters, hplcParameters, true));
     if (cbIonMobility.isSelected()) {
-      q.add(makeSmoothingStep(false, true));
+      q.add(makeSmoothingStep(hplcParameters, false, true));
       q.add(makeMobilityResolvingStep(msParameters, hplcParameters));
-      q.add(makeSmoothingStep(true, true));
+      q.add(makeSmoothingStep(hplcParameters, true, true));
     }
 
     q.add(makeDeisotopingStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
@@ -243,9 +244,9 @@ public class BatchWizardController {
     q.add(makeImportTask(msParameters, files));
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
-    q.add(makeAdapStep(msParameters));
-    q.add(makeSmoothingStep(true, false));
-    q.add(makeRtResolvingStep(msParameters, hplcParameters));
+    q.add(makeAdapStep(msParameters, hplcParameters));
+    q.add(makeSmoothingStep(hplcParameters, true, false));
+    q.add(makeRtResolvingStep(msParameters, hplcParameters, false));
     q.add(makeDeisotopingStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
     q.add(makeIsotopeFinderStep(msParameters));
@@ -303,13 +304,17 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeAdapStep(
-      @NotNull final ParameterSet msParameters) {
+      @NotNull final ParameterSet msParameters, SimpleParameterSet hplcParameters) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
         new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
-    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(1));
-    param.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 5);
+    // crop rt range
+    param.setParameter(ADAPChromatogramBuilderParameters.scanSelection, new ScanSelection(
+        RangeUtils.toFloatRange(hplcParameters.getValue(BatchWizardHPLCParameters.cropRtRange)),
+        1));
+    param.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan,
+        hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints));
     param.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
             .getValue());
@@ -348,14 +353,17 @@ public class BatchWizardController {
         MZmineCore.getModuleInstance(IonMobilityTraceBuilderModule.class), param);
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeSmoothingStep(final boolean rt,
-      final boolean mobility) {
+  private MZmineProcessingStep<MZmineProcessingModule> makeSmoothingStep(
+      SimpleParameterSet hplcParameters, final boolean rt, final boolean mobility) {
+    final Integer minDP = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
+
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(SmoothingModule.class).cloneParameterSet();
     param.setParameter(SmoothingParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(SmoothingParameters.rtSmoothing, rt);
-    param.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+    param.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter()
+        .setValue(minDP > 5 ? 7 : 5);
     param.setParameter(SmoothingParameters.mobilitySmoothing, mobility);
     param.getParameter(SmoothingParameters.mobilitySmoothing).getEmbeddedParameter().setValue(13);
     param.setParameter(SmoothingParameters.removeOriginal, true);
@@ -366,7 +374,16 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeRtResolvingStep(
-      @NotNull final ParameterSet msParameters, @NotNull final ParameterSet hplcParam) {
+      @NotNull final ParameterSet msParameters, @NotNull final ParameterSet hplcParam,
+      boolean hasIMS) {
+    final Integer minDP = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
+    final Range<Double> rtRange = hplcParameters.getValue(BatchWizardHPLCParameters.cropRtRange);
+    final double totalRtWidth = rtRange.upperEndpoint() - rtRange.lowerEndpoint();
+    final float fwhm = hplcParameters.getValue(
+        BatchWizardHPLCParameters.approximateChromatographicFWHM).getToleranceInMinutes();
+    final int maxIsomers = hplcParameters.getValue(
+        BatchWizardHPLCParameters.maximumIsomersInChromatogram);
+
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MinimumSearchFeatureResolverModule.class).cloneParameterSet();
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
@@ -375,42 +392,36 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.AUTO_REMOVE, true);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.mzTol,
-            msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
-                .getValue());
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.combineTimsMsMs, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.limitRTByFeature, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters()
-        .setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, false);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters()
-        .setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(5, Unit.SECONDS));
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().setParameter(GroupMS2SubParameters.outputNoiseLevel, true);
-    param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
-        .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
-        .getEmbeddedParameter().setValue(
-            msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
-            * 2);
+    final GroupMS2SubParameters groupParam = param.getParameter(
+        MinimumSearchFeatureResolverParameters.groupMS2Parameters).getEmbeddedParameters();
+    groupParam.setParameter(GroupMS2SubParameters.mzTol,
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
+    groupParam.setParameter(GroupMS2SubParameters.combineTimsMsMs, hasIMS);
+    groupParam.setParameter(GroupMS2SubParameters.limitRTByFeature, minDP > 4);
+    groupParam.setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, false);
+    groupParam.setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(fwhm * 3, Unit.MINUTES));
+    groupParam.setParameter(GroupMS2SubParameters.outputNoiseLevel, hasIMS);
+    groupParam.getParameter(GroupMS2SubParameters.outputNoiseLevel).getEmbeddedParameter().setValue(
+        msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
+        * 2);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
+    // should be relatively high - unless user suspects many same m/z peaks in chromatogram
+    // e.g., isomers or fragments in GC-EI-MS
+    // 10 isomers, 0.05 min FWHM, 10 min total time = 0.90 threshold
+    final double thresholdPercent = 1d - fwhm * maxIsomers / totalRtWidth * 2d;
     param.setParameter(MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL,
-        0.95);
-    param.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE,
-        (double) hplcParam.getParameter(BatchWizardHPLCParameters.approximateChromatographicFWHM)
-            .getValue().getToleranceInMinutes());
+        thresholdPercent);
+    param.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, (double) fwhm);
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
     param.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT,
-        msParameters.getParameter(BatchWizardMassSpectrometerParameters.minimumFeatureHeight)
-            .getValue());
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 1.8d);
-    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION, Range.closed(0d, 10d));
-    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 5);
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.minimumFeatureHeight));
+    final double ratioTopToEdge = minDP == 3 ? 1.4 : (minDP == 4 ? 1.8 : 2);
+    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, ratioTopToEdge);
+    param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_DURATION,
+        Range.closed(0d, fwhm * 30d));
+    param.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, minDP);
 
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(MinimumSearchFeatureResolverModule.class), param);
@@ -524,7 +535,7 @@ public class BatchWizardController {
     param.setParameter(JoinAlignerParameters.MZTolerance,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.sampleToSampleMzTolerance)
             .getValue());
-    param.setParameter(JoinAlignerParameters.MZWeight, 1d);
+    param.setParameter(JoinAlignerParameters.MZWeight, 3d);
     param.setParameter(JoinAlignerParameters.RTTolerance,
         hplcParameters.getParameter(BatchWizardHPLCParameters.interSampleRTTolerance).getValue());
     param.setParameter(JoinAlignerParameters.RTWeight, 1d);
@@ -544,68 +555,60 @@ public class BatchWizardController {
   private MZmineProcessingStep<MZmineProcessingModule> makeMetaCorrStep(final ParameterSet msParam,
       final ParameterSet hplcParam) {
 
-    final Double ms1NoiseLevel = msParameters.getParameter(
-        BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue();
-    final Double minHeight = msParameters.getParameter(
-        BatchWizardMassSpectrometerParameters.minimumFeatureHeight).getValue();
+    final double ms1NoiseLevel = msParam.getValue(
+        BatchWizardMassSpectrometerParameters.ms1NoiseLevel);
+    final double minHeight = msParam.getValue(
+        BatchWizardMassSpectrometerParameters.minimumFeatureHeight);
+    final int minSamples = hplcParam.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
+    final int minDP = hplcParam.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
+    final boolean stableIonization = hplcParam.getValue(
+        BatchWizardHPLCParameters.stableIonizationAcrossSamples);
+    final boolean useCorrGrouping = minDP > 3;
+    RTTolerance rtTol = hplcParam.getValue(
+        BatchWizardHPLCParameters.approximateChromatographicFWHM);
+    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 10f : 0.7f), rtTol.getUnit());
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(CorrelateGroupingModule.class);
     param.setParameter(CorrelateGroupingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE,
-        hplcParam.getParameter(BatchWizardHPLCParameters.interSampleRTTolerance).getValue());
+    param.setParameter(CorrelateGroupingParameters.RT_TOLERANCE, rtTol);
     param.setParameter(CorrelateGroupingParameters.GROUPSPARAMETER, false);
-    param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, minHeight * 2);
-    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, ms1NoiseLevel * 2);
-
-    var minFeaturesFilterParam = new MinimumFeaturesFilterParameters().cloneParameterSet();
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.GROUPSPARAMETER, false);
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.MIN_HEIGHT, minHeight * 2);
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.RT_TOLERANCE,
-        hplcParam.getParameter(BatchWizardHPLCParameters.interSampleRTTolerance).getValue());
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_GROUP,
-        new AbsoluteNRelativeInt(0, 0, Mode.ROUND_DOWN));
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_ALL,
-        new AbsoluteNRelativeInt(1, 0, Mode.ROUND_DOWN));
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.MIN_INTENSITY_OVERLAP,
-        0.6d);
-    minFeaturesFilterParam.setParameter(MinimumFeaturesFilterParameters.EXCLUDE_ESTIMATED, true);
+    param.setParameter(CorrelateGroupingParameters.MIN_HEIGHT, 0d);
+    param.setParameter(CorrelateGroupingParameters.NOISE_LEVEL, ms1NoiseLevel);
     param.setParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER, true);
-    param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
-        .setEmbeddedParameters((MinimumFeaturesFilterParameters) minFeaturesFilterParam);
 
-    var fshapeCorrParam = new FeatureShapeCorrelationParameters().cloneParameterSet();
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.RT_TOLERANCE,
-        hplcParam.getParameter(BatchWizardHPLCParameters.interSampleRTTolerance).getValue());
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.NOISE_LEVEL_PEAK_SHAPE,
-        ms1NoiseLevel * 2);
-    //    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.USE_MASS_LIST_DATA, true);
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.MIN_DP_FEATURE_EDGE, 2);
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.MIN_DP_CORR_PEAK_SHAPE, 5);
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.MEASURE,
-        SimilarityMeasure.PEARSON);
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.MIN_R_SHAPE_INTRA, 0.85);
-    fshapeCorrParam.setParameter(FeatureShapeCorrelationParameters.MIN_TOTAL_CORR, true);
-    fshapeCorrParam.getParameter(FeatureShapeCorrelationParameters.MIN_TOTAL_CORR)
+    // min samples
+    var minSampleP = param.getParameter(CorrelateGroupingParameters.MIN_SAMPLES_FILTER)
+        .getEmbeddedParameters();
+    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_GROUP,
+        new AbsoluteNRelativeInt(0, 0, Mode.ROUND_DOWN));
+    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_SAMPLES_ALL,
+        new AbsoluteNRelativeInt(minSamples, 0, Mode.ROUND_DOWN));
+    minSampleP.setParameter(MinimumFeaturesFilterParameters.MIN_INTENSITY_OVERLAP, 0.6d);
+    minSampleP.setParameter(MinimumFeaturesFilterParameters.EXCLUDE_ESTIMATED, true);
+
+    //
+    param.setParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION, useCorrGrouping);
+    var fshapeCorrP = param.getParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION)
+        .getEmbeddedParameters();
+    // MIN_DP_CORR_PEAK_SHAPE, MIN_DP_FEATURE_EDGE, MEASURE, MIN_R_SHAPE_INTRA, MIN_TOTAL_CORR
+    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_DP_FEATURE_EDGE, 2);
+    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_DP_CORR_PEAK_SHAPE, 5);
+    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MEASURE, SimilarityMeasure.PEARSON);
+    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_R_SHAPE_INTRA, 0.85);
+    fshapeCorrP.setParameter(FeatureShapeCorrelationParameters.MIN_TOTAL_CORR, false);
+    fshapeCorrP.getParameter(FeatureShapeCorrelationParameters.MIN_TOTAL_CORR)
         .getEmbeddedParameter().setValue(0.5d);
-    param.setParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION, true);
-    param.getParameter(CorrelateGroupingParameters.FSHAPE_CORRELATION)
-        .setEmbeddedParameters((FeatureShapeCorrelationParameters) fshapeCorrParam);
 
-    var interSampleCorrParam = new InterSampleHeightCorrParameters().cloneParameterSet();
-    interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MIN_HEIGHT, minHeight * 2);
-    interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.NOISE_LEVEL,
-        ms1NoiseLevel * 2);
+    // inter sample height correlation - only if same conditions
+    param.setParameter(CorrelateGroupingParameters.IMAX_CORRELATION, stableIonization);
+    var interSampleCorrParam = param.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION)
+        .getEmbeddedParameters();
     interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MIN_CORRELATION, 0.7);
     interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MIN_DP, 2);
     interSampleCorrParam.setParameter(InterSampleHeightCorrParameters.MEASURE,
         SimilarityMeasure.PEARSON);
-    param.setParameter(CorrelateGroupingParameters.IMAX_CORRELATION, true);
-    param.getParameter(CorrelateGroupingParameters.IMAX_CORRELATION)
-        .setEmbeddedParameters((InterSampleHeightCorrParameters) interSampleCorrParam);
 
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(CorrelateGroupingModule.class), param);
@@ -620,16 +623,16 @@ public class BatchWizardController {
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class);
-    param.setParameter(IonNetworkingParameters.MIN_HEIGHT, minHeight * 2);
+    param.setParameter(IonNetworkingParameters.MIN_HEIGHT, 0d);
     param.setParameter(IonNetworkingParameters.MZ_TOLERANCE,
-        msParam.getParameter(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance)
-            .getValue());
+        msParam.getValue(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance));
     param.setParameter(IonNetworkingParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
-    ParameterSet refinementParam = new IonNetworkRefinementParameters().cloneParameterSet();
-    refinementParam.setParameter(IonNetworkRefinementParameters.PEAK_LISTS,
-        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // refinement
+    param.setParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS, true);
+    var refinementParam = param.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS)
+        .getEmbeddedParameters();
     refinementParam.setParameter(IonNetworkRefinementParameters.MIN_NETWORK_SIZE, false);
     refinementParam.setParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD, true);
     refinementParam.getParameter(IonNetworkRefinementParameters.TRUE_THRESHOLD)
@@ -637,26 +640,26 @@ public class BatchWizardController {
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_SMALL_NO_MAJOR, true);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_ROWS_WITHOUT_ID, false);
     refinementParam.setParameter(IonNetworkRefinementParameters.DELETE_WITHOUT_MONOMER, true);
-    param.setParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS, true);
-    param.getParameter(IonNetworkingParameters.ANNOTATION_REFINEMENTS)
-        .setEmbeddedParameters((IonNetworkRefinementParameters) refinementParam);
 
-    ParameterSet ionLibraryParam = new IonLibraryParameterSet().cloneParameterSet();
+    // ion library
+    var ionLibraryParam = param.getParameter(IonNetworkingParameters.LIBRARY)
+        .getEmbeddedParameters();
     ionLibraryParam.setParameter(IonLibraryParameterSet.POSITIVE_MODE,
         polarity == Polarity.Positive ? "POSITIVE" : "NEGATIVE");
     ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_CHARGE, 2);
-    ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 3);
-    IonModification[] adducts =
-        polarity == Polarity.Positive ? new IonModification[]{IonModification.H, IonModification.NA,
-            IonModification.K, IonModification.NH4, IonModification.H2plus}
-            : new IonModification[]{IonModification.H_NEG, IonModification.FA,
-                IonModification.NA_2H};
+    ionLibraryParam.setParameter(IonLibraryParameterSet.MAX_MOLECULES, 2);
+    IonModification[] adducts;
+    if (polarity == Polarity.Positive) {
+      adducts = new IonModification[]{IonModification.H, IonModification.NA,
+          IonModification.Hneg_NA2, IonModification.K, IonModification.NH4, IonModification.H2plus};
+    } else {
+      adducts = new IonModification[]{IonModification.H_NEG, IonModification.FA,
+          IonModification.NA_2H, IonModification.CL};
+    }
     IonModification[] modifications = new IonModification[]{IonModification.H2O,
-        IonModification.H2O_2, IonModification.HFA, IonModification.ACN, IonModification.MEOH};
+        IonModification.H2O_2};
     ionLibraryParam.setParameter(IonLibraryParameterSet.ADDUCTS,
         new IonModification[][]{adducts, modifications});
-    param.getParameter(IonNetworkingParameters.LIBRARY)
-        .setEmbeddedParameters((IonLibraryParameterSet) ionLibraryParam);
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
         param);

@@ -34,6 +34,7 @@ public class DefaultLcParameters {
       new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.05f, Unit.MINUTES),
       new RTTolerance(0.1f, Unit.MINUTES));
 
+  private final boolean stableIonizationAcrossSamples;
   private final Range<Double> cropRtRange;
   private final int minNumberDataPoints;
   private final int minSamples;
@@ -44,12 +45,13 @@ public class DefaultLcParameters {
 
   public DefaultLcParameters(RTTolerance fwhm, RTTolerance intraSampleTolerance,
       RTTolerance interSampleTolerance) {
-    this(Range.closed(0.5, 15d), 3, 1, 10, fwhm, intraSampleTolerance, interSampleTolerance);
+    this(true, Range.closed(0.5, 15d), 3, 1, 10, fwhm, intraSampleTolerance, interSampleTolerance);
   }
 
-  public DefaultLcParameters(Range<Double> cropRtRange, int minNumberDataPoints, int minSamples,
-      int maxIsomersInChromatogram, RTTolerance fwhm, RTTolerance intraSampleTolerance,
-      RTTolerance interSampleTolerance) {
+  public DefaultLcParameters(boolean stableIonizationAcrossSamples, Range<Double> cropRtRange,
+      int minNumberDataPoints, int minSamples, int maxIsomersInChromatogram, RTTolerance fwhm,
+      RTTolerance intraSampleTolerance, RTTolerance interSampleTolerance) {
+    this.stableIonizationAcrossSamples = stableIonizationAcrossSamples;
     this.cropRtRange = cropRtRange;
     this.minNumberDataPoints = minNumberDataPoints;
     this.minSamples = minSamples;
@@ -60,6 +62,8 @@ public class DefaultLcParameters {
   }
 
   public void setToParameterSet(ParameterSet param) {
+    param.setParameter(BatchWizardHPLCParameters.stableIonizationAcrossSamples,
+        stableIonizationAcrossSamples);
     param.setParameter(BatchWizardHPLCParameters.minNumberOfSamples, minSamples);
     param.setParameter(BatchWizardHPLCParameters.cropRtRange, cropRtRange);
     param.setParameter(BatchWizardHPLCParameters.maximumIsomersInChromatogram,
