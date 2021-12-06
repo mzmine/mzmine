@@ -86,7 +86,6 @@ import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -146,7 +145,7 @@ public class BatchWizardController {
 
   }
 
-  public void onSetMsDefaults(ActionEvent actionEvent) {
+  public void onSetMsDefaults() {
     if (rbTOF.isSelected() && cbIonMobility.isSelected()) {
       DefaultMsParameters.defaultImsTofParameters.setToParameterSet(msParameters);
       msDialog.setParameterValuesToComponents();
@@ -160,16 +159,14 @@ public class BatchWizardController {
     if (rbOrbitrap.isSelected() && cbPolarity.getValue() == Polarity.Positive) {
       DefaultMsParameters.defaultOrbitrapPositiveParameters.setToParameterSet(msParameters);
       msDialog.setParameterValuesToComponents();
-      return;
     }
     if (rbOrbitrap.isSelected() && cbPolarity.getValue() == Polarity.Negative) {
       DefaultMsParameters.defaultOrbitrapNegativeParameters.setToParameterSet(msParameters);
       msDialog.setParameterValuesToComponents();
-      return;
     }
   }
 
-  public void onSetLcDefaults(ActionEvent actionEvent) {
+  public void onSetLcDefaults() {
     if (rbUHPLC.isSelected()) {
       DefaultLcParameters.uhplc.setToParameterSet(hplcParameters);
       hplcDialog.setParameterValuesToComponents();
@@ -178,12 +175,11 @@ public class BatchWizardController {
     if (rbHPLC.isSelected()) {
       DefaultLcParameters.hplc.setToParameterSet(hplcParameters);
       hplcDialog.setParameterValuesToComponents();
-      return;
     }
   }
 
 
-  public void onRunPressed(ActionEvent actionEvent) {
+  public void onRunPressed() {
     List<String> errorMessages = new ArrayList<>();
     msDialog.updateParameterSetFromComponents();
     msParameters.checkParameterValues(errorMessages);
@@ -195,8 +191,7 @@ public class BatchWizardController {
     files.checkValue(errorMessages);
 
     if (!errorMessages.isEmpty()) {
-      MZmineCore.getDesktop()
-          .displayErrorMessage("Please check the parameters.\n" + errorMessages.toString());
+      MZmineCore.getDesktop().displayErrorMessage("Please check the parameters.\n" + errorMessages);
       return;
     }
 
@@ -211,7 +206,7 @@ public class BatchWizardController {
 
   private BatchQueue createTofQueue() {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask(msParameters, files));
+    q.add(makeImportTask(files));
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
@@ -235,13 +230,13 @@ public class BatchWizardController {
     q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
-    q.add(makeIinStep(msParameters, hplcParameters, cbPolarity.getValue()));
+    q.add(makeIinStep(msParameters, cbPolarity.getValue()));
     return q;
   }
 
   private BatchQueue createOrbitrapQueue() {
     final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask(msParameters, files));
+    q.add(makeImportTask(files));
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
     q.add(makeAdapStep(msParameters, hplcParameters));
@@ -253,19 +248,18 @@ public class BatchWizardController {
     q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
-    q.add(makeIinStep(msParameters, hplcParameters, cbPolarity.getValue()));
+    q.add(makeIinStep(msParameters, cbPolarity.getValue()));
     return q;
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeImportTask(
-      @NotNull final ParameterSet msParameters, FileNamesParameter files) {
+  private MZmineProcessingStep<MZmineProcessingModule> makeImportTask(FileNamesParameter files) {
     // todo make auto mass detector work, so we can use it here.
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
     param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(files.getValue());
 
-    return new MZmineProcessingStepImpl<MZmineProcessingModule>(
+    return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param);
   }
 
@@ -376,12 +370,12 @@ public class BatchWizardController {
   private MZmineProcessingStep<MZmineProcessingModule> makeRtResolvingStep(
       @NotNull final ParameterSet msParameters, @NotNull final ParameterSet hplcParam,
       boolean hasIMS) {
-    final Integer minDP = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
-    final Range<Double> rtRange = hplcParameters.getValue(BatchWizardHPLCParameters.cropRtRange);
+    final Integer minDP = hplcParam.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
+    final Range<Double> rtRange = hplcParam.getValue(BatchWizardHPLCParameters.cropRtRange);
     final double totalRtWidth = rtRange.upperEndpoint() - rtRange.lowerEndpoint();
-    final float fwhm = hplcParameters.getValue(
-        BatchWizardHPLCParameters.approximateChromatographicFWHM).getToleranceInMinutes();
-    final int maxIsomers = hplcParameters.getValue(
+    final float fwhm = hplcParam.getValue(BatchWizardHPLCParameters.approximateChromatographicFWHM)
+        .getToleranceInMinutes();
+    final int maxIsomers = hplcParam.getValue(
         BatchWizardHPLCParameters.maximumIsomersInChromatogram);
 
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -557,8 +551,6 @@ public class BatchWizardController {
 
     final double ms1NoiseLevel = msParam.getValue(
         BatchWizardMassSpectrometerParameters.ms1NoiseLevel);
-    final double minHeight = msParam.getValue(
-        BatchWizardMassSpectrometerParameters.minimumFeatureHeight);
     final int minSamples = hplcParam.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
     final int minDP = hplcParam.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
     final boolean stableIonization = hplcParam.getValue(
@@ -615,11 +607,7 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeIinStep(ParameterSet msParam,
-      ParameterSet hplcParam, Polarity polarity) {
-    final Double ms1NoiseLevel = msParameters.getParameter(
-        BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue();
-    final Double minHeight = msParameters.getParameter(
-        BatchWizardMassSpectrometerParameters.minimumFeatureHeight).getValue();
+      Polarity polarity) {
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(IonNetworkingModule.class);
