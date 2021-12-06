@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +38,6 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
   /**
    * use accuracy for m/z in match
    */
-  public static final int ACCURACY = 500;
   private static final Logger logger = Logger.getLogger(PrecursorIonTreeNode.class.getName());
   private final double precursorMZ;
   private final int msLevel;
@@ -76,6 +76,36 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
   @NotNull
   public List<Scan> getFragmentScans() {
     return fragmentScans;
+  }
+
+  @NotNull
+  public List<Scan> getFragmentScans(int levelFromRoot) {
+    if (levelFromRoot == 0) {
+      return getFragmentScans();
+    }
+    return streamPrecursors(levelFromRoot).map(PrecursorIonTreeNode::getFragmentScans)
+        .flatMap(List::stream).toList();
+  }
+
+  @NotNull
+  public List<PrecursorIonTreeNode> getPrecursors(int levelFromRoot) {
+    if (levelFromRoot == 0) {
+      return List.of(this);
+    } else if (levelFromRoot == 1) {
+      return getChildPrecursors();
+    } else {
+      return streamPrecursors(levelFromRoot).toList();
+    }
+  }
+
+  @NotNull
+  public Stream<PrecursorIonTreeNode> streamPrecursors(int levelFromRoot) {
+    if (levelFromRoot == 0) {
+      return Stream.of(this);
+    }
+    final Stream<PrecursorIonTreeNode> stream = getChildPrecursors().stream();
+    return levelFromRoot == 1 ? stream
+        : stream.flatMap(node -> node.streamPrecursors(levelFromRoot - 1));
   }
 
   public void addFragmentScan(Scan scan) {
@@ -174,12 +204,7 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
     if (parent == null) {
       return "m/z " + mz + scans;
     } else {
-      StringBuilder s = new StringBuilder();
-      s.append(parent);
-      s.append(" ↦ ");
-      s.append(mz);
-      s.append(scans);
-      return s.toString();
+      return parent + " ↦ " + mz + scans;
     }
   }
 
@@ -206,4 +231,5 @@ public class PrecursorIonTreeNode implements Comparable<PrecursorIonTreeNode> {
       childPrecursors.forEach(PrecursorIonTreeNode::sort);
     }
   }
+
 }

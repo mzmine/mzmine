@@ -21,25 +21,39 @@ package io.github.mzmine.modules.visualization.spectra.msn_tree;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -47,8 +61,8 @@ import javafx.scene.layout.VBox;
 public class MSnTreeTab extends SimpleTab {
 
   private final AtomicLong currentThread = new AtomicLong(0L);
-  private TreeView<PrecursorIonTreeNode> treeView;
-  private VBox spectraPane;
+  private final TreeView<PrecursorIonTreeNode> treeView;
+  private final GridPane spectraPane;
   private int lastSelectedItem = -1;
 
   public MSnTreeTab() {
@@ -81,9 +95,22 @@ public class MSnTreeTab extends SimpleTab {
     left.setCenter(treeScroll);
 
     // create spectra grid
-    spectraPane = new VBox();
-    ScrollPane scrollSpectra = new ScrollPane(spectraPane);
+    spectraPane = new GridPane();
+    final ColumnConstraints col = new ColumnConstraints(200, 350, -1, Priority.ALWAYS, HPos.LEFT,
+        true);
+    spectraPane.getColumnConstraints().add(col);
+    spectraPane.setGridLinesVisible(true);
+    final RowConstraints rowConstraints = new RowConstraints(200, 350, -1, Priority.ALWAYS,
+        VPos.CENTER, true);
+    spectraPane.getRowConstraints().add(rowConstraints);
+    spectraPane.getRowConstraints().add(rowConstraints);
+    spectraPane.add(new BorderPane(new SpectraPlot()), 0, 0);
+    spectraPane.add(new BorderPane(new SpectraPlot()), 0, 1);
+
+    ScrollPane scrollSpectra = new ScrollPane(new BorderPane(spectraPane));
     scrollSpectra.setFitToHeight(true);
+    scrollSpectra.setFitToWidth(true);
+    scrollSpectra.setVbarPolicy(ScrollBarPolicy.ALWAYS);
 
     SplitPane splitPane = new SplitPane(left, scrollSpectra);
     splitPane.setDividerPositions(0.22);
@@ -120,7 +147,7 @@ public class MSnTreeTab extends SimpleTab {
   public synchronized void setRawDataFile(RawDataFile raw) {
     lastSelectedItem = -1;
     treeView.getRoot().getChildren().clear();
-    spectraPane.getChildren().clear();
+    //    spectraPane.getChildren().clear();
 
     // track current thread
     final long current = currentThread.incrementAndGet();
@@ -152,12 +179,53 @@ public class MSnTreeTab extends SimpleTab {
   }
 
   public void showSpectra(PrecursorIonTreeNode any) {
-
     spectraPane.getChildren().clear();
+    spectraPane.getRowConstraints().clear();
+    ChartGroup group = new ChartGroup(false, false, true, false);
+    group.setShowCrosshair(true, false);
     // add spectra
     if (any != null) {
-      PrecursorIonTreeNode root = any.getRoot();
+      // colors
+      final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
 
+      SpectraPlot previousPlot = null;
+
+      PrecursorIonTreeNode root = any.getRoot();
+      List<PrecursorIonTreeNode> levelPrecursors = List.of(root);
+      int levelFromRoot = 0;
+      do {
+        // create one spectra plot for each MS level
+        SpectraPlot spectraPlot = new SpectraPlot();
+        // create combined dataset for each MS level
+        int c = 0;
+        for (PrecursorIonTreeNode precursor : levelPrecursors) {
+          final Color color = FxColorUtil.fxColorToAWT(colors.get(c % colors.size()));
+          final List<Scan> fragmentScans = precursor.getFragmentScans();
+          for (int i = 0; i < fragmentScans.size(); i++) {
+            ScanDataSet data = new ScanDataSet(fragmentScans.get(i));
+            spectraPlot.addDataSet(data, color, false, false);
+          }
+
+          // add precursor markers for each different precursor only once
+          spectraPlot.addPrecursorMarkers(precursor.getFragmentScans().get(0), color, 0.25f);
+          c++;
+        }
+        // hide x axis
+        if (previousPlot != null) {
+          previousPlot.getXYPlot().getDomainAxis().setVisible(false);
+        }
+        // add
+        group.add(new ChartViewWrapper(spectraPlot));
+        spectraPane.getRowConstraints()
+            .add(new RowConstraints(200, 250, -1, Priority.ALWAYS, VPos.CENTER, true));
+        spectraPane.add(new BorderPane(spectraPlot), 0, levelFromRoot);
+        previousPlot = spectraPlot;
+        // next level
+        levelFromRoot++;
+        levelPrecursors = root.getPrecursors(levelFromRoot);
+      } while (!levelPrecursors.isEmpty());
+
+      group.applyAutoRange(true);
     }
   }
 

@@ -392,14 +392,23 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
+    addDataSet(dataSet, color, transparency, true);
+  }
+
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
+      boolean addPrecursorMarkers) {
     SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
-    addDataSet(dataSet, color, transparency, labelGenerator);
+    addDataSet(dataSet, color, transparency, labelGenerator, addPrecursorMarkers);
   }
 
   // add Dataset with label generator
-
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
       XYItemLabelGenerator labelGenerator) {
+    addDataSet(dataSet, color, transparency, labelGenerator, true);
+  }
+
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
+      XYItemLabelGenerator labelGenerator, boolean addPrecursorMarkers) {
 
     XYItemRenderer newRenderer;
 
@@ -419,7 +428,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
 
       // add all precursors for MS>=2
-      if (scan != null && scan.getMSLevel() > 1) {
+      if (addPrecursorMarkers && scan != null && scan.getMSLevel() > 1) {
         addPrecursorMarkers(scan);
       }
     } else if (dataSet instanceof MassListDataSet) {
@@ -446,6 +455,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public void addPrecursorMarkers(Scan scan) {
+    addPrecursorMarkers(scan, Color.GRAY, 0.5f);
+  }
+
+  public void addPrecursorMarkers(Scan scan, Color color, float alpha) {
     boolean showPrecursorWindow = MZmineCore.getConfiguration().getPreferences()
         .getValue(MZminePreferences.showPrecursorWindow);
     if (scan.getMSLevel() == 2) {
@@ -453,9 +466,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       if (prmz != null) {
         final MsMsInfo info = scan.getMsMsInfo();
         if (showPrecursorWindow && info != null && info.getIsolationWindow() != null) {
-          addPrecursorMarker(info.getIsolationWindow());
+          addPrecursorMarker(info.getIsolationWindow(), color, alpha);
         } else {
-          addPrecursorMarker(prmz);
+          addPrecursorMarker(prmz, color, alpha);
         }
       }
     } else if (scan.getMSLevel() > 2) {
@@ -463,34 +476,34 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       if (scan.getMsMsInfo() instanceof MSnInfoImpl msn) {
         for (var info : msn.getPrecursors()) {
           if (showPrecursorWindow && info.getIsolationWindow() != null) {
-            addPrecursorMarker(info.getIsolationWindow());
+            addPrecursorMarker(info.getIsolationWindow(), color, alpha);
           } else {
-            addPrecursorMarker(info.getIsolationMz());
+            addPrecursorMarker(info.getIsolationMz(), color, alpha);
           }
         }
       }
     }
   }
 
-  private void addPrecursorMarker(Range<Double> mzRange) {
-    addPrecursorMarker(mzRange.lowerEndpoint(), mzRange.upperEndpoint());
+  private void addPrecursorMarker(Range<Double> mzRange, Color color, float alpha) {
+    addPrecursorMarker(mzRange.lowerEndpoint(), mzRange.upperEndpoint(), color, alpha);
   }
 
-  private void addPrecursorMarker(double lowerMZ, double upperMZ) {
+  private void addPrecursorMarker(double lowerMZ, double upperMZ, Color color, float alpha) {
     final IntervalMarker marker = new IntervalMarker(lowerMZ, upperMZ);
     marker.setStroke(
         new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
-    marker.setPaint(Color.GRAY);
-    marker.setAlpha(0.7f);
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
     plot.addDomainMarker(marker);
   }
 
-  private void addPrecursorMarker(double precursorMz) {
+  private void addPrecursorMarker(double precursorMz, Color color, float alpha) {
     final ValueMarker marker = new ValueMarker(precursorMz);
     marker.setStroke(
         new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
-    marker.setPaint(Color.GRAY);
-    marker.setAlpha(0.7f);
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
     plot.addDomainMarker(marker);
   }
 
