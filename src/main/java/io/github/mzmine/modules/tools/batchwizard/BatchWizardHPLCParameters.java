@@ -18,8 +18,11 @@
 
 package io.github.mzmine.modules.tools.batchwizard;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class BatchWizardHPLCParameters extends SimpleParameterSet {
@@ -29,17 +32,36 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       "The approximate feature width (chromatograpic peak width) in retention time. ");
 
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
-      "Intra-sample rt tolerance",
+      "Intra-sample RT tolerance",
       "Retention time tolerance for multiple signals of the same compound in the same "
-          + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.");
+      + "sample.\nUsed to detect isotopes or multimers/adducts of the same compound.");
 
   public static final RTToleranceParameter interSampleRTTolerance = new RTToleranceParameter(
       "Inter-sample RT tolerance",
       "Retention time tolerance for the same compound in different samples.\n"
-          + "Used to align multiple measurements of the same sample or a batch run.");
+      + "Used to align multiple measurements of the same sample or a batch run.");
+
+  public static final IntegerParameter minNumberOfDataPoints = new IntegerParameter(
+      "Min # of data points",
+      "Minimum number of data points as used in chromatogram building and feature resolving.", 3, 1,
+      Integer.MAX_VALUE);
+
+  public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
+      "Min samples with aligned feature",
+      "The minimum number of samples in which a feature needs to be detected, e.g., 2 for triplicates. Used in feature list rows filter and feature grouping.",
+      1, 1, Integer.MAX_VALUE);
+
+  public static final RTRangeParameter cropRtRange = new RTRangeParameter("Filter by RT",
+      "The active retention time range.", true, Range.closed(0.5, 15d));
+
+  public static final IntegerParameter maximumIsomersInChromatogram = new IntegerParameter(
+      "Max peaks in chromatogram",
+      "An estimate of the maximum number of peaks in a chromatogram (number of same m/z features). Used to estimate the chromatographic threshold to filter noise chromatograms.",
+      10, 1, Integer.MAX_VALUE);
 
   public BatchWizardHPLCParameters() {
-    super(new Parameter[]{approximateChromatographicFWHM, intraSampleRTTolerance,
+    super(new Parameter[]{cropRtRange, maximumIsomersInChromatogram, minNumberOfSamples,
+        minNumberOfDataPoints, approximateChromatographicFWHM, intraSampleRTTolerance,
         interSampleRTTolerance});
   }
 }

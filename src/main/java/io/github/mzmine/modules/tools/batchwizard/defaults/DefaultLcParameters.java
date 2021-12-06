@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.tools.batchwizard.defaults;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardHPLCParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -33,23 +34,39 @@ public class DefaultLcParameters {
       new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.05f, Unit.MINUTES),
       new RTTolerance(0.1f, Unit.MINUTES));
 
+  private final Range<Double> cropRtRange;
+  private final int minNumberDataPoints;
+  private final int minSamples;
+  private final int maxIsomersInChromatogram;
   private final RTTolerance fwhm;
   private final RTTolerance intraSampleTolerance;
   private final RTTolerance interSampleTolerance;
 
   public DefaultLcParameters(RTTolerance fwhm, RTTolerance intraSampleTolerance,
       RTTolerance interSampleTolerance) {
+    this(Range.closed(0.5, 15d), 3, 1, 10, fwhm, intraSampleTolerance, interSampleTolerance);
+  }
+
+  public DefaultLcParameters(Range<Double> cropRtRange, int minNumberDataPoints, int minSamples,
+      int maxIsomersInChromatogram, RTTolerance fwhm, RTTolerance intraSampleTolerance,
+      RTTolerance interSampleTolerance) {
+    this.cropRtRange = cropRtRange;
+    this.minNumberDataPoints = minNumberDataPoints;
+    this.minSamples = minSamples;
+    this.maxIsomersInChromatogram = maxIsomersInChromatogram;
     this.fwhm = fwhm;
     this.intraSampleTolerance = intraSampleTolerance;
     this.interSampleTolerance = interSampleTolerance;
   }
 
-  public void setToParameterSet(ParameterSet parameterSet) {
-    parameterSet.getParameter(BatchWizardHPLCParameters.approximateChromatographicFWHM)
-        .setValue(fwhm);
-    parameterSet.getParameter(BatchWizardHPLCParameters.intraSampleRTTolerance)
-        .setValue(intraSampleTolerance);
-    parameterSet.getParameter(BatchWizardHPLCParameters.interSampleRTTolerance)
-        .setValue(interSampleTolerance);
+  public void setToParameterSet(ParameterSet param) {
+    param.setParameter(BatchWizardHPLCParameters.minNumberOfSamples, minSamples);
+    param.setParameter(BatchWizardHPLCParameters.cropRtRange, cropRtRange);
+    param.setParameter(BatchWizardHPLCParameters.maximumIsomersInChromatogram,
+        maxIsomersInChromatogram);
+    param.setParameter(BatchWizardHPLCParameters.minNumberOfDataPoints, minNumberDataPoints);
+    param.setParameter(BatchWizardHPLCParameters.approximateChromatographicFWHM, fwhm);
+    param.setParameter(BatchWizardHPLCParameters.intraSampleRTTolerance, intraSampleTolerance);
+    param.setParameter(BatchWizardHPLCParameters.interSampleRTTolerance, interSampleTolerance);
   }
 }

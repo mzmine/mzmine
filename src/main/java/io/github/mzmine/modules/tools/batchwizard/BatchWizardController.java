@@ -271,11 +271,11 @@ public class BatchWizardController {
     final ParameterSet detectorParam = MZmineCore.getConfiguration()
         .getModuleParameters(AutoMassDetector.class).cloneParameterSet();
     detectorParam.getParameter(AutoMassDetectorParameters.noiseLevel).setValue(
-        msLevel == 1 ? msParameters
-            .getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
+        msLevel == 1 ? msParameters.getParameter(
+            BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
             : msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel)
                 .getValue());
-    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, true);
+    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, msLevel <= 1);
     final DetectIsotopesParameter detectIsotopesParameter = detectorParam
         .getParameter(AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
     detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
