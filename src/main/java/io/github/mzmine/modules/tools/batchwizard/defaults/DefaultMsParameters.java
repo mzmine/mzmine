@@ -25,18 +25,18 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 public class DefaultMsParameters {
 
   public static final DefaultMsParameters defaultTofParameters = new DefaultMsParameters(5E2, 1E2,
-      1E3, new MZTolerance(0.005, 10), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
+      1E3, new MZTolerance(0.005, 20), new MZTolerance(0.003, 15), new MZTolerance(0.004, 15));
 
   public static final DefaultMsParameters defaultImsTofParameters = new DefaultMsParameters(150d,
-      1E2, 1E3, new MZTolerance(0.005, 10), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
+      1E2, 1E3, new MZTolerance(0.005, 20), new MZTolerance(0.005, 15), new MZTolerance(0.005, 15));
 
   public static final DefaultMsParameters defaultOrbitrapPositiveParameters = new DefaultMsParameters(
-      1E4, 3E3, 5E4, new MZTolerance(0.0015, 10), new MZTolerance(0.0015, 5),
-      new MZTolerance(0.0015, 10));
+      1E4, 3E3, 5E4, new MZTolerance(0.002, 10), new MZTolerance(0.0015, 5),
+      new MZTolerance(0.0015, 5));
 
   public static final DefaultMsParameters defaultOrbitrapNegativeParameters = new DefaultMsParameters(
-      1E4, 3E3, 5E4, new MZTolerance(0.0015, 10), new MZTolerance(0.0015, 5),
-      new MZTolerance(0.0015, 10));
+      1E4, 3E3, 5E4, new MZTolerance(0.002, 10), new MZTolerance(0.0015, 5),
+      new MZTolerance(0.0015, 5));
 
   private final double ms1NoiseLevel;
   private final double ms2NoiseLevel;
