@@ -18,23 +18,32 @@
 
 package io.github.mzmine.modules.visualization.spectra.msn_tree;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PrecursorIonTree;
 import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.mainwindow.SimpleTab;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.RelativeOption;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.awt.Shape;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -45,6 +54,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
@@ -58,6 +69,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -67,7 +82,13 @@ public class MSnTreeTab extends SimpleTab {
   private final AtomicLong currentThread = new AtomicLong(0L);
   private final TreeView<PrecursorIonTreeNode> treeView;
   private final GridPane spectraPane;
+  private final Label legendEnergies;
+  private final CheckBox cbRelative;
+  private final CheckBox cbDenoise;
+  private final List<SpectraPlot> spectraPlots = new ArrayList<>(1);
   private int lastSelectedItem = -1;
+  private ChartGroup chartGroup;
+  private PrecursorIonTreeNode currentRoot = null;
 
   public MSnTreeTab() {
     super("MSn Tree", true, false);
@@ -107,16 +128,38 @@ public class MSnTreeTab extends SimpleTab {
     final RowConstraints rowConstraints = new RowConstraints(200, 350, -1, Priority.ALWAYS,
         VPos.CENTER, true);
     spectraPane.getRowConstraints().add(rowConstraints);
-    spectraPane.getRowConstraints().add(rowConstraints);
-    spectraPane.add(new BorderPane(new SpectraPlot()), 0, 0);
-    spectraPane.add(new BorderPane(new SpectraPlot()), 0, 1);
+    // create first plot and initialize group for zooming etc
+    chartGroup = new ChartGroup(false, false, true, false);
+    chartGroup.setShowCrosshair(true, false);
+    final SpectraPlot plot = new SpectraPlot();
+    spectraPlots.add(plot);
+    chartGroup.add(new ChartViewWrapper(plot));
+    spectraPane.add(new BorderPane(spectraPlots.get(0)), 0, 0);
 
     ScrollPane scrollSpectra = new ScrollPane(new BorderPane(spectraPane));
     scrollSpectra.setFitToHeight(true);
     scrollSpectra.setFitToWidth(true);
     scrollSpectra.setVbarPolicy(ScrollBarPolicy.ALWAYS);
 
-    SplitPane splitPane = new SplitPane(left, scrollSpectra);
+    BorderPane center = new BorderPane(scrollSpectra);
+
+    // add menu to spectra
+    HBox spectraMenu = new HBox(4);
+    center.setTop(spectraMenu);
+
+    legendEnergies = new Label("");
+    cbRelative = new CheckBox("Relative");
+    cbRelative.selectedProperty().addListener((o, ov, nv) -> changeRelative());
+
+    cbDenoise = new CheckBox("Denoise");
+    cbDenoise.selectedProperty().addListener((o, ov, nv) -> updateCurrentSpectra());
+
+    // menu
+    spectraMenu.getChildren().addAll( // menu
+        createButton("Auto range", this::autoRange), //
+        cbRelative, cbDenoise, legendEnergies);
+
+    SplitPane splitPane = new SplitPane(left, center);
     splitPane.setDividerPositions(0.22);
     main.setCenter(splitPane);
 
@@ -135,6 +178,32 @@ public class MSnTreeTab extends SimpleTab {
         e.consume();
       }
     });
+  }
+
+  private void changeRelative() {
+    if (currentRoot != null) {
+      for (var p : spectraPlots) {
+        for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
+          final XYDataset data = p.getXYPlot().getDataset(i);
+          if (data instanceof RelativeOption op) {
+            op.setRelative(cbRelative.isSelected());
+          }
+        }
+        p.getChart().fireChartChanged();
+      }
+    }
+  }
+
+  private void updateCurrentSpectra() {
+    if (currentRoot != null) {
+      showSpectra(currentRoot);
+    }
+  }
+
+  private void autoRange(ActionEvent actionEvent) {
+    if (chartGroup != null) {
+      chartGroup.resetZoom();
+    }
   }
 
   private Button createButton(String title, EventHandler<ActionEvent> action) {
@@ -185,70 +254,143 @@ public class MSnTreeTab extends SimpleTab {
   public void showSpectra(PrecursorIonTreeNode any) {
     spectraPane.getChildren().clear();
     spectraPane.getRowConstraints().clear();
-    ChartGroup group = new ChartGroup(false, false, true, false);
-    group.setShowCrosshair(true, false);
-    // add spectra
-    if (any != null) {
-      PrecursorIonTreeNode root = any.getRoot();
-      // colors
-      final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
-
-      SpectraPlot previousPlot = null;
-      // distribute collision energies in three categories low, med, high
-      final List<Float> collisionEnergies = root.getAllFragmentScans().stream()
-          .map(Scan::getMsMsInfo).filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy)
-          .filter(Objects::nonNull).distinct().sorted().toList();
-
-      float minEnergy = 0f;
-      float maxEnergy = 0f;
-      float medEnergy = 0f;
-      if (!collisionEnergies.isEmpty()) {
-        minEnergy = collisionEnergies.get(0);
-        maxEnergy = collisionEnergies.get(collisionEnergies.size() - 1);
-        medEnergy = collisionEnergies.get(collisionEnergies.size() / 2);
-      }
-
-      List<PrecursorIonTreeNode> levelPrecursors = List.of(root);
-      int levelFromRoot = 0;
-      do {
-        // create one spectra plot for each MS level
-        SpectraPlot spectraPlot = new SpectraPlot();
-        // create combined dataset for each MS level
-        int c = 0;
-        for (PrecursorIonTreeNode precursor : levelPrecursors) {
-          final Color color = FxColorUtil.fxColorToAWT(colors.get(c % colors.size()));
-          final List<Scan> fragmentScans = precursor.getFragmentScans();
-          for (int i = 0; i < fragmentScans.size(); i++) {
-            ScanDataSet data = new ScanDataSet(fragmentScans.get(i));
-            spectraPlot.addDataSet(data, color, false, false);
-            spectraPlot.addDataSet(data, color, false, null, false);
-            spectraPlot.getXYPlot().setRenderer(spectraPlot.getXYPlot().getDatasetCount() - 1,
-                new ArrowRenderer(getActivationEnergyShape(
-                    fragmentScans.get(i).getMsMsInfo().getActivationEnergy(), minEnergy, medEnergy,
-                    maxEnergy), color));
-          }
-
-          // add precursor markers for each different precursor only once
-          spectraPlot.addPrecursorMarkers(precursor.getFragmentScans().get(0), color, 0.25f);
-          c++;
-        }
-        // hide x axis
-        if (previousPlot != null) {
-          previousPlot.getXYPlot().getDomainAxis().setVisible(false);
-        }
-        // add
-        group.add(new ChartViewWrapper(spectraPlot));
-        spectraPane.getRowConstraints()
-            .add(new RowConstraints(200, 250, -1, Priority.ALWAYS, VPos.CENTER, true));
-        spectraPane.add(new BorderPane(spectraPlot), 0, levelFromRoot);
-        previousPlot = spectraPlot;
-        // next level
-        levelFromRoot++;
-        levelPrecursors = root.getPrecursors(levelFromRoot);
-      } while (!levelPrecursors.isEmpty());
-
-      group.applyAutoRange(true);
+    spectraPlots.forEach(SpectraPlot::removeAllDataSets);
+    if (any == null) {
+      return;
     }
+    // add spectra
+    PrecursorIonTreeNode prevRoot = currentRoot;
+    currentRoot = any.getRoot();
+    boolean rootHasChanged = !Objects.equals(prevRoot, currentRoot);
+
+    // colors
+    final SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette();
+
+    SpectraPlot previousPlot = null;
+    // distribute collision energies in three categories low, med, high
+    final List<Float> collisionEnergies = currentRoot.getAllFragmentScans().stream()
+        .map(Scan::getMsMsInfo).filter(Objects::nonNull).map(MsMsInfo::getActivationEnergy)
+        .filter(Objects::nonNull).distinct().sorted().toList();
+
+    float minEnergy = 0f;
+    float maxEnergy = 0f;
+    float medEnergy = 0f;
+    if (!collisionEnergies.isEmpty()) {
+      minEnergy = collisionEnergies.get(0);
+      maxEnergy = collisionEnergies.get(collisionEnergies.size() - 1);
+      medEnergy = collisionEnergies.get(collisionEnergies.size() / 2);
+      // set legend
+      if (minEnergy != maxEnergy) {
+        if (minEnergy != medEnergy && maxEnergy != medEnergy) {
+          legendEnergies.setText(
+              String.format("Activation: ▽≈%.0f △≈%.0f ◇≈%.0f", minEnergy, medEnergy, maxEnergy));
+        } else {
+          legendEnergies.setText(String.format("Activation: ▽≈%.0f ◇≈%.0f", minEnergy, maxEnergy));
+        }
+      } else {
+        legendEnergies.setText(String.format("Activation: ◇≈%.0f", maxEnergy));
+      }
+    }
+    // relative intensities? and denoise?
+    final boolean normalizeIntensities = cbRelative.isSelected();
+    final boolean denoise = cbDenoise.isSelected();
+
+    List<PrecursorIonTreeNode> levelPrecursors = List.of(currentRoot);
+    int levelFromRoot = 0;
+    do {
+      // create one spectra plot for each MS level
+      if (levelFromRoot >= spectraPlots.size()) {
+        final SpectraPlot plot = new SpectraPlot();
+        spectraPlots.add(plot);
+        chartGroup.add(new ChartViewWrapper(plot));
+      }
+      SpectraPlot spectraPlot = spectraPlots.get(levelFromRoot);
+
+      if (spectraPlot.getXYPlot().getRangeAxis() instanceof NumberAxis va) {
+        if (normalizeIntensities) {
+          va.setNumberFormatOverride(new DecimalFormat("0.#"));
+        } else {
+          va.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
+        }
+      }
+      // create combined dataset for each MS level
+      int c = 0;
+      for (PrecursorIonTreeNode precursor : levelPrecursors) {
+        final Color color = FxColorUtil.fxColorToAWT(colors.get(c % colors.size()));
+        final List<Scan> fragmentScans = precursor.getFragmentScans();
+        for (final Scan scan : fragmentScans) {
+          AbstractXYDataset data = ensureCentroidDataset(normalizeIntensities, denoise, scan);
+          // add peak renderer to show centroids
+          spectraPlot.addDataSet(data, color, false, false);
+          spectraPlot.getXYPlot()
+              .setRenderer(spectraPlot.getNumOfDataSets() - 1, new PeakRenderer(color, false));
+
+          // add shapes
+          spectraPlot.addDataSet(data, color, false, null, false);
+          final Shape shape = getActivationEnergyShape(scan.getMsMsInfo().getActivationEnergy(),
+              minEnergy, medEnergy, maxEnergy);
+          spectraPlot.getXYPlot()
+              .setRenderer(spectraPlot.getNumOfDataSets() - 1, new ArrowRenderer(shape, color));
+        }
+
+        // add precursor markers for each different precursor only once
+        spectraPlot.addPrecursorMarkers(precursor.getFragmentScans().get(0), color, 0.25f);
+        c++;
+      }
+      // hide x axis
+      if (previousPlot != null) {
+        previousPlot.getXYPlot().getDomainAxis().setVisible(false);
+      }
+      // add
+      spectraPlot.getXYPlot().getDomainAxis().setVisible(true);
+      spectraPane.getRowConstraints()
+          .add(new RowConstraints(200, 250, -1, Priority.ALWAYS, VPos.CENTER, true));
+      spectraPane.add(new BorderPane(spectraPlot), 0, levelFromRoot);
+      previousPlot = spectraPlot;
+      // next level
+      levelFromRoot++;
+      levelPrecursors = currentRoot.getPrecursors(levelFromRoot);
+    } while (!levelPrecursors.isEmpty());
+
+    if (rootHasChanged) {
+      chartGroup.applyAutoRange(true);
+    }
+  }
+
+  @NotNull
+  private AbstractXYDataset ensureCentroidDataset(boolean normalizeIntensities, boolean denoise,
+      Scan scan) {
+    final double[][] masses;
+    if (scan.getMassList() != null) {
+      masses = new double[][]{scan.getMassList().getMzValues(new double[0]),
+          scan.getMassList().getIntensityValues(new double[0])};
+    } else if (!MassSpectrumType.PROFILE.equals(scan.getSpectrumType())) {
+      masses = new double[][]{scan.getMzValues(new double[0]),
+          scan.getIntensityValues(new double[0])};
+    } else {
+      // profile data run mass detection
+      masses = ExactMassDetector.getMassValues(scan, 0);
+    }
+    List<DataPoint> dps = new ArrayList<>();
+    if (denoise) {
+      final double[] sortedIntensities = Arrays.stream(masses[1]).filter(v -> v > 0).sorted()
+          .toArray();
+      double min = sortedIntensities[0];
+      // remove everything <2xmin
+      for (int i = 0; i < masses[0].length; i++) {
+        if (masses[1][i] > min * 2.5d) {
+          dps.add(new SimpleDataPoint(masses[0][i], masses[1][i]));
+        }
+      }
+    } else {
+      // filter zeros
+      for (int i = 0; i < masses[0].length; i++) {
+        if (masses[1][i] > 0) {
+          dps.add(new SimpleDataPoint(masses[0][i], masses[1][i]));
+        }
+      }
+    }
+    return new DataPointsDataSet("", dps.toArray(DataPoint[]::new), normalizeIntensities);
   }
 
   /**

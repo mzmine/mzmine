@@ -391,6 +391,10 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     plot.clearDomainMarkers();
   }
 
+  public synchronized int getNumOfDataSets() {
+    return numOfDataSets;
+  }
+
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
     addDataSet(dataSet, color, transparency, true);
   }
