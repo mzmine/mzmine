@@ -182,13 +182,23 @@ public class MSnTreeTab extends SimpleTab {
 
   private void changeRelative() {
     if (currentRoot != null) {
+        final boolean normalize = cbRelative.isSelected();
       for (var p : spectraPlots) {
         for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
           final XYDataset data = p.getXYPlot().getDataset(i);
           if (data instanceof RelativeOption op) {
-            op.setRelative(cbRelative.isSelected());
+            op.setRelative(normalize);
           }
         }
+
+        if (p.getXYPlot().getRangeAxis() instanceof NumberAxis va) {
+          if (normalize) {
+            va.setNumberFormatOverride(new DecimalFormat("0.#"));
+          } else {
+            va.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
+          }
+        }
+
         p.getChart().fireChartChanged();
       }
       chartGroup.recalcMaxRanges();
@@ -235,7 +245,7 @@ public class MSnTreeTab extends SimpleTab {
           treeView.getRoot().getChildren()
               .addAll(trees.stream().map(t -> createTreeItem(t.getRoot())).toList());
 
-          expandTreeView(treeView.getRoot(), true);
+          expandTreeView(treeView.getRoot(), false);
         }
       });
     });

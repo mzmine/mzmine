@@ -17,6 +17,8 @@
  */
 package io.github.mzmine.gui.chartbasics.chartgroups;
 
+import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
@@ -143,7 +145,7 @@ public class ChartGroup extends Node {
   /**
    * Perform operation on all charts
    *
-   * @param op
+   * @param op apply operation to all charts
    */
   public void forAllCharts(Consumer<JFreeChart> op) {
     if (list == null) {
@@ -187,10 +189,14 @@ public class ChartGroup extends Node {
     for (ChartViewWrapper c : list) {
       final XYPlot plot = c.getChart().getXYPlot();
       final Range domain = plot.getDataRange(plot.getDomainAxis());
-      dmax = addRanges(dmax, domain);
+      double lowerMargin = plot.getDomainAxis().getLowerMargin();
+      double upperMargin = plot.getDomainAxis().getUpperMargin();
+      dmax = addRanges(dmax, Range.expand(domain, lowerMargin, upperMargin));
 
       final Range range = plot.getDataRange(plot.getRangeAxis());
-      rmax = addRanges(rmax, range);
+      lowerMargin = plot.getRangeAxis().getLowerMargin();
+      upperMargin = plot.getRangeAxis().getUpperMargin();
+      rmax = addRanges(rmax, Range.expand(range, lowerMargin, upperMargin));
     }
     if (dmax != null || rmax != null) {
       maxRange = new Range[]{dmax, rmax};
@@ -383,13 +389,13 @@ public class ChartGroup extends Node {
   }
 
   public void resetDomainZoom() {
-    if (!combineDomainAxes) {
-      // each a different range
-      forAllCharts(c -> {
-        final Range range = c.getXYPlot().getDataRange(c.getXYPlot().getDomainAxis());
-        c.getXYPlot().getDomainAxis().setRange(new Range(0, range.getUpperBound()));
-      });
-      return;
+    // each a different range
+    for (ChartViewWrapper c : list) {
+      if (c.getChartFX() != null) {
+        ChartLogicsFX.autoDomainAxis(c.getChartFX());
+      } else {
+        ChartLogics.autoDomainAxis(c.getChartSwing());
+      }
     }
     if (maxRange == null) {
       recalcMaxRanges();
@@ -402,10 +408,13 @@ public class ChartGroup extends Node {
   public void resetRangeZoom() {
     if (!combineRangeAxes) {
       // each a different range
-      forAllCharts(c -> {
-        final Range range = c.getXYPlot().getDataRange(c.getXYPlot().getRangeAxis());
-        c.getXYPlot().getRangeAxis().setRange(new Range(0, range.getUpperBound()));
-      });
+      for (ChartViewWrapper c : list) {
+        if (c.getChartFX() != null) {
+          ChartLogicsFX.autoRangeAxis(c.getChartFX());
+        } else {
+          ChartLogics.autoRangeAxis(c.getChartSwing());
+        }
+      }
       return;
     }
     if (maxRange == null) {
