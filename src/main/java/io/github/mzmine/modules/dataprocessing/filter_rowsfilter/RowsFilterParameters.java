@@ -94,19 +94,19 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new OptionalParameter<>(new StringParameter("Text in comment",
           "Only rows that contain this text in their comment field will be retained."));
 
-  public static final ComboParameter<String> REMOVE_ROW =
-      new ComboParameter<String>("Keep or remove rows",
-          "If selected, rows will be removed based on criteria instead of kept", removeRowChoices);
+  public static final ComboParameter<String> REMOVE_ROW = new ComboParameter<String>(
+      "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
+      removeRowChoices, removeRowChoices[0]);
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove source feature list after filtering",
       "If checked, the original feature list will be removed leaving only the filtered version");
-  public static final BooleanParameter MS2_Filter =
-      new BooleanParameter("Keep only feature with MS2 scan (GNPS)",
-          "If checked, the rows that don't contain MS2 scan will be removed.");
-  public static final BooleanParameter Reset_ID =
-      new BooleanParameter("Reset the feature number ID",
-          "If checked, the row number of original feature list will be reset.");
+  public static final BooleanParameter MS2_Filter = new BooleanParameter(
+      "Keep only feature with MS2 scan (GNPS)",
+      "If checked, the rows that don't contain MS2 scan will be removed.", false);
+  public static final BooleanParameter Reset_ID = new BooleanParameter(
+      "Reset the feature number ID",
+      "If checked, the row number of original feature list will be reset.");
 
   public RowsFilterParameters() {
     super(new Parameter[] {FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,

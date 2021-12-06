@@ -44,12 +44,19 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
+import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
+import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureShapeCorrelationParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.InterSampleHeightCorrParameters;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
@@ -77,6 +84,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -229,6 +237,11 @@ public class BatchWizardController {
     q.add(makeIsotopeFinderStep(msParameters));
     q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
+    q.add(makeRowFilterStep(msParameters, hplcParameters));
+    q.add(makeGapFillStep(msParameters, hplcParameters));
+    if (!cbIonMobility.isSelected()) {
+      q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
+    }
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
     q.add(makeIinStep(msParameters, cbPolarity.getValue()));
     return q;
@@ -247,9 +260,83 @@ public class BatchWizardController {
     q.add(makeIsotopeFinderStep(msParameters));
     q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
+    q.add(makeRowFilterStep(msParameters, hplcParameters));
+    q.add(makeGapFillStep(msParameters, hplcParameters));
+    q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
     q.add(makeIinStep(msParameters, cbPolarity.getValue()));
     return q;
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeRowFilterStep(
+      SimpleParameterSet msParameters, SimpleParameterSet hplcParameters) {
+    final int minSamples = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
+
+    // need to create new because we do not want to set all parameters here - go with defaults
+    final ParameterSet param = new RowsFilterParameters().cloneParameterSet();
+    param.setParameter(RowsFilterParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minSamples > 1);
+    param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
+        .setValue((double) minSamples);
+    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, true);
+    param.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter()
+        .setValue(2);
+    param.setParameter(RowsFilterParameters.AUTO_REMOVE, true);
+    param.setParameter(RowsFilterParameters.MS2_Filter, false);
+    param.setParameter(RowsFilterParameters.SUFFIX,
+        "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
+
+    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
+        param);
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeGapFillStep(
+      SimpleParameterSet msParameters, SimpleParameterSet hplcParameters) {
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(MultiThreadPeakFinderModule.class).cloneParameterSet();
+
+    param.setParameter(MultiThreadPeakFinderParameters.peakLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(MultiThreadPeakFinderParameters.MZTolerance,
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
+    param.setParameter(MultiThreadPeakFinderParameters.RTTolerance,
+        hplcParameters.getValue(BatchWizardHPLCParameters.intraSampleRTTolerance));
+    param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
+    param.setParameter(MultiThreadPeakFinderParameters.autoRemove, true);
+    param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
+
+    return new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MultiThreadPeakFinderModule.class), param);
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeDuplicateRowFilterStep(
+      SimpleParameterSet msParameters, SimpleParameterSet hplcParameters) {
+    // reduced rt tolerance - after gap filling the rt difference should be very small
+    RTTolerance rtTol = hplcParameters.getValue(
+        BatchWizardHPLCParameters.approximateChromatographicFWHM);
+    rtTol = new RTTolerance(rtTol.getTolerance() * 0.7f, rtTol.getUnit());
+
+    MZTolerance mzTol = msParameters.getValue(
+        BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance);
+    mzTol = new MZTolerance(mzTol.getMzTolerance() / 2f, mzTol.getPpmTolerance() / 2f);
+
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(DuplicateFilterModule.class).cloneParameterSet();
+
+    param.setParameter(DuplicateFilterParameters.peakLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(DuplicateFilterParameters.mzDifferenceMax, mzTol);
+    param.setParameter(DuplicateFilterParameters.rtDifferenceMax, rtTol);
+    param.setParameter(DuplicateFilterParameters.autoRemove, true);
+    param.setParameter(DuplicateFilterParameters.suffix, "dup");
+    param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);
+    param.setParameter(DuplicateFilterParameters.filterMode, FilterMode.NEW_AVERAGE);
+
+    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(DuplicateFilterModule.class),
+        param);
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeImportTask(FileNamesParameter files) {
@@ -361,7 +448,7 @@ public class BatchWizardController {
     param.setParameter(SmoothingParameters.mobilitySmoothing, mobility);
     param.getParameter(SmoothingParameters.mobilitySmoothing).getEmbeddedParameter().setValue(13);
     param.setParameter(SmoothingParameters.removeOriginal, true);
-    param.setParameter(SmoothingParameters.suffix, "smthd");
+    param.setParameter(SmoothingParameters.suffix, "sm");
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SmoothingModule.class),
         param);
@@ -501,7 +588,7 @@ public class BatchWizardController {
   private MZmineProcessingStep<MZmineProcessingModule> makeIsotopeFinderStep(
       ParameterSet msParameters) {
     final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(IsotopeGrouperModule.class).cloneParameterSet();
+        .getModuleParameters(IsotopeFinderModule.class).cloneParameterSet();
 
     param.setParameter(IsotopeFinderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
