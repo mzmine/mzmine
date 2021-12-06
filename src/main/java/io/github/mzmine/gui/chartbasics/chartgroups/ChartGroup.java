@@ -181,7 +181,7 @@ public class ChartGroup extends Node {
     //    }
   }
 
-  private void recalcMaxRanges() {
+  public void recalcMaxRanges() {
     Range dmax = null;
     Range rmax = null;
     for (ChartViewWrapper c : list) {
@@ -290,15 +290,19 @@ public class ChartGroup extends Node {
    */
   private void domainHasChanged(Range range) {
     if (combineDomainAxes) {
-      forAllCharts(c -> {
-        if (hasDomainAxis(c)) {
-          ValueAxis axis = c.getXYPlot().getDomainAxis();
-          if (!axis.getRange().equals(range)) {
-            axis.setRange(range);
-          }
-        }
-      });
+      applyDomain(range);
     }
+  }
+
+  private void applyDomain(Range range) {
+    forAllCharts(c -> {
+      if (hasDomainAxis(c)) {
+        ValueAxis axis = c.getXYPlot().getDomainAxis();
+        if (!axis.getRange().equals(range)) {
+          axis.setRange(range);
+        }
+      }
+    });
   }
 
   /**
@@ -308,15 +312,19 @@ public class ChartGroup extends Node {
    */
   private void rangeHasChanged(Range range) {
     if (combineRangeAxes) {
-      forAllCharts(c -> {
-        if (hasRangeAxis(c)) {
-          ValueAxis axis = c.getXYPlot().getRangeAxis();
-          if (!axis.getRange().equals(range)) {
-            axis.setRange(range);
-          }
-        }
-      });
+      applyRange(range);
     }
+  }
+
+  private void applyRange(Range range) {
+    forAllCharts(c -> {
+      if (hasRangeAxis(c)) {
+        ValueAxis axis = c.getXYPlot().getRangeAxis();
+        if (!axis.getRange().equals(range)) {
+          axis.setRange(range);
+        }
+      }
+    });
   }
 
   private boolean hasDomainAxis(JFreeChart c) {
@@ -375,20 +383,36 @@ public class ChartGroup extends Node {
   }
 
   public void resetDomainZoom() {
+    if (!combineDomainAxes) {
+      // each a different range
+      forAllCharts(c -> {
+        final Range range = c.getXYPlot().getDataRange(c.getXYPlot().getDomainAxis());
+        c.getXYPlot().getDomainAxis().setRange(new Range(0, range.getUpperBound()));
+      });
+      return;
+    }
     if (maxRange == null) {
       recalcMaxRanges();
     }
     if (maxRange != null) {
-      domainHasChanged(maxRange[0]);
+      applyDomain(maxRange[0]);
     }
   }
 
   public void resetRangeZoom() {
+    if (!combineRangeAxes) {
+      // each a different range
+      forAllCharts(c -> {
+        final Range range = c.getXYPlot().getDataRange(c.getXYPlot().getRangeAxis());
+        c.getXYPlot().getRangeAxis().setRange(new Range(0, range.getUpperBound()));
+      });
+      return;
+    }
     if (maxRange == null) {
       recalcMaxRanges();
     }
     if (maxRange != null) {
-      rangeHasChanged(maxRange[1]);
+      applyRange(maxRange[1]);
     }
   }
 

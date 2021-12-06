@@ -191,6 +191,7 @@ public class MSnTreeTab extends SimpleTab {
         }
         p.getChart().fireChartChanged();
       }
+      chartGroup.recalcMaxRanges();
       chartGroup.resetRangeZoom();
     }
   }
