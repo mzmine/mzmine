@@ -24,14 +24,15 @@ import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicChecker;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
@@ -45,7 +46,6 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -67,10 +67,13 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  */
 public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-
+  private static final Logger logger = Logger
+      .getLogger(SpectraIdentificationSumFormulaTask.class.getName());
+  private Boolean checkHC;
+  private Boolean checkNOPS;
+  private Boolean checkMultiple;
+  private Range<Double> rdbeRange;
+  private Boolean rdbeIsInteger;
   private int finishedItems = 0, numItems;
 
   private MZTolerance mzTolerance;
@@ -82,8 +85,6 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
   private int charge;
   private boolean checkRatios;
   private boolean checkRDBE;
-  private ParameterSet ratiosParameters;
-  private ParameterSet rdbeParameters;
 
   private Range<Double> massRange;
   private MolecularFormulaRange elementCounts;
@@ -102,29 +103,38 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     this.spectraPlot = spectraPlot;
 
     charge = parameters.getParameter(SpectraIdentificationSumFormulaParameters.charge).getValue();
-    ionType =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.ionization).getValue();
+    ionType = parameters.getParameter(SpectraIdentificationSumFormulaParameters.ionization)
+        .getValue();
 
     checkRDBE = parameters.getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
         .getValue();
-    rdbeParameters =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
-            .getEmbeddedParameters();
+    if (checkRDBE) {
+      RDBERestrictionParameters rdbeParameters = parameters
+          .getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
+          .getEmbeddedParameters();
+      rdbeRange = rdbeParameters.getValue(RDBERestrictionParameters.rdbeRange);
+      rdbeIsInteger = rdbeParameters.getValue(RDBERestrictionParameters.rdbeWholeNum);
+    }
 
     checkRatios = parameters.getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
         .getValue();
-    ratiosParameters =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
-            .getEmbeddedParameters();
+    if (checkRatios) {
+      ElementalHeuristicParameters ratiosParameters = parameters
+          .getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
+          .getEmbeddedParameters();
+      checkHC = ratiosParameters.getValue(ElementalHeuristicParameters.checkHC);
+      checkNOPS = ratiosParameters.getValue(ElementalHeuristicParameters.checkNOPS);
+      checkMultiple = ratiosParameters.getValue(ElementalHeuristicParameters.checkMultiple);
+    }
 
-    elementCounts =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.elements).getValue();
+    elementCounts = parameters.getParameter(SpectraIdentificationSumFormulaParameters.elements)
+        .getValue();
 
-    mzTolerance =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.mzTolerance).getValue();
+    mzTolerance = parameters.getParameter(SpectraIdentificationSumFormulaParameters.mzTolerance)
+        .getValue();
 
-    noiseLevel =
-        parameters.getParameter(SpectraIdentificationSumFormulaParameters.noiseLevel).getValue();
+    noiseLevel = parameters.getParameter(SpectraIdentificationSumFormulaParameters.noiseLevel)
+        .getValue();
   }
 
   /**
@@ -132,8 +142,9 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (numItems == 0)
+    if (numItems == 0) {
       return 0;
+    }
     return ((double) finishedItems) / numItems;
   }
 
@@ -183,8 +194,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
     for (int i = 0; i < massList.length; i++) {
-      massRange =
-          mzTolerance.getToleranceRange((massList[0][i] - ionType.getAddedMass()) / charge);
+      massRange = mzTolerance.getToleranceRange((massList[0][i] - ionType.getAddedMass()) / charge);
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
           massRange.upperEndpoint(), elementCounts);
 
@@ -194,8 +204,9 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       // for sorting
       Map<Double, String> possibleFormulas = new TreeMap<>();
       while ((cdkFormula = generator.getNextFormula()) != null) {
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Mass is ok, so test other constraints
         if (checkConstraints(cdkFormula) == true) {
@@ -203,12 +214,12 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
           // calc rel mass deviation
           Double relMassDev = ((((massList[0][i] - //
-              ionType.getAddedMass()) / charge)//
-              - (FormulaUtils.calculateExactMass(//
-                  MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-              / ((massList[0][i] //
-                  - ionType.getAddedMass()) / charge))
-              * 1000000;
+                                  ionType.getAddedMass()) / charge)//
+                                - (FormulaUtils.calculateExactMass(//
+              MolecularFormulaManipulator.getString(cdkFormula))) / charge) / ((massList[0][i] //
+                                                                                - ionType
+                                                                                    .getAddedMass())
+                                                                               / charge)) * 1000000;
 
           // write to map
           possibleFormulas.put(relMassDev, formula);
@@ -223,20 +234,23 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       int ctr = 0;
       for (Map.Entry<Double, String> entry : treeMap.entrySet()) {
         int number = ctr + 1;
-        if (ctr > 2)
+        if (ctr > 2) {
           break;
-        annotation = annotation + number + ". " + entry.getValue() + " Δ "
-            + NumberFormat.getInstance().format(entry.getKey()) + " ppm; ";
+        }
+        annotation =
+            annotation + number + ". " + entry.getValue() + " Δ " + NumberFormat.getInstance()
+                .format(entry.getKey()) + " ppm; ";
         ctr++;
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
       }
       if (annotation != "") {
         allCompoundIDs.add(annotation);
         massListAnnotated.add(new SimpleDataPoint(massList[0][i], massList[1][i]));
       }
       logger.finest("Finished formula search for " + massRange + " m/z, found " + foundFormulas
-          + " formulas");
+                    + " formulas");
     }
 
     // new mass list
@@ -244,16 +258,17 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     massListAnnotated.toArray(annotatedMassList);
     String[] annotations = new String[annotatedMassList.length];
     allCompoundIDs.toArray(annotations);
-    DataPointsDataSet detectedCompoundsDataset =
-        new DataPointsDataSet("Detected compounds", annotatedMassList);
+    DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet("Detected compounds",
+        annotatedMassList);
     // Add label generator for the dataset
-    SpectraDatabaseSearchLabelGenerator labelGenerator =
-        new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
+    SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
+        annotations, spectraPlot);
     spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
-    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
-        ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER, 0.0), true);
+    spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(
+        new ItemLabelPosition(ItemLabelAnchor.CENTER, TextAnchor.TOP_LEFT, TextAnchor.BOTTOM_CENTER,
+            0.0), true);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -261,18 +276,21 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
     // Check elemental ratios
     if (checkRatios) {
-      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
-      if (!check)
+      boolean check = ElementalHeuristicChecker
+          .checkFormula(cdkFormula, checkHC, checkNOPS, checkMultiple);
+      if (!check) {
         return false;
+      }
     }
 
     Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
 
     // Check RDBE condition
     if (checkRDBE && (rdbeValue != null)) {
-      boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
-      if (!check)
+      boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeRange, rdbeIsInteger);
+      if (!check) {
         return false;
+      }
     }
 
     return true;
@@ -284,8 +302,9 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
     // We need to cancel the formula generator, because searching for next
     // candidate formula may take a looong time
-    if (generator != null)
+    if (generator != null) {
       generator.cancel();
+    }
 
   }
 

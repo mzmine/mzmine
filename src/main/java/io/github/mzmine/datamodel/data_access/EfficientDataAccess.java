@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -21,11 +20,12 @@ package io.github.mzmine.datamodel.data_access;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A factory to get efficient data access to scans in RawDataFile and features in FeatureList.
@@ -43,7 +43,7 @@ public class EfficientDataAccess {
    * @param type     processed or raw data
    */
   public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type) {
-    return of(dataFile, type, null);
+    return new FileScanDataAccess(dataFile, type);
   }
 
   /**
@@ -57,7 +57,21 @@ public class EfficientDataAccess {
    */
   public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type,
       ScanSelection selection) {
-    return new ScanDataAccess(dataFile, type, selection);
+    return new FilteredScanDataAccess(dataFile, type, selection);
+  }
+
+  /**
+   * The intended use of this memory access is to loop over all selected scans in a {@link
+   * RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
+   * ScanDataAccess#getIntensityValue(int)}
+   *
+   * @param dataFile target data file to loop over all scans or mass lists
+   * @param type     processed or raw data
+   * @param scans    list of scans
+   */
+  public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type,
+      List<? extends Scan> scans) {
+    return new ScanListDataAccess(dataFile, type, scans);
   }
 
   /**
@@ -107,7 +121,7 @@ public class EfficientDataAccess {
   }
 
   public static MobilityScanDataAccess of(@NotNull final IMSRawDataFile file,
-      @NotNull final MobilityScanDataType type, @Nullable final ScanSelection selection) {
+      @NotNull final MobilityScanDataType type, @NotNull final ScanSelection selection) {
     return new MobilityScanDataAccess(file, type, selection);
   }
 

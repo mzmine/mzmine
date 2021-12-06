@@ -16,18 +16,23 @@
  *
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.datamodel;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.web.WebView;
+/**
+ * A tree structure to temporarily capture a precursor and all its fragment scans (MSn)
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public class PrecursorIonTree {
 
-public class MZmineIntroductionTab extends SimpleTab {
+  // root
+  private final PrecursorIonTreeNode parent;
 
-  public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3");
+  public PrecursorIonTree(PrecursorIonTreeNode parent) {
+    this.parent = parent;
+  }
 
-    final WebView browser = new WebView();
-    browser.getEngine().load(getClass().getResource("MZmineIntroduction.html").toString());
-    super.setContent(browser);
+  public PrecursorIonTreeNode getParent() {
+    return parent;
   }
 }

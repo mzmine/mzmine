@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -26,10 +25,11 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
-import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,45 +40,27 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class ScanDataAccess implements MassSpectrum {
+public abstract class ScanDataAccess implements MassSpectrum {
 
   protected final RawDataFile dataFile;
   protected final ScanDataType type;
-  protected final int totalScans;
   // current data
   protected final double[] mzs;
   protected final double[] intensities;
-  private final ScanSelection selection;
+  protected Map<Scan, Integer> scanIndexMap;
   protected int currentNumberOfDataPoints = -1;
-
   protected int scanIndex = -1;
-  protected int currentScanInDataFile = -1;
 
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
    * {@link #getMzValue(int)} and {@link #getIntensityValue(int)}
    *
-   * @param dataFile  target data file to loop over all scans or mass lists
-   * @param type      processed or raw data
-   * @param selection processed or raw data
+   * @param dataFile target data file to loop over all scans or mass lists
+   * @param type     processed or raw data
    */
-  protected ScanDataAccess(RawDataFile dataFile,
-      ScanDataType type, ScanSelection selection) {
+  protected ScanDataAccess(RawDataFile dataFile, ScanDataType type) {
     this.dataFile = dataFile;
     this.type = type;
-    this.selection = selection;
-    // count matching scans
-    if (selection == null) {
-      totalScans = dataFile.getScans().size();
-    } else {
-      int size = 0;
-      for (Scan s : dataFile.getScans()) {
-        if (selection.matches(s)) {
-          size++;
-        }
-      }
-      totalScans = size;
-    }
     // might even use the maximum number of data points in the selected scans
     // but seems unnecessary
     int length = getMaxNumberOfDataPoints();
@@ -95,23 +77,26 @@ public class ScanDataAccess implements MassSpectrum {
     return currentNumberOfDataPoints;
   }
 
-  public Scan getCurrentScan() {
-    assert scanIndex >= 0 && hasNextScan();
-    return dataFile.getScan(currentScanInDataFile);
-  }
+  /**
+   * @return the currently selected scan or null if none is selected
+   */
+  @Nullable
+  public abstract Scan getCurrentScan();
 
   /**
-   * @return
+   * @return the masslist of the current scan (if available)
    */
-  private MassList getMassList() {
-    return getCurrentScan().getMassList();
+  @Nullable
+  public MassList getMassList() {
+    Scan scan = getCurrentScan();
+    return scan == null ? null : scan.getMassList();
   }
 
   /**
    * Get mass-to-charge ratio at index
    *
    * @param index data point index
-   * @return
+   * @return m/z value at index
    */
   @Override
   public double getMzValue(int index) {
@@ -123,12 +108,56 @@ public class ScanDataAccess implements MassSpectrum {
    * Get intensity at index
    *
    * @param index data point index
-   * @return
+   * @return intensity value at index
    */
   @Override
   public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
     return intensities[index];
+  }
+
+  /**
+   * Jumps to target scan. Uses hashmap that is lazily initialized. Use jumpToIndex if index is
+   * available.
+   *
+   * @param target jump to target scan
+   * @return true if target scan was available
+   */
+  public boolean jumpToScan(Scan target) {
+    return jumpToIndex(indexOf(target));
+  }
+
+  /**
+   * Uses a lazily initialized hashmap to find the index of the scan in this data access
+   *
+   * @param target the target scan
+   * @return the scan index or -1 if not found
+   */
+  public int indexOf(Scan target) {
+    if (scanIndexMap == null) {
+      scanIndexMap = new HashMap<>(getNumberOfScans());
+      int oldIndex = scanIndex;
+      // fill map with indexes
+      scanIndex = -1;
+      int c = 0;
+      while (hasNextScan()) {
+        scanIndexMap.put(nextScan(), c);
+        c++;
+      }
+      scanIndex = oldIndex;
+    }
+    return scanIndexMap.getOrDefault(target, -1);
+  }
+
+  /**
+   * Jump to scan at index
+   *
+   * @param index index of scan in this data access (of all matching scans)
+   * @return true if scan is available
+   */
+  public boolean jumpToIndex(int index) {
+    scanIndex = index - 1;
+    return nextScan() != null;
   }
 
   /**
@@ -143,52 +172,53 @@ public class ScanDataAccess implements MassSpectrum {
   @Nullable
   public Scan nextScan() throws MissingMassListException {
     if (hasNextScan()) {
-      Scan scan = null;
-      do {
-        // next scan in data file
-        currentScanInDataFile++;
-        scan = dataFile.getScan(currentScanInDataFile);
-
-        assert scan != null;
-        // find next scan
-      } while (selection != null && !selection.matches(scan));
-
-      // next scan found
       scanIndex++;
-      switch (type) {
-        case RAW -> {
-          try {
-            scan.getMzValues(mzs);
-            scan.getIntensityValues(intensities);
-            currentNumberOfDataPoints = scan.getNumberOfDataPoints();
-          } catch (NullPointerException e) {
-            // in case mass detection is performed on an IMS raw data file imported from mzml,
-            // no mz values have been set.
-            Arrays.fill(mzs, 0d);
-            Arrays.fill(intensities, 0d);
-            currentNumberOfDataPoints = 0;
-          }
-        }
-        case CENTROID -> {
-          MassList masses = scan.getMassList();
-          if (masses == null) {
-            throw new MissingMassListException(scan);
-          }
-          masses.getMzValues(mzs);
-          masses.getIntensityValues(intensities);
-          currentNumberOfDataPoints = masses.getNumberOfDataPoints();
-        }
-      }
-      assert currentNumberOfDataPoints <= mzs.length;
+      Scan scan = getCurrentScan();
+      loadScanData(scan);
       return scan;
     }
     return null;
   }
 
   /**
+   * Load scan data
+   *
+   * @param scan target scan to load data from
+   * @throws MissingMassListException if mass list values were accessed but not available. Run Mass
+   *                                  detection first
+   */
+  protected void loadScanData(Scan scan) throws MissingMassListException {
+    switch (type) {
+      case RAW -> {
+        try {
+          scan.getMzValues(mzs);
+          scan.getIntensityValues(intensities);
+          currentNumberOfDataPoints = scan.getNumberOfDataPoints();
+        } catch (NullPointerException e) {
+          // in case mass detection is performed on an IMS raw data file imported from mzml,
+          // no mz values have been set.
+          Arrays.fill(mzs, 0d);
+          Arrays.fill(intensities, 0d);
+          currentNumberOfDataPoints = 0;
+        }
+      }
+      case CENTROID -> {
+        MassList masses = scan.getMassList();
+        if (masses == null) {
+          throw new MissingMassListException(scan);
+        }
+        masses.getMzValues(mzs);
+        masses.getIntensityValues(intensities);
+        currentNumberOfDataPoints = masses.getNumberOfDataPoints();
+      }
+    }
+    assert currentNumberOfDataPoints <= mzs.length;
+  }
+
+  /**
    * The current list of scans has another element
    *
-   * @return
+   * @return true if next scan is available. Also see {@link #getNumberOfScans()}
    */
   public boolean hasNextScan() {
     return scanIndex + 1 < getNumberOfScans();
@@ -197,16 +227,14 @@ public class ScanDataAccess implements MassSpectrum {
   /**
    * Number of selected scans
    *
-   * @return
+   * @return the total number of scans for this data access
    */
-  public int getNumberOfScans() {
-    return totalScans;
-  }
+  public abstract int getNumberOfScans();
 
   /**
    * Maximum number of data points is used to create the arrays that back the data
    *
-   * @return
+   * @return the maximum number of data points
    */
   private int getMaxNumberOfDataPoints() {
     return switch (type) {
@@ -220,7 +248,10 @@ public class ScanDataAccess implements MassSpectrum {
   @Override
   public MassSpectrumType getSpectrumType() {
     return switch (type) {
-      case RAW -> dataFile.getScan(currentScanInDataFile).getSpectrumType();
+      case RAW -> {
+        Scan scan = getCurrentScan();
+        yield scan == null ? null : scan.getSpectrumType();
+      }
       case CENTROID -> MassSpectrumType.CENTROIDED;
     };
   }
@@ -242,43 +273,34 @@ public class ScanDataAccess implements MassSpectrum {
   @Nullable
   @Override
   public Integer getBasePeakIndex() {
-    switch (type) {
-      case RAW:
-        return getCurrentScan().getBasePeakIndex();
-      case CENTROID:
-        MassList masses = getMassList();
-        return masses == null ? null : masses.getBasePeakIndex();
-      default:
-        throw new IllegalStateException("Unexpected value: " + type);
-    }
+    MassSpectrum masses = getCurrentDataSource();
+    return masses == null ? null : masses.getBasePeakIndex();
   }
 
   @Nullable
   @Override
   public Range<Double> getDataPointMZRange() {
-    switch (type) {
-      case RAW:
-        return getCurrentScan().getDataPointMZRange();
-      case CENTROID:
-        MassList masses = getMassList();
-        return masses == null ? null : masses.getDataPointMZRange();
-      default:
-        throw new IllegalStateException("Unexpected value: " + type);
-    }
+    MassSpectrum masses = getCurrentDataSource();
+    return masses == null ? null : masses.getDataPointMZRange();
   }
 
   @Nullable
   @Override
   public Double getTIC() {
-    switch (type) {
-      case RAW:
-        return getCurrentScan().getTIC();
-      case CENTROID:
-        MassList masses = getMassList();
-        return masses == null ? null : masses.getTIC();
-      default:
-        throw new IllegalStateException("Unexpected value: " + type);
-    }
+    MassSpectrum masses = getCurrentDataSource();
+    return masses == null ? null : masses.getTIC();
+  }
+
+  /**
+   * Depending on selected data type, scan or mass list
+   *
+   * @return scan or mass list
+   */
+  public MassSpectrum getCurrentDataSource() {
+    return switch (type) {
+      case RAW -> getCurrentScan();
+      case CENTROID -> getMassList();
+    };
   }
 
   @Override

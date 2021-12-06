@@ -16,18 +16,19 @@
  *
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.web.WebView;
+import io.github.mzmine.util.maths.MathOperator;
 
-public class MZmineIntroductionTab extends SimpleTab {
+/**
+ * Used by the {@link OptionForValuesParameter} to define options on how to handle values
+ * greater/equal/... to the defined value
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public record OptionForValues(ValueOption option, MathOperator operator, double value) {
 
-  public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3");
-
-    final WebView browser = new WebView();
-    browser.getEngine().load(getClass().getResource("MZmineIntroduction.html").toString());
-    super.setContent(browser);
+  public boolean checkValue(double val) {
+    return operator.checkValue(value, val);
   }
 }

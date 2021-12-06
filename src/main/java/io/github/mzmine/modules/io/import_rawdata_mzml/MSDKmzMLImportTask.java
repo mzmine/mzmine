@@ -46,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,11 +58,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MSDKmzMLImportTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(MSDKmzMLImportTask.class.getName());
   private final File file;
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
   private MzMLFileImportMethod msdkTask = null;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private MZmineProject project;
   private RawDataFile newMZmineFile;
   private int totalScans = 0, parsedScans;

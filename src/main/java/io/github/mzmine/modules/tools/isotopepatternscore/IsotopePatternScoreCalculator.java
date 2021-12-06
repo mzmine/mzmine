@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.tools.isotopepatternscore;
@@ -22,7 +23,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
@@ -30,16 +30,15 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class IsotopePatternScoreCalculator {
 
   public static boolean checkMatch(IsotopePattern ip1, IsotopePattern ip2,
-      ParameterSet parameters) {
+      @NotNull MZTolerance mzTolerance, double noiseIntensity, double minimumScore) {
 
-    double score = getSimilarityScore(ip1, ip2, parameters);
-
-    double minimumScore = parameters
-        .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
+    double score = getSimilarityScore(ip1, ip2, mzTolerance, noiseIntensity);
 
     return score >= minimumScore;
   }
@@ -48,16 +47,8 @@ public class IsotopePatternScoreCalculator {
    * Returns a calculated similarity score of two isotope patterns in the range of 0 (not similar at
    * all) to 1 (100% same).
    */
-  public static float getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2,
-      ParameterSet parameters) {
-
-    assert ip1 != null;
-    assert ip2 != null;
-
-    MZTolerance mzTolerance =
-        parameters.getParameter(IsotopePatternScoreParameters.mzTolerance).getValue();
-
-    assert mzTolerance != null;
+  public static float getSimilarityScore(@NotNull IsotopePattern ip1, @NotNull IsotopePattern ip2,
+      @NotNull MZTolerance mzTolerance, double noiseIntensity) {
 
     double pattern1Intensity = 0.0, pattern2Intensity = 0.0;
     if (ip1.getBasePeakIndex() >= 0) {
@@ -68,9 +59,6 @@ public class IsotopePatternScoreCalculator {
     }
     final double patternIntensity = Math.max(pattern1Intensity, pattern2Intensity);
 
-    final double noiseIntensity =
-        parameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
-
     // Normalize the isotopes to intensity 0..1
     IsotopePattern nip1 = IsotopePatternCalculator.normalizeIsotopePattern(ip1);
     IsotopePattern nip2 = IsotopePatternCalculator.normalizeIsotopePattern(ip2);
@@ -78,7 +66,7 @@ public class IsotopePatternScoreCalculator {
     // Merge the data points from both isotope patterns into a single array.
     // Data points from first pattern will have positive intensities, data
     // points from second pattern will have negative intensities.
-    ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
+    List<DataPoint> mergedDataPoints = new ArrayList<>();
     for (DataPoint dp : ScanUtils.extractDataPoints(nip1)) {
       if (dp.getIntensity() * patternIntensity < noiseIntensity) {
         continue;

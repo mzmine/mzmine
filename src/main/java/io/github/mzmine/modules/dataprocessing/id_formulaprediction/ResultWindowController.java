@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
@@ -23,12 +24,17 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.Comparators;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -73,7 +79,10 @@ public class ResultWindowController {
   private TableColumn<ResultFormula, String> isotopePattern;
   @FXML
   private TableColumn<ResultFormula, String> msScore;
-  private FeatureListRow peakListRow;
+  @FXML
+  private TableColumn<ResultFormula, String> combinedScore;
+
+  private FeatureListRow featureListRow;
   private Task searchTask;
   private String title;
   private double searchedMass;
@@ -92,12 +101,15 @@ public class ResultWindowController {
 
     RDBE.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().getRDBE()));
 
+    absoluteMassDifference.setComparator(Comparators.COMPARE_ABS_FLOAT);
     absoluteMassDifference.setCellValueFactory(cell -> {
       double exactMass = cell.getValue().getExactMass();
       double massDiff = searchedMass - exactMass;
 
       return new ReadOnlyObjectWrapper<>(Float.parseFloat(massFormat.format(massDiff)));
     });
+
+    massDifference.setComparator(Comparators.COMPARE_ABS_FLOAT);
     massDifference.setCellValueFactory(cell -> {
       double ExactMass = cell.getValue().getExactMass();
       double MassDiff = searchedMass - ExactMass;
@@ -107,22 +119,21 @@ public class ResultWindowController {
     });
 
     isotopePattern.setCellValueFactory(cell -> {
-      String isotopeScore = String.valueOf(cell.getValue().getIsotopeScore());
-      String cellVal = "";
-      if (cell.getValue().getIsotopeScore() != null) {
-        cellVal = percentFormat.format(Double.parseDouble(isotopeScore));
-      }
+      final Float score = cell.getValue().getIsotopeScore();
+      final String cellVal = score == null ? "" : percentFormat.format(score);
       return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
     msScore.setCellValueFactory(cell -> {
-      String msScore = String.valueOf(cell.getValue().getMSMSScore());
-      String cellVal = "";
-      if (cell.getValue().getMSMSScore() != null) {
-        cellVal = percentFormat.format(Double.parseDouble(msScore));
-      }
+      final Float score = cell.getValue().getMSMSScore();
+      final String cellVal = score == null ? "" : percentFormat.format(score);
       return new ReadOnlyObjectWrapper<>(cellVal);
+    });
 
+    combinedScore.setCellValueFactory(cell -> {
+      final float score = cell.getValue().getScore(10, 3, 1);
+      final String cellVal = percentFormat.format(score);
+      return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
     resultTable.setItems(formulas);
@@ -132,7 +143,7 @@ public class ResultWindowController {
       Task searchTask) {
 
     this.title = title;
-    this.peakListRow = peakListRow;
+    this.featureListRow = peakListRow;
     this.searchTask = searchTask;
     this.searchedMass = searchedMass;
   }
@@ -148,7 +159,7 @@ public class ResultWindowController {
     }
 
     SimpleFeatureIdentity newIdentity = new SimpleFeatureIdentity(formula.getFormulaAsString());
-    peakListRow.addFeatureIdentity(newIdentity, false);
+    featureListRow.addFeatureIdentity(newIdentity, false);
 
     dispose();
   }
@@ -215,12 +226,42 @@ public class ResultWindowController {
       return;
     }
 
-    Feature peak = peakListRow.getBestFeature();
+    Feature peak = featureListRow.getBestFeature();
 
     RawDataFile dataFile = peak.getRawDataFile();
     Scan scanNumber = peak.getRepresentativeScan();
-    SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(),
-        predictedPattern);
+    SpectraVisualizerModule
+        .addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(), predictedPattern);
+  }
+
+  @FXML
+  private void viewIsotopeMirrorClick(ActionEvent ae) {
+    ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
+    if (formula == null) {
+      MZmineCore.getDesktop().displayMessage(null, "Select one result to copy");
+      return;
+    }
+
+    logger
+        .finest("Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
+    IsotopePattern predictedPattern = formula.getPredictedIsotopes();
+
+    if (predictedPattern == null) {
+      return;
+    }
+
+    Feature peak = featureListRow.getBestFeature();
+    final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensity();
+
+    final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
+    EChartViewer mirrorChart = MirrorChartFactory
+        .createMirrorChartViewer(detectedPattern, predictedPattern,
+            uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"), false, true);
+
+    SimpleTab tab = new SimpleTab("Isotope mirror");
+    tab.setContent(mirrorChart);
+
+    MZmineCore.getDesktop().addTab(tab);
   }
 
   @FXML
@@ -245,7 +286,7 @@ public class ResultWindowController {
       return;
     }
 
-    Feature bestPeak = peakListRow.getBestFeature();
+    Feature bestPeak = featureListRow.getBestFeature();
 
     RawDataFile dataFile = bestPeak.getRawDataFile();
     Scan msmsScanNumber = bestPeak.getMostIntenseFragmentScan();
@@ -254,8 +295,8 @@ public class ResultWindowController {
       return;
     }
 
-    SpectraVisualizerTab msmsPlot =
-        SpectraVisualizerModule.addNewSpectrumTab(dataFile, msmsScanNumber);
+    SpectraVisualizerTab msmsPlot = SpectraVisualizerModule
+        .addNewSpectrumTab(dataFile, msmsScanNumber);
 
     if (msmsPlot == null) {
       return;

@@ -16,18 +16,35 @@
  *
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.util.maths;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.web.WebView;
+/**
+ * A list of math operators and their string representation
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum MathOperator {
+  GREATER(">"), GREATER_EQ("≥"), EQUAL("="), NOT_EQUAL("≠"), LESS("<"), LESS_EQ("≤");
 
-public class MZmineIntroductionTab extends SimpleTab {
+  private final String s;
 
-  public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3");
+  MathOperator(String s) {
+    this.s = s;
+  }
 
-    final WebView browser = new WebView();
-    browser.getEngine().load(getClass().getResource("MZmineIntroduction.html").toString());
-    super.setContent(browser);
+  @Override
+  public String toString() {
+    return s;
+  }
+
+  public boolean checkValue(double base, double testedVal) {
+    return switch (this) {
+      case LESS -> testedVal < base;
+      case LESS_EQ -> testedVal <= base;
+      case GREATER -> testedVal > base;
+      case GREATER_EQ -> testedVal >= base;
+      case EQUAL -> testedVal == base;
+      case NOT_EQUAL -> testedVal != base;
+    };
   }
 }
