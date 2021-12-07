@@ -16,18 +16,14 @@
  *
  */
 
-package io.github.mzmine.gui.mainwindow.introductiontab;
+package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.gui.mainwindow.SimpleTab;
-import javafx.scene.web.WebView;
-
-public class MZmineIntroductionTab extends SimpleTab {
-
-  public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3");
-
-    final WebView browser = new WebView();
-    browser.getEngine().load(getClass().getResource("MZmineIntroduction.html").toString());
-    super.setContent(browser);
-  }
+/**
+ * Options to handle values (or ranges) like all values > threshold. Is used in the
+ * ForumulaPrediction to handle higher m/z values that need long for computing
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum ValueOption {
+  EXCLUDE, INCLUDE, SIMPLIFY;
 }

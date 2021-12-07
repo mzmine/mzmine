@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.tools.msmsscore;
@@ -21,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
@@ -40,21 +40,13 @@ public class MSMSScoreCalculator {
    * Returns a calculated similarity score of
    */
   public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula, Scan msmsScan,
-      ParameterSet parameters) {
-
-    MZTolerance msmsTolerance =
-        parameters.getParameter(MSMSScoreParameters.msmsTolerance).getValue();
-
-    int topNSignals =
-        parameters.getParameter(MSMSScoreParameters.useTopNSignals).getValue() ? parameters
-            .getParameter(MSMSScoreParameters.useTopNSignals).getEmbeddedParameter().getValue()
-            : -1;
+      MZTolerance msmsTolerance, int topNSignals) {
 
     MassList massList = msmsScan.getMassList();
 
     if (massList == null) {
-      throw new IllegalArgumentException("Scan #" + msmsScan.getScanNumber()
-                                         + " does not have a mass list");
+      throw new IllegalArgumentException(
+          "Scan #" + msmsScan.getScanNumber() + " does not have a mass list");
     }
 
     DataPoint[] msmsIons = massList.getDataPoints();
@@ -113,8 +105,8 @@ public class MSMSScoreCalculator {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ())
-            && (dpCheck.getIntensity() > dp.getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp
+            .getIntensity())) {
           continue msmsCycle;
         }
       }

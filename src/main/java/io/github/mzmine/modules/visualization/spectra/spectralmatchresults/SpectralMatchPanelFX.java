@@ -146,8 +146,7 @@ public class SpectralMatchPanelFX extends GridPane {
 
     // put into main
     ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
-        Priority.ALWAYS, HPos.CENTER,
-        true);
+        Priority.ALWAYS, HPos.CENTER, true);
     ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30,
         Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
 
@@ -179,9 +178,9 @@ public class SpectralMatchPanelFX extends GridPane {
 
     lblScore = new Label(COS_FORM.format(simScore));
     lblScore.getStyleClass().add("white-score-label");
-    lblScore
-        .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
-                                + COS_FORM.format(simScore)));
+    lblScore.setTooltip(new Tooltip(
+        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM
+            .format(simScore)));
 
     pnTitle.add(lblHit, 0, 0);
     pnTitle.add(lblScore, 1, 0);
@@ -257,17 +256,17 @@ public class SpectralMatchPanelFX extends GridPane {
     g1.getStyleClass().add("region");
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
         DBEntryField.COMPOUND_FIELDS);
-    BorderPane panelInstrument =
-        extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
+    BorderPane panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
+        DBEntryField.INSTRUMENT_FIELDS);
     g1.add(pnCompounds, 0, 0);
     g1.add(panelInstrument, 1, 0);
     g1.getColumnConstraints().add(0, ccMetadata1);
     g1.getColumnConstraints().add(1, ccMetadata2);
 
-    BorderPane pnDB =
-        extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
-    BorderPane pnOther =
-        extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
+    BorderPane pnDB = extractMetaData("Database links", hit.getEntry(),
+        DBEntryField.DATABASE_FIELDS);
+    BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
+        DBEntryField.OTHER_FIELDS);
     g1.add(pnDB, 0, 1);
     g1.add(pnOther, 1, 1);
 
@@ -315,12 +314,17 @@ public class SpectralMatchPanelFX extends GridPane {
   private void rangeHasChanged(Range range) {
     if (setCoupleZoomY) {
       ValueAxis axis = libraryPlot.getRangeAxis();
-      if (!axis.getRange().equals(range)) {
-        axis.setRange(range);
-      }
       ValueAxis axisQuery = queryPlot.getRangeAxis();
-      if (!axisQuery.getRange().equals(range)) {
-        axisQuery.setRange(range);
+      // is this range still active or was it changed again?
+      final Range axisRange = axis.getRange();
+      final Range queryRange = axisQuery.getRange();
+      if (axisRange.equals(range) ^ queryRange.equals(range)) {
+        if (!axisRange.equals(range)) {
+          axis.setRange(range);
+        }
+        if (!queryRange.equals(range)) {
+          axisQuery.setRange(range);
+        }
       }
     }
   }
@@ -341,8 +345,8 @@ public class SpectralMatchPanelFX extends GridPane {
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
-        InChIToStructure inchiToStructure =
-            factory.getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
+        InChIToStructure inchiToStructure = factory
+            .getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
         molecule = inchiToStructure.getAtomContainer();
         return molecule;
       } catch (CDKException e) {
@@ -410,19 +414,19 @@ public class SpectralMatchPanelFX extends GridPane {
     Button btnExport = null;
 
     // TODO does not work - so remove
-//    if (true) {
-//      return;
-//    }
+    //    if (true) {
+    //      return;
+    //    }
 
-//    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
-//      ImageView img = new ImageView(iconAll);
-//      img.setPreserveRatio(true);
-//      img.setFitWidth(ICON_WIDTH);
-//      btnExport = new Button(null, img);
-//      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-//      btnExport.setOnAction(e -> exportToGraphics("all"));
-//      pnExport.add(btnExport, 0, 0);
-//    }
+    //    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
+    //      ImageView img = new ImageView(iconAll);
+    //      img.setPreserveRatio(true);
+    //      img.setFitWidth(ICON_WIDTH);
+    //      btnExport = new Button(null, img);
+    //      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+    //      btnExport.setOnAction(e -> exportToGraphics("all"));
+    //      pnExport.add(btnExport, 0, 0);
+    //    }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
       ImageView img = new ImageView(iconPdf);
@@ -455,15 +459,15 @@ public class SpectralMatchPanelFX extends GridPane {
     }
 
     //TODO SVG broken somehow
-//    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
-//      ImageView img = new ImageView(iconSvg);
-//      img.setPreserveRatio(true);
-//      img.setFitWidth(ICON_WIDTH);
-//      btnExport = new Button(null, img);
-//      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-//      btnExport.setOnAction(e -> exportToGraphics("svg"));
-//      pnExport.add(btnExport, 0, 4);
-//    }
+    //    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
+    //      ImageView img = new ImageView(iconSvg);
+    //      img.setPreserveRatio(true);
+    //      img.setFitWidth(ICON_WIDTH);
+    //      btnExport = new Button(null, img);
+    //      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+    //      btnExport.setOnAction(e -> exportToGraphics("svg"));
+    //      pnExport.add(btnExport, 0, 4);
+    //    }
   }
 
   /**
@@ -474,9 +478,9 @@ public class SpectralMatchPanelFX extends GridPane {
   public void exportToGraphics(String format) {
 
     // old path
-    FileNameParameter param =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
-            .getParameter(SpectraIdentificationResultsParameters.file);
+    FileNameParameter param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class)
+        .getParameter(SpectraIdentificationResultsParameters.file);
     final FileChooser chooser;
     if (param.getValue() != null) {
       chooser = new FileChooser();
