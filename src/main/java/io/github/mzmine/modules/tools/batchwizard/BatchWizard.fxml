@@ -35,101 +35,75 @@
 <?import javafx.scene.layout.VBox?>
 <ScrollPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/15.0.1"
   fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
-  <content>
-    <BorderPane>
-      <center>
-        <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.5">
-          <items>
-            <GridPane hgap="5.0" vgap="5.0" fx:id="pnParametersMS">
-              <children>
-                <Label GridPane.rowIndex="2" styleClass="bold-title-label" text="MS data files"/>
-                <VBox spacing="4.0">
-                  <GridPane.margin>
-                    <Insets/>
-                  </GridPane.margin>
-                  <children>
-                    <FlowPane hgap="5.0">
-                      <children>
-                        <Button mnemonicParsing="false" onAction="#onSetMsDefaults"
-                          text="Set defaults" fx:id="btnSetMsDefaults"/>
-                        <ComboBox prefWidth="150.0" fx:id="cbPolarity"/>
-                        <RadioButton mnemonicParsing="false" text="Orbitrap" fx:id="rbOrbitrap">
-                          <toggleGroup>
-                            <ToggleGroup fx:id="massSpec"/>
-                          </toggleGroup>
-                        </RadioButton>
-                        <RadioButton mnemonicParsing="false" text="TOF" toggleGroup="$massSpec"
-                          fx:id="rbTOF"/>
-                      </children>
-                    </FlowPane>
-                    <FlowPane hgap="5.0">
-                      <children>
-                        <CheckBox mnemonicParsing="false" text="Ion mobility"
-                          fx:id="cbIonMobility"/>
-                        <ComboBox prefWidth="150.0" fx:id="cbMobilityType"/>
-                      </children>
-                    </FlowPane>
-                    <Label styleClass="bold-title-label" text="Mass spectrometer preset"/>
-                  </children>
-                </VBox>
-              </children>
-              <columnConstraints>
-                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-              </columnConstraints>
-              <opaqueInsets>
-                <Insets/>
-              </opaqueInsets>
-              <padding>
-                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-              </padding>
-              <rowConstraints>
-                <RowConstraints vgrow="NEVER"/>
-                <RowConstraints minHeight="40.0" vgrow="NEVER"/>
-                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-                <RowConstraints minHeight="40.0" vgrow="ALWAYS"/>
-              </rowConstraints>
-            </GridPane>
-            <GridPane fx:id="pnParametersLC">
-              <children>
-                <VBox spacing="4.0">
-                  <children>
-                    <FlowPane hgap="5.0" vgap="5.0">
-                      <children>
-                        <Button alignment="TOP_CENTER" mnemonicParsing="false"
-                          onAction="#onSetLcDefaults" text="Set defaults" fx:id="btnSetLcDefaults"/>
-                        <RadioButton mnemonicParsing="false" text="HPLC" toggleGroup="$hplc"
-                          fx:id="rbHPLC"/>
-                        <RadioButton mnemonicParsing="false" text="UHPLC" fx:id="rbUHPLC">
-                          <toggleGroup>
-                            <ToggleGroup fx:id="hplc"/>
-                          </toggleGroup>
-                        </RadioButton>
-                      </children>
-                    </FlowPane>
-                    <Label styleClass="bold-title-label" text="HPLC Preset"/>
-                  </children>
-                </VBox>
-                <VBox GridPane.rowIndex="2" spacing="4.0" fx:id="rightMenu">
-                  <FlowPane>
-                    <children>
-                      <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed"
-                        text="Run"/>
-                    </children>
-                  </FlowPane>
-                </VBox>
-              </children>
-              <columnConstraints>
-                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-              </rowConstraints>
-            </GridPane>
-          </items>
-        </SplitPane>
-      </center>
-    </BorderPane>
-  </content>
+  <BorderPane>
+    <center>
+      <SplitPane BorderPane.alignment="CENTER" dividerPositions="0.5">
+        <GridPane hgap="5.0" vgap="5.0" fx:id="pnParametersMS">
+          <Label GridPane.rowIndex="2" styleClass="bold-title-label" text="MS data files"/>
+          <VBox spacing="4.0">
+            <FlowPane hgap="5.0">
+              <Button mnemonicParsing="false" onAction="#onSetMsDefaults"
+                text="Set defaults" fx:id="btnSetMsDefaults"/>
+              <ComboBox prefWidth="150.0" fx:id="cbPolarity"/>
+              <RadioButton mnemonicParsing="false" text="Orbitrap" fx:id="rbOrbitrap">
+                <toggleGroup>
+                  <ToggleGroup fx:id="massSpec"/>
+                </toggleGroup>
+              </RadioButton>
+              <RadioButton mnemonicParsing="false" text="TOF" toggleGroup="$massSpec"
+                fx:id="rbTOF"/>
+            </FlowPane>
+            <FlowPane hgap="5.0">
+              <CheckBox mnemonicParsing="false" text="Ion mobility"
+                fx:id="cbIonMobility"/>
+              <ComboBox prefWidth="150.0" fx:id="cbMobilityType"/>
+            </FlowPane>
+            <Label styleClass="bold-title-label" text="Mass spectrometer presets"/>
+          </VBox>
+          <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+          </columnConstraints>
+          <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+          </padding>
+          <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints minHeight="40.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="40.0" vgrow="ALWAYS"/>
+          </rowConstraints>
+        </GridPane>
+        <GridPane fx:id="pnParametersLC">
+          <VBox spacing="4.0">
+            <FlowPane hgap="5.0" vgap="5.0">
+              <Button alignment="TOP_CENTER" mnemonicParsing="false"
+                onAction="#onSetLcDefaults" text="Set defaults" fx:id="btnSetLcDefaults"/>
+              <RadioButton mnemonicParsing="false" text="UHPLC" fx:id="rbUHPLC">
+                <toggleGroup>
+                  <ToggleGroup fx:id="hplc"/>
+                </toggleGroup>
+              </RadioButton>
+              <RadioButton mnemonicParsing="false" text="HPLC" toggleGroup="$hplc"
+                fx:id="rbHPLC"/>
+            </FlowPane>
+            <Label styleClass="bold-title-label" text="HPLC presets"/>
+          </VBox>
+          <VBox GridPane.rowIndex="2" spacing="4.0" fx:id="rightMenu">
+            <FlowPane>
+              <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed"
+                text="Run"/>
+            </FlowPane>
+          </VBox>
+          <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+          </rowConstraints>
+        </GridPane>
+      </SplitPane>
+    </center>
+  </BorderPane>
 </ScrollPane>
