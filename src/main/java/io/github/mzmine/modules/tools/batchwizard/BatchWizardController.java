@@ -123,7 +123,6 @@ public class BatchWizardController {
       .getEmbeddedParameters().cloneParameterSet();
   final ParameterSetupDialog msDialog = new ParameterSetupDialog(false, msParameters);
 
-  public GridPane pnParameters;
   public RadioButton rbOrbitrap;
   public RadioButton rbTOF;
   public ToggleGroup massSpec;
@@ -136,14 +135,16 @@ public class BatchWizardController {
   public ComboBox<Polarity> cbPolarity;
   public ComboBox<MobilityType> cbMobilityType;
   public VBox rightMenu;
+  public GridPane pnParametersMS;
+  public GridPane pnParametersLC;
 
   private FileNamesParameter files;
   private FileNamesComponent filesComponent;
   private OptionalParameterComponent<?> exportPathComponent;
 
   public void initialize() {
-    pnParameters.add(hplcDialog.getParamsPane(), 1, 2, 1, 1);
-    pnParameters.add(msDialog.getParamsPane(), 0, 2, 1, 1);
+    pnParametersMS.add(msDialog.getParamsPane(), 0, 1, 1, 1);
+    pnParametersLC.add(hplcDialog.getParamsPane(), 0, 1, 1, 1);
 
     // add export file param
     exportPathComponent = wizardParam.getParameter(BatchWizardParameters.exportPath)
@@ -156,8 +157,8 @@ public class BatchWizardController {
         AllSpectralDataImportParameters.extensions);
     filesComponent = files.createEditingComponent();
 
-    pnParameters.add(filesComponent, 0, 4, 2, 1);
-    pnParameters.layout();
+    pnParametersMS.add(filesComponent, 0, 3, 1, 1);
+    pnParametersMS.layout();
 
     cbIonMobility.disableProperty().bind(rbTOF.selectedProperty().not());
     cbMobilityType.disableProperty().bind(rbTOF.selectedProperty().not());
