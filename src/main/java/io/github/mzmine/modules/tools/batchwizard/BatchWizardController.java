@@ -162,6 +162,7 @@ public class BatchWizardController {
 
     cbIonMobility.disableProperty().bind(rbTOF.selectedProperty().not());
     cbMobilityType.disableProperty().bind(rbTOF.selectedProperty().not());
+    rbOrbitrap.setSelected(true);
     rbOrbitrap.selectedProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue) {
         cbIonMobility.setSelected(false);
@@ -174,6 +175,7 @@ public class BatchWizardController {
     cbMobilityType.setItems(FXCollections.observableArrayList(MobilityType.values()));
     cbMobilityType.setValue(MobilityType.TIMS);
 
+    rbUHPLC.setSelected(true);
   }
 
   public void onSetMsDefaults() {
