@@ -80,8 +80,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModularFeature implements Feature, ModularDataModel {
 
-  private final ObservableMap<DataType, Object> map = FXCollections
-      .observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
   @NotNull
@@ -152,7 +151,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     setFragmentScan(fragmentScanNumber);
     setRepresentativeScan(representativeScan);
     // add values to feature
-//    set(ScanNumbersType.class, List.of(scanNumbers));
+    //    set(ScanNumbersType.class, List.of(scanNumbers));
     set(RawFileType.class, dataFile);
     set(DetectionType.class, featureStatus);
     set(MZType.class, mz);
@@ -162,7 +161,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(BestScanNumberType.class, representativeScan);
 
     // datapoints of feature
-//    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
+    //    set(DataPointsType.class, Arrays.asList(dataPointsPerScan));
     SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), mzs,
         intensities, scans);
     set(FeatureDataType.class, featureData);
@@ -211,9 +210,9 @@ public class ModularFeature implements Feature, ModularDataModel {
   /**
    * Copy constructor
    */
-//  public ModularFeature(@NotNull Feature f) {
-//    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
-//  }
+  //  public ModularFeature(@NotNull Feature f) {
+  //    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
+  //  }
 
   /**
    * Copy constructor with custom feature list
@@ -224,7 +223,7 @@ public class ModularFeature implements Feature, ModularDataModel {
       ((ModularFeature) f).stream().forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     } else {
       // add values to feature
-//      set(ScanNumbersType.class, f.getScanNumbers());
+      //      set(ScanNumbersType.class, f.getScanNumbers());
       set(RawFileType.class, (f.getRawDataFile()));
       set(DetectionType.class, (f.getFeatureStatus()));
       set(MZType.class, (f.getMZ()));
@@ -236,15 +235,15 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
 
       // datapoints of feature
-//      set(DataPointsType.class, f.getDataPoints());
-//      if(f instanceof ModularFeature) {
-//        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
-//      } else {
+      //      set(DataPointsType.class, f.getDataPoints());
+      //      if(f instanceof ModularFeature) {
+      //        set(FeatureDataType.class, ((ModularFeature)f).getFeatureData());
+      //      } else {
       double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(f.getDataPoints());
       SimpleIonTimeSeries featureData = new SimpleIonTimeSeries(flist.getMemoryMapStorage(), dp[0],
           dp[1], f.getScanNumbers());
       set(FeatureDataType.class, featureData);
-//      }
+      //      }
 
       // ranges
       set(MZRangeType.class, f.getRawDataPointsMZRange());
@@ -461,6 +460,12 @@ public class ModularFeature implements Feature, ModularDataModel {
     this.flist = (ModularFeatureList) flist;
   }
 
+  @Override
+  public int getNumberOfDataPoints() {
+    final IonTimeSeries<? extends Scan> data = getFeatureData();
+    return data == null ? 0 : data.getNumberOfValues();
+  }
+
   @Nullable
   @Override
   public RawDataFile getRawDataFile() {
@@ -497,10 +502,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   @Deprecated
   public ObservableList<DataPoint> getDataPoints() {
-//    ListProperty<DataPoint> v = get(DataPointsType.class);
-//    return v == null || v.getValue() == null ?
-//        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-//        : v.getValue();
+    //    ListProperty<DataPoint> v = get(DataPointsType.class);
+    //    return v == null || v.getValue() == null ?
+    //        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
+    //        : v.getValue();
     IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? null
         : FXCollections.observableArrayList(data.stream().collect(Collectors.toList()));
@@ -513,6 +518,10 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public @Nullable FeatureListRow getRow() {
     return parentRow;
+  }
+
+  public void setRow(FeatureListRow row) {
+    parentRow = row;
   }
 
   @Override
@@ -601,10 +610,6 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Override
   public void setMobilityRange(Range<Float> range) {
     set(MobilityRangeType.class, range);
-  }
-
-  public void setRow(FeatureListRow row) {
-    parentRow = row;
   }
 
   @Override
