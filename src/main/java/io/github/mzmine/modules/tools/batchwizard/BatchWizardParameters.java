@@ -20,17 +20,25 @@ package io.github.mzmine.modules.tools.batchwizard;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 public class BatchWizardParameters extends SimpleParameterSet {
 
-  public static final ParameterSetParameter msParams = new ParameterSetParameter("MS parameters", "",
-      new BatchWizardMassSpectrometerParameters());
+  public static final ParameterSetParameter msParams = new ParameterSetParameter("MS parameters",
+      "", new BatchWizardMassSpectrometerParameters());
 
-  public static final ParameterSetParameter hplcParams = new ParameterSetParameter("(U)HPLC parameters", "",
-      new BatchWizardMassSpectrometerParameters());
+  public static final ParameterSetParameter hplcParams = new ParameterSetParameter(
+      "(U)HPLC parameters", "", new BatchWizardHPLCParameters());
+
+  public static final OptionalParameter<FileNameParameter> exportPath = new OptionalParameter<>(
+      new FileNameParameter("Export path",
+          "If checked, export results for different tools, e.g., GNPS IIMN, SIRIUS, ...",
+          FileSelectionType.SAVE, false), false);
 
   public BatchWizardParameters() {
-    super(new Parameter[] {msParams, hplcParams});
+    super(new Parameter[]{msParams, hplcParams, exportPath});
   }
 }

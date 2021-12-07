@@ -55,8 +55,8 @@
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
       <accelerator>
-        <KeyCodeCombination alt="UP" code="W"
-          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+        <KeyCodeCombination alt="UP" code="Q"
+          control="UP" meta="UP" shift="DOWN" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
 
@@ -555,7 +555,12 @@
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
     <MenuItem text="Processing wizard"
       onAction="#showWizardTab"
-      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule"/>
+      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="W"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
   </Menu>
 
 

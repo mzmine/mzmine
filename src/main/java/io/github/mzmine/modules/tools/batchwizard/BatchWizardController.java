@@ -65,6 +65,11 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkingParameters;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitParameters;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
+import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
@@ -72,8 +77,8 @@ import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultLcParameters;
 import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultMsParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
+import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
@@ -89,8 +94,11 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -100,15 +108,21 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.Element;
 
 public class BatchWizardController {
 
-  final SimpleParameterSet hplcParameters = new BatchWizardHPLCParameters();
+  final ParameterSet wizardParam = MZmineCore.getConfiguration()
+      .getModuleParameters(BatchWizardModule.class).cloneParameterSet();
+  final ParameterSet hplcParameters = wizardParam.getParameter(BatchWizardParameters.hplcParams)
+      .getEmbeddedParameters().cloneParameterSet();
   final ParameterSetupDialog hplcDialog = new ParameterSetupDialog(false, hplcParameters);
-  final SimpleParameterSet msParameters = new BatchWizardMassSpectrometerParameters();
+  final ParameterSet msParameters = wizardParam.getParameter(BatchWizardParameters.msParams)
+      .getEmbeddedParameters().cloneParameterSet();
   final ParameterSetupDialog msDialog = new ParameterSetupDialog(false, msParameters);
+
   public GridPane pnParameters;
   public RadioButton rbOrbitrap;
   public RadioButton rbTOF;
@@ -121,13 +135,21 @@ public class BatchWizardController {
   public Button btnSetLcDefaults;
   public ComboBox<Polarity> cbPolarity;
   public ComboBox<MobilityType> cbMobilityType;
+  public VBox rightMenu;
 
   private FileNamesParameter files;
   private FileNamesComponent filesComponent;
+  private OptionalParameterComponent<?> exportPathComponent;
 
   public void initialize() {
     pnParameters.add(hplcDialog.getParamsPane(), 1, 2, 1, 1);
     pnParameters.add(msDialog.getParamsPane(), 0, 2, 1, 1);
+
+    // add export file param
+    exportPathComponent = wizardParam.getParameter(BatchWizardParameters.exportPath)
+        .createEditingComponent();
+    rightMenu.setSpacing(4);
+    rightMenu.getChildren().add(0, exportPathComponent);
 
     files = new FileNamesParameter("MS data files",
         "Please select the data files you want to process.",
@@ -195,6 +217,11 @@ public class BatchWizardController {
     hplcDialog.updateParameterSetFromComponents();
     hplcParameters.checkParameterValues(errorMessages);
 
+    final var pathParam = wizardParam.getParameter(BatchWizardParameters.exportPath);
+    pathParam.setValueFromComponent(exportPathComponent);
+    final boolean useExport = pathParam.getValue();
+    final File exportPath = useExport ? pathParam.getEmbeddedParameter().getValue() : null;
+
     files.setValueFromComponent(filesComponent);
     files.checkValue(errorMessages);
 
@@ -203,7 +230,8 @@ public class BatchWizardController {
       return;
     }
 
-    final BatchQueue q = rbTOF.isSelected() ? createTofQueue() : createOrbitrapQueue();
+    final BatchQueue q = rbTOF.isSelected() ? createTofQueue(useExport, exportPath)
+        : createOrbitrapQueue(useExport, exportPath);
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
@@ -212,7 +240,7 @@ public class BatchWizardController {
     }
   }
 
-  private BatchQueue createTofQueue() {
+  private BatchQueue createTofQueue(boolean useExport, File exportPath) {
     final BatchQueue q = new BatchQueue();
     q.add(makeImportTask(files));
     q.add(makeMassDetectionStep(msParameters, 1));
@@ -247,7 +275,7 @@ public class BatchWizardController {
     return q;
   }
 
-  private BatchQueue createOrbitrapQueue() {
+  private BatchQueue createOrbitrapQueue(boolean useExport, File exportPath) {
     final BatchQueue q = new BatchQueue();
     q.add(makeImportTask(files));
     q.add(makeMassDetectionStep(msParameters, 1));
@@ -265,11 +293,15 @@ public class BatchWizardController {
     q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
     q.add(makeIinStep(msParameters, cbPolarity.getValue()));
+    if (useExport && exportPath != null) {
+      q.add(makeIimnGnpsExportStep(exportPath));
+      q.add(makeSiriusExportStep(exportPath));
+    }
     return q;
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeRowFilterStep(
-      SimpleParameterSet msParameters, SimpleParameterSet hplcParameters) {
+  private MZmineProcessingStep<MZmineProcessingModule> makeRowFilterStep(ParameterSet msParameters,
+      ParameterSet hplcParameters) {
     final int minSamples = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
 
     // need to create new because we do not want to set all parameters here - go with defaults
@@ -291,8 +323,8 @@ public class BatchWizardController {
         param);
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeGapFillStep(
-      SimpleParameterSet msParameters, SimpleParameterSet hplcParameters) {
+  private MZmineProcessingStep<MZmineProcessingModule> makeGapFillStep(ParameterSet msParameters,
+      ParameterSet hplcParameters) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(MultiThreadPeakFinderModule.class).cloneParameterSet();
 
@@ -312,7 +344,7 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeDuplicateRowFilterStep(
-      SimpleParameterSet msParameters, SimpleParameterSet hplcParameters) {
+      ParameterSet msParameters, ParameterSet hplcParameters) {
     // reduced rt tolerance - after gap filling the rt difference should be very small
     RTTolerance rtTol = hplcParameters.getValue(
         BatchWizardHPLCParameters.approximateChromatographicFWHM);
@@ -385,7 +417,7 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeAdapStep(
-      @NotNull final ParameterSet msParameters, SimpleParameterSet hplcParameters) {
+      @NotNull final ParameterSet msParameters, ParameterSet hplcParameters) {
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     param.setParameter(ADAPChromatogramBuilderParameters.dataFiles,
@@ -435,7 +467,7 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeSmoothingStep(
-      SimpleParameterSet hplcParameters, final boolean rt, final boolean mobility) {
+      ParameterSet hplcParameters, final boolean rt, final boolean mobility) {
     final Integer minDP = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfDataPoints);
 
     final ParameterSet param = MZmineCore.getConfiguration()
@@ -737,6 +769,51 @@ public class BatchWizardController {
         new IonModification[][]{adducts, modifications});
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IonNetworkingModule.class),
+        param);
+  }
+
+  // export
+  private MZmineProcessingStep<MZmineProcessingModule> makeIimnGnpsExportStep(File exportPath) {
+    final ParameterSet param = new GnpsFbmnExportAndSubmitParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + "_iimn_gnps");
+
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER, false);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT, false);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER, false);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY,
+        FeatureMeasurementType.AREA);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FILENAME, fileName);
+    param.setParameter(GnpsFbmnExportAndSubmitParameters.FILTER,
+        FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
+
+    return new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(GnpsFbmnExportAndSubmitModule.class), param);
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeSiriusExportStep(File exportPath) {
+    final ParameterSet param = new SiriusExportParameters().cloneParameterSet();
+
+    File fileName = FileAndPathUtil.eraseFormat(exportPath);
+    fileName = new File(fileName.getParentFile(), fileName.getName() + "_sirius.mgf");
+
+    param.setParameter(SiriusExportParameters.FEATURE_LISTS,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    // going back into scans so rather use scan mz tol
+    param.setParameter(SiriusExportParameters.MERGE_PARAMETER, false);
+    param.setParameter(SiriusExportParameters.EXCLUDE_EMPTY_MSMS, false);
+    param.setParameter(SiriusExportParameters.EXCLUDE_MULTICHARGE, false);
+    param.setParameter(SiriusExportParameters.EXCLUDE_MULTIMERS, false);
+    param.setParameter(SiriusExportParameters.RENUMBER_ID, false);
+    param.setParameter(SiriusExportParameters.NEED_ANNOTATION, false);
+    param.setParameter(SiriusExportParameters.MZ_TOL, new MZTolerance(0.002, 5));
+    param.setParameter(SiriusExportParameters.FILENAME, fileName);
+
+    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SiriusExportModule.class),
         param);
   }
 }

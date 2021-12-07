@@ -18,10 +18,20 @@
   ~
   -->
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <ScrollPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
   <content>
@@ -33,12 +43,6 @@
             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
           </columnConstraints>
-          <rowConstraints>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
-          </rowConstraints>
           <children>
             <Label styleClass="bold-title-label" text="Mass spectrometer preset">
               <GridPane.margin>
@@ -110,14 +114,23 @@
                 </FlowPane>
               </children>
             </GridPane>
-            <FlowPane GridPane.columnIndex="1" GridPane.rowIndex="3">
-              <children>
-                <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed"
-                  text="Run"/>
-              </children>
-            </FlowPane>
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="3" fx:id="rightMenu">
+              <FlowPane>
+                <children>
+                  <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed"
+                    text="Run"/>
+                </children>
+              </FlowPane>
+            </VBox>
             <Label styleClass="bold-title-label" text="MS data files" GridPane.rowIndex="3"/>
           </children>
+          <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+            <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+          </rowConstraints>
           <opaqueInsets>
             <Insets/>
           </opaqueInsets>
