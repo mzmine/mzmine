@@ -34,11 +34,11 @@ import org.jetbrains.annotations.NotNull;
  * removes rows (features) that meet certain criteria between given peaks in the row e.g. fold
  * change, etc.
  */
-public class FeatureListClearAnnotationsModule implements MZmineProcessingModule {
+public class ClearFeatureAnnotationsModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Clear peaklist annotations";
+  private static final String MODULE_NAME = "Clear feature list annotations";
   private static final String MODULE_DESCRIPTION =
-      "This method clears the annotations from the peaklist";
+      "This method clears the annotations from the feature list";
 
   @Override
   public @NotNull String getName() {
@@ -56,14 +56,12 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] peakLists =
-        parameters.getParameter(FeatureListClearAnnotationsParameters.PEAK_LISTS).getValue()
+        parameters.getParameter(ClearFeatureAnnotationsParameters.featureLists).getValue()
             .getMatchingFeatureLists();
 
     for (FeatureList peakList : peakLists) {
-
-      Task newTask = new FeatureListClearAnnotationsTask(project, peakList, parameters, moduleCallDate);
+      Task newTask = new ClearFeatureAnnotationsTask(project, peakList, parameters, moduleCallDate);
       tasks.add(newTask);
-
     }
 
     return ExitCode.OK;
@@ -76,6 +74,6 @@ public class FeatureListClearAnnotationsModule implements MZmineProcessingModule
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return FeatureListClearAnnotationsParameters.class;
+    return ClearFeatureAnnotationsParameters.class;
   }
 }

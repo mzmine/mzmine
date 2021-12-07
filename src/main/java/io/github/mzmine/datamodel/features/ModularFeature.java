@@ -56,6 +56,7 @@ import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
+import io.github.mzmine.util.FeatureUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -604,5 +605,10 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   public void setRow(FeatureListRow row) {
     parentRow = row;
+  }
+
+  @Override
+  public String toString() {
+    return FeatureUtils.featureToString(this);
   }
 }

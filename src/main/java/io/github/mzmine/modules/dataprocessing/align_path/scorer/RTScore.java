@@ -19,13 +19,14 @@
 package io.github.mzmine.modules.dataprocessing.align_path.scorer;
 
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.modules.dataprocessing.align_join.JoinAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.PathAlignerParameters;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.AlignmentPath;
 import io.github.mzmine.modules.dataprocessing.align_path.functions.ScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -34,9 +35,9 @@ import io.github.mzmine.util.RangeUtils;
 
 public class RTScore implements ScoreCalculator {
 
-  MZTolerance mzTolerance;
-  RTTolerance rtTolerance;
   private final static double WORST_SCORE = Double.MAX_VALUE;
+  private MZTolerance mzTolerance;
+  private RTTolerance rtTolerance;
 
   public double calculateScore(AlignmentPath path, FeatureListRow peak, ParameterSet parameters) {
     try {
@@ -53,8 +54,8 @@ public class RTScore implements ScoreCalculator {
 
       double rtDiff = Math.abs(path.getRT() - peak.getAverageRT());
 
-      double score = ((mzDiff / (RangeUtils.rangeLength(mzRange) / 2.0)))
-          + ((rtDiff / (RangeUtils.rangeLength(rtRange) / 2.0)));
+      double score = ((mzDiff / (RangeUtils.rangeLength(mzRange) / 2.0))) + ((rtDiff / (
+          RangeUtils.rangeLength(rtRange) / 2.0)));
 
       if (parameters.getParameter(PathAlignerParameters.SameChargeRequired).getValue()) {
         if (!FeatureUtils.compareChargeState(path.convertToAlignmentRow(0), peak)) {
@@ -73,10 +74,20 @@ public class RTScore implements ScoreCalculator {
         IsotopePattern ip2 = peak.getBestIsotopePattern();
 
         if ((ip1 != null) && (ip2 != null)) {
-          ParameterSet isotopeParams = parameters
-              .getParameter(PathAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
+          boolean compareIsotopePattern = parameters
+              .getParameter(JoinAlignerParameters.compareIsotopePattern).getValue();
+          final ParameterSet isoParam = parameters
+              .getParameter(JoinAlignerParameters.compareIsotopePattern).getEmbeddedParameters();
 
-          if (!IsotopePatternScoreCalculator.checkMatch(ip1, ip2, isotopeParams)) {
+          Double minIsotopeScore = isoParam
+              .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+          Double isotopeNoiseLevel = isoParam
+              .getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
+          MZTolerance isotopeMZTolerance = isoParam
+              .getValue(IsotopePatternScoreParameters.mzTolerance);
+
+          if (compareIsotopePattern && !IsotopePatternScoreCalculator
+              .checkMatch(ip1, ip2, isotopeMZTolerance, isotopeNoiseLevel, minIsotopeScore)) {
             return WORST_SCORE;
           }
         }

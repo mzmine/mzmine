@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types.fx;
@@ -66,7 +67,9 @@ public class EditComboCellFactory implements
       public void startEdit() {
         List list = getTypeList();
         getItems().clear();
-        getItems().addAll(list);
+        if (list != null) {
+          getItems().addAll(list);
+        }
         // create element that triggers the add element dialog on selection
         if (type instanceof AddElementDialog) {
           getItems().add(AddElementDialog.BUTTON_TEXT);
@@ -110,15 +113,6 @@ public class EditComboCellFactory implements
             }
           }
 
-          // sub columns provide values
-//          if (parentType != null) {
-//            // get sub column value
-//            Node n = parentType.getSubColNode(subcolumn, this, param, list, raw);
-//            setGraphic(n);
-//            String formattedSubVal = parentType.getFormattedSubColValue(subcolumn, list);
-//            setText(n != null ? null : formattedSubVal);
-//            setTooltip(new Tooltip(formattedSubVal));
-//          } else
           if (type instanceof GraphicalColumType graphType) {
             Node node = graphType.getCellNode(this, param, list, raw);
             getTableColumn().setMinWidth(graphType.getColumnWidth());
