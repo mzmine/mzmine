@@ -97,9 +97,9 @@
                       <children>
                         <Button alignment="TOP_CENTER" mnemonicParsing="false"
                           onAction="#onSetLcDefaults" text="Set defaults" fx:id="btnSetLcDefaults"/>
-                        <RadioButton mnemonicParsing="false" text="UHPLC" toggleGroup="$hplc"
-                          fx:id="rbUHPLC"/>
-                        <RadioButton mnemonicParsing="false" text="HPLC" fx:id="rbHPLC">
+                        <RadioButton mnemonicParsing="false" text="HPLC" toggleGroup="$hplc"
+                          fx:id="rbHPLC"/>
+                        <RadioButton mnemonicParsing="false" text="UHPLC" fx:id="rbUHPLC">
                           <toggleGroup>
                             <ToggleGroup fx:id="hplc"/>
                           </toggleGroup>
