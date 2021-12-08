@@ -95,6 +95,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
@@ -542,7 +543,10 @@ public class BatchWizardController {
     // should be relatively high - unless user suspects many same m/z peaks in chromatogram
     // e.g., isomers or fragments in GC-EI-MS
     // 10 isomers, 0.05 min FWHM, 10 min total time = 0.90 threshold
-    final double thresholdPercent = 1d - fwhm * maxIsomers / totalRtWidth * 2d;
+    // ranges from 0.3 - 0.9
+    final double thresholdPercent = MathUtils.within(1d - fwhm * maxIsomers / totalRtWidth * 2d,
+        0.3, 0.9, 3);
+
     param.setParameter(MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL,
         thresholdPercent);
     param.setParameter(MinimumSearchFeatureResolverParameters.SEARCH_RT_RANGE, (double) fwhm);
