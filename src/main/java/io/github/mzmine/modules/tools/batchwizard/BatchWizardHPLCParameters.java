@@ -30,7 +30,7 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter approximateChromatographicFWHM = new RTToleranceParameter(
       "Approximate feature FWHM",
-      "The approximate feature width (chromatograpic peak width) in retention time. ");
+      "The approximate feature width (chromatograpic peak width) in retention time (full-width-at-half-maximum, FWHM). ");
 
   public static final RTToleranceParameter intraSampleRTTolerance = new RTToleranceParameter(
       "Intra-sample RT tolerance",
@@ -48,22 +48,26 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       Integer.MAX_VALUE);
 
   public static final IntegerParameter minNumberOfSamples = new IntegerParameter(
-      "Min samples with aligned feature",
-      "The minimum number of samples in which a feature needs to be detected, e.g., 2 for triplicates. Used in feature list rows filter and feature grouping.",
-      1, 1, Integer.MAX_VALUE);
+      "Min samples per aligned feature",
+      "The minimum number of samples in which a feature needs to be detected, e.g., 2-3 for triplicates.\n"
+      + "Used in feature list rows filter and feature grouping.", 1, 1, Integer.MAX_VALUE);
 
-  public static final RTRangeParameter cropRtRange = new RTRangeParameter("Filter by RT",
-      "The active retention time range.", true, Range.closed(0.5, 15d));
+  public static final RTRangeParameter cropRtRange = new RTRangeParameter("Crop retention time",
+      "Crops the RT range of chromatograms. Used to exclude time before the flow time\n"
+      + "and after the separation, where in many runs cleaning and re-equilibration starts.", true,
+      Range.closed(0.5, 30d));
 
   public static final IntegerParameter maximumIsomersInChromatogram = new IntegerParameter(
       "Max peaks in chromatogram",
-      "An estimate of the maximum number of peaks in a chromatogram (number of same m/z features). Used to estimate the chromatographic threshold to filter noise chromatograms.",
-      10, 1, Integer.MAX_VALUE);
+      "An estimate maximum number of peaks in a chromatogram (number of same m/z features).\n"
+      + "Used to estimate the chromatographic threshold to filter noisy chromatograms.", 10, 1,
+      Integer.MAX_VALUE);
 
   public static final BooleanParameter stableIonizationAcrossSamples = new BooleanParameter(
       "Stable ionization across samples",
-      "Only check if the ionization conditions are stable across all samples. Uncheck for varying salt content or variations in ionization conditions. Used in feature grouping.",
-      true);
+      "Only check if the ionization conditions are stable across all samples.\n"
+      + "Uncheck for varying salt content or variations in ionization conditions.\n"
+      + "Used in feature grouping.", true);
 
   public BatchWizardHPLCParameters() {
     super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,

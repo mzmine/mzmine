@@ -41,10 +41,8 @@
         <GridPane hgap="5.0" vgap="5.0" fx:id="pnParametersMS">
           <Label GridPane.rowIndex="2" styleClass="bold-title-label" text="MS data files"/>
           <VBox spacing="4.0">
+            <Label styleClass="bold-title-label" text="Mass spectrometer presets"/>
             <FlowPane hgap="5.0">
-              <Button mnemonicParsing="false" onAction="#onSetMsDefaults"
-                text="Set defaults" fx:id="btnSetMsDefaults"/>
-              <ComboBox prefWidth="150.0" fx:id="cbPolarity"/>
               <RadioButton mnemonicParsing="false" text="Orbitrap" fx:id="rbOrbitrap">
                 <toggleGroup>
                   <ToggleGroup fx:id="massSpec"/>
@@ -52,13 +50,15 @@
               </RadioButton>
               <RadioButton mnemonicParsing="false" text="TOF" toggleGroup="$massSpec"
                 fx:id="rbTOF"/>
+              <ComboBox prefWidth="150.0" fx:id="cbPolarity"/>
+              <Button mnemonicParsing="false" onAction="#onSetMsDefaults"
+                text="Set defaults" fx:id="btnSetMsDefaults"/>
             </FlowPane>
             <FlowPane hgap="5.0">
               <CheckBox mnemonicParsing="false" text="Ion mobility"
                 fx:id="cbIonMobility"/>
               <ComboBox prefWidth="150.0" fx:id="cbMobilityType"/>
             </FlowPane>
-            <Label styleClass="bold-title-label" text="Mass spectrometer presets"/>
           </VBox>
           <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
@@ -75,9 +75,8 @@
         </GridPane>
         <GridPane fx:id="pnParametersLC">
           <VBox spacing="4.0">
+            <Label styleClass="bold-title-label" text="HPLC presets"/>
             <FlowPane hgap="5.0" vgap="5.0">
-              <Button alignment="TOP_CENTER" mnemonicParsing="false"
-                onAction="#onSetLcDefaults" text="Set defaults" fx:id="btnSetLcDefaults"/>
               <RadioButton mnemonicParsing="false" text="UHPLC" fx:id="rbUHPLC">
                 <toggleGroup>
                   <ToggleGroup fx:id="hplc"/>
@@ -85,13 +84,14 @@
               </RadioButton>
               <RadioButton mnemonicParsing="false" text="HPLC" toggleGroup="$hplc"
                 fx:id="rbHPLC"/>
+              <Button alignment="TOP_CENTER" mnemonicParsing="false"
+                onAction="#onSetLcDefaults" text="Set defaults" fx:id="btnSetLcDefaults"/>
             </FlowPane>
-            <Label styleClass="bold-title-label" text="HPLC presets"/>
           </VBox>
           <VBox GridPane.rowIndex="2" spacing="4.0" fx:id="rightMenu">
             <FlowPane>
               <Button alignment="TOP_RIGHT" mnemonicParsing="false" onAction="#onRunPressed"
-                text="Run"/>
+                text="Build batch"/>
             </FlowPane>
           </VBox>
           <columnConstraints>
