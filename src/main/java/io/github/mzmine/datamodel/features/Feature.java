@@ -126,11 +126,7 @@ public interface Feature {
    * @return
    */
   @Deprecated
-  @Nullable
-  default DataPoint getDataPointAtIndex(int i) {
-    List<DataPoint> dataPoints = getDataPoints();
-    return dataPoints == null ? null : dataPoints.get(i);
-  }
+  @Nullable DataPoint getDataPointAtIndex(int i);
 
   /**
    * This method returns the best scan (null if no raw file is attached)

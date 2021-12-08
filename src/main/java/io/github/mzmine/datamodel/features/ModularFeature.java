@@ -66,7 +66,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
@@ -206,13 +205,6 @@ public class ModularFeature implements Feature, ModularDataModel {
 
     FeatureDataUtils.recalculateIonSeriesDependingTypes(this);
   }
-
-  /**
-   * Copy constructor
-   */
-  //  public ModularFeature(@NotNull Feature f) {
-  //    this((ModularFeatureList) Objects.requireNonNull(f.getFeatureList()), f);
-  //  }
 
   /**
    * Copy constructor with custom feature list
@@ -484,6 +476,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     return data == null ? List.of() : (List<Scan>) data.getSpectra();
   }
 
+
   @Override
   public Scan getRepresentativeScan() {
     return get(BestScanNumberType.class);
@@ -501,14 +494,20 @@ public class ModularFeature implements Feature, ModularDataModel {
    */
   @Override
   @Deprecated
-  public ObservableList<DataPoint> getDataPoints() {
-    //    ListProperty<DataPoint> v = get(DataPointsType.class);
-    //    return v == null || v.getValue() == null ?
-    //        FXCollections.unmodifiableObservableList(FXCollections.emptyObservableList())
-    //        : v.getValue();
+  public List<DataPoint> getDataPoints() {
     IonTimeSeries<? extends Scan> data = getFeatureData();
     return data == null ? null
         : FXCollections.observableArrayList(data.stream().collect(Collectors.toList()));
+  }
+
+  @Override
+  public @Nullable DataPoint getDataPointAtIndex(int i) {
+    if (i < 0) {
+      return null;
+    }
+    IonTimeSeries<? extends Scan> data = getFeatureData();
+    return data == null || i >= data.getNumberOfValues() ? null
+        : new SimpleDataPoint(data.getMZ(i), data.getIntensity(i));
   }
 
   public IonTimeSeries<? extends Scan> getFeatureData() {
