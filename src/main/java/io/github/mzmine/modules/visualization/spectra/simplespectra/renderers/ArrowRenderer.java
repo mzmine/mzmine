@@ -31,10 +31,9 @@ public class ArrowRenderer extends XYLineAndShapeRenderer {
 
   public static final Shape rightArrow = new Polygon(new int[]{0, 0, 3}, new int[]{-3, 3, 0}, 3);
   public static final Shape leftArrow = new Polygon(new int[]{0, 0, -3}, new int[]{-3, 3, 0}, 3);
-  public static final Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, -3}, 3);
-  public static final Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{-3, -3, 0}, 3);
-  public static final Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, -3, -6, -3},
-      4);
+  public static final Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
+  public static final Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
+  public static final Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
 
   private final Color[] color;
   private final Shape shape;
