@@ -35,12 +35,15 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.RelativeOption;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer.ShapeType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
+import java.awt.Polygon;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +55,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -59,6 +63,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -86,9 +91,16 @@ public class MSnTreeTab extends SimpleTab {
   private final CheckBox cbRelative;
   private final CheckBox cbDenoise;
   private final List<SpectraPlot> spectraPlots = new ArrayList<>(1);
+  private final Spinner<Integer> sizeSpinner;
+  // current shapes
+  public Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
+  public Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
+  public Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
+  public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
   private int lastSelectedItem = -1;
   private ChartGroup chartGroup;
   private PrecursorIonTreeNode currentRoot = null;
+
 
   public MSnTreeTab() {
     super("MSn Tree", true, false);
@@ -144,20 +156,26 @@ public class MSnTreeTab extends SimpleTab {
     BorderPane center = new BorderPane(scrollSpectra);
 
     // add menu to spectra
-    HBox spectraMenu = new HBox(4);
+    HBox spectraMenu = new HBox(8);
+    spectraMenu.setAlignment(Pos.CENTER_LEFT);
     center.setTop(spectraMenu);
 
-    legendEnergies = new Label("");
+    sizeSpinner = new Spinner<>(1, 100, 3, 1);
+    sizeSpinner.getEditor().setPrefColumnCount(4);
+    sizeSpinner.valueProperty().addListener((o, ov, nv) -> changeSymbolSize());
+
     cbRelative = new CheckBox("Relative");
     cbRelative.selectedProperty().addListener((o, ov, nv) -> changeRelative());
 
     cbDenoise = new CheckBox("Denoise");
     cbDenoise.selectedProperty().addListener((o, ov, nv) -> updateCurrentSpectra());
 
+    legendEnergies = new Label("");
+
     // menu
     spectraMenu.getChildren().addAll( // menu
         createButton("Auto range", this::autoRange), //
-        cbRelative, cbDenoise, legendEnergies);
+        cbRelative, cbDenoise, new Label("Size"), sizeSpinner, legendEnergies);
 
     SplitPane splitPane = new SplitPane(left, center);
     splitPane.setDividerPositions(0.22);
@@ -180,9 +198,40 @@ public class MSnTreeTab extends SimpleTab {
     });
   }
 
+  private void changeSymbolSize() {
+    int size = sizeSpinner.getValue();
+
+    downArrow = new Polygon(new int[]{-size, size, 0}, new int[]{0, 0, size}, 3);
+    upArrow = new Polygon(new int[]{-size, size, 0}, new int[]{size, size, 0}, 3);
+    diamond = new Polygon(new int[]{0, -size, 0, size}, new int[]{0, size, size * 2, size}, 4);
+    circle = new Ellipse2D.Double(-size / 2d, size, size, size);
+
+    for (var p : spectraPlots) {
+      for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
+        final var renderer = p.getXYPlot().getRenderer(i);
+        if (renderer instanceof ArrowRenderer arrowRenderer) {
+          final ShapeType type = arrowRenderer.getShapeType();
+          renderer.setDefaultShape(getShape(type));
+        }
+      }
+      p.getChart().fireChartChanged();
+    }
+  }
+
+  private Shape getShape(ShapeType type) {
+    return switch (type) {
+      case UP -> upArrow;
+      case DOWN -> downArrow;
+      case CIRCLE -> circle;
+      case DIAMOND -> diamond;
+      case LEFT -> null;
+      case RIGHT -> null;
+    };
+  }
+
   private void changeRelative() {
     if (currentRoot != null) {
-        final boolean normalize = cbRelative.isSelected();
+      final boolean normalize = cbRelative.isSelected();
       for (var p : spectraPlots) {
         for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
           final XYDataset data = p.getXYPlot().getDataset(i);
@@ -339,10 +388,10 @@ public class MSnTreeTab extends SimpleTab {
 
           // add shapes
           spectraPlot.addDataSet(data, color, false, null, false);
-          final Shape shape = getActivationEnergyShape(scan.getMsMsInfo().getActivationEnergy(),
-              minEnergy, medEnergy, maxEnergy);
-          spectraPlot.getXYPlot()
-              .setRenderer(spectraPlot.getNumOfDataSets() - 1, new ArrowRenderer(shape, color));
+          final ShapeType shapeType = getActivationEnergyShape(
+              scan.getMsMsInfo().getActivationEnergy(), minEnergy, medEnergy, maxEnergy);
+          spectraPlot.getXYPlot().setRenderer(spectraPlot.getNumOfDataSets() - 1,
+              new ArrowRenderer(shapeType, getShape(shapeType), color));
         }
 
         // add precursor markers for each different precursor only once
@@ -411,14 +460,14 @@ public class MSnTreeTab extends SimpleTab {
    * @param ae current activation energy
    * @return a shape from the {@link ArrowRenderer}
    */
-  private Shape getActivationEnergyShape(Float ae, float minEnergy, float medEnergy,
+  private ShapeType getActivationEnergyShape(Float ae, float minEnergy, float medEnergy,
       float maxEnergy) {
     if (ae == null) {
-      return ArrowRenderer.diamond;
+      return ShapeType.CIRCLE;
     }
     final float med = Math.abs(medEnergy - ae);
-    return ae - minEnergy < med ? ArrowRenderer.downArrow
-        : (med < maxEnergy - ae ? ArrowRenderer.upArrow : ArrowRenderer.diamond);
+    return ae - minEnergy < med ? ShapeType.DOWN
+        : (med < maxEnergy - ae ? ShapeType.UP : ShapeType.DIAMOND);
   }
 
   private void expandTreeView(boolean expanded) {
