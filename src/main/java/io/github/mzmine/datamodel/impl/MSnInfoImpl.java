@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -51,6 +52,11 @@ public class MSnInfoImpl implements DDAMsMsInfo {
     List<DDAMsMsInfo> precursors = new ArrayList<>();
 
     assert precursorElements.size() == msLevel : "MS level and precursor info does not match";
+
+    // we sort the precursor elements by the MS level defined as user parameter by msconvert
+    // if not specified we use the scan reference - earlier scan should also be lower in level
+    // if not specified we use the precursor mz
+    Collections.sort(precursorElements);
 
     int currentMsLevel = 2;
     for (var precursorElement : precursorElements) {
