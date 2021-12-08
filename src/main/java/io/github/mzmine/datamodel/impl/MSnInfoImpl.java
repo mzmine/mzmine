@@ -49,9 +49,9 @@ public class MSnInfoImpl implements DDAMsMsInfo {
   }
 
   public static DDAMsMsInfo fromMzML(List<MzMLPrecursorElement> precursorElements, int msLevel) {
-    List<DDAMsMsInfo> precursors = new ArrayList<>();
+    assert precursorElements.size() == msLevel - 1 : "MS level and precursor info does not match";
 
-    assert precursorElements.size() == msLevel : "MS level and precursor info does not match";
+    List<DDAMsMsInfo> precursors = new ArrayList<>();
 
     // we sort the precursor elements by the MS level defined as user parameter by msconvert
     // if not specified we use the scan reference - earlier scan should also be lower in level
