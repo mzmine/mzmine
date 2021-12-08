@@ -52,6 +52,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,8 +70,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
-  private static final Logger logger = Logger
-      .getLogger(FormulaPredictionIonNetworkTask.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FormulaPredictionIonNetworkTask.class.getName());
   private final Double minIsotopeScore;
   private final MZTolerance isotopeMZTolerance;
   private final MolecularFormulaRange elementCounts;
@@ -88,6 +89,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
   private final boolean sortResults;
   private final CreateAvgNetworkFormulasTask netFormulaMerger;
   private final OptionForValues handleHigherMz;
+  private final HashMap<IMolecularFormula, IsotopePattern> predictedPattern = new HashMap<>(1000);
   private MolecularFormulaGenerator generator;
   private String message;
   private int totalRows;
@@ -113,12 +115,12 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     checkIsotopes = parameters.getParameter(FormulaPredictionIonNetworkParameters.isotopeFilter)
         .getValue();
-    final ParameterSet isoParam = parameters
-        .getParameter(FormulaPredictionIonNetworkParameters.isotopeFilter).getEmbeddedParameters();
+    final ParameterSet isoParam = parameters.getParameter(
+        FormulaPredictionIonNetworkParameters.isotopeFilter).getEmbeddedParameters();
 
     if (checkIsotopes) {
-      minIsotopeScore = isoParam
-          .getValue(IsotopePatternScoreParameters.isotopePatternScoreThreshold);
+      minIsotopeScore = isoParam.getValue(
+          IsotopePatternScoreParameters.isotopePatternScoreThreshold);
       isotopeNoiseLevel = isoParam.getValue(IsotopePatternScoreParameters.isotopeNoiseLevel);
       isotopeMZTolerance = isoParam.getValue(IsotopePatternScoreParameters.mzTolerance);
     } else {
@@ -129,8 +131,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     sortResults = parameters.getValue(FormulaPredictionIonNetworkParameters.sorting);
     if (sortResults) {
-      FormulaSortParameters sortingParam = parameters
-          .getParameter(FormulaPredictionIonNetworkParameters.sorting).getEmbeddedParameters();
+      FormulaSortParameters sortingParam = parameters.getParameter(
+          FormulaPredictionIonNetworkParameters.sorting).getEmbeddedParameters();
       sorter = new FormulaSortTask(sortingParam, getModuleCallDate());
     }
 
@@ -141,21 +143,21 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     checkMSMS = parameters.getParameter(FormulaPredictionIonNetworkParameters.msmsFilter)
         .getValue();
     if (checkMSMS) {
-      ParameterSet msmsParam = parameters
-          .getParameter(FormulaPredictionIonNetworkParameters.msmsFilter).getEmbeddedParameters();
+      ParameterSet msmsParam = parameters.getParameter(
+          FormulaPredictionIonNetworkParameters.msmsFilter).getEmbeddedParameters();
 
       msmsMinScore = msmsParam.getValue(MSMSScoreParameters.msmsMinScore);
-      topNmsmsSignals = msmsParam.getValue(MSMSScoreParameters.useTopNSignals) ? msmsParam
-          .getParameter(MSMSScoreParameters.useTopNSignals).getEmbeddedParameter().getValue() : -1;
+      topNmsmsSignals =
+          msmsParam.getValue(MSMSScoreParameters.useTopNSignals) ? msmsParam.getParameter(
+              MSMSScoreParameters.useTopNSignals).getEmbeddedParameter().getValue() : -1;
       msmsMzTolerance = msmsParam.getValue(MSMSScoreParameters.msmsTolerance);
     }
 
     checkRDBE = parameters.getParameter(FormulaPredictionIonNetworkParameters.rdbeRestrictions)
         .getValue();
     if (checkRDBE) {
-      ParameterSet rdbeParameters = parameters
-          .getParameter(FormulaPredictionIonNetworkParameters.rdbeRestrictions)
-          .getEmbeddedParameters();
+      ParameterSet rdbeParameters = parameters.getParameter(
+          FormulaPredictionIonNetworkParameters.rdbeRestrictions).getEmbeddedParameters();
       rdbeRange = rdbeParameters.getValue(RDBERestrictionParameters.rdbeRange);
       rdbeIsInteger = rdbeParameters.getValue(RDBERestrictionParameters.rdbeWholeNum);
     }
@@ -163,9 +165,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
     checkRatios = parameters.getParameter(FormulaPredictionIonNetworkParameters.elementalRatios)
         .getValue();
     if (checkRatios) {
-      final ParameterSet elementRatiosParam = parameters
-          .getParameter(FormulaPredictionIonNetworkParameters.elementalRatios)
-          .getEmbeddedParameters();
+      final ParameterSet elementRatiosParam = parameters.getParameter(
+          FormulaPredictionIonNetworkParameters.elementalRatios).getEmbeddedParameters();
       checkHCRatio = elementRatiosParam.getValue(ElementalHeuristicParameters.checkHC);
       checkMultipleRatios = elementRatiosParam.getValue(ElementalHeuristicParameters.checkMultiple);
       checkNOPSRatio = elementRatiosParam.getValue(ElementalHeuristicParameters.checkNOPS);
@@ -218,8 +219,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
   @Nullable
   public List<ResultFormula> predictFormulasForNetwork(IonNetwork net) {
-    if (handleHigherMz.option() != ValueOption.INCLUDE && handleHigherMz
-        .checkValue(net.getNeutralMass())) {
+    if (handleHigherMz.option() != ValueOption.INCLUDE && handleHigherMz.checkValue(
+        net.getNeutralMass())) {
       if (handleHigherMz.option() == ValueOption.EXCLUDE) {
         return null;
       } else if (handleHigherMz.option() == ValueOption.SIMPLIFY) {
@@ -337,7 +338,7 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
       final IonIdentity ion = entries.get(i).getValue();
       if (!ion.getIonType().isUndefinedAdduct()) {
         ion.clearMolFormulas();
-        List<ResultFormula> list = predictFormulas(row, ion.getIonType());
+        List<ResultFormula> list = resultingFormulas[i];
         if (!list.isEmpty()) {
           if (sort && sortResults && sorter != null) {
             sorter.sort(list);
@@ -357,8 +358,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
 
     // Check elemental ratios
     if (checkRatios) {
-      boolean check = ElementalHeuristicChecker
-          .checkFormula(cdkFormulaNeutralM, checkHCRatio, checkNOPSRatio, checkMultipleRatios);
+      boolean check = ElementalHeuristicChecker.checkFormula(cdkFormulaNeutralM, checkHCRatio,
+          checkNOPSRatio, checkMultipleRatios);
       if (!check) {
         return;
       }
@@ -381,13 +382,12 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
       final double detectedPatternHeight = detectedPattern.getBasePeakIntensity();
       final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
 
-      predictedIsotopePattern = IsotopePatternCalculator
-          .calculateIsotopePattern(cdkFormulaIon, minPredictedAbundance, charge,
-              ionType.getPolarity());
+      predictedIsotopePattern = predictedPattern.computeIfAbsent(cdkFormulaIon,
+          key -> IsotopePatternCalculator.calculateIsotopePattern(cdkFormulaIon,
+              minPredictedAbundance, charge, ionType.getPolarity()));
 
-      isotopeScore = IsotopePatternScoreCalculator
-          .getSimilarityScore(detectedPattern, predictedIsotopePattern, isotopeMZTolerance,
-              isotopeNoiseLevel);
+      isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
+          predictedIsotopePattern, isotopeMZTolerance, isotopeNoiseLevel);
       if (isotopeScore < minIsotopeScore) {
         return;
       }
@@ -411,8 +411,8 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
           return;
         }
 
-        MSMSScore score = MSMSScoreCalculator
-            .evaluateMSMS(cdkFormulaIon, msmsScan, msmsMzTolerance, topNmsmsSignals);
+        MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormulaIon, msmsScan, msmsMzTolerance,
+            topNmsmsSignals);
 
         if (score != null) {
           msmsScore = score.getScore();
@@ -425,10 +425,10 @@ public class FormulaPredictionIonNetworkTask extends AbstractTask {
         }
       }
     } catch (Exception e) {
-      logger.log(Level.WARNING, () -> MessageFormat
-          .format("Error in MS/MS score calculation for ion formula {0} (for neutral M: {1})",
-              MolecularFormulaManipulator.getString(cdkFormulaIon),
-              MolecularFormulaManipulator.getString(cdkFormulaNeutralM)));
+      logger.log(Level.WARNING, () -> MessageFormat.format(
+          "Error in MS/MS score calculation for ion formula {0} (for neutral M: {1})",
+          MolecularFormulaManipulator.getString(cdkFormulaIon),
+          MolecularFormulaManipulator.getString(cdkFormulaNeutralM)));
     }
 
     // Create a new formula entry
