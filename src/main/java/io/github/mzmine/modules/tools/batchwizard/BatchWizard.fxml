@@ -82,8 +82,8 @@
                   <ToggleGroup fx:id="hplc"/>
                 </toggleGroup>
               </RadioButton>
-              <RadioButton mnemonicParsing="false" text="HPLC" toggleGroup="$hplc"
-                fx:id="rbHPLC"/>
+              <RadioButton mnemonicParsing="false" text="HPLC" toggleGroup="$hplc" fx:id="rbHPLC"/>
+<!--              <RadioButton mnemonicParsing="false" text="GC" toggleGroup="$hplc" fx:id="rbGC"/>-->
               <Button alignment="TOP_CENTER" mnemonicParsing="false"
                 onAction="#onSetLcDefaults" text="Set defaults" fx:id="btnSetLcDefaults"/>
             </FlowPane>
@@ -97,6 +97,9 @@
           <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
           </columnConstraints>
+          <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+          </padding>
           <rowConstraints>
             <RowConstraints minHeight="10.0" vgrow="NEVER"/>
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>

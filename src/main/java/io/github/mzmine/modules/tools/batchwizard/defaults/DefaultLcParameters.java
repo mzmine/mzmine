@@ -26,13 +26,17 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 
 public class DefaultLcParameters {
 
-  public static final DefaultLcParameters uhplc = new DefaultLcParameters(
+  public static final DefaultLcParameters uhplc = new DefaultLcParameters(Range.closed(0.3, 30d),
       new RTTolerance(0.05f, Unit.MINUTES), new RTTolerance(0.05f, Unit.MINUTES),
       new RTTolerance(0.1f, Unit.MINUTES));
 
-  public static final DefaultLcParameters hplc = new DefaultLcParameters(
-      new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.05f, Unit.MINUTES),
-      new RTTolerance(0.1f, Unit.MINUTES));
+  public static final DefaultLcParameters hplc = new DefaultLcParameters(Range.closed(0.5, 60d),
+      new RTTolerance(0.1f, Unit.MINUTES), new RTTolerance(0.08f, Unit.MINUTES),
+      new RTTolerance(0.4f, Unit.MINUTES));
+
+  public static final DefaultLcParameters gc = new DefaultLcParameters(true, Range.closed(0.5, 60d),
+      3, 1, 50, new RTTolerance(0.03f, Unit.MINUTES), new RTTolerance(0.03f, Unit.MINUTES),
+      new RTTolerance(0.08f, Unit.MINUTES));
 
   private final boolean stableIonizationAcrossSamples;
   private final Range<Double> cropRtRange;
@@ -43,9 +47,9 @@ public class DefaultLcParameters {
   private final RTTolerance intraSampleTolerance;
   private final RTTolerance interSampleTolerance;
 
-  public DefaultLcParameters(RTTolerance fwhm, RTTolerance intraSampleTolerance,
-      RTTolerance interSampleTolerance) {
-    this(true, Range.closed(0.5, 15d), 3, 1, 10, fwhm, intraSampleTolerance, interSampleTolerance);
+  public DefaultLcParameters(Range<Double> rtRange, RTTolerance fwhm,
+      RTTolerance intraSampleTolerance, RTTolerance interSampleTolerance) {
+    this(true, rtRange, 3, 1, 15, fwhm, intraSampleTolerance, interSampleTolerance);
   }
 
   public DefaultLcParameters(boolean stableIonizationAcrossSamples, Range<Double> cropRtRange,

@@ -218,8 +218,11 @@ public class BatchWizardController {
       DefaultLcParameters.hplc.setToParameterSet(hplcParameters);
       hplcDialog.setParameterValuesToComponents();
     }
+    //    if (rbGC.isSelected()) {
+    //      DefaultLcParameters.gc.setToParameterSet(hplcParameters);
+    //      hplcDialog.setParameterValuesToComponents();
+    //    }
   }
-
 
   public void onRunPressed() {
     List<String> errorMessages = new ArrayList<>();
