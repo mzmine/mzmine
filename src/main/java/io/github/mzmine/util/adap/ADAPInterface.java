@@ -1,17 +1,19 @@
 /*
- * Copyright (C) 2016 Du-Lab Team <dulab.binf@gmail.com>
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This program is free software; you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation; either version 2 of the
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with this program; if
- * not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 package io.github.mzmine.util.adap;
 
@@ -38,22 +40,23 @@ import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author aleksandrsmirnov
  */
 public class ADAPInterface {
 
   public static Component getComponent(final FeatureListRow row) {
-    if (row.getNumberOfFeatures() == 0)
+    if (row.getNumberOfFeatures() == 0) {
       throw new IllegalArgumentException("No peaks found");
+    }
 
     NavigableMap<Double, Double> spectrum = new TreeMap<>();
 
     // Read Spectrum information
     IsotopePattern ip = row.getBestIsotopePattern();
     if (ip != null) {
-      for (DataPoint dataPoint : ip)
+      for (DataPoint dataPoint : ip) {
         spectrum.put(dataPoint.getMZ(), dataPoint.getIntensity());
+      }
     }
 
     // Read Chromatogram
@@ -89,10 +92,12 @@ public class ADAPInterface {
     for (Scan num : file.getScans()) {
       double retTime = num.getRetentionTime();
       Double intensity = chromatogram.getIntensity(retTime, false);
-      if (intensity != null)
+      if (intensity != null) {
         scanNumbers[count++] = num;
-      if (retTime == peak.getRetTime())
+      }
+      if (retTime == peak.getRetTime()) {
         representativeScan = num;
+      }
     }
 
     // Calculate peak area
@@ -106,12 +111,13 @@ public class ADAPInterface {
     // Create array of DataPoints
     DataPoint[] dataPoints = new DataPoint[chromatogram.length];
     count = 0;
-    for (double intensity : chromatogram.ys)
+    for (double intensity : chromatogram.ys) {
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
+    }
 
     return new ModularFeature(featureList, file, peak.getMZ(), (float) peak.getRetTime(),
         (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.ESTIMATED,
-        representativeScan, representativeScan, new Scan[] {},
+        representativeScan, representativeScan, new Scan[]{},
         Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.f, (float) peak.getIntensity()));
