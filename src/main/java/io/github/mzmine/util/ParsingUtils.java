@@ -21,7 +21,10 @@ package io.github.mzmine.util;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,18 +41,6 @@ import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCategories;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 
 public class ParsingUtils {
 
@@ -161,8 +152,8 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern
-        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern.compile(
+        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       double lower = Double.parseDouble(matcher.group(1));
@@ -173,8 +164,8 @@ public class ParsingUtils {
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern
-        .compile("\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
+    Pattern regex = Pattern.compile(
+        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
     Matcher matcher = regex.matcher(str);
     if (matcher.matches()) {
       float lower = Float.parseFloat(matcher.group(1));
@@ -276,14 +267,15 @@ public class ParsingUtils {
     return null;
   }
 
-    /**
+  /**
    * @param reader           The reader.
    * @param attributeName    The name of the attribute to parse.
    * @param defaultValue     A default vaule, if the attribute is not found or cannot be parsed with
    *                         the given function.
    * @param conversionMethod A function to convert the parsed string to a value of type T.
    * @param <T>              The type of the value to parse.
-   * @return The parsed value or the default value. If the attribute does not exist or an error occurs during parsing, the
+   * @return The parsed value or the default value. If the attribute does not exist or an error
+   * occurs during parsing, the
    */
   public static <T> T readAttributeValueOrDefault(@NotNull final XMLStreamReader reader,
       String attributeName, T defaultValue, Function<String, T> conversionMethod) {
@@ -306,5 +298,27 @@ public class ParsingUtils {
               + " with value " + attributeValue);
       return defaultValue;
     }
+  }
+
+  /**
+   * @param str
+   * @return The string representation for saving strings to xml values. "null" is replaced by
+   * {@link CONST#XML_NULL_VALUE}.
+   * @see ParsingUtils#readNullableString
+   */
+  @NotNull
+  public static String parseNullableString(@Nullable String str) {
+    return str != null ? str : CONST.XML_NULL_VALUE;
+  }
+
+  /**
+   * @param str
+   * @return The value for the given string representation. {@link CONST#XML_NULL_VALUE} is replaced
+   * by null.
+   * @see ParsingUtils#parseNullableString(String)
+   */
+  @Nullable
+  public static String readNullableString(@NotNull String str) {
+    return str.trim().equals(CONST.XML_NULL_VALUE) ? null : str;
   }
 }

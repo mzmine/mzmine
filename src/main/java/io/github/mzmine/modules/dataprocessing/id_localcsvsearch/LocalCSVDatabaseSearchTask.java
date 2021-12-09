@@ -18,60 +18,76 @@
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
+import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.Ostermiller.util.CSVParser;
-import com.google.common.collect.Range;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
 import org.jetbrains.annotations.NotNull;
 
 class LocalCSVDatabaseSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private FeatureList peakList;
+  private final MobilityTolerance mobTolerance;
+  private final Double ccsTolerance;
+  private final File dataBaseFile;
+  private final String fieldSeparator;
+  private final MZTolerance mzTolerance;
+  private final RTTolerance rtTolerance;
+  private final ParameterSet parameters;
+  private final List<ImportType> importTypes;
 
   private String[][] databaseValues;
   private int finishedLines = 0;
+  private FeatureList peakList;
 
-  private File dataBaseFile;
-  private String fieldSeparator;
-  private FieldItem[] fieldOrder;
-  private boolean ignoreFirstLine;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private ParameterSet parameters;
-
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
 
-    dataBaseFile =
-        parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile).getValue();
-    fieldSeparator =
-        parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator).getValue();
-
-    fieldOrder = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldOrder).getValue();
-
-    ignoreFirstLine =
-        parameters.getParameter(LocalCSVDatabaseSearchParameters.ignoreFirstLine).getValue();
+    dataBaseFile = parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile)
+        .getValue();
+    fieldSeparator = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator)
+        .getValue();
+    importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
     mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
-
+    mobTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mobTolerance)
+        .getValue();
+    ccsTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.ccsTolerance)
+        .getValue();
   }
 
   /**
@@ -79,8 +95,9 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (databaseValues == null)
+    if (databaseValues == null) {
       return 0;
+    }
     return ((double) finishedLines) / databaseValues.length;
   }
 
@@ -104,15 +121,18 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
       // read database contents in memory
       FileReader dbFileReader = new FileReader(dataBaseFile);
       databaseValues = CSVParser.parse(dbFileReader, fieldSeparator.charAt(0));
-      if (ignoreFirstLine)
-        finishedLines++;
+
+      List<ImportType> lineIds = findLineIds(importTypes, databaseValues[0]);
+
+//      peakList.addRowType(new CompoundDatabaseMatchesType());
+
       for (; finishedLines < databaseValues.length; finishedLines++) {
         if (isCanceled()) {
           dbFileReader.close();
           return;
         }
         try {
-          processOneLine(databaseValues[finishedLines]);
+          processOneLine(databaseValues[finishedLines], lineIds);
         } catch (Exception e) {
           // ignore incorrect lines
         }
@@ -127,55 +147,124 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Peak identification using database " + dataBaseFile,
-        LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
-
+    peakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
+            LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
   }
 
-  private void processOneLine(String values[]) {
+  private void processOneLine(String values[], List<ImportType> linesWithIndices) {
 
-    int numOfColumns = Math.min(fieldOrder.length, values.length);
+    var formulaType = new FormulaType();
+    var compoundNameType = new CompoundNameType();
+    var commentType = new CommentType();
+    var mzType = new MZType();
+    var rtType = new RTType();
+    var mobType = new MobilityType();
+    var ccsType = new CCSType();
+    var smilesType = new SmilesStructureType();
+    var adductType = new IonAdductType();
 
-    String lineID = null, lineName = null, lineFormula = null;
-    double lineMZ = 0, lineRT = 0;
+    final Map<DataType<?>, String> entry = new HashMap<>();
 
-    for (int i = 0; i < numOfColumns; i++) {
-      if (fieldOrder[i] == FieldItem.FIELD_ID)
-        lineID = values[i];
-      if (fieldOrder[i] == FieldItem.FIELD_NAME)
-        lineName = values[i];
-      if (fieldOrder[i] == FieldItem.FIELD_FORMULA)
-        lineFormula = values[i];
-      if (fieldOrder[i] == FieldItem.FIELD_MZ)
-        lineMZ = Double.parseDouble(values[i]);
-      if (fieldOrder[i] == FieldItem.FIELD_RT)
-        lineRT = Double.parseDouble(values[i]);
+    for (int i = 0; i < linesWithIndices.size(); i++) {
+      var type = linesWithIndices.get(i);
+      entry.put(type.getDataType(), values[type.getColumnIndex()]);
     }
 
-    SimpleFeatureIdentity newIdentity =
-        new SimpleFeatureIdentity(lineName, lineFormula, dataBaseFile.getName(), lineID, null);
+//    lineID = entry.get();
+    String lineName = entry.get(compoundNameType);
+    String lineFormula = entry.get(formulaType);
+    String lineComment = entry.get(commentType);
+    String lineAdduct = entry.get(adductType);
+    Double lineMZ = (entry.get(mzType) != null) ? Double.parseDouble(entry.get(mzType)) : null;
+    Double lineRT = (entry.get(rtType) != null) ? Double.parseDouble(entry.get(rtType)) : null;
+    Double lineMob = (entry.get(mobType) != null) ? Double.parseDouble(entry.get(mobType)) : null;
+    Double lineCCS = (entry.get(ccsType) != null) ? Double.parseDouble(entry.get(ccsType)) : null;
+    String smiles = entry.get(smilesType);
+
+    Range<Double> mzRange =
+        lineMZ != null && Double.compare(lineMZ, 0d) != 0 ? mzTolerance.getToleranceRange(lineMZ)
+            : null;
+    Range<Float> rtRange =
+        lineRT != null && Double.compare(lineRT, 0d) != 0 ? rtTolerance.getToleranceRange(
+            lineRT.floatValue()) : null;
+    Range<Float> mobRange =
+        lineMob != null && Double.compare(lineMob, 0d) != 0 ? mobTolerance.getToleranceRange(
+            lineMob.floatValue()) : null;
+    Range<Float> ccsRange = lineCCS != null && Double.compare(lineCCS, 0d) != 0 ? Range.closed(
+        (float) (lineCCS - lineCCS * ccsTolerance), (float) (lineCCS + lineCCS * ccsTolerance))
+        : null;
 
     for (FeatureListRow peakRow : peakList.getRows()) {
 
-      Range<Double> mzRange = mzTolerance.getToleranceRange(peakRow.getAverageMZ());
-      Range<Float> rtRange = rtTolerance.getToleranceRange(peakRow.getAverageRT());
+      boolean mzMatches = mzRange == null || mzRange.contains(peakRow.getAverageMZ());
+      boolean rtMatches = rtRange == null || rtRange.contains(peakRow.getAverageRT());
+      boolean ccsMatches =
+          ccsRange == null || (peakRow.getAverageCCS() != null && ccsRange.contains(
+              peakRow.getAverageCCS()));
+      boolean mobMatches =
+          mobRange == null || (peakRow.getAverageMobility() != null && mobRange.contains(
+              peakRow.getAverageMobility()));
 
-      boolean mzMatches = (lineMZ == 0d) || mzRange.contains(lineMZ);
-      boolean rtMatches = (lineRT == 0d) || rtRange.contains((float) lineRT);
-
-      if (mzMatches && rtMatches) {
+      if (mzMatches && rtMatches && mobMatches && ccsMatches) {
 
         logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
 
+        final CompoundDBIdentity newIdentity = new CompoundDBIdentity(lineName, lineFormula,
+            dataBaseFile.getName(), null);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, smiles);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_COMMENT, lineComment);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
+            LocalCSVDatabaseSearchModule.MODULE_NAME);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, lineAdduct);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_CCS,
+            lineCCS != null ? String.valueOf(lineCCS) : null);
+        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_MOBILITY,
+            lineMob != null ? String.valueOf(lineMob) : null);
         // add new identity to the row
-        peakRow.addFeatureIdentity(newIdentity, false);
+        peakRow.addCompoundAnnotation(newIdentity);
+      }
+    }
+  }
 
+  private List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine) {
+
+    List<ImportType> lines = new ArrayList<>();
+    for (ImportType importType : importTypes) {
+      if (importType.isSelected()) {
+        ImportType type = new ImportType(importType.isSelected(), importType.getCsvColumnName(),
+            importType.getDataType());
+        lines.add(type);
       }
     }
 
+    for (ImportType importType : lines) {
+      for (int i = 0; i < firstLine.length; i++) {
+        String columnName = firstLine[i];
+        if (columnName.equals(importType.getCsvColumnName())) {
+          if (importType.getColumnIndex() != -1) {
+            setErrorMessage(
+                "Library file " + dataBaseFile.getAbsolutePath() + " contains two columns called \""
+                    + columnName + "\".");
+            setStatus(TaskStatus.ERROR);
+          }
+          importType.setColumnIndex(i);
+        }
+      }
+    }
+
+    final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
+        .toList();
+    if (!nullMappings.isEmpty()) {
+      setErrorMessage("Did not find specified column " + Arrays.toString(
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file "
+          + dataBaseFile.getAbsolutePath());
+      setStatus(TaskStatus.ERROR);
+    }
+
+    return lines;
   }
 }
