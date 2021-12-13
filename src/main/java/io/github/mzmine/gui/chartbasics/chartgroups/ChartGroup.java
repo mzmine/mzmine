@@ -189,14 +189,18 @@ public class ChartGroup extends Node {
     for (ChartViewWrapper c : list) {
       final XYPlot plot = c.getChart().getXYPlot();
       final Range domain = plot.getDataRange(plot.getDomainAxis());
-      double lowerMargin = plot.getDomainAxis().getLowerMargin();
-      double upperMargin = plot.getDomainAxis().getUpperMargin();
-      dmax = addRanges(dmax, Range.expand(domain, lowerMargin, upperMargin));
+      if (domain != null) {
+        double lowerMargin = plot.getDomainAxis().getLowerMargin();
+        double upperMargin = plot.getDomainAxis().getUpperMargin();
+        dmax = addRanges(dmax, Range.expand(domain, lowerMargin, upperMargin));
+      }
 
       final Range range = plot.getDataRange(plot.getRangeAxis());
-      lowerMargin = plot.getRangeAxis().getLowerMargin();
-      upperMargin = plot.getRangeAxis().getUpperMargin();
-      rmax = addRanges(rmax, Range.expand(range, lowerMargin, upperMargin));
+      if (range != null) {
+        double lowerMargin = plot.getRangeAxis().getLowerMargin();
+        double upperMargin = plot.getRangeAxis().getUpperMargin();
+        rmax = addRanges(rmax, Range.expand(range, lowerMargin, upperMargin));
+      }
     }
     if (dmax != null || rmax != null) {
       maxRange = new Range[]{dmax, rmax};
