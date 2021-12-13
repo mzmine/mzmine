@@ -18,22 +18,21 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Task controller worker thread, this thread will process one task and then finish
  */
 class WorkerThread extends Thread {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(WorkerThread.class.getName());
 
-  private WrappedTask wrappedTask;
+  private final WrappedTask wrappedTask;
   private boolean finished = false;
 
   WorkerThread(WrappedTask wrappedTask) {
@@ -42,9 +41,6 @@ class WorkerThread extends Thread {
     wrappedTask.assignTo(this);
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   public void run() {
 
     Task actualTask = wrappedTask.getActualTask();
@@ -91,7 +87,7 @@ class WorkerThread extends Thread {
           "Unhandled exception " + e + " while processing task " + actualTask.getTaskDescription(),
           e);
 
-      e.printStackTrace();
+      logger.log(Level.SEVERE, e.getMessage(), e);
 
       MZmineCore.getDesktop().displayErrorMessage("Unhandled exception in task "
           + actualTask.getTaskDescription() + ": " + ExceptionUtils.exceptionToString(e));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -75,14 +76,26 @@ public class EfficientDataAccess {
   }
 
   /**
+   * The intended use of this memory access is to loop over all selected scans in a {@link
+   * RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
+   * ScanDataAccess#getIntensityValue(int)}
+   *
+   * @param dataFile target data file to loop over all scans or mass lists
+   * @param type     processed or raw data
+   * @param scans    list of scans
+   */
+  public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type, Scan[] scans) {
+    return new ScanListDataAccess(dataFile, type, scans);
+  }
+
+  /**
    * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
    * by retention time)
    *
    * @param flist target feature list. Loops through all features in all RawDataFiles
    * @param type  defines the data accession type
    */
-  public static FeatureDataAccess of(FeatureList flist,
-      FeatureDataType type) {
+  public static FeatureDataAccess of(FeatureList flist, FeatureDataType type) {
     return of(flist, type, null);
   }
 
@@ -94,8 +107,8 @@ public class EfficientDataAccess {
    * @param type     defines the data accession type
    * @param dataFile define the data file in an aligned feature list
    */
-  public static FeatureDataAccess of(FeatureList flist,
-      FeatureDataType type, RawDataFile dataFile) {
+  public static FeatureDataAccess of(FeatureList flist, FeatureDataType type,
+      RawDataFile dataFile) {
     return switch (type) {
       case ONLY_DETECTED -> new FeatureDetectedDataAccess(flist, dataFile);
       case INCLUDE_ZEROS -> new FeatureFullDataAccess(flist, dataFile);
@@ -115,8 +128,7 @@ public class EfficientDataAccess {
    * @param binWidth The bin width (absolute, depends on the {@link io.github.mzmine.datamodel.MobilityType}.
    * @return
    */
-  public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile,
-      final int binWidth) {
+  public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile, final int binWidth) {
     return new BinningMobilogramDataAccess(dataFile, binWidth);
   }
 
