@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.Collection;
 import java.util.Map;
@@ -50,6 +51,11 @@ public interface FeatureIdentity extends Cloneable {
   String PROPERTY_COMMENT = "Comment";
   String PROPERTY_ADDUCT ="Adduct";
   String PROPERTY_SMILES = "Smiles";
+  String PROPERTY_INCHI_KEY = "InChIKey";
+  String PROPERTY_RT = "RT (lib)";
+  String PROPERTY_CCS = "CCS (lib)";
+  String PROPERTY_MOBILITY = "Mobility (lib)";
+  String PROPERTY_PRECURSORMZ = "Precursor mz";
 
   /**
    * Returns the value of the PROPERTY_NAME property. This value must always be set. Same value is
@@ -99,6 +105,7 @@ public interface FeatureIdentity extends Cloneable {
       case SimpleFeatureIdentity.XML_IDENTITY_TYPE -> SimpleFeatureIdentity.loadFromXML(reader);
       case SpectralDBFeatureIdentity.XML_IDENTITY_TYPE -> SpectralDBFeatureIdentity
           .loadFromXML(reader, possibleFiles);
+      case CompoundDBIdentity.XML_IDENTITY_TYPE -> CompoundDBIdentity.loadFromXML(reader);
       default -> null;
     };
   }

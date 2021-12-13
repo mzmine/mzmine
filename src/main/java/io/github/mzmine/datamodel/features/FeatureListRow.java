@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.util.ArrayList;
 import java.util.List;
@@ -155,6 +156,8 @@ public interface FeatureListRow extends ModularDataModel {
    * @param identity Feature identity
    */
   void removeFeatureIdentity(FeatureIdentity identity);
+
+  void addCompoundAnnotation(CompoundDBIdentity id);
 
   /**
    * Returns all candidates for this feature's identity

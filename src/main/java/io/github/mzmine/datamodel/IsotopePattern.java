@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
@@ -27,19 +28,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface IsotopePattern extends MassSpectrum {
 
-  public enum IsotopePatternStatus {
-
-    /**
-     * Isotope pattern was detected by isotope grouper
-     */
-    DETECTED,
-
-    /**
-     * Isotope pattern was predicted by Isotope pattern calculator
-     */
-    PREDICTED;
-
-  }
 
   /**
    * Returns the isotope pattern status.
@@ -56,4 +44,41 @@ public interface IsotopePattern extends MassSpectrum {
    */
   public void saveToXML(XMLStreamWriter writer) throws XMLStreamException;
 
+  /**
+   * Create a copy with relative intensities between 0-1
+   *
+   * @return copy with relative intensities
+   */
+  default IsotopePattern getRelativeIntensity() {
+    final int size = getNumberOfDataPoints();
+    double[] mzs = new double[size];
+    double[] intensities = new double[size];
+    double max = 0;
+    for (int i = 0; i < size; i++) {
+      final double v = getIntensityValue(i);
+      if (v > max) {
+        max = v;
+      }
+    }
+    for (int i = 0; i < size; i++) {
+      intensities[i] = getIntensityValue(i) / max;
+      mzs[i] = getMzValue(i);
+    }
+
+    return new SimpleIsotopePattern(mzs, intensities, getStatus(), getDescription());
+  }
+
+  public enum IsotopePatternStatus {
+
+    /**
+     * Isotope pattern was detected by isotope grouper
+     */
+    DETECTED,
+
+    /**
+     * Isotope pattern was predicted by Isotope pattern calculator
+     */
+    PREDICTED;
+
+  }
 }

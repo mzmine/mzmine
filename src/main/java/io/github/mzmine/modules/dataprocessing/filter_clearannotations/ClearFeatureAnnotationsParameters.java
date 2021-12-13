@@ -16,30 +16,22 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
+package io.github.mzmine.modules.dataprocessing.filter_clearannotations;
 
-/**
- * Enum that holds name of custom database column
- * 
- * @author Ansgar Korf (ansgar.korf@uni-muenster)
- */
-public enum FieldItem {
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ClearAnnotationsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 
-  FIELD_MZ("m/z"), //
-  FIELD_NAME("Identity"); //
+public class ClearFeatureAnnotationsParameters extends SimpleParameterSet {
 
-  private final String name;
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  FieldItem(String name) {
-    this.name = name;
+  public static final ClearAnnotationsParameter clear = new ClearAnnotationsParameter(
+      "Clear annotations", "Clears the selected annotation types.");
+
+  public ClearFeatureAnnotationsParameters() {
+    super(new Parameter[]{featureLists, clear});
   }
 
-  public String getName() {
-    return this.name;
-  }
-
-  @Override
-  public String toString() {
-    return this.name;
-  }
 }

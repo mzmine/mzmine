@@ -19,11 +19,11 @@
 package io.github.mzmine.datamodel.impl;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.util.ParsingUtils;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -146,6 +146,10 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
       throw new IllegalArgumentException("Identity properties must contain name");
     }
 
+    if(value == null) {
+      return;
+    }
+
     properties.put(property, value);
   }
 
@@ -172,7 +176,7 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
     for (Entry<String, String> entry : getAllProperties().entrySet()) {
       writer.writeStartElement(XML_PROPERTY_ELEMENT);
       writer.writeAttribute(XML_NAME_ATTR, entry.getKey());
-      writer.writeCharacters(entry.getValue());
+      writer.writeCharacters(ParsingUtils.parseNullableString(entry.getValue()));
       writer.writeEndElement();
     }
     writer.writeEndElement(); // properties
@@ -215,7 +219,7 @@ public class SimpleFeatureIdentity implements FeatureIdentity {
       if (reader.isStartElement() && reader.getLocalName()
           .equals(FeatureIdentity.XML_PROPERTY_ELEMENT)) {
         String att = reader.getAttributeValue(null, FeatureIdentity.XML_NAME_ATTR);
-        String text = reader.getElementText();
+        String text = ParsingUtils.readNullableString(reader.getElementText());
         properties.put(att, text);
       }
       reader.next();

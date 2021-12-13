@@ -22,9 +22,10 @@ import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import java.util.Optional;
+import java.util.function.Consumer;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.Property;
 import javafx.scene.control.TextInputDialog;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -35,17 +36,30 @@ public interface AddElementDialog {
 
   /**
    * Shows a dialog to create a new element. e.g., to add an element to a {@link ListDataType}
+   *
    * @param model
+   * @param parentType
    * @param type
+   * @param subColumnIndex
    */
-  default void createNewElementDialog(ModularDataModel model, DataType type) {
+  default void createNewElementDialog(ModularDataModel model,
+      @Nullable SubColumnsFactory parentType, DataType type, int subColumnIndex,
+      Consumer<Object> newElementConsumer) {
     assert type instanceof StringParser : "Cannot use the default dialog without a StringParser type";
     assert type instanceof ListDataType : "Cannot use the default dialog for a non ListDataType";
     TextInputDialog dialog = new TextInputDialog("Enter new element");
     Optional<String> result = dialog.showAndWait();
-    if(result.isPresent()) {
+    if (result.isPresent()) {
       Object newElement = ((StringParser) type).fromString(result.get());
-      ((ListProperty)model.get(type)).add(0, newElement);
+      // set via parent if available
+      if (parentType != null) {
+        parentType.valueChanged(model, (DataType) type, subColumnIndex, newElement);
+      } else {
+        ((ListProperty) model.get(type)).add(0, newElement);
+      }
+      if (newElementConsumer != null) {
+        newElementConsumer.accept(newElement);
+      }
     }
   }
 }

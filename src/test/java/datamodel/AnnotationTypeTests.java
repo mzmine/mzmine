@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSClusterUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSLibraryUrlType;
@@ -41,8 +42,11 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDTyp
 import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVerifiedType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import javafx.collections.FXCollections;
@@ -77,8 +81,8 @@ public class AnnotationTypeTests {
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
     ManualAnnotation value = new ManualAnnotation();
     value.setIdentities(list);
-    final ManualAnnotation loaded = (ManualAnnotation) DataTypeTestUtils
-        .saveAndLoad(type, value, flist, row, null, null);
+    final ManualAnnotation loaded = (ManualAnnotation) DataTypeTestUtils.saveAndLoad(type, value,
+        flist, row, null, null);
 
     List<FeatureIdentity> featureIdentities = loaded.getIdentities();
     Assertions.assertEquals(list.size(), featureIdentities.size());
@@ -194,7 +198,7 @@ public class AnnotationTypeTests {
   void inchiStructureTypeTest() {
     InChIStructureType type = new InChIStructureType();
     String value = "1S/C18H24I3N3O8/c1-24(4-9(28)6-26)18(31)12-13(19)11(17(30)22-3-8(27)5-25)14"
-                   + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
+        + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
@@ -260,5 +264,50 @@ public class AnnotationTypeTests {
     PartnerIdsType type = new PartnerIdsType();
     String value = "15;32;21;56";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void CompoundDatabaseMatchesTypeTest() {
+
+    var type = new CompoundDatabaseMatchesType();
+
+    final CompoundDBIdentity newIdentity = new CompoundDBIdentity("glucose", "C6H6O6", null, null);
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, "C(C1C(C(C(C(O1)O)O)O)O)O");
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
+        LocalCSVDatabaseSearchModule.MODULE_NAME);
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, "[M+H]+");
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_CCS, null);
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_MOBILITY, String.valueOf(0.56f));
+
+    final CompoundDBIdentity newIdentity2 = new CompoundDBIdentity("mannose", "C6H6O6", null, null);
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, "C(C1C(C(C(C(O1)O)O)O)O)O");
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
+        LocalCSVDatabaseSearchModule.MODULE_NAME);
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, "[M+H]+");
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_CCS, null);
+    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_MOBILITY, String.valueOf(0.56f));
+
+    var value = new ArrayList<>(List.of(newIdentity, newIdentity2));
+
+    RawDataFile file = null;
+    try {
+      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assertions.fail("Cannot initialise data file.");
+    }
+    Assertions.assertNotNull(file);
+
+    // test load/save for row
+    final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
+    final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
+    flist.addRow(row);
+    row.set(type, value);
+
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, file);
+    DataTypeTestUtils.testSaveLoad(type, List.of(), flist, row, null, file);
+
+    Assertions.assertNotEquals(newIdentity, newIdentity2);
+    Assertions.assertNotEquals(newIdentity, null);
   }
 }
