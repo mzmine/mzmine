@@ -18,14 +18,6 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.data.xy.AbstractXYZDataset;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
@@ -38,9 +30,17 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -206,7 +206,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
       }
     } catch (Throwable t) {
       t.printStackTrace();
-      logger.log(Level.SEVERE, "Problem calculating data set values for " + dataFile, t);
+      logger.log(Level.SEVERE, "Problem calculating data set values for " + dataFile);
+      logger.log(Level.SEVERE, t.getMessage(), t);
       status = TaskStatus.ERROR;
       errorMessage = t.getMessage();
     }
