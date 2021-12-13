@@ -66,7 +66,8 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset,
     this.scan = scan;
     this.label = label;
     this.normalize = normalize;
-    maxIntensity = scan.getBasePeakIntensity();
+    final Double basePeak = scan.getBasePeakIntensity();
+    maxIntensity = basePeak == null ? -1 : basePeak;
 
     /*
      * This optimalization is disabled, because it crashes on scans with no datapoints. Also, it
