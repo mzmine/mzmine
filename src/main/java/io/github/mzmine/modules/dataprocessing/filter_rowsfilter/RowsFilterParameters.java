@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
@@ -37,9 +38,7 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.text.DecimalFormat;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -110,9 +109,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.");
 
-  public static final OptionalParameter<StringParameter> massDefect = new OptionalParameter<>(
-      new StringParameter("Mass defect",
-          "Filters for mass defects of features.\nValid inputs: 0.314-0.5, 0.90-0.15"));
+  public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
+      new MassDefectParameter("Mass defect",
+          "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15", new DecimalFormat("0.0000")));
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
@@ -145,19 +144,4 @@ public class RowsFilterParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
-  @Override
-  public boolean checkParameterValues(Collection<String> errorMessages) {
-    final boolean superCheck = super.checkParameterValues(errorMessages);
-
-    if (getValue(RowsFilterParameters.massDefect)) {
-      final Pattern pat = Pattern.compile("(0\\.[\\d]+)-(0\\.[\\d]+)");
-      final Matcher matcher = pat.matcher(
-          getParameter(RowsFilterParameters.massDefect).getEmbeddedParameter().getValue()
-              .replace(" ", ""));
-      if (!matcher.matches()) {
-        errorMessages.add("Mass defect filter contains invalid input.\nValid format: 0.35-0.75 or 0.90 - 0.15");
-      }
-    }
-    return superCheck && errorMessages.isEmpty();
-  }
 }

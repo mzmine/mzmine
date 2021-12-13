@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryM
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
@@ -48,8 +49,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -193,6 +192,9 @@ public class RowsFilterTask extends AbstractTask {
         .getEmbeddedParameter().getValue();
     final boolean renumber = parameters.getParameter(RowsFilterParameters.Reset_ID).getValue();
     final boolean filterByMassDefect = parameters.getValue(RowsFilterParameters.massDefect);
+    final MassDefectFilter massDefectFilter =
+        filterByMassDefect ? parameters.getParameter(RowsFilterParameters.massDefect)
+            .getEmbeddedParameter().getValue() : null;
 
     int rowsCount = 0;
     boolean removeRow = false;
@@ -467,28 +469,10 @@ public class RowsFilterTask extends AbstractTask {
         }
       }
 
-      if (filterByMassDefect) {
-        final Pattern pat = Pattern.compile("(0\\.[\\d]+)-(0\\.[\\d]+)");
-        final Matcher matcher = pat.matcher(
-            parameters.getParameter(RowsFilterParameters.massDefect).getEmbeddedParameter()
-                .getValue().replace(" ", ""));
-        if (matcher.matches()) {
-          final double first = Double.parseDouble(matcher.group(1));
-          final double second = Double.parseDouble(matcher.group(2));
-          final double massDefect = row.getAverageMZ() - Math.floor(row.getAverageMZ());
-          if (first > second) { // 0.90 - 0.15
-            final boolean massDefectOk =
-                (massDefect >= first && massDefect <= 1.0d) || (massDefect >= 0.0d
-                    && massDefect <= second);
-            if(!massDefectOk) {
-              filterRowCriteriaFailed = true;
-            }
-          } else { // 0.4 - 0.8
-            final boolean massDefectOk = first <= massDefect && massDefect <= second;
-            if(!massDefectOk) {
-              filterRowCriteriaFailed = true;
-            }
-          }
+      if (massDefectFilter != null) {
+        var massDefectOk = massDefectFilter.contains(row.getAverageMZ());
+        if (!massDefectOk) {
+          filterRowCriteriaFailed = true;
         }
       }
 
