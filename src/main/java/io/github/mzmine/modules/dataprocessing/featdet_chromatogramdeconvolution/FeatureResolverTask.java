@@ -124,20 +124,21 @@ public class FeatureResolverTask extends AbstractTask {
             "Feature resolving can only be performed on feature lists with a single raw data file");
       } else {
         try {
-          if (((GeneralResolverParameters) parameters)
-                  .getResolver(parameters, (ModularFeatureList) originalPeakList) != null) {
+          if (((GeneralResolverParameters) parameters).getResolver(parameters,
+              (ModularFeatureList) originalPeakList) != null) {
             dimensionIndependentResolve((ModularFeatureList) originalPeakList);
           } else {
             legacyResolve();
           }
 
           if (parameters.getParameter(GeneralResolverParameters.groupMS2Parameters).getValue()) {
-            GroupMS2SubParameters ms2params = parameters
-                .getParameter(GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
+            GroupMS2SubParameters ms2params = parameters.getParameter(
+                GeneralResolverParameters.groupMS2Parameters).getEmbeddedParameters();
             GroupMS2Task task = new GroupMS2Task(project, newPeakList, ms2params, moduleCallDate);
             // restart progress
             processedRows = 0;
             totalRows = newPeakList.getNumberOfRows();
+            logger.finer(() -> "Grouping MS2 scans for " + newPeakList.getName());
             // group all features with MS/MS
             for (FeatureListRow row : newPeakList.getRows()) {
               task.processRow(row);
@@ -336,8 +337,8 @@ public class FeatureResolverTask extends AbstractTask {
   }
 
   private void dimensionIndependentResolve(ModularFeatureList originalFeatureList) {
-    final Resolver resolver = ((GeneralResolverParameters) parameters)
-        .getResolver(parameters, originalFeatureList);
+    final Resolver resolver = ((GeneralResolverParameters) parameters).getResolver(parameters,
+        originalFeatureList);
     if (resolver == null) {
       setErrorMessage("Resolver could not be initialised.");
       setStatus(TaskStatus.ERROR);
@@ -347,8 +348,8 @@ public class FeatureResolverTask extends AbstractTask {
     final RawDataFile dataFile = originalFeatureList.getRawDataFile(0);
     final ModularFeatureList resolvedFeatureList = createNewFeatureList(originalFeatureList);
 
-    final FeatureDataAccess access = EfficientDataAccess
-        .of(originalFeatureList, EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
+    final FeatureDataAccess access = EfficientDataAccess.of(originalFeatureList,
+        EfficientDataAccess.FeatureDataType.INCLUDE_ZEROS, dataFile);
 
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
@@ -358,8 +359,8 @@ public class FeatureResolverTask extends AbstractTask {
 
     while (access.hasNextFeature()) {
       final ModularFeature originalFeature = (ModularFeature) access.nextFeature();
-      final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver
-          .resolve(access, getMemoryMapStorage());
+      final List<IonTimeSeries<? extends Scan>> resolvedSeries = resolver.resolve(access,
+          getMemoryMapStorage());
 
       for (IonTimeSeries<? extends Scan> resolved : resolvedSeries) {
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
@@ -381,9 +382,11 @@ public class FeatureResolverTask extends AbstractTask {
       }
       processedRows++;
     }
-    logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-                + " have less than 4 scans (frames for IMS data)");
-//    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
+    if (c > 0) {
+      logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
+                  + " have less than 4 scans (frames for IMS data)");
+    }
+    //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(resolver.getModuleClass(), parameters,
@@ -424,21 +427,19 @@ public class FeatureResolverTask extends AbstractTask {
     int peakId = 1;
 
     for (int i = 0; i < totalRows; i++) {
-      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList
-          .getRow(i);
+      final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
+          i);
       final ModularFeature originalFeature = originalRow.getFeature(dataFile);
 
-      final ResolvedPeak[] peaks = resolver
-          .resolvePeaks(originalFeature, parameters, rSession, mzCenterFunction, msmsRange,
-              RTRangeMSMS);
+      final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters, rSession,
+          mzCenterFunction, msmsRange, RTRangeMSMS);
 
       for (final ResolvedPeak peak : peaks) {
         peak.setParentChromatogramRowID(originalRow.getID());
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);
-        final ModularFeature newFeature = FeatureConvertors
-            .ResolvedPeakToMoularFeature(resolvedFeatureList, peak,
-                originalFeature.getFeatureData());
+        final ModularFeature newFeature = FeatureConvertors.ResolvedPeakToMoularFeature(
+            resolvedFeatureList, peak, originalFeature.getFeatureData());
         if (originalFeature.getMobilityUnit() != null) {
           newFeature.set(MobilityUnitType.class, originalFeature.getMobilityUnit());
         }
@@ -466,10 +467,10 @@ public class FeatureResolverTask extends AbstractTask {
     // create a new feature list and don't copy. Previous annotations of features are invalidated
     // during resolution
     final ModularFeatureList resolvedFeatureList = new ModularFeatureList(
-        originalFeatureList.getName() + " " + parameters
-            .getParameter(GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
+        originalFeatureList.getName() + " " + parameters.getParameter(
+            GeneralResolverParameters.SUFFIX).getValue(), storage, dataFile);
 
-//    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
+    //    DataTypeUtils.addDefaultChromatographicTypeColumns(resolvedFeatureList);
     resolvedFeatureList.setSelectedScans(dataFile, originalFeatureList.getSeletedScans(dataFile));
 
     // since we dont create a copy, we have to copy manually
@@ -478,8 +479,8 @@ public class FeatureResolverTask extends AbstractTask {
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
-    ModularFeature exampleFeature = originalFeatureList
-        .getFeature(0, originalFeatureList.getRawDataFile(0));
+    ModularFeature exampleFeature = originalFeatureList.getFeature(0,
+        originalFeatureList.getRawDataFile(0));
 
     boolean isImagingFile = (originalFeatureList.getRawDataFile(0) instanceof ImagingRawDataFile);
     if (exampleFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {

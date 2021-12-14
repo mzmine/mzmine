@@ -18,17 +18,20 @@
 
 package io.github.mzmine.util.javafx;
 
+import com.google.common.base.Preconditions;
 import io.github.mzmine.main.MZmineCore;
 import java.util.concurrent.CountDownLatch;
-import org.jetbrains.annotations.NotNull;
-import com.google.common.base.Preconditions;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class FxThreadUtil {
 
+  private static final Logger logger = Logger.getLogger(FxThreadUtil.class.getName());
+
   /**
-   * Simulates Swing's invokeAndWait(). Based on
-   * https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
+   * Simulates Swing's invokeAndWait(). Based on https://news.kynosarges.org/2014/05/01/simulating-platform-runandwait/
    */
   public static void runOnFxThreadAndWait(@NotNull Runnable action) {
 
@@ -53,7 +56,8 @@ public class FxThreadUtil {
     try {
       doneLatch.await();
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      logger.log(Level.SEVERE, "Error during run and await for FXThread");
+      logger.log(Level.SEVERE, e.getMessage(), e);
     }
 
   }
