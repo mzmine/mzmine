@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
@@ -147,6 +148,8 @@ public interface MZmineProject {
    */
   @NotNull ObservableList<RawDataFile> getObservableRawDataFiles();
 
+
+  void removeFeatureLists(@NotNull List<ModularFeatureList> featureLists);
 
   /**
    * Returns all feature lists which contain given data file
