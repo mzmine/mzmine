@@ -30,7 +30,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import javafx.beans.property.SimpleListProperty;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 
@@ -71,28 +72,33 @@ public class MZRangeComponent extends DoubleRangeComponent {
         Scan scans[] = scanSelection.getMatchingScans(file);
         for (Scan s : scans) {
           Range<Double> scanRange = s.getDataPointMZRange();
-          if (scanRange == null)
+          if (scanRange == null) {
             continue;
-          if (mzRange == null)
+          }
+          if (mzRange == null) {
             mzRange = scanRange;
-          else
+          } else {
             mzRange = mzRange.span(scanRange);
+          }
         }
       }
-      if (mzRange != null)
+      if (mzRange != null) {
         setValue(mzRange);
+      }
     });
-    SimpleListProperty<RawDataFile> list = new SimpleListProperty<>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    setAutoButton.disableProperty().bind(MZmineCore.getProjectManager().getCurrentProject()
-        .rawDataFilesProperty().sizeProperty().isEqualTo(0));
+
+    final ObservableList<RawDataFile> dataFiles = MZmineCore.getProjectManager().getCurrentProject()
+        .getRawDataFiles();
+    dataFiles.addListener((ListChangeListener<? super RawDataFile>) c -> //
+        MZmineCore.runLater(() -> setAutoButton.setDisable(dataFiles.size() == 0)));
 
     fromMassButton = new Button("From mass");
     fromMassButton.setMinWidth(100.0);
     fromMassButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeMassCalculatorModule.showRangeCalculationDialog();
-      if (mzRange != null)
+      if (mzRange != null) {
         setValue(mzRange);
+      }
     });
 
     fromFormulaButton = new Button("From formula");
