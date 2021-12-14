@@ -75,7 +75,7 @@ public class ProjectSavingTask extends AbstractTask {
     this.saveFile = parameters.getValue(ProjectSaveAsParameters.projectFile);
     this.projectType = parameters.getValue(ProjectSaveAsParameters.option);
     dataFilesIDMap = new Hashtable<>();
-    this.totalSaveItems = project.getDataFiles().length + project.getFeatureLists().size();
+    this.totalSaveItems = project.getDataFiles().length + project.getCurrentFeatureLists().size();
   }
 
   @Override
@@ -349,7 +349,7 @@ public class ProjectSavingTask extends AbstractTask {
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    for (FeatureList featureList : savedProject.getFeatureLists()) {
+    for (FeatureList featureList : savedProject.getCurrentFeatureLists()) {
       FeatureListSaveTask saveTask = new FeatureListSaveTask((ModularFeatureList) featureList,
           zipStream);
 

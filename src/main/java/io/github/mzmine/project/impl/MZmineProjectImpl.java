@@ -45,13 +45,13 @@ public class MZmineProjectImpl implements MZmineProject {
 
   private static final Logger logger = Logger.getLogger(MZmineProjectImpl.class.getName());
 
-  private final ObservableList<RawDataFile> rawDataFilesProperty = //
+  private final ObservableList<RawDataFile> rawDataFiles = //
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
-  private final ObservableList<FeatureList> featureListsProperty = //
+  private final ObservableList<FeatureList> featureLists = //
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
-  private final ObservableList<SpectralLibrary> spectralLibrariesProperty = //
+  private final ObservableList<SpectralLibrary> spectralLibraries = //
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
@@ -95,7 +95,7 @@ public class MZmineProjectImpl implements MZmineProject {
   @Nullable
   @Override
   public FeatureList getFeatureList(String name) {
-    ObservableList<FeatureList> lists = getFeatureLists();
+    List<FeatureList> lists = getCurrentFeatureLists();
     // find last with name
     for (int i = lists.size() - 1; i >= 0; i--) {
       if (lists.get(i).getName().equals(name)) {
@@ -135,10 +135,7 @@ public class MZmineProjectImpl implements MZmineProject {
   public boolean hasParameter(UserParameter<?, ?> parameter) {
     // matching by name
     UserParameter<?, ?> param = getParameterByName(parameter.getName());
-    if (param == null) {
-      return false;
-    }
-    return true;
+    return param != null;
   }
 
   @Override
@@ -165,9 +162,8 @@ public class MZmineProjectImpl implements MZmineProject {
     if (!(hasParameter(parameter))) {
       return null;
     }
-    Object value = projectParametersAndValues.get(parameter).get(rawDataFile);
 
-    return value;
+    return projectParametersAndValues.get(parameter).get(rawDataFile);
   }
 
   @Override
@@ -177,7 +173,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     // avoid duplicate file names and check the actual names of the files of the raw data files
     // since that will be the problem during project save (duplicate zip entries)
-    final List<String> names = rawDataFilesProperty.stream().map(RawDataFile::getAbsolutePath)
+    final List<String> names = rawDataFiles.stream().map(RawDataFile::getAbsolutePath)
         .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
     // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
     final String name =
@@ -196,7 +192,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     logger.finest("Adding a new file to the project: " + newFile.getName());
 
-    rawDataFilesProperty.add(newFile);
+    rawDataFiles.add(newFile);
 
   }
 
@@ -205,7 +201,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert file != null;
 
-    rawDataFilesProperty.remove(file);
+    rawDataFiles.remove(file);
 
     // Close the data file, which also removed the temporary data
     file.close();
@@ -214,7 +210,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public RawDataFile[] getDataFiles() {
-    return rawDataFilesProperty.toArray(RawDataFile[]::new);
+    return rawDataFiles.toArray(RawDataFile[]::new);
   }
 
   @Override
@@ -223,13 +219,13 @@ public class MZmineProjectImpl implements MZmineProject {
       return;
     }
 
-    synchronized (featureListsProperty) {
+    synchronized (featureLists) {
       // avoid duplicate file names
-      final List<String> names = featureListsProperty.stream().map(FeatureList::getName).toList();
+      final List<String> names = featureLists.stream().map(FeatureList::getName).toList();
       if (names.contains(featureList.getName())) {
         featureList.setName(getUniqueName(featureList.getName(), names));
       }
-      featureListsProperty.add(featureList);
+      featureLists.add(featureList);
     }
 
   }
@@ -239,15 +235,24 @@ public class MZmineProjectImpl implements MZmineProject {
 
     assert featureList != null;
 
-    synchronized (featureListsProperty) {
-      featureListsProperty.remove(featureList);
+    synchronized (featureLists) {
+      featureLists.removeAll(featureList);
+    }
+  }
+
+
+  @Override
+  public void removeFeatureLists(@NotNull List<ModularFeatureList> featureLists) {
+
+    synchronized (this.featureLists) {
+      this.featureLists.removeAll(featureLists);
     }
   }
 
   @Override
   public ModularFeatureList[] getFeatureLists(RawDataFile file) {
-    FeatureList[] currentFeatureLists = getFeatureLists().toArray(FeatureList[]::new);
-    return Arrays.stream(currentFeatureLists).filter(flist -> flist.hasRawDataFile(file))
+    return getCurrentFeatureLists().stream()
+        .filter(flist -> flist.hasRawDataFile(file) && flist instanceof ModularFeatureList)
         .toArray(ModularFeatureList[]::new);
   }
 
@@ -287,14 +292,16 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public ObservableList<RawDataFile> getRawDataFiles() {
-    return FXCollections.unmodifiableObservableList(rawDataFilesProperty);
+  public @NotNull
+  ObservableList<RawDataFile> getObservableRawDataFiles() {
+    return rawDataFiles;
   }
 
 
   @Override
-  public ObservableList<FeatureList> getFeatureLists() {
-    return FXCollections.unmodifiableObservableList(featureListsProperty);
+  public @NotNull
+  ObservableList<FeatureList> getObservableFeatureLists() {
+    return featureLists;
   }
 
 
@@ -311,16 +318,16 @@ public class MZmineProjectImpl implements MZmineProject {
   @Override
   public void setProjectLoadImsImportCaching(boolean enabled) {
     MZmineCore.runLater(() -> {
-      for (int i = 0; i < getRawDataFiles().size(); i++) {
-        RawDataFile file = rawDataFilesProperty.get(i);
+      for (int i = 0; i < getCurrentRawDataFiles().size(); i++) {
+        RawDataFile file = rawDataFiles.get(i);
         if (file instanceof IMSRawDataFile imsfile) {
           if (enabled) {
             if (!(file instanceof CachedIMSRawDataFile)) {
-              rawDataFilesProperty.set(i, new CachedIMSRawDataFile(imsfile));
+              rawDataFiles.set(i, new CachedIMSRawDataFile(imsfile));
             }
           } else {
             if (file instanceof CachedIMSRawDataFile cached) {
-              rawDataFilesProperty.set(i, cached.getOriginalFile());
+              rawDataFiles.set(i, cached.getOriginalFile());
             }
           }
         }
@@ -330,23 +337,24 @@ public class MZmineProjectImpl implements MZmineProject {
 
   @Override
   public void addSpectralLibrary(final SpectralLibrary... library) {
-    synchronized (spectralLibrariesProperty) {
+    synchronized (spectralLibraries) {
       // remove all with same path
-      spectralLibrariesProperty.removeIf(
+      spectralLibraries.removeIf(
           lib -> Arrays.stream(library).anyMatch(newlib -> lib.getPath().equals(newlib.getPath())));
-      spectralLibrariesProperty.addAll(library);
+      spectralLibraries.addAll(library);
     }
   }
 
   @Override
-  public ObservableList<SpectralLibrary> getSpectralLibraries() {
-    return FXCollections.unmodifiableObservableList(spectralLibrariesProperty);
+  public @NotNull
+  ObservableList<SpectralLibrary> getObservableSpectralLibraries() {
+    return spectralLibraries;
   }
 
   @Override
   public void removeSpectralLibrary(SpectralLibrary... library) {
-    synchronized (spectralLibrariesProperty) {
-      spectralLibrariesProperty.removeAll(library);
+    synchronized (spectralLibraries) {
+      spectralLibraries.removeAll(library);
     }
   }
 

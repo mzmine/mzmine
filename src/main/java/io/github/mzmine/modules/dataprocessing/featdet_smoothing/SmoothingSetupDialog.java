@@ -76,18 +76,16 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimension = SmoothingDimension.RETENTION_TIME;
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
-        (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists();
+    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
+        .getCurrentProject().getCurrentFeatureLists();
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                FXCollections.observableArrayList(newValue
-                    .getFeatures(newValue.getRawDataFile(0))));
+            fBox.setItems(FXCollections.observableArrayList(
+                newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }

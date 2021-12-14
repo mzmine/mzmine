@@ -23,12 +23,15 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * MZmineProject collects all items user has opened or created during an MZmine session. This
+ * MZmineProject collects all item's user has opened or created during an MZmine session. This
  * includes
  * <ul>
  * <li>Experimental parameters and their values for each RawDataFile. Experimental parameters are
@@ -54,15 +57,11 @@ public interface MZmineProject {
 
   /**
    * Adds a new experimental parameter to the project
-   *
-   * @param parameter
    */
   void addParameter(UserParameter<?, ?> parameter);
 
   /**
    * Removes an experimental parameter from the project
-   *
-   * @param parameter
    */
   void removeParameter(UserParameter<?, ?> parameter);
 
@@ -116,9 +115,37 @@ public interface MZmineProject {
    */
   void removeFeatureList(FeatureList featureList);
 
-  ObservableList<FeatureList> getFeatureLists();
+  /**
+   * @return copy of the current feature lists
+   */
+  @NotNull
+  default List<FeatureList> getCurrentFeatureLists() {
+    return new ArrayList<>(getObservableFeatureLists());
+  }
 
-  ObservableList<RawDataFile> getRawDataFiles();
+  /**
+   * @return copy of current raw data files
+   */
+  @NotNull
+  default List<RawDataFile> getCurrentRawDataFiles() {
+    return new ArrayList<>(getObservableRawDataFiles());
+  }
+
+  /**
+   * Changes are made on any thread. Therefore use change listener and apply changes to FX on FX
+   * thread.
+   *
+   * @return the observable list
+   */
+  @NotNull ObservableList<FeatureList> getObservableFeatureLists();
+
+  /**
+   * Changes are made on any thread. Therefore use change listener and apply changes to FX on FX
+   * thread.
+   *
+   * @return the observable list
+   */
+  @NotNull ObservableList<RawDataFile> getObservableRawDataFiles();
 
 
   /**
@@ -139,16 +166,9 @@ public interface MZmineProject {
    */
   @Nullable FeatureList getFeatureList(String name);
 
-  // void notifyObjectChanged(Object object, boolean structureChanged);
+  @Nullable Boolean isStandalone();
 
-  // void addProjectListener(MZmineProjectListener newListener);
-
-  // void removeProjectListener(MZmineProjectListener listener);
-
-  @Nullable
-  public Boolean isStandalone();
-
-  public void setStandalone(Boolean standalone);
+  void setStandalone(Boolean standalone);
 
   /**
    * Enables/disables usage of {@link CachedIMSRawDataFile}s for {@link IMSRawDataFile}s in the
@@ -160,7 +180,7 @@ public interface MZmineProject {
    * After the project import, the files have to be replaced to lower ram consumption and allow
    * further processing.
    */
-  public void setProjectLoadImsImportCaching(boolean enabled);
+  void setProjectLoadImsImportCaching(boolean enabled);
 
   /**
    * Add a spectral library that can be reused later
@@ -174,7 +194,17 @@ public interface MZmineProject {
    *
    * @return current list of preloaded libraries
    */
-  ObservableList<SpectralLibrary> getSpectralLibraries();
+  @NotNull
+  default List<SpectralLibrary> getCurrentSpectralLibraries() {
+    return new ArrayList<>(getObservableSpectralLibraries());
+  }
+
+  /**
+   * The observable list of spectral preloaded libraries
+   *
+   * @return current list of preloaded libraries
+   */
+  @NotNull ObservableList<SpectralLibrary> getObservableSpectralLibraries();
 
   /**
    * Remove preloaded spectral library

@@ -77,8 +77,8 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-    startFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
-    startDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
+    startFeatureLists = ImmutableList.copyOf(project.getCurrentFeatureLists());
+    startDataFiles = ImmutableList.copyOf(project.getCurrentRawDataFiles());
 
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
@@ -107,8 +107,10 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<FeatureList> beforeFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
-    final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
+    final List<FeatureList> beforeFeatureLists = ImmutableList.copyOf(
+        project.getCurrentFeatureLists());
+    final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(
+        project.getCurrentRawDataFiles());
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
@@ -228,8 +230,8 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    createdDataFiles = new ArrayList<>(project.getRawDataFiles());
-    createdFeatureLists = new ArrayList<>(project.getFeatureLists());
+    createdDataFiles = new ArrayList<>(project.getCurrentRawDataFiles());
+    createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
     // Clear the saved data files and feature lists. Save them to the

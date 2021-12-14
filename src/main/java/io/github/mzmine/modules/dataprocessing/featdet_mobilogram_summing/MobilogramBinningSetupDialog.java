@@ -70,24 +70,22 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     previewChart.setRangeAxisLabel("Intensity");
     previewChart.setDomainAxisLabel("Mobility");
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    previewChart
-        .setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getMobilityFormat());
+    previewChart.setDomainAxisNumberFormatOverride(
+        MZmineCore.getConfiguration().getMobilityFormat());
     previewChart.setMinHeight(400);
     processedRenderer = new ColoredXYShapeRenderer();
 
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>)
-        (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists();
+    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
+        .getCurrentProject().getCurrentFeatureLists();
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                FXCollections.observableArrayList(newValue
-                    .getFeatures(newValue.getRawDataFile(0))));
+            fBox.setItems(FXCollections.observableArrayList(
+                newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }

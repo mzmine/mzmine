@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features;
@@ -149,9 +150,9 @@ public class ModularFeatureList implements FeatureList {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      synchronized (project.getFeatureLists()) {
+      synchronized (project.getCurrentFeatureLists()) {
         final List<String> names = new ArrayList<>(
-            project.getFeatureLists().stream().map(FeatureList::getName).toList());
+            project.getCurrentFeatureLists().stream().map(FeatureList::getName).toList());
         final String oldName = getName();
         // name is empty if set for the first time
         if (!oldName.isBlank()) {
@@ -167,7 +168,7 @@ public class ModularFeatureList implements FeatureList {
 
     final String finalName = name;
 
-    if(project == null || !project.getFeatureLists().contains(this)) {
+    if (project == null || !project.getCurrentFeatureLists().contains(this)) {
       // if this happens during project load or outside of the GUI, we set it directly.
       // Otherwise the FX thread might be slower than we expect
       nameProperty.set(finalName);

@@ -88,7 +88,7 @@ public class MZRangeComponent extends DoubleRangeComponent {
     });
 
     final ObservableList<RawDataFile> dataFiles = MZmineCore.getProjectManager().getCurrentProject()
-        .getRawDataFiles();
+        .getObservableRawDataFiles();
     dataFiles.addListener((ListChangeListener<? super RawDataFile>) c -> //
         MZmineCore.runLater(() -> setAutoButton.setDisable(dataFiles.size() == 0)));
 

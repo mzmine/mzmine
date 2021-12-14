@@ -103,7 +103,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     previewChartBadFeature.setRangeAxisNumberFormatOverride(intensityFormat);
 
     ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
-        .getCurrentProject().getFeatureLists();
+        .getCurrentProject().getCurrentFeatureLists();
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
