@@ -61,6 +61,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -153,6 +154,13 @@ public class ResultWindowController {
       final String cellVal = percentFormat.format(score);
       return new ReadOnlyObjectWrapper<>(cellVal);
     });
+
+    txtSearchedMz.setTooltip(new Tooltip(
+        "Uses this m/z for the search instead of the one defined in the parameters (if set)"));
+    cbLimitFormula.setTooltip(new Tooltip(
+        "Quick way to limit the elements even further to a defined formula, e.g., C12H20O2"));
+    txtMaxFormula.setTooltip(new Tooltip(
+        "Quick way to limit the elements even further to a defined formula, e.g., C12H20O2"));
 
     updateDelay = new PauseTransition(Duration.seconds(1.5));
     updateDelay.setOnFinished(event -> rerunPrediction());
