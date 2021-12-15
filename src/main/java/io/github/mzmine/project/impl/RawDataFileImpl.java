@@ -27,11 +27,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
@@ -64,8 +64,10 @@ public class RawDataFileImpl implements RawDataFile {
 
   private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
 
-  // Name of this raw data file - may be changed by the user
+  // for ease of use we have a javafx safe copy of name
   private final StringProperty nameProperty = new SimpleStringProperty("");
+  // Name of this raw data file - may be changed by the user
+  private String name = "";
 
   protected final String absolutePath;
 
@@ -455,17 +457,12 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @NotNull
   public String getName() {
-    return nameProperty.get();
-  }
-
-  @Override
-  public @NotNull StringProperty nameProperty() {
-    return nameProperty;
+    return name;
   }
 
   @Override
   public String setName(@NotNull String name) {
-    if (name.isBlank()) {
+    if (name.isBlank() || name.equals(getName())) {
       // keep old name
       return getName();
     }
@@ -473,31 +470,19 @@ public class RawDataFileImpl implements RawDataFile {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      synchronized (project.getCurrentRawDataFiles()) {
-        final List<String> names = new ArrayList<>(
-            project.getCurrentRawDataFiles().stream().map(RawDataFile::getName).toList());
-        final String oldName = getName();
-        // name is empty if set for the first time
-        if (!oldName.isBlank()) {
-          names.remove(oldName);
-        }
-
-        // make path safe
-        name = FileAndPathUtil.safePathEncode(name);
-        // handle duplicates
-        name =
-            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
-      }
+      this.name = project.getUniqueDataFileName(name);
+      project.fireDataFilesChangeEvent(List.of(this), Type.RENAMED);
+    } else {
+      this.name = FileAndPathUtil.safePathEncode(name);
     }
 
-    final String finalName = name;
-    MZmineCore.runLater(() -> this.nameProperty.set(finalName));
-    return finalName;
+    MZmineCore.runLater(() -> nameProperty.set(this.name));
+    return this.name;
   }
 
   @Override
   public String toString() {
-    return nameProperty.get();
+    return name;
   }
 
 
@@ -510,6 +495,11 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;
+  }
+
+  @Override
+  public StringProperty nameProperty() {
+    return nameProperty;
   }
 
   /**

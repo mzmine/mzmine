@@ -77,7 +77,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
   protected final NumberFormat mobilityFormat;
-  protected ComboBox<ModularFeatureList> flistBox;
+  protected ComboBox<FeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ComboBox<ModularFeature> fBoxBadFeature;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
@@ -102,8 +102,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     previewChartBadFeature.setDomainAxisNumberFormatOverride(rtFormat);
     previewChartBadFeature.setRangeAxisNumberFormatOverride(intensityFormat);
 
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
-        .getCurrentProject().getCurrentFeatureLists();
+    ObservableList<FeatureList> flists = FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
@@ -148,8 +148,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         if (object == null) {
           return null;
         }
-        return FeatureUtils.featureToString(object) + " (height / area = "
-            + String.format("%.3f", object.getHeight() / object.getArea()) + ")";
+        return FeatureUtils.featureToString(object) + " (height / area = " + String.format("%.3f",
+            object.getHeight() / object.getArea()) + ")";
       }
 
       @Override
@@ -214,7 +214,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });
     } else if (dimension == ResolvingDimension.MOBILITY
-        && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
+               && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
       IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
       MZmineCore.runLater(() -> {
         chart.addDataset(new ColoredXYDataset(
@@ -236,7 +236,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
     if (resolver == null) {
       resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
-          flistBox.getValue());
+          (ModularFeatureList) flistBox.getValue());
     }
     if (resolver != null) {
 
@@ -250,9 +250,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
           for (IonTimeSeries<? extends Scan> series : resolved) {
             ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
                 rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
-                    + rtFormat.format(
+                + rtFormat.format(
                     series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime())
-                    + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+                + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
             MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
           }
         } else {
@@ -265,7 +265,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                 new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
                 mobilityFormat.format(mobilogram.getMobility(0)) + " - " + mobilityFormat.format(
                     mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
-                    + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
+                + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
             MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
           }
         }
@@ -324,7 +324,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
     if (flistBox.getValue() != null) {
       resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
-          flistBox.getValue());
+          (ModularFeatureList) flistBox.getValue());
     }
 
     List<String> errors = new ArrayList<>();

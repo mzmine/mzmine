@@ -40,6 +40,8 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
+import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
@@ -63,7 +65,6 @@ import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -179,19 +180,40 @@ public class MZmineGUI extends Application implements Desktop {
       MZmineCore.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
         GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-        rawDataList.setValues(project.getObservableRawDataFiles());
+        rawDataList.setValues(project.getCurrentRawDataFiles());
 
         GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
-        featureListsList.setValues(project.getObservableFeatureLists());
+        featureListsList.setValues(project.getCurrentFeatureLists());
 
         var libraryList = mainWindowController.getSpectralLibraryList();
-        final ObservableList<SpectralLibrary> libs = project.getObservableSpectralLibraries();
-        final var fxLibs = FXCollections.observableArrayList(new ArrayList<>(libs));
+        final var fxLibs = FXCollections.observableArrayList(project.getCurrentSpectralLibraries());
         libraryList.setItems(fxLibs);
 
-        // listen for updates and apply on fx thread
-        libs.addListener((ListChangeListener<? super SpectralLibrary>) c -> MZmineCore.runLater(
-            () -> fxLibs.setAll(libs)));
+        // add project listener to update the views
+        project.addProjectListener(new ProjectChangeListener() {
+          @Override
+          public void dataFilesChanged(ProjectChangeEvent<RawDataFile> event) {
+            switch (event.change()) {
+              case ADDED -> rawDataList.addItems(event.changedLists());
+              case REMOVED -> rawDataList.removeItems(event.changedLists());
+              case UPDATED, RENAMED -> rawDataList.updateItems();
+            }
+          }
+
+          @Override
+          public void featureListsChanged(ProjectChangeEvent<FeatureList> event) {
+            switch (event.change()) {
+              case ADDED -> featureListsList.addItems(event.changedLists());
+              case REMOVED -> featureListsList.removeItems(event.changedLists());
+              case UPDATED, RENAMED -> featureListsList.updateItems();
+            }
+          }
+
+          @Override
+          public void librariesChanged(ProjectChangeEvent<SpectralLibrary> event) {
+            MZmineCore.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
+          }
+        });
       }
     });
 

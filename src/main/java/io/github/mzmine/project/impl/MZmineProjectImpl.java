@@ -26,12 +26,18 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -45,15 +51,15 @@ import org.jetbrains.annotations.Nullable;
 public class MZmineProjectImpl implements MZmineProject {
 
   private static final Logger logger = Logger.getLogger(MZmineProjectImpl.class.getName());
+  private final ObservableList<RawDataFile> rawDataFiles = FXCollections.observableArrayList();
+  private final ObservableList<FeatureList> featureLists = FXCollections.observableArrayList();
+  private final ObservableList<SpectralLibrary> spectralLibraries = FXCollections.observableArrayList();
+  private final List<ProjectChangeListener> listeners = Collections.synchronizedList(
+      new ArrayList<>());
 
-  private final ObservableList<RawDataFile> rawDataFiles = //
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
-
-  private final ObservableList<FeatureList> featureLists = //
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
-
-  private final ObservableList<SpectralLibrary> spectralLibraries = //
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+  // use read lock to allow unlimited reads while no write is happening
+  private final ReadWriteLock rawLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock featureLock = new ReentrantReadWriteLock();
 
   private Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>> projectParametersAndValues;
   private File projectFile;
@@ -61,10 +67,6 @@ public class MZmineProjectImpl implements MZmineProject {
   @Nullable
   private Boolean standalone;
 
-  /*
-   * private Collection<MZmineProjectListener> listeners = Collections.synchronizedCollection(new
-   * LinkedList<MZmineProjectListener>());
-   */
   public MZmineProjectImpl() {
     projectParametersAndValues = new Hashtable<>();
   }
@@ -168,50 +170,64 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public synchronized void addFile(final RawDataFile newFile) {
-
-    assert newFile != null;
-
-    // avoid duplicate file names and check the actual names of the files of the raw data files
-    // since that will be the problem during project save (duplicate zip entries)
-    final List<String> names = rawDataFiles.stream().map(RawDataFile::getAbsolutePath)
-        .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
-    // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
-    final String name =
-        newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
-    if (names.contains(name)) {
-      if (!MZmineCore.isHeadLessMode()) {
-        MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
-                                                    + " because a file with the same name already exists in the project. Please copy "
-                                                    + "the file and rename it, if you want to import it twice.");
+  public void addFile(@NotNull final RawDataFile newFile) {
+    try {
+      rawLock.writeLock().lock();
+      // avoid duplicate file names and check the actual names of the files of the raw data files
+      // since that will be the problem during project save (duplicate zip entries)
+      final List<String> names = rawDataFiles.stream().map(RawDataFile::getAbsolutePath)
+          .filter(Objects::nonNull).map(File::new).map(File::getName).toList();
+      // if there is no path, it is an artificially created file (e.g. by a module) so it does not matter
+      final String name =
+          newFile.getAbsolutePath() != null ? new File(newFile.getAbsolutePath()).getName() : null;
+      if (names.contains(name)) {
+        if (!MZmineCore.isHeadLessMode()) {
+          MZmineCore.getDesktop().displayErrorMessage("Cannot add raw data file " + name
+                                                      + " because a file with the same name already exists in the project. Please copy "
+                                                      + "the file and rename it, if you want to import it twice.");
+        }
+        logger.warning(
+            "Cannot add file with an original name that already exists in project. (filename="
+            + newFile.getName() + ")");
+        return;
       }
-      logger.warning(
-          "Cannot add file with an original name that already exists in project. (filename="
-          + newFile.getName() + ")");
-      return;
+
+      logger.finest("Adding a new file to the project: " + newFile.getName());
+
+      rawDataFiles.add(newFile);
+      fireDataFilesChangeEvent(List.of(newFile), Type.ADDED);
+    } finally {
+      rawLock.writeLock().unlock();
     }
-
-    logger.finest("Adding a new file to the project: " + newFile.getName());
-
-    rawDataFiles.add(newFile);
-
   }
 
   @Override
-  public void removeFile(final RawDataFile file) {
+  public void removeFile(@NotNull final RawDataFile... file) {
+    try {
+      rawLock.writeLock().lock();
 
-    assert file != null;
+      rawDataFiles.removeAll(file);
+      fireDataFilesChangeEvent(List.of(file), Type.REMOVED);
 
-    rawDataFiles.remove(file);
-
-    // Close the data file, which also removed the temporary data
-    file.close();
-
+      // Close the data file, which also removed the temporary data
+      for (RawDataFile f : file) {
+        f.close();
+      }
+    } finally {
+      rawLock.writeLock().unlock();
+    }
   }
 
   @Override
   public RawDataFile[] getDataFiles() {
-    return rawDataFiles.toArray(RawDataFile[]::new);
+    try {
+      rawLock.readLock().lock();
+
+      return rawDataFiles.toArray(RawDataFile[]::new);
+    } finally {
+      rawLock.readLock().unlock();
+    }
+
   }
 
   @Override
@@ -220,33 +236,63 @@ public class MZmineProjectImpl implements MZmineProject {
       return;
     }
 
-    synchronized (featureLists) {
+    try {
+      featureLock.writeLock().lock();
+
       // avoid duplicate file names
       final List<String> names = featureLists.stream().map(FeatureList::getName).toList();
       if (names.contains(featureList.getName())) {
         featureList.setName(getUniqueName(featureList.getName(), names));
       }
       featureLists.add(featureList);
+      fireFeatureListsChangeEvent(List.of(featureList), Type.ADDED);
+    } finally {
+      featureLock.writeLock().unlock();
     }
-
   }
 
   @Override
-  public void removeFeatureList(final FeatureList featureList) {
+  public void removeFeatureList(@NotNull final FeatureList... featureList) {
+    try {
+      featureLock.writeLock().lock();
 
-    assert featureList != null;
-
-    synchronized (featureLists) {
       featureLists.removeAll(featureList);
+      fireFeatureListsChangeEvent(List.of(featureList), Type.REMOVED);
+    } finally {
+      featureLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public @NotNull List<FeatureList> getCurrentFeatureLists() {
+    try {
+      featureLock.readLock().lock();
+      return List.copyOf(featureLists);
+    } finally {
+      featureLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public @NotNull List<RawDataFile> getCurrentRawDataFiles() {
+    try {
+      rawLock.readLock().lock();
+      return List.copyOf(rawDataFiles);
+    } finally {
+      rawLock.readLock().unlock();
     }
   }
 
 
   @Override
   public void removeFeatureLists(@NotNull List<ModularFeatureList> featureLists) {
+    try {
+      featureLock.writeLock().lock();
 
-    synchronized (this.featureLists) {
       this.featureLists.removeAll(featureLists);
+      fireFeatureListsChangeEvent(List.copyOf(featureLists), Type.REMOVED);
+    } finally {
+      featureLock.writeLock().unlock();
     }
   }
 
@@ -272,13 +318,20 @@ public class MZmineProjectImpl implements MZmineProject {
     projectFile.delete();
   }
 
-  /*
-   * @Override public void addProjectListener(MZmineProjectListener newListener) {
-   * listeners.add(newListener); }
-   *
-   * @Override public void removeProjectListener(MZmineProjectListener newListener) {
-   * listeners.remove(newListener); }
-   */
+  @Override
+  public void addProjectListener(ProjectChangeListener newListener) {
+    synchronized (listeners) {
+      listeners.add(newListener);
+    }
+  }
+
+  @Override
+  public void removeProjectListener(ProjectChangeListener newListener) {
+    synchronized (listeners) {
+      listeners.remove(newListener);
+    }
+  }
+
 
   @Override
   public String toString() {
@@ -290,19 +343,6 @@ public class MZmineProjectImpl implements MZmineProject {
       projectName = projectName.substring(0, projectName.length() - 7);
     }
     return projectName;
-  }
-
-  @Override
-  public @NotNull
-  ObservableList<RawDataFile> getObservableRawDataFiles() {
-    return rawDataFiles;
-  }
-
-
-  @Override
-  public @NotNull
-  ObservableList<FeatureList> getObservableFeatureLists() {
-    return featureLists;
   }
 
 
@@ -343,19 +383,91 @@ public class MZmineProjectImpl implements MZmineProject {
       spectralLibraries.removeIf(
           lib -> Arrays.stream(library).anyMatch(newlib -> lib.getPath().equals(newlib.getPath())));
       spectralLibraries.addAll(library);
+      fireLibrariesChangeEvent(List.of(library), Type.UPDATED);
     }
   }
 
   @Override
-  public @NotNull
-  ObservableList<SpectralLibrary> getObservableSpectralLibraries() {
-    return spectralLibraries;
+  public @NotNull List<SpectralLibrary> getCurrentSpectralLibraries() {
+    return List.copyOf(spectralLibraries);
   }
 
   @Override
   public void removeSpectralLibrary(SpectralLibrary... library) {
     synchronized (spectralLibraries) {
       spectralLibraries.removeAll(library);
+      fireLibrariesChangeEvent(List.of(library), Type.REMOVED);
+    }
+  }
+
+  @Override
+  public String getUniqueFeatureListName(String name) {
+    return getUniqueName(name, featureLock,
+        featureLists.stream().map(FeatureList::getName).toList());
+  }
+
+  @Override
+  public void fireLibrariesChangeEvent(List<SpectralLibrary> libraries, Type type) {
+    final var event = new ProjectChangeEvent<>(this, libraries, type);
+    listeners.forEach(l -> l.librariesChanged(event));
+  }
+
+  @Override
+  public void fireFeatureListsChangeEvent(List<FeatureList> featureLists, Type type) {
+    final var event = new ProjectChangeEvent<>(this, featureLists, type);
+    listeners.forEach(l -> l.featureListsChanged(event));
+  }
+
+  @Override
+  public void fireDataFilesChangeEvent(List<RawDataFile> dataFiles, Type type) {
+    final var event = new ProjectChangeEvent<>(this, dataFiles, type);
+    listeners.forEach(l -> l.dataFilesChanged(event));
+  }
+
+  @Override
+  public int getNumberOfDataFiles() {
+    try {
+      rawLock.readLock().lock();
+
+      return rawDataFiles.size();
+    } finally {
+      rawLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public int getNumberOfFeatureLists() {
+    try {
+      featureLock.readLock().lock();
+
+      return featureLists.size();
+    } finally {
+      featureLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public int getNumberOfLibraries() {
+    synchronized (spectralLibraries) {
+      return spectralLibraries.size();
+    }
+  }
+
+  @Override
+  public String getUniqueDataFileName(String name) {
+    return getUniqueName(name, rawLock, rawDataFiles.stream().map(RawDataFile::getName).toList());
+  }
+
+  private String getUniqueName(String name, ReadWriteLock lock, List<String> names) {
+    try {
+      lock.writeLock().lock();
+
+      // make path safe
+      name = FileAndPathUtil.safePathEncode(name);
+      // handle duplicates
+      return names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+    } finally {
+      lock.writeLock().unlock();
     }
   }
 

@@ -88,58 +88,57 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
   }
 
   /**
-   * Binds the values of this {@link GroupableListView} to the given {@link ObservableList}.
-   *
-   * @param values list to be binded
+   * @param values initial values
    */
-  public final void setValues(@NotNull ObservableList<T> values) {
+  public final void setValues(@NotNull List<T> values) {
     listItems.clear();
     listGroups.clear();
 
-    values.addListener((ListChangeListener<T>) change -> {
-      MZmineCore.runLater(() -> {
-        while (change.next()) {
-          if (change.wasAdded()) {
+    addItems(values);
+  }
 
-            for (T addedValue : change.getAddedSubList()) {
-              ValueEntity<T> newItem = new ValueEntity<T>(addedValue);
-
-              if (grouping == null) {
-                listItems.add(newItem);
-              } else {
-                String groupName = grouping.apply(addedValue);
-                GroupEntity group = getGroupByName(groupName);
-
-                if (group == null) {
-                  group = new GroupEntity(groupName);
-                  listGroups.put(group, FXCollections.observableArrayList());
-                  listItems.add(group);
-                }
-
-                addToGroup(group, 0, newItem);
+  public void removeItems(List<? extends T> items) {
+    MZmineCore.runLater(() -> {
+      for (T removedValue : items) {
+        for (GroupableListViewEntity item : listItems) {
+          if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue()
+              .equals(removedValue)) {
+            listItems.remove(item);
+            if (((ValueEntity<?>) item).isGrouped()) {
+              listGroups.get(((ValueEntity<?>) item).getGroup()).remove(item);
+              if (listGroups.get(((ValueEntity<?>) item).getGroup()).isEmpty()) {
+                ungroupItems(((ValueEntity<?>) item).getGroup());
               }
             }
+            break;
           }
-          if (change.wasRemoved()) {
-            for (T removedValue : change.getRemoved()) {
-              for (GroupableListViewEntity item : listItems) {
-                if (item instanceof ValueEntity && ((ValueEntity<?>) item).getValue()
-                    .equals(removedValue)) {
-                  listItems.remove(item);
-                  if (((ValueEntity<?>) item).isGrouped()) {
-                    listGroups.get(((ValueEntity<?>) item).getGroup()).remove(item);
-                    if (listGroups.get(((ValueEntity<?>) item).getGroup()).isEmpty()) {
-                      ungroupItems(((ValueEntity<?>) item).getGroup());
-                    }
-                  }
-                  break;
-                }
-              }
-            }
-          }
-          setItems(listItems);
         }
-      });
+      }
+      setItems(listItems);
+    });
+  }
+
+  public void addItems(final List<? extends T> items) {
+    MZmineCore.runLater(() -> {
+      for (T addedValue : items) {
+        ValueEntity<T> newItem = new ValueEntity<T>(addedValue);
+
+        if (grouping == null) {
+          listItems.add(newItem);
+        } else {
+          String groupName = grouping.apply(addedValue);
+          GroupEntity group = getGroupByName(groupName);
+
+          if (group == null) {
+            group = new GroupEntity(groupName);
+            listGroups.put(group, FXCollections.observableArrayList());
+            listItems.add(group);
+          }
+
+          addToGroup(group, 0, newItem);
+        }
+      }
+      setItems(listItems);
     });
   }
 
@@ -516,4 +515,6 @@ public class GroupableListView<T> extends ListView<GroupableListViewEntity> {
     }
   }
 
+  public void updateItems() {
+  }
 }

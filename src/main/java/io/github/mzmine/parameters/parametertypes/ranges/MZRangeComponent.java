@@ -19,6 +19,7 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -30,8 +31,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
+import io.github.mzmine.project.impl.ProjectChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 
@@ -45,9 +46,9 @@ public class MZRangeComponent extends DoubleRangeComponent {
 
     setAutoButton = new Button("Auto range");
     setAutoButton.setMinWidth(100.0);
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     setAutoButton.setOnAction(e -> {
-      RawDataFile currentFiles[] =
-          MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+      RawDataFile currentFiles[] = project.getDataFiles();
       ScanSelection scanSelection = new ScanSelection();
 
       try {
@@ -87,10 +88,12 @@ public class MZRangeComponent extends DoubleRangeComponent {
       }
     });
 
-    final ObservableList<RawDataFile> dataFiles = MZmineCore.getProjectManager().getCurrentProject()
-        .getObservableRawDataFiles();
-    dataFiles.addListener((ListChangeListener<? super RawDataFile>) c -> //
-        MZmineCore.runLater(() -> setAutoButton.setDisable(dataFiles.size() == 0)));
+    project.addProjectListener(new ProjectChangeListener() {
+      @Override
+      public void dataFilesChanged(ProjectChangeEvent<RawDataFile> event) {
+        setAutoButton.setDisable(project.getNumberOfDataFiles() == 0);
+      }
+    });
 
     fromMassButton = new Button("From mass");
     fromMassButton.setMinWidth(100.0);

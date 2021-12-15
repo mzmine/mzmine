@@ -65,14 +65,12 @@ public class RawDataFileRenameModule implements MZmineProcessingModule {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      synchronized (project.getCurrentFeatureLists()) {
         final List<String> names = new ArrayList<>(
             project.getCurrentRawDataFiles().stream().map(RawDataFile::getName).toList());
         if (fileAlreadyInProject) {
           names.remove(file.getName());
         }
         name = names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
-      }
     }
 
     RawDataFilesSelection selection = new RawDataFilesSelection();

@@ -23,7 +23,6 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -47,19 +46,17 @@ import javafx.util.StringConverter;
 
 public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
-  private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
-  private final ColoredXYShapeRenderer smoothedRenderer;
-
   protected final UnitFormat uf;
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
-  protected ComboBox<ModularFeatureList> flistBox;
+  private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
+  private final ColoredXYShapeRenderer smoothedRenderer;
+  protected ComboBox<FeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected SmoothingDimension previewDimension;
 
-  public SmoothingSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters) {
+  public SmoothingSetupDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
     uf = MZmineCore.getConfiguration().getUnitFormat();
@@ -76,8 +73,8 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimension = SmoothingDimension.RETENTION_TIME;
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore.getProjectManager()
-        .getCurrentProject().getCurrentFeatureLists();
+    ObservableList<FeatureList> flists = FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
@@ -114,7 +111,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimensionBox.setValue(previewDimension);
     previewDimensionBox.valueProperty().addListener((obs, old, newval) -> {
       this.previewDimension = newval;
-      if(previewDimension == SmoothingDimension.RETENTION_TIME) {
+      if (previewDimension == SmoothingDimension.RETENTION_TIME) {
         previewChart.setDomainAxisLabel(uf.format("Retention time", "min"));
       } else {
         previewChart.setDomainAxisLabel("Mobility");
@@ -145,9 +142,9 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     IonTimeSeries<? extends Scan> featureSeries = f.getFeatureData();
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
-      previewChart
-          .addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(f.getFeatureData(),
-              FeatureUtils.featureToString(f), f.getRawDataFile().colorProperty())));
+      previewChart.addDataset(new ColoredXYDataset(
+          new IonTimeSeriesToXYProvider(f.getFeatureData(), FeatureUtils.featureToString(f),
+              f.getRawDataFile().colorProperty())));
     } else {
       if (featureSeries instanceof IonMobilogramTimeSeries) {
         previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(f)));
@@ -159,8 +156,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
     final boolean smoothRt = parameterSet.getParameter(SmoothingParameters.rtSmoothing).getValue();
     final int rtFilterWidth = parameterSet.getParameter(SmoothingParameters.rtSmoothing)
-        .getEmbeddedParameter()
-        .getValue();
+        .getEmbeddedParameter().getValue();
     boolean smoothMobility = parameterSet.getParameter(SmoothingParameters.mobilitySmoothing)
         .getValue();
     if (!(f.getFeatureData() instanceof IonMobilogramTimeSeries)) {
@@ -173,20 +169,19 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
     final SGIntensitySmoothing smoothing = new SGIntensitySmoothing(ZeroHandlingType.KEEP,
         rtWeights);
-    final IonTimeSeries<? extends Scan> smoothed = SmoothingTask
-        .replaceOldIntensities(null, featureSeries, f, smoothing.smooth(featureSeries),
-            ZeroHandlingType.KEEP, smoothMobility, mobilityWeights);
+    final IonTimeSeries<? extends Scan> smoothed = SmoothingTask.replaceOldIntensities(null,
+        featureSeries, f, smoothing.smooth(featureSeries), ZeroHandlingType.KEEP, smoothMobility,
+        mobilityWeights);
 
     if (previewDimension == SmoothingDimension.RETENTION_TIME) {
-      previewChart.addDataset(
-          new ColoredXYDataset(new IonTimeSeriesToXYProvider(smoothed, "smoothed",
+      previewChart.addDataset(new ColoredXYDataset(
+          new IonTimeSeriesToXYProvider(smoothed, "smoothed",
               new SimpleObjectProperty<>(previewColor))), smoothedRenderer);
     } else {
       if (smoothed instanceof IonMobilogramTimeSeries) {
         previewChart.addDataset(new ColoredXYDataset(new SummedMobilogramXYProvider(
             ((IonMobilogramTimeSeries) smoothed).getSummedMobilogram(),
-            new SimpleObjectProperty<>(previewColor),
-            "smoothed")), smoothedRenderer);
+            new SimpleObjectProperty<>(previewColor), "smoothed")), smoothedRenderer);
       }
     }
   }

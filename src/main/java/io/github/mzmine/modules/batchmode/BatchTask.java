@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.batchmode;
 
-import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -50,13 +49,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class BatchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private int totalSteps, processedSteps;
-
-  private MZmineProject project;
   private final BatchQueue queue;
-
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private int totalSteps, processedSteps;
+  private MZmineProject project;
   private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
   private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
 
@@ -77,8 +73,9 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-    startFeatureLists = ImmutableList.copyOf(project.getCurrentFeatureLists());
-    startDataFiles = ImmutableList.copyOf(project.getCurrentRawDataFiles());
+    // unmodifiable copies of currents lists
+    startFeatureLists = project.getCurrentFeatureLists();
+    startDataFiles = project.getCurrentRawDataFiles();
 
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
@@ -107,10 +104,8 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<FeatureList> beforeFeatureLists = ImmutableList.copyOf(
-        project.getCurrentFeatureLists());
-    final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(
-        project.getCurrentRawDataFiles());
+    final List<FeatureList> beforeFeatureLists = project.getCurrentFeatureLists();
+    final List<RawDataFile> beforeDataFiles = project.getCurrentRawDataFiles();
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
@@ -131,7 +126,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
@@ -147,15 +142,16 @@ public class BatchTask extends AbstractTask {
     boolean paramsCheck = batchStepParameters.checkParameterValues(messages);
     if (!paramsCheck) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Invalid parameter settings for module " + method.getName() + ": " + Arrays
-          .toString(messages.toArray()));
+      setErrorMessage(
+          "Invalid parameter settings for module " + method.getName() + ": " + Arrays.toString(
+              messages.toArray()));
     }
 
     List<Task> currentStepTasks = new ArrayList<Task>();
     Instant moduleCallDate = Instant.now();
     logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
-    ExitCode exitCode = method
-        .runModule(project, batchStepParameters, currentStepTasks, moduleCallDate);
+    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
+        moduleCallDate);
 
     if (exitCode != ExitCode.OK) {
       setStatus(TaskStatus.ERROR);
@@ -263,7 +259,7 @@ public class BatchTask extends AbstractTask {
         if (selectedFeatureLists == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return false;
         }
         selectedFeatureLists.setBatchLastFeatureLists(createdFlists);

@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -349,7 +350,8 @@ public class ProjectSavingTask extends AbstractTask {
   private void savePeakLists(ZipOutputStream zipStream)
       throws IOException, TransformerConfigurationException, SAXException {
 
-    for (FeatureList featureList : savedProject.getCurrentFeatureLists()) {
+    final List<FeatureList> currentFeatureLists = savedProject.getCurrentFeatureLists();
+    for (FeatureList featureList : currentFeatureLists) {
       FeatureListSaveTask saveTask = new FeatureListSaveTask((ModularFeatureList) featureList,
           zipStream);
 
