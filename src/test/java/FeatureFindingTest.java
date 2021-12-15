@@ -60,7 +60,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import java.io.File;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -154,8 +153,6 @@ public class FeatureFindingTest {
     });
 
     assertEquals(2, project.getDataFiles().length);
-    // sort by name
-    project.getCurrentRawDataFiles().sort(Comparator.comparing(RawDataFile::getName));
     int filesTested = 0;
     for (RawDataFile raw : project.getCurrentRawDataFiles()) {
       // check all scans and mass lists
