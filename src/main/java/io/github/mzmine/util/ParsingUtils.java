@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.PolarityType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.nio.DoubleBuffer;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -320,5 +322,23 @@ public class ParsingUtils {
   @Nullable
   public static String readNullableString(@NotNull String str) {
     return str.trim().equals(CONST.XML_NULL_VALUE) ? null : str;
+  }
+
+  public static boolean progressToStartElement(@NotNull XMLStreamReader reader,
+      @NotNull final String startElement, @NotNull final String breakpointEndElement)
+      throws XMLStreamException {
+    while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
+        .equals(startElement))) {
+      if(reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
+        return false;
+      }
+      reader.next();
+    }
+    return true;
+  }
+
+  public static IonType parseIon(String str) {
+    Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
+    return null;
   }
 }

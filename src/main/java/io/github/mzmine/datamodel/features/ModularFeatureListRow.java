@@ -48,9 +48,9 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -526,9 +526,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void addCompoundAnnotation(CompoundDBIdentity id) {
+  public void addCompoundAnnotation(CompoundDBAnnotation id) {
     synchronized (getMap()) {
-      List<CompoundDBIdentity> matches = get(CompoundDatabaseMatchesType.class);
+      List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
       if (matches == null) {
         matches = new ArrayList<>();
       }

@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
 import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -28,12 +27,16 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -213,19 +216,18 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
 
         logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
 
-        final CompoundDBIdentity newIdentity = new CompoundDBIdentity(lineName, lineFormula,
-            dataBaseFile.getName(), null);
-        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, smiles);
-        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_COMMENT, lineComment);
-        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
-            LocalCSVDatabaseSearchModule.MODULE_NAME);
-        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, lineAdduct);
-        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_CCS,
-            lineCCS != null ? String.valueOf(lineCCS) : null);
-        newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_MOBILITY,
-            lineMob != null ? String.valueOf(lineMob) : null);
-        // add new identity to the row
-        peakRow.addCompoundAnnotation(newIdentity);
+        final CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
+        annotation.put(new CompoundNameType(), lineName);
+        annotation.put(new FormulaType(), lineFormula);
+        annotation.put(new PrecursorMZType(), lineMZ);
+        annotation.put(new SmilesStructureType(), smiles);
+        annotation.put(new CommentType(), lineComment);
+        annotation.put(new DatabaseNameType(), dataBaseFile.getName());
+        annotation.put(new IonAdductType(), lineAdduct);
+        annotation.put(new CCSType(), lineCCS != null ? lineCCS.floatValue() : null);
+        annotation.put(new MobilityType(), lineMob != null ? lineMob.floatValue() : null);
+
+        peakRow.addCompoundAnnotation(annotation);
       }
     }
   }
