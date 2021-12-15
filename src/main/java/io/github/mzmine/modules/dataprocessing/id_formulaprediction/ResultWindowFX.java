@@ -18,39 +18,45 @@
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.io.IOException;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ResultWindowFX extends Stage {
 
-    private ResultWindowController controller;
+  private ResultWindowController controller;
 
-    public ResultWindowFX(String title, FeatureListRow peakListRow, double searchedMass, int charge,
-                          Task searchTask){
+  public ResultWindowFX() {
+    this("Formula prediction", null, 0d, 1, null,
+        MZmineCore.getConfiguration().getModuleParameters(FormulaPredictionModule.class));
+  }
 
-        try{
+  public ResultWindowFX(String title, FeatureListRow peakListRow, double searchedMass, int charge,
+      AbstractTask searchTask, @Nullable ParameterSet parameters) {
 
-            FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindowFX.fxml"));
-            Parent rootPane = root.load();
-            Scene scene = new Scene(rootPane);
-            setScene(scene);
-            controller = root.getController();
-            controller.initValues(title, peakListRow, searchedMass, charge, searchTask);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+    try {
 
+      FXMLLoader root = new FXMLLoader(getClass().getResource("ResultWindowFX.fxml"));
+      Parent rootPane = root.load();
+      Scene scene = new Scene(rootPane);
+      setScene(scene);
+      controller = root.getController();
+      controller.initValues(this, title, peakListRow, searchedMass, charge, searchTask, parameters);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    public void addNewListItem(final ResultFormula formula) {
-        controller.addNewListItem(formula);
-    }
+
+  }
+
+  public void addNewListItem(final ResultFormula formula) {
+    controller.addNewListItem(formula);
+  }
 
 }

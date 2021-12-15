@@ -30,10 +30,13 @@ import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.Comparators;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -44,16 +47,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
+import javafx.util.Duration;
+import org.jetbrains.annotations.Nullable;
 
 
 public class ResultWindowController {
@@ -64,7 +75,12 @@ public class ResultWindowController {
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
 
   private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
-
+  public CheckBox cbLimitFormula;
+  public TextField txtMaxFormula;
+  public TextField txtSearchedMz;
+  public HBox pnParam;
+  // controls to change the mz and parameters on the fly
+  private ResultWindowFX window;
   @FXML
   private TableView<ResultFormula> resultTable;
   @FXML
@@ -82,10 +98,12 @@ public class ResultWindowController {
   @FXML
   private TableColumn<ResultFormula, String> combinedScore;
 
-  private FeatureListRow featureListRow;
-  private Task searchTask;
+  private @Nullable FeatureListRow featureListRow;
+  private AbstractTask searchTask;
   private String title;
   private double searchedMass;
+  private ParameterSet parameters;
+  private PauseTransition updateDelay;
 
   @FXML
   private void initialize() {
@@ -136,20 +154,36 @@ public class ResultWindowController {
       return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
+    updateDelay = new PauseTransition(Duration.seconds(1.5));
+    updateDelay.setOnFinished(event -> rerunPrediction());
+    txtSearchedMz.textProperty().addListener((observable, oldValue, newValue) -> {
+      updateDelay.playFromStart();
+    });
+    txtMaxFormula.textProperty().addListener((observable, oldValue, newValue) -> {
+      updateDelay.playFromStart();
+    });
+
+    cbLimitFormula.selectedProperty()
+        .addListener((observable, oldValue, newValue) -> rerunPrediction());
+
     resultTable.setItems(formulas);
   }
 
-  public void initValues(String title, FeatureListRow peakListRow, double searchedMass, int charge,
-      Task searchTask) {
-
+  public void initValues(ResultWindowFX window, String title, FeatureListRow peakListRow,
+      double searchedMass, int charge, AbstractTask searchTask, @Nullable ParameterSet parameters) {
+    this.window = window;
     this.title = title;
     this.featureListRow = peakListRow;
     this.searchTask = searchTask;
     this.searchedMass = searchedMass;
+    this.parameters = parameters;
   }
 
   @FXML
   private void addIdentityClick(ActionEvent ae) {
+    if (featureListRow == null) {
+      return;
+    }
 
     ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
 
@@ -226,12 +260,14 @@ public class ResultWindowController {
       return;
     }
 
-    Feature peak = featureListRow.getBestFeature();
+    if (featureListRow != null) {
+      Feature peak = featureListRow.getBestFeature();
 
-    RawDataFile dataFile = peak.getRawDataFile();
-    Scan scanNumber = peak.getRepresentativeScan();
-    SpectraVisualizerModule
-        .addNewSpectrumTab(dataFile, scanNumber, null, peak.getIsotopePattern(), predictedPattern);
+      RawDataFile dataFile = peak.getRawDataFile();
+      Scan scanNumber = peak.getRepresentativeScan();
+      SpectraVisualizerModule.addNewSpectrumTab(dataFile, scanNumber, null,
+          peak.getIsotopePattern(), predictedPattern);
+    }
   }
 
   @FXML
@@ -242,26 +278,28 @@ public class ResultWindowController {
       return;
     }
 
-    logger
-        .finest("Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
+    logger.finest(
+        "Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
     IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
     if (predictedPattern == null) {
       return;
     }
 
-    Feature peak = featureListRow.getBestFeature();
-    final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensity();
+    if (featureListRow != null) {
+      Feature peak = featureListRow.getBestFeature();
+      final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensity();
 
-    final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
-    EChartViewer mirrorChart = MirrorChartFactory
-        .createMirrorChartViewer(detectedPattern, predictedPattern,
-            uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"), false, true);
+      final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
+      EChartViewer mirrorChart = MirrorChartFactory.createMirrorChartViewer(detectedPattern,
+          predictedPattern, uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"),
+          false, true);
 
-    SimpleTab tab = new SimpleTab("Isotope mirror");
-    tab.setContent(mirrorChart);
+      SimpleTab tab = new SimpleTab("Isotope mirror");
+      tab.setContent(mirrorChart);
 
-    MZmineCore.getDesktop().addTab(tab);
+      MZmineCore.getDesktop().addTab(tab);
+    }
   }
 
   @FXML
@@ -286,27 +324,29 @@ public class ResultWindowController {
       return;
     }
 
-    Feature bestPeak = featureListRow.getBestFeature();
+    if (featureListRow != null) {
+      Feature bestPeak = featureListRow.getBestFeature();
 
-    RawDataFile dataFile = bestPeak.getRawDataFile();
-    Scan msmsScanNumber = bestPeak.getMostIntenseFragmentScan();
+      RawDataFile dataFile = bestPeak.getRawDataFile();
+      Scan msmsScanNumber = bestPeak.getMostIntenseFragmentScan();
 
-    if (msmsScanNumber == null) {
-      return;
+      if (msmsScanNumber == null) {
+        return;
+      }
+
+      SpectraVisualizerTab msmsPlot = SpectraVisualizerModule.addNewSpectrumTab(dataFile,
+          msmsScanNumber);
+
+      if (msmsPlot == null) {
+        return;
+      }
+      Map<Double, String> annotation = formula.getMSMSannotation();
+
+      if (annotation == null) {
+        return;
+      }
+      msmsPlot.addMzAnnotation(annotation);
     }
-
-    SpectraVisualizerTab msmsPlot = SpectraVisualizerModule
-        .addNewSpectrumTab(dataFile, msmsScanNumber);
-
-    if (msmsPlot == null) {
-      return;
-    }
-    Map<Double, String> annotation = formula.getMSMSannotation();
-
-    if (annotation == null) {
-      return;
-    }
-    msmsPlot.addMzAnnotation(annotation);
   }
 
   public void addNewListItem(final ResultFormula formula) {
@@ -326,4 +366,56 @@ public class ResultWindowController {
   }
 
 
+  public void setIsotopes(ActionEvent actionEvent) {
+  }
+
+  public void setFragmentationSpectra(ActionEvent actionEvent) {
+  }
+
+  public ParameterSet getParameters() {
+    if (parameters == null) {
+      parameters = MZmineCore.getConfiguration().getModuleParameters(FormulaPredictionModule.class);
+    }
+    return parameters;
+  }
+
+  public void setParameters(ActionEvent actionEvent) {
+    if (parameters == null) {
+      parameters = MZmineCore.getConfiguration().getModuleParameters(FormulaPredictionModule.class);
+    }
+    if (parameters.showSetupDialog(true) == ExitCode.OK) {
+      rerunPrediction();
+    }
+  }
+
+  private void rerunPrediction() {
+    updateDelay.stop();
+    if (searchTask != null && !searchTask.isFinished()) {
+      searchTask.cancel();
+    }
+
+    // read mz and
+    final ParameterSet param = getParameters().cloneParameterSet();
+
+    double searchedMz = -1;
+    try {
+      // optionally set
+      searchedMz = Double.parseDouble(txtSearchedMz.getText());
+      param.getParameter(FormulaPredictionParameters.neutralMass).setIonMass(searchedMz);
+    } catch (Exception ex) {
+    }
+
+    try {
+      // TODO set maximum elements based on formula input
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Error during formula set " + ex.getMessage(), ex);
+    }
+
+    // neutral mass
+    searchedMass = param.getValue(FormulaPredictionParameters.neutralMass);
+
+    // run new task
+    searchTask = new FormulaPredictionTask(param, Instant.now(), window, null, null);
+    MZmineCore.getTaskController().addTask(searchTask, TaskPriority.HIGH);
+  }
 }

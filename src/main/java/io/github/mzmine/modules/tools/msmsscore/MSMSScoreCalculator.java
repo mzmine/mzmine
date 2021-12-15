@@ -21,6 +21,7 @@ package io.github.mzmine.modules.tools.msmsscore;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -39,6 +40,13 @@ public class MSMSScoreCalculator {
   /**
    * Returns a calculated similarity score of
    */
+  public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula, MassSpectrum msmsScan,
+      double precursorMz, int precursorCharge, MZTolerance msmsTolerance, int topNSignals) {
+
+    return evaluateMSMS(msmsTolerance, parentFormula, ScanUtils.extractDataPoints(msmsScan),
+        precursorMz, precursorCharge, topNSignals);
+  }
+
   public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula, Scan msmsScan,
       MZTolerance msmsTolerance, int topNSignals) {
 
