@@ -59,7 +59,7 @@
       </SplitPane>
     </center>
    <top>
-      <VBox prefWidth="100.0" spacing="5.0" BorderPane.alignment="CENTER">
+      <VBox spacing="5.0" BorderPane.alignment="CENTER">
          <HBox fx:id="pnParam" alignment="CENTER_LEFT" spacing="5.0">
             <Label text="m/z">
                <font>
@@ -75,13 +75,11 @@
             <Accordion>
               <panes>
                 <TitledPane animated="false" text="Isotopes">
-                     <BorderPane prefHeight="200.0" prefWidth="200.0">
-                        <center>
-                           <ScrollPane prefHeight="200.0" BorderPane.alignment="CENTER">
-                              <TextArea fx:id="txtIsotopes" prefHeight="200.0" promptText="m/z,intensity&#13;m/z,intensity" />
-                              </ScrollPane>
-                        </center>
-                     </BorderPane>
+                  <content>
+                        <ScrollPane fitToWidth="true" prefHeight="125.0">
+                           <TextArea fx:id="txtIsotopes" promptText="m/z,intensity&#13;m/z,intensity" />
+                           </ScrollPane>
+                  </content>
                      </TitledPane>
 <!--                <TitledPane animated="false" text="MS/MS">-->
 <!--                     <content>-->
