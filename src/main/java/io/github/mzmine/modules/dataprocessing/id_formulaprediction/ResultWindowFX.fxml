@@ -35,7 +35,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane minHeight="200" minWidth="700" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
+<BorderPane minHeight="200" minWidth="700" prefWidth="900.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
 
     <center>
       <SplitPane dividerPositions="0.2">
@@ -47,10 +47,10 @@
                   </columnResizePolicy>
                   <columns>
                       <TableColumn fx:id="Formula" minWidth="40" text="Formula" />
-                      <TableColumn fx:id="absoluteMassDifference" minWidth="40" text="ΔMass (Da)" />
-                      <TableColumn fx:id="massDifference" minWidth="40" text="ΔMass (ppm)" />
-                      <TableColumn fx:id="RDBE" minWidth="40" text="RDBE" />
-                      <TableColumn fx:id="isotopePattern" minWidth="40.0" prefWidth="-1.0" sortType="DESCENDING" text="Isotope pattern " />
+                      <TableColumn fx:id="absoluteMassDifference" minWidth="40" prefWidth="79.2000732421875" text="ΔMass (Da)" />
+                      <TableColumn fx:id="massDifference" minWidth="40" prefWidth="125.59991455078125" text="ΔMass (ppm)" />
+                      <TableColumn fx:id="RDBE" minWidth="40" prefWidth="60.800079345703125" text="RDBE" />
+                      <TableColumn fx:id="isotopePattern" minWidth="40.0" prefWidth="143.99993896484375" sortType="DESCENDING" text="Isotope pattern " />
                       <TableColumn fx:id="msScore" minWidth="40" sortType="DESCENDING" text="MS/MS Score" />
                       <TableColumn fx:id="combinedScore" minWidth="40" sortType="DESCENDING" text="Combined score" />
                   </columns>

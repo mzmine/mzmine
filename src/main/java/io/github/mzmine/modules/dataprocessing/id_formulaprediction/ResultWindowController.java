@@ -341,6 +341,10 @@ public class ResultWindowController {
     pnIsotopeMirror.getChildren().clear();
 
     ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
+    if (formula == null) {
+      return;
+    }
+
     IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
     if (predictedPattern == null || lastIsotopePattern == null) {
