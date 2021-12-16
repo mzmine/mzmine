@@ -84,4 +84,12 @@ public class IonTypeType extends DataType<IonType> {
 
     return IonType.loadFromXML(reader);
   }
+
+  @Override
+  public @NotNull String getFormattedString(IonType value) {
+    if(value == null) {
+      return "";
+    }
+    return value.toString(false);
+  }
 }
