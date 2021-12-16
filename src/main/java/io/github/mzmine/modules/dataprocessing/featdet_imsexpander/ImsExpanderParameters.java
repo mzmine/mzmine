@@ -49,14 +49,14 @@ public class ImsExpanderParameters extends SimpleParameterSet {
           "If checked, the raw data can be used to expand the chromatograms into mobility dimension.\n"
               + "This can increase sensitivity but will also increase RAM demands and computation time.\n"
               + "A new noise level can be given or every data point can be used (0E0)",
-          MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, Double.POSITIVE_INFINITY));
+          MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, Double.POSITIVE_INFINITY), true);
 
   public static final OptionalParameter<IntegerParameter> mobilogramBinWidth = new OptionalParameter<>(
       new IntegerParameter("Override default mobility bin witdh (scans)",
           "If checked, the default recommended bin width for the raw data file will be overridden with the given value.\n"
               + "The mobility binning width in scans. (high mobility resolutions "
               + "in TIMS might require a higher bin width to achieve a constant ion current for a "
-              + "mobilogram.", 1, true));
+              + "mobilogram.", 1, true), false);
 
   public static final BooleanParameter removeOriginalFeatureList = new BooleanParameter(
       "Remove original feature list",
