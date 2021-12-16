@@ -66,6 +66,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -90,6 +91,8 @@ public class ResultWindowController {
   public TextField txtSearchedMz;
   public HBox pnParam;
   public TextArea txtIsotopes;
+  public BorderPane pnIsotopeMirror;
+  private EChartViewer mirrorChart;
   // controls to change the mz and parameters on the fly
   private ResultWindowFX window;
   @FXML
@@ -115,6 +118,7 @@ public class ResultWindowController {
   private double searchedMass;
   private ParameterSet parameters;
   private PauseTransition updateDelay;
+  private @Nullable IsotopePattern lastIsotopePattern;
 
   @FXML
   private void initialize() {
@@ -202,6 +206,8 @@ public class ResultWindowController {
     cbLimitFormula.selectedProperty()
         .addListener((observable, oldValue, newValue) -> rerunPrediction());
 
+    resultTable.getSelectionModel().selectedIndexProperty()
+        .addListener((observable, oldValue, newValue) -> updateIsotopeMirror());
     resultTable.setItems(formulas);
   }
 
@@ -216,9 +222,9 @@ public class ResultWindowController {
 
     // get isotope patter
     if (peakListRow != null) {
-      final IsotopePattern pattern = peakListRow.getBestIsotopePattern();
-      if (pattern != null) {
-        txtIsotopes.setText(pattern.toCSV());
+      lastIsotopePattern = peakListRow.getBestIsotopePattern();
+      if (lastIsotopePattern != null) {
+        txtIsotopes.setText(lastIsotopePattern.toCSV());
         updateDelay.stop(); // no update, its already running
       }
     }
@@ -325,26 +331,26 @@ public class ResultWindowController {
 
     logger.finest(
         "Showing isotope pattern mirror match for formula " + formula.getFormulaAsString());
+
+    SimpleTab tab = new SimpleTab("Isotope mirror");
+    tab.setContent(mirrorChart);
+    MZmineCore.getDesktop().addTab(tab);
+  }
+
+  public void updateIsotopeMirror() {
+    pnIsotopeMirror.getChildren().clear();
+
+    ResultFormula formula = resultTable.getSelectionModel().getSelectedItem();
     IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
-    if (predictedPattern == null) {
+    if (predictedPattern == null || lastIsotopePattern == null) {
       return;
     }
 
-    if (featureListRow != null) {
-      Feature peak = featureListRow.getBestFeature();
-      final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensity();
-
-      final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
-      EChartViewer mirrorChart = MirrorChartFactory.createMirrorChartViewer(detectedPattern,
-          predictedPattern, uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"),
-          false, true);
-
-      SimpleTab tab = new SimpleTab("Isotope mirror");
-      tab.setContent(mirrorChart);
-
-      MZmineCore.getDesktop().addTab(tab);
-    }
+    final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
+    mirrorChart = MirrorChartFactory.createMirrorChartViewer(lastIsotopePattern, predictedPattern,
+        uf.format("Detected pattern", "%"), uf.format("Predicted pattern", "%"), false, true);
+    pnIsotopeMirror.setCenter(mirrorChart);
   }
 
   @FXML
@@ -470,15 +476,15 @@ public class ResultWindowController {
 
       // get an isotope pattern
       final String sIsotopes = txtIsotopes.getText();
-      IsotopePattern pattern = null;
       try {
-        pattern = IsotopePattern.fromCSV(sIsotopes);
+        lastIsotopePattern = IsotopePattern.fromCSV(sIsotopes);
       } catch (Exception e) {
         logger.log(Level.FINE, "isotope format not parsable");
       }
 
       // run new task
-      searchTask = new FormulaPredictionTask(param, Instant.now(), window, pattern, null);
+      searchTask = new FormulaPredictionTask(param, Instant.now(), window, lastIsotopePattern,
+          null);
       MZmineCore.getTaskController().addTask(searchTask, TaskPriority.HIGH);
     }
   }

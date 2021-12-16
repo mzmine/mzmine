@@ -24,6 +24,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
@@ -36,41 +37,26 @@
 
 <BorderPane minHeight="200" minWidth="700" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultWindowController">
 
-    <bottom>
-
-        <ButtonBar style="-fx-padding: 5 5 5 5;">
-            <buttons>
-                <Button fx:id="addIdentity" onAction="#addIdentityClick" text="Add Identity">
-                </Button>
-                <Button fx:id="Copy" onAction="#copyClick" text="Copy to clipboard">
-                </Button>
-                <Button fx:id="Export" onAction="#exportClick" text="Export all">
-                </Button>
-                <Button fx:id="ViewIsotope" onAction="#viewIsotopeClick" text="View isotope pattern">
-                </Button>
-                <Button fx:id="ViewIsotopeMirror" onAction="#viewIsotopeMirrorClick" text="View isotope mirror">
-                </Button>
-                <Button fx:id="ShowMS" onAction="#showsMSClick" text="Show MS / MS">
-                </Button>
-            </buttons>
-        </ButtonBar>
-    </bottom>
-
     <center>
-        <TableView fx:id="resultTable" minHeight="100">
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-            <columns>
-                <TableColumn fx:id="Formula" minWidth="40" text="Formula" />
-                <TableColumn fx:id="absoluteMassDifference" minWidth="40" text="ΔMass (Da)" />
-                <TableColumn fx:id="massDifference" minWidth="40" text="ΔMass (ppm)" />
-                <TableColumn fx:id="RDBE" minWidth="40" text="RDBE" />
-                <TableColumn fx:id="isotopePattern" minWidth="40.0" prefWidth="-1.0" sortType="DESCENDING" text="Isotope pattern " />
-                <TableColumn fx:id="msScore" minWidth="40" sortType="DESCENDING" text="MS/MS Score" />
-                <TableColumn fx:id="combinedScore" minWidth="40" sortType="DESCENDING" text="Combined score" />
-            </columns>
-        </TableView>
+      <SplitPane dividerPositions="0.2">
+         <items>
+            <BorderPane fx:id="pnIsotopeMirror" prefWidth="200.0" />
+              <TableView fx:id="resultTable" minHeight="100">
+                  <columnResizePolicy>
+                      <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                  </columnResizePolicy>
+                  <columns>
+                      <TableColumn fx:id="Formula" minWidth="40" text="Formula" />
+                      <TableColumn fx:id="absoluteMassDifference" minWidth="40" text="ΔMass (Da)" />
+                      <TableColumn fx:id="massDifference" minWidth="40" text="ΔMass (ppm)" />
+                      <TableColumn fx:id="RDBE" minWidth="40" text="RDBE" />
+                      <TableColumn fx:id="isotopePattern" minWidth="40.0" prefWidth="-1.0" sortType="DESCENDING" text="Isotope pattern " />
+                      <TableColumn fx:id="msScore" minWidth="40" sortType="DESCENDING" text="MS/MS Score" />
+                      <TableColumn fx:id="combinedScore" minWidth="40" sortType="DESCENDING" text="Combined score" />
+                  </columns>
+              </TableView>
+         </items>
+      </SplitPane>
     </center>
    <top>
       <VBox prefWidth="100.0" spacing="5.0" BorderPane.alignment="CENTER">
@@ -110,4 +96,23 @@
             </Accordion>
          </VBox>
    </top>
+   <bottom>
+
+              <ButtonBar style="-fx-padding: 5 5 5 5;" BorderPane.alignment="CENTER">
+            <buttons>
+                <Button fx:id="addIdentity" onAction="#addIdentityClick" text="Add Identity">
+                </Button>
+                <Button fx:id="Copy" onAction="#copyClick" text="Copy to clipboard">
+                </Button>
+                <Button fx:id="Export" onAction="#exportClick" text="Export all">
+                </Button>
+                <Button fx:id="ViewIsotope" onAction="#viewIsotopeClick" text="View isotope pattern">
+                </Button>
+                <Button fx:id="ViewIsotopeMirror" onAction="#viewIsotopeMirrorClick" text="View isotope mirror">
+                </Button>
+                <Button fx:id="ShowMS" onAction="#showsMSClick" text="Show MS / MS">
+                </Button>
+            </buttons>
+        </ButtonBar>
+   </bottom>
 </BorderPane>
