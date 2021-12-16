@@ -23,11 +23,13 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.RangeUtils;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -249,9 +251,13 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
 
   @Override
   public String toString() {
-    return new StringBuilder(getCompundName()).append(" (")
-        .append(String.format("%.4f", getExactMass()))
-        .append(String.format(", %.3f", getScore())).append(")").toString();
+
+    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    final NumberFormat scoreFormat = MZmineCore.getConfiguration().getScoreFormat();
+
+    return new StringBuilder(getCompundName()).append(" ").append(getAdductType().toString(false))
+        .append(" (").append(mzFormat.format(getExactMass())).append(",")
+        .append(scoreFormat.format(getScore())).append(")").toString();
   }
 }
 
