@@ -180,12 +180,6 @@ public class FormulaPredictionTask extends AbstractTask {
 
     logger.finest("Starting search for formulas for " + massRange + " Da");
 
-    if ((checkIsotopes) && (detectedPattern == null)) {
-      final String msg = "Cannot calculate isotope pattern scores, because selected"
-                         + " peak does not have any isotopes. Have you run the isotope peak grouper?";
-      MZmineCore.getDesktop().displayMessage(null, msg);
-    }
-
     try {
 
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();

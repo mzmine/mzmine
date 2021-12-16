@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -31,6 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.NeutralMassParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -61,6 +63,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
@@ -86,6 +89,7 @@ public class ResultWindowController {
   public TextField txtMaxFormula;
   public TextField txtSearchedMz;
   public HBox pnParam;
+  public TextArea txtIsotopes;
   // controls to change the mz and parameters on the fly
   private ResultWindowFX window;
   @FXML
@@ -172,21 +176,28 @@ public class ResultWindowController {
         "Quick way to limit the elements even further to a defined formula, e.g., C12H20O2"));
     txtMaxFormula.setTooltip(new Tooltip(
         "Quick way to limit the elements even further to a defined formula, e.g., C12H20O2"));
+    txtIsotopes.setTooltip(new Tooltip(
+        "Set isotope pattern as comma-separated values (CSV) (also need to activate isotope pattern scoring)"));
 
     validationSupport.registerValidator(txtSearchedMz, false,
         Validator.createPredicateValidator(o -> {
           final String val = o.toString().trim();
           return val.length() == 0 || MathUtils.isNumber(val);
         }, "number needed"));
+    validationSupport.registerValidator(txtIsotopes, false,
+        Validator.createPredicateValidator(o -> {
+          final String val = o.toString();
+          return val.isBlank() || IsotopePattern.fromCSV(val) != null;
+        }, "comma-separated m/z intensity pairs needed"));
 
     updateDelay = new PauseTransition(Duration.seconds(1.5));
     updateDelay.setOnFinished(event -> rerunPrediction());
-    txtSearchedMz.textProperty().addListener((observable, oldValue, newValue) -> {
-      updateDelay.playFromStart();
-    });
-    txtMaxFormula.textProperty().addListener((observable, oldValue, newValue) -> {
-      updateDelay.playFromStart();
-    });
+    txtSearchedMz.textProperty()
+        .addListener((observable, oldValue, newValue) -> updateDelay.playFromStart());
+    txtMaxFormula.textProperty()
+        .addListener((observable, oldValue, newValue) -> updateDelay.playFromStart());
+    txtIsotopes.textProperty()
+        .addListener((observable, oldValue, newValue) -> updateDelay.playFromStart());
 
     cbLimitFormula.selectedProperty()
         .addListener((observable, oldValue, newValue) -> rerunPrediction());
@@ -202,6 +213,15 @@ public class ResultWindowController {
     this.searchTask = searchTask;
     this.searchedMass = searchedMass;
     this.parameters = parameters;
+
+    // get isotope patter
+    if (peakListRow != null) {
+      final IsotopePattern pattern = peakListRow.getBestIsotopePattern();
+      if (pattern != null) {
+        txtIsotopes.setText(pattern.toCSV());
+        updateDelay.stop(); // no update, its already running
+      }
+    }
   }
 
   @FXML
@@ -392,6 +412,7 @@ public class ResultWindowController {
 
 
   public void setIsotopes(ActionEvent actionEvent) {
+
   }
 
   public void setFragmentationSpectra(ActionEvent actionEvent) {
@@ -425,6 +446,7 @@ public class ResultWindowController {
     }
 
     // read mz and
+    ensureMinimumParameters();
     final ParameterSet param = getParameters().cloneParameterSet();
 
     double searchedMz = -1;
@@ -446,9 +468,30 @@ public class ResultWindowController {
     if (value != null) {
       searchedMass = value;
 
+      // get an isotope pattern
+      final String sIsotopes = txtIsotopes.getText();
+      IsotopePattern pattern = null;
+      try {
+        pattern = IsotopePattern.fromCSV(sIsotopes);
+      } catch (Exception e) {
+        logger.log(Level.FINE, "isotope format not parsable");
+      }
+
       // run new task
-      searchTask = new FormulaPredictionTask(param, Instant.now(), window, null, null);
+      searchTask = new FormulaPredictionTask(param, Instant.now(), window, pattern, null);
       MZmineCore.getTaskController().addTask(searchTask, TaskPriority.HIGH);
+    }
+  }
+
+  private void ensureMinimumParameters() {
+    final ParameterSet parameters = getParameters();
+    final NeutralMassParameter nmParam = parameters.getParameter(
+        FormulaPredictionParameters.neutralMass);
+    if (nmParam.getCharge() == null || nmParam.getCharge() == 0) {
+      nmParam.setCharge(1);
+    }
+    if (nmParam.getIonType() == null) {
+      nmParam.setIonType(IonizationType.POSITIVE_HYDROGEN);
     }
   }
 }
