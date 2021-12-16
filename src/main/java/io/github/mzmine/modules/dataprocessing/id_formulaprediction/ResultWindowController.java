@@ -191,7 +191,11 @@ public class ResultWindowController {
     validationSupport.registerValidator(txtIsotopes, false,
         Validator.createPredicateValidator(o -> {
           final String val = o.toString();
-          return val.isBlank() || IsotopePattern.fromCSV(val) != null;
+          try {
+            return val.isBlank() || IsotopePattern.fromCSV(val) != null;
+          } catch (Exception ex) {
+            return false;
+          }
         }, "comma-separated m/z intensity pairs needed"));
 
     updateDelay = new PauseTransition(Duration.seconds(1.5));
