@@ -18,17 +18,23 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.RangeUtils;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
@@ -52,6 +58,11 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     return (T) value;
   }
 
+  public <T> T get(Class<? extends DataType<T>> key) {
+    var actualKey = DataTypes.getInstance(key);
+    return get(actualKey);
+  }
+
   @Override
   public <T> T put(@NotNull DataType<T> key, T value) {
     if (value != null && !key.getValueClass().isInstance(value)) {
@@ -60,6 +71,16 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
               value.getClass(), key.getClass()));
     }
     var actualKey = DataTypes.getInstance(key);
+    return (T) super.put(actualKey, value);
+  }
+
+  public <T> T put(@NotNull Class<? extends DataType<T>> key, T value) {
+    var actualKey = DataTypes.getInstance(key);
+    if (value != null && !actualKey.getValueClass().isInstance(value)) {
+      throw new IllegalArgumentException(
+          String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
+              value.getClass(), actualKey.getClass()));
+    }
     return (T) super.put(actualKey, value);
   }
 
@@ -135,6 +156,95 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
           numEntries, i));
     }
     return id;
+  }
+
+  @Override
+  public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
+      @Nullable Double percentCCSTolerance) {
+
+    final Double exactMass = getExactMass();
+    // values are "matched" if the given value exists in this class and falls within the tolerance.
+    if (mzTolerance != null && exactMass != null && (row.getAverageMZ() == null
+        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
+      return false;
+    }
+
+    final Float rt = getRT();
+    if (rtTolerance != null && rt != null && (row.getAverageRT() == null
+        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
+      return false;
+    }
+
+    final Float mobility = getMobility();
+    if (mobilityTolerance != null && mobility != null && (row.getAverageMobility() == null
+        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
+      return false;
+    }
+
+    final Float ccs = getCCS();
+    if (percentCCSTolerance != null && ccs != null && (row.getAverageCCS() == null
+        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
+      @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
+      @Nullable Double percentCCSTolerance) {
+    if (!matches(row, mzTolerance, rtTolerance, mobilityTolerance, percentCCSTolerance)) {
+      return null;
+    }
+
+    int scorers = 0;
+
+    Float score = 0f;
+    final Double exactMass = getExactMass();
+    // values are "matched" if the given value exists in this class and falls within the tolerance.
+    if (mzTolerance != null && exactMass != null && !(row.getAverageMZ() == null
+        || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
+      score += 1-((float) ((Math.abs(row.getAverageMZ() - exactMass)) / (
+          RangeUtils.rangeLength(mzTolerance.getToleranceRange(exactMass)) / 2)));
+      scorers++;
+    }
+
+    final Float rt = getRT();
+    if (rtTolerance != null && rt != null && !(row.getAverageRT() == null
+        || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
+      score += 1-((Math.abs(row.getAverageRT() - rt)) / (
+          RangeUtils.rangeLength(rtTolerance.getToleranceRange(rt)) / 2));
+      scorers++;
+    }
+
+    final Float mobility = getMobility();
+    if (mobilityTolerance != null && mobility != null && !(row.getAverageMobility() == null
+        || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
+      score += 1-((Math.abs(row.getAverageMobility() - mobility)) / (
+          RangeUtils.rangeLength(mobilityTolerance.getToleranceRange(mobility)) / 2));
+      scorers++;
+    }
+
+    final Float ccs = getCCS();
+    if (percentCCSTolerance != null && ccs != null && !(row.getAverageCCS() == null
+        || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
+      score += 1-((float)(Math.abs(1 - (row.getAverageCCS() / ccs)) / percentCCSTolerance));
+      scorers++;
+    }
+
+    if(scorers == 0) {
+      return null;
+    }
+
+    return score / scorers;
+  }
+
+  @Override
+  public CompoundDBAnnotation clone() {
+    SimpleCompoundDBAnnotation clone = new SimpleCompoundDBAnnotation();
+    forEach((key, value) -> clone.put(key, value));
+    return clone;
   }
 }
 

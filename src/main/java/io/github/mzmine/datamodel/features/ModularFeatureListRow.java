@@ -538,6 +538,20 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
+  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+    synchronized (getMap()) {
+      set(CompoundDatabaseMatchesType.class, annotations);
+    }
+  }
+
+  @NotNull
+  @Override
+  public List<CompoundDBAnnotation> getCompoundAnnotations() {
+    var list = get(CompoundDatabaseMatchesType.class);
+    return list != null ? list : List.of();
+  }
+
+  @Override
   public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
     synchronized (getMap()) {
       List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);

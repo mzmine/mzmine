@@ -231,6 +231,10 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
+
   void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
 
   /**
