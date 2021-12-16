@@ -205,7 +205,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzTolerance != null && exactMass != null && !(row.getAverageMZ() == null
         || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
-      score += 1-((float) ((Math.abs(row.getAverageMZ() - exactMass)) / (
+      score += 1 - ((float) ((Math.abs(row.getAverageMZ() - exactMass)) / (
           RangeUtils.rangeLength(mzTolerance.getToleranceRange(exactMass)) / 2)));
       scorers++;
     }
@@ -213,7 +213,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     final Float rt = getRT();
     if (rtTolerance != null && rt != null && !(row.getAverageRT() == null
         || !rtTolerance.checkWithinTolerance(row.getAverageRT(), rt))) {
-      score += 1-((Math.abs(row.getAverageRT() - rt)) / (
+      score += 1 - ((Math.abs(row.getAverageRT() - rt)) / (
           RangeUtils.rangeLength(rtTolerance.getToleranceRange(rt)) / 2));
       scorers++;
     }
@@ -221,7 +221,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     final Float mobility = getMobility();
     if (mobilityTolerance != null && mobility != null && !(row.getAverageMobility() == null
         || !mobilityTolerance.checkWithinTolerance(mobility, row.getAverageMobility()))) {
-      score += 1-((Math.abs(row.getAverageMobility() - mobility)) / (
+      score += 1 - ((Math.abs(row.getAverageMobility() - mobility)) / (
           RangeUtils.rangeLength(mobilityTolerance.getToleranceRange(mobility)) / 2));
       scorers++;
     }
@@ -229,11 +229,11 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     final Float ccs = getCCS();
     if (percentCCSTolerance != null && ccs != null && !(row.getAverageCCS() == null
         || Math.abs(1 - (row.getAverageCCS() / ccs)) > percentCCSTolerance)) {
-      score += 1-((float)(Math.abs(1 - (row.getAverageCCS() / ccs)) / percentCCSTolerance));
+      score += 1 - ((float) (Math.abs(1 - (row.getAverageCCS() / ccs)) / percentCCSTolerance));
       scorers++;
     }
 
-    if(scorers == 0) {
+    if (scorers == 0) {
       return null;
     }
 
@@ -245,6 +245,13 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     SimpleCompoundDBAnnotation clone = new SimpleCompoundDBAnnotation();
     forEach((key, value) -> clone.put(key, value));
     return clone;
+  }
+
+  @Override
+  public String toString() {
+    return new StringBuilder(getCompundName()).append(" (")
+        .append(String.format("%.4f", getExactMass()))
+        .append(String.format(", %.3f", getScore())).append(")").toString();
   }
 }
 

@@ -30,10 +30,12 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -46,6 +48,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MathUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
@@ -185,9 +189,13 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       for (FeatureListRow peakRow : peakList.getRows()) {
         if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
           final CompoundDBAnnotation clone = annotation.clone();
-          clone.put(CompoundAnnotationScoreType.class, clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
+          clone.put(CompoundAnnotationScoreType.class,
+              clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
+          clone.put(MzPpmDifferenceType.class,
+              (float) MathUtils.getPpmDiff(clone.getExactMass(), peakRow.getAverageMZ()));
           peakRow.addCompoundAnnotation(clone);
-          peakRow.getCompoundAnnotations().sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
+          peakRow.getCompoundAnnotations()
+              .sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
         }
       }
     }
@@ -207,6 +215,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     var adductType = new IonTypeType();
     var neutralMassType = new NeutralMassType();
     var ionTypeType = new IonTypeType();
+    var pubchemIdType = new PubChemIdType();
 
     final Map<DataType<?>, String> entry = new HashMap<>();
 
@@ -219,6 +228,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String lineName = entry.get(compoundNameType);
     final String lineFormula = entry.get(formulaType);
     final String lineAdduct = entry.get(adductType);
+    final String lineComment = entry.get(commentType);
     final Double lineMZ =
         (entry.get(mzType) != null) ? Double.parseDouble(entry.get(mzType)) : null;
     final Float lineRT = (entry.get(rtType) != null) ? Float.parseFloat(entry.get(rtType)) : null;
@@ -229,10 +239,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final Double neutralMass =
         entry.get(neutralMassType) != null ? Double.parseDouble(entry.get(neutralMassType)) : null;
     final String smiles = entry.get(smilesType);
+    final String pubchemId = entry.get(pubchemIdType);
 
     CompoundDBAnnotation a = new SimpleCompoundDBAnnotation();
     doIf(lineName != null, () -> a.put(compoundNameType, lineName));
     doIf(lineFormula != null, () -> a.put(formulaType, lineFormula));
+    doIf(lineComment != null, () -> a.put(commentType, lineComment));
     doIf(lineRT != null, () -> a.put(rtType, lineRT));
     doIf(lineMob != null, () -> a.put(mobType, lineMob));
     doIf(lineCCS != null, () -> a.put(ccsType, lineCCS));
@@ -241,6 +253,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIf(neutralMass != null, () -> a.put(neutralMassType, neutralMass));
     doIf(IonType.parseFromString(lineAdduct) != null,
         () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
+    doIf(pubchemId != null, () -> a.put(PubChemIdType.class, pubchemId));
     return a;
   }
 
@@ -258,7 +271,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     for (ImportType importType : lines) {
       for (int i = 0; i < firstLine.length; i++) {
         String columnName = firstLine[i];
-        if (columnName.equals(importType.getCsvColumnName())) {
+        if (columnName.trim().equalsIgnoreCase(importType.getCsvColumnName().trim())) {
           if (importType.getColumnIndex() != -1) {
             setErrorMessage(
                 "Library file " + dataBaseFile.getAbsolutePath() + " contains two columns called \""
