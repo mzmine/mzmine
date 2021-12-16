@@ -71,7 +71,7 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(false, "mobility", new MobilityType()),
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonAdductType()),
-      new ImportType(false, "PubchemID", new PubChemIdType()));
+      new ImportType(false, "PubChemCID", new PubChemIdType()));
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();

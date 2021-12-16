@@ -22,12 +22,12 @@ public class PubChemIdType extends StringType {
 
   @Override
   public @NotNull String getUniqueID() {
-    return "pubchem_id";
+    return "pubchem_cid";
   }
 
   @Override
   public @NotNull String getHeaderString() {
-    return "PubChem Id";
+    return "PubChemCID";
   }
 
   @Override
