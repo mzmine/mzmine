@@ -19,6 +19,7 @@
 package io.github.mzmine.util;
 
 import io.github.mzmine.util.maths.CenterMeasure;
+import io.github.mzmine.util.maths.Precision;
 import io.github.mzmine.util.maths.Weighting;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
@@ -344,5 +345,82 @@ public class MathUtils {
    */
   public static double twoPointGetYForX(double x1, double y1, double x2, double y2, double x) {
     return (x - x1) * ((y2 - y1) / (x2 - x1)) + y1;
+  }
+
+  /**
+   * The resulting value will be within (inclusive) min max range and rounded to the number of
+   * significant figures. 231.9 with 2 significant figures will be 230.
+   *
+   * @param value          will be constrained and rounded
+   * @param min            minimum value
+   * @param max            maximum value
+   * @param roundPrecision number of significant digits
+   * @return min <= result <= max rounded to precision number of significant figures
+   */
+  public static double within(double value, double min, double max, int roundPrecision) {
+    return Precision.round(within(value, min, max), roundPrecision).doubleValue();
+  }
+
+  /**
+   * The resulting value will be within (inclusive) min max range.
+   *
+   * @param value will be constrained
+   * @param min   minimum value
+   * @param max   maximum value
+   * @return min <= result <= max
+   */
+  public static double within(double value, double min, double max) {
+    if (value <= min) {
+      return min;
+    }
+    if (value >= max) {
+      return max;
+    }
+    return value;
+  }
+
+  /**
+   * Tries to parse double number
+   *
+   * @param number tested number string
+   * @return true if parsed to a double
+   */
+  public static boolean isNumber(String number) {
+    try {
+      Double.parseDouble(number);
+      return true;
+    } catch (Exception ex) {
+      return false;
+    }
+  }
+
+  /**
+   * Tries to parse double number
+   *
+   * @param number     tested number string
+   * @param defaultVal the default value
+   * @return the double value or default if not parable
+   */
+  public static double getDoubleOrElse(String number, double defaultVal) {
+    try {
+      return Double.parseDouble(number);
+    } catch (Exception ex) {
+      return defaultVal;
+    }
+  }
+
+  /**
+   * Tries to parse int
+   *
+   * @param number tested number string
+   * @return true if parsed to int
+   */
+  public static boolean isInt(String number) {
+    try {
+      Integer.parseInt(number);
+      return true;
+    } catch (Exception ex) {
+      return false;
+    }
   }
 }

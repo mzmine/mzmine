@@ -37,6 +37,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.Comparators;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.MirrorChartFactory;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -65,6 +66,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
 import org.jetbrains.annotations.Nullable;
 
 
@@ -74,6 +77,9 @@ public class ResultWindowController {
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final DecimalFormat percentFormat = new DecimalFormat("##.##%");
   private final NumberFormat ppmFormat = new DecimalFormat("0.0");
+
+
+  private final ValidationSupport validationSupport = new ValidationSupport();
 
   private final ObservableList<ResultFormula> formulas = FXCollections.observableArrayList();
   public CheckBox cbLimitFormula;
@@ -155,12 +161,23 @@ public class ResultWindowController {
       return new ReadOnlyObjectWrapper<>(cellVal);
     });
 
+    //    ValidationDecoration iconDecorator = new GraphicValidationDecoration();
+    //    ValidationDecoration cssDecorator = new StyleClassValidationDecoration();
+    //    ValidationDecoration compoundDecorator = new CompoundValidationDecoration(cssDecorator, iconDecorator);
+    //        validationSupport.setValidationDecorator(cssDecorator);
+
     txtSearchedMz.setTooltip(new Tooltip(
         "Uses this m/z for the search instead of the one defined in the parameters (if set)"));
     cbLimitFormula.setTooltip(new Tooltip(
         "Quick way to limit the elements even further to a defined formula, e.g., C12H20O2"));
     txtMaxFormula.setTooltip(new Tooltip(
         "Quick way to limit the elements even further to a defined formula, e.g., C12H20O2"));
+
+    validationSupport.registerValidator(txtSearchedMz, false,
+        Validator.createPredicateValidator(o -> {
+          final String val = o.toString().trim();
+          return val.length() == 0 || MathUtils.isNumber(val);
+        }, "number needed"));
 
     updateDelay = new PauseTransition(Duration.seconds(1.5));
     updateDelay.setOnFinished(event -> rerunPrediction());
@@ -401,6 +418,11 @@ public class ResultWindowController {
     if (searchTask != null && !searchTask.isFinished()) {
       searchTask.cancel();
     }
+    formulas.clear();
+
+    if (validationSupport.isInvalid()) {
+      return;
+    }
 
     // read mz and
     final ParameterSet param = getParameters().cloneParameterSet();
@@ -408,7 +430,7 @@ public class ResultWindowController {
     double searchedMz = -1;
     try {
       // optionally set
-      searchedMz = Double.parseDouble(txtSearchedMz.getText());
+      searchedMz = Double.parseDouble(txtSearchedMz.getText().trim());
       param.getParameter(FormulaPredictionParameters.neutralMass).setIonMass(searchedMz);
     } catch (Exception ex) {
     }
@@ -420,10 +442,13 @@ public class ResultWindowController {
     }
 
     // neutral mass
-    searchedMass = param.getValue(FormulaPredictionParameters.neutralMass);
+    final Double value = param.getValue(FormulaPredictionParameters.neutralMass);
+    if (value != null) {
+      searchedMass = value;
 
-    // run new task
-    searchTask = new FormulaPredictionTask(param, Instant.now(), window, null, null);
-    MZmineCore.getTaskController().addTask(searchTask, TaskPriority.HIGH);
+      // run new task
+      searchTask = new FormulaPredictionTask(param, Instant.now(), window, null, null);
+      MZmineCore.getTaskController().addTask(searchTask, TaskPriority.HIGH);
+    }
   }
 }
