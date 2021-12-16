@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.savitzkygolay.SavitzkyGolayResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_masscalibration.MassCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
@@ -48,13 +49,14 @@ import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureD
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
-import io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule;
+import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
@@ -93,7 +95,7 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
-import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
@@ -123,6 +125,7 @@ import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportModule;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportModule;
 import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportModule;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveAsModule;
 import io.github.mzmine.modules.io.projectsave.ProjectSaveModule;
@@ -153,6 +156,7 @@ public class BatchModeModulesList {
       ThermoRawImportModule.class, //
       WatersRawImportModule.class, //
       ZipImportModule.class, //
+      SpectralLibraryImportModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#SPECTRAL_DATA}
@@ -196,6 +200,7 @@ public class BatchModeModulesList {
       ADAPHierarchicalClusteringModule.class, //
       ADAPMultivariateCurveResolutionModule.class, //
       ADAP3DModule.class, //
+      ImsExpanderModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_DETECTION}
@@ -233,6 +238,7 @@ public class BatchModeModulesList {
       FeatureFilterModule.class, //
       RowsFilterModule.class, //
       IsotopeGrouperModule.class, //
+      IsotopeFinderModule.class, //
       FeatureListBlankSubtractionModule.class, //
       DuplicateFilterModule.class, //
       MobilityMzRegionExtractionModule.class, //
@@ -242,7 +248,7 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
        */
-      FeatureListClearAnnotationsModule.class, //
+      ClearFeatureAnnotationsModule.class, //
       LinearNormalizerModule.class, //
       RTCalibrationModule.class, //
       StandardCompoundNormalizerModule.class, //
@@ -285,7 +291,7 @@ public class BatchModeModulesList {
       OnlineDBSearchModule.class, //
       PrecursorDBSearchModule.class, //
       SiriusIdentificationModule.class, //
-      LocalSpectralDBSearchModule.class, //
+      SpectralLibrarySearchModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}

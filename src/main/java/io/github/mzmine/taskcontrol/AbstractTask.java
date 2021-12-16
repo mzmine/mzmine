@@ -21,9 +21,9 @@ package io.github.mzmine.taskcontrol;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractTask implements Task {
 
   protected final MemoryMapStorage storage;
-  protected final Date moduleCallDate;
+  protected final Instant moduleCallDate;
 
   private TaskStatus status = TaskStatus.WAITING;
 
@@ -59,14 +59,13 @@ public abstract class AbstractTask implements Task {
   }
 
   /**
-   *
-   * @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
+   *  @param storage The {@link MemoryMapStorage} used to store results of this task (e.g.
    *                RawDataFiles, MassLists, FeatureLists). May be null if results shall be stored
    *                in ram. For now, one storage should be created per module call in {@link
-   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection, Date)}.
+   *                io.github.mzmine.modules.MZmineRunnableModule#runModule(MZmineProject, ParameterSet, Collection, Instant)}.
    * @param moduleCallDate
    */
-  protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Date moduleCallDate) {
+  protected AbstractTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     this.storage = storage;
     this.moduleCallDate = moduleCallDate;
   }
@@ -165,7 +164,7 @@ public abstract class AbstractTask implements Task {
       listener.clear();
   }
 
-  public Date getModuleCallDate() {
+  public Instant getModuleCallDate() {
     return moduleCallDate;
   }
 }

@@ -25,7 +25,6 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import java.util.Collection;
-import javafx.beans.property.BooleanProperty;
 import org.w3c.dom.Element;
 
 /**
@@ -152,13 +151,6 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     // delegate skipSensitiveParameters to embedded ParameterSet
     embeddedParameters.setSkipSensitiveParameters(skipSensitiveParameters);
-  }
-
-  /**
-   * Returns BooleanProperty signalizing a change of any embedded parameter.
-   */
-  public BooleanProperty embeddedParametersChangeProperty() {
-    return embeddedParameters.parametersChangeProperty();
   }
 
   @Override

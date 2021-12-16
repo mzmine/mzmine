@@ -20,32 +20,41 @@ package io.github.mzmine.datamodel.features.types.annotations;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ModularType;
-import io.github.mzmine.datamodel.features.types.ModularTypeProperty;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.TreeTableColumn;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ManualAnnotationType extends ModularType implements AnnotationType {
+public class ManualAnnotationType extends DataType<ManualAnnotation> implements SubColumnsFactory,
+    AnnotationType {
+
+  private static final Logger logger = Logger.getLogger(ManualAnnotationType.class.getName());
 
   // Unmodifiable list of all subtypes
-  private final List<DataType> subTypes = List.of(new IdentityType(), new CommentType(),
-      new CompoundNameType(), new IonAdductType(), new FormulaType(), new SmilesStructureType());
+  private static final List<DataType> subTypes = List.of(new IdentityType(), new CommentType(),
+      new CompoundNameType(), new IonAdductType(), new FormulaType(), new InChIStructureType(),
+      new SmilesStructureType());
 
   @NotNull
   @Override
@@ -55,7 +64,6 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
   }
 
   @NotNull
-  @Override
   public List<DataType> getSubDataTypes() {
     return subTypes;
   }
@@ -67,84 +75,42 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
   }
 
   @Override
-  public ModularTypeProperty createProperty() {
-    final ModularTypeProperty property = super.createProperty();
-
-    property.get(IdentityType.class)
-        .addListener((ListChangeListener<? super FeatureIdentity>) change -> {
-          ObservableList<? extends FeatureIdentity> list = change.getList();
-          boolean firstElementChanged = false;
-          while (change.next()) {
-            firstElementChanged = firstElementChanged || change.getFrom() == 0;
-          }
-          if (firstElementChanged) {
-            // first list elements has changed - set all other fields
-            setCurrentElement(property, list.isEmpty() ? null : list.get(0));
-          }
-        });
-
-    // set listeners to update stored values if changes occur from the user
-    property.get(new CommentType()).addListener((observable, oldValue, newValue) -> {
-      if(newValue == null) {
-        return;
-      }
-      ((SimpleFeatureIdentity) property.get(new IdentityType()).get(0)).setPropertyValue(
-          FeatureIdentity.PROPERTY_COMMENT, newValue);
-    });
-
-    property.get(new CompoundNameType()).addListener((observable, oldValue, newValue) -> {
-      if(newValue == null) {
-        return;
-      }
-      ((SimpleFeatureIdentity) property.get(new IdentityType()).get(0)).setPropertyValue(
-          FeatureIdentity.PROPERTY_NAME, newValue);
-    });
-
-    property.get(new IonAdductType()).addListener((observable, oldValue, newValue) -> {
-      if(newValue == null) {
-        return;
-      }
-      ((SimpleFeatureIdentity) property.get(new IdentityType()).get(0)).setPropertyValue(
-          FeatureIdentity.PROPERTY_ADDUCT, newValue);
-    });
-
-    property.get(new FormulaType()).addListener((observable, oldValue, newValue) -> {
-      if(newValue == null) {
-        return;
-      }
-      ((SimpleFeatureIdentity) property.get(new IdentityType()).get(0)).setPropertyValue(
-          FeatureIdentity.PROPERTY_FORMULA, newValue);
-    });
-
-    property.get(new SmilesStructureType()).addListener((observable, oldValue, newValue) -> {
-      if(newValue == null) {
-        return;
-      }
-      ((SimpleFeatureIdentity) property.get(new IdentityType()).get(0)).setPropertyValue(
-          FeatureIdentity.PROPERTY_SMILES, newValue);
-    });
-
-    return property;
+  public Property<ManualAnnotation> createProperty() {
+    return new SimpleObjectProperty<>();
   }
 
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
       @Nullable ModularFeature feature, @Nullable RawDataFile file) throws XMLStreamException {
-    if (!(value instanceof Map map)) {
+    if (value == null) {
       return;
     }
+    if (!(value instanceof ManualAnnotation manual)) {
+      throw new IllegalArgumentException(
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+          + value.getClass());
+    }
 
-    for (Object o : map.entrySet()) {
-      if (!(o instanceof Map.Entry entry)) {
-        continue;
-      }
+    for (int i = 0; i < subTypes.size(); i++) {
+      DataType sub = subTypes.get(i);
+      Object subValue = getSubColValue(sub, manual);
+      if (subValue != null) {
+        writer.writeStartElement(CONST.XML_DATA_TYPE_ELEMENT);
+        writer.writeAttribute(CONST.XML_DATA_TYPE_ID_ATTR, sub.getUniqueID());
 
-      if (entry.getKey() instanceof IdentityType) {
-        List<FeatureIdentity> ids = (List<FeatureIdentity>) entry.getValue();
-        for (FeatureIdentity id : ids) {
-          id.saveToXML(writer);
+        try { // catch here, so we can easily debug and don't destroy the flist while saving in case an unexpected exception happens
+          sub.saveToXML(writer, subValue, flist, row, feature, file);
+        } catch (XMLStreamException e) {
+          final Object finalVal = subValue;
+          logger.warning(
+              () -> "Error while writing data type " + sub.getClass().getSimpleName()
+                    + " with value "
+                    + finalVal + " to xml.");
+          e.printStackTrace();
         }
+
+        writer.writeEndElement();
       }
     }
   }
@@ -153,44 +119,152 @@ public class ManualAnnotationType extends ModularType implements AnnotationType 
   public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
-    while (!(reader.isStartElement() && reader.getLocalName()
-        .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)) && reader.hasNext()) {
-      reader.next();
-      if ((reader.isEndElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
-        // do not overshoot the current element.
-        return null;
-      }
-    }
+    ManualAnnotation manual = null;
+    while (reader.hasNext()) {
+      int next = reader.next();
 
-    List<FeatureIdentity> ids = new ArrayList<>();
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(CONST.XML_DATA_TYPE_ELEMENT))) {
-      if (reader.isStartElement() && reader.getLocalName()
-          .equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)) {
-        var id = FeatureIdentity.loadFromXML(reader, flist.getRawDataFiles());
-        ids.add(id);
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
+          .equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        break;
       }
-      reader.next();
+      if (reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT)) {
+        DataType type = DataTypes.getTypeForId(
+            reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+        Object o = type.loadFromXML(reader, flist, row, feature, file);
+        if (manual == null) {
+          manual = new ManualAnnotation();
+        }
+        manual.set(type, o);
+      }
     }
-    ModularTypeProperty property = createProperty();
-    property.set(IdentityType.class, ids);
-    return property;
+    return manual;
   }
 
-  private void setCurrentElement(ModularTypeProperty data, FeatureIdentity identity) {
-    if (identity == null) {
-      for (DataType type : this.getSubDataTypes()) {
-        if (!(type instanceof IdentityType)) {
-          data.set(type, null);
-        }
+  @Override
+  public Class<ManualAnnotation> getValueClass() {
+    return ManualAnnotation.class;
+  }
+
+  @Override
+  public @NotNull List<TreeTableColumn<ModularFeatureListRow, Object>> createSubColumns(
+      @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType) {
+    // add column for each sub data type
+    List<TreeTableColumn<ModularFeatureListRow, Object>> cols = new ArrayList<>();
+
+    List<DataType> subTypes = getSubDataTypes();
+    // create column per name
+    for (int index = 0; index < getNumberOfSubColumns(); index++) {
+      DataType type = subTypes.get(index);
+      if (this.getClass().isInstance(type)) {
+        // create a special column for this type that actually represents the list of data
+        cols.add(DataType.createStandardColumn(type, raw, this, index));
+      } else {
+        // create all other columns
+        var col = type.createColumn(raw, this, index);
+        // override type in CellValueFactory with this parent type
+        cols.add(col);
       }
+    }
+    return cols;
+  }
+
+  @Override
+  public <T> void valueChanged(ModularDataModel model, DataType<T> subType, int subColumnIndex,
+      T newValue) {
+    try {
+      ManualAnnotation manual = Objects.requireNonNullElse(model.get(this), new ManualAnnotation());
+
+      if (subType.getClass().equals(CommentType.class)) {
+        manual.setComment((String) newValue);
+      } else if (subType.getClass().equals(SmilesStructureType.class)) {
+        manual.setSmiles((String) newValue);
+      } else if (subType.getClass().equals(InChIStructureType.class)) {
+        manual.setInchi((String) newValue);
+      } else if (subType.getClass().equals(IdentityType.class)) {
+        List<FeatureIdentity> identities = Objects
+            .requireNonNullElse(manual.getIdentities(), new ArrayList<>());
+        identities.remove(newValue);
+        identities.add(0, (FeatureIdentity) newValue);
+        manual.setIdentities(identities);
+      } else if (subType.getClass().equals(FormulaType.class)) {
+        manual.setFormula((String) newValue);
+      } else if (subType.getClass().equals(IonAdductType.class)) {
+        manual.setIon((String) newValue);
+      } else if (subType.getClass().equals(CompoundNameType.class)) {
+        manual.setCompoundName((String) newValue);
+      }
+      // finally set annotation
+      model.set(ManualAnnotationType.class, manual);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, () -> String.format(
+          "Cannot handle change in subtype %s at index %d in parent type %s with new value %s",
+          subType.getClass().getName(), subColumnIndex, this.getClass().getName(), newValue));
+    }
+  }
+
+  @Override
+  public int getNumberOfSubColumns() {
+    return subTypes.size();
+  }
+
+  @Override
+  public @Nullable String getHeader(int subcolumn) {
+    List<DataType> list = getSubDataTypes();
+    if (subcolumn >= 0 && subcolumn < list.size()) {
+      return list.get(subcolumn).getHeaderString();
     } else {
-      data.set(CommentType.class, identity.getPropertyValue(FeatureIdentity.PROPERTY_COMMENT));
-      data.set(CompoundNameType.class, identity.getName());
-      data.set(IonAdductType.class, identity.getPropertyValue(FeatureIdentity.PROPERTY_ADDUCT));
-      data.set(FormulaType.class, identity.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA));
-      data.set(SmilesStructureType.class,
-          identity.getPropertyValue(FeatureIdentity.PROPERTY_SMILES));
+      throw new IndexOutOfBoundsException(
+          "Sub column index " + subcolumn + " is out of range " + list.size());
+    }
+  }
+
+  @Override
+  public @NotNull DataType<?> getType(int index) {
+    if (index < 0 || index >= getSubDataTypes().size()) {
+      throw new IndexOutOfBoundsException(String
+          .format("Sub column index %d is out of bounds %d", index, getSubDataTypes().size()));
+    }
+    return getSubDataTypes().get(index);
+  }
+
+  @Override
+  public @Nullable String getFormattedSubColValue(int subcolumn, Object value) {
+    DataType sub = getType(subcolumn);
+    if (sub == null) {
+      return "";
+    }
+    if (value == null) {
+      return sub.getFormattedString(sub.getDefaultValue());
+    }
+
+    Object subvalue = null;
+    try {
+      subvalue = getSubColValue(sub, value);
+      return sub.getFormattedString(subvalue == null ? sub.getDefaultValue() : subvalue);
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, String.format(
+          "Error while formatting sub column value in type %s. Sub type %s cannot format value of %s",
+          this.getClass().getName(), sub.getClass().getName(),
+          (subvalue == null ? "null" : subvalue.getClass())), ex);
+      return "";
+    }
+  }
+
+  @Override
+  public @Nullable Object getSubColValue(int subcolumn, Object cellData) {
+    DataType sub = getType(subcolumn);
+    return sub == null ? null : getSubColValue(sub, cellData);
+  }
+
+  public @Nullable Object getSubColValue(DataType sub, Object value) {
+    if (value == null) {
+      return null;
+    } else if (value instanceof ManualAnnotation man) {
+      return man.get(sub);
+    } else {
+      throw new IllegalArgumentException(String
+          .format("value of type %s needs to be of type manual annotation",
+              value.getClass().getName()));
     }
   }
 }

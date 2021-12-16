@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
 
+import java.time.Instant;
 import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +55,7 @@ public class OnlineDBSpectraSearchModule implements MZmineModule {
    * @param row the feature list row.
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
-      final SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      final SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
 
     final SpectraIdentificationOnlineDatabaseParameters parameters =
         (SpectraIdentificationOnlineDatabaseParameters) MZmineCore.getConfiguration()

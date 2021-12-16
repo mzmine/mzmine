@@ -18,11 +18,6 @@
 
 package io.github.mzmine.modules.dataanalysis.clustering;
 
-import java.util.Collection;
-
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -30,6 +25,9 @@ import io.github.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotDatas
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class ClusteringModule implements MZmineRunnableModule {
 
@@ -50,7 +48,7 @@ public class ClusteringModule implements MZmineRunnableModule {
   @Override
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     ProjectionPlotDataset dataset = new ClusteringTask(parameters);
     tasks.add(dataset);
     return ExitCode.OK;

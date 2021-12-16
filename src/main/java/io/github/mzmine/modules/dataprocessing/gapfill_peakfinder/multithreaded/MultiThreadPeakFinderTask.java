@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +66,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private int taskIndex;
 
   MultiThreadPeakFinderTask(ModularFeatureList peakList, ModularFeatureList processedPeakList,
-      ParameterSet parameters, int start, int endexcl, int taskIndex, @NotNull Date moduleCallDate) {
+      ParameterSet parameters, int start, int endexcl, int taskIndex, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
 
     this.taskIndex = taskIndex;
@@ -183,6 +184,10 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
 
       while (access.hasNextFrame()) {
+        if(isCanceled()) {
+          return;
+        }
+
         final Frame frame = access.nextFrame();
         for (ImsGap gap : imsGaps) {
           access.resetMobilityScan();

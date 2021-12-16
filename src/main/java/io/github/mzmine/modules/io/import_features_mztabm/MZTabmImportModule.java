@@ -26,7 +26,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 
 import io.github.mzmine.util.MemoryMapStorage;
-import java.util.Date;
+import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.io.File;
@@ -47,7 +47,7 @@ public class MZTabmImportModule implements MZmineProcessingModule {
   @NotNull
   @Override
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Collection<Task> tasks, @NotNull Date moduleCallDate) {
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
     File inputFiles[] = parameters.getParameter(MzTabmImportParameters.file).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +66,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list feature list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list, @NotNull Date moduleCallDate) {
+  PeakListIdentificationTask(final ParameterSet parameters, final FeatureList list, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     peakList = list;
     numItems = 0;

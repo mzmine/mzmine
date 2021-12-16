@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -67,7 +68,7 @@ public class ImageVisualizerTask extends AbstractTask {
 
 
   public ImageVisualizerTask(RawDataFile rawDataFile, ParameterSet parameters) {
-    super(null, new Date());// date irrelevant
+    super(null, Instant.now());// date irrelevant
     this.parameters = parameters;
     this.rawDataFile = (ImagingRawDataFile) rawDataFile;
     this.imagingParameters = ((ImagingRawDataFile) rawDataFile).getImagingParam();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.project.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -27,8 +27,10 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
@@ -59,10 +61,10 @@ public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
 
   // Name of this raw data file - may be changed by the user
-  private final StringProperty nameProperty = new SimpleStringProperty();
+  private final StringProperty nameProperty = new SimpleStringProperty("");
 
   protected final String absolutePath;
 
@@ -92,8 +94,7 @@ public class RawDataFileImpl implements RawDataFile {
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
       @Nullable final MemoryMapStorage storage, @NotNull Color color) throws IOException {
-
-    this.nameProperty.set(dataFileName);
+    setName(dataFileName);
     this.storageMemoryMap = storage;
     this.absolutePath = absolutePath;
 
@@ -116,7 +117,7 @@ public class RawDataFileImpl implements RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return
+   * @return data point with maximum intensity (centroided)
    */
   @Override
   public int getMaxCentroidDataPoints() {
@@ -127,7 +128,7 @@ public class RawDataFileImpl implements RawDataFile {
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return
+   * @return data point with maximum intensity in unprocessed data points
    */
   @Override
   public int getMaxRawDataPoints() {
@@ -205,7 +206,6 @@ public class RawDataFileImpl implements RawDataFile {
    */
   @Override
   public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
-    assert rtRange != null;
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
         .toArray(Scan[]::new);
@@ -463,8 +463,35 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public void setName(@NotNull String name) {
-    nameProperty.set(name);
+  public String setName(@NotNull String name) {
+    if (name.isBlank()) {
+      // keep old name
+      return getName();
+    }
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+
+    if (project != null) {
+      synchronized (project.getRawDataFiles()) {
+        final List<String> names = new ArrayList<>(
+            project.getRawDataFiles().stream().map(RawDataFile::getName).toList());
+        final String oldName = getName();
+        // name is empty if set for the first time
+        if (!oldName.isBlank()) {
+          names.remove(oldName);
+        }
+
+        // make path safe
+        name = FileAndPathUtil.safePathEncode(name);
+        // handle duplicates
+        name =
+            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+      }
+    }
+
+    final String finalName = name;
+    MZmineCore.runLater(() -> this.nameProperty.set(finalName));
+    return finalName;
   }
 
   @Override

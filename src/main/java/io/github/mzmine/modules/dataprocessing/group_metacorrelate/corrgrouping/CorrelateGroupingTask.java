@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping;
@@ -49,7 +48,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.text.MessageFormat;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,7 +104,7 @@ public class CorrelateGroupingTask extends AbstractTask {
    * @param featureList  feature list.
    */
   public CorrelateGroupingTask(final MZmineProject project, final ParameterSet parameterSet,
-      final ModularFeatureList featureList, @NotNull Date moduleCallDate) {
+      final ModularFeatureList featureList, @NotNull Instant moduleCallDate) {
     super(featureList.getMemoryMapStorage(), moduleCallDate);
     this.project = project;
     this.featureList = featureList;
@@ -172,7 +171,7 @@ public class CorrelateGroupingTask extends AbstractTask {
     autoSuffix = !parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getValue();
 
     if (autoSuffix) {
-      suffix = MessageFormat.format("corr {2} r>={0} dp>={1}", minShapeCorrR,
+      suffix = MessageFormat.format("corr {2} r greq {0} dp greq {1}", minShapeCorrR,
           minCorrelatedDataPoints, shapeSimMeasure);
     } else {
       suffix = parameters.getParameter(CorrelateGroupingParameters.SUFFIX).getEmbeddedParameter()
@@ -197,8 +196,8 @@ public class CorrelateGroupingTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.log(Level.INFO, "Starting metaCorrelation search in feature list {0}",
-        featureList.getName());
+    logger.log(Level.INFO, () -> String.format("Starting metaCorrelation search in feature list %s",
+        featureList.getName()));
     try {
       if (isCanceled()) {
         return;
@@ -243,7 +242,8 @@ public class CorrelateGroupingTask extends AbstractTask {
 
         // Add task description to peakList.
         groupedPKL.addDescriptionOfAppliedTask(
-            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters, getModuleCallDate()));
+            new SimpleFeatureListAppliedMethod(CorrelateGroupingModule.class, parameters,
+                getModuleCallDate()));
 
         // Done.
         setStatus(TaskStatus.FINISHED);

@@ -18,27 +18,28 @@
 
 package io.github.mzmine.modules.io.projectload;
 
-import java.io.File;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
+import java.util.List;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProjectLoaderParameters extends SimpleParameterSet {
 
-  private static final ExtensionFilter filters[] = new ExtensionFilter[] { //
-      new ExtensionFilter("MZmine projects", "*.mzmine"), //
-      new ExtensionFilter("All Files", "*.*") //
-  };
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("MZmine project file", "*.mzmine"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
 
   public static final FileNameParameter projectFile = new FileNameParameter("Project file",
-      "File name of project to be loaded", FileSelectionType.OPEN);
+      "File name of project to be loaded", extensions, FileSelectionType.OPEN);
 
   public ProjectLoaderParameters() {
-    super(new Parameter[] {projectFile});
+    super(new Parameter[]{projectFile});
   }
 
   @Override
@@ -46,7 +47,7 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
 
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle("Open MZmine project");
-    fileChooser.getExtensionFilters().addAll(filters);
+    fileChooser.getExtensionFilters().addAll(extensions);
 
     File currentFile = getParameter(projectFile).getValue();
     if (currentFile != null) {

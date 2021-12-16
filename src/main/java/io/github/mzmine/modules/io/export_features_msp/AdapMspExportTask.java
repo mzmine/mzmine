@@ -16,13 +16,6 @@
 
 package io.github.mzmine.modules.io.export_features_msp;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureInformation;
@@ -34,6 +27,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.IntegerMode;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,7 +55,7 @@ public class AdapMspExportTask extends AbstractTask {
   private final boolean integerMZ;
   private final IntegerMode roundMode;
 
-  AdapMspExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  AdapMspExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(AdapMspExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();

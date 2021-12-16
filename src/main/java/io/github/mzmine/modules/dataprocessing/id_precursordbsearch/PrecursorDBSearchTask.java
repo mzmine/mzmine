@@ -21,16 +21,6 @@ package io.github.mzmine.modules.dataprocessing.id_precursordbsearch;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -38,17 +28,25 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.PrecursorDBFeatureIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import io.github.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import io.github.mzmine.util.spectraldb.parser.UnsupportedFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Search for possible precursor m/z . All rows average m/z against local spectral database
- * 
- * @author
+ * Search for possible precursor m/z . All rows average m/z against local spectral libraries
  *
+ * @author
  */
 class PrecursorDBSearchTask extends AbstractTask {
 
@@ -66,7 +64,7 @@ class PrecursorDBSearchTask extends AbstractTask {
   private int totalTasks;
   private AtomicInteger matches = new AtomicInteger(0);
 
-  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  public PrecursorDBSearchTask(FeatureList peakList, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.peakList = peakList;
     this.parameters = parameters;
@@ -141,7 +139,7 @@ class PrecursorDBSearchTask extends AbstractTask {
 
     // Add task description to peakList
     peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Possible precursor identification using MS/MS spectral database " + dataBaseFile,
+        "Possible precursor identification using MS/MS spectral libraries " + dataBaseFile,
         PrecursorDBSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
@@ -161,7 +159,7 @@ class PrecursorDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
 
-        AbstractTask task = new AbstractTask(null, new Date()) {
+        AbstractTask task = new AbstractTask(null, Instant.now()) {
           private int total = peakList.getNumberOfRows();
           private int done = 0;
 

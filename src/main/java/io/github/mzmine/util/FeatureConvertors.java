@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
@@ -102,12 +101,12 @@ public class FeatureConvertors {
     ModularFeature modularFeature = new ModularFeature(
         (ModularFeatureList) chromatogram.getFeatureList());
 
-    modularFeature
-        .set(FragmentScanNumbersType.class, List.of(chromatogram.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        List.of(chromatogram.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(chromatogram.getScanNumbers()));
 
-    modularFeature
-        .set(BestFragmentScanNumberType.class, chromatogram.getMostIntenseFragmentScanNumber());
+    modularFeature.set(BestFragmentScanNumberType.class,
+        chromatogram.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
     if (chromatogram.getIsotopePattern() != null) {
       modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
@@ -133,9 +132,9 @@ public class FeatureConvertors {
     // recalculate data dependent types
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
-    ObservableList<Scan> allMS2 = Arrays.stream(ScanUtils
-        .findAllMS2FragmentScans(chromatogram.getDataFile(),
-            modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
+    ObservableList<Scan> allMS2 = Arrays.stream(
+            ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(),
+                modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     modularFeature.setAllMS2FragmentScans(allMS2);
 
@@ -163,8 +162,7 @@ public class FeatureConvertors {
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
 
-    final MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList())
-        .getMemoryMapStorage();
+    final MemoryMapStorage storage = ((ModularFeatureList) ionTrace.getFeatureList()).getMemoryMapStorage();
     final List<IonMobilitySeries> mobilograms = new ArrayList<>();
 
     var sortedDp = FeatureConvertorIonMobility.groupDataPointsByFrameId(ionTrace.getDataPoints());
@@ -175,14 +173,13 @@ public class FeatureConvertors {
       mobilograms.add(mobilogram);
     }
 
-    final IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
-        .of(storage, mobilograms, mobilogramBinner);
+    final IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory.of(storage,
+        mobilograms, mobilogramBinner);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
 
     // no need to calc quality parameters after feature detection.
-    FeatureDataUtils
-        .recalculateIonSeriesDependingTypes(modularFeature, FeatureDataUtils.DEFAULT_CENTER_MEASURE,
-            false);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature,
+        FeatureDataUtils.DEFAULT_CENTER_FUNCTION, false);
 
     return modularFeature;
   }
@@ -197,14 +194,15 @@ public class FeatureConvertors {
     modularFeature.set(RawFileType.class, rawDataFile);
     modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
     modularFeature.setMobilityUnit(((IMSRawDataFile) rawDataFile).getMobilityType());
-    modularFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, false);
+    modularFeature.set(FeatureShapeIonMobilityRetentionTimeHeatMapType.class, true);
 
     MemoryMapStorage storage = flist.getMemoryMapStorage();
-    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory
-        .of(storage, ionTrace.getMobilograms(), mobilogramBinner);
+    IonMobilogramTimeSeries imTimeSeries = IonMobilogramTimeSeriesFactory.of(storage,
+        ionTrace.getMobilograms(), mobilogramBinner);
     modularFeature.set(FeatureDataType.class, imTimeSeries);
     // no need to calc quality parameters after feature detection.
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature, FeatureDataUtils.DEFAULT_CENTER_MEASURE, false);
+    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature,
+        FeatureDataUtils.DEFAULT_CENTER_FUNCTION, false);
 
     return modularFeature;
   }
@@ -247,11 +245,11 @@ public class FeatureConvertors {
 
     // Ranges
     Range<Float> rtRange = Range.closed(0.f, 0.f);
-    Range<Double> mzRange = Range
-        .closed(image.getMzRange().lowerEndpoint(), image.getMzRange().upperEndpoint());
-    Range<Float> intensityRange = Range
-        .closed(image.getIntensityRange().lowerEndpoint().floatValue(),
-            image.getIntensityRange().upperEndpoint().floatValue());
+    Range<Double> mzRange = Range.closed(image.getMzRange().lowerEndpoint(),
+        image.getMzRange().upperEndpoint());
+    Range<Float> intensityRange = Range.closed(
+        image.getIntensityRange().lowerEndpoint().floatValue(),
+        image.getIntensityRange().upperEndpoint().floatValue());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
@@ -309,8 +307,8 @@ public class FeatureConvertors {
     modularFeature.setRepresentativeScan(manualFeature.getRepresentativeScanNumber());
     // Add values to feature
 
-    modularFeature
-        .set(FragmentScanNumbersType.class, List.of(manualFeature.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        List.of(manualFeature.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
 
     modularFeature.set(RawFileType.class, manualFeature.getRawDataFile());
@@ -334,9 +332,9 @@ public class FeatureConvertors {
         manualFeature.getRawDataPointsRTRange().upperEndpoint());
     Range<Double> mzRange = Range.closed(manualFeature.getRawDataPointsMZRange().lowerEndpoint(),
         manualFeature.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange = Range
-        .closed(manualFeature.getRawDataPointsIntensityRange().lowerEndpoint(),
-            manualFeature.getRawDataPointsIntensityRange().upperEndpoint());
+    Range<Float> intensityRange = Range.closed(
+        manualFeature.getRawDataPointsIntensityRange().lowerEndpoint(),
+        manualFeature.getRawDataPointsIntensityRange().upperEndpoint());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
@@ -383,12 +381,12 @@ public class FeatureConvertors {
 
     ModularFeature modularFeature = new ModularFeature(featureList);
 
-    modularFeature
-        .set(FragmentScanNumbersType.class, List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
-    modularFeature
-        .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
+    modularFeature.set(BestFragmentScanNumberType.class,
+        sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -415,9 +413,9 @@ public class FeatureConvertors {
         sameRangePeak.getRawDataPointsRTRange().upperEndpoint());
     Range<Double> mzRange = Range.closed(sameRangePeak.getRawDataPointsMZRange().lowerEndpoint(),
         sameRangePeak.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange = Range
-        .closed(sameRangePeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-            sameRangePeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
+    Range<Float> intensityRange = Range.closed(
+        sameRangePeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
+        sameRangePeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
@@ -458,12 +456,12 @@ public class FeatureConvertors {
 
     ModularFeature modularFeature = new ModularFeature(featureList);
 
-    modularFeature
-        .set(FragmentScanNumbersType.class, List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
-    modularFeature
-        .set(BestFragmentScanNumberType.class, sameRangePeak.getMostIntenseFragmentScanNumber());
+    modularFeature.set(BestFragmentScanNumberType.class,
+        sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -490,9 +488,9 @@ public class FeatureConvertors {
         sameRangePeak.getRawDataPointsRTRange().upperEndpoint());
     Range<Double> mzRange = Range.closed(sameRangePeak.getRawDataPointsMZRange().lowerEndpoint(),
         sameRangePeak.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange = Range
-        .closed(sameRangePeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-            sameRangePeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
+    Range<Float> intensityRange = Range.closed(
+        sameRangePeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
+        sameRangePeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);
@@ -534,12 +532,12 @@ public class FeatureConvertors {
     ModularFeature modularFeature = new ModularFeature(featureList);
 
     // Add values to feature
-    modularFeature
-        .set(FragmentScanNumbersType.class, List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class,
+        List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
 
-    modularFeature
-        .set(BestFragmentScanNumberType.class, resolvedPeak.getMostIntenseFragmentScanNumber());
+    modularFeature.set(BestFragmentScanNumberType.class,
+        resolvedPeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, resolvedPeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, resolvedPeak.getPeakInformation());
@@ -561,14 +559,13 @@ public class FeatureConvertors {
 //        Arrays.asList(resolvedPeak.getScanNumbers()));
     IonTimeSeries<? extends Scan> resolvedData = null;
     if (originalData instanceof SimpleIonTimeSeries) {
-      resolvedData = ((SimpleIonTimeSeries) originalData)
-          .subSeries(featureList.getMemoryMapStorage(),
-              Arrays.asList(resolvedPeak.getScanNumbers()));
+      resolvedData = ((SimpleIonTimeSeries) originalData).subSeries(
+          featureList.getMemoryMapStorage(), Arrays.asList(resolvedPeak.getScanNumbers()));
     } else if (originalData instanceof IonMobilogramTimeSeries) {
       List<? extends Scan> scans = Arrays.asList(resolvedPeak.getScanNumbers());
       List<Frame> frames = (List<Frame>) scans;
-      resolvedData = ((SimpleIonMobilogramTimeSeries) originalData)
-          .subSeries(featureList.getMemoryMapStorage(), frames);
+      resolvedData = ((SimpleIonMobilogramTimeSeries) originalData).subSeries(
+          featureList.getMemoryMapStorage(), frames);
     } else {
       throw new IllegalArgumentException(
           "Smoothing is not yet supported for this kind of data. " + originalData.getClass()
@@ -581,9 +578,9 @@ public class FeatureConvertors {
         resolvedPeak.getRawDataPointsRTRange().upperEndpoint());
     Range<Double> mzRange = Range.closed(resolvedPeak.getRawDataPointsMZRange().lowerEndpoint(),
         resolvedPeak.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange = Range
-        .closed(resolvedPeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-            resolvedPeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
+    Range<Float> intensityRange = Range.closed(
+        resolvedPeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
+        resolvedPeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
     modularFeature.set(MZRangeType.class, mzRange);
     modularFeature.set(RTRangeType.class, rtRange);
     modularFeature.set(IntensityRangeType.class, intensityRange);

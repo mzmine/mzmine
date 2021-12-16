@@ -44,7 +44,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
- * Window to show all spectral database matches from selected scan or feature list match
+ * Window to show all spectral libraries matches from selected scan or feature list match
  *
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de) & SteffenHeu (s_heuc03@uni-muenster.de)
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -36,7 +35,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> implements
+public class DetectionType extends DataType<FeatureStatus> implements
     GraphicalColumType<FeatureStatus> {
 
   @NotNull
@@ -47,9 +46,24 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
   }
 
   @Override
+  public @Nullable FeatureStatus getDefaultValue() {
+    return FeatureStatus.UNKNOWN;
+  }
+
+  @Override
+  public @NotNull String getFormattedString(FeatureStatus value) {
+    return value == null ? getDefaultValue().toString() : value.toString();
+  }
+
+  @Override
   @NotNull
   public String getHeaderString() {
     return "State";
+  }
+
+  @Override
+  public Class<FeatureStatus> getValueClass() {
+    return FeatureStatus.class;
   }
 
   @Override
@@ -73,7 +87,7 @@ public class DetectionType extends DataType<ObjectProperty<FeatureStatus>> imple
 
   @Override
   public ObjectProperty<FeatureStatus> createProperty() {
-    return new SimpleObjectProperty<FeatureStatus>(FeatureStatus.UNKNOWN);
+    return new SimpleObjectProperty<>(FeatureStatus.UNKNOWN);
   }
 
   @Override

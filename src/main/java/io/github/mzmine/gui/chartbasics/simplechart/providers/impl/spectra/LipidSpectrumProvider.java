@@ -18,23 +18,22 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
-import java.awt.Color;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidAnnotationLevel;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.awt.Color;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LipidSpectrumProvider implements PlotXYDataProvider {
 
@@ -69,16 +68,19 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
 
       @Override
       public MassSpectrumType getSpectrumType() {
+        if(spectrum != null){
+          return spectrum.getSpectrumType();
+        }
         return null;
       }
 
       @Override
-      public double[] getMzValues(@Nonnull double[] dst) {
+      public double[] getMzValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
       @Override
-      public double[] getIntensityValues(@Nonnull double[] dst) {
+      public double[] getIntensityValues(@NotNull double[] dst) {
         return new double[0]; // Local implementation only so this does not matter
       }
 
@@ -127,68 +129,36 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
         return null;
       }
 
-      @Nonnull
+      @NotNull
       @Override
       public Iterator<DataPoint> iterator() {
         return null;
       }
+
     };
 
     this.seriesKey = seriesKey;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return color;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return FxColorUtil.awtColorToFX(color);
   }
 
-  @Nullable
-  @Override
-  public String getLabel(int index) {
-    if (matchedFragments != null) {
-      return buildFragmentAnnotation(matchedFragments.get(index));
-    } else {
-      return null;
-    }
-  }
 
-  private String buildFragmentAnnotation(LipidFragment lipidFragment) {
-    if (lipidFragment.getLipidFragmentInformationLevelType()
-        .equals(LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL)) {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getLipidChainType() + " " + lipidFragment.getChainLength() + ":"
-          + lipidFragment.getNumberOfDBEs());
-      System.out.println(sb.toString());
-      return sb.toString();
-    } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append(lipidFragment.getRuleType());
-      return sb.toString();
-    }
-  }
-
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return seriesKey;
   }
 
-  @Nullable
-  @Override
-  public String getToolTipText(int itemIndex) {
-    if (matchedFragments != null) {
-      return buildFragmentAnnotation(matchedFragments.get(itemIndex));
-    } else {
-      return null;
-    }
-  }
 
   @Override
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
@@ -213,5 +183,15 @@ public class LipidSpectrumProvider implements PlotXYDataProvider {
   @Override
   public double getComputationFinishedPercentage() {
     return 1d;
+  }
+
+  @Override
+  public @org.jetbrains.annotations.Nullable String getLabel(int index) {
+    return null;
+  }
+
+  @Override
+  public @org.jetbrains.annotations.Nullable String getToolTipText(int itemIndex) {
+    return null;
   }
 }

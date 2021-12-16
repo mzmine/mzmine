@@ -42,6 +42,7 @@ import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -296,7 +297,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
       return;
     }
 
-    Task integration = new AbstractTask(null, new Date()) {
+    Task integration = new AbstractTask(null, Instant.now()) {
 
       @Override
       public void run() {

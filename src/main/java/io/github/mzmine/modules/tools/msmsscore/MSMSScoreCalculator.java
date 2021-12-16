@@ -22,7 +22,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
@@ -41,21 +40,13 @@ public class MSMSScoreCalculator {
    * Returns a calculated similarity score of
    */
   public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula, Scan msmsScan,
-      ParameterSet parameters) {
-
-    MZTolerance msmsTolerance =
-        parameters.getParameter(MSMSScoreParameters.msmsTolerance).getValue();
-
-    int topNSignals =
-        parameters.getParameter(MSMSScoreParameters.useTopNSignals).getValue() ? parameters
-            .getParameter(MSMSScoreParameters.useTopNSignals).getEmbeddedParameter().getValue()
-            : -1;
+      MZTolerance msmsTolerance, int topNSignals) {
 
     MassList massList = msmsScan.getMassList();
 
     if (massList == null) {
-      throw new IllegalArgumentException("Scan #" + msmsScan.getScanNumber()
-                                         + " does not have a mass list");
+      throw new IllegalArgumentException(
+          "Scan #" + msmsScan.getScanNumber() + " does not have a mass list");
     }
 
     DataPoint[] msmsIons = massList.getDataPoints();
@@ -65,8 +56,8 @@ public class MSMSScoreCalculator {
           "Mass list " + massList + " does not contain data for scan #" + msmsScan.getScanNumber());
     }
 
-    double precursorMZ = msmsScan.getPrecursorMZ();
-    int precursorCharge = msmsScan.getPrecursorCharge();
+    double precursorMZ = msmsScan.getPrecursorMz() != null ? msmsScan.getPrecursorMz() : 0d;
+    int precursorCharge = msmsScan.getPrecursorCharge() != null ? msmsScan.getPrecursorCharge() : 0;
     return evaluateMSMS(msmsTolerance, parentFormula, msmsIons, precursorMZ, precursorCharge,
         topNSignals);
   }
@@ -114,8 +105,8 @@ public class MSMSScoreCalculator {
         // If we have any MS/MS peak with 1 neutron mass smaller m/z
         // and higher intensity, it means the current peak is an
         // isotope and we should ignore it
-        if (isotopeCheckRange.contains(dpCheck.getMZ())
-            && (dpCheck.getIntensity() > dp.getIntensity())) {
+        if (isotopeCheckRange.contains(dpCheck.getMZ()) && (dpCheck.getIntensity() > dp
+            .getIntensity())) {
           continue msmsCycle;
         }
       }
@@ -149,10 +140,8 @@ public class MSMSScoreCalculator {
       return null;
     }
 
-
-    double msmsScore = (double) interpretedMSMSpeaks / totalMSMSpeaks;
-    MSMSScore result = new MSMSScore(msmsScore, msmsAnnotations);
-    return result;
+    float msmsScore = interpretedMSMSpeaks / (float) totalMSMSpeaks;
+    return new MSMSScore(msmsScore, msmsAnnotations);
   }
 
 }

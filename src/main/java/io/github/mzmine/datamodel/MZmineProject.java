@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,26 +8,26 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel;
 
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
+import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.parameters.UserParameter;
 import javafx.beans.property.ListProperty;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.Nullable;
 
 /**
- *
  * MZmineProject collects all items user has opened or created during an MZmine session. This
  * includes
  * <ul>
@@ -44,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
  * @see UserParameter
  * @see RawDataFile
  * @see FeatureList
- *
  */
 public interface MZmineProject {
 
@@ -84,13 +83,11 @@ public interface MZmineProject {
    * <p>
    * If the parameter does not exists in the project, it is added to the project. If parameter
    * already has a value corresponding the given file, previous value is replaced.
-   *
    */
   void setParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile, Object value);
 
   /**
    * Returns experimental parameter's value corresponding to a RawDataFile.
-   *
    */
   Object getParameterValue(UserParameter<?, ?> parameter, RawDataFile rawDataFile);
 
@@ -106,7 +103,6 @@ public interface MZmineProject {
 
   /**
    * Returns all RawDataFiles of the project.
-   *
    */
   RawDataFile[] getDataFiles();
 
@@ -120,9 +116,6 @@ public interface MZmineProject {
    */
   void removeFeatureList(FeatureList featureList);
 
-  /**
-   * Returns all feature lists of the project
-   */
   ObservableList<FeatureList> getFeatureLists();
 
   ObservableList<RawDataFile> getRawDataFiles();
@@ -143,11 +136,11 @@ public interface MZmineProject {
 
   /**
    * Feature list for name
+   *
    * @param name the exact name of the feature list
    * @return the last feature list with that name or null
    */
-  @Nullable
-  FeatureList getFeatureList(String name);
+  @Nullable FeatureList getFeatureList(String name);
 
   // void notifyObjectChanged(Object object, boolean structureChanged);
 
@@ -155,4 +148,48 @@ public interface MZmineProject {
 
   // void removeProjectListener(MZmineProjectListener listener);
 
+  /**
+   * List of loaded spectral libraries
+   *
+   * @return property of spectral libraries list
+   */
+  ListProperty<SpectralLibrary> spectralLibrariesProperty();
+
+  @Nullable
+  public Boolean isStandalone();
+
+  public void setStandalone(Boolean standalone);
+
+  /**
+   * Enables/disables usage of {@link CachedIMSRawDataFile}s for {@link IMSRawDataFile}s in the
+   * project. Cached files are used during feature list import to avoid multiple copies of {@link
+   * io.github.mzmine.datamodel.MobilityScan}s, since the main implementation ({@link
+   * io.github.mzmine.datamodel.impl.StoredMobilityScan}) is created on demand and passed through
+   * data types.
+   * <p></p>
+   * After the project import, the files have to be replaced to lower ram consumption and allow
+   * further processing.
+   */
+  public void setProjectLoadImsImportCaching(boolean enabled);
+
+  /**
+   * Add a spectral library that can be reused later
+   *
+   * @param library new library
+   */
+  void addSpectralLibrary(final SpectralLibrary... library);
+
+  /**
+   * The observable list of spectral preloaded libraries
+   *
+   * @return current list of preloaded libraries
+   */
+  ObservableList<SpectralLibrary> getSpectralLibraries();
+
+  /**
+   * Remove preloaded spectral library
+   *
+   * @param library library to be removed
+   */
+  void removeSpectralLibrary(SpectralLibrary... library);
 }

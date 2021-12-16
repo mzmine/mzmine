@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -21,22 +20,23 @@ package io.github.mzmine.datamodel.features.types.annotations;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.DoubleType;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
 import org.jetbrains.annotations.NotNull;
 
-public class LipidAnnotationMsMsScoreType extends DoubleType {
+public class LipidAnnotationMsMsScoreType extends ScoreType {
 
   public LipidAnnotationMsMsScoreType() {
-    super(new DecimalFormat("0.0"));
+    super();
   }
 
   @Override
   public NumberFormat getFormatter() {
-    // only happens if types are used without initializing the MZmineCore
-    return DEFAULT_FORMAT;
+    return new DecimalFormat("0.0");
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "MS/MS Score";
   }
 

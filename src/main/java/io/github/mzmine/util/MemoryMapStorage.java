@@ -236,7 +236,7 @@ public class MemoryMapStorage {
 
     // If we have no storage file or if the current file is full, create a new one
     if ((currentMappedFile == null)
-        || (currentMappedFile.position() + length > STORAGE_FILE_CAPACITY)) {
+        || (currentMappedFile.position() + (length * Float.BYTES) > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 
@@ -292,7 +292,7 @@ public class MemoryMapStorage {
 
     // If we have no storage file or if the current file is full, create a new one
     if ((currentMappedFile == null)
-        || (currentMappedFile.position() + length > STORAGE_FILE_CAPACITY)) {
+        || (currentMappedFile.position() + (length * Integer.BYTES) > STORAGE_FILE_CAPACITY)) {
       currentMappedFile = createNewMappedFile();
     }
 

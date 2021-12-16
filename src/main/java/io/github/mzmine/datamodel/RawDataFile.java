@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel;
@@ -38,6 +37,17 @@ public interface RawDataFile {
    */
   @NotNull String getName();
 
+  /**
+   * Change the name of this data file.
+   * <p></p>
+   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
+   * is not predetermined in by a parameter. In that case, {@link io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
+   * String)} should be used.
+   *
+   * @return the actually set name after checking restricted symbols and for duplicate names
+   */
+  String setName(@NotNull String name);
+
   @NotNull StringProperty nameProperty();
 
   /**
@@ -45,11 +55,6 @@ public interface RawDataFile {
    * file space or was created as a dummy file by mzTab-m import.
    */
   @Nullable String getAbsolutePath();
-
-  /**
-   * Change the name of this data file
-   */
-  void setName(@NotNull String name);
 
   int getNumOfScans();
 
@@ -110,10 +115,20 @@ public interface RawDataFile {
 
   @NotNull Range<Double> getDataMZRange();
 
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
   @NotNull Range<Float> getDataRTRange();
 
   @NotNull Range<Double> getDataMZRange(int msLevel);
 
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
   @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);

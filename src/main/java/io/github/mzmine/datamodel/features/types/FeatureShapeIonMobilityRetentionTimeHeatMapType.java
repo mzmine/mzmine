@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -24,10 +23,8 @@ import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeIonMobilityRetentionTimeHeatMapChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeatureGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
@@ -41,13 +38,10 @@ import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataType implements
-    GraphicalColumType<Boolean> {
+public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraphicalType {
 
   @NotNull
   @Override
@@ -64,9 +58,9 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean cellData, RawDataFile raw) {
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
+    if (row == null || !value || row.getFeature(raw) == null || !(raw instanceof IMSRawDataFile)
         || raw instanceof ImagingRawDataFile) {
       return null;
     }
@@ -75,7 +69,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
       return null;
     }
 
-    if(!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
+    if (!(feature.getFeatureData() instanceof IonMobilogramTimeSeries)) {
       Label label = new Label("Processed with\nLC-MS workflow");
       StackPane pane = new StackPane(label);
       label.setTextAlignment(TextAlignment.CENTER);
@@ -113,10 +107,4 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedDataT
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
   }
 
-  @Override
-  public Object loadFromXML(@NotNull XMLStreamReader reader, @NotNull ModularFeatureList flist,
-      @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
-      @Nullable RawDataFile file) throws XMLStreamException {
-    return false;
-  }
 }

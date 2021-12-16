@@ -32,8 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationSummaryType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.LipidSpectrumChart;
 import io.github.mzmine.main.MZmineCore;
@@ -43,7 +42,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
-import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
+import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -67,9 +66,10 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -94,7 +94,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   final Menu idsMenu;
   final Menu exportMenu;
   private final FeatureTableFX table;
-
+  @Nullable
+  ModularFeatureListRow selectedRow;
   private Set<DataType<?>> selectedRowTypes;
   private Set<DataType<?>> selectedFeatureTypes;
   private Set<RawDataFile> selectedFiles;
@@ -102,9 +103,6 @@ public class FeatureTableContextMenu extends ContextMenu {
   private List<ModularFeatureListRow> selectedRows;
   @Nullable
   private ModularFeature selectedFeature;
-  @Nullable
-  ModularFeatureListRow selectedRow;
-
   private List<FeatureIdentity> copiedIDs;
 
   FeatureTableContextMenu(final FeatureTableFX table) {
@@ -175,7 +173,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem exportToSirius =
         new ConditionalMenuItem("Export to Sirius", () -> !selectedRows.isEmpty());
     exportToSirius.setOnAction(e -> SiriusExportModule
-        .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]), new Date()));
+        .exportSingleRows(selectedRows.toArray(new ModularFeatureListRow[0]), Instant.now()));
 
     final MenuItem exportMS1Library =
         new ConditionalMenuItem("Export to MS1 library", () -> !selectedRows.isEmpty());
@@ -197,7 +195,8 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem exportImageToCsv = new ConditionalMenuItem("Export image to .csv",
         () -> !selectedRows.isEmpty() && selectedRows.get(0).hasFeatureType(ImageType.class));
-    exportImageToCsv.setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows, new Date()));
+    exportImageToCsv
+        .setOnAction(e -> ImageToCsvExportModule.showExportDialog(selectedRows, Instant.now()));
 
     // export menu
     exportMenu.getItems().addAll(exportIsotopesItem, exportMSMSItem, exportToSirius,
@@ -209,13 +208,14 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem onlineDbSearchItem =
         new ConditionalMenuItem("Online compound database search", () -> selectedRows.size() == 1);
     onlineDbSearchItem.setOnAction(
-        e -> OnlineDBSearchModule.showSingleRowIdentificationDialog(selectedRows.get(0), new Date()));
+        e -> OnlineDBSearchModule
+            .showSingleRowIdentificationDialog(selectedRows.get(0), Instant.now()));
 
     final MenuItem spectralDbSearchItem =
-        new ConditionalMenuItem("Local spectral database search", () -> selectedRows.size() >= 1);
+        new ConditionalMenuItem("Spectral library search", () -> selectedRows.size() >= 1);
     spectralDbSearchItem
-        .setOnAction(e -> LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(
-            selectedRows.toArray(new ModularFeatureListRow[0]), table, new Date()));
+        .setOnAction(e -> SpectralLibrarySearchModule.showSelectedRowsIdentificationDialog(
+            new ArrayList<>(selectedRows), table, Instant.now()));
 
     final MenuItem nistSearchItem =
         new ConditionalMenuItem("NIST MS search", () -> selectedRows.size() == 1);
@@ -228,7 +228,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem siriusItem =
         new ConditionalMenuItem("Sirius structure prediction", () -> selectedRows.size() == 1);
     siriusItem.setOnAction(
-        e -> SiriusIdentificationModule.showSingleRowIdentificationDialog(selectedRows.get(0), new Date()));
+        e -> SiriusIdentificationModule
+            .showSingleRowIdentificationDialog(selectedRows.get(0), Instant.now()));
 
     final MenuItem formulaPredictionItem =
         new ConditionalMenuItem("Predict molecular formula", () -> selectedRows.size() == 1);
@@ -253,7 +254,7 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
+              && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
     showIMSFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
 
@@ -279,8 +280,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInIMSRawDataOverviewItem =
         new ConditionalMenuItem("Show m/z ranges in IMS raw data overview",
             () -> selectedFeature != null
-                && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-                && !selectedFeatures.isEmpty());
+                  && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
+                  && !selectedFeatures.isEmpty());
     showInIMSRawDataOverviewItem.setOnAction(e -> IMSRawDataOverviewModule
         .openIMSVisualizerTabWithFeatures(getFeaturesFromSelectedRaw(selectedFeatures)));
 
@@ -298,13 +299,14 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
-            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule
         .addNewSpectrumTab(IonMobilityUtils.getBestMobilityScan(selectedFeature)));
 
     final MenuItem extractSumSpectrumFromMobScans =
         new ConditionalMenuItem("Extract spectrum from mobility FWHM", () -> selectedFeature != null
-            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+                                                                             && selectedFeature
+                                                                                 .getFeatureData() instanceof IonMobilogramTimeSeries);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
@@ -320,8 +322,8 @@ public class FeatureTableContextMenu extends ContextMenu {
     // that, however.
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> (selectedRow != null && getNumberOfFeaturesWithFragmentScans(selectedRow) >= 1)
-            || (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null)
-            || (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
+              || (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null)
+              || (selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
     showMSMSItem.setOnAction(e -> {
       if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());
@@ -362,16 +364,17 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMatchedLipidSignals = new ConditionalMenuItem("Matched lipid signals",
         () -> !selectedRows.isEmpty() && rowHasMatchedLipidSignals(selectedRows.get(0)));
     showMatchedLipidSignals.setOnAction(e -> {
-      List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidAnnotationType.class)
-          .get(LipidAnnotationSummaryType.class).getValue();
-      MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
-          matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
-          new LipidSpectrumChart(selectedRows.get(0), null));
-      MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+      List<MatchedLipid> matchedLipids = selectedRows.get(0).get(LipidMatchListType.class);
+      if (matchedLipids != null && !matchedLipids.isEmpty()) {
+        MatchedLipidSpectrumTab matchedLipidSpectrumTab = new MatchedLipidSpectrumTab(
+            matchedLipids.get(0).getLipidAnnotation().getAnnotation() + " Matched Signals",
+            new LipidSpectrumChart(selectedRows.get(0), null));
+        MZmineCore.getDesktop().addTab(matchedLipidSpectrumTab);
+      }
     });
 
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
-    /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
+        /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
     showMenu.getItems().addAll(showXICItem, showXICSetupItem, showIMSFeatureItem,
         new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
@@ -450,8 +453,8 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private boolean rowHasMatchedLipidSignals(ModularFeatureListRow row) {
-    return (row.get(LipidAnnotationType.class) != null
-        && row.get(LipidAnnotationType.class).get(LipidAnnotationSummaryType.class) != null);
+    List<MatchedLipid> matches = row.get(LipidMatchListType.class);
+    return matches != null && !matches.isEmpty();
   }
 
   @NotNull

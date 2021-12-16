@@ -42,7 +42,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Sin
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.color.ColorUtils;
@@ -54,10 +54,10 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.io.File;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -218,32 +218,32 @@ public class SpectraVisualizerTab extends MZmineTab {
     dbOnlineButton = new Button(null, new ImageView(dbOnlineIcon));
     dbOnlineButton.setTooltip(new Tooltip("Select online database for annotation"));
     dbOnlineButton.setOnAction(e -> {
-      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
+      OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     dbCustomButton = new Button(null, new ImageView(dbCustomIcon));
     dbCustomButton.setTooltip(new Tooltip("Select custom database for annotation"));
     dbCustomButton.setOnAction(e -> {
-      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
+      CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     dbLipidsButton = new Button(null, new ImageView(dbLipidsIcon));
     dbLipidsButton.setTooltip(new Tooltip("Select target lipid classes for annotation"));
     dbLipidsButton.setOnAction(e -> {
-      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
+      LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     dbSpectraButton = new Button(null, new ImageView(dbSpectraIcon));
-    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral database"));
+    dbSpectraButton.setTooltip(new Tooltip("Compare spectrum with spectral libraries"));
     dbSpectraButton.setOnAction(e -> {
-      SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
-          spectrumPlot, new Date());
+      SingleSpectrumLibrarySearchModule.showSpectraIdentificationDialog(currentScan,
+          spectrumPlot, Instant.now());
     });
 
     sumFormulaButton = new Button(null, new ImageView(sumFormulaIcon));
     sumFormulaButton.setTooltip(new Tooltip("Predict sum formulas for annotation"));
     sumFormulaButton.setOnAction(e -> {
-      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, new Date());
+      SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot, Instant.now());
     });
 
     toolBar.getItems().addAll(centroidContinuousButton, dataPointsButton, annotationsButton,

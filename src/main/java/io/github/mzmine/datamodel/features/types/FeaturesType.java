@@ -21,8 +21,10 @@ package io.github.mzmine.datamodel.features.types;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import javafx.beans.property.MapProperty;
+import java.util.Map;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeature>>
+public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
     implements NoTextColumn {
 
   @NotNull
@@ -49,8 +51,13 @@ public class FeaturesType extends DataType<MapProperty<RawDataFile, ModularFeatu
   }
 
   @Override
-  public MapProperty<RawDataFile, ModularFeature> createProperty() {
-    return new SimpleMapProperty<>();
+  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
+    return (Class) Map.class;
   }
 
 }

@@ -18,15 +18,18 @@
 
 package io.github.mzmine.util;
 
-import java.util.Comparator;
-
 import io.github.mzmine.datamodel.DataPoint;
+import java.util.Comparator;
 
 /**
  * This class implements Comparator class to provide a comparison between two DataPoints.
- * 
  */
 public class DataPointSorter implements Comparator<DataPoint> {
+
+  public static final DataPointSorter MZ_ASCENDING = new DataPointSorter(SortingProperty.MZ,
+      SortingDirection.Ascending);
+  public static final DataPointSorter DEFAULT_INTENSITY = new DataPointSorter(
+      SortingProperty.Intensity, SortingDirection.Descending);
 
   private SortingProperty property;
   private SortingDirection direction;
@@ -48,13 +51,15 @@ public class DataPointSorter implements Comparator<DataPoint> {
         // If the data points have same m/z, we do a second comparison of
         // intensity, to ensure that this comparator is consistent with
         // equality: (compare(x, y)==0) == (x.equals(y)),
-        if (result == 0)
+        if (result == 0) {
           result = Double.compare(dp1.getIntensity(), dp2.getIntensity());
+        }
 
-        if (direction == SortingDirection.Ascending)
+        if (direction == SortingDirection.Ascending) {
           return result;
-        else
+        } else {
           return -result;
+        }
 
       case Intensity:
         result = Double.compare(dp1.getIntensity(), dp2.getIntensity());
@@ -62,13 +67,15 @@ public class DataPointSorter implements Comparator<DataPoint> {
         // If the data points have same intensity, we do a second comparison
         // of m/z, to ensure that this comparator is consistent with
         // equality: (compare(x, y)==0) == (x.equals(y)),
-        if (result == 0)
+        if (result == 0) {
           result = Double.compare(dp1.getMZ(), dp2.getMZ());
+        }
 
-        if (direction == SortingDirection.Ascending)
+        if (direction == SortingDirection.Ascending) {
           return result;
-        else
+        } else {
           return -result;
+        }
       default:
         // We should never get here, so throw an exception
         throw (new IllegalStateException());

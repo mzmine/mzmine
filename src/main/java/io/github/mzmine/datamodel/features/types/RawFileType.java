@@ -31,7 +31,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implements NullColumnType {
+public class RawFileType extends DataType<RawDataFile> implements NullColumnType {
 
   @NotNull
   @Override
@@ -49,6 +49,11 @@ public class RawFileType extends DataType<ObjectProperty<RawDataFile>> implement
   @Override
   public ObjectProperty<RawDataFile> createProperty() {
     return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<RawDataFile> getValueClass() {
+    return RawDataFile.class;
   }
 
   @Override

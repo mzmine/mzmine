@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_groupms2;
@@ -22,7 +21,6 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityType;
@@ -33,7 +31,10 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.ImsMsMsInfoType;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -42,9 +43,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,6 +66,7 @@ public class GroupMS2Task extends AbstractTask {
   // Parameters.
   private final ParameterSet parameters;
   private final Double minMs2Intensity;
+  private final boolean combineTimsMS2;
   // Processed rows counter
   private int processedRows, totalRows;
   private FeatureList list;
@@ -72,7 +74,6 @@ public class GroupMS2Task extends AbstractTask {
   private MZTolerance mzTol;
   private boolean limitRTByFeature;
   private boolean lockToFeatureMobilityRange;
-  private final boolean combineTimsMS2;
 
   /**
    * Create the task.
@@ -81,7 +82,7 @@ public class GroupMS2Task extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public GroupMS2Task(final MZmineProject project, final FeatureList list,
-      final ParameterSet parameterSet, @NotNull Date moduleCallDate) {
+      final ParameterSet parameterSet, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     // Initialize.
@@ -91,12 +92,11 @@ public class GroupMS2Task extends AbstractTask {
     mzTol = parameters.getParameter(GroupMS2Parameters.mzTol).getValue();
     limitRTByFeature = parameters.getParameter(GroupMS2Parameters.limitRTByFeature).getValue();
     combineTimsMS2 = parameterSet.getParameter(GroupMS2Parameters.combineTimsMsMs).getValue();
-    lockToFeatureMobilityRange = parameterSet
-        .getParameter(GroupMS2Parameters.lockMS2ToFeatureMobilityRange).getValue();
-    minMs2Intensity =
-        parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getValue() ? parameterSet
-            .getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter().getValue()
-            : null;
+    lockToFeatureMobilityRange = parameterSet.getParameter(
+        GroupMS2Parameters.lockMS2ToFeatureMobilityRange).getValue();
+    minMs2Intensity = parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getValue()
+        ? parameterSet.getParameter(GroupMS2Parameters.outputNoiseLevel).getEmbeddedParameter()
+        .getValue() : null;
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -131,8 +131,9 @@ public class GroupMS2Task extends AbstractTask {
         processedRows++;
       }
 
-      list.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters, getModuleCallDate()));
+      list.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(GroupMS2Module.class, parameters,
+              getModuleCallDate()));
       setStatus(TaskStatus.FINISHED);
       logger.info("Finished adding all MS2 scans to their features in " + list.getName());
 
@@ -174,9 +175,16 @@ public class GroupMS2Task extends AbstractTask {
   }
 
   private boolean filterScan(Scan scan, float frt, double fmz, Range<Float> rtRange) {
-    return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime())) && rtTol
-        .checkWithinTolerance(frt, scan.getRetentionTime()) && scan.getPrecursorMZ() != 0 && mzTol
-        .checkWithinTolerance(fmz, scan.getPrecursorMZ());
+
+    DDAMsMsInfo info =
+        scan.getMsMsInfo() != null && scan.getMsMsInfo() instanceof DDAMsMsInfo dda ? dda : null;
+    if (info == null) {
+      return false;
+    }
+
+    return (!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
+        && rtTol.checkWithinTolerance(frt, scan.getRetentionTime()) && info.getIsolationMz() != 0
+        && mzTol.checkWithinTolerance(fmz, info.getIsolationMz());
   }
 
   private void processTimsFeature(ModularFeature feature) {
@@ -187,8 +195,8 @@ public class GroupMS2Task extends AbstractTask {
     Float mobility = feature.getMobility();
 
     final List<? extends Scan> scans = feature.getRawDataFile().getScanNumbers(2).stream().filter(
-        scan -> (!limitRTByFeature && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) || (
-            limitRTByFeature && rtRange.contains(scan.getRetentionTime())))
+            scan -> (!limitRTByFeature && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) || (
+                limitRTByFeature && rtRange.contains(scan.getRetentionTime())))
         .collect(Collectors.toList());
 
     if (scans.isEmpty() || !(scans.get(0) instanceof Frame)) {
@@ -196,10 +204,10 @@ public class GroupMS2Task extends AbstractTask {
     }
 
     final List<Frame> frames = (List<Frame>) scans;
-    final List<ImsMsMsInfo> eligibleMsMsInfos = new ArrayList<>();
+    final List<MsMsInfo> eligibleMsMsInfos = new ArrayList<>();
     for (Frame frame : frames) {
       frame.getImsMsMsInfos().forEach(imsMsMsInfo -> {
-        if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getLargestPeakMz())) {
+        if (mzTol.checkWithinTolerance(fmz, imsMsMsInfo.getIsolationMz())) {
           // if we have a mobility (=processed by IMS workflow), we can check for the correct range during assignment.
           if (mobility != null) {
             // todo: maybe revisit this for a more sophisticated range check
@@ -222,16 +230,15 @@ public class GroupMS2Task extends AbstractTask {
     if (eligibleMsMsInfos.isEmpty()) {
       return;
     }
-    feature.set(ImsMsMsInfoType.class, eligibleMsMsInfos);
+    feature.set(MsMsInfoType.class, eligibleMsMsInfos);
 
-    final MZTolerance mergeTol = new MZTolerance(0.008, 25);
     ObservableList<MergedMsMsSpectrum> msmsSpectra = FXCollections.observableArrayList();
-    for (ImsMsMsInfo info : eligibleMsMsInfos) {
-      MergedMsMsSpectrum spectrum = SpectraMerging
-          .getMergedMsMsSpectrumForPASEF(info, mergeTol, MergingType.SUMMED,
-              ((ModularFeatureList) list).getMemoryMapStorage(),
-              lockToFeatureMobilityRange && feature.getMobilityRange() != null ? feature
-                  .getMobilityRange() : null, minMs2Intensity);
+    for (MsMsInfo info : eligibleMsMsInfos) {
+      MergedMsMsSpectrum spectrum = SpectraMerging.getMergedMsMsSpectrumForPASEF(
+          (PasefMsMsInfo) info, SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
+          ((ModularFeatureList) list).getMemoryMapStorage(),
+          lockToFeatureMobilityRange && feature.getMobilityRange() != null
+              ? feature.getMobilityRange() : null, minMs2Intensity);
       if (spectrum != null) {
         msmsSpectra.add(spectrum);
       }
@@ -239,9 +246,9 @@ public class GroupMS2Task extends AbstractTask {
 
     if (!msmsSpectra.isEmpty()) {
       if (combineTimsMS2) {
-        ObservableList<MergedMsMsSpectrum> sameCEMerged = FXCollections.observableArrayList(
-            SpectraMerging.mergeMsMsSpectra(msmsSpectra, mergeTol, MergingType.SUMMED,
-                ((ModularFeatureList) list).getMemoryMapStorage()));
+        ObservableList<Scan> sameCEMerged = FXCollections.observableArrayList(
+            SpectraMerging.mergeMsMsSpectra(msmsSpectra, SpectraMerging.pasefMS2MergeTol,
+                MergingType.SUMMED, ((ModularFeatureList) list).getMemoryMapStorage()));
         feature.setAllMS2FragmentScans(
             (ObservableList<Scan>) (ObservableList<? extends Scan>) sameCEMerged);
 

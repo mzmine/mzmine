@@ -11,16 +11,15 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilePlaceholder;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,7 +46,7 @@ public class RawDataSavingUtils {
         .sorted(Comparator.comparing(FeatureListAppliedMethod::getModuleCallDate)).toList();
 
     // group applied methods by date
-    final Map<Date, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
+    final Map<Instant, List<FeatureListAppliedMethod>> methodMap = new TreeMap<>();
     for (FeatureListAppliedMethod method : appliedMethods) {
       final List<FeatureListAppliedMethod> value = methodMap
           .computeIfAbsent(method.getModuleCallDate(), d -> new ArrayList<>());
@@ -181,7 +180,7 @@ public class RawDataSavingUtils {
       throw new IllegalArgumentException("Parameter sets differ in more than raw/file parameters.");
     }
 
-    final var mergedParameterSet = parameterSet1.cloneParameterSet();
+    final var mergedParameterSet = parameterSet1.cloneParameterSet(true);
 
     for (int j = 0; j < mergedParameterSet.getParameters().length; j++) {
       final Parameter<?> param1 = parameterSet1.getParameters()[j];
@@ -202,14 +201,12 @@ public class RawDataSavingUtils {
         if (rfp1.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
           Collections.addAll(files, rfp1.getValue().getSpecificFilesPlaceholders());
         } else {
-          Arrays.stream(rfp1.getValue().getEvaluationResult()).map(RawDataFilePlaceholder::new)
-              .forEach(files::add);
+          Arrays.stream(rfp1.getValue().getEvaluationResult()).forEach(files::add);
         }
         if (rfp2.getValue().getSelectionType() == RawDataFilesSelectionType.SPECIFIC_FILES) {
           Collections.addAll(files, rfp2.getValue().getSpecificFilesPlaceholders());
         } else {
-          Arrays.stream(rfp2.getValue().getEvaluationResult()).map(RawDataFilePlaceholder::new)
-              .forEach(files::add);
+          Arrays.stream(rfp2.getValue().getEvaluationResult()).forEach(files::add);
         }
         logger
             .finest(() -> "Combined RawDataFilesParameter to " + Arrays.toString(files.toArray()));

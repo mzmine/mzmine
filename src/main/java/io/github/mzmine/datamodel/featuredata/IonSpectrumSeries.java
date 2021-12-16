@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.ParsingUtils;
@@ -36,6 +37,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
 
+  /**
+   * @param writer   A writer to append the scans element to.
+   * @param series   The series containing scans to save.
+   * @param allScans All scans belonging to the current collection. <b>NOTE</b> As a general
+   *                 contract: No preselected list shall be given here, by default, the original
+   *                 selection shall be used. For example, when saving an EIC from a feature list,
+   *                 this should be passed all scans obtained from the {@link
+   *                 RawDataFile#getScans()} method, not the preselected scans obtained by {@link
+   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   */
   public static <T extends MassSpectrum> void saveSpectraIndicesToXML(XMLStreamWriter writer,
       IonSpectrumSeries<T> series, List<T> allScans) throws XMLStreamException {
     writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);

@@ -20,9 +20,9 @@ package io.github.mzmine.modules.io.import_features_mztab;
 
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
+import java.time.Instant;
 import java.util.Collection;
 
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
@@ -61,7 +61,7 @@ public class MzTabImportModule implements MZmineProcessingModule {
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     File inputFiles[] = parameters.getParameter(MzTabImportParameters.file).getValue();
     final MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
     for (File inputFile : inputFiles) {

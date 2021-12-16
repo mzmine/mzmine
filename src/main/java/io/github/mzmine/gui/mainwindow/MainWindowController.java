@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.gui.mainwindow;
@@ -60,8 +59,10 @@ import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewCell;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListViewEntity;
 import io.github.mzmine.util.javafx.groupablelistview.ValueEntity;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javafx.animation.Animation;
@@ -74,6 +75,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -92,6 +94,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
@@ -129,6 +132,9 @@ public class MainWindowController {
   @FXML
   public ContextMenu featureListContextMenu;
   @FXML
+  public ContextMenu spectralLibraryContextMenu;
+
+  @FXML
   public MenuItem rawDataGroupMenuItem;
   @FXML
   public MenuItem rawDataRemoveMenuItem;
@@ -153,6 +159,9 @@ public class MainWindowController {
   private GroupableListView<RawDataFile> rawDataList;
   @FXML
   private GroupableListView<FeatureList> featureListsList;
+  @FXML
+  private ListView<SpectralLibrary> spectralLibraryList;
+
   @FXML
   private AnchorPane tbRawData;
 
@@ -209,6 +218,9 @@ public class MainWindowController {
     featureListsList.setGrouping(featureList -> featureList.isAligned() ? "Aligned feature lists"
         : featureList.getRawDataFile(0).getName());
 
+    spectralLibraryList.setEditable(false);
+    spectralLibraryList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
     rawDataList
         .setCellFactory(rawDataListView -> new GroupableListViewCell<>(rawDataGroupMenuItem) {
 
@@ -226,7 +238,8 @@ public class MainWindowController {
 
             RawDataFile rawDataFile = ((ValueEntity<RawDataFile>) item).getValue();
             setText(rawDataFile.getName());
-            rawDataFile.nameProperty().addListener((observable, oldValue, newValue) -> setText(newValue));
+            rawDataFile.nameProperty()
+                .addListener((observable, oldValue, newValue) -> setText(newValue));
             setGraphic(new ImageView(FxIconUtil.getFileIcon(rawDataFile.getColor())));
 
             rawDataFile.colorProperty().addListener((observable, oldColor, newColor) -> {
@@ -245,7 +258,8 @@ public class MainWindowController {
               return;
             }
 
-            RawDataFileRenameModule.renameFile(((ValueEntity<RawDataFile>) item).getValue(), getText());
+            RawDataFileRenameModule
+                .renameFile(((ValueEntity<RawDataFile>) item).getValue(), getText());
           }
         });
 
@@ -532,6 +546,10 @@ public class MainWindowController {
 
   public GroupableListView<FeatureList> getFeatureListsList() {
     return featureListsList;
+  }
+
+  public ListView<SpectralLibrary> getSpectralLibraryList() {
+    return spectralLibraryList;
   }
 
   /*
@@ -884,6 +902,18 @@ public class MainWindowController {
     }).start();
   }
 
+  public void handleSpectralLibrarySort(Event event) {
+    spectralLibraryList.getItems().sort(Comparator.comparing(SpectralLibrary::getName));
+  }
+
+  public void handleSpectralLibraryRemove(ActionEvent event) {
+    SpectralLibrary[] libs = MZmineCore.getDesktop().getSelectedSpectralLibraries();
+    if (libs != null && libs.length > 0) {
+      MZmineCore.getProjectManager().getCurrentProject().removeSpectralLibrary(libs);
+    }
+  }
+
+
   private TabPane getMainTabPane() {
     return mainTabPane;
   }
@@ -984,4 +1014,5 @@ public class MainWindowController {
       rawDataList.groupSelectedItems();
     }
   }
+
 }

@@ -38,9 +38,9 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +60,7 @@ public class BatchTask extends AbstractTask {
   private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
   private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
 
-  BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Date moduleCallDate) {
+  BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // we don't create any new data here, date is irrelevant, too.
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
@@ -150,7 +150,8 @@ public class BatchTask extends AbstractTask {
     }
 
     List<Task> currentStepTasks = new ArrayList<Task>();
-    Date moduleCallDate = new Date();
+    Instant moduleCallDate = Instant.now();
+    logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
     ExitCode exitCode = method
         .runModule(project, batchStepParameters, currentStepTasks, moduleCallDate);
 

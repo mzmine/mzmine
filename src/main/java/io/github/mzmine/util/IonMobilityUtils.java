@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util;
@@ -44,13 +43,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javafx.beans.property.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IonMobilityUtils {
 
-  private static Logger logger = Logger.getLogger(IonMobilityUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(IonMobilityUtils.class.getName());
 
   public static double getSmallestMobilityDelta(Frame frame) {
     double minDelta = Double.MAX_VALUE;
@@ -85,9 +83,9 @@ public class IonMobilityUtils {
 
   public static boolean isRowWithinMzMobilityRegion(@NotNull ModularFeatureListRow row,
       @NotNull final Collection<Path2D> regions) {
-    Property<Float> mobility = row.get(MobilityType.class);
+    Float mobility = row.get(MobilityType.class);
     if (mobility != null) {
-      Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.getValue().doubleValue());
+      Point2D point = new Point2D.Double(row.getAverageMZ(), mobility.doubleValue());
       for (Path2D region : regions) {
         if (region.contains(point)) {
           return true;

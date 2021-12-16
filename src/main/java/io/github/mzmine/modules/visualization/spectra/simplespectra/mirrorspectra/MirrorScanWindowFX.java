@@ -18,16 +18,15 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.util.MirrorChartFactory;
-import java.util.logging.Logger;
+import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 
 /**
  * Creates a window with a mirror chart to compare to scans
@@ -36,7 +35,6 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
  */
 public class MirrorScanWindowFX extends Stage {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   // for SpectralDBIdentity
 
   public static final DataPointsTag[] tags =

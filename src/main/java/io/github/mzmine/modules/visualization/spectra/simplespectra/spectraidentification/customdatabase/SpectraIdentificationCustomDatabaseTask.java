@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
@@ -36,12 +37,14 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.FieldItem;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
@@ -49,6 +52,18 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
+import java.io.File;
+import java.io.FileReader;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.ui.TextAnchor;
 
 /**
  * Task to search spectra with a custom database
@@ -82,7 +97,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
    * @param parameters task parameters.
    */
   public SpectraIdentificationCustomDatabaseTask(ParameterSet parameters, Scan currentScan,
-      SpectraPlot spectraPlot, @NotNull Date moduleCallDate) {
+      SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.currentScan = currentScan;
@@ -94,7 +109,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     fieldSeparator = parameters
         .getParameter(SpectraIdentificationCustomDatabaseParameters.fieldSeparator).getValue();
 
-    fieldOrder = parameters.getParameter(SpectraIdentificationCustomDatabaseParameters.fieldOrder)
+    fieldOrder = (FieldItem[]) parameters.getParameter(SpectraIdentificationCustomDatabaseParameters.fieldOrder)
         .getValue();
 
     ignoreFirstLine = parameters

@@ -47,6 +47,7 @@ import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import java.awt.Dimension;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -564,7 +565,7 @@ public class MSMSLibrarySubmissionWindow extends Stage {
           // start task
           logger.info(
               "Added task to export library entries: " + ions + " MS/MS spectra were selected");
-          LibrarySubmitTask task = new LibrarySubmitTask(this, map, new Date());
+          LibrarySubmitTask task = new LibrarySubmitTask(this, map, Instant.now());
           MZmineCore.getTaskController().addTask(task);
         }
       }

@@ -25,6 +25,8 @@ import io.github.mzmine.util.javafx.FxIconUtil;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
@@ -37,13 +39,12 @@ import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureTableTab extends MZmineTab {
-  private final Image SELECTION_ICON =
-      FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
 
+  private static final Logger logger = Logger.getLogger(FeatureTableTab.class.getName());
   private final BorderPane mainPane;
   private final ToolBar toolBar;
 
-  private FeatureTableFXMLTabAnchorPaneController controller;
+  private final FeatureTableFXMLTabAnchorPaneController controller;
 
   public FeatureTableTab(FeatureList flist) {
     super("Feature Table", true, false);
@@ -51,15 +52,15 @@ public class FeatureTableTab extends MZmineTab {
     toolBar = new ToolBar();
 
     // Setup feature table
-    FXMLLoader loader =
-        new FXMLLoader((FeatureTableFX.class.getResource("FeatureTableFXMLTabAnchorPane.fxml")));
+    FXMLLoader loader = new FXMLLoader(
+        (FeatureTableFX.class.getResource("FeatureTableFXMLTabAnchorPane.fxml")));
 
     AnchorPane root = null;
     try {
       root = loader.load();
       logger.finest("Feature table anchor pane has been successfully loaded from the FXML loader.");
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.log(Level.WARNING, "Error during feature list loading from fxml", e);
     }
 
     controller = loader.getController();
@@ -70,11 +71,10 @@ public class FeatureTableTab extends MZmineTab {
     // Setup tool bar
     toolBar.setOrientation(Orientation.VERTICAL);
 
+    Image SELECTION_ICON = FxIconUtil.loadImageFromResources("icons/propertiesicon.png");
     Button selectColumnsButton = new Button(null, new ImageView(SELECTION_ICON));
     selectColumnsButton.setTooltip(new Tooltip("Select columns to show/hide"));
-    selectColumnsButton.setOnAction(e -> {
-      controller.miParametersOnAction(null);
-    });
+    selectColumnsButton.setOnAction(e -> controller.miParametersOnAction(null));
 
     toolBar.getItems().addAll(selectColumnsButton);
 
@@ -83,6 +83,11 @@ public class FeatureTableTab extends MZmineTab {
     mainPane.setRight(toolBar);
 
     setContent(mainPane);
+
+    setOnClosed(e -> {
+      controller.close();
+      setOnClosed(null);
+    });
   }
 
   public FeatureList getFeatureList() {
@@ -92,22 +97,20 @@ public class FeatureTableTab extends MZmineTab {
   @NotNull
   @Override
   public Collection<? extends RawDataFile> getRawDataFiles() {
-    return getFeatureList()==null? Collections.emptyList() : getFeatureList().getRawDataFiles();
+    return getFeatureList() == null ? Collections.emptyList() : getFeatureList().getRawDataFiles();
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getFeatureLists() {
-    return !getFeatureList().isAligned()
-        ? Collections.singletonList(getFeatureList())
+    return !getFeatureList().isAligned() ? Collections.singletonList(getFeatureList())
         : Collections.emptyList();
   }
 
   @NotNull
   @Override
   public Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return getFeatureList().isAligned()
-        ? Collections.singletonList(getFeatureList())
+    return getFeatureList().isAligned() ? Collections.singletonList(getFeatureList())
         : Collections.emptyList();
   }
 
@@ -118,7 +121,7 @@ public class FeatureTableTab extends MZmineTab {
 
   @Override
   public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-    if(featureLists == null || featureLists.isEmpty()) {
+    if (featureLists == null || featureLists.isEmpty()) {
       return;
     }
 
@@ -129,8 +132,7 @@ public class FeatureTableTab extends MZmineTab {
   }
 
   @Override
-  public void onAlignedFeatureListSelectionChanged(
-      Collection<? extends FeatureList> featureLists) {
+  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
     onFeatureListSelectionChanged(featureLists);
   }
 }

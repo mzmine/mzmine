@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.io.projectload.version_2_5;
@@ -23,7 +22,10 @@ import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.RangeUtils;
@@ -93,7 +95,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
     charBuffer = new StringBuffer();
     massLists = new ArrayList<>();
 
-    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null, null, null);
+    newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile("DUMMYNAME", null, null);
     // newRawDataFile.openDataPointsFile(scansFile);
 
     // dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
@@ -252,8 +254,12 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler  {
 
     if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
+      final DDAMsMsInfo info =
+          msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
+              null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
+
       Scan storableScan = new SimpleScan(newRawDataFile, scanNumber, msLevel, retentionTime,
-          precursorMZ, precursorCharge, /* fragmentScan, */ null, null, null, polarity,
+          info, /* fragmentScan, */ null, null, null, polarity,
           scanDescription, scanMZRange);
 
       try {

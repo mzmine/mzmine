@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.visualization.ims_mobilitymzplot;
@@ -43,6 +42,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -69,7 +69,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
   private final UnitFormat unitFormat;
 
   private final ModularFeature feature;
-  private SimpleObjectProperty<MobilityScan> selectedMobilityScan;
+  private final SimpleObjectProperty<MobilityScan> selectedMobilityScan;
 
   public SingleIMSFeatureVisualiserPane(ModularFeature f) {
     super();
@@ -138,12 +138,12 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
           != TaskStatus.FINISHED)) {
         return;
       }
-      heatmapChart.getXYPlot().getDomainAxis().setRange(
-          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getDomainValueRange()), false,
-          true);
-      heatmapChart.getXYPlot().getRangeAxis().setRange(
-          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getRangeValueRange()), false,
-          true);
+      heatmapChart.getXYPlot().getDomainAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getDomainValueRange(),
+              0.0001d)), false, true);
+      heatmapChart.getXYPlot().getRangeAxis().setRange(RangeUtils.guavaToJFree(
+          RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getRangeValueRange(),
+              0.0001d)), false, true);
     });
     NumberAxis axis = (NumberAxis) heatmapChart.getXYPlot().getRangeAxis();
     axis.setAutoRange(true);
@@ -196,7 +196,7 @@ public class SingleIMSFeatureVisualiserPane extends GridPane {
 //    add(new BorderPane(legendCanvas), 1, 1);
 
     ComboBox<Scan> fragmentScanSelection = new ComboBox<>();
-    fragmentScanSelection.setItems(feature.getAllMS2FragmentScans());
+    fragmentScanSelection.setItems(FXCollections.observableList(feature.getAllMS2FragmentScans()));
     if (feature.getAllMS2FragmentScans() != null && feature.getMostIntenseFragmentScan() != null) {
       fragmentScanSelection.setValue(feature.getMostIntenseFragmentScan());
     }

@@ -22,15 +22,15 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
-import io.github.mzmine.datamodel.impl.masslist.FrameMassList;
-import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
@@ -54,11 +54,14 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final double[] mobilities;
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
+  protected MassSpectrum currentSpectrum;
+  protected List<? extends MassSpectrum> currentSpectra;
+  protected List<MobilityScan> currentMobilityScans;
   protected int currentNumberOfDataPoints = -1;
-
   protected int currentNumberOfMobilityScans = -1;
   protected int currentMobilityScanIndex = -1;
   protected int currentFrameIndex = -1;
+  protected int currentSpectrumDatapointIndexOffset = 0;
 
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
@@ -140,7 +143,7 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public MsMsInfo getMsMsInfo() {
     return currentMobilityScan.getMsMsInfo();
   }
 
@@ -164,30 +167,33 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   public MobilityScan nextMobilityScan() throws MissingMassListException {
     currentMobilityScanIndex++;
-    currentMobilityScan = currentFrame.getMobilityScan(currentMobilityScanIndex);
-    if (type == MobilityScanDataType.CENTROID) {
-      final MassList ml = currentMobilityScan.getMassList();
-      if (ml == null) {
-        throw new MissingMassListException(
-            "Mobility scan " + currentMobilityScanIndex + " does not contain a mass list.",
-            currentFrame);
-      }
-      currentNumberOfDataPoints = ml.getNumberOfDataPoints();
-      ml.getMzValues(mzs);
-      ml.getIntensityValues(intensities);
-    } else if (type == MobilityScanDataType.RAW) {
-      currentNumberOfDataPoints = currentMobilityScan.getNumberOfDataPoints();
-      currentMobilityScan.getMzValues(mzs);
-      currentMobilityScan.getIntensityValues(intensities);
+    if (currentSpectrum != null) {
+      // increment by the last mobility scan!
+      currentSpectrumDatapointIndexOffset += currentSpectrum.getNumberOfDataPoints();
     }
+
+    // set new mobility scan after incrementing.
+    currentMobilityScan = currentMobilityScans.get(currentMobilityScanIndex);
+    currentSpectrum =
+        type == MobilityScanDataType.RAW ? currentMobilityScan : currentMobilityScan.getMassList();
+
+    currentNumberOfDataPoints = currentSpectrum.getNumberOfDataPoints();
+    if (currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length) {
+      throw new IndexOutOfBoundsException(
+          "currentSpectrumDatapointIndexOffset + currentNumberOfDataPoints > mzs.length");
+    }
+
     return currentMobilityScan;
   }
 
   public void resetMobilityScan() {
     currentMobilityScanIndex = -1;
     currentMobilityScan = null;
+    currentSpectrum = null;
     currentNumberOfDataPoints = 0;
+    currentSpectrumDatapointIndexOffset = 0;
   }
+
 
   public boolean hasNextFrame() {
     return currentFrameIndex + 1 < totalFrames;
@@ -203,8 +209,26 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentFrameIndex++;
     currentFrame = eligibleFrames.get(currentFrameIndex);
     currentNumberOfMobilityScans = currentFrame.getNumberOfMobilityScans();
-    currentMobilityScanIndex = -1;
     currentFrame.getMobilities().get(0, mobilities, 0, currentNumberOfMobilityScans);
+    currentMobilityScanIndex = -1;
+    currentMobilityScan = null;
+    currentSpectrum = null;
+
+    currentSpectrumDatapointIndexOffset = 0;
+
+    currentMobilityScans = currentFrame.getMobilityScans();
+    currentSpectra = type == MobilityScanDataType.RAW ? currentMobilityScans
+        : currentMobilityScans.stream().map(MobilityScan::getMassList).toList();
+
+    final MobilityScanStorage storage = currentFrame.getMobilityScanStorage();
+    if (type == MobilityScanDataType.RAW) {
+      storage.getAllRawMobilityScanMzValues(mzs);
+      storage.getAllRawMobilityScanIntensityValues(intensities);
+    } else {
+      storage.getAllMassListMzValues(mzs);
+      storage.getAllMassListIntensityValues(intensities);
+    }
+
     return currentFrame;
   }
 
@@ -215,15 +239,14 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentFrameIndex = -1;
     currentFrame = null;
     currentNumberOfMobilityScans = -1;
-    currentMobilityScanIndex = -1;
-    currentMobilityScan = null;
+    resetMobilityScan();
   }
 
   /**
    * @return
    */
   public MassList getMassList() {
-    return getCurrentMobilityScan().getMassList();
+    return currentSpectrum instanceof MassList ml ? ml : currentMobilityScan.getMassList();
   }
 
   /**
@@ -235,7 +258,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Override
   public double getMzValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
-    return mzs[index];
+    assert currentSpectrumDatapointIndexOffset + index < mzs.length;
+    return mzs[currentSpectrumDatapointIndexOffset + index];
   }
 
   /**
@@ -247,10 +271,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   @Override
   public double getIntensityValue(int index) {
     assert index < getNumberOfDataPoints() && index >= 0;
-    if (intensities[index] > 1E4) {
-      return intensities[index];
-    }
-    return intensities[index];
+    assert currentSpectrumDatapointIndexOffset + index < intensities.length;
+    return intensities[currentSpectrumDatapointIndexOffset + index];
   }
 
   /**
@@ -269,23 +291,11 @@ public class MobilityScanDataAccess implements MobilityScan {
    */
   private int getMaxNumberOfDataPoints(List<Frame> frames) {
     return switch (type) {
-      case RAW -> frames.stream().mapToInt(Frame::getMaxMobilityScanDataPoints).max().orElse(0);
-      case CENTROID -> Math.max(
-          frames.stream().filter(f -> f.getMassList() instanceof FrameMassList).mapToInt(
-              frame -> ((FrameMassList) frame.getMassList()).getMaxMobilityScanDatapoints()).max()
-              .orElse(0),
-          frames.stream().filter(f -> f.getMassList() instanceof ScanPointerMassList)
-              .mapToInt(Frame::getMaxMobilityScanDataPoints).max().orElse(0));
+      case RAW -> frames.stream().mapToInt(Frame::getTotalMobilityScanRawDataPoints).max()
+          .orElse(0);
+      case CENTROID -> frames.stream().mapToInt(Frame::getTotalMobilityScanMassListDataPoints).max()
+          .orElse(0);
     };
-   /* int forloop = 0;
-    if (type == MobilityScanDataType.CENTROID) {
-      for (Frame frame : frames) {
-        int dp = ((FrameMassList)frame.getMassList()).getMaxMobilityScanDatapoints();
-        if(dp > forloop)
-          forloop = dp;
-      }
-    }
-    return forloop;*/
   }
 
   // ###############################################
@@ -375,4 +385,5 @@ public class MobilityScanDataAccess implements MobilityScan {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all scans and data points");
   }
+
 }

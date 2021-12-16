@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
@@ -53,8 +54,9 @@ public class SpectrumChartFactory {
     if (scan == null)
       return null;
     PseudoSpectrumDataSet dataset = MirrorChartFactory.createMSMSDataSet(scan, "");
+    double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
     JFreeChart chart =
-        createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), scan.getPrecursorMZ());
+        createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), precursorMz);
     return createChartViewer(chart);
   }
 

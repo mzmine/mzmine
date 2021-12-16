@@ -41,12 +41,19 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("CDF", "*.cdf"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -76,7 +83,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
   public static final FileNameParameter outFilename = new FileNameParameter(
       "Output netCDF filename (optional)",
       "If selected, centroided spectra will be written to this file netCDF file. "
-          + "If the file already exists, it will be overwritten.", "cdf", FileSelectionType.SAVE);
+      + "If the file already exists, it will be overwritten.", extensions, FileSelectionType.SAVE);
 
   public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
       outFilename);

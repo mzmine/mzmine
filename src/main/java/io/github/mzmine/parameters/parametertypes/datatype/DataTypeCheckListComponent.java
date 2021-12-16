@@ -55,17 +55,17 @@ public class DataTypeCheckListComponent extends StackPane {
     return dataMap;
   }
 
-  public List<String> getItems() {
-    return dataTypes;
-  }
-
   public void setValue(Map<String, Boolean> map) {
     dataTypes.clear();
-    map.keySet().forEach(dt -> dataTypes.add(dt));
+    map.keySet().stream().sorted().forEach(dt -> dataTypes.add(dt));
     map.forEach((dt, b) -> {
       if (b) {
         checkList.getCheckModel().check(dt);
       }
     });
+  }
+
+  public List<String> getItems() {
+    return dataTypes;
   }
 }

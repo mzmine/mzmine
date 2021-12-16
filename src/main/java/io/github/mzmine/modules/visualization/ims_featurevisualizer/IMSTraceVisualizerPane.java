@@ -205,10 +205,10 @@ public class IMSTraceVisualizerPane extends BorderPane {
         return;
       }
       traceChart.getXYPlot().getDomainAxis().setRange(
-          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getDomainValueRange()), false,
+          RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getDomainValueRange(), 0.001d)), false,
           true);
       traceChart.getXYPlot().getRangeAxis().setRange(
-          RangeUtils.guavaToJFree(((ColoredXYDataset) e.getDataset()).getRangeValueRange()), false,
+          RangeUtils.guavaToJFree(RangeUtils.getPositiveRange(((ColoredXYDataset) e.getDataset()).getRangeValueRange(), 0.0001d)), false,
           true);
     });
 

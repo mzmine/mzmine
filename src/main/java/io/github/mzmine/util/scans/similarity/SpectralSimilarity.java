@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util.scans.similarity;
@@ -45,17 +44,19 @@ public class SpectralSimilarity {
   private static final String XML_FUNCTION_ELEMENT = "similairtyfunction";
   private static final String XML_OVERLAPPING_PEAKS_ELEMENT = "overlappingpeaks";
   private static final String XML_SCORE_ELEMENT = "score";
+  private static final String XML_EXPLAINED_LIB_INTENSITY_ELEMENT = "explainedLibraryIntensity";
   private static final String XML_LIBRARY_SEPCTRUM_ELEMENT = "libraryspectrum";
   private static final String XML_QUERY_SEPCTRUM_ELEMENT = "queryspectrum";
   private static final String XML_ALIGNED_SEPCTRUM_LIST_ELEMENT = "alignedspectrumlist";
   private static final String XML_ALIGNED_SEPCTRUM_ELEMENT = "alignedspectrum";
 
+  private final double explainedLibraryIntensity;
   // similarity score (depends on similarity function)
-  private double score;
+  private final double score;
   // aligned signals in library and query spectrum
-  private int overlap;
+  private final int overlap;
   // similarity function name
-  private String funcitonName;
+  private final String funcitonName;
 
   // spectral data can be nullable to save memory
   // library and query spectrum (may be filtered)
@@ -69,14 +70,17 @@ public class SpectralSimilarity {
   /**
    * The result of a {@link SpectralSimilarityFunction}.
    *
-   * @param funcitonName Similarity function name
-   * @param score        similarity score
-   * @param overlap      count of aligned data points in library and query spectrum
+   * @param funcitonName              Similarity function name
+   * @param score                     similarity score
+   * @param overlap                   count of aligned data points in library and query spectrum
+   * @param explainedLibraryIntensity ratio of explained lib intensity
    */
-  public SpectralSimilarity(String funcitonName, double score, int overlap) {
+  public SpectralSimilarity(String funcitonName, double score, int overlap,
+      double explainedLibraryIntensity) {
     this.funcitonName = funcitonName;
     this.score = score;
     this.overlap = overlap;
+    this.explainedLibraryIntensity = explainedLibraryIntensity;
   }
 
   /**
@@ -114,135 +118,14 @@ public class SpectralSimilarity {
       for (DataPoint[] dp : aligned) {
         Arrays.sort(dp, sorter);
       }
+      double sumAligned = Arrays.stream(Objects.requireNonNull(getAlignedLibrarySignals()))
+          .mapToDouble(DataPoint::getIntensity).sum();
+      double sumAll = Arrays.stream(library).filter(Objects::nonNull)
+          .mapToDouble(DataPoint::getIntensity).sum();
+      explainedLibraryIntensity = sumAligned / sumAll;
+    } else {
+      explainedLibraryIntensity = 0;
     }
-  }
-
-  /**
-   * Number of overlapping signals in both spectra
-   *
-   * @return
-   */
-  public int getOverlap() {
-    return overlap;
-  }
-
-  /**
-   * Cosine similarity
-   *
-   * @return
-   */
-  public double getScore() {
-    return score;
-  }
-
-  /**
-   * SPectralSimilarityFunction name
-   *
-   * @return
-   */
-  public String getFunctionName() {
-    return funcitonName;
-  }
-
-  /**
-   * Library spectrum (usually filtered)
-   *
-   * @return
-   */
-  public DataPoint[] getLibrary() {
-    return library;
-  }
-
-  /**
-   * Query spectrum (usually filtered)
-   *
-   * @return
-   */
-  public DataPoint[] getQuery() {
-    return query;
-  }
-
-  /**
-   * All aligned data points of library(0) and query(1) spectrum
-   *
-   * @return DataPoint[library, query][datapoints]
-   */
-  public DataPoint[][] getAlignedDataPoints() {
-    return aligned;
-  }
-
-  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
-    writer.writeStartElement(XML_ELEMENT);
-
-    writer.writeStartElement(XML_FUNCTION_ELEMENT);
-    writer.writeCharacters(funcitonName);
-    writer.writeEndElement();
-
-    writer.writeStartElement(XML_OVERLAPPING_PEAKS_ELEMENT);
-    writer.writeCharacters(String.valueOf(overlap));
-    writer.writeEndElement();
-
-    writer.writeStartElement(XML_SCORE_ELEMENT);
-    writer.writeCharacters(String.valueOf(score));
-    writer.writeEndElement();
-
-    if (library != null) {
-      writer.writeStartElement(XML_LIBRARY_SEPCTRUM_ELEMENT);
-
-      writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-      writer.writeCharacters(ParsingUtils
-          .doubleArrayToString(Arrays.stream(library).mapToDouble(DataPoint::getMZ).toArray()));
-      writer.writeEndElement();
-
-      writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
-      writer.writeCharacters(ParsingUtils.doubleArrayToString(
-          Arrays.stream(library).mapToDouble(DataPoint::getIntensity).toArray()));
-      writer.writeEndElement();
-
-      writer.writeEndElement(); // lib spectrum
-    }
-
-    if (query != null) {
-      writer.writeStartElement(XML_QUERY_SEPCTRUM_ELEMENT);
-
-      writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-      writer.writeCharacters(ParsingUtils
-          .doubleArrayToString(Arrays.stream(query).mapToDouble(DataPoint::getMZ).toArray()));
-      writer.writeEndElement();
-
-      writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
-      writer.writeCharacters(ParsingUtils.doubleArrayToString(
-          Arrays.stream(query).mapToDouble(DataPoint::getIntensity).toArray()));
-      writer.writeEndElement();
-
-      writer.writeEndElement(); // query spectrum
-    }
-
-    if (aligned != null) {
-      writer.writeStartElement(XML_ALIGNED_SEPCTRUM_LIST_ELEMENT);
-      writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(aligned.length));
-
-      for (int i = 0; i < aligned.length; i++) {
-
-        writer.writeStartElement(XML_ALIGNED_SEPCTRUM_ELEMENT);
-
-        writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
-        writer.writeCharacters(ParsingUtils.doubleArrayToString(
-            Arrays.stream(aligned[i]).mapToDouble(DataPoint::getMZ).toArray()));
-        writer.writeEndElement();
-
-        writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
-        writer.writeCharacters(ParsingUtils.doubleArrayToString(
-            Arrays.stream(aligned[i]).mapToDouble(DataPoint::getIntensity).toArray()));
-        writer.writeEndElement();
-
-        writer.writeEndElement(); // alinged spectrum
-      }
-
-      writer.writeEndElement(); // aligned spectrum list
-    }
-
-    writer.writeEndElement();
   }
 
   public static SpectralSimilarity loadFromXML(XMLStreamReader reader) throws XMLStreamException {
@@ -253,6 +136,7 @@ public class SpectralSimilarity {
     String function = null;
     int overlap = 0;
     double score = 0;
+    double explainedLibraryIntensity = 0;
 
     DataPoint[] query = null;
     DataPoint[] library = null;
@@ -267,6 +151,8 @@ public class SpectralSimilarity {
       switch (reader.getLocalName()) {
         case XML_FUNCTION_ELEMENT -> function = reader.getElementText();
         case XML_SCORE_ELEMENT -> score = Double.parseDouble(reader.getElementText());
+        case XML_EXPLAINED_LIB_INTENSITY_ELEMENT -> explainedLibraryIntensity = Double
+            .parseDouble(reader.getElementText());
         case XML_OVERLAPPING_PEAKS_ELEMENT -> overlap = Integer.parseInt(reader.getElementText());
         case XML_LIBRARY_SEPCTRUM_ELEMENT -> library = parseDatapointArray(reader);
         case XML_QUERY_SEPCTRUM_ELEMENT -> query = parseDatapointArray(reader);
@@ -274,7 +160,8 @@ public class SpectralSimilarity {
       }
     }
 
-    final SpectralSimilarity similarity = new SpectralSimilarity(function, score, overlap);
+    final SpectralSimilarity similarity = new SpectralSimilarity(function, score, overlap,
+        explainedLibraryIntensity);
     similarity.library = library;
     similarity.query = query;
     similarity.aligned = aligned;
@@ -293,11 +180,11 @@ public class SpectralSimilarity {
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
         .equals(XML_ALIGNED_SEPCTRUM_LIST_ELEMENT)) && index < numSpectra) {
       reader.next();
-      if(!reader.isStartElement()) {
+      if (!reader.isStartElement()) {
         continue;
       }
 
-      if(reader.getLocalName().equals(XML_ALIGNED_SEPCTRUM_ELEMENT)) {
+      if (reader.getLocalName().equals(XML_ALIGNED_SEPCTRUM_ELEMENT)) {
         aligned[index] = parseDatapointArray(reader);
         index++;
       }
@@ -349,6 +236,160 @@ public class SpectralSimilarity {
     return dps;
   }
 
+  private DataPoint[] getAlignedLibrarySignals() {
+    return aligned != null && aligned.length > 0 ? aligned[0] : null;
+  }
+
+  private DataPoint[] getAlignedQuerySignals() {
+    return aligned != null && aligned.length > 1 ? aligned[1] : null;
+  }
+
+  /**
+   * Explained library intensity (intensity of all matched signals / intensity of all signals)
+   *
+   * @return ratio of explained library signal intensity
+   */
+  public double getExplainedLibraryIntensity() {
+    return explainedLibraryIntensity;
+  }
+
+  /**
+   * Number of overlapping signals in both spectra
+   *
+   * @return number of matched signals
+   */
+  public int getOverlap() {
+    return overlap;
+  }
+
+  /**
+   * Cosine similarity
+   *
+   * @return cosine similarity (0-1)
+   */
+  public double getScore() {
+    return score;
+  }
+
+  /**
+   * SPectralSimilarityFunction name
+   *
+   * @return function name
+   */
+  public String getFunctionName() {
+    return funcitonName;
+  }
+
+  /**
+   * Library spectrum (usually filtered)
+   *
+   * @return library signals
+   */
+  public DataPoint[] getLibrary() {
+    return library;
+  }
+
+  /**
+   * Query spectrum (usually filtered)
+   *
+   * @return query signals
+   */
+  public DataPoint[] getQuery() {
+    return query;
+  }
+
+  /**
+   * All aligned data points of library(0) and query(1) spectrum
+   *
+   * @return DataPoint[library, query][datapoints]
+   */
+  public DataPoint[][] getAlignedDataPoints() {
+    return aligned;
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    writer.writeStartElement(XML_FUNCTION_ELEMENT);
+    writer.writeCharacters(funcitonName);
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_OVERLAPPING_PEAKS_ELEMENT);
+    writer.writeCharacters(String.valueOf(overlap));
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_SCORE_ELEMENT);
+    writer.writeCharacters(String.valueOf(score));
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_EXPLAINED_LIB_INTENSITY_ELEMENT);
+    writer.writeCharacters(String.valueOf(explainedLibraryIntensity));
+    writer.writeEndElement();
+
+    if (library != null) {
+      writer.writeStartElement(XML_LIBRARY_SEPCTRUM_ELEMENT);
+
+      writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+      writer.writeCharacters(ParsingUtils
+          .doubleArrayToString(Arrays.stream(library).filter(Objects::nonNull)
+              .mapToDouble(DataPoint::getMZ).toArray()));
+      writer.writeEndElement();
+
+      writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+      writer.writeCharacters(ParsingUtils.doubleArrayToString(
+          Arrays.stream(library).filter(Objects::nonNull).mapToDouble(DataPoint::getIntensity)
+              .toArray()));
+      writer.writeEndElement();
+
+      writer.writeEndElement(); // lib spectrum
+    }
+
+    if (query != null) {
+      writer.writeStartElement(XML_QUERY_SEPCTRUM_ELEMENT);
+
+      writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+      writer.writeCharacters(ParsingUtils
+          .doubleArrayToString(
+              Arrays.stream(query).filter(Objects::nonNull).mapToDouble(DataPoint::getMZ)
+                  .toArray()));
+      writer.writeEndElement();
+
+      writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+      writer.writeCharacters(ParsingUtils.doubleArrayToString(
+          Arrays.stream(query).filter(Objects::nonNull).mapToDouble(DataPoint::getIntensity)
+              .toArray()));
+      writer.writeEndElement();
+
+      writer.writeEndElement(); // query spectrum
+    }
+
+    if (aligned != null) {
+      writer.writeStartElement(XML_ALIGNED_SEPCTRUM_LIST_ELEMENT);
+      writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(aligned.length));
+
+      for (DataPoint[] dataPoints : aligned) {
+
+        writer.writeStartElement(XML_ALIGNED_SEPCTRUM_ELEMENT);
+
+        writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+        writer.writeCharacters(ParsingUtils.doubleArrayToString(
+            Arrays.stream(dataPoints).mapToDouble(DataPoint::getMZ).toArray()));
+        writer.writeEndElement();
+
+        writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+        writer.writeCharacters(ParsingUtils.doubleArrayToString(
+            Arrays.stream(dataPoints).mapToDouble(DataPoint::getIntensity).toArray()));
+        writer.writeEndElement();
+
+        writer.writeEndElement(); // alinged spectrum
+      }
+
+      writer.writeEndElement(); // aligned spectrum list
+    }
+
+    writer.writeEndElement();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -359,9 +400,10 @@ public class SpectralSimilarity {
     }
     SpectralSimilarity that = (SpectralSimilarity) o;
     return Double.compare(that.getScore(), getScore()) == 0 && getOverlap() == that.getOverlap()
-        && Objects.equals(funcitonName, that.funcitonName) && Arrays
-        .equals(getLibrary(), that.getLibrary()) && Arrays.equals(getQuery(), that.getQuery())
-        && Arrays.deepEquals(aligned, that.aligned);
+           && Objects.equals(funcitonName, that.funcitonName) && Arrays
+               .equals(getLibrary(), that.getLibrary()) && Arrays
+               .equals(getQuery(), that.getQuery())
+           && Arrays.deepEquals(aligned, that.aligned);
   }
 
   @Override
@@ -369,7 +411,7 @@ public class SpectralSimilarity {
     int result = Objects.hash(getScore(), getOverlap(), funcitonName);
     result = 31 * result + Arrays.hashCode(getLibrary());
     result = 31 * result + Arrays.hashCode(getQuery());
-    result = 31 * result + Arrays.hashCode(aligned);
+    result = 31 * result + Arrays.deepHashCode(aligned);
     return result;
   }
 }

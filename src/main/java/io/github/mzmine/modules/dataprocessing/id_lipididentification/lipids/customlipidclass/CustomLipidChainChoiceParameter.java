@@ -56,8 +56,8 @@ public class CustomLipidChainChoiceParameter
 
   @Override
   public void setValueFromComponent(final CustomLipidChainChoiceComponent component) {
-    values = component.getValue().toArray(new LipidChainType[component.getValue().size()]);
-    choices = component.getChoices().toArray(new LipidChainType[component.getChoices().size()]);
+    values = component.getValue().toArray(new LipidChainType[0]);
+    choices = component.getChoices().toArray(new LipidChainType[0]);
   }
 
   @Override

@@ -1,24 +1,24 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -26,11 +26,19 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.SpectralLibMatchSummaryType;
+import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
+import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidFactory;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -45,6 +53,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.paint.Color;
@@ -81,15 +90,16 @@ public class RegularScanTypesTest {
 
     scans = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
-      scans.add(new SimpleScan(file, i, 1, 0.1f * i, 0d, 0, new double[]{700, 800, 900, 1000, 1100},
+      scans.add(new SimpleScan(file, i, 1, 0.1f * i, null, new double[]{700, 800, 900, 1000, 1100},
           new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
           PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
     for (int i = 5; i < 10; i++) {
-      scans.add(new SimpleScan(file, i, 2, 0.1f * i, 0d, 0, new double[]{700, 800, 900, 1000, 1100},
-          new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
-          PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
+      scans.add(new SimpleScan(file, i, 2, 0.1f * i,
+          new DDAMsMsInfoImpl(0, null, null, null, null, 2, ActivationMethod.UNKNOWN, null),
+          new double[]{700, 800, 900, 1000, 1100}, new double[]{1700, 1800, 1900, 11000, 11100},
+          MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
     for (Scan scan : scans) {
@@ -138,7 +148,7 @@ public class RegularScanTypesTest {
 
   @Test
   void spectralLibMatchSummaryTypeTest() {
-    var type = new SpectralLibMatchSummaryType();
+    SpectralLibraryMatchesType type = new SpectralLibraryMatchesType();
 
     var param = new CompositeCosineSpectralSimilarityParameters().cloneParameterSet();
     param.setParameter(CompositeCosineSpectralSimilarityParameters.minCosine, 0.7d);
@@ -150,23 +160,57 @@ public class RegularScanTypesTest {
     Scan query = file.getScan(6);
     Scan library = file.getScan(7);
 
-    Map<DBEntryField, Object> map = Map
-        .of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS, "468-531-21",
-            DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
+    Map<DBEntryField, Object> map = Map.of(DBEntryField.ENTRY_ID, "123swd", DBEntryField.CAS,
+        "468-531-21", DBEntryField.DATA_COLLECTOR, "Dr. Xy", DBEntryField.CHARGE, 1);
 
     SpectralDBEntry entry = new SpectralDBEntry(map, ScanUtils.extractDataPoints(library));
 
-    SpectralSimilarity similarity = simFunc
-        .getSimilarity(param, new MZTolerance(0.005, 15), 0, ScanUtils.extractDataPoints(library),
-            ScanUtils.extractDataPoints(query));
+    SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
+        ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
-    List<SpectralDBFeatureIdentity> value = List
-        .of(new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
-            new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
+    List<SpectralDBFeatureIdentity> value = List.of(
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
 
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, feature, file);
+  }
+
+  @Test
+  void lipidAnnotationSummaryTypeTest() {
+    var type = new LipidMatchListType();
+
+    LipidFactory lipidFactory = new LipidFactory();
+    SpeciesLevelAnnotation speciesLevelAnnotation = lipidFactory.buildSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2);
+
+    MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = lipidFactory.buildMolecularSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2});
+
+    List<MatchedLipid> value = new ArrayList<>();
+
+    value.add(new MatchedLipid(speciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    value.add(new MatchedLipid(molecularSpeciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+
+    List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
+        flist, row, null, null);
+
+    Assertions.assertEquals(value.size(), loaded.size());
+    final MatchedLipid first = value.get(0);
+    final MatchedLipid firstLoaded = loaded.get(0);
+    Assertions.assertEquals(first.getIonizationType(), firstLoaded.getIonizationType());
+    Assertions.assertEquals(first.getMsMsScore(), firstLoaded.getMsMsScore());
+    Assertions.assertEquals(first.getAccurateMz(), firstLoaded.getAccurateMz());
+
+    final MatchedLipid second = value.get(1);
+    final MatchedLipid secondLoaded = loaded.get(1);
+    Assertions.assertEquals(second.getIonizationType(), secondLoaded.getIonizationType());
+    Assertions.assertEquals(second.getMsMsScore(), secondLoaded.getMsMsScore());
+    Assertions.assertEquals(second.getAccurateMz(), secondLoaded.getAccurateMz());
   }
 }

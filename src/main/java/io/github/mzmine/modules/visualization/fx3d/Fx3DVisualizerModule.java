@@ -18,17 +18,10 @@
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import io.github.mzmine.datamodel.features.Feature;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -38,8 +31,15 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author akshaj This class represents the module class of the Fx3DVisualizer.
@@ -64,7 +64,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
   @Override
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
 
     final RawDataFile[] currentDataFiles = parameters
         .getParameter(Fx3DVisualizerParameters.dataFiles).getValue().getMatchingRawDataFiles();
@@ -125,7 +125,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     if (myParameters.showSetupDialog(true) == ExitCode.OK) {
       myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
-          myParameters.cloneParameterSet(), new ArrayList<Task>(), new Date());
+          myParameters.cloneParameterSet(), new ArrayList<Task>(), Instant.now());
     }
   }
 

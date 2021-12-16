@@ -47,8 +47,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
   private int currentIndex = 0;
   private final MsMsSpectraMergeParameters mergeParameters;
 
-  GnpsFbmnExportTask(ParameterSet parameters, @NotNull Date moduleCallDate) {
+  GnpsFbmnExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
@@ -209,7 +210,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
           writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
         }
 
-        int msmsCharge = msmsScan.getPrecursorCharge();
+        int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 0);
         String msmsPolarity = msmsScan.getPolarity().asSingleChar();
         if (msmsPolarity.equals("0"))
           msmsPolarity = "";

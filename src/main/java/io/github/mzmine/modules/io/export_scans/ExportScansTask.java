@@ -37,7 +37,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class ExportScansTask extends AbstractTask {
   private boolean useMassList;
 
   public ExportScansTask(Scan[] scans, ParameterSet parameters) {
-    super(null, new Date()); // no new data stored -> null, date irrelevant (not used in batch)
+    super(null, Instant.now()); // no new data stored -> null, date irrelevant (not used in batch)
     progress = 0;
     progressMax = 0;
     this.scans = scans;
@@ -141,9 +142,9 @@ public class ExportScansTask extends AbstractTask {
           case "mgf":
             writer.write("BEGIN IONS");
             writer.newLine();
-            writer.write("PEPMASS=" + scan.getPrecursorMZ());
+            writer.write("PEPMASS=" + Objects.requireNonNullElse(scan.getPrecursorMz(), 0));
             writer.newLine();
-            writer.write("CHARGE=" + scan.getPrecursorCharge());
+            writer.write("CHARGE=" + Objects.requireNonNullElse(scan.getPrecursorCharge(), 0));
             writer.newLine();
             writer.write("MSLEVEL=" + scan.getMSLevel());
             writer.newLine();

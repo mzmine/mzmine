@@ -21,7 +21,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 import com.google.common.collect.Range;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -31,6 +30,7 @@ import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.MsdkScanWrapper;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.datamodel.impl.masslist.ScanPointerMassList;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -44,6 +44,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -74,13 +75,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Date moduleCallDate) {
+      @NotNull Instant moduleCallDate) {
     this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Date moduleCallDate) {
+      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(newMZmineFile.getMemoryMapStorage(), moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.project = project;
@@ -217,7 +218,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
     final List<Double> mobilities = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
-    Set<ImsMsMsInfo> finishedImsMsMsInfos = null;
+    Set<PasefMsMsInfo> finishedImsMsMsInfos = null;
     final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
     Integer lastScanId = null;
@@ -233,7 +234,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
-          finishedFrame.setMobilityScans(mobilityScans);
+          finishedFrame.setMobilityScans(mobilityScans, false);
           finishedFrame
               .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
           newImsFile.addScan(buildingFrame);
@@ -251,7 +252,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
         }
 
         buildingFrame = new SimpleFrame(newImsFile, frameNumber, scan.getMsLevel(),
-            scan.getRetentionTime() / 60f, 0, 0, null, null,
+            scan.getRetentionTime() / 60f, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
             scan.getScanningRange(), mzMLScan.getMobility().mt(), null);

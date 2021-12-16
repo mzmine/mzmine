@@ -30,7 +30,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.ScanUtils.BinningType;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Random;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -73,7 +73,7 @@ class Fx3DSamplingTask extends AbstractTask {
    */
   Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel, Range<Double> mzRange,
       int rtResolution, int mzResolution, Fx3DBorderPaneController controller) {
-    super(null, new Date()); // no new data stored -> null, date is irrelevant
+    super(null, Instant.now()); // no new data stored -> null, date is irrelevant
 
     this.dataFile = dataFile;
     this.scans = scanSel.getMatchingScans(dataFile);

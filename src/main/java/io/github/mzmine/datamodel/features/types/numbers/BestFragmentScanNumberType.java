@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2020 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,11 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.numbers;
@@ -34,7 +33,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> implements
+public class BestFragmentScanNumberType extends DataType<Scan> implements
     NullColumnType {
 
   @NotNull
@@ -45,13 +44,18 @@ public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> i
   }
 
   @Override
-  public String getHeaderString() {
+  public @NotNull String getHeaderString() {
     return "Best fragment scan";
   }
 
   @Override
   public ObjectProperty<Scan> createProperty() {
     return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<Scan> getValueClass() {
+    return Scan.class;
   }
 
   @Override
@@ -63,7 +67,8 @@ public class BestFragmentScanNumberType extends DataType<ObjectProperty<Scan>> i
     }
     if (!(value instanceof Scan scan)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value.getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
+              .getClass());
     }
     Scan.saveScanToXML(writer, scan);
   }
