@@ -39,13 +39,11 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -254,9 +252,6 @@ public class SmoothingTask extends AbstractTask {
     // todo smooth mobilograms here if needed
     if (originalSeries instanceof IonMobilogramTimeSeries) {
 
-      if (smoothMobility) {
-
-      }
     }
     return null;
   }
