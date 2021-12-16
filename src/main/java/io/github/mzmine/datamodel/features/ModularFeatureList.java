@@ -132,6 +132,12 @@ public class ModularFeatureList implements FeatureList {
     return nameProperty;
   }
 
+  /**
+   * Checks for safe path encoding and no duplicate names in project
+   *
+   * @param name the new name candidate
+   * @return the actually set name
+   */
   @Override
   public String setName(@NotNull String name) {
     if (name.isBlank() || name.equals(this.nameProperty)) {
@@ -142,12 +148,23 @@ public class ModularFeatureList implements FeatureList {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      this.nameProperty = project.getUniqueFeatureListName(name);
-      project.fireFeatureListsChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+      // project finds the name and calls the setNameNoChecks method
+      project.setUniqueFeatureListName(this, name);
     } else {
-      this.nameProperty = FileAndPathUtil.safePathEncode(name);
+      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
     }
     return this.nameProperty;
+  }
+
+  @Override
+  public String setNameNoChecks(@NotNull String name) {
+    this.nameProperty = name;
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (project != null) {
+      project.fireFeatureListsChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+    }
+    return nameProperty;
   }
 
   @Override

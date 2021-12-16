@@ -196,9 +196,23 @@ public interface MZmineProject {
 
   int getNumberOfLibraries();
 
-  String getUniqueDataFileName(String name);
+  /**
+   * Finds and sets a unique name for a data file
+   *
+   * @param raw  the target data file thats renamed
+   * @param name the new name candidate
+   * @return the unique name that was set
+   */
+  String setUniqueDataFileName(RawDataFile raw, String name);
 
-  String getUniqueFeatureListName(String name);
+  /**
+   * Finds and sets a unique name for a feature list
+   *
+   * @param featureList the target feature list thats renamed
+   * @param name        the new name candidate
+   * @return the unique name that was set
+   */
+  String setUniqueFeatureListName(FeatureList featureList, String name);
 
   void fireLibrariesChangeEvent(List<SpectralLibrary> libraries, Type type);
 

@@ -27,7 +27,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
@@ -470,14 +469,26 @@ public class RawDataFileImpl implements RawDataFile {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      this.name = project.getUniqueDataFileName(name);
-      project.fireDataFilesChangeEvent(List.of(this), Type.RENAMED);
+      project.setUniqueDataFileName(this, name);
     } else {
-      this.name = FileAndPathUtil.safePathEncode(name);
+      // path safe encode
+      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
     }
 
-    MZmineCore.runLater(() -> nameProperty.set(this.name));
     return this.name;
+  }
+
+
+  @Override
+  public String setNameNoChecks(@NotNull String name) {
+    this.name = name;
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (project != null) {
+      project.fireDataFilesChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+    }
+    MZmineCore.runLater(() -> nameProperty.set(this.name));
+    return name;
   }
 
   @Override

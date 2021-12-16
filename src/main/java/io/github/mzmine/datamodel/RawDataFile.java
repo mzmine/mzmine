@@ -163,6 +163,8 @@ public interface RawDataFile {
   void setMZRange(int msLevel, Range<Double> mzRange);
 
 
+  String setNameNoChecks(@NotNull String name);
+
   ObservableList<Scan> getScans();
 
 

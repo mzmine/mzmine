@@ -401,12 +401,6 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public String getUniqueFeatureListName(String name) {
-    return getUniqueName(name, featureLock,
-        featureLists.stream().map(FeatureList::getName).toList());
-  }
-
-  @Override
   public void fireLibrariesChangeEvent(List<SpectralLibrary> libraries, Type type) {
     final var event = new ProjectChangeEvent<>(this, libraries, type);
     listeners.forEach(l -> l.librariesChanged(event));
@@ -454,20 +448,42 @@ public class MZmineProjectImpl implements MZmineProject {
   }
 
   @Override
-  public String getUniqueDataFileName(String name) {
-    return getUniqueName(name, rawLock, rawDataFiles.stream().map(RawDataFile::getName).toList());
-  }
-
-  private String getUniqueName(String name, ReadWriteLock lock, List<String> names) {
+  public String setUniqueFeatureListName(FeatureList featureList, String name) {
     try {
-      lock.writeLock().lock();
+      featureLock.writeLock().lock();
 
+      // need to lock before getting all names
+      final List<String> names = featureLists.stream().map(FeatureList::getName).toList();
       // make path safe
       name = FileAndPathUtil.safePathEncode(name);
       // handle duplicates
-      return names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+      name = names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+
+      // set the new name and notify listeners
+      featureList.setNameNoChecks(name);
+      return name;
     } finally {
-      lock.writeLock().unlock();
+      featureLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public String setUniqueDataFileName(RawDataFile raw, String name) {
+    try {
+      rawLock.writeLock().lock();
+
+      final List<String> names = rawDataFiles.stream().map(RawDataFile::getName).toList();
+      // make path safe
+      name = FileAndPathUtil.safePathEncode(name);
+      // handle duplicates
+      name = names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
+
+      // set the new name and notify listeners
+      raw.setNameNoChecks(name);
+
+      return name;
+    } finally {
+      rawLock.writeLock().unlock();
     }
   }
 
