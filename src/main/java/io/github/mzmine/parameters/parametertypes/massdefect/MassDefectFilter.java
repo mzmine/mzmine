@@ -20,6 +20,13 @@ package io.github.mzmine.parameters.parametertypes.massdefect;
 
 public class MassDefectFilter {
 
+  public static final MassDefectFilter ALL = new MassDefectFilter(0, 1) {
+    @Override
+    public boolean contains(double mz) {
+      return true;
+    }
+  };
+
   private final double lower;
   private final double upper;
 

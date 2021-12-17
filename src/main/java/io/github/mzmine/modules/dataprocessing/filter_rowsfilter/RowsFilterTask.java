@@ -194,7 +194,7 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByMassDefect = parameters.getValue(RowsFilterParameters.massDefect);
     final MassDefectFilter massDefectFilter =
         filterByMassDefect ? parameters.getParameter(RowsFilterParameters.massDefect)
-            .getEmbeddedParameter().getValue() : null;
+            .getEmbeddedParameter().getValue() : MassDefectFilter.ALL;
 
     int rowsCount = 0;
     boolean removeRow = false;
@@ -469,9 +469,8 @@ public class RowsFilterTask extends AbstractTask {
         }
       }
 
-      if (massDefectFilter != null) {
-        var massDefectOk = massDefectFilter.contains(row.getAverageMZ());
-        if (!massDefectOk) {
+      if (filterByMassDefect) {
+        if (!massDefectFilter.contains(row.getAverageMZ())) {
           filterRowCriteriaFailed = true;
         }
       }

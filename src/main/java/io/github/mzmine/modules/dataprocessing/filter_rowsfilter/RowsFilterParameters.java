@@ -38,7 +38,6 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.util.ExitCode;
-import java.text.DecimalFormat;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -111,7 +110,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
       new MassDefectParameter("Mass defect",
-          "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15", new DecimalFormat("0.0000")));
+          "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
+          MZmineCore.getConfiguration().getMZFormat()));
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
