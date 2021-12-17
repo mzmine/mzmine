@@ -18,26 +18,19 @@
 
 package io.github.mzmine.modules.visualization.image;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.PaintScaleComponent;
-import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -49,17 +42,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYZDataset;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class ImageVisualizerTab extends MZmineTab {
-  private final ImageVisualizerPaneController controller;
-  private ImageHeatMapPlot imageHeatMapPlot;
-  private ImagingRawDataFile rawDataFile;
 
-  public ImageVisualizerTab(ParameterSet parameters, ImageHeatMapPlot imageHeatMapPlot,
+  private final ImageVisualizerPaneController controller;
+  private final EChartViewer imageHeatMapPlot;
+  private final ImagingRawDataFile rawDataFile;
+
+  public ImageVisualizerTab(ParameterSet parameters, EChartViewer imageHeatMapPlot,
       ImagingRawDataFile rawDataFile, ImagingParameters imagingParameters) {
     super("Image viewer", true, false);
 
@@ -80,7 +73,6 @@ public class ImageVisualizerTab extends MZmineTab {
     updateHeatMapPlot();
     addRawDataInfo(rawDataFile);
     addImagingInfo(imagingParameters);
-    addPlotSettings(parameters);
     setContent(root);
   }
 
@@ -95,7 +87,8 @@ public class ImageVisualizerTab extends MZmineTab {
     imageHeatMapPlot.addChartMouseListener(new ChartMouseListenerFX() {
 
       @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {}
+      public void chartMouseMoved(ChartMouseEventFX event) {
+      }
 
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
@@ -131,8 +124,8 @@ public class ImageVisualizerTab extends MZmineTab {
     rawDataInfoPane.add(new Label(rawDataInfo.getNumberOfScans().toString()), 1, 1);
     rawDataInfoPane.add(new Label("Range m/z:"), 0, 2);
     rawDataInfoPane.add(new Label(
-        MZminePreferences.mzFormat.getValue().format(rawDataInfo.getDataMzRange().lowerEndpoint())
-            + "-" + MZminePreferences.mzFormat.getValue()
+            MZminePreferences.mzFormat.getValue().format(rawDataInfo.getDataMzRange().lowerEndpoint())
+                + "-" + MZminePreferences.mzFormat.getValue()
                 .format(rawDataInfo.getDataMzRange().upperEndpoint())),
         1, 2);
   }
@@ -157,34 +150,6 @@ public class ImageVisualizerTab extends MZmineTab {
     imagingParametersInfoPane.add(new Label(imagingParameters.getvStart().toString()), 1, 5);
     imagingParametersInfoPane.add(new Label("Horizontal start:"), 0, 6);
     imagingParametersInfoPane.add(new Label(imagingParameters.gethStart().toString()), 1, 6);
-  }
-
-  private void addPlotSettings(ParameterSet parameters) {
-    parameters.getParameter(ImageVisualizerParameters.paintScale);
-    GridPane plotSettingsInfoPane = controller.getPlotSettingsInfoGridPane();
-    plotSettingsInfoPane.add(new Label("Paint scale:"), 0, 0);
-    PaintScaleParameter paintScaleParamter =
-        parameters.getParameter(ImageVisualizerParameters.paintScale).cloneParameter();
-    PaintScaleComponent paintScaleComponent = paintScaleParamter.createEditingComponent();
-    paintScaleParamter.setValueToComponent(paintScaleComponent, paintScaleParamter.getValue());
-    paintScaleComponent.getComboBox().valueProperty().addListener(new ChangeListener<PaintScale>() {
-
-      @Override
-      public void changed(ObservableValue<? extends PaintScale> observable, PaintScale oldValue,
-          PaintScale newValue) {
-        PaintScale newPaintScale =
-            new PaintScale(newValue.getPaintScaleColorStyle(), newValue.getPaintScaleBoundStyle(),
-                Range.closed(imageHeatMapPlot.getPaintScale().getLowerBound(),
-                    imageHeatMapPlot.getPaintScale().getUpperBound()));
-        ImageHeatMapPlot newImageHeatMapPlot = new ImageHeatMapPlot(
-            (XYZDataset) imageHeatMapPlot.getPlot().getDataset(), newPaintScale,
-            imageHeatMapPlot.getDataPointWidth(), imageHeatMapPlot.getDataPointHeight());
-        imageHeatMapPlot = newImageHeatMapPlot;
-        updateHeatMapPlot();
-      }
-
-    });
-    plotSettingsInfoPane.add(paintScaleComponent, 1, 0);
   }
 
   @NotNull
