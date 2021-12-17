@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
@@ -104,7 +105,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
   @Override
   public <T> T get(@NotNull DataType<T> key) {
     Object value = super.get(key);
-    if (value != null && value.getClass() != key.getValueClass()) {
+    if (value != null && !key.getValueClass().isInstance(value)) {
       throw new IllegalStateException(
           String.format("Value type (%s) does not match data type value class (%s)",
               value.getClass(), key.getValueClass()));
@@ -306,10 +307,23 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
 
     final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     final NumberFormat scoreFormat = MZmineCore.getConfiguration().getScoreFormat();
+    final IonType adductType = getAdductType();
 
-    return new StringBuilder(getCompundName()).append(" ").append(getAdductType().toString(false))
-        .append(" (").append(mzFormat.format(getPrecursorMZ())).append(",")
-        .append(scoreFormat.format(getScore())).append(")").toString();
+    final StringBuilder b = new StringBuilder();
+
+    if(getCompundName()!= null) {
+      b.append(getCompundName()).append(",");
+    }
+    if(getAdductType() != null) {
+      b.append(" ").append(getAdductType().toString(false)).append(", ");
+    }
+    if(getPrecursorMZ() != null) {
+      b.append(mzFormat.format(getPrecursorMZ())).append(", ");
+    }
+    if(getScore() != null) {
+      b.append(scoreFormat.format(getScore()));
+    }
+    return b.toString();
   }
 }
 
