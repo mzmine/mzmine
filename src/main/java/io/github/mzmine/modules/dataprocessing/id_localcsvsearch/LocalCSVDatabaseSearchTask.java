@@ -22,13 +22,14 @@ import com.Ostermiller.util.CSVParser;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -48,7 +49,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MathUtils;
 import java.io.File;
 import java.io.FileReader;
@@ -180,7 +180,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     if (ionNetworkLibrary != null) {
       annotations.addAll(
-          CompoundDBAnnotation.buildCompoundsWithAddcuts(baseAnnotation, ionNetworkLibrary));
+          CompoundDBAnnotation.buildCompoundsWithAdducts(baseAnnotation, ionNetworkLibrary));
     } else {
       annotations.add(baseAnnotation);
     }
@@ -192,7 +192,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           clone.put(CompoundAnnotationScoreType.class,
               clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
           clone.put(MzPpmDifferenceType.class,
-              (float) MathUtils.getPpmDiff(clone.getExactMass(), peakRow.getAverageMZ()));
+              (float) MathUtils.getPpmDiff(clone.getPrecursorMZ(), peakRow.getAverageMZ()));
           peakRow.addCompoundAnnotation(clone);
           peakRow.getCompoundAnnotations()
               .sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
@@ -204,18 +204,18 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   @NotNull
   private CompoundDBAnnotation getCompoundFromLine(String[] values,
       List<ImportType> linesWithIndices) {
-    var formulaType = new FormulaType();
-    var compoundNameType = new CompoundNameType();
-    var commentType = new CommentType();
-    var mzType = new MZType();
-    var rtType = new RTType();
-    var mobType = new MobilityType();
-    var ccsType = new CCSType();
-    var smilesType = new SmilesStructureType();
-    var adductType = new IonTypeType();
-    var neutralMassType = new NeutralMassType();
-    var ionTypeType = new IonTypeType();
-    var pubchemIdType = new PubChemIdType();
+    var formulaType = DataTypes.getInstance(FormulaType.class);
+    var compoundNameType = DataTypes.getInstance(CompoundNameType.class);
+    var commentType = DataTypes.getInstance(CommentType.class);
+    var precursorMz = DataTypes.getInstance(MZType.class);
+    var rtType = DataTypes.getInstance(RTType.class);
+    var mobType = DataTypes.getInstance(MobilityType.class);
+    var ccsType = DataTypes.getInstance(CCSType.class);
+    var smilesType = DataTypes.getInstance(SmilesStructureType.class);
+    var adductType = DataTypes.getInstance(IonTypeType.class);
+    var neutralMassType = DataTypes.getInstance(NeutralMassType.class);
+    var ionTypeType = DataTypes.getInstance(IonTypeType.class);
+    var pubchemIdType = DataTypes.getInstance(PubChemIdType.class);
 
     final Map<DataType<?>, String> entry = new HashMap<>();
 
@@ -230,7 +230,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String lineAdduct = entry.get(adductType);
     final String lineComment = entry.get(commentType);
     final Double lineMZ =
-        (entry.get(mzType) != null) ? Double.parseDouble(entry.get(mzType)) : null;
+        (entry.get(precursorMz) != null) ? Double.parseDouble(entry.get(precursorMz)) : null;
     final Float lineRT = (entry.get(rtType) != null) ? Float.parseFloat(entry.get(rtType)) : null;
     final Float lineMob =
         (entry.get(mobType) != null) ? Float.parseFloat(entry.get(mobType)) : null;
@@ -242,18 +242,18 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     final String pubchemId = entry.get(pubchemIdType);
 
     CompoundDBAnnotation a = new SimpleCompoundDBAnnotation();
-    doIf(lineName != null, () -> a.put(compoundNameType, lineName));
-    doIf(lineFormula != null, () -> a.put(formulaType, lineFormula));
-    doIf(lineComment != null, () -> a.put(commentType, lineComment));
-    doIf(lineRT != null, () -> a.put(rtType, lineRT));
-    doIf(lineMob != null, () -> a.put(mobType, lineMob));
-    doIf(lineCCS != null, () -> a.put(ccsType, lineCCS));
-    doIf(smiles != null, () -> a.put(smilesType, smiles));
-    doIf(lineMZ != null, () -> a.put(MZType.class, lineMZ));
-    doIf(neutralMass != null, () -> a.put(neutralMassType, neutralMass));
-    doIf(IonType.parseFromString(lineAdduct) != null,
+    doIfNotNull(lineName, () -> a.put(compoundNameType, lineName));
+    doIfNotNull(lineFormula, () -> a.put(formulaType, lineFormula));
+    doIfNotNull(lineComment, () -> a.put(commentType, lineComment));
+    doIfNotNull(lineRT, () -> a.put(rtType, lineRT));
+    doIfNotNull(lineMob, () -> a.put(mobType, lineMob));
+    doIfNotNull(lineCCS, () -> a.put(ccsType, lineCCS));
+    doIfNotNull(smiles, () -> a.put(smilesType, smiles));
+    doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
+    doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
+    doIfNotNull(IonType.parseFromString(lineAdduct),
         () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
-    doIf(pubchemId != null, () -> a.put(PubChemIdType.class, pubchemId));
+    doIfNotNull(pubchemId, () -> a.put(PubChemIdType.class, pubchemId));
     return a;
   }
 
@@ -295,10 +295,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     return lines;
   }
 
-  private void doIf(boolean condition, Runnable r) {
-    if (condition) {
+  private void doIfNotNull(Object something, Runnable r) {
+    if (something != null) {
       r.run();
     }
   }
-
 }

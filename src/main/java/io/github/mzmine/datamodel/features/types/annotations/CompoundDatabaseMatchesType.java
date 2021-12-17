@@ -21,10 +21,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
@@ -65,7 +65,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       createEntry(IonTypeType.class, CompoundDBAnnotation::getAdductType), //
       createEntry(SmilesStructureType.class, CompoundDBAnnotation::getSmiles), //
       createEntry(InChIStructureType.class, match -> match.get(new InChIStructureType())), //
-      createEntry(PrecursorMZType.class, CompoundDBAnnotation::getExactMass), //
+      createEntry(PrecursorMZType.class, CompoundDBAnnotation::getPrecursorMZ), //
       createEntry(MzPpmDifferenceType.class, match -> match.get(MzPpmDifferenceType.class)), //
       createEntry(NeutralMassType.class, match -> match.get(new NeutralMassType())), //
       createEntry(RTType.class, match -> match.get(new RTType())), //

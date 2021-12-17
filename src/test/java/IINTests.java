@@ -35,17 +35,17 @@ public class IINTests {
     final MZTolerance tol = new MZTolerance(0.000001, .01);
 
     annotation.put(SmilesStructureType.class, "C1CCN(C1)C(=O)C=CC=CC2=CC3=C(C=C2)OCO3");
-    double mzFromSmiles = CompoundDBAnnotation.calcMz(annotation, ionType);
+    double mzFromSmiles = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
     annotation.put(FormulaType.class, "C16H17NO3");
-    double mzFromFormula = CompoundDBAnnotation.calcMz(annotation, ionType);
+    double mzFromFormula = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
     annotation.put(PrecursorMZType.class,272.1281199);
     annotation.put(IonTypeType.class, ionType);
-    double mzFromMz = CompoundDBAnnotation.calcMz(annotation, ionType);
+    double mzFromMz = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
     annotation.put(NeutralMassType.class, 271.1208434);
-    double mzFromNeutral = CompoundDBAnnotation.calcMz(annotation, ionType);
+    double mzFromNeutral = CompoundDBAnnotation.calcMzForAdduct(annotation, ionType);
 
     logger.info(() -> "Smiles: " + mzFromSmiles + "\tFormula: " + mzFromFormula + "\tPrecursor: " + mzFromMz + "\tNeutral: " + mzFromNeutral);
     Assertions.assertTrue(tol.checkWithinTolerance(mzFromFormula, mzFromNeutral));

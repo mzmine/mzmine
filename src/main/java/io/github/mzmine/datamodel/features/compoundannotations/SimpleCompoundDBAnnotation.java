@@ -165,7 +165,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance) {
 
-    final Double exactMass = getExactMass();
+    final Double exactMass = getPrecursorMZ();
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzTolerance != null && exactMass != null && (row.getAverageMZ() == null
         || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
@@ -202,8 +202,8 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
 
     int scorers = 0;
 
-    Float score = 0f;
-    final Double exactMass = getExactMass();
+    float score = 0f;
+    final Double exactMass = getPrecursorMZ();
     // values are "matched" if the given value exists in this class and falls within the tolerance.
     if (mzTolerance != null && exactMass != null && !(row.getAverageMZ() == null
         || !mzTolerance.checkWithinTolerance(row.getAverageMZ(), exactMass))) {
@@ -256,7 +256,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
     final NumberFormat scoreFormat = MZmineCore.getConfiguration().getScoreFormat();
 
     return new StringBuilder(getCompundName()).append(" ").append(getAdductType().toString(false))
-        .append(" (").append(mzFormat.format(getExactMass())).append(",")
+        .append(" (").append(mzFormat.format(getPrecursorMZ())).append(",")
         .append(scoreFormat.format(getScore())).append(")").toString();
   }
 }

@@ -38,6 +38,7 @@ import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidn
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -47,11 +48,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.openscience.cdk.exception.InvalidSmilesException;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable {
@@ -62,16 +59,13 @@ public interface CompoundDBAnnotation extends Cloneable {
   String XML_TYPE_ATTRIBUTE = "annotationtype";
   String XML_NUM_ENTRIES_ATTR = "entries";
 
-  static List<CompoundDBAnnotation> buildCompoundsWithAddcuts(
+  @NotNull
+  static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
       CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     for (IonType adduct : library.getAllAdducts()) {
-      CompoundDBAnnotation clone = neutralAnnotation.clone();
       try {
-        final double mz = calcMz(clone, adduct);
-        clone.put(PrecursorMZType.class, mz);
-        clone.put(IonTypeType.class, adduct);
-        annotations.add(clone);
+        annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
       }
@@ -80,73 +74,43 @@ public interface CompoundDBAnnotation extends Cloneable {
     return annotations;
   }
 
-  static double calcMz(CompoundDBAnnotation annotation, IonType adduct)
-      throws IllegalStateException {
+  /**
+   * Calculates the m/z for a given adduct.
+   *
+   * @param annotation
+   * @param adduct
+   * @return
+   * @throws CannotDetermineMassException
+   */
+  static double calcMzForAdduct(@NotNull CompoundDBAnnotation annotation, @NotNull IonType adduct)
+      throws CannotDetermineMassException {
     final Double neutralMass = annotation.get(NeutralMassType.class);
     if (neutralMass != null) {
       return adduct.getMZ(neutralMass);
     }
 
     final IonType currentAdduct = annotation.get(IonTypeType.class);
-    if (currentAdduct != null && annotation.getExactMass() != null) {
-      final double neutral = currentAdduct.getMass(annotation.getExactMass());
-      return adduct.getMZ(neutral);
-    }
-
-    final String formula = annotation.getFormula();
-    if (formula != null) {
-      final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-          formula, SilentChemObjectBuilder.getInstance());
-      final Integer charge = molecularFormula.getCharge();
-      if (charge != null && charge != 0) {
-        logger.info(() -> "Compound " + annotation + " is not neutral as determined by molFormula "
-            + MolecularFormulaManipulator.getString(molecularFormula) + ". charge = " + charge
-            + ". Adjusting protonation.");
-        MolecularFormulaManipulator.adjustProtonation(molecularFormula, -charge);
-      }
-      final double mass = MolecularFormulaManipulator.getMass(molecularFormula,
-          MolecularFormulaManipulator.MonoIsotopic);
+    if (currentAdduct != null && annotation.getPrecursorMZ() != null) {
+      final double mass = currentAdduct.getMass(annotation.getPrecursorMZ());
+      annotation.put(NeutralMassType.class, mass); // put neutral mass to speed up subsequent calls
       return adduct.getMZ(mass);
     }
 
+    final String formulaString = annotation.getFormula();
     final String smiles = annotation.getSmiles();
-    if (smiles != null) {
-      try {
-        final IAtomContainer iAtomContainer = new SmilesParser(
-            SilentChemObjectBuilder.getInstance()).parseSmiles(smiles);
-        IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-            iAtomContainer);
-        final Integer charge = molecularFormula.getCharge();
-        if (charge != null && charge != 0) {
-          logger.info(() -> "Compound " + annotation + " is not neutral as determined by smiles "
-              + MolecularFormulaManipulator.getString(molecularFormula) + ". charge = " + charge
-              + ". Adjusting protonation.");
-          MolecularFormulaManipulator.adjustProtonation(molecularFormula, -charge);
-        }
-        final double mass = MolecularFormulaManipulator.getMass(molecularFormula,
-            MolecularFormulaManipulator.MonoIsotopic);
-        return adduct.getMZ(mass);
-      } catch (InvalidSmilesException e) {
-        logger.log(Level.SEVERE, e.getMessage(), e);
-        logger.severe(() -> "Invalid smiles string for compound " + annotation);
-      }
+    final IMolecularFormula neutralFormula =
+        formulaString != null ? FormulaUtils.getNeutralFormula(formulaString)
+            : FormulaUtils.getNeutralFormula(FormulaUtils.getFomulaFromSmiles(smiles));
+
+    if (neutralFormula != null) {
+      final double mass = MolecularFormulaManipulator.getMass(neutralFormula,
+          MolecularFormulaManipulator.MonoIsotopic);
+      annotation.put(NeutralMassType.class, mass); // put neutral mass to speed up subsequent calls
+      return adduct.getMZ(mass);
     }
 
-    throw new IllegalStateException(
-        "Cannot determine mz of " + annotation + " with adduct " + adduct
-            + ". Neither neutral mass, formula, nor smiles is specified.");
+    throw new CannotDetermineMassException(annotation);
   }
-
-  <T> T get(@NotNull DataType<T> key);
-
-  <T> T get(Class<? extends DataType<T>> key);
-
-  <T> T put(@NotNull DataType<T> key, T value);
-
-  <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
-
-  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException;
 
   static CompoundDBAnnotation loadFromXML(@NotNull final XMLStreamReader reader,
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row)
@@ -164,42 +128,82 @@ public interface CompoundDBAnnotation extends Cloneable {
     };
   }
 
-  public default Double getExactMass() {
+  /**
+   * @param adduct The adduct.
+   * @return A new {@link CompoundDBAnnotation} with the given adduct. {@link
+   * CompoundDBAnnotation#getPrecursorMZ()} is adjusted.
+   * @throws CannotDetermineMassException In case the original compound does not contain enough
+   *                                      information to calculate the ionized compound.
+   */
+  default CompoundDBAnnotation ionize(IonType adduct) throws CannotDetermineMassException {
+    final CompoundDBAnnotation clone = clone();
+    final double mz = clone.calcMzForAdduct(adduct);
+    clone.put(PrecursorMZType.class, mz);
+    clone.put(IonTypeType.class, adduct);
+    return clone;
+  }
+
+  default double calcMzForAdduct(final IonType adduct) throws CannotDetermineMassException {
+    return calcMzForAdduct(this, adduct);
+  }
+
+  <T> T get(@NotNull DataType<T> key);
+
+  <T> T get(Class<? extends DataType<T>> key);
+
+  <T> T put(@NotNull DataType<T> key, T value);
+
+  <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
+
+  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+      ModularFeatureListRow row) throws XMLStreamException;
+
+  @Nullable
+  public default Double getPrecursorMZ() {
     return get(PrecursorMZType.class);
   }
 
+  @Nullable
   public default String getSmiles() {
     return get(SmilesStructureType.class);
   }
 
+  @Nullable
   public default String getCompundName() {
     return get(CompoundNameType.class);
   }
 
+  @Nullable
   public default String getFormula() {
     return get(FormulaType.class);
   }
 
+  @Nullable
   public default IonType getAdductType() {
     return get(IonTypeType.class);
   }
 
+  @Nullable
   public default Float getMobility() {
     return get(MobilityType.class);
   }
 
+  @Nullable
   public default Float getCCS() {
     return get(CCSType.class);
   }
 
+  @Nullable
   public default Float getRT() {
     return get(RTType.class);
   }
 
+  @Nullable
   public default String getDatabase() {
     return get(DatabaseNameType.class);
   }
 
+  @Nullable
   public default Float getScore() {
     return get(CompoundAnnotationScoreType.class);
   }
