@@ -16,30 +16,14 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
+package io.github.mzmine.parameters.parametertypes;
 
 /**
- * Enum that holds name of custom database column
- * 
- * @author Ansgar Korf (ansgar.korf@uni-muenster)
+ * Options to handle values (or ranges) like all values > threshold. Is used in the
+ * ForumulaPrediction to handle higher m/z values that need long for computing
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum FieldItem {
-
-  FIELD_MZ("m/z"), //
-  FIELD_NAME("Identity"); //
-
-  private final String name;
-
-  FieldItem(String name) {
-    this.name = name;
-  }
-
-  public String getName() {
-    return this.name;
-  }
-
-  @Override
-  public String toString() {
-    return this.name;
-  }
+public enum ValueOption {
+  EXCLUDE, INCLUDE, SIMPLIFY;
 }

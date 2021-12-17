@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -49,6 +50,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -521,6 +523,18 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     manual.setIdentities(peakIdentities);
     set(ManualAnnotationType.class, manual);
+  }
+
+  @Override
+  public void addCompoundAnnotation(CompoundDBIdentity id) {
+    synchronized (getMap()) {
+      List<CompoundDBIdentity> matches = get(CompoundDatabaseMatchesType.class);
+      if (matches == null) {
+        matches = new ArrayList<>();
+      }
+      matches.add(id);
+      set(CompoundDatabaseMatchesType.class, matches);
+    }
   }
 
   @Override

@@ -104,7 +104,6 @@ public class SpectralLibraryMatchesType extends
     return "Spectral match";
   }
 
-
   @Override
   public void saveToXML(@NotNull XMLStreamWriter writer, @Nullable Object value,
       @NotNull ModularFeatureList flist, @NotNull ModularFeatureListRow row,
