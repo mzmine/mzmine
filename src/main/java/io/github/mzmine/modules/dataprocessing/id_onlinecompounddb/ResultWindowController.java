@@ -18,7 +18,9 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
@@ -27,6 +29,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -35,10 +40,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.logging.Logger;
 
 public class ResultWindowController {
 
@@ -70,13 +71,11 @@ public class ResultWindowController {
 
     @FXML
     private void initialize(){
-        colID.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(
-            FeatureIdentity.PROPERTY_ID)));
-        colName.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getName()));
-        colFormula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getPropertyValue(
-            FeatureIdentity.PROPERTY_FORMULA)));
+        colID.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(String.valueOf(cell.getValue().getDatabaseMatchInfo())));
+        colName.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getCompundName()));
+        colFormula.setCellValueFactory(cell-> new ReadOnlyObjectWrapper<>(cell.getValue().getFormula()));
         colMassDiff.setCellValueFactory(cell-> {
-            String compFormula = cell.getValue().getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+            String compFormula = cell.getValue().getFormula();
             String cellVar = "";
             if (compFormula != null) {
                 double compMass = FormulaUtils.calculateExactMass(compFormula);
@@ -86,8 +85,7 @@ public class ResultWindowController {
             return new ReadOnlyObjectWrapper<>(cellVar);
         });
         colIPS.setCellValueFactory(cell->{
-
-            Double score = cell.getValue().getIsotopePatternScore();
+            Float score = cell.getValue().getIsotopePatternScore();
             String cellVar ="";
             if (score != null)
                 cellVar = percentFormat.format(score);
@@ -145,7 +143,7 @@ public class ResultWindowController {
 
             }
 
-            peakListRow.addFeatureIdentity(compound, false);
+            peakListRow.addCompoundAnnotation(compound);
             dispose();
         }
         catch (Exception e){
@@ -167,7 +165,7 @@ public class ResultWindowController {
         URL url2D = compound.get2DStructureURL();
         URL url3D = compound.get3DStructureURL();
         String name =
-                compound.getName() + " (" + compound.getPropertyValue(FeatureIdentity.PROPERTY_ID) + ")";
+                compound.getCompundName() + " (" + compound.getDatabaseMatchInfo() + ")";
         MolStructureViewer viewer = new MolStructureViewer(name, url2D, url3D);
         viewer.show();
     }
@@ -207,7 +205,7 @@ public class ResultWindowController {
 
         logger.finest("Launching default browser to display compound details");
 
-        String urlString = compound.getPropertyValue(FeatureIdentity.PROPERTY_URL);
+        String urlString = compound.getDatabaseUrl();
 
         if ((urlString == null) || (urlString.length() == 0))
             return;

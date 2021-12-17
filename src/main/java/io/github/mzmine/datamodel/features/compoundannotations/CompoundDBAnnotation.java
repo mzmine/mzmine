@@ -18,14 +18,20 @@
 
 package io.github.mzmine.datamodel.features.compoundannotations;
 
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -33,12 +39,15 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.util.FormulaUtils;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -153,7 +162,21 @@ public interface CompoundDBAnnotation extends Cloneable {
 
   <T> T put(@NotNull DataType<T> key, T value);
 
+  default <T> T putIfNotNull(@NotNull DataType<T> key, T value) {
+    if (value != null) {
+      return put(key, value);
+    }
+    return get(key);
+  }
+
   <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
+
+  default <T> T putIfNotNull(@NotNull Class<? extends DataType<T>> key, T value) {
+    if (value != null) {
+      return put(key, value);
+    }
+    return get(key);
+  }
 
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
@@ -166,6 +189,17 @@ public interface CompoundDBAnnotation extends Cloneable {
   @Nullable
   public default String getSmiles() {
     return get(SmilesStructureType.class);
+  }
+
+  @Nullable
+  public default DatabaseMatchInfo getDatabaseMatchInfo() {
+    return get(DatabaseMatchInfoType.class);
+  }
+
+  @Nullable
+  public default String getDatabaseUrl() {
+    final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
+    return databaseMatchInfo == null ? databaseMatchInfo.url() : null;
   }
 
   @Nullable
@@ -215,6 +249,48 @@ public interface CompoundDBAnnotation extends Cloneable {
   public Float getScore(FeatureListRow row, @Nullable MZTolerance mzTolerance,
       @Nullable RTTolerance rtTolerance, @Nullable MobilityTolerance mobilityTolerance,
       @Nullable Double percentCCSTolerance);
+
+  /**
+   * @return Returns the 2D structure URL.
+   */
+  default URL get2DStructureURL() {
+    final UrlShortName url = get(Structure2dUrlType.class);
+    try {
+      return url != null ? new URL(url.longUrl()) : null;
+    } catch (MalformedURLException e) {
+      return null;
+    }
+  }
+
+  /**
+   * @return Returns the 3D structure URL.
+   */
+  default URL get3DStructureURL() {
+    final UrlShortName url = get(Structure3dUrlType.class);
+    try {
+      return url != null ? new URL(url.longUrl()) : null;
+    } catch (MalformedURLException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the isotope pattern score or null if the score was not calculated.
+   *
+   * @return isotope pattern score.
+   */
+  default Float getIsotopePatternScore() {
+    return get(IsotopePatternScoreType.class);
+  }
+
+  /**
+   * Returns the isotope pattern (predicted) of this compound.
+   *
+   * @return the isotope pattern
+   */
+  default IsotopePattern getIsotopePattern() {
+    return get(IsotopePatternType.class);
+  }
 
   CompoundDBAnnotation clone();
 }

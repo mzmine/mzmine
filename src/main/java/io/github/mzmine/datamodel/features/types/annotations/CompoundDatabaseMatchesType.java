@@ -24,8 +24,8 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -55,7 +55,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
-      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new PubChemIdType());
+      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new DatabaseMatchInfoType());
   private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries(
       //
       createEntry(CompoundDatabaseMatchesType.class, match -> match.getCompundName()), //
@@ -70,7 +70,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       createEntry(NeutralMassType.class, match -> match.get(new NeutralMassType())), //
       createEntry(RTType.class, match -> match.get(new RTType())), //
       createEntry(CCSType.class, CompoundDBAnnotation::getCCS),
-      createEntry(PubChemIdType.class, match -> match.get(PubChemIdType.class)));
+      createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)));
 
   @Override
   public @NotNull String getUniqueID() {

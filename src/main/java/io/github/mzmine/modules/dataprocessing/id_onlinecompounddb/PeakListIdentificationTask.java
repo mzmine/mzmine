@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.Feature;
@@ -205,7 +204,7 @@ public class PeakListIdentificationTask extends AbstractTask {
         continue;
       }
 
-      final String formula = compound.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+      final String formula = compound.getFormula();
 
       // If required, check isotope score.
       if (isotopeFilter && rowIsotopePattern != null && formula != null) {
@@ -232,7 +231,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       }
 
       // Add the retrieved identity to the feature list row
-      row.addFeatureIdentity(compound, false);
+      row.addCompoundAnnotation(compound);
 
     }
   }
