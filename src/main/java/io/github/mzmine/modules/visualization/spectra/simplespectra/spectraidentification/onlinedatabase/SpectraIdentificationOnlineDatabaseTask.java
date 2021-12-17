@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
@@ -32,7 +33,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetectorParameters;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -164,7 +164,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
         // max number of compounds to top three for visualization
         int counter = 0;
         for (int j = 0; !isCanceled() && j < compoundIDs.length; j++) {
-          final DBCompound compound = gateway.getCompound(compoundIDs[j], db.getParameterSet());
+          final CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[j], db.getParameterSet());
 
           // In case we failed to retrieve data, skip this compound
           if (compound == null)

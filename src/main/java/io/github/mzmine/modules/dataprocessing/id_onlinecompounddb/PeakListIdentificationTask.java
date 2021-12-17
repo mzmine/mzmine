@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -197,7 +198,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
 
-      final DBCompound compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
+      final CompoundDBAnnotation compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
 
       // In case we failed to retrieve data, skip this compound
       if (compound == null) {

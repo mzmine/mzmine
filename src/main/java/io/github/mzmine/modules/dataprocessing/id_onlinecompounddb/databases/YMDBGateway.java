@@ -18,21 +18,20 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.InetUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.InetUtils;
 
 public class YMDBGateway implements DBGateway {
 
@@ -84,7 +83,7 @@ public class YMDBGateway implements DBGateway {
    * This method retrieves the details about YMDB compound
    * 
    */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException {
 
     // We will parse the name and formula from the SDF file, it seems like
     // the easiest way
@@ -115,7 +114,7 @@ public class YMDBGateway implements DBGateway {
       throw (new IOException("Could not parse compound name"));
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabases.YMDB, ID, compoundName, compoundFormula,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.YMDB, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

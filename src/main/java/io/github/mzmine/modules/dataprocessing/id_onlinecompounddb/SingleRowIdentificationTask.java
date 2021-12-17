@@ -27,6 +27,7 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.main.MZmineCore;
@@ -165,7 +166,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           return;
         }
 
-        DBCompound compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
+        CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
 
         // In case we failed to retrieve data, skip this compound
         if (compound == null) {
