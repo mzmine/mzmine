@@ -21,6 +21,9 @@ package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 import io.github.mzmine.datamodel.features.types.abstr.StringType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Supplies a name of a database as a string. Can be a string, an url or a file name.
+ */
 public class DatabaseNameType extends StringType {
 
   @Override

@@ -13,6 +13,9 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A PubChem compound id. Double click on this cell will open the respective web page.
+ */
 public class PubChemIdType extends StringType {
 
   private static final Logger logger = Logger.getLogger(PubChemIdType.class.getName());

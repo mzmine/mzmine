@@ -33,6 +33,9 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Specifies an ion type.
+ */
 public class IonTypeType extends DataType<IonType> {
 
   @Override
