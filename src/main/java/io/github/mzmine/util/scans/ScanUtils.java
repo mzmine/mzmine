@@ -186,7 +186,7 @@ public class ScanUtils {
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
     final Double scanBasePeakMz = scan.getBasePeakMz();
-    if (mzRange.contains(scanBasePeakMz)) {
+    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
       return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
     }
 
@@ -683,7 +683,7 @@ public class ScanUtils {
     return dataFile.getScanNumbers(2).stream().filter(
             s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && (
                 s.getMsMsInfo() != null && s.getMsMsInfo() instanceof DDAMsMsInfo dda
-                    && mzRange.contains(dda.getIsolationMz())))
+                && mzRange.contains(dda.getIsolationMz())))
         .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
@@ -698,9 +698,10 @@ public class ScanUtils {
     assert mzRange != null;
 
     return dataFile.getScanNumbers(2).stream().filter(
-        s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
-            && s.getMsMsInfo() instanceof DDAMsMsInfo dda && mzRange.contains(
-            dda.getIsolationMz()))).toArray(Scan[]::new);
+            s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
+                                                            && s.getMsMsInfo() instanceof DDAMsMsInfo dda
+                                                            && mzRange.contains(dda.getIsolationMz())))
+        .toArray(Scan[]::new);
   }
 
   /**
@@ -975,8 +976,8 @@ public class ScanUtils {
    * @return
    */
   @NotNull
-  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel,
-      int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals,
+      ScanSortMode sort) throws MissingMassListException {
     List<Scan> filtered = listAllScans(scans, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
     filtered.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
@@ -992,8 +993,8 @@ public class ScanUtils {
    * @return
    */
   @NotNull
-  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel,
-      int minNumberOfSignals) throws MissingMassListException {
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
     List<Scan> filtered = new ArrayList<>();
     for (Scan scan : scans) {
       // find mass list: with name or first
