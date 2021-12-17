@@ -141,7 +141,7 @@ public class ImageVisualizerTask extends AbstractTask {
 
     Platform.runLater(() -> {
       ImageVisualizerTab newTab =
-          new ImageVisualizerTab(parameters, chart, rawDataFile, imagingParameters);
+          new ImageVisualizerTab(chart, rawDataFile, imagingParameters);
       MZmineCore.getDesktop().addTab(newTab);
     });
 
