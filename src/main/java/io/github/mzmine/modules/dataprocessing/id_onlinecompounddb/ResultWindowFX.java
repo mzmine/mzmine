@@ -21,7 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -49,7 +49,7 @@ public class ResultWindowFX extends Stage {
 
   }
 
-  public void addNewListItem(final SimpleCompoundDBAnnotation compound) {
+  public void addNewListItem(final CompoundDBAnnotation compound) {
     controller.addNewListItem(compound);
   }
 

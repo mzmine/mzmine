@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -47,23 +47,23 @@ public class ResultWindowController {
 
   private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-  private final ObservableList<SimpleCompoundDBAnnotation> compoundList = FXCollections.observableArrayList();
+  private final ObservableList<CompoundDBAnnotation> compoundList = FXCollections.observableArrayList();
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private FeatureListRow peakListRow;
   private Task searchTask;
   private double searchedMass;
   @FXML
-  private TableView<SimpleCompoundDBAnnotation> IDList;
+  private TableView<CompoundDBAnnotation> IDList;
   @FXML
-  private TableColumn<SimpleCompoundDBAnnotation, String> colID;
+  private TableColumn<CompoundDBAnnotation, String> colID;
   @FXML
-  private TableColumn<SimpleCompoundDBAnnotation, String> colName;
+  private TableColumn<CompoundDBAnnotation, String> colName;
   @FXML
-  private TableColumn<SimpleCompoundDBAnnotation, String> colFormula;
+  private TableColumn<CompoundDBAnnotation, String> colFormula;
   @FXML
-  private TableColumn<SimpleCompoundDBAnnotation, String> colMassDiff;
+  private TableColumn<CompoundDBAnnotation, String> colMassDiff;
   @FXML
-  private TableColumn<SimpleCompoundDBAnnotation, String> colIPS;
+  private TableColumn<CompoundDBAnnotation, String> colIPS;
 
 
   @FXML
@@ -113,7 +113,7 @@ public class ResultWindowController {
    *
    * @param compound
    */
-  public void addNewListItem(final SimpleCompoundDBAnnotation compound) {
+  public void addNewListItem(final CompoundDBAnnotation compound) {
     assert Platform.isFxApplicationThread();
     compoundList.add(compound);
   }
@@ -135,7 +135,7 @@ public class ResultWindowController {
   @FXML
   public void handleAddAction(ActionEvent actionEvent) {
     try {
-      SimpleCompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
+      CompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
 
       if (compound == null) {
         MZmineCore.getDesktop()
@@ -154,7 +154,7 @@ public class ResultWindowController {
   @FXML
   public void handleViewStructureAction(ActionEvent actionEvent) {
 
-    SimpleCompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
+    CompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
 
     if (compound == null) {
       MZmineCore.getDesktop()
@@ -171,7 +171,7 @@ public class ResultWindowController {
 
   @FXML
   public void handleViewIPAction(ActionEvent actionEvent) {
-    SimpleCompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
+    CompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
 
     if (compound == null) {
       MZmineCore.getDesktop()
@@ -195,7 +195,7 @@ public class ResultWindowController {
 
   @FXML
   public void handleOpenBrowserAction(ActionEvent actionEvent) {
-    SimpleCompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
+    CompoundDBAnnotation compound = IDList.getSelectionModel().getSelectedItem();
 
     if (compound == null) {
       MZmineCore.getDesktop()
