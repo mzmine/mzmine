@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
@@ -50,6 +51,7 @@ import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualize
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
+import io.github.mzmine.modules.visualization.image.ImageVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_featurevisualizer.IMSFeatureVisualizerTab;
 import io.github.mzmine.modules.visualization.ims_mobilitymzplot.IMSMobilityMzPlotModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -258,6 +260,12 @@ public class FeatureTableContextMenu extends ContextMenu {
     showIMSFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
 
+    final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
+        () -> !selectedRows.isEmpty() && selectedFeature != null
+            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+    showImageFeatureItem.setOnAction(
+        e -> MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature)));
+
     final MenuItem show2DItem =
         new ConditionalMenuItem("Feature in 2D", () -> selectedFeature != null);
     show2DItem.setOnAction(
@@ -376,7 +384,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
         /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
-    showMenu.getItems().addAll(showXICItem, showXICSetupItem, showIMSFeatureItem,
+    showMenu.getItems().addAll(showXICItem, showXICSetupItem, showIMSFeatureItem,showImageFeatureItem,
         new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
         showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
         showSpectrumItem, showBestMobilityScanItem, extractSumSpectrumFromMobScans, showMSMSItem,
