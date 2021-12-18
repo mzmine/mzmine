@@ -139,7 +139,7 @@ public class ImageVisualizerTask extends AbstractTask {
             FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
     chart.getXYPlot().setBackgroundPaint(Color.BLACK);
 
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       ImageVisualizerTab newTab =
           new ImageVisualizerTab(chart, rawDataFile, imagingParameters);
       MZmineCore.getDesktop().addTab(newTab);
