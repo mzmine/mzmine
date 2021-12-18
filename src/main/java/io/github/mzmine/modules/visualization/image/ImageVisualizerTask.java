@@ -164,7 +164,7 @@ public class ImageVisualizerTask extends AbstractTask {
       i++;
     }
 
-    return new SimpleIonTimeSeries(rawDataFile.getMemoryMapStorage(), mzs,
+    return new SimpleIonTimeSeries(null, mzs,
         intensities, scansList);
   }
 
