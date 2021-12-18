@@ -21,9 +21,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
@@ -66,7 +68,7 @@ public class ImageBuilderModule implements MZmineProcessingModule {
     RawDataFile[] files = parameters.getParameter(ImageBuilderParameters.rawDataFiles).getValue()
         .getMatchingRawDataFiles();
 
-    ADAPChromatogramBuilderParameters parametersFromImageBuilder = initParameters(parameters);
+    ParameterSet parametersFromImageBuilder = initParameters(parameters);
 
     MemoryMapStorage storage = MemoryMapStorage.forFeatureList();
 
@@ -82,8 +84,9 @@ public class ImageBuilderModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  private ADAPChromatogramBuilderParameters initParameters(ParameterSet parameters) {
-    ADAPChromatogramBuilderParameters newParameterSet = new ADAPChromatogramBuilderParameters();
+  private ParameterSet initParameters(ParameterSet parameters) {
+    ParameterSet newParameterSet = MZmineCore.getConfiguration().getModuleParameters(
+        ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
         parameters.getParameter(ImageBuilderParameters.scanSelection).getValue());
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan,
