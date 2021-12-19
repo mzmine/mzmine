@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation;
 
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.CachedFeatureDataAccess;
@@ -29,9 +30,12 @@ import io.github.mzmine.datamodel.features.correlation.CorrelationData;
 import io.github.mzmine.datamodel.features.correlation.FullCorrelationData;
 import io.github.mzmine.datamodel.features.correlation.R2RFullCorrelationData;
 import io.github.mzmine.parameters.parametertypes.MinimumFeatureFilter;
+import io.github.mzmine.util.ArrayUtils;
+import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,10 +117,8 @@ public class FeatureCorrelationUtil {
    * @return R2R correlation, returns null if it was filtered by height correlation. Check for
    * validity on result
    */
-  public static R2RFullCorrelationData corrR2R(
-      CachedFeatureDataAccess data,
-      List<RawDataFile> raws, FeatureListRow testRow,
-      FeatureListRow row, boolean doFShapeCorr, int minCorrelatedDataPoints,
+  public static R2RFullCorrelationData corrR2R(CachedFeatureDataAccess data, List<RawDataFile> raws,
+      FeatureListRow testRow, FeatureListRow row, boolean doFShapeCorr, int minCorrelatedDataPoints,
       int minCorrDPOnFeatureEdge, int minDPFHeightCorr, double minHeight,
       double noiseLevelShapeCorr, boolean useHeightCorrFilter, SimilarityMeasure heightSimilarity,
       double minHeightCorr) {
@@ -133,9 +135,9 @@ public class FeatureCorrelationUtil {
       double minHeightCorrFoldChange = 10;
       // do not group if slope is negative / too low
       // go on if heightCorr is null
-      if (useHeightCorrFilter && heightCorr != null
-          && FeatureCorrelationUtil.isNegativeRegression(heightCorr, minHeightCorrFoldChange,
-          maxHeightCorrSlopeSignificance, minDPFHeightCorr, minHeightCorr, heightSimilarity)) {
+      if (useHeightCorrFilter && heightCorr != null && FeatureCorrelationUtil.isNegativeRegression(
+          heightCorr, minHeightCorrFoldChange, maxHeightCorrSlopeSignificance, minDPFHeightCorr,
+          minHeightCorr, heightSimilarity)) {
         return null;
       }
     }
@@ -151,8 +153,7 @@ public class FeatureCorrelationUtil {
       featureCorrMap = null;
     }
 
-    return new R2RFullCorrelationData(testRow, row, heightCorr,
-        featureCorrMap);
+    return new R2RFullCorrelationData(testRow, row, heightCorr, featureCorrMap);
   }
 
   /**
@@ -164,11 +165,9 @@ public class FeatureCorrelationUtil {
    * @param g
    * @return Map of feature shape correlation data (can be empty NON null)
    */
-  public static Map<RawDataFile, CorrelationData> corrR2RFeatureShapes(
-      CachedFeatureDataAccess data,
-      final List<RawDataFile> raws,
-      FeatureListRow row, FeatureListRow g, int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge,
-      double noiseLevelShapeCorr) {
+  public static Map<RawDataFile, CorrelationData> corrR2RFeatureShapes(CachedFeatureDataAccess data,
+      final List<RawDataFile> raws, FeatureListRow row, FeatureListRow g,
+      int minCorrelatedDataPoints, int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
     HashMap<RawDataFile, CorrelationData> corrData = new HashMap<>();
     // go through all raw files
     for (RawDataFile raw : raws) {
@@ -177,8 +176,7 @@ public class FeatureCorrelationUtil {
       if (f1 != null && f2 != null) {
         // feature shape correlation
         CorrelationData correlationData = corrFeatureShape(data, f1, f2, true,
-            minCorrelatedDataPoints,
-            minCorrDPOnFeatureEdge, noiseLevelShapeCorr);
+            minCorrelatedDataPoints, minCorrDPOnFeatureEdge, noiseLevelShapeCorr);
 
         // if correlation is really bad return null
         if (isNegativeRegression(correlationData, 5, 0.2, 7, 0.5, SimilarityMeasure.PEARSON)) {
@@ -224,10 +222,8 @@ public class FeatureCorrelationUtil {
     final double[] intensities1;
     final double[] intensities2;
     if (data == null) {
-      intensities1 = f1.getFeatureData()
-          .getIntensityValues(new double[f1.getNumberOfDataPoints()]);
-      intensities2 = f2.getFeatureData()
-          .getIntensityValues(new double[f2.getNumberOfDataPoints()]);
+      intensities1 = f1.getFeatureData().getIntensityValues(new double[f1.getNumberOfDataPoints()]);
+      intensities2 = f2.getFeatureData().getIntensityValues(new double[f2.getNumberOfDataPoints()]);
     } else {
       intensities1 = data.getIntensityValues(f1);
       intensities2 = data.getIntensityValues(f2);
@@ -347,8 +343,8 @@ public class FeatureCorrelationUtil {
    * @return Correlation data of i profile of max i (or null if no correlation)
    */
   public static CorrelationData corrR2RFeatureHeight(final List<RawDataFile> raw,
-      FeatureListRow row,
-      FeatureListRow g, double minHeight, double noiseLevel, int minDPFHeightCorr) {
+      FeatureListRow row, FeatureListRow g, double minHeight, double noiseLevel,
+      int minDPFHeightCorr) {
     // minimum of two
     minDPFHeightCorr = Math.min(minDPFHeightCorr, 2);
 
@@ -436,9 +432,9 @@ public class FeatureCorrelationUtil {
     // if slope is negative
     // slope significance is low (alpha is high)
     // similarity is low
-    return (corr.getSlope() <= 0
-            || (!Double.isNaN(significantSlope) && significantSlope > maxSlopeSignificance)
-            || corr.getSimilarity(heightSimilarity) < minSimilarity);
+    return (corr.getSlope() <= 0 || (!Double.isNaN(significantSlope)
+        && significantSlope > maxSlopeSignificance)
+        || corr.getSimilarity(heightSimilarity) < minSimilarity);
   }
 
   /**
@@ -463,4 +459,200 @@ public class FeatureCorrelationUtil {
     return true;
   }
 
+  public static final class DIA {
+
+    public static CorrelationData corrFeatureShape(final double[] x1, final double[] y1,
+        final double[] x2, final double y2[], int minCorrelatedDataPoints,
+        int minCorrDPOnFeatureEdge, double noiseLevelShapeCorr) {
+
+      if (x1.length < minCorrelatedDataPoints || x2.length < minCorrelatedDataPoints) {
+        return null;
+      }
+
+      double[][] f1, f2;
+
+      // f1 should be the higher feature
+      if (Arrays.stream(y1).max().getAsDouble() > Arrays.stream(y2).max().getAsDouble()) {
+        f1 = new double[][]{x1, y1};
+        f2 = new double[][]{x2, y2};
+      } else {
+        f1 = new double[][]{x2, y2};
+        f2 = new double[][]{x1, y1};
+      }
+
+      // interpolate the feature shape of f2 onto f1
+      f2 = getInterpolatedShape(f1[0], f1[1], f2[0], f2[1]);
+      if (f2 == null) {
+        return null;
+      }
+
+      final double[] intensities1 = f1[1];
+      final double[] intensities2 = f2[1];
+
+      // find array index of max intensity for feature1 sn1
+      final int maxIndexOfA = indexOfMax(intensities1);
+
+      // index offset between f1 and f2 data arrays (not all features are based on the same scans)
+      final int maxIndexInB = ArrayUtils.indexOf(f1[0][maxIndexOfA], f2[0]);
+      if(maxIndexInB == -1) {
+        throw new IllegalStateException("Could not find original x value in interpolated shape.");
+      }
+
+      // save max and min of intensity of val1(x)
+      List<double[]> corrData = new ArrayList<>();
+
+      // add all data points <=max
+      int i1 = maxIndexOfA;
+      int i2 = maxIndexInB;
+      while (i1 >= 0 && i2 >= 0) {
+        double s1 = f1[0][i1];
+        double s2 = f2[0][i2];
+        // add point, if not break
+        if (Double.compare(s1, s2) == 0 && intensities1[i1] >= noiseLevelShapeCorr
+            && intensities2[i2] >= noiseLevelShapeCorr) {
+          corrData.add(new double[]{intensities1[i1], intensities2[i2]});
+        } else {
+          // end of feature found
+          break;
+        }
+        i1--;
+        i2--;
+      }
+
+      // check min data points left from apex
+      int left = corrData.size() - 1;
+      if (left < minCorrDPOnFeatureEdge) {
+        return null;
+      }
+
+      // add all dp>max
+      i1 = maxIndexOfA + 1;
+      i2 = maxIndexInB + 1;
+      while (i1 < f1[0].length && i2 < f2[0].length) {
+        double s1 = f1[0][i1];
+        double s2 = f2[0][i2];
+        // add point, if not break
+        if (Double.compare(s1, s2) == 0 && intensities1[i1] >= noiseLevelShapeCorr
+            && intensities2[i2] >= noiseLevelShapeCorr) {
+          corrData.add(new double[]{intensities1[i1], intensities2[i2]});
+        } else {
+          // end of peak found
+          break;
+        }
+        i1++;
+        i2++;
+      }
+      // check right and total dp
+      int right = corrData.size() - 1 - left;
+      // return pearson r
+      if (corrData.size() >= minCorrelatedDataPoints && right >= minCorrDPOnFeatureEdge) {
+        return new FullCorrelationData(corrData);
+      }
+
+      return null;
+    }
+
+    public static double[][] getInterpolatedShape(final double[] mainX, final double[] mainY,
+        final double[] otherX, final double[] otherY) {
+      assert mainX.length == mainY.length;
+      assert otherX.length == otherY.length;
+
+      // get number of overlapping points
+      var mainRange = Range.closed(mainX[0], mainX[mainX.length - 1]);
+      var otherRange = Range.closed(otherX[0], otherX[otherX.length - 1]);
+      var overlap = mainRange.isConnected(otherRange) ? mainRange.intersection(otherRange) : null;
+      if (overlap == null) {
+        return null;
+      }
+
+      // find indices for the overlapping range
+      final int[] otherIndicesEndExclusive = getAllowedRange(otherX, overlap);
+      final int[] mainIndicesEndExclusive = getAllowedRange(mainX, overlap);
+      final int mainStart = mainIndicesEndExclusive[0];
+      final int mainEnd = mainIndicesEndExclusive[1];
+      final int otherStart = otherIndicesEndExclusive[0];
+      final int otherEnd = otherIndicesEndExclusive[1];
+
+      // create array for the interpolated data
+      final double newX[] = Arrays.copyOfRange(mainX, mainStart, mainEnd); // use same x data
+      final double newY[] = new double[mainEnd - mainStart];
+
+      for (int i = 0; i < newX.length; i++) {
+        newY[i] = interpolateY(newX[i], otherX, otherY);
+      }
+
+      return new double[][]{newX, newY};
+    }
+
+    private static int[] getAllowedRange(double[] x, Range<Double> allowedXRange) {
+      int startIndex = -1;
+      int endIndex = x.length - 1;
+
+      for (int i = 0; i < x.length; i++) {
+        if (allowedXRange.contains(x[i])) {
+          startIndex = i;
+          break;
+        }
+      }
+
+      // no start within the given range.
+      if (startIndex == -1) {
+        return null;
+      }
+
+      for (int i = startIndex; i < x.length; i++) {
+        if (!allowedXRange.contains(x[i])) {
+          endIndex = i; // arrays.copyofrange is exclusive
+          break;
+        }
+      }
+
+      return new int[]{startIndex, endIndex};
+    }
+
+    /**
+     * Interpolates a Y value from otherX and otherY at the given point x. x must be within the
+     * bounds of otherX.
+     *
+     * @param x      The x value to interpolate y for.
+     * @param otherX The x values-.
+     * @param otherY The y values.
+     * @return the interpolated y value.
+     */
+    private static double interpolateY(double x, final double[] otherX, final double[] otherY) {
+      // check arguments
+      assert otherX.length == otherY.length;
+      if (!(otherX[0] < x) || !(x <= otherX[otherX.length - 1])) {
+        throw new IllegalArgumentException(
+            String.format("Cannot interpolate y for x value %.3f within given bounds %.3f - %.3f",
+                x, otherX[0], otherX[otherX.length - 1]));
+      }
+
+      int start = -1;
+      int end = -1;
+
+      // find the two points that lie around the given x value
+      for (int i = 0; i < otherX.length;
+          i++) { // could be optimized to start at the last found index
+        if (otherX[i] >= x) { // may also be equal
+          // if equal, return that value
+          if (Double.compare(otherX[i], x) == 0) {
+            return otherY[i];
+          }
+
+          start = i - 1;
+          break;
+        }
+      }
+
+      for (int i = start; i < otherX.length; i++) {
+        if (otherX[i] > x) {
+          end = i;
+          break;
+        }
+      }
+
+      return MathUtils.twoPointGetYForX(otherX[start], otherY[start], otherX[end], otherY[end], x);
+    }
+  }
 }
