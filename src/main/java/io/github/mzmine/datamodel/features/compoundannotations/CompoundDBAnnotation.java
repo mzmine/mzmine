@@ -199,7 +199,7 @@ public interface CompoundDBAnnotation extends Cloneable {
   @Nullable
   public default String getDatabaseUrl() {
     final DatabaseMatchInfo databaseMatchInfo = getDatabaseMatchInfo();
-    return databaseMatchInfo == null ? databaseMatchInfo.url() : null;
+    return databaseMatchInfo == null ? null : databaseMatchInfo.url();
   }
 
   @Nullable

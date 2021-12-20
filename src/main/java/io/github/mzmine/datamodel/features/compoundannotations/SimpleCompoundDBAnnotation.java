@@ -78,7 +78,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
   public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
       final String formula, final URL urlDb, final URL url2d, final URL url3d) {
 
-    putIfNotNull(DatabaseNameType.class, db.name());
+    putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
     putIfNotNull(CompoundNameType.class, name);
 
     if (id != null && db != null) {
