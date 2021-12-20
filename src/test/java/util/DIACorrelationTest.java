@@ -114,8 +114,8 @@ public class DIACorrelationTest {
 
     final CorrelationData correlationData5 = DIA.corrFeatureShape(x_lessPoints,
         y_lessPoints, mainX, mainY, 5, 2, 0.0001);
-    logger.info(() -> "Pearson less points_reversed " + correlationData4.getPearsonR());
-    logger.info(() -> "Cosine less points_reversed " + correlationData4.getCosineSimilarity());
+    logger.info(() -> "Pearson less points_reversed " + correlationData5.getPearsonR());
+    logger.info(() -> "Cosine less points_reversed " + correlationData5.getCosineSimilarity());
   }
 
   private double gauss(double x, double sigma, double mu) {
