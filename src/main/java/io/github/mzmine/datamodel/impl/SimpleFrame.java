@@ -173,7 +173,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public DoubleBuffer setMobilities(double[] mobilities) {
-    if (getMobilityScanStorage() != null && (getNumberOfMobilityScans() != mobilities.length)) {
+    if (mobilityScanStorage != null && (getNumberOfMobilityScans() != mobilities.length)) {
       throw new IllegalArgumentException(String.format(
           "Number of mobility values (%d) does not match number of mobility scans (%d).",
           mobilities.length, getNumberOfMobilityScans()));
