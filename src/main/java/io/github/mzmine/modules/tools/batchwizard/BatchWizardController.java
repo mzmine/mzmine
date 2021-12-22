@@ -34,9 +34,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.M
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.AdvancedImsTraceBuilderParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IonMobilityTraceBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule;
+import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
@@ -221,6 +220,7 @@ public class BatchWizardController {
       DefaultLcParameters.hplc.setToParameterSet(hplcParameters);
       hplcDialog.setParameterValuesToComponents();
     }
+    // TODO add GC workflow
     //    if (rbGC.isSelected()) {
     //      DefaultLcParameters.gc.setToParameterSet(hplcParameters);
     //      hplcDialog.setParameterValuesToComponents();
@@ -268,16 +268,13 @@ public class BatchWizardController {
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
-    if (cbIonMobility.isSelected()) {
-      q.add(makeImsTraceStep(msParameters));
-    } else {
-      q.add(makeAdapStep(msParameters, hplcParameters));
-    }
+    q.add(makeAdapStep(msParameters));
 
     q.add(makeSmoothingStep(hplcParameters, true, false));
     q.add(makeRtResolvingStep(msParameters, hplcParameters, true));
     if (cbIonMobility.isSelected()) {
-      q.add(makeSmoothingStep(hplcParameters, false, true));
+      q.add(makeImsExpanderStep(msParameters));
+      q.add(makeSmoothingStep(false, true));
       q.add(makeMobilityResolvingStep(msParameters, hplcParameters));
       q.add(makeSmoothingStep(hplcParameters, true, true));
     }
@@ -464,28 +461,23 @@ public class BatchWizardController {
         MZmineCore.getModuleInstance(ModularADAPChromatogramBuilderModule.class), param);
   }
 
-  private MZmineProcessingStep<MZmineProcessingModule> makeImsTraceStep(
+  private MZmineProcessingStep<MZmineProcessingModule> makeImsExpanderStep(
       @NotNull final ParameterSet msParameters) {
-    final ParameterSet param = MZmineCore.getConfiguration()
-        .getModuleParameters(IonMobilityTraceBuilderModule.class).cloneParameterSet();
-    param.setParameter(IonMobilityTraceBuilderParameters.rawDataFiles,
-        new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
-    param.setParameter(IonMobilityTraceBuilderParameters.scanSelection, new ScanSelection(1));
-    param.setParameter(IonMobilityTraceBuilderParameters.minDataPointsRt, 5);
-    param.setParameter(IonMobilityTraceBuilderParameters.minTotalSignals, 60);
-    param.setParameter(IonMobilityTraceBuilderParameters.mzTolerance,
-        msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
-            .getValue());
-    param.setParameter(IonMobilityTraceBuilderParameters.suffix, "traces");
+    ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
+        .cloneParameterSet();
 
-    ParameterSet advanced = new AdvancedImsTraceBuilderParameters().cloneParameterSet();
-    advanced.setParameter(AdvancedImsTraceBuilderParameters.dtimsBinningWidth, false);
-    advanced.setParameter(AdvancedImsTraceBuilderParameters.timsBinningWidth, false);
-    advanced.setParameter(AdvancedImsTraceBuilderParameters.twimsBinningWidth, false);
+    param.setParameter(ImsExpanderParameters.removeOriginalFeatureList, true);
+    param.setParameter(ImsExpanderParameters.featureLists,
+        new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(ImsExpanderParameters.useRawData, true);
+    param.getParameter(ImsExpanderParameters.useRawData).getEmbeddedParameter().setValue(1E1);
+    param.setParameter(ImsExpanderParameters.mzTolerance, true);
+    param.getParameter(ImsExpanderParameters.mzTolerance).getEmbeddedParameter().setValue(
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
+    param.setParameter(ImsExpanderParameters.mobilogramBinWidth, false);
 
-    param.setParameter(IonMobilityTraceBuilderParameters.advancedParameters, advanced);
-    return new MZmineProcessingStepImpl<>(
-        MZmineCore.getModuleInstance(IonMobilityTraceBuilderModule.class), param);
+    return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(ImsExpanderModule.class),
+        param);
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeSmoothingStep(
