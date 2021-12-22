@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;

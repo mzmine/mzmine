@@ -23,13 +23,24 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +52,8 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
@@ -54,6 +67,45 @@ public class SimpleCompoundDBAnnotation implements
   public static final String XML_TYPE_NAME = "simplecompounddbannotation";
 
   private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
+
+  public SimpleCompoundDBAnnotation() {
+  }
+
+  /**
+   * @param db      the database the compound is from.
+   * @param id      the compound's ID in the database.
+   * @param name    the compound's formula.
+   * @param formula the compound's name.
+   * @param urlDb   the URL of the compound in the database.
+   * @param url2d   the URL of the compound's 2D structure.
+   * @param url3d   the URL of the compound's 3D structure.
+   */
+  public SimpleCompoundDBAnnotation(final OnlineDatabases db, final String id, final String name,
+      final String formula, final URL urlDb, final URL url2d, final URL url3d) {
+
+    putIfNotNull(DatabaseNameType.class, db != null ? db.name() : null);
+    putIfNotNull(CompoundNameType.class, name);
+
+    if (id != null && db != null) {
+      put(DatabaseMatchInfoType.class,
+          new DatabaseMatchInfo(db, id, urlDb != null ? urlDb.toString() : db.getCompoundUrl(id)));
+    }
+
+    if (url2d != null) {
+      put(Structure2dUrlType.class, new UrlShortName(url2d.toString(), "2D Structure"));
+    }
+    if (url3d != null) {
+      put(Structure3dUrlType.class, new UrlShortName(url3d.toString(), "3D Structure"));
+    }
+
+    putIfNotNull(FormulaType.class, formula);
+
+    final IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(formula);
+    if (neutralFormula != null) {
+      put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
+          MolecularFormulaManipulator.MonoIsotopic));
+    }
+  }
 
   @Override
   public <T> T get(@NotNull DataType<T> key) {

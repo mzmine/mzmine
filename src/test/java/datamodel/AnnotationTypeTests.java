@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.features.types.annotations.GNPSLibraryUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSNetworkUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
@@ -47,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVer
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;

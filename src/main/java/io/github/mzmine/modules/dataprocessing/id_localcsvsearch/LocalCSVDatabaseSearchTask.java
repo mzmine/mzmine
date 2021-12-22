@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
 import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
@@ -30,7 +31,7 @@ import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
@@ -41,6 +42,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
@@ -215,7 +217,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     var adductType = DataTypes.get(IonTypeType.class);
     var neutralMassType = DataTypes.get(NeutralMassType.class);
     var ionTypeType = DataTypes.get(IonTypeType.class);
-    var pubchemIdType = DataTypes.get(PubChemIdType.class);
+    var pubchemIdType = new PubChemIdType();
 
     final Map<DataType<?>, String> entry = new HashMap<>();
 
@@ -253,7 +255,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     doIfNotNull(IonType.parseFromString(lineAdduct),
         () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
-    doIfNotNull(pubchemId, () -> a.put(PubChemIdType.class, pubchemId));
+    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(), new DatabaseMatchInfo(
+        OnlineDatabases.PubChem, pubchemId)));
     return a;
   }
 
