@@ -460,7 +460,7 @@
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
-    <Menu text="Data analysis">
+    <!--<Menu text="Data analysis">
       <Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"
@@ -485,7 +485,7 @@
       <MenuItem text="One-way ANOVA" onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.anova.AnovaModule"/>
     </Menu>
-  </Menu>
+  </Menu>-->
 
   <!-- VISUALIZATION -->
   <Menu text="Visualization">
