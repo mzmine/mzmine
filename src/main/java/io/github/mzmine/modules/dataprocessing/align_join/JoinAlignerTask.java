@@ -155,17 +155,11 @@ public class JoinAlignerTask extends AbstractTask {
     }
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return "Join aligner, " + featureListName + " (" + featureLists.size() + " feature lists)";
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
@@ -175,9 +169,6 @@ public class JoinAlignerTask extends AbstractTask {
                                         / (double) totalRows : 0d;
   }
 
-  /**
-   * @see Runnable#run()
-   */
   @Override
   public void run() {
 

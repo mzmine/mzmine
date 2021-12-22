@@ -54,6 +54,7 @@ public class FeatureListUtils {
       @NotNull final Range<Float> rtRange, @NotNull final Range<Double> mzRange, boolean sortedByMz) {
     final List<T> validRows = new ArrayList<>();
 
+    // TODO optimize for join aligner - create map or array
     if(sortedByMz) {
       final double lower = mzRange.lowerEndpoint();
       final double upper = mzRange.upperEndpoint();
