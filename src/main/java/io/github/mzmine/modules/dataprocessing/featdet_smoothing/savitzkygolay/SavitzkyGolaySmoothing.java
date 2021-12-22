@@ -32,8 +32,8 @@ public class SavitzkyGolaySmoothing implements SmoothingAlgorithm {
   //  private final ZeroHandlingType zht;
   private final double[] mobilityWeights;
   private final double[] rtWeights;
-  private final Boolean smoothRt;
-  private final Boolean smoothMobility;
+  private final boolean smoothRt;
+  private final boolean smoothMobility;
 
   public SavitzkyGolaySmoothing(ParameterSet parameters) {
 //    this.zht = zeroHandlingType;
