@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -50,13 +49,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
-  private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
-  private final ColoredXYShapeRenderer smoothedRenderer;
-
   protected final UnitFormat uf;
   protected final NumberFormat rtFormat;
   protected final NumberFormat intensityFormat;
-  protected ComboBox<ModularFeatureList> flistBox;
+  private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
+  private final ColoredXYShapeRenderer smoothedRenderer;
+  protected ComboBox<FeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected SmoothingDimension previewDimension;
@@ -78,17 +76,16 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimension = SmoothingDimension.RETENTION_TIME;
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<ModularFeatureList> flists = (ObservableList<ModularFeatureList>) (ObservableList<? extends FeatureList>) MZmineCore
-        .getProjectManager().getCurrentProject().getFeatureLists();
+    ObservableList<FeatureList> flists = FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new ComboBox<>();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(
-                FXCollections.observableArrayList(newValue
-                    .getFeatures(newValue.getRawDataFile(0))));
+            fBox.setItems(FXCollections.observableArrayList(
+                newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
             fBox.setItems(FXCollections.emptyObservableList());
           }

@@ -18,12 +18,9 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.List;
-import java.util.logging.Logger;
-import org.controlsfx.control.CheckListView;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
@@ -31,6 +28,8 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import io.github.mzmine.util.ExitCode;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -39,17 +38,19 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.controlsfx.control.CheckListView;
 
 /**
  * @author akshaj This class represents the component which shows Features in the parameter setup
- *         dialog of Fx3DVisualizer.
+ * dialog of Fx3DVisualizer.
  */
 public class FeaturesComponent extends HBox {
 
-  public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
-  private ListView<Feature> featuresList = new ListView<>(currentValue);
-  private final Button addButton = new Button("Add");;
+  private final Button addButton = new Button("Add");
   private final Button removeButton = new Button("Remove");
+  public ObservableList<Feature> currentValue = FXCollections.observableArrayList();
+  ;
+  private ListView<Feature> featuresList = new ListView<>(currentValue);
   private VBox buttonPane = new VBox();
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -68,15 +69,17 @@ public class FeaturesComponent extends HBox {
     addButton.setOnAction(e -> {
       logger.finest("Add button clicked!");
 
-      ComboParameter<FeatureList> featureListsParam =
-          new ComboParameter<>("Feature list", "Feature list selection",
-              MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
+      final List<FeatureList> featureLists = MZmineCore.getProjectManager().getCurrentProject()
+          .getCurrentFeatureLists();
+
+      ComboParameter<FeatureList> featureListsParam = new ComboParameter<>("Feature list",
+          "Feature list selection", FXCollections.observableList(featureLists));
       ComboParameter<RawDataFile> dataFilesParam = new ComboParameter<>("Raw data file",
           "Raw data file selection", FXCollections.observableArrayList());
-      MultiChoiceParameter<Feature> featuresParam =
-          new MultiChoiceParameter<>("Features", "Feature selection", new Feature[0]);
+      MultiChoiceParameter<Feature> featuresParam = new MultiChoiceParameter<>("Features",
+          "Feature selection", new Feature[0]);
       SimpleParameterSet paramSet = new SimpleParameterSet(
-          new Parameter[] {featureListsParam, dataFilesParam, featuresParam});
+          new Parameter[]{featureListsParam, dataFilesParam, featuresParam});
 
       ParameterSetupDialog dialog = new ParameterSetupDialog(true, paramSet);
       ComboBox<FeatureList> featureListsCombo = dialog.getComponentForParameter(featureListsParam);
@@ -84,18 +87,21 @@ public class FeaturesComponent extends HBox {
       CheckListView<Feature> featuresSelection = dialog.getComponentForParameter(featuresParam);
       featureListsCombo.setOnAction(e2 -> {
         FeatureList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
-        if (featureList == null)
+        if (featureList == null) {
           return;
+        }
         dataFilesCombo.setItems(featureList.getRawDataFiles());
         dataFilesCombo.getSelectionModel().selectFirst();
       });
       dataFilesCombo.setOnAction(e3 -> {
         FeatureList featureList = featureListsCombo.getSelectionModel().getSelectedItem();
         RawDataFile dataFile = dataFilesCombo.getSelectionModel().getSelectedItem();
-        if (featureList == null || dataFile == null)
+        if (featureList == null || dataFile == null) {
           return;
+        }
         var features = FXCollections.observableArrayList(featureList.getFeatures(dataFile));
-        featuresSelection.setItems((ObservableList<Feature>) (ObservableList<? extends Feature>)features);
+        featuresSelection.setItems(
+            (ObservableList<Feature>) (ObservableList<? extends Feature>) features);
       });
       featureListsCombo.getSelectionModel().selectFirst();
       dataFilesCombo.getSelectionModel().selectFirst();
@@ -121,13 +127,13 @@ public class FeaturesComponent extends HBox {
 
   }
 
+  public List<Feature> getValue() {
+    return currentValue;
+  }
+
   public void setValue(List<Feature> newValue) {
     currentValue = FXCollections.observableArrayList(newValue);
     featuresList.setItems(currentValue);
-  }
-
-  public List<Feature> getValue() {
-    return currentValue;
   }
 
 }
