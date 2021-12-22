@@ -100,7 +100,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public MobilityScanStorage getMobilityScanStorage() {
-    if(mobilityScanStorage == null) {
+    if (mobilityScanStorage == null) {
       throw new IllegalStateException("Mobility scans not loaded during file import.");
     }
     return mobilityScanStorage;
@@ -129,6 +129,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans,
       boolean useAsMassList) {
+    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().capacity())) {
+      throw new IllegalArgumentException(String.format(
+          "Number of mobility values (%d) does not match number of mobility scans (%d).",
+          getMobilities().capacity(), originalMobilityScans.size()));
+    }
     mobilityScanStorage = new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this,
         originalMobilityScans, useAsMassList);
   }
@@ -168,6 +173,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public DoubleBuffer setMobilities(double[] mobilities) {
+    if (mobilityScanStorage != null && (getNumberOfMobilityScans() != mobilities.length)) {
+      throw new IllegalArgumentException(String.format(
+          "Number of mobility values (%d) does not match number of mobility scans (%d).",
+          mobilities.length, getNumberOfMobilityScans()));
+    }
     mobilityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(),
         mobilities);
     mobilityRange = Range.singleton(mobilities[0]);

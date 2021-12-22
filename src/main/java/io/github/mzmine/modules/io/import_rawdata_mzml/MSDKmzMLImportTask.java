@@ -19,10 +19,14 @@
 package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
+import com.google.common.math.Quantiles;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -41,13 +45,18 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -79,8 +88,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
   }
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      AdvancedSpectraImportParameters advancedParam, @NotNull final Class<? extends MZmineModule> module,
-      @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      AdvancedSpectraImportParameters advancedParam,
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(newMZmineFile.getMemoryMapStorage(), moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
     this.project = project;
@@ -91,14 +101,12 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     if (advancedParam != null) {
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.msMassDetection).getValue()) {
-        this.ms1Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-            .getValue();
+        this.ms1Detector = advancedParam.getParameter(
+            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
       }
       if (advancedParam.getParameter(AdvancedSpectraImportParameters.ms2MassDetection).getValue()) {
-        this.ms2Detector = advancedParam
-            .getParameter(AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter()
-            .getValue();
+        this.ms2Detector = advancedParam.getParameter(
+            AdvancedSpectraImportParameters.msMassDetection).getEmbeddedParameter().getValue();
       }
     }
 
@@ -150,7 +158,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
 
-    newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+    newMZmineFile.getAppliedMethods()
+        .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
     project.addFile(newMZmineFile);
     setStatus(TaskStatus.FINISHED);
   }
@@ -190,9 +199,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
         if (mzIntensities != null) {
           // create mass list and scan. Override data points and spectrum type
-          newScan = ConversionUtils
-              .msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0], mzIntensities[1],
-                  MassSpectrumType.CENTROIDED);
+          newScan = ConversionUtils.msdkScanToSimpleScan(newMZmineFile, mzMLScan, mzIntensities[0],
+              mzIntensities[1], MassSpectrumType.CENTROIDED);
           ScanPointerMassList newMassList = new ScanPointerMassList(newScan);
           newScan.addMassList(newMassList);
         }
@@ -215,31 +223,43 @@ public class MSDKmzMLImportTask extends AbstractTask {
     SimpleFrame buildingFrame = null;
 
     final List<BuildingMobilityScan> mobilityScans = new ArrayList<>();
-    final List<Double> mobilities = new ArrayList<>();
     final List<BuildingImsMsMsInfo> buildingImsMsMsInfos = new ArrayList<>();
     Set<PasefMsMsInfo> finishedImsMsMsInfos = null;
     final IMSRawDataFile newImsFile = (IMSRawDataFile) newMZmineFile;
 
-    Integer lastScanId = null;
+    // index ion mobility values first, some manufacturers don't save all scans for all frames if
+    // they are empty.
+    final RangeMap<Double, Integer> mappedMobilities = indexMobilityValues(file);
+    final Map<Range<Double>, Integer> mobilitiesMap = mappedMobilities.asMapOfRanges();
+    final double mobilities[] = mobilitiesMap.keySet().stream().mapToDouble(RangeUtils::rangeCenter)
+        .toArray();
 
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
+        // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
+        ArrayUtils.reverse(mobilities);
+      }
       if (buildingFrame == null
           || Float.compare((scan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
           != 0) {
-        mobilityScanNumberCounter = 0; // mobility scan numbers start with 0!
-        // waters uses different numbering for ms1 and ms2, so we need to reset if we start a new frame.
-        lastScanId = null;
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
-          finishedFrame.setMobilityScans(mobilityScans, false);
-          finishedFrame
-              .setMobilities(mobilities.stream().mapToDouble(Double::doubleValue).toArray());
+
+          while (mobilityScanNumberCounter < mobilities.length) {
+            mobilityScans.add(
+                new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
+            mobilityScanNumberCounter++;
+          }
+
+          finishedFrame.setMobilityScans(mobilityScans, applyMassDetection);
+          finishedFrame.setMobilities(mobilities);
           newImsFile.addScan(buildingFrame);
 
           mobilityScans.clear();
-          mobilities.clear();
+          // we need to reset if we start a new frame.
+          mobilityScanNumberCounter = 0; // mobility scan numbers start with 0!
           if (!buildingImsMsMsInfos.isEmpty()) {
             finishedImsMsMsInfos = new HashSet<>();
             for (BuildingImsMsMsInfo info : buildingImsMsMsInfos) {
@@ -254,7 +274,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             scan.getRetentionTime() / 60f, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mt(), null);
+            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null);
         frameNumber++;
 
         description =
@@ -262,39 +282,73 @@ public class MSDKmzMLImportTask extends AbstractTask {
       }
 
       // I'm not proud of this piece of code, but some manufactures or conversion tools leave out
-      // empty scans. however, we need that info for proper processing ~SteffenHeu
-      if (lastScanId == null) {
-        lastScanId = mzMLScan.getScanNumber();
-      } else {
-        Integer newScanId = mzMLScan.getScanNumber();
-        final int missingScans = newScanId - lastScanId;
-        if (missingScans > 1) {
-          final Double lastMobility = mobilities.get(mobilities.size() - 1);
-          final double nextMobility = mzMLScan.getMobility().mobility();
-          final double deltaMobility = nextMobility - lastMobility;
-          final double stepSize = deltaMobility / (missingScans + 1);
-
-          for (int i = 0; i < missingScans; i++) {
-            // make up for data saving options leaving out empty scans.
-            // todo check if this works properly
-            mobilityScans.add(
-                new BuildingMobilityScan(mobilityScanNumberCounter, new double[0], new double[0]));
-
-            final Double calculatedMobility = lastMobility + (i + 1) * stepSize;
-            mobilities.add(calculatedMobility);
-            mobilityScanNumberCounter++;
-          }
+      // empty scans. Looking at you, Agilent. however, we need that info for proper processing ~SteffenHeu
+      Integer newScanId = mappedMobilities.get(mzMLScan.getMobility().mobility());
+      final int missingScans = newScanId - mobilityScanNumberCounter;
+      // might be negative in case of tims, but for now we assume that no scans missing for tims
+      if (missingScans > 1) {
+        for (int i = 0; i < missingScans; i++) {
+          // make up for data saving options leaving out empty scans.
+          mobilityScans.add(
+              new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
+          mobilityScanNumberCounter++;
         }
-        lastScanId = mzMLScan.getScanNumber();
       }
 
       mobilityScans.add(ConversionUtils.msdkScanToMobilityScan(mobilityScanNumberCounter, scan));
-      mobilities.add(mzMLScan.getMobility().mobility());
       ConversionUtils.extractImsMsMsInfo(mzMLScan, buildingImsMsMsInfos, frameNumber,
           mobilityScanNumberCounter);
       mobilityScanNumberCounter++;
       parsedScans++;
     }
+  }
+
+  /**
+   * Reads all mobility values in the file and returns a map of all mobilities with their scan
+   * number.
+   * <p></p>
+   * The scan number for a given mobility value can be retrieved from the range map. The range map
+   * is centered at the original mobility value with a quarter of the median difference between two
+   * consecutive mobility values. (tims does not have the same difference between every mobility
+   * scan, hence the quarter.)
+   */
+  private RangeMap<Double, Integer> indexMobilityValues(io.github.msdk.datamodel.RawDataFile file)
+      throws IOException {
+    final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
+
+    final boolean isTims =
+        ((MzMLMsScan) file.getScans().get(0)).getMobility().mobilityType() == MobilityType.TIMS;
+    for (MsScan scan : file.getScans()) {
+      MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      final double mobility = mzMLScan.getMobility().mobility();
+      final Entry<Range<Double>, Integer> entry = mobilityCounts.getEntry(mobility);
+      if (entry == null) {
+        final double delta = isTims ? 0.000002 : 0.00002;
+        final Range<Double> range = SpectraMerging.createNewNonOverlappingRange(mobilityCounts,
+            Range.closed(mobility - delta, mobility + delta));
+        mobilityCounts.put(range, 1);
+      } else {
+        mobilityCounts.put(entry.getKey(), entry.getValue() + 1);
+      }
+    }
+
+    final Map<Range<Double>, Integer> map = mobilityCounts.asMapOfRanges();
+    final double[] mobilityValues = map.keySet().stream().mapToDouble(RangeUtils::rangeCenter)
+        .toArray();
+    final double[] diffs = new double[mobilityValues.length - 1];
+    for (int i = 0; i < diffs.length; i++) {
+      diffs[i] = mobilityValues[i + 1] - mobilityValues[i];
+    }
+    final double medianDiff = Quantiles.median().compute(diffs);
+    final double tenthDiff = medianDiff / 10;
+    RangeMap<Double, Integer> realMobilities = TreeRangeMap.create();
+    for (int i = 0; i < mobilityValues.length; i++) {
+      realMobilities.put(
+          Range.closed(mobilityValues[i] - tenthDiff, mobilityValues[i] + tenthDiff),
+          isTims ? mobilityValues.length - 1 - i : i); // reverse scan number order for tims
+    }
+
+    return realMobilities;
   }
 
   @Override

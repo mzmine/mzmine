@@ -43,11 +43,11 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterParameters.FilterMode;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters;
@@ -268,13 +268,13 @@ public class BatchWizardController {
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
-    q.add(makeAdapStep(msParameters));
+    q.add(makeAdapStep(msParameters, hplcParameters));
 
     q.add(makeSmoothingStep(hplcParameters, true, false));
     q.add(makeRtResolvingStep(msParameters, hplcParameters, true));
     if (cbIonMobility.isSelected()) {
       q.add(makeImsExpanderStep(msParameters));
-      q.add(makeSmoothingStep(false, true));
+      q.add(makeSmoothingStep(hplcParameters, false, true));
       q.add(makeMobilityResolvingStep(msParameters, hplcParameters));
       q.add(makeSmoothingStep(hplcParameters, true, true));
     }
