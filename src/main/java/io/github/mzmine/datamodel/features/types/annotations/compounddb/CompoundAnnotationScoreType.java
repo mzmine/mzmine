@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class CompoundAnnotationScoreType extends ScoreType {
 
   public CompoundAnnotationScoreType() {
-
+    super();
   }
 
   @Override

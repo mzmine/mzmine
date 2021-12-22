@@ -672,7 +672,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   private void setVisible(ColumnType columnType, Class clazz, boolean visible) {
-    final DataType type = DataTypes.getInstance(clazz);
+    final DataType type = DataTypes.get(clazz);
     final String key = type.getHeaderString();
     if (columnType == ColumnType.ROW_TYPE) {
       rowTypesParameter.setDataTypeVisible(key, visible);

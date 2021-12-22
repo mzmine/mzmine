@@ -194,7 +194,7 @@ public class FormulaPredictionFeatureListTask extends AbstractTask {
     totalRows = featureList.getNumberOfRows();
 
     featureList.addRowType(DataTypes
-        .getInstance(io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType.class));
+        .get(io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType.class));
 
     for (FeatureListRow row : featureList.getRows()) {
 

@@ -46,7 +46,7 @@ class SpectralLibrarySearchTask extends RowsSpectralMatchTask {
     List<FeatureListRow> rows = new ArrayList<>();
     // add row type
     for (var flist : featureLists) {
-      flist.addRowType(DataTypes.getInstance(SpectralLibraryMatchesType.class));
+      flist.addRowType(DataTypes.get(SpectralLibraryMatchesType.class));
       rows.addAll(flist.getRows());
     }
     return rows;

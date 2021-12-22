@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.numbers.abstr;
 
+import io.github.mzmine.main.MZmineCore;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -29,7 +30,11 @@ public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
 
   @Override
   public NumberFormat getFormatter() {
-    return DEFAULT_FORMAT;
+    try {
+      return MZmineCore.getConfiguration().getScoreFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
   }
-
 }

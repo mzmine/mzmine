@@ -32,6 +32,9 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.RangeUtils;
 import java.text.NumberFormat;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -43,8 +46,10 @@ import org.jetbrains.annotations.Nullable;
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
  * carry a flexible amount of data while providing a set of minimum defined entries.
  */
-public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> implements
+public class SimpleCompoundDBAnnotation implements
     CompoundDBAnnotation {
+
+  private final Map<DataType<?>, Object> data = new HashMap<>();
 
   public static final String XML_TYPE_NAME = "simplecompounddbannotation";
 
@@ -52,7 +57,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
 
   @Override
   public <T> T get(@NotNull DataType<T> key) {
-    Object value = super.get(key);
+    Object value = data.get(key);
     if (value != null && !key.getValueClass().isInstance(value)) {
       throw new IllegalStateException(
           String.format("Value type (%s) does not match data type value class (%s)",
@@ -62,7 +67,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
   }
 
   public <T> T get(Class<? extends DataType<T>> key) {
-    var actualKey = DataTypes.getInstance(key);
+    var actualKey = DataTypes.get(key);
     return get(actualKey);
   }
 
@@ -73,18 +78,18 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
           String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
               value.getClass(), key.getClass()));
     }
-    var actualKey = DataTypes.getInstance(key);
-    return (T) super.put(actualKey, value);
+    var actualKey = DataTypes.get(key);
+    return (T) data.put(actualKey, value);
   }
 
   public <T> T put(@NotNull Class<? extends DataType<T>> key, T value) {
-    var actualKey = DataTypes.getInstance(key);
+    var actualKey = DataTypes.get(key);
     if (value != null && !actualKey.getValueClass().isInstance(value)) {
       throw new IllegalArgumentException(
           String.format("Cannot put value class (%s) for data type (%s). Value type mismatch.",
               value.getClass(), actualKey.getClass()));
     }
-    return (T) super.put(actualKey, value);
+    return (T) data.put(actualKey, value);
   }
 
   /**
@@ -98,9 +103,9 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
       ModularFeatureListRow row) throws XMLStreamException {
     writer.writeStartElement(CompoundDBAnnotation.XML_ELEMENT);
     writer.writeAttribute(CompoundDBAnnotation.XML_TYPE_ATTRIBUTE, XML_TYPE_NAME);
-    writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(size()));
+    writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(data.size()));
 
-    for (Entry<DataType<?>, Object> entry : entrySet()) {
+    for (Entry<DataType<?>, Object> entry : data.entrySet()) {
       final DataType<?> key = entry.getKey();
       final Object value = entry.getValue();
 
@@ -144,7 +149,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
         Object o = typeForId.loadFromXML(reader, flist, row, null, null);
-        id.put(typeForId, o);
+        id.put((DataType)typeForId, o);
       }
       i++;
 
@@ -246,7 +251,7 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
   @Override
   public CompoundDBAnnotation clone() {
     SimpleCompoundDBAnnotation clone = new SimpleCompoundDBAnnotation();
-    forEach((key, value) -> clone.put(key, value));
+    data.forEach((key, value) -> clone.put((DataType) key, value));
     return clone;
   }
 
@@ -272,6 +277,23 @@ public class SimpleCompoundDBAnnotation extends HashMap<DataType<?>, Object> imp
       b.append(scoreFormat.format(getScore()));
     }
     return b.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SimpleCompoundDBAnnotation)) {
+      return false;
+    }
+    SimpleCompoundDBAnnotation that = (SimpleCompoundDBAnnotation) o;
+    return data.equals(that.data);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(data);
   }
 }
 
