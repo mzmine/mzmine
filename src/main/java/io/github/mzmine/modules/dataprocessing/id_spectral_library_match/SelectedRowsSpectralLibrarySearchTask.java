@@ -62,7 +62,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
     // add type to featureLists
     for (var row : rows) {
       if (row.getFeatureList() instanceof ModularFeatureList mod) {
-        mod.addRowType(DataTypes.getInstance(SpectralLibraryMatchesType.class));
+        mod.addRowType(DataTypes.get(SpectralLibraryMatchesType.class));
       }
     }
 

@@ -32,6 +32,8 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.PubChemIdType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
@@ -206,17 +208,17 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   @NotNull
   private CompoundDBAnnotation getCompoundFromLine(String[] values,
       List<ImportType> linesWithIndices) {
-    var formulaType = DataTypes.getInstance(FormulaType.class);
-    var compoundNameType = DataTypes.getInstance(CompoundNameType.class);
-    var commentType = DataTypes.getInstance(CommentType.class);
-    var precursorMz = DataTypes.getInstance(MZType.class);
-    var rtType = DataTypes.getInstance(RTType.class);
-    var mobType = DataTypes.getInstance(MobilityType.class);
-    var ccsType = DataTypes.getInstance(CCSType.class);
-    var smilesType = DataTypes.getInstance(SmilesStructureType.class);
-    var adductType = DataTypes.getInstance(IonTypeType.class);
-    var neutralMassType = DataTypes.getInstance(NeutralMassType.class);
-    var ionTypeType = DataTypes.getInstance(IonTypeType.class);
+    var formulaType = DataTypes.get(FormulaType.class);
+    var compoundNameType = DataTypes.get(CompoundNameType.class);
+    var commentType = DataTypes.get(CommentType.class);
+    var precursorMz = DataTypes.get(MZType.class);
+    var rtType = DataTypes.get(RTType.class);
+    var mobType = DataTypes.get(MobilityType.class);
+    var ccsType = DataTypes.get(CCSType.class);
+    var smilesType = DataTypes.get(SmilesStructureType.class);
+    var adductType = DataTypes.get(IonTypeType.class);
+    var neutralMassType = DataTypes.get(NeutralMassType.class);
+    var ionTypeType = DataTypes.get(IonTypeType.class);
     var pubchemIdType = new PubChemIdType();
 
     final Map<DataType<?>, String> entry = new HashMap<>();

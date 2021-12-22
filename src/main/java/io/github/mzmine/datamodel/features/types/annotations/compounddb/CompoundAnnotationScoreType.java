@@ -16,25 +16,24 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class ScoreType extends FloatType {
-public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
-  public ScoreType() {
-    super(DEFAULT);
+public class CompoundAnnotationScoreType extends ScoreType {
+
+  public CompoundAnnotationScoreType() {
+    super();
   }
 
   @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getScoreFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+  public @NotNull String getUniqueID() {
+    return "compound_annotation_score";
+  }
+
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Score";
   }
 }

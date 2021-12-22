@@ -33,6 +33,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeT
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
