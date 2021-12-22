@@ -134,7 +134,7 @@ public class NeutralMassComponent extends GridPane {
     if (ionType == null)
       return;
 
-    double neutral = (ionMass.doubleValue() - ionType.getAddedMass()) * charge.intValue();
+    double neutral = ionMass.doubleValue() * charge.intValue() - ionType.getAddedMass();
 
     neutralMassField.setText(MZmineCore.getConfiguration().getMZFormat().format(neutral));
   }
