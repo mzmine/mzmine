@@ -73,13 +73,13 @@ public enum OnlineDatabases implements MZmineModule {
 
   @Nullable
   public String getCompoundUrl(@Nullable String databaseCompoundId) {
-    if(databaseCompoundId == null) {
+    if (databaseCompoundId == null) {
       return null;
     }
 
     return switch (this) {
       case PubChem -> "https://pubchem.ncbi.nlm.nih.gov/compound/" + databaseCompoundId;
-      default -> null;
+      case KEGG, METACYC, CHEMSPIDER, MASSBANKEurope, LIPIDMAPS, YMDB, HMDB -> null;
     };
   }
 
