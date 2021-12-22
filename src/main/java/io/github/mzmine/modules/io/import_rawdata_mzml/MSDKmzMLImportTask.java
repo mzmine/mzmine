@@ -236,7 +236,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
-      if (mzMLScan.getMobility().mt() == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
+      if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
         // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
         ArrayUtils.reverse(mobilities);
       }
@@ -249,7 +249,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
           while (mobilityScanNumberCounter < mobilities.length) {
             mobilityScans.add(
-                new BuildingMobilityScan(mobilityScanNumberCounter, new double[0], new double[0]));
+                new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
             mobilityScanNumberCounter++;
           }
 
@@ -274,7 +274,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
             scan.getRetentionTime() / 60f, null, null,
             ConversionUtils.msdkToMZmineSpectrumType(scan.getSpectrumType()),
             ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-            scan.getScanningRange(), mzMLScan.getMobility().mt(), null);
+            scan.getScanningRange(), mzMLScan.getMobility().mobilityType(), null);
         frameNumber++;
 
         description =
@@ -289,9 +289,8 @@ public class MSDKmzMLImportTask extends AbstractTask {
       if (missingScans > 1) {
         for (int i = 0; i < missingScans; i++) {
           // make up for data saving options leaving out empty scans.
-          // todo check if this works properly
           mobilityScans.add(
-              new BuildingMobilityScan(mobilityScanNumberCounter, new double[0], new double[0]));
+              new BuildingMobilityScan(mobilityScanNumberCounter, MassDetector.EMPTY_DATA));
           mobilityScanNumberCounter++;
         }
       }
@@ -318,13 +317,13 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
 
     final boolean isTims =
-        ((MzMLMsScan) file.getScans().get(0)).getMobility().mt() == MobilityType.TIMS;
+        ((MzMLMsScan) file.getScans().get(0)).getMobility().mobilityType() == MobilityType.TIMS;
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
       final double mobility = mzMLScan.getMobility().mobility();
       final Entry<Range<Double>, Integer> entry = mobilityCounts.getEntry(mobility);
       if (entry == null) {
-        final double delta = mzMLScan.getMobility().mt() == MobilityType.TIMS ? 0.000002 : 0.00002;
+        final double delta = isTims ? 0.000002 : 0.00002;
         final Range<Double> range = SpectraMerging.createNewNonOverlappingRange(mobilityCounts,
             Range.closed(mobility - delta, mobility + delta));
         mobilityCounts.put(range, 1);
@@ -341,11 +340,11 @@ public class MSDKmzMLImportTask extends AbstractTask {
       diffs[i] = mobilityValues[i + 1] - mobilityValues[i];
     }
     final double medianDiff = Quantiles.median().compute(diffs);
-    final double quarterDiff = medianDiff / 4;
+    final double tenthDiff = medianDiff / 10;
     RangeMap<Double, Integer> realMobilities = TreeRangeMap.create();
     for (int i = 0; i < mobilityValues.length; i++) {
       realMobilities.put(
-          Range.closed(mobilityValues[i] - quarterDiff, mobilityValues[i] + quarterDiff),
+          Range.closed(mobilityValues[i] - tenthDiff, mobilityValues[i] + tenthDiff),
           isTims ? mobilityValues.length - 1 - i : i); // reverse scan number order for tims
     }
 
