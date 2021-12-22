@@ -40,19 +40,19 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
 
 /**
- * Collection of methods for JFreeCharts <br>
- * Calculate mouseXY to plotXY <br>
- * Calc width and height for plots where domain and range axis share the same dimensions <br>
- * Zoom and shift axes by absolute or relative values
- * 
+ * Collection of methods for JFreeCharts <br> Calculate mouseXY to plotXY <br> Calc width and height
+ * for plots where domain and range axis share the same dimensions <br> Zoom and shift axes by
+ * absolute or relative values
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartLogicsFX {
+
   private static Logger logger = Logger.getLogger(ChartLogicsFX.class.getName());
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
-   * 
+   *
    * @param myChart
    * @param mouseX
    * @param mouseY
@@ -64,7 +64,7 @@ public class ChartLogicsFX {
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
-   * 
+   *
    * @param myChart
    * @param mouseX
    * @param mouseY
@@ -76,19 +76,22 @@ public class ChartLogicsFX {
     ChartEntity entity = findChartEntity(myChart.getCanvas(), mouseX, mouseY);
     if (entity instanceof AxisEntity) {
       Axis a = ((AxisEntity) entity).getAxis();
-      if (a.getPlot() instanceof XYPlot)
+      if (a.getPlot() instanceof XYPlot) {
         plot = (XYPlot) a.getPlot();
+      }
     }
 
     ChartRenderingInfo info = myChart.getRenderingInfo();
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
-    if (subplot != -1)
+    if (subplot != -1) {
       dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
+    }
 
     // find subplot or plot
-    if (plot == null)
+    if (plot == null) {
       plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY);
+    }
 
     // coordinates
     double cx = 0;
@@ -111,17 +114,19 @@ public class ChartLogicsFX {
         rangeAxisEdge = pp.getRangeAxisEdge();
       }
 
-      if (domainAxis != null)
+      if (domainAxis != null) {
         cx = domainAxis.java2DToValue(mouseX, dataArea, domainAxisEdge);
-      if (rangeAxis != null)
+      }
+      if (rangeAxis != null) {
         cy = rangeAxis.java2DToValue(mouseY, dataArea, rangeAxisEdge);
+      }
     }
     return new Point2D.Double(cx, cy);
   }
 
   /**
    * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
-   * 
+   *
    * @param chart
    * @return
    */
@@ -144,7 +149,7 @@ public class ChartLogicsFX {
 
   /**
    * Subplot or main plot at point
-   * 
+   *
    * @param chart
    * @param info
    * @param mouseX
@@ -156,19 +161,21 @@ public class ChartLogicsFX {
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     XYPlot plot = null;
     if (subplot != -1) {
-      if (chart.getPlot() instanceof CombinedDomainXYPlot)
+      if (chart.getPlot() instanceof CombinedDomainXYPlot) {
         plot = (XYPlot) ((CombinedDomainXYPlot) chart.getPlot()).getSubplots().get(subplot);
-      else if (chart.getPlot() instanceof CombinedRangeXYPlot)
+      } else if (chart.getPlot() instanceof CombinedRangeXYPlot) {
         plot = (XYPlot) ((CombinedRangeXYPlot) chart.getPlot()).getSubplots().get(subplot);
+      }
     }
-    if (plot == null && chart.getPlot() instanceof XYPlot)
+    if (plot == null && chart.getPlot() instanceof XYPlot) {
       plot = (XYPlot) chart.getPlot();
+    }
     return plot;
   }
 
   /**
    * Translates screen (pixel) values to plot values
-   * 
+   *
    * @param myChart
    * @return width in data space for x and y
    */
@@ -181,10 +188,10 @@ public class ChartLogicsFX {
 
   /**
    * Data width to pixel width on screen
-   * 
+   *
    * @param myChart
    * @param dataWidth width of data
-   * @param axis for width calculation
+   * @param axis      for width calculation
    * @return
    */
   public static double calcWidthOnScreen(ChartViewer myChart, double dataWidth, ValueAxis axis,
@@ -200,7 +207,7 @@ public class ChartLogicsFX {
   /**
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
-   * 
+   *
    * @return
    */
   public static Dimension calcSizeForPlotWidth(ChartViewer myChart, double plotWidth) {
@@ -210,7 +217,7 @@ public class ChartLogicsFX {
   /**
    * Calculates the size of a chart for a given fixed plot width Domain and Range axes need to share
    * the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -231,7 +238,7 @@ public class ChartLogicsFX {
 
   /**
    * Calculates the size of a chart for a given fixed plot width and height
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -243,7 +250,7 @@ public class ChartLogicsFX {
 
   /**
    * Calculates the size of a chart for a given fixed plot width and height
-   * 
+   *
    * @param myChart
    * @param plotWidth
    * @return
@@ -283,9 +290,9 @@ public class ChartLogicsFX {
         estimatedChartWidth = estimatedChartWidth - dataArea.getWidth() + plotWidth;
         estimatedChartHeight = estimatedChartHeight - dataArea.getHeight() + plotHeight;
 
-        if ((int) lastW == (int) estimatedChartWidth && (int) lastH == (int) estimatedChartHeight)
+        if ((int) lastW == (int) estimatedChartWidth && (int) lastH == (int) estimatedChartHeight) {
           break;
-        else {
+        } else {
           lastW = estimatedChartWidth;
           lastH = estimatedChartHeight;
         }
@@ -300,7 +307,7 @@ public class ChartLogicsFX {
   /**
    * calls this method twice (2 iterations) with an estimated chartHeight of 3*chartWidth Domain and
    * Range axes need to share the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param chartWidth width of data
    * @return
@@ -312,7 +319,7 @@ public class ChartLogicsFX {
   /**
    * calculates the correct height with multiple iterations Domain and Range axes need to share the
    * same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @param chartWidth width of data
    * @return
@@ -363,10 +370,11 @@ public class ChartLogicsFX {
 
         // for next iteration
         estimatedHeight = height;
-        if ((int) lastH == (int) height)
+        if ((int) lastH == (int) height) {
           break;
-        else
+        } else {
           lastH = height;
+        }
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -377,7 +385,7 @@ public class ChartLogicsFX {
 
   /**
    * Removes draw size restrictions
-   * 
+   *
    * @param myChart
    */
   public static void makeChartResizable(ChartViewer myChart) {
@@ -385,9 +393,8 @@ public class ChartLogicsFX {
   }
 
   /**
-   * 
    * Domain and Range axes need to share the same unit (e.g. mm)
-   * 
+   *
    * @param myChart
    * @return
    */
@@ -425,7 +432,7 @@ public class ChartLogicsFX {
 
   /**
    * Returns dimensions for limiting factor width or height
-   * 
+   *
    * @param myChart
    * @return
    */
@@ -480,7 +487,7 @@ public class ChartLogicsFX {
 
   /**
    * Auto range the range axis
-   * 
+   *
    * @param myChart
    */
   public static void autoAxes(ChartViewer myChart) {
@@ -499,7 +506,7 @@ public class ChartLogicsFX {
 
   /**
    * Auto range the range axis
-   * 
+   *
    * @param myChart
    */
   public static void autoRangeAxis(ChartViewer myChart) {
@@ -507,15 +514,15 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      if(myChart.getRenderingInfo()==null) {
+      if (myChart.getRenderingInfo() == null) {
         z.zoomRangeAxes(0, null, endPoint);
-      }
-      else {
+      } else {
         PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
         z.zoomRangeAxes(0, pri, endPoint);
       }
     }
   }
+
   /**
    * Auto range the domain axis
    *
@@ -527,12 +534,13 @@ public class ChartLogicsFX {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
       PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
-      z.zoomDomainAxes(0, pri, endPoint);
+      if (pri != null) {
+        z.zoomDomainAxes(0, pri, endPoint);
+      }
     }
   }
 
   /**
-   * 
    * @param chart
    * @return
    */

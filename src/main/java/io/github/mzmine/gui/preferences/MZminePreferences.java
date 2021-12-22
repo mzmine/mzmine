@@ -142,6 +142,10 @@ public class MZminePreferences extends SimpleParameterSet {
       KeepInMemory.ALL, KeepInMemory.MASSES_AND_FEATURES), KeepInMemory.values(),
       KeepInMemory.NONE);
 
+  public static final BooleanParameter showPrecursorWindow = new BooleanParameter(
+      "Show precursor windows", "Show the isolation window instead of just the precursor m/z.",
+      false);
+
 
   public MZminePreferences() {
     super(new Parameter[]{
@@ -154,7 +158,7 @@ public class MZminePreferences extends SimpleParameterSet {
         unitFormat,
         // other preferences
         defaultColorPalette, defaultPaintScale, chartParam, darkMode, presentationMode,
-        imsModuleWarnings, windowSetttings, sendErrorEMail});
+        showPrecursorWindow, imsModuleWarnings, windowSetttings, sendErrorEMail});
   }
 
   @Override
@@ -171,7 +175,7 @@ public class MZminePreferences extends SimpleParameterSet {
             scoreFormat, unitFormat});
     dialog.addParameterGroup("Visuals",
         new Parameter[]{defaultColorPalette, defaultPaintScale, chartParam, darkMode,
-            presentationMode});
+            presentationMode, showPrecursorWindow});
     dialog.addParameterGroup("Other", new Parameter[]{sendErrorEMail,
         // imsModuleWarnings, windowSetttings  are hidden parameters
     });
