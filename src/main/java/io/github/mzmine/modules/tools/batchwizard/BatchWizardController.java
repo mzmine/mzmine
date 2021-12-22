@@ -214,11 +214,7 @@ public class BatchWizardController {
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
-//    if (cbIonMobility.isSelected()) {
-//      q.add(makeImsTraceStep(msParameters));
-//    } else {
     q.add(makeAdapStep(msParameters));
-//    }
 
     q.add(makeSmoothingStep(true, false));
     q.add(makeRtResolvingStep(msParameters, hplcParameters));
