@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.scans;
@@ -180,10 +181,14 @@ public class ScanUtils {
    *
    * @param scan    Scan to search
    * @param mzRange mz range to search in
-   * @return double[2] containing base peak m/z and intensity
+   * @return data point containing base peak m/z and intensity
    */
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
+    final Double scanBasePeakMz = scan.getBasePeakMz();
+    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
+      return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
+    }
 
     final double lower = mzRange.lowerEndpoint();
     final double upper = mzRange.upperEndpoint();
@@ -678,7 +683,7 @@ public class ScanUtils {
     return dataFile.getScanNumbers(2).stream().filter(
             s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && (
                 s.getMsMsInfo() != null && s.getMsMsInfo() instanceof DDAMsMsInfo dda
-                    && mzRange.contains(dda.getIsolationMz())))
+                && mzRange.contains(dda.getIsolationMz())))
         .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
@@ -693,9 +698,10 @@ public class ScanUtils {
     assert mzRange != null;
 
     return dataFile.getScanNumbers(2).stream().filter(
-        s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
-            && s.getMsMsInfo() instanceof DDAMsMsInfo dda && mzRange.contains(
-            dda.getIsolationMz()))).toArray(Scan[]::new);
+            s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
+                                                            && s.getMsMsInfo() instanceof DDAMsMsInfo dda
+                                                            && mzRange.contains(dda.getIsolationMz())))
+        .toArray(Scan[]::new);
   }
 
   /**
@@ -970,8 +976,8 @@ public class ScanUtils {
    * @return
    */
   @NotNull
-  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel,
-      int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals,
+      ScanSortMode sort) throws MissingMassListException {
     List<Scan> filtered = listAllScans(scans, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
     filtered.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
@@ -987,8 +993,8 @@ public class ScanUtils {
    * @return
    */
   @NotNull
-  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel,
-      int minNumberOfSignals) throws MissingMassListException {
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
     List<Scan> filtered = new ArrayList<>();
     for (Scan scan : scans) {
       // find mass list: with name or first

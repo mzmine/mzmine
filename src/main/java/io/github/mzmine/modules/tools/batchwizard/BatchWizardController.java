@@ -43,6 +43,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
@@ -346,10 +348,18 @@ public class BatchWizardController {
         .getModuleParameters(SmoothingModule.class).cloneParameterSet();
     param.setParameter(SmoothingParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(SmoothingParameters.rtSmoothing, rt);
-    param.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
-    param.setParameter(SmoothingParameters.mobilitySmoothing, mobility);
-    param.getParameter(SmoothingParameters.mobilitySmoothing).getEmbeddedParameter().setValue(13);
+
+    ParameterSet sgParam = MZmineCore.getConfiguration()
+        .getModuleParameters(SavitzkyGolaySmoothing.class).cloneParameterSet();
+    sgParam.setParameter(SavitzkyGolayParameters.rtSmoothing, rt);
+    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+    sgParam.setParameter(SavitzkyGolayParameters.mobilitySmoothing, mobility);
+    sgParam.getParameter(SavitzkyGolayParameters.mobilitySmoothing).getEmbeddedParameter()
+        .setValue(13);
+
+    param.getParameter(SmoothingParameters.smoothingAlgorithm).setValue(
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SavitzkyGolaySmoothing.class),
+            sgParam));
     param.setParameter(SmoothingParameters.removeOriginal, true);
     param.setParameter(SmoothingParameters.suffix, "smthd");
 

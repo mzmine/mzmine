@@ -18,10 +18,10 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import java.io.IOException;
-
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import java.io.IOException;
 
 public interface DBGateway {
 
@@ -34,6 +34,6 @@ public interface DBGateway {
   /**
    * This method retrieves the details about a compound
    */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException;
+  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException;
 
 }
