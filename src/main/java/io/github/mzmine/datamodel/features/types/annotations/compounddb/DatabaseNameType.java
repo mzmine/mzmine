@@ -16,25 +16,23 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers.abstr;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class ScoreType extends FloatType {
-public static final DecimalFormat DEFAULT = new DecimalFormat("0.000");
-  public ScoreType() {
-    super(DEFAULT);
+/**
+ * Supplies a name of a database as a string. Can be a string, an url or a file name.
+ */
+public class DatabaseNameType extends StringType {
+
+  @Override
+  public @NotNull String getUniqueID() {
+    return "database_name";
   }
 
   @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getScoreFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+  public @NotNull String getHeaderString() {
+    return "Database";
   }
 }

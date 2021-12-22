@@ -345,4 +345,8 @@ public class MathUtils {
   public static double twoPointGetYForX(double x1, double y1, double x2, double y2, double x) {
     return (x - x1) * ((y2 - y1) / (x2 - x1)) + y1;
   }
+
+  public static double getPpmDiff(double calc, double real) {
+    return (real-calc) / calc * 1E6;
+  }
 }
