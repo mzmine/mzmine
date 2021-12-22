@@ -21,7 +21,8 @@ package io.github.mzmine.datamodel.features.compoundannotations;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import org.jetbrains.annotations.Nullable;
 
-public record DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id, @Nullable String url) {
+public record DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id,
+                                @Nullable String url) {
 
   public DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nullable String id) {
     this(onlineDatabase, id, onlineDatabase != null ? onlineDatabase.getCompoundUrl(id) : null);
@@ -29,6 +30,18 @@ public record DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nulla
 
   @Override
   public String toString() {
-    return id();
+    StringBuilder b = new StringBuilder();
+    if (onlineDatabase != null) {
+      b.append(onlineDatabase.getName()).append(": ");
+    } else {
+      b.append("N/A: ");
+    }
+
+    if(id != null) {
+      b.append(id);
+    } else {
+      b.append("no id");
+    }
+    return b.toString();
   }
 }

@@ -162,7 +162,15 @@ public interface CompoundDBAnnotation extends Cloneable {
 
   <T> T put(@NotNull DataType<T> key, T value);
 
-  default <T> T putIfNotNull(@NotNull DataType<T> key, T value) {
+  /**
+   * Stores the given value to this annotation if the value is not equal to null.
+   *
+   * @param key   The key.
+   * @param value The value.
+   * @return The previously mapped value. Also returns the currently mapped value if the parameter
+   * was null.
+   */
+  default <T> T putIfNotNull(@NotNull DataType<T> key, @Nullable T value) {
     if (value != null) {
       return put(key, value);
     }
@@ -171,7 +179,15 @@ public interface CompoundDBAnnotation extends Cloneable {
 
   <T> T put(@NotNull Class<? extends DataType<T>> key, T value);
 
-  default <T> T putIfNotNull(@NotNull Class<? extends DataType<T>> key, T value) {
+  /**
+   * Stores the given value to this annotation if the value is not equal to null.
+   *
+   * @param key   The key.
+   * @param value The value.
+   * @return The previously mapped value. Also returns the currently mapped value if the parameter
+   * was null.
+   */
+  default <T> T putIfNotNull(@NotNull Class<? extends DataType<T>> key, @Nullable T value) {
     if (value != null) {
       return put(key, value);
     }
