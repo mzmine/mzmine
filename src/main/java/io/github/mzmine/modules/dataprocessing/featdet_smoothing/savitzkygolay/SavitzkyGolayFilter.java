@@ -22,7 +22,7 @@
  * pre-existing work.
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
+package io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay;
 
 import java.util.HashMap;
 import java.util.Map;
