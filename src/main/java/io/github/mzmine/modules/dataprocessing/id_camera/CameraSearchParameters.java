@@ -24,8 +24,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.NumberFormat;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -34,14 +32,17 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.R.REngineType;
+import java.text.NumberFormat;
 import javafx.collections.FXCollections;
 
 /**
  * Parameters for a <code>CameraSearchTask</code>.
  *
  */
+@Deprecated
 public class CameraSearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter PEAK_LISTS = new FeatureListsParameter();
