@@ -18,8 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.ChemSpiderGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.ChemSpiderParameters;
@@ -32,6 +30,8 @@ import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.Pub
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases.YMDBGateway;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public enum OnlineDatabases implements MZmineModule {
 
@@ -69,6 +69,18 @@ public enum OnlineDatabases implements MZmineModule {
 
   public @NotNull String getName() {
     return dbName;
+  }
+
+  @Nullable
+  public String getCompoundUrl(@Nullable String databaseCompoundId) {
+    if (databaseCompoundId == null) {
+      return null;
+    }
+
+    return switch (this) {
+      case PubChem -> "https://pubchem.ncbi.nlm.nih.gov/compound/" + databaseCompoundId;
+      case KEGG, METACYC, CHEMSPIDER, MASSBANKEurope, LIPIDMAPS, YMDB, HMDB -> null;
+    };
   }
 
   @Override

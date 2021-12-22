@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features;
@@ -33,7 +34,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.projectload.CachedIMSFrame;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
-import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
 import io.github.mzmine.util.CorrelationGroupingUtils;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -54,8 +55,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -72,7 +71,8 @@ public class ModularFeatureList implements FeatureList {
    * The storage of this feature list. May be null if data points of features shall be stored in
    * ram.
    */
-  @Nullable private final MemoryMapStorage memoryMapStorage;
+  @Nullable
+  private final MemoryMapStorage memoryMapStorage;
   // bindings for values
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> featureTypeListeners = new HashMap<>();
   private final Map<DataType<?>, List<DataTypeValueChangeListener<?>>> rowTypeListeners = new HashMap<>();
@@ -80,24 +80,23 @@ public class ModularFeatureList implements FeatureList {
   // unmodifiable list
   private final ObservableList<RawDataFile> dataFiles;
   private final ObservableMap<RawDataFile, List<? extends Scan>> selectedScans;
-  @NotNull
-  private final StringProperty nameProperty = new SimpleStringProperty("");
   // columns: summary of all
   // using LinkedHashMaps to save columns order according to the constructor
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private final ObservableMap<Class<? extends DataType>, DataType> rowTypes =
-      FXCollections.observableMap(new LinkedHashMap<>());
+  private final ObservableMap<Class<? extends DataType>, DataType> rowTypes = FXCollections.observableMap(
+      new LinkedHashMap<>());
   // TODO do we need two maps? We could have ObservableMap of LinkedHashMap
-  private final ObservableMap<Class<? extends DataType>, DataType> featureTypes =
-      FXCollections.observableMap(new LinkedHashMap<>());
+  private final ObservableMap<Class<? extends DataType>, DataType> featureTypes = FXCollections.observableMap(
+      new LinkedHashMap<>());
   private final ObservableList<FeatureListRow> featureListRows;
   private final ObservableList<FeatureListAppliedMethod> descriptionOfAppliedTasks;
+  // a map that stores row-2-row relationship maps for MS1, MS2, and other relationships
+  private final Map<RowsRelationship.Type, R2RMap<RowsRelationship>> r2rMaps = new ConcurrentHashMap<>();
+  @NotNull
+  private String nameProperty = "";
   private String dateCreated;
   // grouping
   private List<RowGroup> groups;
-
-  // a map that stores row-2-row relationship maps for MS1, MS2, and other relationships
-  private final Map<RowsRelationship.Type, R2RMap<RowsRelationship>> r2rMaps = new ConcurrentHashMap<>();
 
 
   public ModularFeatureList(String name, @Nullable MemoryMapStorage storage,
@@ -129,52 +128,43 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
-  @NotNull
-  public String getNameProperty() {
-    return nameProperty.get();
-  }
-
-  @Override
   public @NotNull String getName() {
-    return nameProperty.get();
+    return nameProperty;
   }
 
+  /**
+   * Checks for safe path encoding and no duplicate names in project
+   *
+   * @param name the new name candidate
+   * @return the actually set name
+   */
   @Override
-  public String setName(String name) {
-    if (name.isBlank()) {
+  public String setName(@NotNull String name) {
+    if (name.isBlank() || name.equals(this.nameProperty)) {
       // keep old name
-      return getName();
+      return this.nameProperty;
     }
 
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      synchronized (project.getFeatureLists()) {
-        final List<String> names = new ArrayList<>(
-            project.getFeatureLists().stream().map(FeatureList::getName).toList());
-        final String oldName = getName();
-        // name is empty if set for the first time
-        if (!oldName.isBlank()) {
-          names.remove(oldName);
-        }
-        // make path safe
-        name = FileAndPathUtil.safePathEncode(name);
-        // handle duplicates
-        name =
-            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
-      }
-    }
-
-    final String finalName = name;
-
-    if(project == null || !project.getFeatureLists().contains(this)) {
-      // if this happens during project load or outside of the GUI, we set it directly.
-      // Otherwise the FX thread might be slower than we expect
-      nameProperty.set(finalName);
+      // project finds the name and calls the setNameNoChecks method
+      project.setUniqueFeatureListName(this, name);
     } else {
-      MZmineCore.runLater(() -> this.nameProperty.set(finalName));
+      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
     }
-    return finalName;
+    return this.nameProperty;
+  }
+
+  @Override
+  public String setNameNoChecks(@NotNull String name) {
+    this.nameProperty = name;
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (project != null) {
+      project.fireFeatureListsChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+    }
+    return nameProperty;
   }
 
   @Override
@@ -467,7 +457,7 @@ public class ModularFeatureList implements FeatureList {
       Range<Double> mzRange) {
     // TODO handle if mz or rt is not present
     return modularStream().filter(
-        row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
+            row -> rtRange.contains(row.getAverageRT()) && mzRange.contains(row.getAverageMZ()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.project.impl;
@@ -30,7 +31,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
@@ -63,8 +63,10 @@ public class RawDataFileImpl implements RawDataFile {
 
   private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
 
-  // Name of this raw data file - may be changed by the user
+  // for ease of use we have a javafx safe copy of name
   private final StringProperty nameProperty = new SimpleStringProperty("");
+  // Name of this raw data file - may be changed by the user
+  private String name = "";
 
   protected final String absolutePath;
 
@@ -454,17 +456,12 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   @NotNull
   public String getName() {
-    return nameProperty.get();
-  }
-
-  @Override
-  public @NotNull StringProperty nameProperty() {
-    return nameProperty;
+    return name;
   }
 
   @Override
   public String setName(@NotNull String name) {
-    if (name.isBlank()) {
+    if (name.isBlank() || name.equals(getName())) {
       // keep old name
       return getName();
     }
@@ -472,31 +469,31 @@ public class RawDataFileImpl implements RawDataFile {
     final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
     if (project != null) {
-      synchronized (project.getRawDataFiles()) {
-        final List<String> names = new ArrayList<>(
-            project.getRawDataFiles().stream().map(RawDataFile::getName).toList());
-        final String oldName = getName();
-        // name is empty if set for the first time
-        if (!oldName.isBlank()) {
-          names.remove(oldName);
-        }
-
-        // make path safe
-        name = FileAndPathUtil.safePathEncode(name);
-        // handle duplicates
-        name =
-            names.contains(name) ? MZmineProjectImpl.getUniqueName(name, names) : name;
-      }
+      project.setUniqueDataFileName(this, name);
+    } else {
+      // path safe encode
+      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
     }
 
-    final String finalName = name;
-    MZmineCore.runLater(() -> this.nameProperty.set(finalName));
-    return finalName;
+    return this.name;
+  }
+
+
+  @Override
+  public String setNameNoChecks(@NotNull String name) {
+    this.name = name;
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (project != null) {
+      project.fireDataFilesChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+    }
+    MZmineCore.runLater(() -> nameProperty.set(this.name));
+    return name;
   }
 
   @Override
   public String toString() {
-    return nameProperty.get();
+    return name;
   }
 
 
@@ -509,6 +506,11 @@ public class RawDataFileImpl implements RawDataFile {
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;
+  }
+
+  @Override
+  public StringProperty nameProperty() {
+    return nameProperty;
   }
 
   /**

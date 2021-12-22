@@ -16,28 +16,17 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.project.impl;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.util.maths.similarity.Similarity;
-import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.datamodel.MZmineProject;
+import java.util.List;
 
 /**
- * The cosine similarity can be calculated in {@link Similarity#COSINE}
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class CosineScoreType extends ScoreType {
+public record ProjectChangeEvent<T>(MZmineProject project, List<T> changedLists, Type change) {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "cosine_score";
+  public enum Type {
+    ADDED, REMOVED, RENAMED, UPDATED;
   }
-
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Cosine similarity";
-  }
-
 }

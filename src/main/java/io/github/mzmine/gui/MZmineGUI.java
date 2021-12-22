@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui;
@@ -39,6 +40,8 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
+import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
@@ -52,7 +55,6 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -178,15 +180,40 @@ public class MZmineGUI extends Application implements Desktop {
       MZmineCore.getProjectManager().setCurrentProject(project);
       if (mainWindowController != null) {
         GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-        rawDataList.setValues(project.rawDataFilesProperty().getValue());
+        rawDataList.setValues(project.getCurrentRawDataFiles());
 
-        GroupableListView<FeatureList> featureListsList = mainWindowController
-            .getFeatureListsList();
-        featureListsList.setValues(project.featureListsProperty().getValue());
+        GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
+        featureListsList.setValues(project.getCurrentFeatureLists());
 
         var libraryList = mainWindowController.getSpectralLibraryList();
-        libraryList.setItems(project.spectralLibrariesProperty().getValue());
+        final var fxLibs = FXCollections.observableArrayList(project.getCurrentSpectralLibraries());
+        libraryList.setItems(fxLibs);
 
+        // add project listener to update the views
+        project.addProjectListener(new ProjectChangeListener() {
+          @Override
+          public void dataFilesChanged(ProjectChangeEvent<RawDataFile> event) {
+            switch (event.change()) {
+              case ADDED -> rawDataList.addItems(event.changedLists());
+              case REMOVED -> rawDataList.removeItems(event.changedLists());
+              case UPDATED, RENAMED -> rawDataList.updateItems();
+            }
+          }
+
+          @Override
+          public void featureListsChanged(ProjectChangeEvent<FeatureList> event) {
+            switch (event.change()) {
+              case ADDED -> featureListsList.addItems(event.changedLists());
+              case REMOVED -> featureListsList.removeItems(event.changedLists());
+              case UPDATED, RENAMED -> featureListsList.updateItems();
+            }
+          }
+
+          @Override
+          public void librariesChanged(ProjectChangeEvent<SpectralLibrary> event) {
+            MZmineCore.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
+          }
+        });
       }
     });
 
@@ -200,16 +227,15 @@ public class MZmineGUI extends Application implements Desktop {
 
   @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-    final GroupableListView<FeatureList> featureListView = mainWindowController
-        .getFeatureListsList();
+    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
   }
 
   @NotNull
   public static List<SpectralLibrary> getSelectedSpectralLibraryList() {
     final var spectralLibraryView = mainWindowController.getSpectralLibraryList();
-    return FXCollections
-        .unmodifiableObservableList(spectralLibraryView.getSelectionModel().getSelectedItems());
+    return FXCollections.unmodifiableObservableList(
+        spectralLibraryView.getSelectionModel().getSelectedItems());
   }
 
   @NotNull

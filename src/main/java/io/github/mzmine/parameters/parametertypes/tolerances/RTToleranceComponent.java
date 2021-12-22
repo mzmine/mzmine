@@ -35,17 +35,16 @@ import javafx.util.converter.NumberStringConverter;
  */
 public class RTToleranceComponent extends BorderPane {
 
-  private final NumberFormat format = new DecimalFormat("0.000");
-  private final TextFormatter<Number> textFormatter = new TextFormatter<>(new NumberStringConverter(format));
-
   // the same order that the unit enum in RTTolerance is defined in
-  private static final ObservableList<String> toleranceTypes =
-          FXCollections.observableArrayList("absolute (min)", "absolute (sec)", "relative (%)");
+  private static final ObservableList<String> toleranceTypes = FXCollections.observableArrayList(
+      "absolute (min)", "absolute (sec)", "relative (%)");
+  private final NumberFormat format = new DecimalFormat("0.000");
+  private final TextFormatter<Number> textFormatter = new TextFormatter<>(
+      new NumberStringConverter(format));
   private final TextField toleranceField;
   private final ComboBox<String> toleranceType;
 
   public RTToleranceComponent() {
-
 
     // setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
@@ -54,7 +53,7 @@ public class RTToleranceComponent extends BorderPane {
     toleranceField.setTextFormatter(textFormatter);
 
     toleranceType = new ComboBox<String>(toleranceTypes);
-    toleranceType.getSelectionModel().select(1);
+    toleranceType.getSelectionModel().select(0);
 
     setCenter(toleranceField);
     setRight(toleranceType);
@@ -70,8 +69,8 @@ public class RTToleranceComponent extends BorderPane {
     Unit toleranceUnit = Unit.values()[index];
     try {
       if (toleranceUnit == Unit.SECONDS || toleranceUnit == Unit.MINUTES) {
-        toleranceFloat =
-                MZmineCore.getConfiguration().getRTFormat().parse(valueString).floatValue();
+        toleranceFloat = MZmineCore.getConfiguration().getRTFormat().parse(valueString)
+            .floatValue();
       } else {
         Number toleranceValue = Double.parseDouble(valueString);
         toleranceFloat = toleranceValue.floatValue();
