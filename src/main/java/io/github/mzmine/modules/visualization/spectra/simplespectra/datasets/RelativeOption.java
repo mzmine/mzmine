@@ -16,31 +16,15 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public interface RelativeOption {
 
-public class ScanNumbersType extends ListDataType<Scan> {
-
-  @NotNull
-  @Override
-  public String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "scan_numbers";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Scans";
-  }
-
-  @NotNull
-  @Override
-  public String getFormattedString(List<Scan> list) {
-    return list != null ? String.valueOf(list.size()) : "";
-  }
-
+  /**
+   * switch between relative or absolute values
+   */
+  public void setRelative(boolean relative);
 }

@@ -16,31 +16,35 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class ScanNumbersType extends ListDataType<Scan> {
+/**
+ * A tree structure to temporarily capture a precursor and all its fragment scans (MSn)
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
-  @NotNull
-  @Override
-  public String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "scan_numbers";
+  // root
+  private final PrecursorIonTreeNode root;
+
+  public PrecursorIonTree(PrecursorIonTreeNode root) {
+    this.root = root;
+  }
+
+  public PrecursorIonTreeNode getRoot() {
+    return root;
   }
 
   @Override
-  public @NotNull String getHeaderString() {
-    return "Scans";
+  public int compareTo(@NotNull PrecursorIonTree o) {
+    // descending order
+    return root.compareTo(o.getRoot());
   }
 
-  @NotNull
-  @Override
-  public String getFormattedString(List<Scan> list) {
-    return list != null ? String.valueOf(list.size()) : "";
+  public void sort() {
+    root.sort();
   }
-
 }

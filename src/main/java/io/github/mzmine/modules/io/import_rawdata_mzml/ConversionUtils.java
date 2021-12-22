@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
@@ -145,8 +146,7 @@ public class ConversionUtils {
     double precursorMz = 0.0;
     int precursorCharge = -1;
     for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
-      Optional<MzMLPrecursorSelectedIonList> selectedIonList =
-          precursorElement.getSelectedIonList();
+      Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
         if (selectedIonList.get().getSelectedIonList().size() > 1) {
           logger.info("Selection of more than one ion in a single scan is not supported.");
@@ -164,21 +164,24 @@ public class ConversionUtils {
     }
 
     DDAMsMsInfo info = null;
-    if(scan.getPrecursorList() != null && !scan.getPrecursorList().getPrecursorElements().isEmpty()) {
-      info = DDAMsMsInfoImpl.fromMzML(scan.getPrecursorList().getPrecursorElements().get(0),
-          scan.getMsLevel());
+    if (scan.getPrecursorList() != null) {
+      final var precursorElements = scan.getPrecursorList().getPrecursorElements();
+      if (precursorElements.size() == 1) {
+        info = DDAMsMsInfoImpl.fromMzML(precursorElements.get(0), scan.getMsLevel());
+      } else if (precursorElements.size() > 1) {
+        info = MSnInfoImpl.fromMzML(precursorElements, scan.getMsLevel());
+      }
     }
 
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
-        scan.getRetentionTime() / 60, info, mzs, intensities,
-        spectrumType, ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
-        scan.getScanDefinition(), scan.getScanningRange());
+        scan.getRetentionTime() / 60, info, mzs, intensities, spectrumType,
+        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
+        scan.getScanningRange());
 
     return newScan;
   }
 
-  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum,
-      MsScan scan) {
+  public static BuildingMobilityScan msdkScanToMobilityScan(int scannum, MsScan scan) {
     return new BuildingMobilityScan(scannum, scan.getMzValues(),
         convertFloatsToDoubles(scan.getIntensityValues()));
   }
@@ -202,8 +205,7 @@ public class ConversionUtils {
     Integer charge = null;
     Float colissionEnergy = null;
     for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
-      Optional<MzMLPrecursorSelectedIonList> selectedIonList =
-          precursorElement.getSelectedIonList();
+      Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
       if (selectedIonList.isPresent()) {
         if (selectedIonList.get().getSelectedIonList().size() > 1) {
           logger.info("Selection of more than one ion in a single scan is not supported.");
@@ -256,9 +258,8 @@ public class ConversionUtils {
         if (!infoFound) {
           BuildingImsMsMsInfo info = new BuildingImsMsMsInfo(isolationMz,
               Objects.requireNonNullElse(colissionEnergy, PasefMsMsInfo.UNKNOWN_COLISSIONENERGY)
-                  .floatValue(),
-              Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE), currentFrameNumber,
-              currentScanNumber);
+                  .floatValue(), Objects.requireNonNullElse(charge, PasefMsMsInfo.UNKNOWN_CHARGE),
+              currentFrameNumber, currentScanNumber);
           buildingInfos.add(info);
         }
       }

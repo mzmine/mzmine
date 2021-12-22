@@ -60,26 +60,26 @@ public class JoinAlignerParameters extends SimpleParameterSet {
       new DecimalFormat("0.000"), 1d);
 
   public static final BooleanParameter SameChargeRequired = new BooleanParameter(
-      "Require same charge state", "If checked, only rows having same charge state can be aligned", false);
+      "Require same charge state", "If checked, only rows having same charge state can be aligned",
+      false);
 
   public static final BooleanParameter SameIDRequired = new BooleanParameter("Require same ID",
-      "If checked, only rows having same compound identities (or no identities) can be aligned", false);
+      "If checked, only rows having same compound identities (or no identities) can be aligned",
+      false);
 
-  public static final OptionalModuleParameter compareIsotopePattern =
-      new OptionalModuleParameter("Compare isotope pattern",
-          "If both peaks represent an isotope pattern, add isotope pattern score to match score",
-          new IsotopePatternScoreParameters(), false);
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> compareIsotopePattern = new OptionalModuleParameter<>(
+      "Compare isotope pattern",
+      "If both peaks represent an isotope pattern, add isotope pattern score to match score",
+      new IsotopePatternScoreParameters(), false);
 
-  public static final OptionalModuleParameter compareSpectraSimilarity =
-      new OptionalModuleParameter("Compare spectra similarity",
-          "Compare MS1 or MS2 spectra similarity",
-          new JoinAlignerSpectraSimilarityScoreParameters(), false);
+  public static final OptionalModuleParameter<JoinAlignerSpectraSimilarityScoreParameters> compareSpectraSimilarity = new OptionalModuleParameter<>(
+      "Compare spectra similarity", "Compare MS1 or MS2 spectra similarity",
+      new JoinAlignerSpectraSimilarityScoreParameters(), false);
 
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
         mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
-        compareIsotopePattern,
-        compareSpectraSimilarity});
+        compareIsotopePattern, compareSpectraSimilarity});
   }
 
   @NotNull

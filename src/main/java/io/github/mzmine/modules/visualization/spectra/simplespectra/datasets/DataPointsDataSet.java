@@ -20,6 +20,7 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
 import io.github.mzmine.datamodel.DataPoint;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -27,18 +28,26 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Data set for MzPeaks, used in feature detection preview
  */
-public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDataset,
+    RelativeOption {
 
   /**
    *
    */
   private static final long serialVersionUID = 1L;
-  protected DataPoint mzPeaks[];
+  private final double maxIntensity;
+  protected DataPoint[] mzPeaks;
+  private boolean normalize;
   private String label;
 
   public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
+    this(label, mzPeaks, false);
+  }
+
+  public DataPointsDataSet(String label, DataPoint mzPeaks[], boolean normalize) {
     this.label = label;
     this.mzPeaks = mzPeaks;
+    this.normalize = normalize;
     // if we have some data points, remove extra zeros
     if (mzPeaks.length > 0) {
       List<DataPoint> dp = new ArrayList<>();
@@ -57,6 +66,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
       this.mzPeaks = dp.toArray(new DataPoint[0]);
     }
 
+    maxIntensity = Arrays.stream(mzPeaks).mapToDouble(DataPoint::getIntensity).max().orElse(1);
   }
 
   @Override
@@ -81,7 +91,8 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
 
   @Override
   public Number getY(int series, int item) {
-    return mzPeaks[item].getIntensity();
+    return normalize ? mzPeaks[item].getIntensity() / maxIntensity * 100d
+        : mzPeaks[item].getIntensity();
   }
 
   @Override
@@ -124,4 +135,8 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
     return getYValue(series, item);
   }
 
+  @Override
+  public void setRelative(boolean relative) {
+    normalize = relative;
+  }
 }

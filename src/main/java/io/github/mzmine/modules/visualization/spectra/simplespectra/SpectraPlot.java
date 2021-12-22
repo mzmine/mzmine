@@ -18,15 +18,42 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
+import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
+import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraMassListRenderer;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Cursor;
+import javafx.scene.control.ContextMenu;
 import javafx.util.Pair;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -35,85 +62,54 @@ import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.IntervalMarker;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
-import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
-import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
-import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.Cursor;
-import javafx.scene.control.ContextMenu;
 
 /**
  *
  */
 public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
-  private JFreeChart chart;
-  private XYPlot plot;
-
-  // initially, plotMode is set to null, until we load first scan
-  private final ObjectProperty<SpectrumPlotType> plotMode;
-
   // peak labels color
   private static final Color labelsColor = Color.darkGray;
-
   // grid color
   private static final Color gridColor = Color.lightGray;
-
-  // title font - moved to EStandardChartTheme ~SteffenHeu
-  // private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-  // private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
-  private TextTitle chartTitle, chartSubTitle;
-
-  // legend - moved to EStandardChartTheme ~SteffenHeu
-  // private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
-
-  private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true,
-      dataPointsVisible = false;
-
-  // We use our own counter, because plot.getDatasetCount() just keeps
-  // increasing even when we remove old data sets
-  private int numOfDataSets = 0;
-
+  // initially, plotMode is set to null, until we load first scan
+  private final ObjectProperty<SpectrumPlotType> plotMode;
+  /**
+   * Contains coordinated of labels for each dataset. It is supposed to be updated by {@link
+   * SpectraItemLabelGenerator}.
+   */
+  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
   /**
    * If true, the labels of the data set will have the same color as the data set itself
    */
   protected BooleanProperty matchLabelColors;
   protected ObjectProperty<SpectrumCursorPosition> cursorPosition;
 
+  // legend - moved to EStandardChartTheme ~SteffenHeu
+  // private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
   // Spectra processing
   protected DataPointProcessingController controller;
-  private boolean processingAllowed;
-
   protected EStandardChartTheme theme;
-
-  /**
-   * Contains coordinated of labels for each dataset. It is supposed to be updated by {@link
-   * SpectraItemLabelGenerator}.
-   */
-  private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
+  private JFreeChart chart;
+  private XYPlot plot;
+  // title font - moved to EStandardChartTheme ~SteffenHeu
+  // private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+  // private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
+  private TextTitle chartTitle, chartSubTitle;
+  private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
+  // We use our own counter, because plot.getDatasetCount() just keeps
+  // increasing even when we remove old data sets
+  private int numOfDataSets = 0;
+  private boolean processingAllowed;
 
   public SpectraPlot() {
     this(false);
@@ -263,16 +259,16 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    * } }
    */
 
+  public SpectrumPlotType getPlotMode() {
+    return plotMode.getValue();
+  }
+
   /**
    * This will set either centroid or continuous renderer to the first data set, assuming that
    * dataset with index 0 contains the raw data.
    */
   public void setPlotMode(SpectrumPlotType plotMode) {
     this.plotMode.setValue(plotMode);
-  }
-
-  public SpectrumPlotType getPlotMode() {
-    return plotMode.getValue();
   }
 
   public ObjectProperty<SpectrumPlotType> plotModeProperty() {
@@ -293,9 +289,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         Paint clr = oldRenderer.getDefaultPaint();
 
         // if getPlotMode() == AUTO then we use the scan's type, if not we use getPlotMode()
-        SpectrumPlotType typeForDataSet = (getPlotMode() == SpectrumPlotType.AUTO)
-            ? SpectrumPlotType.fromScan(((ScanDataSet) dataset).getScan())
-            : getPlotMode();
+        SpectrumPlotType typeForDataSet =
+            (getPlotMode() == SpectrumPlotType.AUTO) ? SpectrumPlotType.fromScan(
+                ((ScanDataSet) dataset).getScan()) : getPlotMode();
 
         XYItemRenderer newRenderer;
         if (typeForDataSet == SpectrumPlotType.CENTROID) {
@@ -382,7 +378,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    */
 
   public synchronized void removeAllDataSets() {
-
     // if the data sets are removed, we have to cancel the tasks.
     if (controller != null) {
       controller.cancelTasks();
@@ -393,22 +388,35 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       plot.setDataset(i, null);
     }
     numOfDataSets = 0;
+    plot.clearDomainMarkers();
+  }
+
+  public synchronized int getNumOfDataSets() {
+    return numOfDataSets;
   }
 
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
+    addDataSet(dataSet, color, transparency, true);
+  }
+
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
+      boolean addPrecursorMarkers) {
     SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
-    addDataSet(dataSet, color, transparency, labelGenerator);
+    addDataSet(dataSet, color, transparency, labelGenerator, addPrecursorMarkers);
   }
 
   // add Dataset with label generator
-
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
       XYItemLabelGenerator labelGenerator) {
+    addDataSet(dataSet, color, transparency, labelGenerator, true);
+  }
+
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
+      XYItemLabelGenerator labelGenerator, boolean addPrecursorMarkers) {
 
     XYItemRenderer newRenderer;
 
-    if (dataSet instanceof ScanDataSet) {
-      ScanDataSet scanDataSet = (ScanDataSet) dataSet;
+    if (dataSet instanceof ScanDataSet scanDataSet) {
       Scan scan = scanDataSet.getScan();
 
       // if getPlotMode() == AUTO then we use the scan's type, if not we use getPlotMode()
@@ -421,6 +429,11 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       } else {
         newRenderer = new ContinuousRenderer(color, transparency);
         ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);
+      }
+
+      // add all precursors for MS>=2
+      if (addPrecursorMarkers && scan != null && scan.getMSLevel() > 1) {
+        addPrecursorMarkers(scan);
       }
     } else if (dataSet instanceof MassListDataSet) {
       newRenderer = new SpectraMassListRenderer(color);
@@ -443,6 +456,59 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     if (dataSet instanceof ScanDataSet) {
       checkAndRunController();
     }
+  }
+
+  public void addPrecursorMarkers(Scan scan) {
+    addPrecursorMarkers(scan, Color.GRAY, 0.5f);
+  }
+
+  public void addPrecursorMarkers(Scan scan, Color color, float alpha) {
+    boolean showPrecursorWindow = MZmineCore.getConfiguration().getPreferences()
+        .getValue(MZminePreferences.showPrecursorWindow);
+    if (scan.getMSLevel() == 2) {
+      final Double prmz = scan.getPrecursorMz();
+      if (prmz != null) {
+        final MsMsInfo info = scan.getMsMsInfo();
+        if (showPrecursorWindow && info != null && info.getIsolationWindow() != null) {
+          addPrecursorMarker(info.getIsolationWindow(), color, alpha);
+        } else {
+          addPrecursorMarker(prmz, color, alpha);
+        }
+      }
+    } else if (scan.getMSLevel() > 2) {
+      // add all parent precursors
+      if (scan.getMsMsInfo() instanceof MSnInfoImpl msn) {
+        for (var info : msn.getPrecursors()) {
+          if (showPrecursorWindow && info.getIsolationWindow() != null) {
+            addPrecursorMarker(info.getIsolationWindow(), color, alpha);
+          } else {
+            addPrecursorMarker(info.getIsolationMz(), color, alpha);
+          }
+        }
+      }
+    }
+  }
+
+  private void addPrecursorMarker(Range<Double> mzRange, Color color, float alpha) {
+    addPrecursorMarker(mzRange.lowerEndpoint(), mzRange.upperEndpoint(), color, alpha);
+  }
+
+  private void addPrecursorMarker(double lowerMZ, double upperMZ, Color color, float alpha) {
+    final IntervalMarker marker = new IntervalMarker(lowerMZ, upperMZ);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    plot.addDomainMarker(marker);
+  }
+
+  private void addPrecursorMarker(double precursorMz, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(precursorMz);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    plot.addDomainMarker(marker);
   }
 
   public synchronized void removePeakListDataSets() {
@@ -591,12 +657,12 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     return cursorPosition.get();
   }
 
-  public ObjectProperty<SpectrumCursorPosition> cursorPositionProperty() {
-    return cursorPosition;
-  }
-
   public void setCursorPosition(SpectrumCursorPosition cursorPosition) {
     this.cursorPosition.set(cursorPosition);
+  }
+
+  public ObjectProperty<SpectrumCursorPosition> cursorPositionProperty() {
+    return cursorPosition;
   }
 
   public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {

@@ -18,72 +18,74 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
-import io.github.mzmine.datamodel.MassList;
-import java.util.Arrays;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 /**
- * Data set for MassList. Implements IntervalXYDataset to be used in pair with XYBarRenderer.
+ * Used in {@link SpectraPlot} to unify multiple MS2 (MS3, ...) scans into one spectrum.
  */
-public class MassListDataSet extends AbstractXYDataset implements IntervalXYDataset,
-    RelativeOption {
+public class UnifyScansDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-  /**
-   *
-   */
   private static final long serialVersionUID = 1L;
-  private final double maxIntensity;
-  private final double mzValues[], intensityValues[];
-  private boolean normalize;
 
-  public MassListDataSet(MassList massList) {
-    this(massList, false);
-  }
+  // For comparing small differences.
+  private static final double EPSILON = 0.0000001;
 
-  public MassListDataSet(MassList massList, boolean normalize) {
-    this.mzValues = new double[massList.getNumberOfDataPoints()];
-    this.intensityValues = new double[massList.getNumberOfDataPoints()];
-    massList.getMzValues(this.mzValues);
-    massList.getIntensityValues(this.intensityValues);
-    maxIntensity = Arrays.stream(intensityValues).max().orElse(1d);
-    this.normalize = normalize;
-  }
+  private final String label;
+  private final List<Scan> scans;
+  private final Map<Integer, String> annotation = new Hashtable<>();
+  private final Map<Double, String> mzAnnotationMap = new Hashtable<>();
+  private final boolean allSameMsLevel;
 
-  public MassListDataSet(double mzValues[], double intensityValues[]) {
-    this(mzValues, intensityValues, false);
-  }
+  /*
+   * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
+   * reloading the data from HDD
+   */
+  // private DataPoint dataPoints[];
 
-  public MassListDataSet(double mzValues[], double intensityValues[], boolean normalize) {
-    this.mzValues = mzValues;
-    this.intensityValues = intensityValues;
-    maxIntensity = Arrays.stream(intensityValues).max().orElse(1d);
-    this.normalize = normalize;
+  public UnifyScansDataSet(List<Scan> scans) {
+    this.scans = scans;
+
+    allSameMsLevel = scans.stream().allMatch(s -> s.getMSLevel() == scans.get(0).getMSLevel());
+
+    if (allSameMsLevel) {
+      this.label = String.format("%d Scans (MS%d)", scans.size(), scans.get(0).getMSLevel());
+    } else {
+      this.label = String.format("%d Scans", scans.size());
+    }
+
   }
 
   @Override
   public int getSeriesCount() {
-    return 1;
+    return scans.size();
   }
 
   @Override
-  public Comparable getSeriesKey(int series) {
-    return 1;
+  public Comparable<?> getSeriesKey(int series) {
+    return label;
   }
 
   @Override
   public int getItemCount(int series) {
-    return mzValues.length;
+    return scans.get(series).getNumberOfDataPoints();
   }
 
   @Override
   public Number getX(int series, int item) {
-    return mzValues[item];
+    return scans.get(series).getMzValue(item);
   }
 
   @Override
   public Number getY(int series, int item) {
-    return normalize ? intensityValues[item] / maxIntensity * 100d : intensityValues[item];
+    return scans.get(series).getIntensityValue(item);
   }
 
   @Override
@@ -126,8 +128,17 @@ public class MassListDataSet extends AbstractXYDataset implements IntervalXYData
     return getYValue(series, item);
   }
 
-  @Override
-  public void setRelative(boolean relative) {
-    normalize = relative;
+  /**
+   * This function finds highest data point intensity in given m/z range. It is important for
+   * normalizing isotope patterns.
+   */
+  public double getHighestIntensity(int series, Range<Double> mzRange) {
+    return series >= 0 && series < scans.size() ? ScanUtils.findBasePeak(scans.get(series), mzRange)
+        .getIntensity() : 0d;
   }
+
+  public List<Scan> getScans() {
+    return scans;
+  }
+
 }
