@@ -32,9 +32,9 @@ public record DatabaseMatchInfo(@Nullable OnlineDatabases onlineDatabase, @Nulla
   public String toString() {
     StringBuilder b = new StringBuilder();
     if (onlineDatabase != null) {
-      b.append(onlineDatabase.getName()).append(": ");
+      b.append(onlineDatabase.getName()).append(" ");
     } else {
-      b.append("N/A: ");
+      b.append("N/A ");
     }
 
     if(id != null) {
