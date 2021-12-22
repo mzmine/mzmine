@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -22,9 +23,11 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-public abstract class ScanDataAccess implements MassSpectrum {
+public abstract class ScanDataAccess implements Scan {
 
   protected final RawDataFile dataFile;
   protected final ScanDataType type;
@@ -301,6 +304,61 @@ public abstract class ScanDataAccess implements MassSpectrum {
       case RAW -> getCurrentScan();
       case CENTROID -> getMassList();
     };
+  }
+
+  @Override
+  public @NotNull RawDataFile getDataFile() {
+    return dataFile;
+  }
+
+  @Override
+  public int getScanNumber() {
+    Scan scan = getCurrentScan();
+    return scan == null ? -1 : scan.getScanNumber();
+  }
+
+  @Override
+  public @NotNull String getScanDefinition() {
+    Scan scan = getCurrentScan();
+    return scan == null ? "" : scan.getScanDefinition();
+  }
+
+  @Override
+  public int getMSLevel() {
+    Scan scan = getCurrentScan();
+    return scan == null ? -1 : scan.getMSLevel();
+  }
+
+  @Override
+  public float getRetentionTime() {
+    Scan scan = getCurrentScan();
+    return scan == null ? 0f : scan.getRetentionTime();
+  }
+
+  @Override
+  public @NotNull Range<Double> getScanningMZRange() {
+    Scan scan = getCurrentScan();
+    return scan == null ? Range.singleton(0d) : scan.getScanningMZRange();
+  }
+
+  @Override
+  public @Nullable MsMsInfo getMsMsInfo() {
+    Scan scan = getCurrentScan();
+    return scan == null ? null : scan.getMsMsInfo();
+  }
+
+  @Override
+  public @NotNull PolarityType getPolarity() {
+    Scan scan = getCurrentScan();
+    return scan == null ? PolarityType.UNKNOWN : scan.getPolarity();
+  }
+
+  @Override
+  public void addMassList(@NotNull MassList massList) {
+    Scan scan = getCurrentScan();
+    if (scan != null) {
+      scan.addMassList(massList);
+    }
   }
 
   @Override

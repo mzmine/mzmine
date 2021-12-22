@@ -191,12 +191,13 @@ public class ScanUtils {
    *
    * @param scan    Scan to search
    * @param mzRange mz range to search in
-   * @return double[2] containing base peak m/z and intensity
+   * @return data point containing base peak m/z and intensity
    */
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
-    if (mzRange.contains(scan.getBasePeakMz())) {
-      return new SimpleDataPoint(scan.getBasePeakMz(), scan.getBasePeakIntensity());
+    final Double scanBasePeakMz = scan.getBasePeakMz();
+    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
+      return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
     }
 
     final double lower = mzRange.lowerEndpoint();

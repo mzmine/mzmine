@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -156,6 +157,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   void removeFeatureIdentity(FeatureIdentity identity);
 
+  void addCompoundAnnotation(CompoundDBAnnotation id);
+
   /**
    * Returns all candidates for this feature's identity
    *
@@ -227,6 +230,10 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable FeatureList getFeatureList();
 
   void setFeatureList(@NotNull FeatureList flist);
+
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
   void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
 

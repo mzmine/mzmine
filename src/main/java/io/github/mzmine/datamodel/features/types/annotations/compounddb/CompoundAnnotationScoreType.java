@@ -16,28 +16,24 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.util.maths.similarity.Similarity;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * The cosine similarity can be calculated in {@link Similarity#COSINE}
- */
-public class CosineScoreType extends ScoreType {
+public class CompoundAnnotationScoreType extends ScoreType {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "cosine_score";
+  public CompoundAnnotationScoreType() {
+    super();
   }
 
-  @NotNull
   @Override
-  public String getHeaderString() {
-    return "Cosine similarity";
+  public @NotNull String getUniqueID() {
+    return "compound_annotation_score";
   }
 
+  @Override
+  public @NotNull String getHeaderString() {
+    return "Score";
+  }
 }

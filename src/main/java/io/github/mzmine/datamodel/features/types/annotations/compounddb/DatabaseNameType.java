@@ -16,30 +16,23 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
+package io.github.mzmine.datamodel.features.types.annotations.compounddb;
+
+import io.github.mzmine.datamodel.features.types.abstr.StringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Enum that holds name of custom database column
- * 
- * @author Ansgar Korf (ansgar.korf@uni-muenster)
+ * Supplies a name of a database as a string. Can be a string, an url or a file name.
  */
-public enum FieldItem {
+public class DatabaseNameType extends StringType {
 
-  FIELD_MZ("m/z"), //
-  FIELD_NAME("Identity"); //
-
-  private final String name;
-
-  FieldItem(String name) {
-    this.name = name;
-  }
-
-  public String getName() {
-    return this.name;
+  @Override
+  public @NotNull String getUniqueID() {
+    return "database_name";
   }
 
   @Override
-  public String toString() {
-    return this.name;
+  public @NotNull String getHeaderString() {
+    return "Database";
   }
 }

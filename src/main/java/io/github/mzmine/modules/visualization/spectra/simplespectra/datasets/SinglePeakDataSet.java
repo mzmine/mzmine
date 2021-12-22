@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -44,8 +45,9 @@ public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDa
       mz = ((ModularFeature) peak).getFeatureData().getMzForSpectrum(scanNumber);
       intensity = ((ModularFeature) peak).getFeatureData().getIntensityForSpectrum(scanNumber);
     } else {
-      mz = peak.getDataPoint(scanNumber).getMZ();
-      intensity = peak.getDataPoint(scanNumber).getIntensity();
+      final DataPoint dp = peak.getDataPoint(scanNumber);
+      mz = dp.getMZ();
+      intensity = dp.getIntensity();
     }
   }
 

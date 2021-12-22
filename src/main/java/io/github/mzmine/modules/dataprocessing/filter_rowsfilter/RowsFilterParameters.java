@@ -30,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
@@ -42,63 +43,82 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final String defaultGrouping = "No parameters defined";
 
+  public static final String[] removeRowChoices = {"Keep rows that match all criteria",
+      "Remove rows that match all criteria"};
+
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
+
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
       "Suffix to be added to feature list name", "filtered");
+
   public static final OptionalParameter<DoubleParameter> MIN_FEATURE_COUNT = new OptionalParameter<>(
       new DoubleParameter("Minimum features in a row",
           "Minimum number of feature detections required per row.\nValues <1 will be interpreted as a %-value of the total # samples in the feature list. The value will be rounded down to the nearest whole number."));
+
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
       new IntegerParameter("Minimum features in an isotope pattern",
           "Minimum number of features required in an isotope pattern"));
+
   public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
       new MZRangeParameter());
+
   public static final OptionalParameter<RTRangeParameter> RT_RANGE = new OptionalParameter<>(
       new RTRangeParameter());
+
   public static final OptionalParameter<DoubleRangeParameter> FEATURE_DURATION = new OptionalParameter<>(
       new DoubleRangeParameter("features duration range",
           "Permissible range of (average) feature durations per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0)));
+
   public static final OptionalParameter<DoubleRangeParameter> FWHM = new OptionalParameter<>(
       new DoubleRangeParameter("Chromatographic FWHM",
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)));
   public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
       new IntRangeParameter("Charge", "Filter by charge, run isotopic features grouper first"));
+
   public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT = new OptionalModuleParameter<>(
       "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
       new KendrickMassDefectFilterParameters());
   public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
       "Parameter", "Paremeter defining the group of each sample.", new Object[]{defaultGrouping},
       defaultGrouping);
+
   public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter("Only identified?",
       "Select to filter only identified compounds");
+
   public static final OptionalParameter<StringParameter> IDENTITY_TEXT = new OptionalParameter<>(
       new StringParameter("Text in identity",
           "Only rows that contain this text in their feature identity field will be retained."));
+
   public static final OptionalParameter<StringParameter> COMMENT_TEXT = new OptionalParameter<>(
       new StringParameter("Text in comment",
           "Only rows that contain this text in their comment field will be retained."));
+
+  public static final ComboParameter<String> REMOVE_ROW = new ComboParameter<String>(
+      "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
+      removeRowChoices);
+
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove source feature list after filtering",
       "If checked, the original feature list will be removed leaving only the filtered version");
   public static final BooleanParameter MS2_Filter = new BooleanParameter(
       "Keep only feature with MS2 scan (GNPS)",
-      "If checked, the rows that don't contain MS2 scan will be removed.", false);
+      "If checked, the rows that don't contain MS2 scan will be removed.");
   public static final BooleanParameter Reset_ID = new BooleanParameter(
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.");
-  static final String[] removeRowChoices = {"Keep rows that match all criteria",
-      "Remove rows that match all criteria"};
-  public static final ComboParameter<String> REMOVE_ROW = new ComboParameter<String>(
-      "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
-      removeRowChoices, removeRowChoices[0]);
 
+
+  public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
+      new MassDefectParameter("Mass defect",
+          "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
+          MZmineCore.getConfiguration().getMZFormat()));
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
         MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
-        HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID,
+        HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID, massDefect,
         AUTO_REMOVE});
   }
 
@@ -125,4 +145,5 @@ public class RowsFilterParameters extends SimpleParameterSet {
     dialog.showAndWait();
     return dialog.getExitCode();
   }
+
 }

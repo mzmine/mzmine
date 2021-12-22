@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -47,6 +48,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.FeatureSorter;
@@ -521,6 +523,32 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     manual.setIdentities(peakIdentities);
     set(ManualAnnotationType.class, manual);
+  }
+
+  @Override
+  public void addCompoundAnnotation(CompoundDBAnnotation id) {
+    synchronized (getMap()) {
+      List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
+      if (matches == null) {
+        matches = new ArrayList<>();
+      }
+      matches.add(id);
+      set(CompoundDatabaseMatchesType.class, matches);
+    }
+  }
+
+  @Override
+  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+    synchronized (getMap()) {
+      set(CompoundDatabaseMatchesType.class, annotations);
+    }
+  }
+
+  @NotNull
+  @Override
+  public List<CompoundDBAnnotation> getCompoundAnnotations() {
+    var list = get(CompoundDatabaseMatchesType.class);
+    return list != null ? list : List.of();
   }
 
   @Override

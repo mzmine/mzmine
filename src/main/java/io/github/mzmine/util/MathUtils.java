@@ -347,6 +347,10 @@ public class MathUtils {
     return (x - x1) * ((y2 - y1) / (x2 - x1)) + y1;
   }
 
+  public static double getPpmDiff(double calc, double real) {
+    return (real-calc) / calc * 1E6;
+  }
+
   /**
    * The resulting value will be within (inclusive) min max range and rounded to the number of
    * significant figures. 231.9 with 2 significant figures will be 230.

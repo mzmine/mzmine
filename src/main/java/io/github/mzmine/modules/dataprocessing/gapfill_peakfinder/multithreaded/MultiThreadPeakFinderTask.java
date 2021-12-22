@@ -26,7 +26,9 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -42,7 +44,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -92,7 +93,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     // Calculate total number of scans in all files
     for (int i = start; i < endexcl; i++) {
       RawDataFile dataFile = peakList.getRawDataFile(i);
-      totalScans += dataFile.getNumOfScans(1);
+      totalScans += peakList.getSeletedScans(dataFile).size();
     }
 
     // Process all raw data files
@@ -178,13 +179,13 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   }
 
   private void processFile(RawDataFile file, List<Gap> gaps) {
-    if (file instanceof IMSRawDataFile && peakList.hasFeatureType(MobilityType.class)) {
-      final MobilityScanDataAccess access = new MobilityScanDataAccess((IMSRawDataFile) file,
+    if (file instanceof IMSRawDataFile imsFile && peakList.hasFeatureType(MobilityType.class)) {
+      final MobilityScanDataAccess access = new MobilityScanDataAccess(imsFile,
           MobilityScanDataType.CENTROID, (List<Frame>) peakList.getSeletedScans(file));
       List<ImsGap> imsGaps = (List<ImsGap>) (List<? extends Gap>) gaps;
 
       while (access.hasNextFrame()) {
-        if(isCanceled()) {
+        if (isCanceled()) {
           return;
         }
 
@@ -197,16 +198,22 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       }
 
     } else {
-      file.getScanNumbers(1).forEach(scan -> {
-        if (!isCanceled()) {
-          // Feed this scan to all gaps
-          for (Gap gap : gaps) {
-            gap.offerNextScan(scan);
-          }
+      // no IMS dimension
 
-          processedScans.incrementAndGet();
+      final ScanDataAccess scanAccess = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+          peakList.getSeletedScans(file));
+      while (scanAccess.hasNextScan()) {
+        if (isCanceled()) {
+          return;
         }
-      });
+        scanAccess.nextScan();
+        // Feed this scan to all gaps
+        for (Gap gap : gaps) {
+          gap.offerNextScan(scanAccess);
+        }
+
+        processedScans.incrementAndGet();
+      }
     }
   }
 }
