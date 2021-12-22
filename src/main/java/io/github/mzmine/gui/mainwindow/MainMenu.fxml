@@ -342,6 +342,8 @@
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
+      <MenuItem text="CliqueMS group (unfinished)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>
     </Menu>
 
     <Menu text="Spectral deconvolution (GC)">
@@ -442,26 +444,13 @@
           userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
       </Menu>
 
-      <Menu text="Search related peaks">
-        <MenuItem text="CAMERA search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule"/>
-        <MenuItem text="Adduct search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule"/>
-        <MenuItem text="Fragment search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule"/>
-        <MenuItem text="Complex search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule"/>
-        <MenuItem text="CliqueMS group" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>
-      </Menu>
-
       <SeparatorMenuItem/>
       <MenuItem text="Clear feature list annotations"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
-    <Menu text="Data analysis">
+    <!--<Menu text="Data analysis">
       <Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"
@@ -485,7 +474,7 @@
         userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.anova.AnovaModule"/>
-    </Menu>
+    </Menu>-->
   </Menu>
 
   <!-- VISUALIZATION -->
