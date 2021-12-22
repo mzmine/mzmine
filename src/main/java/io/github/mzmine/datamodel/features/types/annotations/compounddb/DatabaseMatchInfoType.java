@@ -104,7 +104,7 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
       return "";
     }
 
-    return value.id();
+    return value.toString();
   }
 
   @Override
