@@ -18,9 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
+import io.github.mzmine.datamodel.featuredata.IntensitySeries;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import java.util.List;
+
 /**
- * Defines how values that were previously zero shall be handled when returning the smoothed
- * values.
+ * Defines how values that were previously zero shall be handled when returning the smoothed values.
+ * Not currently used due to questions regarding the implementation. see {@link
+ * SmoothingTask#createNewSeries(IntensitySeries, ModularFeature, double[], List)}
  */
 public enum ZeroHandlingType {
   /**
