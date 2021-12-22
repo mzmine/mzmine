@@ -19,8 +19,8 @@
 package io.github.mzmine.modules.dataprocessing.featdet_smoothing;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SGIntensitySmoothing;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.loess.LoessSmoothing;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class SmoothingParameters extends SimpleParameterSet {
 
   public static final SmoothingAlgorithm sgSmoothing = MZmineCore
-      .getModuleInstance(SGIntensitySmoothing.class);
+      .getModuleInstance(SavitzkyGolaySmoothing.class);
 
   public static final SmoothingAlgorithm loessSmoothing = MZmineCore
       .getModuleInstance(LoessSmoothing.class);

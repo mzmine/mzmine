@@ -27,7 +27,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SGIntensitySmoothing implements SmoothingAlgorithm {
+public class SavitzkyGolaySmoothing implements SmoothingAlgorithm {
 
   //  private final ZeroHandlingType zht;
   private final double[] mobilityWeights;
@@ -35,7 +35,7 @@ public class SGIntensitySmoothing implements SmoothingAlgorithm {
   private final Boolean smoothRt;
   private final Boolean smoothMobility;
 
-  public SGIntensitySmoothing(ParameterSet parameters) {
+  public SavitzkyGolaySmoothing(ParameterSet parameters) {
 //    this.zht = zeroHandlingType;
     this.mobilityWeights = SavitzkyGolayFilter.getNormalizedWeights(
         parameters.getParameter(SavitzkyGolayParameters.mobilitySmoothing).getEmbeddedParameter()
@@ -52,7 +52,7 @@ public class SGIntensitySmoothing implements SmoothingAlgorithm {
    * Initialises this module with null parameters. Not to be used if the instance shall be used for
    * smoothing.
    */
-  public SGIntensitySmoothing() {
+  public SavitzkyGolaySmoothing() {
     mobilityWeights = null;
     rtWeights = null;
     smoothRt = true;
@@ -87,8 +87,9 @@ public class SGIntensitySmoothing implements SmoothingAlgorithm {
         smoothed[i] = 0d;
       }
 
+//      if (/*zht == ZeroHandlingType.KEEP &&*/ Double.compare(access.getIntensity(i), 0d) == 0) {
       // if values that were previously 0 shall remain 0, we process that here.
-      if (/*zht == ZeroHandlingType.KEEP &&*/ Double.compare(access.getIntensity(i), 0d) == 0) {
+      if (Double.compare(access.getIntensity(i), 0d) == 0) {
         smoothed[i] = 0;
       }
     }

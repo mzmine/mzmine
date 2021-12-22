@@ -178,7 +178,7 @@ public class SmoothingTask extends AbstractTask {
     final MobilogramDataAccess dataAccess = EfficientDataAccess.of(originalSeries, dataAccessType);
 
     List<IonMobilitySeries> smoothedMobilograms = new ArrayList<>();
-//    final SGIntensitySmoothing smoothing = new SGIntensitySmoothing(zht, weights);
+//    final SavitzkyGolaySmoothing smoothing = new SavitzkyGolaySmoothing(zht, weights);
     while (dataAccess.hasNext()) {
       final IonMobilitySeries mobilogram = dataAccess.next();
 //      double[] smoothedMobilogramIntensities = smoothing.smooth(dataAccess);
@@ -187,6 +187,12 @@ public class SmoothingTask extends AbstractTask {
     return new ArrayList<>();
   }
 
+  // -----------------------------
+  // todo: these are not used yet due to questions regarding the actual implementation
+  //  1. if new intensities are added on the peak edges - what do we do on the mobilogram level? We
+  //   need the same number of mobilograms as for rt data points
+  //  2. Which m/z do we put for newly created intensities? they will influence the overall m/z of
+  //   the feature
   private IonTimeSeries<? extends Scan> createNewSeries(@NotNull final IntensitySeries dataAccess,
       @NotNull final ModularFeature feature, @NotNull final double[] smoothedIntensities,
       List<Scan> allScans) {

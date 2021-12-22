@@ -44,8 +44,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SGIntensitySmoothing;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolaySmoothing;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
@@ -355,7 +355,7 @@ public class BatchWizardController {
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
 
     ParameterSet sgParam = MZmineCore.getConfiguration()
-        .getModuleParameters(SGIntensitySmoothing.class).cloneParameterSet();
+        .getModuleParameters(SavitzkyGolaySmoothing.class).cloneParameterSet();
     sgParam.setParameter(SavitzkyGolayParameters.rtSmoothing, rt);
     sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
     sgParam.setParameter(SavitzkyGolayParameters.mobilitySmoothing, mobility);
@@ -363,7 +363,7 @@ public class BatchWizardController {
         .setValue(13);
 
     param.getParameter(SmoothingParameters.smoothingAlgorithm).setValue(
-        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SGIntensitySmoothing.class),
+        new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SavitzkyGolaySmoothing.class),
             sgParam));
     param.setParameter(SmoothingParameters.removeOriginal, true);
     param.setParameter(SmoothingParameters.suffix, "smthd");
