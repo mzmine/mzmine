@@ -28,7 +28,7 @@ public class DefaultMsParameters {
       1E3, new MZTolerance(0.005, 10), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
 
   public static final DefaultMsParameters defaultImsTofParameters = new DefaultMsParameters(150d,
-      1E2, 1E3, new MZTolerance(0.005, 10), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
+      1E2, 1E3, new MZTolerance(0.005, 15), new MZTolerance(0.005, 3), new MZTolerance(0.005, 8));
 
   public static final DefaultMsParameters defaultOrbitrapPositiveParameters = new DefaultMsParameters(
       1E4, 3E3, 5E4, new MZTolerance(0.0015, 10), new MZTolerance(0.0015, 5),
@@ -59,8 +59,8 @@ public class DefaultMsParameters {
   public void setToParameterSet(ParameterSet params) {
     params.setParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel, ms1NoiseLevel);
     params.setParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel, ms2NoiseLevel);
-    params
-        .setParameter(BatchWizardMassSpectrometerParameters.minimumFeatureHeight, minFeatureHeight);
+    params.setParameter(BatchWizardMassSpectrometerParameters.minimumFeatureHeight,
+        minFeatureHeight);
     params.setParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance,
         scanToScanMzTolerance);
     params.setParameter(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance,
