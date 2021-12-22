@@ -124,11 +124,17 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
         // Cleanup from illegal filename characters
         String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+        String newFilename = fileName.getPath()
+            .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
       curFile = FileAndPathUtil.getRealFilePath(curFile, "mgf");
+
+      if (!FileAndPathUtil.createDirectory(curFile.getParentFile())) {
+        setErrorMessage("Could not create directories for file " + curFile + " for writing.");
+        setStatus(TaskStatus.ERROR);
+        return;
+      }
 
       // Open file
       FileWriter writer;

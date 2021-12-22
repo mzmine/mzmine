@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.export_features_csv;
@@ -290,8 +291,8 @@ public class CSVExportModularTask extends AbstractTask {
         try {
           str = type.getFormattedString(value);
         } catch (Exception e) {
-          logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
-                                 + " value: " + value, e);
+          logger.log(Level.FINEST,
+              "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
           str = "";
         }
         b.append(escapeStringForCSV(str));

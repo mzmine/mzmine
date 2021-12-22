@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2020 The MZmine Development Team
+  ~ Copyright 2006-2021 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -10,11 +10,12 @@
   ~ License, or (at your option) any later version.
   ~
   ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-  ~ Public License for more details.
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
   -->
 
 <?import io.github.mzmine.util.javafx.WindowsMenu?>
@@ -54,8 +55,8 @@
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
       <accelerator>
-        <KeyCodeCombination alt="UP" code="W"
-          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+        <KeyCodeCombination alt="UP" code="Q"
+          control="UP" meta="UP" shift="DOWN" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
 
@@ -217,7 +218,7 @@
         text="Ims expander"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
     </Menu>
-    <Menu text="Imaging" disable="true">
+    <Menu text="Imaging">
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
@@ -506,6 +507,8 @@
       userData="io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule"/>
     <MenuItem text="3D plot" onAction="#runModule"
       userData="io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule"/>
+    <MenuItem onAction="#showMSnTreeTab" text="MS(n) spectra tree"
+      userData="io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule"/>
 
     <SeparatorMenuItem/>
 
@@ -552,7 +555,12 @@
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
     <MenuItem text="Processing wizard"
       onAction="#showWizardTab"
-      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule"/>
+      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="W"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
   </Menu>
 
 

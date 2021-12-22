@@ -21,6 +21,8 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
@@ -30,19 +32,24 @@ import io.github.mzmine.datamodel.features.types.annotations.GNPSLibraryUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSNetworkUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVerifiedType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationMsMsScoreType;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.CompoundDBIdentity;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
@@ -271,21 +278,28 @@ public class AnnotationTypeTests {
 
     var type = new CompoundDatabaseMatchesType();
 
-    final CompoundDBIdentity newIdentity = new CompoundDBIdentity("glucose", "C6H6O6", null, null);
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, "C(C1C(C(C(C(O1)O)O)O)O)O");
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
-        LocalCSVDatabaseSearchModule.MODULE_NAME);
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, "[M+H]+");
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_CCS, null);
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_MOBILITY, String.valueOf(0.56f));
+    final IonType ionType = new IonType(IonModification.NH4);
+    final CompoundDBAnnotation newIdentity = new SimpleCompoundDBAnnotation();
+    newIdentity.put(new CompoundNameType(), "glucose");
+    newIdentity.put(new FormulaType(), "C6H6O6");
+    newIdentity.put(new SmilesStructureType(), "C(C1C(C(C(C(O1)O)O)O)O)O");
+    newIdentity.put(new DatabaseNameType(), LocalCSVDatabaseSearchModule.MODULE_NAME);
+    newIdentity.put(new IonAdductType(), "[M+H]+");
+    newIdentity.put(new CCSType(), null);
+    newIdentity.put(new MobilityType(), 0.56f);
+    newIdentity.put(new IonTypeType(), ionType);
 
-    final CompoundDBIdentity newIdentity2 = new CompoundDBIdentity("mannose", "C6H6O6", null, null);
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_SMILES, "C(C1C(C(C(C(O1)O)O)O)O)O");
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_METHOD,
-        LocalCSVDatabaseSearchModule.MODULE_NAME);
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_ADDUCT, "[M+H]+");
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_CCS, null);
-    newIdentity.setPropertyValue(FeatureIdentity.PROPERTY_MOBILITY, String.valueOf(0.56f));
+    String name = newIdentity.getCompundName();
+
+    final CompoundDBAnnotation newIdentity2 = new SimpleCompoundDBAnnotation();
+    newIdentity2.put(new CompoundNameType(), "mannose");
+    newIdentity2.put(new FormulaType(), "C6H6O6");
+    newIdentity2.put(new SmilesStructureType(), "C(C1C(C(C(C(O1)O)O)O)O)O");
+    newIdentity2.put(new DatabaseNameType(), LocalCSVDatabaseSearchModule.MODULE_NAME);
+    newIdentity2.put(new IonAdductType(), "[M+H]+");
+    newIdentity2.put(new CCSType(), null);
+    newIdentity2.put(new MobilityType(), 0.56f);
+    newIdentity2.put(new IonTypeType(), ionType);
 
     var value = new ArrayList<>(List.of(newIdentity, newIdentity2));
 

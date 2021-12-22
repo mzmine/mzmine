@@ -17,6 +17,8 @@
  */
 package io.github.mzmine.gui.chartbasics.chartgroups;
 
+import io.github.mzmine.gui.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogicsFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
@@ -32,25 +34,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 import javafx.scene.Node;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.event.ChartChangeEventType;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 
 /**
  * Combine the zoom of multiple charts. Adds crosshair to all
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartGroup extends Node {
-  // Logger.
-  private final Logger logger = Logger.getLogger(getClass().getName());
 
   // max range of all charts
-  private Range[] maxRange = new Range[2];
+  private Range[] maxRange = null;
 
   // combine zoom of axes
   private boolean combineRangeAxes = false;
@@ -72,8 +71,9 @@ public class ChartGroup extends Node {
   }
 
   public void add(ChartViewWrapper chart) {
-    if (list == null)
+    if (list == null) {
       list = new ArrayList<>();
+    }
     list.add(chart);
 
     // only if selected
@@ -83,13 +83,15 @@ public class ChartGroup extends Node {
   }
 
   public void add(ChartViewWrapper[] charts) {
-    for (ChartViewWrapper c : charts)
+    for (ChartViewWrapper c : charts) {
       add(c);
+    }
   }
 
   public void add(List<ChartViewWrapper> charts) {
-    for (ChartViewWrapper c : charts)
+    for (ChartViewWrapper c : charts) {
       add(c);
+    }
   }
 
   public int size() {
@@ -102,7 +104,7 @@ public class ChartGroup extends Node {
 
   /**
    * Click marker to all charts
-   * 
+   *
    * @param chart
    */
   private void addCrosshair(ChartViewWrapper chart) {
@@ -110,17 +112,18 @@ public class ChartGroup extends Node {
     if (m != null) {
       m.addGestureHandler(new ChartGestureHandler(
           new ChartGesture(Entity.PLOT, Event.MOVED, GestureButton.ALL, Key.ALL), e -> {
-            setCrosshair(e.getCoordinates());
-          }));
+        setCrosshair(e.getCoordinates());
+      }));
     }
   }
 
   private void setCrosshair(Point2D pos) {
-    if (pos == null)
+    if (pos == null) {
       return;
+    }
 
     BasicStroke stroke = new BasicStroke(1f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 1f,
-        new float[] {5f, 3f}, 0f);
+        new float[]{5f, 3f}, 0f);
 
     forAllCharts(chart -> {
       XYPlot p = chart.getXYPlot();
@@ -141,76 +144,104 @@ public class ChartGroup extends Node {
 
   /**
    * Perform operation on all charts
-   * 
-   * @param op
+   *
+   * @param op apply operation to all charts
    */
   public void forAllCharts(Consumer<JFreeChart> op) {
-    if (list == null)
+    if (list == null) {
       return;
-    for (ChartViewWrapper c : list)
+    }
+    for (ChartViewWrapper c : list) {
       op.accept(c.getChart());
+    }
   }
 
   /**
    * adds the charts range and domain range to the max ranges
-   * 
+   *
    * @param chart
    */
   private void addChartToMaxRange(JFreeChart chart) {
-    // domain
-    Range nd = addRanges(maxRange[0], getDomainRange(chart));
-    if (nd != null && (maxRange[0] == null || !nd.equals(maxRange[0]))) {
-      maxRange[0] = nd;
-      domainHasChanged(nd);
-    }
+    chart.getXYPlot().addChangeListener(e -> {
+      if (e.getType().equals(ChartChangeEventType.DATASET_UPDATED) || e.getType()
+          .equals(ChartChangeEventType.NEW_DATASET)) {
+        maxRange = null;
+      }
+    });
+    //    // domain
+    //    Range nd = addRanges(maxRange[0], getDomainRange(chart));
+    //    if (nd != null && (maxRange[0] == null || !nd.equals(maxRange[0]))) {
+    //      maxRange[0] = nd;
+    //      domainHasChanged(nd);
+    //    }
+    //
+    //    // range axis
+    //    nd = addRanges(maxRange[1], getRangeRange(chart));
+    //    if (nd != null && (maxRange[1] == null || !nd.equals(maxRange[1]))) {
+    //      maxRange[1] = nd;
+    //      rangeHasChanged(nd);
+    //    }
+  }
 
-    // range axis
-    nd = addRanges(maxRange[1], getRangeRange(chart));
-    if (nd != null && (maxRange[1] == null || !nd.equals(maxRange[1]))) {
-      maxRange[1] = nd;
-      rangeHasChanged(nd);
+  public void recalcMaxRanges() {
+    Range dmax = null;
+    Range rmax = null;
+    for (ChartViewWrapper c : list) {
+      final XYPlot plot = c.getChart().getXYPlot();
+      final Range domain = plot.getDataRange(plot.getDomainAxis());
+      double lowerMargin = plot.getDomainAxis().getLowerMargin();
+      double upperMargin = plot.getDomainAxis().getUpperMargin();
+      dmax = addRanges(dmax, Range.expand(domain, lowerMargin, upperMargin));
+
+      final Range range = plot.getDataRange(plot.getRangeAxis());
+      lowerMargin = plot.getRangeAxis().getLowerMargin();
+      upperMargin = plot.getRangeAxis().getUpperMargin();
+      rmax = addRanges(rmax, Range.expand(range, lowerMargin, upperMargin));
+    }
+    if (dmax != null || rmax != null) {
+      maxRange = new Range[]{dmax, rmax};
     }
   }
 
   /**
-   * 
    * @param chart
    * @return Domain axis range or null
    */
   private Range getDomainRange(JFreeChart chart) {
-    if (hasDomainAxis(chart))
+    if (hasDomainAxis(chart)) {
       return chart.getXYPlot().getDomainAxis().getRange();
-    else
+    } else {
       return null;
+    }
   }
 
   /**
-   * 
    * @param chart
    * @return range axis range or null
    */
   private Range getRangeRange(JFreeChart chart) {
-    if (hasRangeAxis(chart))
+    if (hasRangeAxis(chart)) {
       return chart.getXYPlot().getRangeAxis().getRange();
-    else
+    } else {
       return null;
+    }
   }
 
   /**
    * Combines ranges to span all
-   * 
+   *
    * @param a
    * @param b
    * @return
    */
   private Range addRanges(Range a, Range b) {
-    if (a == null && b == null)
+    if (a == null && b == null) {
       return null;
-    else if (a == null)
+    } else if (a == null) {
       return b;
-    else if (b == null)
+    } else if (b == null) {
       return a;
-    else {
+    } else {
       return new Range(Math.min(a.getLowerBound(), b.getLowerBound()),
           Math.max(a.getUpperBound(), b.getUpperBound()));
     }
@@ -218,14 +249,15 @@ public class ChartGroup extends Node {
 
   /**
    * Combines the zoom of axes of all charts
-   * 
+   *
    * @param chart
    */
   private void combineAxes(JFreeChart chart) {
     try {
       if (combineDomainAxes && hasDomainAxis(chart)) {
-        if (domainListener == null)
+        if (domainListener == null) {
           domainListener = new ArrayList<>();
+        }
 
         AxisRangeChangedListener listener = new AxisRangeChangedListener(null) {
           @Override
@@ -238,8 +270,9 @@ public class ChartGroup extends Node {
         chart.getXYPlot().getDomainAxis().addChangeListener(listener);
       }
       if (combineRangeAxes && hasRangeAxis(chart)) {
-        if (rangeListener == null)
+        if (rangeListener == null) {
           rangeListener = new ArrayList<>();
+        }
 
         AxisRangeChangedListener listener = new AxisRangeChangedListener(null) {
 
@@ -258,36 +291,46 @@ public class ChartGroup extends Node {
 
   /**
    * Apply changes to all other charts
-   * 
+   *
    * @param range
    */
   private void domainHasChanged(Range range) {
     if (combineDomainAxes) {
-      forAllCharts(c -> {
-        if (hasDomainAxis(c)) {
-          ValueAxis axis = c.getXYPlot().getDomainAxis();
-          if (!axis.getRange().equals(range))
-            axis.setRange(range);
-        }
-      });
+      applyDomain(range);
     }
+  }
+
+  private void applyDomain(Range range) {
+    forAllCharts(c -> {
+      if (hasDomainAxis(c)) {
+        ValueAxis axis = c.getXYPlot().getDomainAxis();
+        if (!axis.getRange().equals(range)) {
+          axis.setRange(range);
+        }
+      }
+    });
   }
 
   /**
    * Apply changes to all other charts
-   * 
+   *
    * @param range
    */
   private void rangeHasChanged(Range range) {
     if (combineRangeAxes) {
-      forAllCharts(c -> {
-        if (hasRangeAxis(c)) {
-          ValueAxis axis = c.getXYPlot().getRangeAxis();
-          if (!axis.getRange().equals(range))
-            axis.setRange(range);
-        }
-      });
+      applyRange(range);
     }
+  }
+
+  private void applyRange(Range range) {
+    forAllCharts(c -> {
+      if (hasRangeAxis(c)) {
+        ValueAxis axis = c.getXYPlot().getRangeAxis();
+        if (!axis.getRange().equals(range)) {
+          axis.setRange(range);
+        }
+      }
+    });
   }
 
   private boolean hasDomainAxis(JFreeChart c) {
@@ -300,11 +343,11 @@ public class ChartGroup extends Node {
 
   public void remove(JFreeChart chart) {
     if (list != null) {
-      Optional<ChartViewWrapper> wrapper = list.stream()
-          .filter(wrap -> wrap.getChart() == chart).findFirst();
-      if(wrapper.isPresent()) {
+      Optional<ChartViewWrapper> wrapper = list.stream().filter(wrap -> wrap.getChart() == chart)
+          .findFirst();
+      if (wrapper.isPresent()) {
         int i = list.indexOf(wrapper.get());
-        if(i != 0) {
+        if (i != 0) {
           list.remove(i);
           rangeListener.remove(i);
           domainListener.remove(i);
@@ -315,7 +358,7 @@ public class ChartGroup extends Node {
 
   /**
    * COmbine zoom of axes
-   * 
+   *
    * @param combineDomainAxes
    * @param combineRangeAxes
    */
@@ -346,12 +389,57 @@ public class ChartGroup extends Node {
   }
 
   public void resetDomainZoom() {
-    if (maxRange != null)
-      domainHasChanged(maxRange[0]);
+    // each a different range
+    for (ChartViewWrapper c : list) {
+      if (c.getChartFX() != null) {
+        ChartLogicsFX.autoDomainAxis(c.getChartFX());
+      } else {
+        ChartLogics.autoDomainAxis(c.getChartSwing());
+      }
+    }
+    if (maxRange == null) {
+      recalcMaxRanges();
+    }
+    if (maxRange != null) {
+      applyDomain(maxRange[0]);
+    }
   }
 
   public void resetRangeZoom() {
-    if (maxRange != null)
-      rangeHasChanged(maxRange[1]);
+    if (!combineRangeAxes) {
+      // each a different range
+      for (ChartViewWrapper c : list) {
+        if (c.getChartFX() != null) {
+          ChartLogicsFX.autoRangeAxis(c.getChartFX());
+        } else {
+          ChartLogics.autoRangeAxis(c.getChartSwing());
+        }
+      }
+      return;
+    }
+    if (maxRange == null) {
+      recalcMaxRanges();
+    }
+    if (maxRange != null) {
+      applyRange(maxRange[1]);
+    }
   }
+
+  public void applyAutoRange(boolean resetDefaultAutoRange) {
+    if (resetDefaultAutoRange) {
+      if (maxRange == null) {
+        recalcMaxRanges();
+      }
+      if (maxRange != null) {
+        forAllCharts(c -> c.getXYPlot().getDomainAxis().setDefaultAutoRange(maxRange[0]));
+      }
+    }
+    if (combineDomainAxes) {
+      resetDomainZoom();
+    }
+    if (combineRangeAxes) {
+      resetRangeZoom();
+    }
+  }
+
 }

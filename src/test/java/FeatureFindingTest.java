@@ -46,6 +46,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.Ce
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParameters;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
@@ -53,6 +54,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -292,14 +294,17 @@ public class FeatureFindingTest {
     assertNotNull(lastFlistA);
     assertNotNull(lastFlistB);
 
+    ParameterSet sgParam = new SavitzkyGolayParameters().cloneParameterSet();
+    sgParam.setParameter(SavitzkyGolayParameters.mobilitySmoothing, false);
+    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).setValue(true);
+    sgParam.getParameter(SavitzkyGolayParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+
     SmoothingParameters paramSmooth = new SmoothingParameters();
     paramSmooth.getParameter(SmoothingParameters.featureLists)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
-    paramSmooth.setParameter(SmoothingParameters.mobilitySmoothing, false);
     paramSmooth.setParameter(SmoothingParameters.removeOriginal, false);
     paramSmooth
-        .setParameter(SmoothingParameters.rtSmoothing, true);
-    paramSmooth.getParameter(SmoothingParameters.rtSmoothing).getEmbeddedParameter().setValue(5);
+        .setParameter(SmoothingParameters.smoothingAlgorithm, new MZmineProcessingStepImpl<>(SmoothingParameters.sgSmoothing, sgParam));
     paramSmooth.setParameter(SmoothingParameters.suffix, smoothSuffix);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");

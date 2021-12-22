@@ -16,28 +16,35 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.numbers;
+package io.github.mzmine.datamodel;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import io.github.mzmine.util.maths.similarity.Similarity;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The cosine similarity can be calculated in {@link Similarity#COSINE}
+ * A tree structure to temporarily capture a precursor and all its fragment scans (MSn)
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class CosineScoreType extends ScoreType {
+public class PrecursorIonTree implements Comparable<PrecursorIonTree> {
 
-  @NotNull
-  @Override
-  public final String getUniqueID() {
-    // Never change the ID for compatibility during saving/loading of type
-    return "cosine_score";
+  // root
+  private final PrecursorIonTreeNode root;
+
+  public PrecursorIonTree(PrecursorIonTreeNode root) {
+    this.root = root;
   }
 
-  @NotNull
-  @Override
-  public String getHeaderString() {
-    return "Cosine similarity";
+  public PrecursorIonTreeNode getRoot() {
+    return root;
   }
 
+  @Override
+  public int compareTo(@NotNull PrecursorIonTree o) {
+    // descending order
+    return root.compareTo(o.getRoot());
+  }
+
+  public void sort() {
+    root.sort();
+  }
 }

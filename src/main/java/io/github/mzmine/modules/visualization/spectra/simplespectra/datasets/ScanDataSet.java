@@ -29,7 +29,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Spectra visualizer data set for scan data points
  */
-public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset, RelativeOption {
 
   private static final long serialVersionUID = 1L;
 
@@ -40,6 +40,8 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   private final Scan scan;
   private final Map<Integer, String> annotation = new Hashtable<>();
   private final Map<Double, String> mzAnnotationMap = new Hashtable<>();
+  private final double maxIntensity;
+  private boolean normalize;
 
   /*
    * Save a local copy of m/z and intensity values, because accessing the scan every time may cause
@@ -48,13 +50,23 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
   // private DataPoint dataPoints[];
 
   public ScanDataSet(Scan scan) {
-    this("Scan #" + scan.getScanNumber(), scan);
+    this(scan, false);
+  }
+
+  public ScanDataSet(Scan scan, boolean normalize) {
+    this("Scan #" + scan.getScanNumber(), scan, normalize);
   }
 
   public ScanDataSet(String label, Scan scan) {
+    this(label, scan, false);
+  }
+
+  public ScanDataSet(String label, Scan scan, boolean normalize) {
     // this.dataPoints = scan.getDataPoints();
     this.scan = scan;
     this.label = label;
+    this.normalize = normalize;
+    maxIntensity = scan.getBasePeakIntensity();
 
     /*
      * This optimalization is disabled, because it crashes on scans with no datapoints. Also, it
@@ -92,7 +104,8 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
   @Override
   public Number getY(int series, int item) {
-    return scan.getIntensityValue(item);
+    return normalize ? scan.getIntensityValue(item) / maxIntensity * 100d
+        : scan.getIntensityValue(item);
   }
 
   @Override
@@ -186,4 +199,8 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     return null;
   }
 
+  @Override
+  public void setRelative(boolean relative) {
+    normalize = relative;
+  }
 }

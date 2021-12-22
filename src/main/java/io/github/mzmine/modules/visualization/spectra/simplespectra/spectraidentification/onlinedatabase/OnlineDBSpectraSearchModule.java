@@ -18,16 +18,14 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
 
-import java.time.Instant;
-import java.util.Date;
-import org.jetbrains.annotations.NotNull;
-
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Module for identifying peaks by searching on-line databases.
@@ -52,7 +50,6 @@ public class OnlineDBSpectraSearchModule implements MZmineModule {
   /**
    * Show dialog for identifying a single peak-list row.
    * 
-   * @param row the feature list row.
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot, @NotNull Instant moduleCallDate) {

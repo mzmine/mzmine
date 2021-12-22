@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.scans;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -28,10 +30,13 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
+import io.github.mzmine.datamodel.PrecursorIonTree;
+import io.github.mzmine.datamodel.PrecursorIonTreeNode;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
@@ -44,6 +49,7 @@ import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.scans.sorting.ScanSorter;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -71,6 +77,11 @@ import org.jetbrains.annotations.Nullable;
  * Scan related utilities
  */
 public class ScanUtils {
+
+  /**
+   * tolerance to compute and combine precursor m/z
+   */
+  public static final int DEFAULT_PRECURSOR_MZ_TOLERANCE = 100;
 
   private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 
@@ -180,10 +191,14 @@ public class ScanUtils {
    *
    * @param scan    Scan to search
    * @param mzRange mz range to search in
-   * @return double[2] containing base peak m/z and intensity
+   * @return data point containing base peak m/z and intensity
    */
   @Nullable
   public static DataPoint findBasePeak(@NotNull Scan scan, @NotNull Range<Double> mzRange) {
+    final Double scanBasePeakMz = scan.getBasePeakMz();
+    if (scanBasePeakMz != null && mzRange.contains(scanBasePeakMz)) {
+      return new SimpleDataPoint(scanBasePeakMz, scan.getBasePeakIntensity());
+    }
 
     final double lower = mzRange.lowerEndpoint();
     final double upper = mzRange.upperEndpoint();
@@ -678,7 +693,7 @@ public class ScanUtils {
     return dataFile.getScanNumbers(2).stream().filter(
             s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && (
                 s.getMsMsInfo() != null && s.getMsMsInfo() instanceof DDAMsMsInfo dda
-                    && mzRange.contains(dda.getIsolationMz())))
+                && mzRange.contains(dda.getIsolationMz())))
         .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
   }
 
@@ -693,9 +708,10 @@ public class ScanUtils {
     assert mzRange != null;
 
     return dataFile.getScanNumbers(2).stream().filter(
-        s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
-            && s.getMsMsInfo() instanceof DDAMsMsInfo dda && mzRange.contains(
-            dda.getIsolationMz()))).toArray(Scan[]::new);
+            s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
+                                                            && s.getMsMsInfo() instanceof DDAMsMsInfo dda
+                                                            && mzRange.contains(dda.getIsolationMz())))
+        .toArray(Scan[]::new);
   }
 
   /**
@@ -895,7 +911,7 @@ public class ScanUtils {
       int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
     List<Scan> scans = listAllFragmentScans(row, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
-    scans.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
+    scans.sort(new ScanSorter(noiseLevel, sort).reversed());
     return scans;
   }
 
@@ -970,8 +986,8 @@ public class ScanUtils {
    * @return
    */
   @NotNull
-  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel,
-      int minNumberOfSignals, ScanSortMode sort) throws MissingMassListException {
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals,
+      ScanSortMode sort) throws MissingMassListException {
     List<Scan> filtered = listAllScans(scans, noiseLevel, minNumberOfSignals);
     // first entry is the best scan
     filtered.sort(Collections.reverseOrder(new ScanSorter(noiseLevel, sort)));
@@ -987,8 +1003,8 @@ public class ScanUtils {
    * @return
    */
   @NotNull
-  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel,
-      int minNumberOfSignals) throws MissingMassListException {
+  public static List<Scan> listAllScans(List<Scan> scans, double noiseLevel, int minNumberOfSignals)
+      throws MissingMassListException {
     List<Scan> filtered = new ArrayList<>();
     for (Scan scan : scans) {
       // find mass list: with name or first
@@ -1004,6 +1020,62 @@ public class ScanUtils {
       }
     }
     return filtered;
+  }
+
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw) {
+    return getMSnFragmentTrees(raw, null);
+  }
+
+  public static List<PrecursorIonTree> getMSnFragmentTrees(RawDataFile raw, AtomicDouble progress) {
+    List<PrecursorIonTree> result = new ArrayList<>();
+    // at any time in the flow there should only be the latest precursor with the same m/z
+    Long2ObjectOpenHashMap<PrecursorIonTreeNode> ms2Nodes = new Long2ObjectOpenHashMap<>();
+    PrecursorIonTreeNode parent = null;
+    final int totalScans = raw.getNumOfScans();
+
+    for (Scan scan : raw.getScans()) {
+      // add MS2 scans to existing or create new
+      if (scan.getMSLevel() == 2) {
+        Double ms2PrecursorMz = scan.getPrecursorMz();
+        if (ms2PrecursorMz != null) {
+          PrecursorIonTreeNode node = ms2Nodes.get(getMzKey(ms2PrecursorMz));
+          if (node == null) {
+            node = new PrecursorIonTreeNode(2, ms2PrecursorMz, null);
+            result.add(new PrecursorIonTree(node));
+            ms2Nodes.put(getMzKey(ms2PrecursorMz), node);
+          }
+          node.addFragmentScan(scan);
+        }
+      } else if (scan.getMsMsInfo() instanceof MSnInfoImpl msn) {
+        // add MSn scans to MS2 precursor
+        Double ms2PrecursorMz = msn.getMS2PrecursorMz();
+        if (ms2PrecursorMz != null && (parent = ms2Nodes.get(getMzKey(ms2PrecursorMz))) != null) {
+          boolean added = parent.addChildFragmentScan(scan, msn);
+          if (!added) {
+            logger.warning(
+                () -> String.format("Scan#%d was not added to parent %.4f", scan.getScanNumber(),
+                    ms2PrecursorMz));
+          }
+        } else {
+          logger.warning(
+              () -> String.format("Scan#%d: Cannot find MS2 precursor scan for m/z: %.4f",
+                  scan.getScanNumber(), ms2PrecursorMz));
+        }
+        //
+        if (progress != null) {
+          progress.addAndGet(1d / totalScans);
+        }
+      }
+      // sort
+      Collections.sort(result);
+      result.forEach(PrecursorIonTree::sort);
+    }
+    return result;
+  }
+
+  private static long getMzKey(double precursorMZ) {
+    return Math.round(precursorMZ * DEFAULT_PRECURSOR_MZ_TOLERANCE);
   }
 
   /**
