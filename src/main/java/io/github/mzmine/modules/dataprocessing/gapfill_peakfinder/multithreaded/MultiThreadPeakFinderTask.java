@@ -40,6 +40,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IonMobilityUtils;
 import java.time.Instant;
@@ -160,6 +161,11 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         "Finished sub task: Multithreaded gap filler " + taskIndex + " on raw files " + (start + 1)
         + "-" + endexcl + " of pkl:" + peakList);
     setStatus(TaskStatus.FINISHED);
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.HIGH;
   }
 
   public double getFinishedPercentage() {
