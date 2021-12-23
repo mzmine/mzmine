@@ -18,22 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Vector;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.RangeUtils;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Vector;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MassBankEuropeGateway implements DBGateway {
 
@@ -87,7 +86,7 @@ public class MassBankEuropeGateway implements DBGateway {
    * This method retrieves the details about the compound
    * 
    */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException {
 
     URL entryURL = new URL(massBankEntryAddress + ID);
 
@@ -120,7 +119,7 @@ public class MassBankEuropeGateway implements DBGateway {
       return null;
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabases.MASSBANKEurope, ID, compoundName,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.MASSBANKEurope, ID, compoundName,
         compoundFormula, databaseURL, structure2DURL, structure3DURL);
 
     return newCompound;

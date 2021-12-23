@@ -18,17 +18,18 @@
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -55,7 +56,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
   public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
     super(valueCheckRequired, parameters);
 
-    var featureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists();
+    var featureLists = FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     FeatureList[] selectedPeakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 
@@ -72,9 +74,9 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     // Panel for the combo boxes with the feature lists
     comboPanel = new GridPane();
 
-    peakListsComboX = new ComboBox<FeatureList>(featureLists);
+    peakListsComboX = new ComboBox<>(featureLists);
     // peakListsComboX.addActionListener(this);
-    peakListsComboY = new ComboBox<FeatureList>(featureLists);
+    peakListsComboY = new ComboBox<>(featureLists);
     // peakListsComboY.addActionListener(this);
 
     alignmentPreviewButton = new Button("Preview alignment");
@@ -106,7 +108,6 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
   }
 
 
-
   /**
    * Create the vector which contains all the possible aligned peaks.
    *
@@ -120,10 +121,10 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     for (FeatureListRow row : peakListX.getRows()) {
 
       // Calculate limits for a row with which the row can be aligned
-      MZTolerance mzTolerance =
-          super.parameterSet.getParameter(RansacAlignerParameters.MZTolerance).getValue();
-      RTTolerance rtTolerance =
-          super.parameterSet.getParameter(RansacAlignerParameters.RTToleranceBefore).getValue();
+      MZTolerance mzTolerance = super.parameterSet.getParameter(RansacAlignerParameters.MZTolerance)
+          .getValue();
+      RTTolerance rtTolerance = super.parameterSet.getParameter(
+          RansacAlignerParameters.RTToleranceBefore).getValue();
       Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
       Range<Float> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
@@ -148,8 +149,9 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     FeatureList peakListX = peakListsComboX.getSelectionModel().getSelectedItem();
     FeatureList peakListY = peakListsComboY.getSelectionModel().getSelectedItem();
 
-    if ((peakListX == null) || (peakListY == null))
+    if ((peakListX == null) || (peakListY == null)) {
       return;
+    }
 
     // Select the rawDataFile which has more peaks in each peakList
     int numPeaks = 0;

@@ -37,7 +37,8 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
       "Suffix to be added to feature list name", "gap-filled");
 
   public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
-      "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
+      "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
+      0.2);
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 

@@ -56,8 +56,8 @@ public abstract class UrlType extends DataType<UrlShortName> {
     }
     if (!(value instanceof UrlShortName url)) {
       throw new IllegalArgumentException(
-          "Wrong value type for data type: " + this.getClass().getName() + " value class: " + value
-              .getClass());
+          "Wrong value type for data type: " + this.getClass().getName() + " value class: "
+              + value.getClass());
     }
     writer.writeAttribute("short", url.shortName());
     writer.writeCharacters(url.longUrl());
@@ -73,5 +73,11 @@ public abstract class UrlType extends DataType<UrlShortName> {
       return null;
     }
     return new UrlShortName(url, shortName);
+  }
+
+  @Override
+  public @NotNull String getFormattedString(UrlShortName value) {
+    return value != null && value.shortName() != null ? value.shortName()
+        : super.getFormattedString(value);
   }
 }

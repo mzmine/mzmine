@@ -18,20 +18,19 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Vector;
-import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.RangeUtils;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 public class LipidMapsGateway implements DBGateway {
 
@@ -79,7 +78,7 @@ public class LipidMapsGateway implements DBGateway {
    * This method retrieves the details about the compound
    * 
    */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException {
 
     final URL entryURL = new URL(lipidMapsEntryAddress + ID);
 
@@ -106,7 +105,7 @@ public class LipidMapsGateway implements DBGateway {
     URL structure3DURL = null;
     URL databaseURL = new URL(lipidMapsDetailsAddress + ID);
 
-    DBCompound newCompound = new DBCompound(OnlineDatabases.LIPIDMAPS, ID, compoundName,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.LIPIDMAPS, ID, compoundName,
         compoundFormula, databaseURL, structure2DURL, structure3DURL);
 
     return newCompound;

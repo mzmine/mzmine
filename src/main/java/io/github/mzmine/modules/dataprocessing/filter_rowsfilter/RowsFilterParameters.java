@@ -41,7 +41,9 @@ import io.github.mzmine.util.ExitCode;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
-  static final String[] removeRowChoices = {"Keep rows that match all criteria",
+  public static final String defaultGrouping = "No parameters defined";
+
+  public static final String[] removeRowChoices = {"Keep rows that match all criteria",
       "Remove rows that match all criteria"};
 
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
@@ -72,16 +74,15 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new DoubleRangeParameter("Chromatographic FWHM",
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)));
-
   public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
       new IntRangeParameter("Charge", "Filter by charge, run isotopic features grouper first"));
 
   public static final OptionalModuleParameter<KendrickMassDefectFilterParameters> KENDRICK_MASS_DEFECT = new OptionalModuleParameter<>(
       "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
       new KendrickMassDefectFilterParameters());
-
   public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
-      "Parameter", "Paremeter defining the group of each sample.", new Object[0]);
+      "Parameter", "Paremeter defining the group of each sample.", new Object[]{defaultGrouping},
+      defaultGrouping);
 
   public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter("Only identified?",
       "Select to filter only identified compounds");
@@ -108,6 +109,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.");
 
+
   public static final OptionalParameter<MassDefectParameter> massDefect = new OptionalParameter<>(
       new MassDefectParameter("Mass defect",
           "Filters for mass defects of features.\nValid inputs: 0.314-0.5 or 0.90-0.15",
@@ -129,7 +131,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     String[] choices;
     if (newChoices == null || newChoices.length == 0) {
       choices = new String[1];
-      choices[0] = "No parameters defined";
+      choices[0] = defaultGrouping;
     } else {
       choices = new String[newChoices.length + 1];
       choices[0] = "Ignore groups";

@@ -163,6 +163,6 @@ public class SpectrumChartFactory {
    */
   private static void addPrecursorMarker(JFreeChart chart, double precursorMZ) {
     chart.getXYPlot()
-        .addDomainMarker(new ValueMarker(precursorMZ, Color.ORANGE, new BasicStroke(1.5f)));
+        .addDomainMarker(new ValueMarker(precursorMZ, Color.ORANGE, new BasicStroke(2f)));
   }
 }

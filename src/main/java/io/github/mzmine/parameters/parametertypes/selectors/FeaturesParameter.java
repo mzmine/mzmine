@@ -18,9 +18,12 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,9 +32,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
 
 /**
  * @author akshaj This class represents the parameter Features in the parameter setup dialog of the
@@ -70,7 +70,7 @@ public class FeaturesParameter implements UserParameter<List<Feature>, FeaturesC
   public void loadValueFromXML(Element xmlElement) {
 
     FeatureList[] allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
-        .getFeatureLists().toArray(FeatureList[]::new);
+        .getCurrentFeatureLists().toArray(FeatureList[]::new);
 
     List<Feature> newValues = new ArrayList<>();
 

@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.identities.iontype;
 
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.StringMapParser;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -29,6 +30,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Stream;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,6 +140,7 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
       {H2O, H2O_2, H2O_3, H2O_4, H2O_5, NH3, O, CO, CO2, C2H4, HFA, HAc, MEOH, ACN, ISOPROP};
   // isotopes
   public static final IonModification[] DEFAULT_VALUES_ISOTOPES = {C13};
+  public static final String XML_ELEMENT = "ionmodification";
   protected final IonModificationType type;
   protected final int charge;
   // charge
@@ -166,6 +171,31 @@ public class IonModification extends NeutralMolecule implements Comparable<IonMo
     this.charge = charge;
     this.type = type;
     parsedName = parseName();
+  }
+
+  public void saveToXML(@NotNull final XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute("name", name);
+    writer.writeAttribute("formula", molFormula != null ? molFormula : CONST.XML_NULL_VALUE);
+    writer.writeAttribute("massdifference", String.valueOf(mass));
+    writer.writeAttribute("type", type.name());
+    writer.writeAttribute("charge", String.valueOf(charge));
+    writer.writeEndElement();
+  }
+
+  public static IonModification loadFromXML(@NotNull final XMLStreamReader reader) {
+    if(!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException("Current element is not an ion modification element.");
+    }
+
+    String name = reader.getAttributeValue(null, "name");
+    String formula = reader.getAttributeValue(null, "formula");
+    String massDiff = reader.getAttributeValue(null, "massdifference");
+    String type = reader.getAttributeValue(null, "type");
+    String charge = reader.getAttributeValue(null, "charge");
+
+    return new IonModification(IonModificationType.valueOf(type), name, formula,
+        Double.parseDouble(massDiff), Integer.parseInt(charge));
   }
 
   /**
