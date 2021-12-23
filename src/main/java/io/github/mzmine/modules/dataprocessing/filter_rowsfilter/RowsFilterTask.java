@@ -196,14 +196,15 @@ public class RowsFilterTask extends AbstractTask {
     final String kendrickMassBase = parameters.getParameter(
             RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
         .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
-    final double shift = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+    final Double shift = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
         .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.shift).getValue();
-    final int kendrickCharge = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
-        .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.charge).getValue();
-    final int divisor = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+    final Integer kendrickCharge = parameters.getParameter(
+            RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
+        .getParameter(KendrickMassDefectFilterParameters.charge).getValue();
+    final Integer divisor = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
         .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
         .getValue();
-    final boolean useRemainderOfKendrickMass = parameters.getParameter(
+    final Boolean useRemainderOfKendrickMass = parameters.getParameter(
             RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
         .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
     final Range<Integer> chargeRange = parameters.getParameter(RowsFilterParameters.CHARGE)
@@ -212,7 +213,7 @@ public class RowsFilterTask extends AbstractTask {
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue());
     final Range<Double> durationRange = parameters.getParameter(
         RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter().getValue();
-    final int minIsotopePatternSize = parameters.getParameter(
+    final Integer minIsotopePatternSize = parameters.getParameter(
         RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter().getValue();
     final String commentSearchText = parameters.getParameter(RowsFilterParameters.COMMENT_TEXT)
         .getEmbeddedParameter().getValue().toLowerCase().trim();
@@ -224,12 +225,12 @@ public class RowsFilterTask extends AbstractTask {
         parameters.getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue());
 
     int rowsCount = 0;
-    boolean removeRow = false;
+    boolean removeRow;
 
     removeRow = !removeRowString.equals(RowsFilterParameters.removeRowChoices[0]);
 
     // Keep rows that don't match any criteria. Keep by default.
-    boolean filterRowCriteriaFailed = false;
+    boolean filterRowCriteriaFailed;
 
     // Handle < 1 values for minFeatureCount
     if ((minCount == null) || (minCount < 1)) {
@@ -402,7 +403,7 @@ public class RowsFilterTask extends AbstractTask {
         double kendrickMassFactor =
             Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
 
-        double defectOrRemainder = 0.0;
+        double defectOrRemainder;
 
         if (!useRemainderOfKendrickMass) {
           // calc Kendrick mass defect
@@ -470,7 +471,7 @@ public class RowsFilterTask extends AbstractTask {
     if (groupingParameter.contains("Filtering by ")) {
       HashMap<String, Integer> groups = new HashMap<>();
       for (RawDataFile file : project.getDataFiles()) {
-        UserParameter<?, ?> params[] = project.getParameters();
+        UserParameter<?, ?>[] params = project.getParameters();
         for (UserParameter<?, ?> p : params) {
           groupingParameter = groupingParameter.replace("Filtering by ", "");
           if (groupingParameter.equals(p.getName())) {
