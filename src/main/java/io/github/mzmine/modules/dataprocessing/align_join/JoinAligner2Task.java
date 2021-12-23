@@ -64,8 +64,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class JoinAligner2Task extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(JoinAligner2Task.class.getName());
   private final MZmineProject project;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final AtomicInteger alignedRows = new AtomicInteger(0);
   private final String featureListName;
   private final MZTolerance mzTolerance;
@@ -91,7 +91,7 @@ public class JoinAligner2Task extends AbstractTask {
   // Processed rows counter
   private int totalRows;
   // ID counter for the new peaklist
-  private int iteration = 0;
+  private int iteration = 1;
   // fields for spectra similarity
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
