@@ -336,7 +336,7 @@ public class JoinAligner2Task extends AbstractTask {
     for (RowVsRowScore score : scores) {
       final FeatureListRow alignedRow = score.getAlignedBaseRow();
       final FeatureListRow row = score.getRowToAdd();
-      if (!(alignedRowsMap.getOrDefault(row, false) || alignedRowsMap.getOrDefault(row, false))) {
+      if (!alignedRowsMap.getOrDefault(row, false)) {
         // no row was aligned
         // put all features of the row into the aligned row
         for (Feature feature : row.getFeatures()) {
@@ -344,7 +344,6 @@ public class JoinAligner2Task extends AbstractTask {
           if (!alignedRow.hasFeature(dataFile)) {
             alignedRow.addFeature(dataFile, new ModularFeature(alignedFeatureList, feature));
             alignedRowsMap.put(row, true);
-            alignedRowsMap.put(alignedRow, true);
             this.alignedRows.getAndIncrement();
           }
         }
