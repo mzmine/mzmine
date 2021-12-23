@@ -251,6 +251,10 @@ public class JoinAlignerTask extends AbstractTask {
       iteration++;
     }
 
+    // update row bindings
+    alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)
+        .forEach(FeatureListRow::applyRowBindings);
+
     alignedFeatureList.getAppliedMethods().addAll(featureLists.get(0).getAppliedMethods());
     // Add task description to peakList
     alignedFeatureList.addDescriptionOfAppliedTask(
@@ -332,7 +336,7 @@ public class JoinAlignerTask extends AbstractTask {
         for (Feature feature : row.getFeatures()) {
           if (!alignedRow.hasFeature(feature.getRawDataFile())) {
             alignedRow.addFeature(feature.getRawDataFile(),
-                new ModularFeature(alignedFeatureList, feature));
+                new ModularFeature(alignedFeatureList, feature), false);
             assignedRows.put(row, true);
             alignedRows.getAndIncrement();
           }
