@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features;
@@ -24,8 +25,8 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -67,13 +68,36 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns feature for given raw data file
    */
-  @Nullable
-  Feature getFeature(RawDataFile rawData);
+  @Nullable Feature getFeature(RawDataFile rawData);
 
   /**
-   * Add a feature
+   * Add a feature and update all row bindings
    */
-  void addFeature(RawDataFile rawData, Feature feature);
+  default void addFeature(RawDataFile rawData, Feature feature) {
+    addFeature(rawData, feature, true);
+  }
+
+  /**
+   * add feature and choose to update values by row bindings.
+   *
+   * @param rawData             associated raw data file
+   * @param feature             added feature
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple features
+   *                            are added, this option may be set to false. Remember to call {@link
+   *                            #applyRowBindings()}.
+   */
+  void addFeature(RawDataFile rawData, Feature feature, boolean updateByRowBindings);
+
+
+  /**
+   * apply row bindings of the feature list (if available) to this row
+   */
+  default void applyRowBindings() {
+    final FeatureList featureList = getFeatureList();
+    if (featureList != null) {
+      featureList.applyRowBindings(this);
+    }
+  }
 
   /**
    * Remove a feature
@@ -183,9 +207,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns FeatureInformation
    *
-   * @return
    */
-
   FeatureInformation getFeatureInformation();
 
   /**
@@ -231,9 +253,9 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
-
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
+
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
   void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
 

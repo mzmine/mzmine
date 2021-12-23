@@ -418,9 +418,15 @@ public interface FeatureList {
    * @param row
    * @param newFeature
    * @param raw
+   * @param updateByRowBindings if true, update values by row bindings. This option may be set to
+   *                            false with caution, when multiple features are added. Remember to
+   *                            update call {@link #applyRowBindings(FeatureListRow)} manually.
    */
-  default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw) {
-    applyRowBindings(row);
+  default void fireFeatureChangedEvent(FeatureListRow row, Feature newFeature, RawDataFile raw,
+      boolean updateByRowBindings) {
+    if (updateByRowBindings) {
+      applyRowBindings(row);
+    }
 
     if (newFeature != null) {
       boolean isImagingFile = raw instanceof ImagingRawDataFile;

@@ -69,14 +69,14 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   /**
    * This method returns the feature list row which is being aligned
    */
-  FeatureListRow getPeakListRow() {
+  FeatureListRow getRowToAdd() {
     return peakListRow;
   }
 
   /**
    * This method returns the row of aligned feature list
    */
-  FeatureListRow getAlignedRow() {
+  FeatureListRow getAlignedBaseRow() {
     return alignedRow;
   }
 
