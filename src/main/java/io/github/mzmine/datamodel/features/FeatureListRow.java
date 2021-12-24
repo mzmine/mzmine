@@ -436,4 +436,6 @@ public interface FeatureListRow extends ModularDataModel {
   Stream<ModularFeature> streamFeatures();
 
   void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
+
+  @Nullable Range<Float> getMobilityRange();
 }

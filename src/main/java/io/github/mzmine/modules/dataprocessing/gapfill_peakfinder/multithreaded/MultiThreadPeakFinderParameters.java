@@ -21,7 +21,8 @@ package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -44,12 +45,16 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+  public static final IntegerParameter minDataPoints = new IntegerParameter("Minimum data points",
+      "Only fill gaps with features with minimum number of data points. \n Usually lower number of data points are used.",
+      1, 1, Integer.MAX_VALUE);
+
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      true);
 
   public MultiThreadPeakFinderParameters() {
-    super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance,
-        autoRemove});
+    super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance, minDataPoints,
+        handleOriginal});
   }
 
   @Override

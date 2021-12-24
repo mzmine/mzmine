@@ -46,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -569,6 +570,12 @@ public class ModularFeatureListRow implements FeatureListRow {
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
     }
+  }
+
+  @Override
+  @Nullable
+  public Range<Float> getMobilityRange() {
+    return get(MobilityRangeType.class);
   }
 
   @Override

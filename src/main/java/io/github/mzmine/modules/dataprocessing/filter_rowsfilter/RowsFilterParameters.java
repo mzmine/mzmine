@@ -29,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
@@ -99,9 +100,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
       removeRowChoices);
 
-  public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-      "Remove source feature list after filtering",
-      "If checked, the original feature list will be removed leaving only the filtered version");
+
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      true);
+
   public static final BooleanParameter MS2_Filter = new BooleanParameter(
       "Keep only feature with MS2 scan (GNPS)",
       "If checked, the rows that don't contain MS2 scan will be removed.");
@@ -119,7 +121,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
         MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
         HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID, massDefect,
-        AUTO_REMOVE});
+        handleOriginal});
   }
 
   @Override
