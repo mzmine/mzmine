@@ -212,39 +212,41 @@ public class RowsFilterTask extends AbstractTask {
             .getEmbeddedParameter().getValue() : MassDefectFilter.ALL;
 
     // get embedded parameters
-    final Range<Double> rangeKMD = parameters.getParameter(
-            RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-        .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
-    final String kendrickMassBase = parameters.getParameter(
-            RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-        .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
-    final Double shift = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
-        .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.shift).getValue();
-    final Integer kendrickCharge = parameters.getParameter(
-            RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-        .getParameter(KendrickMassDefectFilterParameters.charge).getValue();
-    final Integer divisor = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
-        .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
+    final KendrickMassDefectFilterParameters kendrickParam = parameters.getParameter(
+        RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters();
+    final Range<Double> rangeKMD = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
+    final String kendrickMassBase = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
+    final Double shift = kendrickParam.getParameter(KendrickMassDefectFilterParameters.shift)
         .getValue();
-    final Boolean useRemainderOfKendrickMass = parameters.getParameter(
-            RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-        .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
-    final Range<Integer> chargeRange = parameters.getParameter(RowsFilterParameters.CHARGE)
-        .getEmbeddedParameter().getValue();
-    final Range<Float> FWHMRange = RangeUtils.toFloatRange(
-        parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue());
-    final Range<Double> durationRange = parameters.getParameter(
-        RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter().getValue();
+    final Integer kendrickCharge = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.charge).getValue();
+    final Integer divisor = kendrickParam.getParameter(KendrickMassDefectFilterParameters.divisor)
+        .getValue();
+    final Boolean useRemainderOfKendrickMass = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
+    final Range<Integer> chargeRange =
+        filterByCharge ? parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter()
+            .getValue() : null;
+    final Range<Double> durationRange =
+        filterByDuration ? parameters.getParameter(RowsFilterParameters.FEATURE_DURATION)
+            .getEmbeddedParameter().getValue() : null;
     final Integer minIsotopePatternSize = parameters.getParameter(
         RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter().getValue();
     final String commentSearchText = parameters.getParameter(RowsFilterParameters.COMMENT_TEXT)
         .getEmbeddedParameter().getValue().toLowerCase().trim();
     final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
         .getEmbeddedParameter().getValue().toLowerCase().trim();
-    final Range<Double> mzRange = parameters.getParameter(RowsFilterParameters.MZ_RANGE)
-        .getEmbeddedParameter().getValue();
-    final Range<Float> rtRange = RangeUtils.toFloatRange(
-        parameters.getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue());
+    final Range<Double> mzRange =
+        filterByMzRange ? parameters.getParameter(RowsFilterParameters.MZ_RANGE)
+            .getEmbeddedParameter().getValue() : null;
+    final Range<Float> rtRange = filterByRtRange ? RangeUtils.toFloatRange(
+        parameters.getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue())
+        : null;
+    final Range<Float> FWHMRange = filterByFWHM ? RangeUtils.toFloatRange(
+        parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
+        : null;
 
     int rowsCount = 0;
     boolean removeRow;
