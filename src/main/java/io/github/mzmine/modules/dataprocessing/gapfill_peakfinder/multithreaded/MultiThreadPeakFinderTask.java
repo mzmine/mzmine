@@ -160,14 +160,12 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       final int processedDataFiles = i - start + 1;
       if (processedDataFiles % 5 == 0) {
         logger.fine(() -> String.format(
-            "Multithreaded gap filler (%d): %d of %d raw files processed (%d %%)", taskIndex,
-            processedDataFiles, totalDataFiles,
-            (processedDataFiles / (float) totalDataFiles) * 100));
+            "Multithreaded gap filler (%d): %d of %d raw files processed (%.1f %%)", taskIndex,
+            processedDataFiles, totalDataFiles, (processedDataFiles / (float) totalDataFiles) * 100));
       } else {
         logger.finest(() -> String.format(
-            "Multithreaded gap filler (%d): %d of %d raw files processed (%d %%)", taskIndex,
-            processedDataFiles, totalDataFiles,
-            (processedDataFiles / (float) totalDataFiles) * 100));
+            "Multithreaded gap filler (%d): %d of %d raw files processed (%.1f %%)", taskIndex,
+            processedDataFiles, totalDataFiles, (processedDataFiles / (float) totalDataFiles) * 100));
       }
     }
 
