@@ -47,10 +47,12 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -441,6 +443,32 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  public void setRows(FeatureListRow... rows) {
+    Set<RawDataFile> fileSet = new HashSet<>();
+    for (FeatureListRow row : rows) {
+      if (!(row instanceof ModularFeatureListRow)) {
+        throw new IllegalArgumentException(
+            "Can not add non-modular feature list row to modular feature list");
+      }
+      for (var raw : row.getRawDataFiles()) {
+        fileSet.add(raw);
+      }
+    }
+
+    // check that all files are represented
+    final List<RawDataFile> rawFiles = getRawDataFiles();
+    for (var raw : fileSet) {
+      if (!rawFiles.contains(raw)) {
+        throw (new IllegalArgumentException("Data file " + raw + " is not in this feature list"));
+      }
+    }
+
+    featureListRows.clear();
+    featureListRows.addAll(rows);
+    applyRowBindings();
+  }
+
+  @Override
   public List<FeatureListRow> getRowsInsideMZRange(Range<Double> mzRange) {
     Range<Float> all = Range.all();
     return getRowsInsideScanAndMZRange(all, mzRange);
@@ -519,27 +547,32 @@ public class ModularFeatureList implements FeatureList {
   }
 
   /**
-   * @see FeatureList#removeRow(FeatureListRow)
+   *
    */
   @Override
   public void removeRow(FeatureListRow row) {
     // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
     ((ModularFeatureListRow) row).clearBufferedColCharts();
     featureListRows.remove(row);
-    updateMaxIntensity();
   }
 
   /**
-   * @see FeatureList#removeRow(FeatureListRow)
+   * if available pass index and row {@see #removeRow(int, FeatureListRow)} for optimized version.
    */
   @Override
   public void removeRow(int rowNum) {
     removeRow(featureListRows.get(rowNum));
   }
 
-  private void updateMaxIntensity() {
-    // TODO
-    // binding
+  /**
+   *
+   */
+  @Override
+  public void removeRow(int rowNum, FeatureListRow row) {
+    removeRow(featureListRows.get(rowNum));
+    // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
+    ((ModularFeatureListRow) row).clearBufferedColCharts();
+    featureListRows.remove(rowNum);
   }
 
   @Override
@@ -646,8 +679,6 @@ public class ModularFeatureList implements FeatureList {
       return Range.singleton(0d);
     }
 
-    updateMaxIntensity(); // Update range before returning value
-
     DoubleSummaryStatistics mzStatistics = getRows().stream().map(FeatureListRow::getAverageMZ)
         .collect(Collectors.summarizingDouble((Double::doubleValue)));
 
@@ -661,8 +692,6 @@ public class ModularFeatureList implements FeatureList {
     if (getRows().isEmpty()) {
       return Range.singleton(0f);
     }
-
-    updateMaxIntensity(); // Update range before returning value
 
     DoubleSummaryStatistics rtStatistics = getRows().stream()
         .map(row -> (double) (row).getAverageRT())

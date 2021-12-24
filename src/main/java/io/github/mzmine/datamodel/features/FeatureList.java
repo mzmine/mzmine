@@ -77,6 +77,15 @@ public interface FeatureList {
    */
   void applyRowBindings(FeatureListRow row);
 
+  /**
+   * Apply all row bindings to all rows (e.g., calculating the average m/z etc)
+   */
+  default void applyRowBindings() {
+    for (var row : getRows()) {
+      applyRowBindings(row);
+    }
+  }
+
   ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
 
   void addFeatureType(Collection<DataType> types);
@@ -145,6 +154,13 @@ public interface FeatureList {
   public ObservableList<FeatureListRow> getRows();
 
   /**
+   * Clear all rows and set new rows
+   *
+   * @param rows new rows to set
+   */
+  void setRows(FeatureListRow... rows);
+
+  /**
    * Creates a stream of FeatureListRows
    *
    * @return
@@ -152,6 +168,8 @@ public interface FeatureList {
   default Stream<FeatureListRow> stream(boolean parallel) {
     return parallel ? parallelStream() : stream();
   }
+
+  void removeRow(int rowNum, FeatureListRow row);
 
   /**
    * Creates a stream of FeatureListRows
