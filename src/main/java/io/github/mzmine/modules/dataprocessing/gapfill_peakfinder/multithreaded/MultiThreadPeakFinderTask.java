@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
@@ -41,7 +40,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.IonMobilityUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,10 +126,9 @@ class MultiThreadPeakFinderTask extends AbstractTask {
           // Create a new gap
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
           Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
-          Range<Float> mobilityRange = IonMobilityUtils.getRowMobilityrange(
-              (ModularFeatureListRow) sourceRow);
 
           if (peakList.hasFeatureType(MobilityType.class) && dataFile instanceof IMSRawDataFile) {
+            Range<Float> mobilityRange = sourceRow.getMobilityRange();
             Gap newGap = new ImsGap(newRow, dataFile, mzRange, rtRange, mobilityRange, intTolerance,
                 mobilogramAccess);
             gaps.add(newGap);
