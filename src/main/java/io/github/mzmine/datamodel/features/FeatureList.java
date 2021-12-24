@@ -70,6 +70,9 @@ public interface FeatureList {
 
   void removeFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
 
+  /**
+   * Apply all row bindings to all rows (e.g., calculating the average m/z etc)
+   */
   void applyRowBindings();
 
   /**
@@ -78,15 +81,6 @@ public interface FeatureList {
    * @param row
    */
   void applyRowBindings(FeatureListRow row);
-
-  /**
-   * Apply all row bindings to all rows (e.g., calculating the average m/z etc)
-   */
-  default void applyRowBindings() {
-    for (var row : getRows()) {
-      applyRowBindings(row);
-    }
-  }
 
   ObservableMap<Class<? extends DataType>, DataType> getFeatureTypes();
 
