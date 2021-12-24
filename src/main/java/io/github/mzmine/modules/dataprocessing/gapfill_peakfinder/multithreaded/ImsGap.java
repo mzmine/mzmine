@@ -181,7 +181,7 @@ public class ImsGap extends Gap {
         mobilogramBinning);
 
     ModularFeature f = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
-        rawDataFile, trace, FeatureStatus.MANUAL);
+        rawDataFile, trace, FeatureStatus.ESTIMATED);
 
     peakListRow.addFeature(rawDataFile, f);
     return true;

@@ -67,15 +67,10 @@ public class Gap {
 
   public void offerNextScan(Scan scan) {
 
-    double scanRT = scan.getRetentionTime();
+    float scanRT = scan.getRetentionTime();
 
     // If not yet inside the RT range
-    if (scanRT < rtRange.lowerEndpoint()) {
-      return;
-    }
-
-    // If we have passed the RT range and finished processing last peak
-    if ((scanRT > rtRange.upperEndpoint()) && (currentPeakDataPoints == null)) {
+    if (!rtRange.contains(scanRT)) {
       return;
     }
 
@@ -148,7 +143,7 @@ public class Gap {
         mzIntensities[1], bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
 
     final Feature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
-        rawDataFile, series, FeatureStatus.MANUAL);
+        rawDataFile, series, FeatureStatus.ESTIMATED);
 
     // Fill the gap
     peakListRow.addFeature(rawDataFile, newPeak);
@@ -248,6 +243,7 @@ public class Gap {
     // 3) Check if this is the best candidate for a peak
     if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
       bestPeakDataPoints = currentPeakDataPoints.subList(startInd, toIndex);
+      bestPeakHeight = currentMaxHeight;
     }
 
   }
