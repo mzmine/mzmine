@@ -140,7 +140,7 @@ public class Gap {
 
 
     // Fill the gap
-    peakListRow.addFeature(rawDataFile, newPeak);
+    peakListRow.addFeature(rawDataFile, newPeak, false);
   }
 
   /**

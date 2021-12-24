@@ -70,6 +70,8 @@ public interface FeatureList {
 
   void removeFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
 
+  void applyRowBindings();
+
   /**
    * Apply all row bindings to row (e.g., calculating the average m/z etc)
    *
