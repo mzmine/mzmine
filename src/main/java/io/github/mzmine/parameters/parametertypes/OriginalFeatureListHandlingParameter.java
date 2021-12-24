@@ -18,6 +18,8 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 
 /**
@@ -46,6 +48,27 @@ public class OriginalFeatureListHandlingParameter extends
     public String toString() {
       return super.toString().replaceAll("_", " ");
     }
-  }
 
+    /**
+     * Add new list to project or just reflect the new name. Remove old feature list if option.
+     *
+     * @param suffix          add sufix to name for process in place
+     * @param project         the project its added to
+     * @param newFeatureList  the added feature list
+     * @param origFeatureList the original feature list
+     */
+    public void reflectNewFeatureListToProject(String suffix, MZmineProject project,
+        FeatureList newFeatureList, FeatureList origFeatureList) {
+      switch (this) {
+        case KEEP -> project.addFeatureList(newFeatureList);
+        case REMOVE -> {
+          project.removeFeatureList(origFeatureList);
+          // Add new feature list to the project
+          project.addFeatureList(newFeatureList);
+        }
+        case PROCESS_IN_PLACE -> newFeatureList.setName(newFeatureList.getName() + ' ' + suffix);
+      }
+    }
+
+  }
 }

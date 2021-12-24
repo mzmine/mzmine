@@ -127,19 +127,9 @@ public class DuplicateFilterTask extends AbstractTask {
             originalFeatureListOption == OriginalFeatureListOption.PROCESS_IN_PLACE);
 
         if (!isCanceled()) {
-
-          switch (originalFeatureListOption) {
-            case KEEP -> project.addFeatureList(filteredPeakList);
-            case REMOVE -> {
-              project.removeFeatureList(peakList);
-              // Add new feature list to the project
-              project.addFeatureList(filteredPeakList);
-            }
-            case PROCESS_IN_PLACE -> {
-              final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
-              filteredPeakList.setName(filteredPeakList.getName() + ' ' + suffix);
-            }
-          }
+          final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+          originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
+              filteredPeakList, peakList);
 
           // Finished.
           logger.info("Finished filtering duplicate feature list rows on " + peakList);

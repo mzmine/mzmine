@@ -127,19 +127,9 @@ public class RowsFilterTask extends AbstractTask {
             originalFeatureListOption == OriginalFeatureListOption.PROCESS_IN_PLACE);
 
         if (!isCanceled()) {
-
-          switch (originalFeatureListOption) {
-            case KEEP -> project.addFeatureList(filteredFeatureList);
-            case REMOVE -> {
-              project.removeFeatureList(origFeatureList);
-              // Add new feature list to the project
-              project.addFeatureList(filteredFeatureList);
-            }
-            case PROCESS_IN_PLACE -> {
-              final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
-              filteredFeatureList.setName(filteredFeatureList.getName() + ' ' + suffix);
-            }
-          }
+          final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+          originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
+              filteredFeatureList, origFeatureList);
           setStatus(TaskStatus.FINISHED);
           logger.info("Finished feature list rows filter");
         }

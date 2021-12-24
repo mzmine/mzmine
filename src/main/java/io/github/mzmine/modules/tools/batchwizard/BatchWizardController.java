@@ -356,7 +356,8 @@ public class BatchWizardController {
     param.setParameter(MultiThreadPeakFinderParameters.RTTolerance,
         hplcParameters.getValue(BatchWizardHPLCParameters.intraSampleRTTolerance));
     param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
-    param.setParameter(MultiThreadPeakFinderParameters.autoRemove, true);
+    param.setParameter(MultiThreadPeakFinderParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
 
     return new MZmineProcessingStepImpl<>(

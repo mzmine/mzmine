@@ -174,25 +174,16 @@ public class ImsGap extends Gap {
   }
 
   @Override
-  public void noMoreOffers() {
-    // Check peak that was last constructed
-    if (currentPeakDataPoints != null) {
-      checkCurrentPeak();
-      currentPeakDataPoints = null;
-    }
-
-    if (bestPeakDataPoints == null) {
-      return;
-    }
-
-    final IonMobilogramTimeSeries trace = IonMobilogramTimeSeriesFactory
-        .of(((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(),
-            (List<IonMobilitySeries>) (List<? extends IonMobilitySeries>) (List<? extends GapDataPoint>) bestPeakDataPoints,
-            mobilogramBinning);
+  protected boolean addFeatureToRow() {
+    final IonMobilogramTimeSeries trace = IonMobilogramTimeSeriesFactory.of(
+        ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(),
+        (List<IonMobilitySeries>) (List<? extends IonMobilitySeries>) (List<? extends GapDataPoint>) bestPeakDataPoints,
+        mobilogramBinning);
 
     ModularFeature f = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
         rawDataFile, trace, FeatureStatus.MANUAL);
 
     peakListRow.addFeature(rawDataFile, f);
+    return true;
   }
 }
