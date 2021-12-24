@@ -183,7 +183,7 @@ public class ImsGap extends Gap {
     ModularFeature f = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
         rawDataFile, trace, FeatureStatus.ESTIMATED);
 
-    peakListRow.addFeature(rawDataFile, f, false);
+    peakListRow.addFeature(rawDataFile, f);
     return true;
   }
 }
