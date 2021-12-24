@@ -146,7 +146,7 @@ public class Gap {
         rawDataFile, series, FeatureStatus.ESTIMATED);
 
     // Fill the gap
-    peakListRow.addFeature(rawDataFile, newPeak);
+    peakListRow.addFeature(rawDataFile, newPeak, false);
     return true;
   }
 

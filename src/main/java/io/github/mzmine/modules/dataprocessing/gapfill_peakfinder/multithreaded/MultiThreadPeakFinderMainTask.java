@@ -113,6 +113,11 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
               new SimpleFeatureListAppliedMethod("Gap filling ", MultiThreadPeakFinderModule.class,
                   parameters, getModuleCallDate()));
 
+          // update all rows by row bindings (average values)
+          // this needs to be done after all tasks finish because values were not updated when
+          // adding features
+          processedPeakList.applyRowBindings();
+
           // add / remove or rename the new feature list in project
           originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
               processedPeakList, peakList);
