@@ -36,6 +36,7 @@ import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryM
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -47,6 +48,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -111,19 +113,23 @@ public class RowsFilterTask extends AbstractTask {
         setStatus(TaskStatus.PROCESSING);
         logger.info("Filtering feature list rows");
 
+        final OriginalFeatureListOption originalFeatureListOption = parameters.getValue(
+            RowsFilterParameters.handleOriginal);
+
+        switch (originalFeatureListOption) {
+          case KEEP -> logger.finer("Create new feature List");
+          case REMOVE -> logger.finer("Remove original feature list");
+          case PROCESS_IN_PLACE -> logger.finer("Process in place");
+        }
+
         // Filter the feature list.
-        filteredFeatureList = filterFeatureListRows(origFeatureList);
+        filteredFeatureList = filterFeatureListRows(origFeatureList,
+            originalFeatureListOption == OriginalFeatureListOption.PROCESS_IN_PLACE);
 
         if (!isCanceled()) {
-
-          // Add new feature list to the project
-          project.addFeatureList(filteredFeatureList);
-
-          // Remove the original feature list if requested
-          if (parameters.getParameter(RowsFilterParameters.AUTO_REMOVE).getValue()) {
-
-            project.removeFeatureList(origFeatureList);
-          }
+          final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+          originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
+              filteredFeatureList, origFeatureList);
           setStatus(TaskStatus.FINISHED);
           logger.info("Finished feature list rows filter");
         }
@@ -139,29 +145,35 @@ public class RowsFilterTask extends AbstractTask {
   /**
    * Filter the feature list rows.
    *
-   * @param featureList feature list to filter.
+   * @param featureList          feature list to filter.
+   * @param processInCurrentList use the current list and filter it
    * @return a new feature list with rows of the original feature list that pass the filtering.
    */
-  private FeatureList filterFeatureListRows(final FeatureList featureList) {
+  private FeatureList filterFeatureListRows(final FeatureList featureList,
+      boolean processInCurrentList) {
 
     // Create new feature list.
 
-    final ModularFeatureList newFeatureList = new ModularFeatureList(
-        featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX)
-            .getValue(), getMemoryMapStorage(), featureList.getRawDataFiles());
+    final ModularFeatureList newFeatureList;
+    if (processInCurrentList) {
+      newFeatureList = (ModularFeatureList) featureList;
+    } else {
+      newFeatureList = new ModularFeatureList(
+          featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX)
+              .getValue(), getMemoryMapStorage(), featureList.getRawDataFiles());
+      // Copy previous applied methods.
+      for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
+        newFeatureList.addDescriptionOfAppliedTask(method);
+      }
 
-    // Copy previous applied methods.
-    for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-      newFeatureList.addDescriptionOfAppliedTask(method);
+      featureList.getRawDataFiles().forEach(
+          file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
     }
 
     // Add task description to featureList.
     newFeatureList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
             getModuleCallDate()));
-
-    featureList.getRawDataFiles()
-        .forEach(file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
 
     // Get parameters.
     final boolean onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
@@ -242,13 +254,16 @@ public class RowsFilterTask extends AbstractTask {
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final FeatureListRow[] rows = featureList.getRows().toArray(FeatureListRow[]::new);
-    totalRows = rows.length;
-    for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
+    totalRows = featureList.getNumberOfRows();
+    processedRows = 0;
+    final ListIterator<FeatureListRow> iterator = featureList.getRows().listIterator();
+    while (iterator.hasNext()) {
+      if (isCanceled()) {
+        return null;
+      }
 
+      final FeatureListRow row = iterator.next();
       filterRowCriteriaFailed = false;
-
-      final FeatureListRow row = rows[processedRows];
 
       final int featureCount = getFeatureCount(row, groupingParameter);
 
@@ -457,13 +472,21 @@ public class RowsFilterTask extends AbstractTask {
       // Only remove rows that match *all* of the criteria, so add
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
-      if (filterRowCriteriaFailed == removeRow) {
+      boolean keepRow = filterRowCriteriaFailed == removeRow;
+      if (processInCurrentList) {
+        if (keepRow) {
+          rowsCount++;
+        } else {
+          iterator.remove();
+        }
+      } else if (keepRow) {
         rowsCount++;
         FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
             renumber ? rowsCount : row.getID(), (ModularFeatureListRow) row, true);
         newFeatureList.addRow(resetRow);
       }
 
+      processedRows++;
     }
 
     return newFeatureList;

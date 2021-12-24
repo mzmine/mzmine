@@ -80,6 +80,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.parametertypes.MinimumFeaturesFilterParameters;
 import io.github.mzmine.parameters.parametertypes.OptionalParameterComponent;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt;
 import io.github.mzmine.parameters.parametertypes.absoluterelative.AbsoluteNRelativeInt.Mode;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesComponent;
@@ -333,7 +334,7 @@ public class BatchWizardController {
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, true);
     param.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter()
         .setValue(2);
-    param.setParameter(RowsFilterParameters.AUTO_REMOVE, true);
+    param.setParameter(RowsFilterParameters.handleOriginal, OriginalFeatureListOption.KEEP);
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
     param.setParameter(RowsFilterParameters.SUFFIX,
         "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
@@ -355,7 +356,8 @@ public class BatchWizardController {
     param.setParameter(MultiThreadPeakFinderParameters.RTTolerance,
         hplcParameters.getValue(BatchWizardHPLCParameters.intraSampleRTTolerance));
     param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
-    param.setParameter(MultiThreadPeakFinderParameters.autoRemove, true);
+    param.setParameter(MultiThreadPeakFinderParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
 
     return new MZmineProcessingStepImpl<>(
@@ -381,7 +383,7 @@ public class BatchWizardController {
     // going back into scans so rather use scan mz tol
     param.setParameter(DuplicateFilterParameters.mzDifferenceMax, mzTol);
     param.setParameter(DuplicateFilterParameters.rtDifferenceMax, rtTol);
-    param.setParameter(DuplicateFilterParameters.autoRemove, true);
+    param.setParameter(DuplicateFilterParameters.handleOriginal, OriginalFeatureListOption.KEEP);
     param.setParameter(DuplicateFilterParameters.suffix, "dup");
     param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);
     param.setParameter(DuplicateFilterParameters.filterMode, FilterMode.NEW_AVERAGE);

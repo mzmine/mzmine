@@ -32,7 +32,6 @@ import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.Gap;
 import io.github.mzmine.parameters.ParameterSet;
@@ -41,7 +40,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.IonMobilityUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +61,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private final int start;
   private final int endexcl;
   private final int taskIndex;
+  private final int minDataPoints;
   private int totalScans;
 
   MultiThreadPeakFinderTask(ModularFeatureList peakList, ModularFeatureList processedPeakList,
@@ -75,9 +74,10 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     this.peakList = peakList;
     this.processedPeakList = processedPeakList;
 
-    intTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.intTolerance).getValue();
-    mzTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.RTTolerance).getValue();
+    intTolerance = parameters.getValue(MultiThreadPeakFinderParameters.intTolerance);
+    mzTolerance = parameters.getValue(MultiThreadPeakFinderParameters.MZTolerance);
+    rtTolerance = parameters.getValue(MultiThreadPeakFinderParameters.RTTolerance);
+    minDataPoints = parameters.getValue(MultiThreadPeakFinderParameters.minDataPoints);
 
     this.start = start;
     this.endexcl = endexcl;
@@ -96,6 +96,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       RawDataFile dataFile = peakList.getRawDataFile(i);
       totalScans += peakList.getSeletedScans(dataFile).size();
     }
+
+    int filled = 0;
 
     // Process all raw data files
     for (int i = start; i < endexcl; i++) {
@@ -124,10 +126,9 @@ class MultiThreadPeakFinderTask extends AbstractTask {
           // Create a new gap
           Range<Double> mzRange = mzTolerance.getToleranceRange(sourceRow.getAverageMZ());
           Range<Float> rtRange = rtTolerance.getToleranceRange(sourceRow.getAverageRT());
-          Range<Float> mobilityRange = IonMobilityUtils.getRowMobilityrange(
-              (ModularFeatureListRow) sourceRow);
 
           if (peakList.hasFeatureType(MobilityType.class) && dataFile instanceof IMSRawDataFile) {
+            Range<Float> mobilityRange = sourceRow.getMobilityRange();
             Gap newGap = new ImsGap(newRow, dataFile, mzRange, rtRange, mobilityRange, intTolerance,
                 mobilogramAccess);
             gaps.add(newGap);
@@ -150,10 +151,11 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-
-      // Finalize gaps
+      // Finalize gaps and add to feature list
       for (Gap gap : gaps) {
-        gap.noMoreOffers();
+        if (gap.noMoreOffers(minDataPoints)) {
+          filled++;
+        }
       }
 
       // log progress for long running tasks, different levels
@@ -161,17 +163,19 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       if (processedDataFiles % 5 == 0) {
         logger.fine(() -> String.format(
             "Multithreaded gap filler (%d): %d of %d raw files processed (%.1f %%)", taskIndex,
-            processedDataFiles, totalDataFiles, (processedDataFiles / (float) totalDataFiles) * 100));
+            processedDataFiles, totalDataFiles,
+            (processedDataFiles / (float) totalDataFiles) * 100));
       } else {
         logger.finest(() -> String.format(
             "Multithreaded gap filler (%d): %d of %d raw files processed (%.1f %%)", taskIndex,
-            processedDataFiles, totalDataFiles, (processedDataFiles / (float) totalDataFiles) * 100));
+            processedDataFiles, totalDataFiles,
+            (processedDataFiles / (float) totalDataFiles) * 100));
       }
     }
 
-    logger.info(
-        "Finished sub task: Multithreaded gap filler " + taskIndex + " on raw files " + (start + 1)
-        + "-" + endexcl + " of pkl:" + peakList);
+    logger.info(String.format(
+        "Finished sub task: Multithreaded gap filler %d on raw files %d-%d in feature list %s. (Gaps filled: %d)",
+        taskIndex, (start + 1), endexcl, peakList.toString(), filled));
     setStatus(TaskStatus.FINISHED);
   }
 
