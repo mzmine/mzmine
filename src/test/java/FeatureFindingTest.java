@@ -55,6 +55,7 @@ import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParam
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -302,9 +303,9 @@ public class FeatureFindingTest {
     SmoothingParameters paramSmooth = new SmoothingParameters();
     paramSmooth.getParameter(SmoothingParameters.featureLists)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
-    paramSmooth.setParameter(SmoothingParameters.removeOriginal, false);
-    paramSmooth
-        .setParameter(SmoothingParameters.smoothingAlgorithm, new MZmineProcessingStepImpl<>(SmoothingParameters.sgSmoothing, sgParam));
+    paramSmooth.setParameter(SmoothingParameters.handleOriginal, OriginalFeatureListOption.KEEP);
+    paramSmooth.setParameter(SmoothingParameters.smoothingAlgorithm,
+        new MZmineProcessingStepImpl<>(SmoothingParameters.sgSmoothing, sgParam));
     paramSmooth.setParameter(SmoothingParameters.suffix, smoothSuffix);
 
     logger.info("Testing chromatogram smoothing (RT, 5 dp)");
@@ -469,7 +470,8 @@ public class FeatureFindingTest {
     IsotopeGrouperParameters generalParam = new IsotopeGrouperParameters();
     generalParam.getParameter(IsotopeGrouperParameters.peakLists)
         .setValue(new FeatureListsSelection(lastFlistA, lastFlistB));
-    generalParam.setParameter(IsotopeGrouperParameters.autoRemove, false);
+    generalParam.setParameter(IsotopeGrouperParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
     generalParam.setParameter(IsotopeGrouperParameters.maximumCharge, 2);
     generalParam.setParameter(IsotopeGrouperParameters.mobilityTolerace, false);
     generalParam.setParameter(IsotopeGrouperParameters.monotonicShape, true);
@@ -557,6 +559,7 @@ public class FeatureFindingTest {
     generalParam.setParameter(JoinAlignerParameters.RTWeight, 1d);
     generalParam.setParameter(JoinAlignerParameters.SameChargeRequired, false);
     generalParam.setParameter(JoinAlignerParameters.SameIDRequired, false);
+    generalParam.setParameter(JoinAlignerParameters.handleOriginal, OriginalFeatureListOption.KEEP);
     generalParam.setParameter(JoinAlignerParameters.peakListName, alignedName);
 
     logger.info("Testing join aligner");
