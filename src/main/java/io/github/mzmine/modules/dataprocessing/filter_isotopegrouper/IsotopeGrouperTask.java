@@ -99,7 +99,7 @@ class IsotopeGrouperTask extends AbstractTask {
     chooseMostIntense = (Objects.equals(
         parameters.getParameter(IsotopeGrouperParameters.representativeIsotope).getValue(),
         IsotopeGrouperParameters.ChooseTopIntensity));
-    handleOriginal = parameters.getParameter(IsotopeGrouperParameters.handleOriginal).getValue();
+    handleOriginal = parameters.getValue(IsotopeGrouperParameters.handleOriginal);
     useMobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
         .getValue();
     mobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
