@@ -25,8 +25,8 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
@@ -37,8 +37,8 @@ public class SmoothingParameters extends SimpleParameterSet {
   public static final SmoothingAlgorithm sgSmoothing = MZmineCore
       .getModuleInstance(SavitzkyGolaySmoothing.class);
 
-  public static final SmoothingAlgorithm loessSmoothing = MZmineCore
-      .getModuleInstance(LoessSmoothing.class);
+  public static final SmoothingAlgorithm loessSmoothing = MZmineCore.getModuleInstance(
+      LoessSmoothing.class);
 
   public static final SmoothingAlgorithm[] smoothingAlgorithms = new SmoothingAlgorithm[]{
       sgSmoothing, loessSmoothing};
@@ -46,17 +46,17 @@ public class SmoothingParameters extends SimpleParameterSet {
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
   public static final ModuleComboParameter<SmoothingAlgorithm> smoothingAlgorithm = new ModuleComboParameter<SmoothingAlgorithm>(
-      "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms, sgSmoothing);
+      "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms,
+      sgSmoothing);
 
-  public static final BooleanParameter removeOriginal = new BooleanParameter(
-      "Remove original feature list",
-      "The original feature list is removed after the processing has finished");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = //
+      new OriginalFeatureListHandlingParameter(false);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
       "The suffix to be added to processed feature lists.", " sm");
 
   public SmoothingParameters() {
-    super(new Parameter[]{featureLists, smoothingAlgorithm, removeOriginal, suffix});
+    super(new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix});
   }
 
   @Override

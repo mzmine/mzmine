@@ -468,7 +468,7 @@ public class BatchWizardController {
     ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
         .cloneParameterSet();
 
-    param.setParameter(ImsExpanderParameters.removeOriginalFeatureList, true);
+    param.setParameter(ImsExpanderParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ImsExpanderParameters.useRawData, true);
@@ -503,7 +503,7 @@ public class BatchWizardController {
     param.getParameter(SmoothingParameters.smoothingAlgorithm).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SavitzkyGolaySmoothing.class),
             sgParam));
-    param.setParameter(SmoothingParameters.removeOriginal, true);
+    param.setParameter(SmoothingParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
     param.setParameter(SmoothingParameters.suffix, "sm");
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SmoothingModule.class),
@@ -638,7 +638,7 @@ public class BatchWizardController {
     param.setParameter(IsotopeGrouperParameters.maximumCharge, 2);
     param.setParameter(IsotopeGrouperParameters.representativeIsotope,
         IsotopeGrouperParameters.ChooseTopIntensity);
-    param.setParameter(IsotopeGrouperParameters.autoRemove, true);
+    param.setParameter(IsotopeGrouperParameters.handleOriginal, OriginalFeatureListOption.REMOVE);
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeGrouperModule.class),
         param);
@@ -687,6 +687,7 @@ public class BatchWizardController {
     param.setParameter(JoinAlignerParameters.SameIDRequired, false);
     param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
     param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
+    param.setParameter(JoinAlignerParameters.handleOriginal, OriginalFeatureListOption.KEEP);
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
         param);

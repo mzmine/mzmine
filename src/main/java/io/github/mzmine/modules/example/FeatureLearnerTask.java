@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -46,6 +47,7 @@ class FeatureLearnerTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(FeatureLearnerTask.class.getName());
 
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
   private ModularFeatureList featureList;
   private ModularFeatureList resultFeatureList;
 
@@ -57,7 +59,6 @@ class FeatureLearnerTask extends AbstractTask {
   private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
   /**
@@ -65,8 +66,8 @@ class FeatureLearnerTask extends AbstractTask {
    *
    * @param parameters
    */
-  public FeatureLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  public FeatureLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     this.project = project;
     this.featureList = (ModularFeatureList) featureList;
@@ -75,24 +76,19 @@ class FeatureLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getValue(LearnerParameters.handleOriginal);
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return "Learner task on " + featureList;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
-    if (totalFeatures == 0)
+    if (totalFeatures == 0) {
       return 0;
+    }
     return (double) processedFeatures / (double) totalFeatures;
   }
 
@@ -105,7 +101,8 @@ class FeatureLearnerTask extends AbstractTask {
     logger.info("Running learner task on " + featureList);
 
     // Create a new results feature list which is added at the end
-    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(), featureList.getRawDataFiles());
+    resultFeatureList = new ModularFeatureList(featureList + " " + suffix, getMemoryMapStorage(),
+        featureList.getRawDataFiles());
 
     /**
      * - A FeatureList is a list of Features (feature in retention time dimension with accurate m/z)<br>
@@ -128,8 +125,9 @@ class FeatureLearnerTask extends AbstractTask {
     totalFeatures = sortedFeatures.length;
     for (int i = 0; i < totalFeatures; i++) {
       // check for cancelled state and stop
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       // current features
       Feature aFeature = sortedFeatures[i];
@@ -157,8 +155,8 @@ class FeatureLearnerTask extends AbstractTask {
    * Add feature list to project, delete old if requested, add description to result
    */
   public void addResultToProject() {
-    // Add new feature list to the project
-    project.addFeatureList(resultFeatureList);
+    // add results and maybe remove old lists
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, resultFeatureList, featureList);
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
@@ -166,12 +164,9 @@ class FeatureLearnerTask extends AbstractTask {
     }
 
     // Add task description to feature list
-    resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
+    resultFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
 
-    // Remove the original feature list if requested
-    if (removeOriginal)
-      project.removeFeatureList(featureList);
   }
 
 }
