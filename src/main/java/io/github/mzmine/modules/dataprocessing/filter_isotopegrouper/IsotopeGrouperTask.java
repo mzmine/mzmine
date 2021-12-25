@@ -207,9 +207,7 @@ class IsotopeGrouperTask extends AbstractTask {
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the feature list.
       if (bestFitRows.size() == 1) {
-        deisotopedFeatureList.addRow(
-            new ModularFeatureListRow(deisotopedFeatureList, mostIntenseRow.getID(), mostIntenseRow,
-                true));
+        finalRows.add(mostIntenseRow);
         processedRows++;
         continue;
       }
