@@ -526,7 +526,8 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal, true);
+    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
     final GroupMS2SubParameters groupParam = param.getParameter(
@@ -574,7 +575,8 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal, true);
+    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
+        OriginalFeatureListOption.KEEP);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
