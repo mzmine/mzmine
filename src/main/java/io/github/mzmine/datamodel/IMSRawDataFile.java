@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
 import java.util.List;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,7 +117,6 @@ public interface IMSRawDataFile extends RawDataFile {
   @NotNull
   MobilityType getMobilityType();
 
-//  double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber);
-
-//  Map<Integer, Double> getMobilitiesForFrame(int frameNumber);
+  @Nullable
+  SimpleRegression getCCSCalibration();
 }

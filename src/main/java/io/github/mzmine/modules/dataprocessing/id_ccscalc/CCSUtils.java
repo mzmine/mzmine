@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @see CCSCalcModule
  */
+@Deprecated
 public class CCSUtils {
 
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
@@ -37,11 +38,8 @@ public class CCSUtils {
   public static Float calcCCS(double mz, @NotNull Float mobility,
       @NotNull MobilityType mobilityType, int charge) {
     return switch (mobilityType) {
+      case NONE, DRIFT_TUBE, TRAVELING_WAVE, FAIMS -> logUnsupportedMobilityUnit();
       case TIMS -> calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
-      case DRIFT_TUBE -> logUnsupportedMobilityUnit();
-      case TRAVELING_WAVE -> logUnsupportedMobilityUnit();
-      case FAIMS -> logUnsupportedMobilityUnit();
-      default -> logUnsupportedMobilityUnit();
     };
   }
 

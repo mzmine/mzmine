@@ -44,7 +44,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
-  private static final double electronMass = 0.00054857990946;
+  public static final double electronMass = 0.00054857990946;
   private static Logger logger = Logger.getLogger(FormulaUtils.class.getName());
 
   /**

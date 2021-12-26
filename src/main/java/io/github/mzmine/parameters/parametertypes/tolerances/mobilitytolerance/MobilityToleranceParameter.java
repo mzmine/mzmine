@@ -43,6 +43,12 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
     this.description = description;
   }
 
+  public MobilityToleranceParameter(String name, String description, MobilityTolerance defaultValue) {
+    this.name = name;
+    this.description = description;
+    this.value = defaultValue;
+  }
+
   @Override
   public String getName() {
     return name;
