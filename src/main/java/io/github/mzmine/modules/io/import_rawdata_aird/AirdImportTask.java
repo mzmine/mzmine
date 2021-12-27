@@ -97,7 +97,10 @@ public class AirdImportTask extends AbstractTask {
             if (airdInfo == null) {
                 throw new Exception("Parsing Cancelled");
             }
-            totalScans = airdInfo.getTotalScanCount().intValue();
+            if (airdInfo.getTotalScanCount() != null) {
+                totalScans = airdInfo.getTotalScanCount().intValue();
+            }
+
             List<DDAMs> cycleList = parser.readAllToMemory();
 
             for (int i = 0; i < cycleList.size(); i++) {
