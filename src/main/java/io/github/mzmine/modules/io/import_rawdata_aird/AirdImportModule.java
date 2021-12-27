@@ -113,9 +113,9 @@ public class AirdImportModule implements MZmineProcessingModule {
       String newName;
       if (!Strings.isNullOrEmpty(commonPrefix)) {
         final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = files[i].getName().replaceFirst(regex, "");
+        newName = airdFile.getName().replaceFirst(regex, "");
       } else {
-        newName = files[i].getName();
+        newName = airdFile.getName();
       }
 
       try {
