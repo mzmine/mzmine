@@ -45,9 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- *
- */
 public class AirdImportTask extends AbstractTask {
 
     private final ParameterSet parameters;
@@ -103,15 +100,21 @@ public class AirdImportTask extends AbstractTask {
             totalScans = airdInfo.getTotalScanCount().intValue();
             List<DDAMs> cycleList = parser.readAllToMemory();
 
-
             for (int i = 0; i < cycleList.size(); i++) {
                 DDAMs ms1 = cycleList.get(i);
                 HashMap<String, Object> ms1CvList = parseCVList(ms1);
-
-                SimpleScan ms1Scan = new SimpleScan(newMZmineFile, ms1.getNum(), MsLevel.MS1.getCode(),
-                        ms1.getRt(), null, ArrayUtil.fromFloatToDouble(ms1.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms1.getSpectrum().ints()),
-                        (MassSpectrumType) ms1CvList.get(Mass_Spectrum_Type), (PolarityType) ms1CvList.get(Polarity_Type),
-                        (String) ms1CvList.get(FILTER_STRING), Range.closed(Double.parseDouble((String) ms1CvList.get(LOWEST_MZ)), Double.parseDouble((String) ms1CvList.get(HIGHEST_MZ))));
+                SimpleScan ms1Scan = null;
+                if (ms1CvList != null && ms1CvList.size() != 0) {
+                    ms1Scan = new SimpleScan(newMZmineFile, ms1.getNum(), MsLevel.MS1.getCode(),
+                            ms1.getRt(), null, ArrayUtil.fromFloatToDouble(ms1.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms1.getSpectrum().ints()),
+                            (MassSpectrumType) ms1CvList.get(Mass_Spectrum_Type), (PolarityType) ms1CvList.get(Polarity_Type),
+                            (String) ms1CvList.get(FILTER_STRING), Range.closed(Double.parseDouble((String) ms1CvList.get(LOWEST_MZ)), Double.parseDouble((String) ms1CvList.get(HIGHEST_MZ))));
+                } else {
+                    ms1Scan = new SimpleScan(newMZmineFile, ms1.getNum(), MsLevel.MS1.getCode(),
+                            ms1.getRt(), null, ArrayUtil.fromFloatToDouble(ms1.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms1.getSpectrum().ints()),
+                            MassSpectrumType.PROFILE, PolarityType.POSITIVE,
+                            "", null);
+                }
 
                 parsedScans++;
                 newMZmineFile.addScan(ms1Scan);
@@ -119,11 +122,18 @@ public class AirdImportTask extends AbstractTask {
                     for (int j = 0; j < ms1.getMs2List().size(); j++) {
                         DDAMs ms2 = ms1.getMs2List().get(j);
                         HashMap<String, Object> ms2CvList = parseCVList(ms2);
-                        SimpleScan ms2Scan = new SimpleScan(newMZmineFile, ms2.getNum(), MsLevel.MS2.getCode(),
-                                ms2.getRt(), null, ArrayUtil.fromFloatToDouble(ms2.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms2.getSpectrum().ints()),
-                                (MassSpectrumType) ms2CvList.get(Mass_Spectrum_Type), (PolarityType) ms2CvList.get(Polarity_Type),
-                                (String) ms2CvList.get(FILTER_STRING), Range.closed(Double.parseDouble((String) ms2CvList.get(LOWEST_MZ)), Double.parseDouble((String) ms2CvList.get(HIGHEST_MZ))));
-
+                        SimpleScan ms2Scan = null;
+                        if (ms2CvList != null && ms2CvList.size() != 0) {
+                            ms2Scan = new SimpleScan(newMZmineFile, ms2.getNum(), MsLevel.MS2.getCode(),
+                                    ms2.getRt(), null, ArrayUtil.fromFloatToDouble(ms2.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms2.getSpectrum().ints()),
+                                    (MassSpectrumType) ms2CvList.get(Mass_Spectrum_Type), (PolarityType) ms2CvList.get(Polarity_Type),
+                                    (String) ms2CvList.get(FILTER_STRING), Range.closed(Double.parseDouble((String) ms2CvList.get(LOWEST_MZ)), Double.parseDouble((String) ms2CvList.get(HIGHEST_MZ))));
+                        } else {
+                            ms2Scan = new SimpleScan(newMZmineFile, ms2.getNum(), MsLevel.MS2.getCode(),
+                                    ms2.getRt(), null, ArrayUtil.fromFloatToDouble(ms2.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms2.getSpectrum().ints()),
+                                    MassSpectrumType.PROFILE, PolarityType.POSITIVE,
+                                    "", null);
+                        }
                         parsedScans++;
                         newMZmineFile.addScan(ms2Scan);
                     }
