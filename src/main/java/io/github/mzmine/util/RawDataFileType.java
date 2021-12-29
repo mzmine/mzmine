@@ -23,18 +23,19 @@ package io.github.mzmine.util;
  */
 public enum RawDataFileType {
 
-  MZML, //
-  IMZML, //
-  MZML_IMS, //
-  MZXML, //
-  MZDATA, //
-  NETCDF, //
-  THERMO_RAW, //
-  WATERS_RAW, //
-  ZIP, //
-  GZIP, //
-  ICPMSMS_CSV, //
-  BRUKER_TDF, //
-  BRUKER_TSF //
+    MZML, //
+    IMZML, //
+    MZML_IMS, //
+    MZXML, //
+    MZDATA, //
+    NETCDF, //
+    THERMO_RAW, //
+    WATERS_RAW, //
+    ZIP, //
+    GZIP, //
+    ICPMSMS_CSV, //
+    BRUKER_TDF, //
+    BRUKER_TSF, //
+    AIRD //
 
 }
