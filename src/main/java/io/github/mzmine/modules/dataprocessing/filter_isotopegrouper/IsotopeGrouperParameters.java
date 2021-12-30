@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopegrouper;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -29,6 +30,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class IsotopeGrouperParameters extends SimpleParameterSet {
 
@@ -73,4 +75,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
         monotonicShape, maximumCharge, representativeIsotope, autoRemove});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }
