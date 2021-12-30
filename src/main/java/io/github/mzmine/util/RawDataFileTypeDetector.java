@@ -150,7 +150,7 @@ public class RawDataFileTypeDetector {
           } else {
             InputStreamReader reader2 =
                 new InputStreamReader(new FileInputStream(fileName), StandardCharsets.ISO_8859_1);
-            char buffer2[] = new char[4096];
+            char buffer2[] = new char[4096 * 10];
             String content = new String(buffer2);
             boolean containsScan = false, containsAccession = false;
             while (containsScan == false && containsAccession == false) {
@@ -162,7 +162,6 @@ public class RawDataFileTypeDetector {
             }
             reader2.close();
             if (content.contains("1002476") || content.contains("1002815")) { // accession for
-                                                                              // mobility
               return RawDataFileType.MZML_IMS;
             } else {
               return RawDataFileType.MZML;
@@ -186,5 +185,4 @@ public class RawDataFileTypeDetector {
     return null;
 
   }
-
 }

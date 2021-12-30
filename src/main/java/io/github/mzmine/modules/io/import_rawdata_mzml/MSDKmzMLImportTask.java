@@ -236,7 +236,11 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
-      if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
+      if(mzMLScan.getMobility() == null) {
+        continue;
+      }
+      if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS
+          && mobilities[0] - mobilities[1] < 0) {
         // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
         ArrayUtils.reverse(mobilities);
       }
@@ -316,10 +320,18 @@ public class MSDKmzMLImportTask extends AbstractTask {
       throws IOException {
     final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
 
-    final boolean isTims =
-        ((MzMLMsScan) file.getScans().get(0)).getMobility().mobilityType() == MobilityType.TIMS;
+    boolean isTims;
+    try {
+      isTims =
+          ((MzMLMsScan) file.getScans().get(0)).getMobility().mobilityType() == MobilityType.TIMS;
+    } catch (NullPointerException e) {
+      isTims = false;
+    }
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      if(((MzMLMsScan) scan).getMobility() == null) {
+        continue;
+      }
       final double mobility = mzMLScan.getMobility().mobility();
       final Entry<Range<Double>, Integer> entry = mobilityCounts.getEntry(mobility);
       if (entry == null) {
@@ -343,8 +355,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final double tenthDiff = medianDiff / 10;
     RangeMap<Double, Integer> realMobilities = TreeRangeMap.create();
     for (int i = 0; i < mobilityValues.length; i++) {
-      realMobilities.put(
-          Range.closed(mobilityValues[i] - tenthDiff, mobilityValues[i] + tenthDiff),
+      realMobilities.put(Range.closed(mobilityValues[i] - tenthDiff, mobilityValues[i] + tenthDiff),
           isTims ? mobilityValues.length - 1 - i : i); // reverse scan number order for tims
     }
 
