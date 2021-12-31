@@ -28,7 +28,6 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportModule;
 import io.github.mzmine.modules.io.import_rawdata_aird.AirdImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
@@ -241,7 +240,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
                     parameters, moduleCallDate);
             case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile,
                     advancedParam, module, parameters, moduleCallDate);
-            case AIRD -> new AirdImportTask(project, file, newMZmineFile, AirdImportModule.class, parameters, moduleCallDate);
+            case AIRD -> new AirdImportTask(project, file, newMZmineFile, module, parameters, moduleCallDate);
             // all unsupported tasks are wrapped to apply import and mass detection separately
             case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
                     fileType, project, file, newMZmineFile, advancedParam, module, parameters, moduleCallDate);

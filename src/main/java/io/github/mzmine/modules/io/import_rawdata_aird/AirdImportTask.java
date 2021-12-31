@@ -29,19 +29,24 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
-import net.csibio.aird.bean.AirdInfo;
-import net.csibio.aird.bean.CV;
-import net.csibio.aird.bean.DDAMs;
+import net.csibio.aird.bean.*;
+import net.csibio.aird.bean.common.Spectrum;
 import net.csibio.aird.constant.PSI;
+import net.csibio.aird.constant.SuffixConst;
+import net.csibio.aird.enums.AirdType;
 import net.csibio.aird.enums.MsLevel;
+import net.csibio.aird.parser.BaseParser;
 import net.csibio.aird.parser.DDAParser;
+import net.csibio.aird.parser.v2.DIAParser;
 import net.csibio.aird.util.AirdScanUtil;
 import net.csibio.aird.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,9 +68,10 @@ public class AirdImportTask extends AbstractTask {
                           @NotNull Instant moduleCallDate) {
         super(newMZmineFile.getMemoryMapStorage(), moduleCallDate); // storage in raw data file
         this.project = project;
-        if (fileToOpen.getName().toLowerCase().endsWith(".aird")){
+
+        if (fileToOpen.getName().toLowerCase().endsWith(SuffixConst.AIRD)) {
             this.file = new File(AirdScanUtil.getIndexPathByAirdPath(fileToOpen.getPath()));
-        }else{
+        } else {
             this.file = fileToOpen;
         }
         this.newMZmineFile = newMZmineFile;
@@ -90,50 +96,25 @@ public class AirdImportTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
-        DDAParser parser = null;
+        BaseParser parser = null;
         try {
-
-            parser = new DDAParser(file.getPath());
+            parser = BaseParser.buildParser(file.getPath());
             airdInfo = parser.getAirdInfo();
             if (airdInfo == null) {
                 setStatus(TaskStatus.ERROR);
                 setErrorMessage("Parsing Cancelled, The aird index file(.json, metadata) not exists or the json file is broken.");
                 return;
             }
-
-
             totalScans = airdInfo.getTotalScanCount().intValue();
-            List<DDAMs> msList = parser.readAllToMemory();
-            if (msList.size() == 0) {
-                setStatus(TaskStatus.ERROR);
-                setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
-                return;
+            switch (AirdType.getType(airdInfo.getType())) {
+                case DDA -> loadAsDDA((DDAParser) parser);
+                case DIA_SWATH -> loadAsDIA((DIAParser) parser);
+                default -> {
+                    setStatus(TaskStatus.ERROR);
+                    setErrorMessage("Unsupported Aird Type:" + airdInfo.getType());
+                }
             }
 
-            for (int i = 0; i < msList.size(); i++) {
-                DDAMs ms1 = msList.get(i);
-                if (ms1.getCvList() == null || ms1.getCvList().size() == 0) {
-                    setStatus(TaskStatus.ERROR);
-                    setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
-                    return;
-                }
-                SimpleScan ms1Scan = buildSimpleScan(ms1, MsLevel.MS1.getCode(), null);
-                parsedScans++;
-                newMZmineFile.addScan(ms1Scan);
-                if (ms1.getMs2List() != null && ms1.getMs2List().size() != 0) {
-                    for (int j = 0; j < ms1.getMs2List().size(); j++) {
-                        DDAMs ms2 = ms1.getMs2List().get(j);
-                        if (ms2.getCvList() == null || ms2.getCvList().size() == 0) {
-                            setStatus(TaskStatus.ERROR);
-                            setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
-                            return;
-                        }
-                        SimpleScan ms2Scan = buildSimpleScan(ms2, MsLevel.MS2.getCode(), ms1Scan);
-                        parsedScans++;
-                        newMZmineFile.addScan(ms2Scan);
-                    }
-                }
-            }
         } catch (Throwable e) {
             logger.log(Level.WARNING, "Error during aird import of file" + file.getName());
             logger.log(Level.WARNING, e.getMessage(), e);
@@ -165,14 +146,66 @@ public class AirdImportTask extends AbstractTask {
         return description;
     }
 
-    private SimpleScan buildSimpleScan(DDAMs ms, int msLevel, Scan parentScan) {
+    private void loadAsDDA(DDAParser parser) throws Exception {
+        List<DDAMs> msList = parser.readAllToMemory();
+        if (msList.size() == 0) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
+            return;
+        }
+
+        for (int i = 0; i < msList.size(); i++) {
+            DDAMs ms1 = msList.get(i);
+            if (ms1.getCvList() == null || ms1.getCvList().size() == 0) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
+                return;
+            }
+            SimpleScan ms1Scan = buildSimpleScan(ms1.getSpectrum(), ms1.getCvList(), null, ms1.getNum(), ms1.getRt(), MsLevel.MS1.getCode(), null);
+            parsedScans++;
+            newMZmineFile.addScan(ms1Scan);
+            if (ms1.getMs2List() != null && ms1.getMs2List().size() != 0) {
+                for (int j = 0; j < ms1.getMs2List().size(); j++) {
+                    DDAMs ms2 = ms1.getMs2List().get(j);
+                    if (ms2.getCvList() == null || ms2.getCvList().size() == 0) {
+                        setStatus(TaskStatus.ERROR);
+                        setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
+                        return;
+                    }
+                    SimpleScan ms2Scan = buildSimpleScan(ms2.getSpectrum(), ms2.getCvList(), ms2.getRange(), ms2.getNum(), ms2.getRt(), MsLevel.MS2.getCode(), ms1Scan);
+                    parsedScans++;
+                    newMZmineFile.addScan(ms2Scan);
+                }
+            }
+        }
+    }
+
+    private void loadAsDIA(DIAParser parser) throws IOException {
+        AirdInfo airdInfo = parser.getAirdInfo();
+        List<BlockIndex> indexList = airdInfo.getIndexList();
+        for (BlockIndex index : indexList) {
+            TreeMap<Float, Spectrum> map = parser.getSpectrums(index);
+            List<Integer> numList = index.getNums();
+            List<Float> rtList = index.getRts();
+            List<WindowRange> rangeList = index.getRangeList();
+            for (int i = 0; i < rtList.size(); i++) {
+                float rt = rtList.get(i);
+                SimpleScan scan = buildSimpleScan(map.get(rt), index.getCvList().get(i), rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(), null);
+                parsedScans++;
+                newMZmineFile.addScan(scan);
+            }
+        }
+
+    }
+
+    private SimpleScan buildSimpleScan(Spectrum spectrum, List<CV> cvList, WindowRange windowRange, Integer num, float rt, int msLevel, Scan parentScan) {
         MassSpectrumType massSpectrumType = null;
         PolarityType polarityType = null;
         String filterString = null;
         Double lowestMz = null;
         Double highestMz = null;
 
-        for (CV cv : ms.getCvList()) {
+        for (CV cv : cvList) {
             if (cv.getCvid().contains(PSI.cvPolarityPositive)) {
                 polarityType = PolarityType.POSITIVE;
                 continue;
@@ -210,18 +243,18 @@ public class AirdImportTask extends AbstractTask {
 
         DDAMsMsInfoImpl msMsInfo = null;
         if (msLevel == MsLevel.MS2.getCode()) {
-            msMsInfo = buildMsMsInfo(airdInfo, ms, parentScan);
+            msMsInfo = buildMsMsInfo(airdInfo, windowRange, parentScan);
         }
-        SimpleScan msScan = new SimpleScan(newMZmineFile, ms.getNum(), msLevel,
-                ms.getRt(), msMsInfo, ArrayUtil.fromFloatToDouble(ms.getSpectrum().mzs()), ArrayUtil.fromFloatToDouble(ms.getSpectrum().ints()),
+        SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel,
+                rt * 60, msMsInfo, ArrayUtil.fromFloatToDouble(spectrum.mzs()), ArrayUtil.fromFloatToDouble(spectrum.ints()),
                 massSpectrumType, polarityType,
                 filterString, mzRange);
         return msScan;
     }
 
-    private DDAMsMsInfoImpl buildMsMsInfo(AirdInfo airdInfo, DDAMs ddaMs, Scan parentScan) {
-        Double precursorMz = ddaMs.getRange().getMz();
-        Integer charge = ddaMs.getRange().getCharge() == 0 ? null : ddaMs.getRange().getCharge();
+    private DDAMsMsInfoImpl buildMsMsInfo(AirdInfo airdInfo, WindowRange range, Scan parentScan) {
+        Double precursorMz = range.getMz();
+        Integer charge = range.getCharge() == 0 ? null : range.getCharge();
         Float energy = airdInfo.getEnergy() == -1 ? null : airdInfo.getEnergy();
         ActivationMethod method = ActivationMethod.valueOf(airdInfo.getActivator());
         if (precursorMz == null) {
