@@ -29,10 +29,6 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
-import net.csibio.aird.util.AirdScanUtil;
-import net.csibio.aird.util.FileUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
@@ -41,6 +37,8 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import net.csibio.aird.util.AirdScanUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Raw data import module
@@ -93,11 +91,11 @@ public class AirdImportModule implements MZmineProcessingModule {
     for (int i = 0; i < files.length; i++) {
       File airdFile = files[i];
       String indexFilePath = AirdScanUtil.getIndexPathByAirdPath(airdFile.getPath());
-      if (indexFilePath == null){
+      if (indexFilePath == null) {
         return ExitCode.ERROR;
       }
       File indexFile = new File(indexFilePath);
-      if ((!airdFile.exists()) || (!airdFile.canRead()) ) {
+      if ((!airdFile.exists()) || (!airdFile.canRead())) {
         MZmineCore.getDesktop().displayErrorMessage("Cannot read file " + airdFile);
         logger.warning("Cannot read aird file " + airdFile);
         return ExitCode.ERROR;
@@ -108,7 +106,7 @@ public class AirdImportModule implements MZmineProcessingModule {
         logger.warning("Cannot read index file " + indexFile);
         return ExitCode.ERROR;
       }
-
+      
       // Set the new name by removing the common prefix
       String newName;
       if (!Strings.isNullOrEmpty(commonPrefix)) {
@@ -119,8 +117,10 @@ public class AirdImportModule implements MZmineProcessingModule {
       }
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, indexFile.getAbsolutePath(), storage);
-        Task newTask = new AirdImportTask(project, indexFile, newMZmineFile, AirdImportModule.class, parameters, moduleCallDate);
+        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, indexFile.getAbsolutePath(),
+            storage);
+        Task newTask = new AirdImportTask(project, indexFile, newMZmineFile, AirdImportModule.class,
+            parameters, moduleCallDate);
         tasks.add(newTask);
       } catch (IOException e) {
         e.printStackTrace();

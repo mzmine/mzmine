@@ -72,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-
+  
   private static final MZmineCore instance = new MZmineCore();
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
@@ -155,7 +155,7 @@ public final class MZmineCore {
         } else {
           logger.log(Level.WARNING,
               "Cannot create or access temp file directory that was set via program argument: "
-              + tempDirectory.getAbsolutePath());
+                  + tempDirectory.getAbsolutePath());
         }
       }
 

@@ -22,11 +22,10 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 import io.github.mzmine.util.ExitCode;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
-
 import java.io.File;
 import java.util.List;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class AirdImportParameters extends SimpleParameterSet {
 
@@ -34,11 +33,11 @@ public class AirdImportParameters extends SimpleParameterSet {
       new ExtensionFilter("aird files", "*.aird") //
   );
 
-  public static final FileNamesParameter fileNames =
-      new FileNamesParameter("File names", "", extensions);
+  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
+      extensions);
 
   public AirdImportParameters() {
-    super(new Parameter[] {fileNames});
+    super(new Parameter[]{fileNames});
   }
 
   @Override
@@ -47,7 +46,6 @@ public class AirdImportParameters extends SimpleParameterSet {
     FileChooser fileChooser = new FileChooser();
     fileChooser.setTitle("Import aird data files");
     fileChooser.getExtensionFilters().addAll(extensions);
-
 
     File lastFiles[] = getParameter(fileNames).getValue();
     if ((lastFiles != null) && (lastFiles.length > 0)) {

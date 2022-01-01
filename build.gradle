@@ -35,12 +35,9 @@ defaultTasks "test", "jpackage"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
-if (OperatingSystem.current().isMacOsX())
-    project.ext.osSuffix = "macOS"
-if (OperatingSystem.current().isLinux())
-    project.ext.osSuffix = "Linux"
-if (OperatingSystem.current().isWindows())
-    project.ext.osSuffix = "Windows"
+if (OperatingSystem.current().isMacOsX()) project.ext.osSuffix = "macOS"
+if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
+if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
 println "OS detected as " + project.ext.osSuffix
 
 
@@ -212,8 +209,7 @@ javafx {
                "javafx.swing",
                "javafx.fxml",
                "javafx.web",
-               "javafx.graphics"
-    ]
+               "javafx.graphics"]
 }
 
 tasks.withType(JavaCompile) {
@@ -273,8 +269,7 @@ runtime {
                                 "--win-shortcut",
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$win_uuid",
-                                "--license-file", "LICENSE.txt"
-            ]
+                                "--license-file", "LICENSE.txt"]
         }
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
@@ -290,8 +285,7 @@ runtime {
             installerOptions = ["--linux-shortcut",
                                 "--linux-menu-group", "MZmine",
                                 "--license-file", "LICENSE.txt",
-                                "--linux-deb-maintainer", "plusik@gmail.com"
-            ]
+                                "--linux-deb-maintainer", "plusik@gmail.com"]
 
         }
         installerName = "MZmine"
@@ -303,8 +297,7 @@ runtime {
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
                    "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
-                   /*"--enable-preview"*/
-        ]
+                   /*"--enable-preview"*/]
     }
 }
 
