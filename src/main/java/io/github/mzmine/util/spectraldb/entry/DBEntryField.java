@@ -212,7 +212,7 @@ public enum DBEntryField {
       case RT:
         return "RT";
       case SMILES:
-        return "";
+        return "SMILES";
       case MS_LEVEL:
         return "Spectrum_type";
       case PUBCHEM:
