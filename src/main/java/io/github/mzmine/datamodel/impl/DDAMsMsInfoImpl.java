@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCV;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLCVParam;
+import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLIsolationWindow;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorActivation;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorSelectedIonList;
@@ -80,7 +81,7 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
     for (MzMLCVParam mzMLCVParam : activation.getCVParamsList()) {
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationEnergy) || mzMLCVParam.getAccession()
           .equals(MzMLCV.cvPercentCollisionEnergy) || mzMLCVParam.getAccession()
-          .equals(MzMLCV.cvActivationEnergy2)) {
+              .equals(MzMLCV.cvActivationEnergy2)) {
         energy = Float.parseFloat(mzMLCVParam.getValue().get());
       }
       if (mzMLCVParam.getAccession().equals(MzMLCV.cvActivationCID)) {
@@ -107,12 +108,30 @@ public class DDAMsMsInfoImpl implements DDAMsMsInfo {
       }
     }
 
+    Double lower = null;
+    Double upper = null;
+    final Optional<MzMLIsolationWindow> mzmlWindow = precursorElement.getIsolationWindow();
+    if (mzmlWindow.isPresent()) {
+      for (var param : mzmlWindow.get().getCVParamsList()) {
+        if (param.getAccession().equals(MzMLCV.cvIsolationWindowLowerOffset)) {
+          lower = Double.parseDouble(param.getValue().get());
+        }
+        if (param.getAccession().equals(MzMLCV.cvIsolationWindowUpperOffset)) {
+          upper = Double.parseDouble(param.getValue().get());
+        }
+      }
+    }
+
     if (precursorMz == null) {
       return null;
     }
-    return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, null);
-  }
 
+    Range<Double> mzwindow = null;
+    if (lower != null && upper != null) {
+      mzwindow = Range.closed(precursorMz - lower, precursorMz + upper);
+    }
+    return new DDAMsMsInfoImpl(precursorMz, charge, energy, null, null, msLevel, method, mzwindow);
+  }
 
   @Override
   public @Nullable Float getActivationEnergy() {

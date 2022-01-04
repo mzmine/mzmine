@@ -28,6 +28,7 @@ import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
+import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import io.github.mzmine.util.ExitCode;
@@ -76,8 +77,8 @@ public class MainMenuController {
      * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
      * it is hard-coded here for now
      */
-    final Path logFilePath = Paths
-        .get(System.getProperty("user.home") + File.separator + "mzmine_0_0.log");
+    final Path logFilePath = Paths.get(
+        System.getProperty("user.home") + File.separator + "mzmine_0_0.log");
 
     try {
       Desktop gui = MZmineCore.getDesktop();
@@ -155,8 +156,8 @@ public class MainMenuController {
       return;
     }
 
-    ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+    ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(moduleJavaClass);
 
     logger.info("Setting parameters for module " + module.getName());
 
@@ -218,6 +219,10 @@ public class MainMenuController {
     if (inst != null) {
       inst.showTab();
     }
+  }
+
+  public void showMSnTreeTab(ActionEvent actionEvent) {
+    MSnTreeVisualizerModule.showNewTab();
   }
 }
 

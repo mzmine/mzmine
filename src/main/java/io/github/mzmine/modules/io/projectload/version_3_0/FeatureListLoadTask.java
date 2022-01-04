@@ -380,7 +380,7 @@ public class FeatureListLoadTask extends AbstractTask {
       if (reader.next() == XMLEvent.START_ELEMENT) {
         if (reader.getLocalName().equals(CONST.XML_FEATURE_ELEMENT)) {
           final String fileName = reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT);
-          final RawDataFile file = project.getRawDataFiles().stream()
+          final RawDataFile file = project.getCurrentRawDataFiles().stream()
               .filter(f -> f.getName().equals(fileName)).findFirst().orElse(null);
           if (file == null) {
             logger.warning(() -> "Cannot load feature for row id " + id + " for file " + fileName

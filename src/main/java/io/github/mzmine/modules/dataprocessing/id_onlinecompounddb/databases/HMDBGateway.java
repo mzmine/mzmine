@@ -18,6 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.InetUtils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
@@ -35,13 +43,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-import com.google.common.collect.Range;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.InetUtils;
 
 public class HMDBGateway implements DBGateway {
 
@@ -95,7 +96,7 @@ public class HMDBGateway implements DBGateway {
    *
    */
   @Override
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException {
 
     logger.finest("Obtaining information about HMDB compound id " + ID);
 
@@ -137,7 +138,7 @@ public class HMDBGateway implements DBGateway {
     final URL structure3DURL = new URL(hmdbStructureAddress + ID + ".pdb");
     final URL entryURL = new URL(hmdbEntryAddress + ID);
 
-    DBCompound newCompound = new DBCompound(OnlineDatabases.HMDB, ID, compoundName, compoundFormula,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.HMDB, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

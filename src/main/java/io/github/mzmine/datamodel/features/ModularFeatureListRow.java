@@ -25,11 +25,13 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
@@ -44,6 +46,7 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -487,6 +490,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     set(ManualAnnotationType.class, manual);
   }
 
+  @Nullable
   public ManualAnnotation getManualAnnotation() {
     return get(ManualAnnotationType.class);
   }
@@ -511,8 +515,14 @@ public class ModularFeatureListRow implements FeatureListRow {
     ManualAnnotation manual = Objects
         .requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
 
-    List<FeatureIdentity> peakIdentities = Objects
-        .requireNonNullElse(getPeakIdentities(), new ArrayList<>());
+    List<FeatureIdentity> peakIdentities;
+    // getPeakIdentities initializes the returned list as an immutable list if manual is null
+    // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
+    if (getManualAnnotation() == null) {
+        peakIdentities = new ArrayList<>();
+    } else {
+        peakIdentities = getPeakIdentities();
+    }
     peakIdentities.remove(identity);
     if (preferred) {
       peakIdentities.add(0, identity);
@@ -521,6 +531,32 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     manual.setIdentities(peakIdentities);
     set(ManualAnnotationType.class, manual);
+  }
+
+  @Override
+  public void addCompoundAnnotation(CompoundDBAnnotation id) {
+    synchronized (getMap()) {
+      List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
+      if (matches == null) {
+        matches = new ArrayList<>();
+      }
+      matches.add(id);
+      set(CompoundDatabaseMatchesType.class, matches);
+    }
+  }
+
+  @Override
+  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+    synchronized (getMap()) {
+      set(CompoundDatabaseMatchesType.class, annotations);
+    }
+  }
+
+  @NotNull
+  @Override
+  public List<CompoundDBAnnotation> getCompoundAnnotations() {
+    var list = get(CompoundDatabaseMatchesType.class);
+    return list != null ? list : List.of();
   }
 
   @Override
@@ -545,6 +581,12 @@ public class ModularFeatureListRow implements FeatureListRow {
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
     }
+  }
+
+  @Override
+  @Nullable
+  public Range<Float> getMobilityRange() {
+    return get(MobilityRangeType.class);
   }
 
   @Override

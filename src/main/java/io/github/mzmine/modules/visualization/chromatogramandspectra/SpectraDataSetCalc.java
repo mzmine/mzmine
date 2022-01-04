@@ -30,7 +30,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -76,8 +75,11 @@ public class SpectraDataSetCalc extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-
-    if (showSpectraOfEveryRawFile) {
+    // is MS level>2 spectrum? then directly show
+    if (pos.getScan() != null && pos.getScan().getMSLevel() > 1) {
+      ScanDataSet dataSet = new ScanDataSet(pos.getScan());
+      filesAndDataSets.put(pos.getDataFile(), dataSet);
+    } else if (showSpectraOfEveryRawFile) {
       double rt = pos.getRetentionTime();
       rawDataFiles.forEach(rawDataFile -> {
         Scan scan = null;
@@ -111,20 +113,16 @@ public class SpectraDataSetCalc extends AbstractTask {
       spectrumPlot.removeAllDataSets();
 
       filesAndDataSets.keySet().forEach(rawDataFile -> {
-        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), false);
+        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(),
+            false);
 
         // If the scan contains a mass list then add dataset for it
         if (showMassListProperty.getValue()) {
           MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
           if (massList != null) {
-            int massListSize = massList.getNumberOfDataPoints();
-            double[] mzs = new double[massListSize];
-            double[] intensities = new double[massListSize];
-
             MassListDataSet massListDataset = new MassListDataSet(massList);
 
-            spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(),
-                false);
+            spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false);
           }
         }
       });

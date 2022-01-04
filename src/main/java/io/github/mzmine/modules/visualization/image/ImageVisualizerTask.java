@@ -20,33 +20,38 @@ package io.github.mzmine.modules.visualization.image;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.ImagingScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
+import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageDataPoint;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageXYZDataset;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import org.jfree.data.xy.XYZDataset;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.NumberAxis;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
@@ -59,7 +64,6 @@ public class ImageVisualizerTask extends AbstractTask {
   private final ImagingParameters imagingParameters;
   private final ScanSelection scanSelection;
   private final Range<Double> mzRange;
-  private final PaintScale paintScaleParameter;
 
   private double pixelWidth;
   private double pixelHeight;
@@ -75,8 +79,6 @@ public class ImageVisualizerTask extends AbstractTask {
     this.scanSelection =
         parameters.getParameter(ImageVisualizerParameters.scanSelection).getValue();
     this.mzRange = parameters.getParameter(ImageVisualizerParameters.mzRange).getValue();
-    this.paintScaleParameter =
-        parameters.getParameter(ImageVisualizerParameters.paintScale).getValue();
     setStatus(TaskStatus.WAITING);
   }
 
@@ -97,39 +99,80 @@ public class ImageVisualizerTask extends AbstractTask {
       return;
     }
     progress = 0.0;
-    calculatePixelSize();
-    Set<ImageDataPoint> imageDataPoints = extractAllDataPointsFromScans();
-    ImageHeatMapPlot imageHeatMapPlot = createImageHeatMapPlot(imageDataPoints);
-    Platform.runLater(() -> {
+    List<DataPoint> imageDataPoints = extractAllDataPointsFromScans();
+    SimpleIonTimeSeries timeSeries = extractIonTimeSeries(
+        imageDataPoints);
+
+    ModularFeature feature = new ModularFeature(
+        new ModularFeatureList("Raw data feature", rawDataFile.getMemoryMapStorage(), rawDataFile),
+        rawDataFile, timeSeries,
+        FeatureStatus.DETECTED);
+
+    FeatureImageProvider prov = new FeatureImageProvider(feature);
+    ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
+
+    SimpleXYZScatterPlot<FeatureImageProvider> chart = new SimpleXYZScatterPlot<>();
+    chart.setRangeAxisLabel("µm");
+    chart.setDomainAxisLabel("µm");
+
+    final boolean hideAxes = MZmineCore.getConfiguration()
+        .getModuleParameters(FeatureTableFXModule.class).getParameter(
+            FeatureTableFXParameters.hideImageAxes).getValue();
+
+    NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    chart.setDataset(ds);
+    axis.setInverted(true);
+    axis.setAutoRangeStickyZero(false);
+    axis.setAutoRangeIncludesZero(false);
+    axis.setRange(new org.jfree.data.Range(0, imagingParameters.getLateralHeight()));
+    axis.setVisible(!hideAxes);
+
+    axis = (NumberAxis) chart.getXYPlot().getDomainAxis();
+    axis.setAutoRangeStickyZero(false);
+    axis.setAutoRangeIncludesZero(false);
+    chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
+    axis.setRange(new org.jfree.data.Range(0, imagingParameters.getLateralWidth()));
+    axis.setVisible(!hideAxes);
+
+    final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
+        .getModuleParameters(FeatureTableFXModule.class).getParameter(
+            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+    chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+
+    MZmineCore.runLater(() -> {
       ImageVisualizerTab newTab =
-          new ImageVisualizerTab(parameters, imageHeatMapPlot, rawDataFile, imagingParameters);
+          new ImageVisualizerTab(chart, rawDataFile, imagingParameters);
       MZmineCore.getDesktop().addTab(newTab);
     });
+
     progress = 1.0;
     setStatus(TaskStatus.FINISHED);
   }
 
+  @NotNull
+  private SimpleIonTimeSeries extractIonTimeSeries(List<DataPoint> dataPoints) {
+    Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
+    int numDp = dataPoints.size();
+    double[] mzs = new double[numDp];
+    double[] intensities = new double[numDp];
+    List<Scan> scansList = new ArrayList<>();
+    int i = 0;
+    for (DataPoint dp : dataPoints) {
+      mzs[i] = dp.getMZ();
+      intensities[i] = dp.getIntensity();
+      scansList.add(scans[i]);
+      i++;
+    }
 
-  private void calculatePixelSize() {
-    pixelWidth = imagingParameters.getLateralWidth() / imagingParameters.getMaxNumberOfPixelX();
-    pixelHeight = imagingParameters.getLateralHeight() / imagingParameters.getMaxNumberOfPixelY();
+    return new SimpleIonTimeSeries(null, mzs,
+        intensities, scansList);
   }
 
-  // Extract all data point sorted by intensity
-  private Set<ImageDataPoint> extractAllDataPointsFromScans() {
+  private List<DataPoint> extractAllDataPointsFromScans() {
     logger.info("Start data point extraction");
     taskDescription = "Get data points from scans";
     int processedScans = 1;
-    SortedSet<ImageDataPoint> allDataPoints = new TreeSet<>(new Comparator<ImageDataPoint>() {
-      @Override
-      public int compare(ImageDataPoint o1, ImageDataPoint o2) {
-        if (o1.getxWorld() > o2.getxWorld()) {
-          return 1;
-        } else {
-          return -1;
-        }
-      }
-    });
+    List<DataPoint> allDataPoints = new ArrayList<>();
     Scan[] scans = scanSelection.getMatchingScans(rawDataFile);
     for (Scan scan : scans) {
       if (!(scan instanceof ImagingScan) || !scanSelection.matches(scan)) {
@@ -138,10 +181,7 @@ public class ImageVisualizerTask extends AbstractTask {
       double intensitySum = Arrays
           .stream(ScanUtils.selectDataPointsByMass(ScanUtils.extractDataPoints(scan), mzRange))
           .mapToDouble(DataPoint::getIntensity).sum();
-      allDataPoints.add(new ImageDataPoint(0.0, intensitySum, (ImagingScan) scan,
-          (((ImagingScan) scan).getCoordinates().getX() + 1) * pixelWidth,
-          (((ImagingScan) scan).getCoordinates().getY() + 1) * pixelHeight, 1, pixelHeight,
-          pixelWidth, paintScaleParameter));
+      allDataPoints.add(new SimpleDataPoint(0.0, intensitySum));
       progress = (processedScans / (double) scans.length);
       processedScans++;
     }
@@ -149,42 +189,4 @@ public class ImageVisualizerTask extends AbstractTask {
     return allDataPoints;
   }
 
-  private ImageHeatMapPlot createImageHeatMapPlot(Set<ImageDataPoint> imageDataPoints) {
-    Double[] xValues = null;
-    Double[] yValues = null;
-    Double[] zValues = null;
-    Double dataPointWidth = null;
-    Double dataPointHeight = null;
-    // add data points retention time -> intensity
-    List<Double> xValuesSet = new ArrayList<>();
-    List<Double> yValuesSet = new ArrayList<>();
-    List<Double> zValuesSet = new ArrayList<>();
-    for (ImageDataPoint dp : imageDataPoints) {
-      if (dataPointWidth == null) {
-        dataPointHeight = dp.getDataPointHeigth();
-        dataPointWidth = dp.getDataPointWidth();
-      }
-      xValuesSet.add(dp.getxWorld());
-      yValuesSet.add(dp.getyWorld());
-      zValuesSet.add(dp.getIntensity());
-    }
-    xValues = new Double[xValuesSet.size()];
-    xValues = xValuesSet.toArray(xValues);
-    yValues = new Double[yValuesSet.size()];
-    yValues = yValuesSet.toArray(yValues);
-    zValues = new Double[zValuesSet.size()];
-    zValues = zValuesSet.toArray(zValues);
-
-    XYZDataset dataset = new ImageXYZDataset(xValues, yValues, zValues, "");
-    return new ImageHeatMapPlot(dataset, createPaintScale(zValues), dataPointWidth,
-        dataPointHeight);
-  }
-
-  private PaintScale createPaintScale(Double[] zValues) {
-    Double[] zValuesCopy = Arrays.copyOf(zValues, zValues.length);
-    Arrays.sort(zValuesCopy);
-    Range<Double> zValueRange = Range.closed(zValuesCopy[0], zValuesCopy[zValues.length - 1]);
-    return new PaintScale(paintScaleParameter.getPaintScaleColorStyle(),
-        paintScaleParameter.getPaintScaleBoundStyle(), zValueRange);
-  }
 }

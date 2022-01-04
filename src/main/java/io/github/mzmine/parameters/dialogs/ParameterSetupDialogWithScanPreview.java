@@ -62,8 +62,6 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   protected SpectraPlot spectrumPlot;
 
   /**
-   * @param valueCheckRequired
-   * @param parameters
    */
   public ParameterSetupDialogWithScanPreview(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
@@ -74,14 +72,14 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     if (dataFiles.length == 0) {
       return;
     }
-//      this.hide();
-//      MZmineCore.getDesktop()
-//          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
-//      throw new UnsupportedOperationException(
-//          "Please load a raw data file before selecting a mass detector.");
-//    }
+    //      this.hide();
+    //      MZmineCore.getDesktop()
+    //          .displayMessage("Please load a raw data file before selecting a " + "mass detector.");
+    //      throw new UnsupportedOperationException(
+    //          "Please load a raw data file before selecting a mass detector.");
+    //    }
 
-    final RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
+    final RawDataFile[] selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
     final RawDataFile previewDataFile;
 
     if (selectedFiles.length > 0) {
@@ -119,13 +117,12 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
 
     ObservableList<Scan> scanNumbers = previewDataFile.getScans();
     comboScan = new ComboBox<>(scanNumbers);
-    comboScan.getSelectionModel().selectedItemProperty().addListener((obs, old, newIndex) -> {
-      selectedScan.set(newIndex);
-    });
+    comboScan.getSelectionModel().selectedItemProperty()
+        .addListener((obs, old, newIndex) -> selectedScan.set(newIndex));
     comboScan.getSelectionModel().select(0);
 
-    comboDataFileName = new ComboBox<>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     comboDataFileName.getSelectionModel().select(previewDataFile);
     comboDataFileName.setOnAction(e -> {
       var newDataFile = comboDataFileName.getSelectionModel().getSelectedItem();
@@ -143,7 +140,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     pnlScanArrows = new HBox();
     pnlScanArrows.setPrefWidth(-1);
     pnlScanArrows.setAlignment(Pos.TOP_CENTER);
-    final String leftArrow = new String(new char[]{'\u2190'});
+    final String leftArrow = String.valueOf('\u2190');
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = comboScan.getSelectionModel().getSelectedIndex() - 1;
@@ -152,7 +149,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
       }
     });
 
-    final String rightArrow = new String(new char[]{'\u2192'});
+    final String rightArrow = String.valueOf('\u2192');
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = comboScan.getSelectionModel().getSelectedIndex() + 1;
@@ -181,12 +178,12 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
     getPreviewWrapperPane().setCenter(spectrumPlot);
     getPreviewWrapperPane().setBottom(pnlControls);
     BorderPane.setAlignment(pnlControls, Pos.TOP_CENTER);
-    setOnPreviewShown(() -> parametersChanged());
+    setOnPreviewShown(this::parametersChanged);
 
-    selectedMobilityScan
-        .addListener(((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
-    selectedScan
-        .addListener(((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
+    selectedMobilityScan.addListener(
+        ((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
+    selectedScan.addListener(
+        ((observable, oldValue, newValue) -> lastChangedScan.setValue(newValue)));
     lastChangedScan.addListener((observable, oldValue, newValue) -> parametersChanged());
   }
 
@@ -199,20 +196,20 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   private void updateTitle(Scan currentScan) {
 
     // Formats
-    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     // Set window and plot titles
-    String title = "[" + currentScan.getDataFile().getName() + "] scan #" + currentScan.getScanNumber();
+    String title =
+        "[" + currentScan.getDataFile().getName() + "] scan #" + currentScan.getScanNumber();
 
     String subTitle = ScanUtils.scanToString(lastChangedScan.get());
 
     Double basePeakMz = currentScan.getBasePeakMz();
     Double basePeakIntensity = currentScan.getBasePeakIntensity();
     if (basePeakMz != null) {
-      subTitle += ", base peak: " + mzFormat.format(basePeakMz) + " m/z (" + intensityFormat
-          .format(basePeakIntensity) + ")";
+      subTitle += ", base peak: " + mzFormat.format(basePeakMz) + " m/z (" + intensityFormat.format(
+          basePeakIntensity) + ")";
     }
     spectrumPlot.setTitle(title, subTitle);
   }
@@ -236,7 +233,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
   }
 
   private void initMobilityScanControlPanel() {
-    final String leftArrow = new String(new char[]{'\u2190'});
+    final String leftArrow = String.valueOf('\u2190');
     Button leftArrowButton = new Button(leftArrow);
     leftArrowButton.setOnAction(e -> {
       int ind = mobilityScanComboBox.getSelectionModel().getSelectedIndex() - 1;
@@ -244,7 +241,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends ParameterSetup
         mobilityScanComboBox.getSelectionModel().select(ind);
       }
     });
-    final String rightArrow = new String(new char[]{'\u2192'});
+    final String rightArrow = String.valueOf('\u2192');
     Button rightArrowButton = new Button(rightArrow);
     rightArrowButton.setOnAction(e -> {
       int ind = mobilityScanComboBox.getSelectionModel().getSelectedIndex() + 1;
