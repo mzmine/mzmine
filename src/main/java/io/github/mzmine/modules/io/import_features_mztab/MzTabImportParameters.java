@@ -36,7 +36,7 @@ public class MzTabImportParameters extends SimpleParameterSet {
 
   public static final BooleanParameter importrawfiles = new BooleanParameter(
       "Import raw data files?",
-      "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead. Please note that missing files may lead to issues with other modules that need access to scan data.",
+      "If selected, raw data files will also be imported if they are available.\nIf some raw data files cannot be found, empty files will be generated instead.\nPlease note that missing files may lead to issues with other modules that need access to scan data.",
       Boolean.TRUE
   );
 
