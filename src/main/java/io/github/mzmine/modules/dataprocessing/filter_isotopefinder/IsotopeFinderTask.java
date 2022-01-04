@@ -164,6 +164,10 @@ class IsotopeFinderTask extends AbstractTask {
         IsotopePattern isotopePattern = new SimpleIsotopePattern(
             candidates.toArray(new DataPoint[0]), IsotopePatternStatus.DETECTED, "Isotope finder");
         feature.setIsotopePattern(isotopePattern);
+        final Integer charge = IsotopesUtils.deduceMostLikelyChargeState(isotopePattern, isotopeMaxCharge);
+        if(charge != null && feature.getCharge() != null) { // keep previously set charges (might be more robust)
+          feature.setCharge(charge);
+        }
         detected++;
       } else {
         // find pattern in FWHM
