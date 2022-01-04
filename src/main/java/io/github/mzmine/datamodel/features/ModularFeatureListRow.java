@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
@@ -45,10 +46,10 @@ import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.util.FeatureSorter;
@@ -489,6 +490,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     set(ManualAnnotationType.class, manual);
   }
 
+  @Nullable
   public ManualAnnotation getManualAnnotation() {
     return get(ManualAnnotationType.class);
   }
@@ -513,8 +515,14 @@ public class ModularFeatureListRow implements FeatureListRow {
     ManualAnnotation manual = Objects
         .requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
 
-    List<FeatureIdentity> peakIdentities = Objects
-        .requireNonNullElse(getPeakIdentities(), new ArrayList<>());
+    List<FeatureIdentity> peakIdentities;
+    // getPeakIdentities initializes the returned list as an immutable list if manual is null
+    // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
+    if (getManualAnnotation() == null) {
+        peakIdentities = new ArrayList<>();
+    } else {
+        peakIdentities = getPeakIdentities();
+    }
     peakIdentities.remove(identity);
     if (preferred) {
       peakIdentities.add(0, identity);
@@ -573,6 +581,12 @@ public class ModularFeatureListRow implements FeatureListRow {
       old.addAll(matches);
       set(SpectralLibraryMatchesType.class, old);
     }
+  }
+
+  @Override
+  @Nullable
+  public Range<Float> getMobilityRange() {
+    return get(MobilityRangeType.class);
   }
 
   @Override

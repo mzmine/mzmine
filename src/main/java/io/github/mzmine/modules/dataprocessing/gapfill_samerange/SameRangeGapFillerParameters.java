@@ -20,7 +20,7 @@ package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -29,16 +29,16 @@ public class SameRangeGapFillerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to feature list name", "gap-filled");
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to feature list name", "gap-filled");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original feature list", "If checked, the original feature list will be removed");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = //
+      new OriginalFeatureListHandlingParameter(false);
 
   public SameRangeGapFillerParameters() {
-    super(new Parameter[] {peakLists, suffix, mzTolerance, autoRemove});
+    super(new Parameter[]{peakLists, suffix, mzTolerance, handleOriginal});
   }
 
 }

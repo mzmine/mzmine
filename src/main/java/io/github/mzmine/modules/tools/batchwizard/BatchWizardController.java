@@ -273,7 +273,7 @@ public class BatchWizardController {
     q.add(makeSmoothingStep(hplcParameters, true, false));
     q.add(makeRtResolvingStep(msParameters, hplcParameters, true));
     if (cbIonMobility.isSelected()) {
-      q.add(makeImsExpanderStep(msParameters));
+      q.add(makeImsExpanderStep(msParameters, hplcParameters));
       q.add(makeSmoothingStep(hplcParameters, false, true));
       q.add(makeMobilityResolvingStep(msParameters, hplcParameters));
       q.add(makeSmoothingStep(hplcParameters, true, true));
@@ -333,7 +333,8 @@ public class BatchWizardController {
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, true);
     param.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter()
         .setValue(2);
-    param.setParameter(RowsFilterParameters.AUTO_REMOVE, true);
+    param.setParameter(RowsFilterParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
     param.setParameter(RowsFilterParameters.SUFFIX,
         "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
@@ -355,7 +356,8 @@ public class BatchWizardController {
     param.setParameter(MultiThreadPeakFinderParameters.RTTolerance,
         hplcParameters.getValue(BatchWizardHPLCParameters.intraSampleRTTolerance));
     param.setParameter(MultiThreadPeakFinderParameters.intTolerance, 0.2);
-    param.setParameter(MultiThreadPeakFinderParameters.autoRemove, true);
+    param.setParameter(MultiThreadPeakFinderParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
     param.setParameter(MultiThreadPeakFinderParameters.suffix, "gaps");
 
     return new MZmineProcessingStepImpl<>(
@@ -381,7 +383,8 @@ public class BatchWizardController {
     // going back into scans so rather use scan mz tol
     param.setParameter(DuplicateFilterParameters.mzDifferenceMax, mzTol);
     param.setParameter(DuplicateFilterParameters.rtDifferenceMax, rtTol);
-    param.setParameter(DuplicateFilterParameters.autoRemove, true);
+    param.setParameter(DuplicateFilterParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
     param.setParameter(DuplicateFilterParameters.suffix, "dup");
     param.setParameter(DuplicateFilterParameters.requireSameIdentification, false);
     param.setParameter(DuplicateFilterParameters.filterMode, FilterMode.NEW_AVERAGE);
@@ -462,11 +465,12 @@ public class BatchWizardController {
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeImsExpanderStep(
-      @NotNull final ParameterSet msParameters) {
+      @NotNull final ParameterSet msParameters, @NotNull final ParameterSet hplcParameters) {
     ParameterSet param = MZmineCore.getConfiguration().getModuleParameters(ImsExpanderModule.class)
         .cloneParameterSet();
 
-    param.setParameter(ImsExpanderParameters.removeOriginalFeatureList, true);
+    param.setParameter(ImsExpanderParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
     param.setParameter(ImsExpanderParameters.featureLists,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(ImsExpanderParameters.useRawData, true);
@@ -501,7 +505,8 @@ public class BatchWizardController {
     param.getParameter(SmoothingParameters.smoothingAlgorithm).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SavitzkyGolaySmoothing.class),
             sgParam));
-    param.setParameter(SmoothingParameters.removeOriginal, true);
+    param.setParameter(SmoothingParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
     param.setParameter(SmoothingParameters.suffix, "sm");
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(SmoothingModule.class),
@@ -524,7 +529,8 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.AUTO_REMOVE, true);
+    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
+        hplcParam.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
     final GroupMS2SubParameters groupParam = param.getParameter(
@@ -572,7 +578,8 @@ public class BatchWizardController {
     param.setParameter(MinimumSearchFeatureResolverParameters.PEAK_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
     param.setParameter(MinimumSearchFeatureResolverParameters.SUFFIX, "r");
-    param.setParameter(MinimumSearchFeatureResolverParameters.AUTO_REMOVE, true);
+    param.setParameter(MinimumSearchFeatureResolverParameters.handleOriginal,
+        hplcParam.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     param.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters, true);
     param.getParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters)
@@ -636,7 +643,8 @@ public class BatchWizardController {
     param.setParameter(IsotopeGrouperParameters.maximumCharge, 2);
     param.setParameter(IsotopeGrouperParameters.representativeIsotope,
         IsotopeGrouperParameters.ChooseTopIntensity);
-    param.setParameter(IsotopeGrouperParameters.autoRemove, true);
+    param.setParameter(IsotopeGrouperParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeGrouperModule.class),
         param);
@@ -685,6 +693,8 @@ public class BatchWizardController {
     param.setParameter(JoinAlignerParameters.SameIDRequired, false);
     param.setParameter(JoinAlignerParameters.compareIsotopePattern, false);
     param.setParameter(JoinAlignerParameters.compareSpectraSimilarity, false);
+    param.setParameter(JoinAlignerParameters.handleOriginal,
+        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(JoinAlignerModule.class),
         param);

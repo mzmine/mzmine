@@ -36,6 +36,7 @@ import io.github.mzmine.datamodel.features.types.FeatureDataType;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
@@ -46,7 +47,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,6 +60,7 @@ public class ImsExpanderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(ImsExpanderTask.class.getName());
   private static final int NUM_THREADS = MZmineCore.getConfiguration().getPreferences()
       .getParameter(MZminePreferences.numOfThreads).getValue();
+  private static final String SUFFIX = " expanded ";
   protected final ParameterSet parameters;
   protected final ModularFeatureList flist;
   final List<AbstractTask> tasks = new ArrayList<>();
@@ -98,7 +99,7 @@ public class ImsExpanderTask extends AbstractTask {
   public double getFinishedPercentage() {
     return
         0.5 * tasks.stream().mapToDouble(AbstractTask::getFinishedPercentage).sum() / tasks.size()
-            + 0.5 * (processedRows.get() / (double) totalRows);
+        + 0.5 * (processedRows.get() / (double) totalRows);
   }
 
   @Override
@@ -107,7 +108,7 @@ public class ImsExpanderTask extends AbstractTask {
     if (flist.getNumberOfRawDataFiles() != 1 || !(flist.getRawDataFile(
         0) instanceof IMSRawDataFile imsFile)) {
       setErrorMessage("More than one raw data file in feature list " + flist.getName()
-          + " or no mobility dimension in raw data file.");
+                      + " or no mobility dimension in raw data file.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -137,9 +138,8 @@ public class ImsExpanderTask extends AbstractTask {
       Range<Float> rtRange = Range.closed(first.getRetentionTime(), last.getRetentionTime());
       final List<ExpandingTrace> eligibleTraces = expandingTraces.stream()
           .filter(trace -> trace.getRtRange().isConnected(rtRange)).toList();
-      tasks.add(
-          new ImsExpanderSubTask(getMemoryMapStorage(), parameters, subList, flist,
-              eligibleTraces));
+      tasks.add(new ImsExpanderSubTask(getMemoryMapStorage(), parameters, subList, flist,
+          eligibleTraces));
     }
 
     final AtomicBoolean allThreadsFinished = new AtomicBoolean(false);
@@ -176,7 +176,7 @@ public class ImsExpanderTask extends AbstractTask {
     final BinningMobilogramDataAccess mobilogramDataAccess = EfficientDataAccess.of(imsFile,
         binWidth);
 
-    final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + " expanded ",
+    final ModularFeatureList newFlist = new ModularFeatureList(flist.getName() + SUFFIX,
         getMemoryMapStorage(), imsFile);
     newFlist.setSelectedScans(imsFile, flist.getSeletedScans(imsFile));
     newFlist.getAppliedMethods().addAll(flist.getAppliedMethods());
@@ -206,10 +206,10 @@ public class ImsExpanderTask extends AbstractTask {
     newFlist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,
             getModuleCallDate()));
-    project.addFeatureList(newFlist);
-    if (parameters.getParameter(ImsExpanderParameters.removeOriginalFeatureList).getValue()) {
-      project.removeFeatureList(flist);
-    }
+    final OriginalFeatureListOption handleOriginal = parameters.getParameter(
+        ImsExpanderParameters.handleOriginal).getValue();
+    // add new list / remove old if requested
+    handleOriginal.reflectNewFeatureListToProject(SUFFIX, project, newFlist, flist);
     setStatus(TaskStatus.FINISHED);
   }
 
