@@ -72,7 +72,7 @@ public class RawDataFileUtils {
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
     for (File fileName : fileNames) {
 
-      if ((!fileName.exists()) || (fileName.canRead())) {
+      if ((!fileName.exists()) || (!fileName.canRead())) {
         logger.warning("Cannot read file " + fileName);
         continue;
       }
