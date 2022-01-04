@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
@@ -77,7 +79,7 @@ public class IsotopesUtils {
           for (int charge = 1; charge <= maxCharge; charge++) {
             isotopeMzDiffs.add(
                 (abundantIsotopes.get(j).getExactMass() - abundantIsotopes.get(i).getExactMass())
-                / charge);
+                    / charge);
           }
         }
       }
@@ -108,7 +110,7 @@ public class IsotopesUtils {
           for (int j = i + 1; j < abundantIsotopes.size(); j++) {
             final double deltaMZ =
                 (abundantIsotopes.get(j).getExactMass() - abundantIsotopes.get(i).getExactMass())
-                / charge;
+                    / charge;
             currentChargeDiffs.add(deltaMZ);
           }
         }
@@ -301,8 +303,8 @@ public class IsotopesUtils {
     for (; dp >= 0 && mz >= lastMZ - maxIsoMzDiff; dp--) {
       mz = spectrum.getMzValue(dp);
 
-      if (IsotopesUtils
-          .isPossibleIsotopeMzNegativeDirection(mz, candidates, isoMzDiffs, isoMzTolerance)) {
+      if (IsotopesUtils.isPossibleIsotopeMzNegativeDirection(mz, candidates, isoMzDiffs,
+          isoMzTolerance)) {
         candidates.add(new SimpleDataPoint(mz, spectrum.getIntensityValue(dp)));
         lastMZ = mz;
       }
@@ -344,5 +346,55 @@ public class IsotopesUtils {
           return;
       }
     }
+  }
+
+  /**
+   * Tries to recognize the most likely charge state of an isotope pattern. All data points in a
+   * pattern are checked for how often they fall within 0.9 - 1.1 if corrected by charge.
+   *
+   * @param pattern   The isotope pattern.
+   * @param maxCharge The maximum charge.
+   * @return The determined charge state, or null if no charge state can be determined.
+   */
+  @Nullable
+  public static Integer deduceMostLikelyChargeState(final IsotopePattern pattern, int maxCharge) {
+    maxCharge = Math.abs(maxCharge);
+    final int chargeScore[] = new int[maxCharge + 1];
+
+    for (int i = 0; i < pattern.getNumberOfDataPoints() - 1; i++) {
+      final double mz = pattern.getMzValue(i);
+
+      // check the next detected isotope masses and try to deduce a charge state.
+      for (int offset = 1; i + offset < pattern.getNumberOfDataPoints(); offset++) {
+        final double nextMz = pattern.getMzValue(i + offset);
+        final double diff = Math.abs(mz - nextMz);
+
+        if (diff > 1.1) {
+          break;
+        }
+
+        // check how well the current diff fits to a charge state
+        for (int k = 1; k <= maxCharge; k++) {
+          final double normalised = diff * k;
+          final double v = Math.abs(Math.abs(normalised) - ((int) Math.round(normalised)));
+          if (v < 0.1) { // account for inaccuracy and heavy atoms
+            chargeScore[k] += 1;
+            break;
+          }
+        }
+      }
+    }
+
+    // find the highest score
+    int bestScore = 1;
+    Integer bestCharge = null;
+    for (int k = 1; k <= maxCharge; k++) {
+      if (chargeScore[k] > bestScore) {
+        bestCharge = k;
+        bestScore = chargeScore[k];
+      }
+    }
+
+    return bestCharge;
   }
 }

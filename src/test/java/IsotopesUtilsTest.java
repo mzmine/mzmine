@@ -20,7 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
@@ -30,6 +33,7 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openscience.cdk.Element;
 
@@ -43,9 +47,8 @@ class IsotopesUtilsTest {
    */
   @Test
   void testIsotopesMzDiffsNotNegative() {
-    List<Element> elements = List
-        .of(new Element("C"), new Element("Cl"), new Element("Fe"), new Element("Ca"),
-            new Element("Cu"), new Element("Gd"), new Element("Sn"));
+    List<Element> elements = List.of(new Element("C"), new Element("Cl"), new Element("Fe"),
+        new Element("Ca"), new Element("Cu"), new Element("Gd"), new Element("Sn"));
     List<Double> diffs = IsotopesUtils.getIsotopesMzDiffs(elements, 1);
 
     for (double d : diffs) {
@@ -95,22 +98,22 @@ class IsotopesUtilsTest {
   @Test
   void findsIsotopePatternStartingAtPeak3() {
     List<Element> elements = List.of(new Element("C"), new Element("Br"));
-    List<Double> diffs = IsotopesUtils
-        .getIsotopesMzDiffsCombined(elements, 1, new MZTolerance(0.006, 20));
+    List<Double> diffs = IsotopesUtils.getIsotopesMzDiffsCombined(elements, 1,
+        new MZTolerance(0.006, 20));
     MZTolerance mzTol = new MZTolerance(0.002, 5);
     final List<DataPoint> isotopes = getBr3C10IsotopePatter();
 
     final SimpleMassList spec = toMassSpec(isotopes, true);
 
     // find all isotopes starting at dp 3 which is the max
-    final List<DataPoint> detected = IsotopesUtils
-        .findIsotopesInScan(diffs, mzTol, spec, isotopes.get(2));
+    final List<DataPoint> detected = IsotopesUtils.findIsotopesInScan(diffs, mzTol, spec,
+        isotopes.get(2));
 
     assertEquals(isotopes, detected);
 
     // find all isotopes starting at dp 7 which is very low
-    final List<DataPoint> detected2 = IsotopesUtils
-        .findIsotopesInScan(diffs, mzTol, spec, isotopes.get(6));
+    final List<DataPoint> detected2 = IsotopesUtils.findIsotopesInScan(diffs, mzTol, spec,
+        isotopes.get(6));
 
     assertEquals(isotopes, detected2);
   }
@@ -153,5 +156,37 @@ class IsotopesUtilsTest {
 
     double[][] mzIntensity = DataPointUtils.getDataPointsAsDoubleArray(isotopes);
     return new SimpleMassList(null, mzIntensity[0], mzIntensity[1]);
+  }
+
+  @Test
+  public void testDeduceCharge() {
+    final List<DataPoint> br3C10IsotopePatter = getBr3C10IsotopePatter();
+    final IsotopePattern pattern = new SimpleIsotopePattern(
+        br3C10IsotopePatter.toArray(DataPoint[]::new), IsotopePatternStatus.DETECTED,
+        "isotope finder");
+    final int charge = IsotopesUtils.deduceMostLikelyChargeState(pattern, 5);
+    Assertions.assertEquals(1, charge);
+
+    final SimpleMassList massList = toMassSpec(br3C10IsotopePatter, true);
+    List<DataPoint> dps = new ArrayList<>();
+    for (int i = 0; i < massList.getNumberOfDataPoints(); i++) {
+      dps.add(new SimpleDataPoint(massList.getMzValue(i), massList.getIntensityValue(i)));
+    }
+    final IsotopePattern patternDecoy = new SimpleIsotopePattern(dps.toArray(DataPoint[]::new),
+        IsotopePatternStatus.DETECTED, "isotope finder");
+    final int chargeDecoy = IsotopesUtils.deduceMostLikelyChargeState(patternDecoy, 5);
+    Assertions.assertEquals(1, chargeDecoy);
+
+    final IsotopePattern patternDecoyCharge2 = getCharge2Pattern();
+    final int charge2 = IsotopesUtils.deduceMostLikelyChargeState(patternDecoyCharge2, 5);
+    Assertions.assertEquals(2, charge2);
+  }
+
+  private IsotopePattern getCharge2Pattern() {
+    return new SimpleIsotopePattern(
+        new DataPoint[]{new SimpleDataPoint(184.9683, 100.00), new SimpleDataPoint(185.4700, 27.04),
+            new SimpleDataPoint(185.9671, 67.50), new SimpleDataPoint(186.4686, 17.59),
+            new SimpleDataPoint(186.9662, 12.50), new SimpleDataPoint(187.4673, 2.96),
+            new SimpleDataPoint(187.9689, 0.37)}, IsotopePatternStatus.DETECTED, "pattern");
   }
 }
