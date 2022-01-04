@@ -30,7 +30,8 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 public class OriginalFeatureListHandlingParameter extends
     ComboParameter<OriginalFeatureListOption> {
 
-  public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace) {
+  public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace,
+      OriginalFeatureListOption startValue) {
     super("Original feature list",
         "Defines the processing. Standard is to keep the original feature list and create a new "
         + "processed list. REMOVE saves memory. PROCESS IN PLACE is an advanced option to process "
@@ -38,7 +39,11 @@ public class OriginalFeatureListHandlingParameter extends
         + "side effects, apply with caution.",
         includeProcessInPlace ? OriginalFeatureListOption.values()
             : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
-                OriginalFeatureListOption.REMOVE}, OriginalFeatureListOption.KEEP);
+                OriginalFeatureListOption.REMOVE}, startValue);
+  }
+
+  public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace) {
+    this(includeProcessInPlace, OriginalFeatureListOption.KEEP);
   }
 
   public enum OriginalFeatureListOption {
