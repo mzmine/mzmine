@@ -56,8 +56,9 @@ public class MobilityScanStorage {
       @NotNull final List<BuildingMobilityScan> mobilityScans) {
     for (int i = 0; i < mobilityScans.size(); i++) {
       if (mobilityScans.get(i).getMobilityScanNumber() != i) {
-        throw new IllegalArgumentException(
-            "Mobility scan numbers for a frame must start with zero and be consecutive.");
+        throw new IllegalArgumentException(String.format(
+            "Mobility scan numbers for a frame must start with zero and be consecutive. Expected scan number %d, recieved %d",
+            i, mobilityScans.get(i).getMobilityScanNumber()));
       }
     }
 
@@ -116,7 +117,8 @@ public class MobilityScanStorage {
 
     AtomicInteger biggestOffset = new AtomicInteger(0);
     final int[] massListStorageOffsets = StorageUtils.generateOffsets(data, biggestOffset);
-    this.massListStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage, massListStorageOffsets);
+    this.massListStorageOffsets = StorageUtils.storeValuesToIntBuffer(storage,
+        massListStorageOffsets);
     massListMaxNumPoints = biggestOffset.get();
 
     final int numDp = massListStorageOffsets[massListStorageOffsets.length - 1] + data.get(
@@ -125,8 +127,10 @@ public class MobilityScanStorage {
     final double[] intensities = new double[numDp];
 
     StorageUtils.putAllValuesIntoOneArray(data, 0, mzs);
-    final int[] massListBasePeakIndices = StorageUtils.putAllValuesIntoOneArray(data, 1, intensities);
-    this.massListBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage, massListBasePeakIndices);
+    final int[] massListBasePeakIndices = StorageUtils.putAllValuesIntoOneArray(data, 1,
+        intensities);
+    this.massListBasePeakIndices = StorageUtils.storeValuesToIntBuffer(storage,
+        massListBasePeakIndices);
     massListMzValues = StorageUtils.storeValuesToDoubleBuffer(storage, mzs);
     massListIntensityValues = StorageUtils.storeValuesToDoubleBuffer(storage, intensities);
   }
@@ -190,7 +194,6 @@ public class MobilityScanStorage {
    * @param index The mobility scan index.
    * @return The base peak index or -1 if no base peak was found (scan empty).
    */
-  @Nullable
   public int getRawBasePeakIndex(int index) {
     assert index < getNumberOfMobilityScans();
     return rawBasePeakIndices.get(index);

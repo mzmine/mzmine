@@ -99,4 +99,14 @@ public class ArrayUtils {
       input[last - i] = temp;
     }
   }
+
+  public static void reverse(double[] input) {
+    int last = input.length - 1;
+    int middle = input.length / 2;
+    for (int i = 0; i <= middle; i++) {
+      double temp = input[i];
+      input[i] = input[last - i];
+      input[last - i] = temp;
+    }
+  }
 }

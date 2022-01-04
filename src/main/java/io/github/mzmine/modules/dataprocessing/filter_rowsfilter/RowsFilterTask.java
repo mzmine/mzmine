@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_rowsfilter;
@@ -35,6 +36,8 @@ import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryM
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.massdefect.MassDefectFilter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
@@ -42,10 +45,10 @@ import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -110,19 +113,23 @@ public class RowsFilterTask extends AbstractTask {
         setStatus(TaskStatus.PROCESSING);
         logger.info("Filtering feature list rows");
 
+        final OriginalFeatureListOption originalFeatureListOption = parameters.getValue(
+            RowsFilterParameters.handleOriginal);
+
+        switch (originalFeatureListOption) {
+          case KEEP -> logger.finer("Create new feature List");
+          case REMOVE -> logger.finer("Remove original feature list");
+          case PROCESS_IN_PLACE -> logger.finer("Process in place");
+        }
+
         // Filter the feature list.
-        filteredFeatureList = filterFeatureListRows(origFeatureList);
+        filteredFeatureList = filterFeatureListRows(origFeatureList,
+            originalFeatureListOption == OriginalFeatureListOption.PROCESS_IN_PLACE);
 
         if (!isCanceled()) {
-
-          // Add new feature list to the project
-          project.addFeatureList(filteredFeatureList);
-
-          // Remove the original feature list if requested
-          if (parameters.getParameter(RowsFilterParameters.AUTO_REMOVE).getValue()) {
-
-            project.removeFeatureList(origFeatureList);
-          }
+          final String suffix = parameters.getValue(RowsFilterParameters.SUFFIX);
+          originalFeatureListOption.reflectNewFeatureListToProject(suffix, project,
+              filteredFeatureList, origFeatureList);
           setStatus(TaskStatus.FINISHED);
           logger.info("Finished feature list rows filter");
         }
@@ -138,67 +145,106 @@ public class RowsFilterTask extends AbstractTask {
   /**
    * Filter the feature list rows.
    *
-   * @param featureList feature list to filter.
+   * @param featureList          feature list to filter.
+   * @param processInCurrentList use the current list and filter it
    * @return a new feature list with rows of the original feature list that pass the filtering.
    */
-  private FeatureList filterFeatureListRows(final FeatureList featureList) {
+  private FeatureList filterFeatureListRows(final FeatureList featureList,
+      boolean processInCurrentList) {
 
     // Create new feature list.
 
-    final ModularFeatureList newFeatureList = new ModularFeatureList(
-        featureList.getName() + ' '
-        + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
-        getMemoryMapStorage(), featureList.getRawDataFiles());
+    final ModularFeatureList newFeatureList;
+    if (processInCurrentList) {
+      newFeatureList = (ModularFeatureList) featureList;
+    } else {
+      newFeatureList = new ModularFeatureList(
+          featureList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX)
+              .getValue(), getMemoryMapStorage(), featureList.getRawDataFiles());
+      // Copy previous applied methods.
+      for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
+        newFeatureList.addDescriptionOfAppliedTask(method);
+      }
 
-    // Copy previous applied methods.
-    for (final FeatureListAppliedMethod method : featureList.getAppliedMethods()) {
-      newFeatureList.addDescriptionOfAppliedTask(method);
+      featureList.getRawDataFiles().forEach(
+          file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
     }
 
     // Add task description to featureList.
-    newFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        getTaskDescription(), RowsFilterModule.class, parameters, getModuleCallDate()));
-
-    featureList.getRawDataFiles()
-        .forEach(file -> newFeatureList.setSelectedScans(file, featureList.getSeletedScans(file)));
+    newFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod(getTaskDescription(), RowsFilterModule.class, parameters,
+            getModuleCallDate()));
 
     // Get parameters.
-    final boolean onlyIdentified =
-        parameters.getParameter(RowsFilterParameters.HAS_IDENTITIES).getValue();
-    final boolean filterByIdentityText =
-        parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT).getValue();
-    final boolean filterByCommentText =
-        parameters.getParameter(RowsFilterParameters.COMMENT_TEXT).getValue();
-    final String groupingParameter =
-        (String) parameters.getParameter(RowsFilterParameters.GROUPSPARAMETER).getValue();
-    final boolean filterByMinFeatureCount =
-        parameters.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getValue();
-    final boolean filterByMinIsotopePatternSize =
-        parameters.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getValue();
-    final boolean filterByMzRange =
-        parameters.getParameter(RowsFilterParameters.MZ_RANGE).getValue();
-    final boolean filterByRtRange =
-        parameters.getParameter(RowsFilterParameters.RT_RANGE).getValue();
-    final boolean filterByDuration =
-        parameters.getParameter(RowsFilterParameters.FEATURE_DURATION).getValue();
-    final boolean filterByFWHM = parameters.getParameter(RowsFilterParameters.FWHM).getValue();
-    final boolean filterByCharge = parameters.getParameter(RowsFilterParameters.CHARGE).getValue();
-    final boolean filterByKMD =
-        parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getValue();
-    final boolean filterByMS2 = parameters.getParameter(RowsFilterParameters.MS2_Filter).getValue();
-    final String removeRowString =
-        parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
+    final boolean onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
+    final boolean filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
+    final boolean filterByCommentText = parameters.getValue(RowsFilterParameters.COMMENT_TEXT);
+    final String groupingParameter = (String) parameters.getValue(
+        RowsFilterParameters.GROUPSPARAMETER);
+    final boolean filterByMinFeatureCount = parameters.getValue(
+        RowsFilterParameters.MIN_FEATURE_COUNT);
+    final boolean filterByMinIsotopePatternSize = parameters.getValue(
+        RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT);
+    final boolean filterByMzRange = parameters.getValue(RowsFilterParameters.MZ_RANGE);
+    final boolean filterByRtRange = parameters.getValue(RowsFilterParameters.RT_RANGE);
+    final boolean filterByDuration = parameters.getValue(RowsFilterParameters.FEATURE_DURATION);
+    final boolean filterByFWHM = parameters.getValue(RowsFilterParameters.FWHM);
+    final boolean filterByCharge = parameters.getValue(RowsFilterParameters.CHARGE);
+    final boolean filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
+    final boolean filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
+    final String removeRowString = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
     Double minCount = parameters.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT)
         .getEmbeddedParameter().getValue();
-    final boolean renumber = parameters.getParameter(RowsFilterParameters.Reset_ID).getValue();
+    final boolean renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
+    final boolean filterByMassDefect = parameters.getValue(RowsFilterParameters.massDefect);
+    final MassDefectFilter massDefectFilter =
+        filterByMassDefect ? parameters.getParameter(RowsFilterParameters.massDefect)
+            .getEmbeddedParameter().getValue() : MassDefectFilter.ALL;
+
+    // get embedded parameters
+    final KendrickMassDefectFilterParameters kendrickParam = parameters.getParameter(
+        RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters();
+    final Range<Double> rangeKMD = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
+    final String kendrickMassBase = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
+    final Double shift = kendrickParam.getParameter(KendrickMassDefectFilterParameters.shift)
+        .getValue();
+    final Integer kendrickCharge = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.charge).getValue();
+    final Integer divisor = kendrickParam.getParameter(KendrickMassDefectFilterParameters.divisor)
+        .getValue();
+    final Boolean useRemainderOfKendrickMass = kendrickParam.getParameter(
+        KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
+    final Range<Integer> chargeRange =
+        filterByCharge ? parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter()
+            .getValue() : null;
+    final Range<Double> durationRange =
+        filterByDuration ? parameters.getParameter(RowsFilterParameters.FEATURE_DURATION)
+            .getEmbeddedParameter().getValue() : null;
+    final Integer minIsotopePatternSize = parameters.getParameter(
+        RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter().getValue();
+    final String commentSearchText = parameters.getParameter(RowsFilterParameters.COMMENT_TEXT)
+        .getEmbeddedParameter().getValue().toLowerCase().trim();
+    final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
+        .getEmbeddedParameter().getValue().toLowerCase().trim();
+    final Range<Double> mzRange =
+        filterByMzRange ? parameters.getParameter(RowsFilterParameters.MZ_RANGE)
+            .getEmbeddedParameter().getValue() : null;
+    final Range<Float> rtRange = filterByRtRange ? RangeUtils.toFloatRange(
+        parameters.getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue())
+        : null;
+    final Range<Float> FWHMRange = filterByFWHM ? RangeUtils.toFloatRange(
+        parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
+        : null;
 
     int rowsCount = 0;
-    boolean removeRow = false;
+    boolean removeRow;
 
     removeRow = !removeRowString.equals(RowsFilterParameters.removeRowChoices[0]);
 
     // Keep rows that don't match any criteria. Keep by default.
-    boolean filterRowCriteriaFailed = false;
+    boolean filterRowCriteriaFailed;
 
     // Handle < 1 values for minFeatureCount
     if ((minCount == null) || (minCount < 1)) {
@@ -208,14 +254,16 @@ public class RowsFilterTask extends AbstractTask {
     int intMinCount = minCount.intValue();
 
     // Filter rows.
-    final ModularFeatureListRow[] rows =
-        featureList.getRows().toArray(ModularFeatureListRow[]::new);
-    totalRows = rows.length;
-    for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
+    totalRows = featureList.getNumberOfRows();
+    processedRows = 0;
+    final ListIterator<FeatureListRow> iterator = featureList.getRows().listIterator();
+    while (iterator.hasNext()) {
+      if (isCanceled()) {
+        return null;
+      }
 
+      final FeatureListRow row = iterator.next();
       filterRowCriteriaFailed = false;
-
-      final ModularFeatureListRow row = rows[processedRows];
 
       final int featureCount = getFeatureCount(row, groupingParameter);
 
@@ -244,8 +292,6 @@ public class RowsFilterTask extends AbstractTask {
 
       // Check average m/z.
       if (filterByMzRange) {
-        final Range<Double> mzRange = parameters.getParameter(RowsFilterParameters.MZ_RANGE)
-            .getEmbeddedParameter().getValue();
         if (!mzRange.contains(row.getAverageMZ())) {
           filterRowCriteriaFailed = true;
         }
@@ -253,10 +299,6 @@ public class RowsFilterTask extends AbstractTask {
 
       // Check average RT.
       if (filterByRtRange) {
-
-        final Range<Float> rtRange = RangeUtils.toFloatRange(parameters
-            .getParameter(RowsFilterParameters.RT_RANGE).getEmbeddedParameter().getValue());
-
         if (!rtRange.contains(row.getAverageRT())) {
           filterRowCriteriaFailed = true;
         }
@@ -264,9 +306,6 @@ public class RowsFilterTask extends AbstractTask {
 
       // Search feature identity text.
       if (filterByIdentityText) {
-        final String searchText = parameters.getParameter(RowsFilterParameters.IDENTITY_TEXT)
-            .getEmbeddedParameter().getValue().toLowerCase().trim();
-
         boolean foundText = false;
         if (row.getPeakIdentities() != null) {
           for (var id : row.getPeakIdentities()) {
@@ -315,13 +354,10 @@ public class RowsFilterTask extends AbstractTask {
           filterRowCriteriaFailed = true;
         }
         if (row.getComment() != null) {
-          final String searchText = parameters.getParameter(RowsFilterParameters.COMMENT_TEXT)
-              .getEmbeddedParameter().getValue().toLowerCase().trim();
           final String rowText = row.getComment().toLowerCase().trim();
-          if (!rowText.contains(searchText)) {
+          if (!rowText.contains(commentSearchText)) {
             filterRowCriteriaFailed = true;
           }
-
         }
       }
 
@@ -342,10 +378,6 @@ public class RowsFilterTask extends AbstractTask {
 
       // Check isotope pattern count.
       if (filterByMinIsotopePatternSize) {
-
-        final int minIsotopePatternSize =
-            parameters.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT)
-                .getEmbeddedParameter().getValue();
         if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
           filterRowCriteriaFailed = true;
         }
@@ -354,25 +386,15 @@ public class RowsFilterTask extends AbstractTask {
       // Check average duration.
       avgDuration /= featureCount;
       if (filterByDuration) {
-
-        final Range<Double> durationRange = parameters
-            .getParameter(RowsFilterParameters.FEATURE_DURATION).getEmbeddedParameter()
-            .getValue();
         if (!durationRange.contains(avgDuration)) {
           filterRowCriteriaFailed = true;
         }
-
       }
 
       // Filter by FWHM range
       if (filterByFWHM) {
-
-        final Range<Float> FWHMRange = RangeUtils.toFloatRange(
-            parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter()
-                .getValue());
         // If any of the features fail the FWHM criteria,
         Float FWHM_value = row.getBestFeature().getFWHM();
-
         if (FWHM_value != null && !FWHMRange.contains(FWHM_value)) {
           filterRowCriteriaFailed = true;
         }
@@ -380,10 +402,6 @@ public class RowsFilterTask extends AbstractTask {
 
       // Filter by charge range
       if (filterByCharge) {
-
-        final Range<Integer> chargeRange =
-            parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter()
-                .getValue();
         int charge = row.getBestFeature().getCharge();
         if (charge == 0 || !chargeRange.contains(charge)) {
           filterRowCriteriaFailed = true;
@@ -392,29 +410,6 @@ public class RowsFilterTask extends AbstractTask {
 
       // Filter by KMD or RKM range
       if (filterByKMD) {
-
-        // get embedded parameters
-        final Range<Double> rangeKMD = parameters
-            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-            .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange)
-            .getValue();
-        final String kendrickMassBase = parameters
-            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-            .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
-        final double shift = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
-            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.shift)
-            .getValue();
-        final int charge = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
-            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.charge)
-            .getValue();
-        final int divisor = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
-            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
-            .getValue();
-        final boolean useRemainderOfKendrickMass = parameters
-            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
-            .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass)
-            .getValue();
-
         // get m/z
         Double valueMZ = row.getBestFeature().getMZ();
 
@@ -425,24 +420,20 @@ public class RowsFilterTask extends AbstractTask {
         double kendrickMassFactor =
             Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
 
-        double defectOrRemainder = 0.0;
+        double defectOrRemainder;
 
         if (!useRemainderOfKendrickMass) {
-
           // calc Kendrick mass defect
-          defectOrRemainder = Math.ceil(charge * (valueMZ * kendrickMassFactor))
-                              - charge * (valueMZ * kendrickMassFactor);
+          defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
+                              - kendrickCharge * (valueMZ * kendrickMassFactor);
         } else {
-
           // calc Kendrick mass remainder
-          defectOrRemainder =
-              (charge * (divisor - Math
-                  .round(FormulaUtils.calculateExactMass(kendrickMassBase)))
-               * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase)//
-              - Math.floor((charge
-                            * (divisor - Math
-                  .round(FormulaUtils.calculateExactMass(kendrickMassBase)))
-                            * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase));
+          defectOrRemainder = (kendrickCharge * (divisor - Math.round(
+              FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
+                              / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
+              (kendrickCharge * (divisor - Math.round(
+                  FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
+              / FormulaUtils.calculateExactMass(kendrickMassBase));
         }
 
         // shift Kendrick mass defect or remainder of Kendrick mass
@@ -472,23 +463,30 @@ public class RowsFilterTask extends AbstractTask {
         }
       }
 
-      if (!filterRowCriteriaFailed && !removeRow) {
-        // Only add the row if none of the criteria have failed.
+      if (filterByMassDefect) {
+        if (!massDefectFilter.contains(row.getAverageMZ())) {
+          filterRowCriteriaFailed = true;
+        }
+      }
+
+      // Only remove rows that match *all* of the criteria, so add
+      // rows that fail any of the criteria.
+      // Only add the row if none of the criteria have failed.
+      boolean keepRow = filterRowCriteriaFailed == removeRow;
+      if (processInCurrentList) {
+        if (keepRow) {
+          rowsCount++;
+        } else {
+          iterator.remove();
+        }
+      } else if (keepRow) {
         rowsCount++;
         FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
-            renumber ? rowsCount : row.getID(), row, true);
+            renumber ? rowsCount : row.getID(), (ModularFeatureListRow) row, true);
         newFeatureList.addRow(resetRow);
       }
 
-      if (filterRowCriteriaFailed && removeRow) {
-        // Only remove rows that match *all* of the criteria, so add
-        // rows that fail any of the criteria.
-        rowsCount++;
-        FeatureListRow resetRow = new ModularFeatureListRow(newFeatureList,
-            renumber ? rowsCount : row.getID(), row, true);
-        newFeatureList.addRow(resetRow);
-      }
-
+      processedRows++;
     }
 
     return newFeatureList;
@@ -498,7 +496,7 @@ public class RowsFilterTask extends AbstractTask {
     if (groupingParameter.contains("Filtering by ")) {
       HashMap<String, Integer> groups = new HashMap<>();
       for (RawDataFile file : project.getDataFiles()) {
-        UserParameter<?, ?> params[] = project.getParameters();
+        UserParameter<?, ?>[] params = project.getParameters();
         for (UserParameter<?, ?> p : params) {
           groupingParameter = groupingParameter.replace("Filtering by ", "");
           if (groupingParameter.equals(p.getName())) {

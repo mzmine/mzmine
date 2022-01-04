@@ -43,36 +43,12 @@
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
-import com.Ostermiller.util.CSVParser;
-import com.Ostermiller.util.CSVPrinter;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AddAdductParameters;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductType;
-import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.*;
-import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.AddIonModificationAction;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.CombineESIAdductsAction;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
-import io.github.mzmine.util.ExitCode;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
-import org.controlsfx.control.CheckListView;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
+import javafx.scene.layout.HBox;
 
 /**
  * A component for selecting adducts.

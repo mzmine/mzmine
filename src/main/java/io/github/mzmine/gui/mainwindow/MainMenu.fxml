@@ -55,8 +55,8 @@
     </MenuItem>
     <MenuItem onAction="#closeProject" text="Close project" fx:id="closeProject">
       <accelerator>
-        <KeyCodeCombination alt="UP" code="W"
-          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+        <KeyCodeCombination alt="UP" code="Q"
+          control="UP" meta="UP" shift="DOWN" shortcut="DOWN"/>
       </accelerator>
     </MenuItem>
 
@@ -218,7 +218,7 @@
         text="Ims expander"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderModule"/>
     </Menu>
-    <Menu text="Imaging" disable="true">
+    <Menu text="Imaging">
       <MenuItem onAction="#runModule"
         text="Image builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.ImageBuilderModule"/>
@@ -266,11 +266,11 @@
   <Menu text="Feature list methods">
     <Menu text="Import feature list">
       <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule"/>
+        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule"/>
+        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>
       <MenuItem text="csv" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.csvimport.CsvImportModule"/>
+        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>
     </Menu>
 
     <Menu text="Export feature list">
@@ -342,6 +342,8 @@
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clearionids.ClearIonIdentitiesModule"/>
       <MenuItem text="Annotate Isomers" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule"/>
+      <MenuItem text="CliqueMS group (unfinished)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>
     </Menu>
 
     <Menu text="Spectral deconvolution (GC)">
@@ -442,26 +444,13 @@
           userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
       </Menu>
 
-      <Menu text="Search related peaks">
-        <MenuItem text="CAMERA search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule"/>
-        <MenuItem text="Adduct search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule"/>
-        <MenuItem text="Fragment search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule"/>
-        <MenuItem text="Complex search" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule"/>
-        <MenuItem text="CliqueMS group" onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule"/>
-      </Menu>
-
       <SeparatorMenuItem/>
       <MenuItem text="Clear feature list annotations"
         onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule"/>
     </Menu>
 
-    <Menu text="Data analysis">
+    <!--<Menu text="Data analysis">
       <Menu text="Bubble plots">
         <MenuItem text="Coefficient of variation (CV) plot"
           onAction="#runModule"
@@ -485,7 +474,7 @@
         userData="io.github.mzmine.modules.dataanalysis.heatmaps.HeatMapModule"/>
       <MenuItem text="One-way ANOVA" onAction="#runModule"
         userData="io.github.mzmine.modules.dataanalysis.anova.AnovaModule"/>
-    </Menu>
+    </Menu>-->
   </Menu>
 
   <!-- VISUALIZATION -->
@@ -555,7 +544,12 @@
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
     <MenuItem text="Processing wizard"
       onAction="#showWizardTab"
-      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule"/>
+      userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
+      <accelerator>
+        <KeyCodeCombination alt="UP" code="W"
+          control="UP" meta="UP" shift="UP" shortcut="DOWN"/>
+      </accelerator>
+    </MenuItem>
   </Menu>
 
 

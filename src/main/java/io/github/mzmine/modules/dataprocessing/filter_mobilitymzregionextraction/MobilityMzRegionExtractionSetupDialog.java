@@ -20,7 +20,6 @@ package io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextractio
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.gui.chartbasics.listener.RegionSelectionListener;
 import io.github.mzmine.gui.chartbasics.simplechart.RegionSelectionWrapper;
@@ -37,8 +36,8 @@ import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.List;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -58,15 +57,15 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
   private final NumberFormat intensityFormat;
   private final NumberFormat ccsFormat;
   private final UnitFormat unitFormat;
-  ComboBox<ModularFeatureList> comboBox;
+  private final ComboBox<FeatureList> comboBox;
 
   public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired,
       ParameterSet parameters) {
     this(valueCheckRequired, parameters, null);
   }
 
-  public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired,
-      ParameterSet parameters, String message) {
+  public MobilityMzRegionExtractionSetupDialog(boolean valueCheckRequired, ParameterSet parameters,
+      String message) {
     super(valueCheckRequired, parameters, message);
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -93,14 +92,13 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     FlowPane fp = new FlowPane(new Label("Feature list "));
     fp.setHgap(5);
 
-    comboBox = new ComboBox<>();
-    ObservableList<? extends FeatureList> featureLists = MZmineCore.getProjectManager()
-        .getCurrentProject().getFeatureLists();
-    comboBox.setItems((ObservableList<ModularFeatureList>) featureLists);
+    var featureLists = FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
+    comboBox = new ComboBox<>(featureLists);
     comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> parametersChanged()));
 
-    wrapper.getFinishedRegionListeners().addListener(
-        (ListChangeListener<RegionSelectionListener>) c -> {
+    wrapper.getFinishedRegionListeners()
+        .addListener((ListChangeListener<RegionSelectionListener>) c -> {
           parameters.getParameter(MobilityMzRegionExtractionParameters.regions)
               .setValue(wrapper.getFinishedRegionsAsListOfPointLists());
         });
@@ -126,8 +124,8 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     }
 
     heatmap.removeAllDatasets();
-    CalculateDatasetsTask calc = new CalculateDatasetsTask((Collection<ModularFeatureListRow>) features,
-        pt, false);
+    CalculateDatasetsTask calc = new CalculateDatasetsTask(
+        (Collection<ModularFeatureListRow>) features, pt, false);
     MZmineCore.getTaskController().addTask(calc);
     calc.addTaskStatusListener((task, newStatus, oldStatus) -> {
       if (newStatus == TaskStatus.FINISHED) {

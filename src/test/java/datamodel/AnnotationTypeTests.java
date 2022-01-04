@@ -21,28 +21,39 @@ import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSClusterUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSLibraryUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSNetworkUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.IdentityType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.LipidAnnotationMsMsScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationType;
 import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVerifiedType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationMsMsScoreType;
+import io.github.mzmine.datamodel.identities.iontype.IonModification;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import javafx.collections.FXCollections;
@@ -77,8 +88,8 @@ public class AnnotationTypeTests {
     ObservableList<FeatureIdentity> list = FXCollections.observableList(List.of(id1, id2));
     ManualAnnotation value = new ManualAnnotation();
     value.setIdentities(list);
-    final ManualAnnotation loaded = (ManualAnnotation) DataTypeTestUtils
-        .saveAndLoad(type, value, flist, row, null, null);
+    final ManualAnnotation loaded = (ManualAnnotation) DataTypeTestUtils.saveAndLoad(type, value,
+        flist, row, null, null);
 
     List<FeatureIdentity> featureIdentities = loaded.getIdentities();
     Assertions.assertEquals(list.size(), featureIdentities.size());
@@ -194,7 +205,7 @@ public class AnnotationTypeTests {
   void inchiStructureTypeTest() {
     InChIStructureType type = new InChIStructureType();
     String value = "1S/C18H24I3N3O8/c1-24(4-9(28)6-26)18(31)12-13(19)11(17(30)22-3-8(27)5-25)14"
-                   + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
+        + "(20)16(15(12)21)23-10(29)7-32-2/h8-9,25-28H,3-7H2,1-2H3,(H,22,30)(H,23,29)";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 
@@ -260,5 +271,57 @@ public class AnnotationTypeTests {
     PartnerIdsType type = new PartnerIdsType();
     String value = "15;32;21;56";
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
+  }
+
+  @Test
+  void CompoundDatabaseMatchesTypeTest() {
+
+    var type = new CompoundDatabaseMatchesType();
+
+    final IonType ionType = new IonType(IonModification.NH4);
+    final CompoundDBAnnotation newIdentity = new SimpleCompoundDBAnnotation();
+    newIdentity.put(new CompoundNameType(), "glucose");
+    newIdentity.put(new FormulaType(), "C6H6O6");
+    newIdentity.put(new SmilesStructureType(), "C(C1C(C(C(C(O1)O)O)O)O)O");
+    newIdentity.put(new DatabaseNameType(), LocalCSVDatabaseSearchModule.MODULE_NAME);
+    newIdentity.put(new IonAdductType(), "[M+H]+");
+    newIdentity.put(new CCSType(), null);
+    newIdentity.put(new MobilityType(), 0.56f);
+    newIdentity.put(new IonTypeType(), ionType);
+
+    String name = newIdentity.getCompundName();
+
+    final CompoundDBAnnotation newIdentity2 = new SimpleCompoundDBAnnotation();
+    newIdentity2.put(new CompoundNameType(), "mannose");
+    newIdentity2.put(new FormulaType(), "C6H6O6");
+    newIdentity2.put(new SmilesStructureType(), "C(C1C(C(C(C(O1)O)O)O)O)O");
+    newIdentity2.put(new DatabaseNameType(), LocalCSVDatabaseSearchModule.MODULE_NAME);
+    newIdentity2.put(new IonAdductType(), "[M+H]+");
+    newIdentity2.put(new CCSType(), null);
+    newIdentity2.put(new MobilityType(), 0.56f);
+    newIdentity2.put(new IonTypeType(), ionType);
+
+    var value = new ArrayList<>(List.of(newIdentity, newIdentity2));
+
+    RawDataFile file = null;
+    try {
+      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
+    } catch (IOException e) {
+      e.printStackTrace();
+      Assertions.fail("Cannot initialise data file.");
+    }
+    Assertions.assertNotNull(file);
+
+    // test load/save for row
+    final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
+    final ModularFeatureListRow row = new ModularFeatureListRow(flist, 1);
+    flist.addRow(row);
+    row.set(type, value);
+
+    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, file);
+    DataTypeTestUtils.testSaveLoad(type, List.of(), flist, row, null, file);
+
+    Assertions.assertNotEquals(newIdentity, newIdentity2);
+    Assertions.assertNotEquals(newIdentity, null);
   }
 }

@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -45,6 +46,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(FeatureListRowLearnerTask.class.getName());
 
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
   private FeatureList featureList;
   private ModularFeatureList resultFeatureList;
 
@@ -56,7 +58,6 @@ class FeatureListRowLearnerTask extends AbstractTask {
   private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
   /**
@@ -73,20 +74,14 @@ class FeatureListRowLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getValue(LearnerParameters.handleOriginal);
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return "Learner task on " + featureList;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
@@ -94,9 +89,6 @@ class FeatureListRowLearnerTask extends AbstractTask {
     return (double) processedFeatures / (double) totalRows;
   }
 
-  /**
-   * @see Runnable#run()
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
@@ -149,7 +141,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
    */
   public void addResultToProject() {
     // Add new feature list to the project
-    project.addFeatureList(resultFeatureList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, resultFeatureList, featureList);
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
@@ -160,9 +152,6 @@ class FeatureListRowLearnerTask extends AbstractTask {
     resultFeatureList
         .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
 
-    // Remove the original feature list if requested
-    if (removeOriginal)
-      project.removeFeatureList(featureList);
   }
 
 }

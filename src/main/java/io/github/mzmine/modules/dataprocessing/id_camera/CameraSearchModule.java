@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
  * Uses CAMERA to form pseudo-spectra.
  *
  */
+@Deprecated
 public class CameraSearchModule implements MZmineProcessingModule {
 
   // Name and description.
