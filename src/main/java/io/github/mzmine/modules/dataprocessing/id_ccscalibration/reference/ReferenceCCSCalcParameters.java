@@ -17,7 +17,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ccscalc.reference;
+package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.main.MZmineCore;
@@ -46,7 +46,7 @@ public class ReferenceCCSCalcParameters extends SimpleParameterSet {
 
   public static final RTRangeParameter rtRange = new RTRangeParameter(
       "Calibration segment RT range", "The rt range of the calibration segment.", true,
-      Range.all());
+      Range.closed(0d, 60d));
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minumum height",
       "The minimum intensity of a calibrant feature to be used for calibration.",

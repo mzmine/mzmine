@@ -22,14 +22,9 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalibrant;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

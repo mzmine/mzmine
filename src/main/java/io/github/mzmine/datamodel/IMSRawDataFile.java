@@ -19,8 +19,8 @@
 package io.github.mzmine.datamodel;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import java.util.List;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,6 +117,7 @@ public interface IMSRawDataFile extends RawDataFile {
   @NotNull
   MobilityType getMobilityType();
 
-  @Nullable
-  SimpleRegression getCCSCalibration();
+  @Nullable CCSCalibration getCCSCalibration();
+
+  void setCCSCalibration(@Nullable CCSCalibration calibration);
 }

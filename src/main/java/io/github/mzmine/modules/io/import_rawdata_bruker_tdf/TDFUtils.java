@@ -575,6 +575,16 @@ public class TDFUtils {
     return (float) tdfLib.tims_oneoverk0_to_ccs_for_mz(ook0, charge, mz);
   }
 
+  public Float calculateOok0(double ccs, long charge, double mz) {
+    if (tdfLib == null) {
+      boolean loaded = loadLibrary();
+      if (!loaded) {
+        return null;
+      }
+    }
+    return (float) tdfLib.tims_ccs_to_oneoverk0_for_mz(ccs, charge, mz);
+  }
+
   /**
    * @param errorCode return value of tims library methods
    * @return true if an error occurred

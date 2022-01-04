@@ -18,32 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
-import io.github.mzmine.main.MZmineConfiguration;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.dataprocessing.id_ccscalc.internal.InternalCCSCalcModule;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
-import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.mztochargeparameter.MzToChargeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import org.jetbrains.annotations.NotNull;
 
 public class CCSCalcParameters extends SimpleParameterSet {
-
-  public static final MZmineModule internalCalcModule = MZmineCore.getModuleInstance(
-      InternalCCSCalcModule.class);
-
-  public static final MZmineModule referenceCalcModule = MZmineCore.getModuleInstance(
-      InternalCCSCalcModule.class);
-
-  public static final MZmineModule[] calibrationModules = new MZmineModule[]{internalCalcModule,
-      referenceCalcModule};
 
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
@@ -54,16 +37,8 @@ public class CCSCalcParameters extends SimpleParameterSet {
               + "be calculated for features with an assigned charge.\nOverlapping ranges are not allowed."),
       false);
 
-  public static final ModuleComboParameter calibrationType = new ModuleComboParameter(
-      "Calibration type",
-      "Select how mobility values shall be calibrated to calculate CCS values.\n"
-          + "For timsTOF files, internal calibration can be used if mobility values have already been calibrated.\n"
-          + "Other vendors require calibration files with reference compounds.\n"
-          + "The files should contain the columns mz, charge, mobility, and CCS.",
-      calibrationModules, internalCalcModule);
-
   public CCSCalcParameters() {
-    super(new UserParameter[]{featureLists, assumeChargeStage, calibrationType});
+    super(new UserParameter[]{featureLists, assumeChargeStage});
   }
 
   @NotNull
