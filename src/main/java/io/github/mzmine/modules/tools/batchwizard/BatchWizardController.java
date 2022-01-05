@@ -248,8 +248,9 @@ public class BatchWizardController {
       return;
     }
 
-    final BatchQueue q = rbTOF.isSelected() ? createTofQueue(useExport, exportPath)
-        : createOrbitrapQueue(useExport, exportPath);
+//    final BatchQueue q = rbTOF.isSelected() ? createQueue(useExport, exportPath)
+//        : createOrbitrapQueue(useExport, exportPath);
+    final BatchQueue q = createQueue(useExport, exportPath);
     BatchModeParameters batchModeParameters = (BatchModeParameters) MZmineCore.getConfiguration()
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(q);
@@ -262,7 +263,7 @@ public class BatchWizardController {
         .setModuleParameters(BatchWizardModule.class, wizardParam.cloneParameterSet());
   }
 
-  private BatchQueue createTofQueue(boolean useExport, File exportPath) {
+  private BatchQueue createQueue(boolean useExport, File exportPath) {
     final BatchQueue q = new BatchQueue();
     q.add(makeImportTask(files));
     q.add(makeMassDetectionStep(msParameters, 1));
@@ -286,30 +287,9 @@ public class BatchWizardController {
         cbMobilityType.getValue()));
     q.add(makeRowFilterStep(msParameters, hplcParameters));
     q.add(makeGapFillStep(msParameters, hplcParameters));
-    if (!cbIonMobility.isSelected()) {
+    if (!cbIonMobility.isSelected()) { // might filter IMS resolved isomers
       q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
     }
-    q.add(makeMetaCorrStep(msParameters, hplcParameters));
-    q.add(makeIinStep(msParameters, cbPolarity.getValue()));
-    return q;
-  }
-
-  private BatchQueue createOrbitrapQueue(boolean useExport, File exportPath) {
-    final BatchQueue q = new BatchQueue();
-    q.add(makeImportTask(files));
-    q.add(makeMassDetectionStep(msParameters, 1));
-    q.add(makeMassDetectionStep(msParameters, 2));
-    q.add(makeAdapStep(msParameters, hplcParameters));
-    q.add(makeSmoothingStep(hplcParameters, true, false));
-    q.add(makeRtResolvingStep(msParameters, hplcParameters, false));
-    q.add(makeDeisotopingStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
-        cbMobilityType.getValue()));
-    q.add(makeIsotopeFinderStep(msParameters));
-    q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
-        cbMobilityType.getValue()));
-    q.add(makeRowFilterStep(msParameters, hplcParameters));
-    q.add(makeGapFillStep(msParameters, hplcParameters));
-    q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
     q.add(makeMetaCorrStep(msParameters, hplcParameters));
     q.add(makeIinStep(msParameters, cbPolarity.getValue()));
     if (useExport && exportPath != null) {
