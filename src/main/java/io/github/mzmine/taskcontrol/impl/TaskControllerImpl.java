@@ -18,21 +18,22 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Vector;
-import java.util.logging.Logger;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.HeadLessDesktop;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskControlListener;
 import io.github.mzmine.taskcontrol.TaskController;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  * Task controller implementation
@@ -254,6 +255,23 @@ public class TaskControllerImpl implements TaskController, Runnable {
   @Override
   public void addTaskControlListener(TaskControlListener listener) {
     listeners.add(listener);
+  }
+
+  public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz) {
+    final WrappedTask[] snapshot = taskQueue.getQueueSnapshot();
+    for (WrappedTask wrappedTask : snapshot) {
+      if(clazz.isInstance(wrappedTask.getActualTask())) {
+        return true;
+      }
+    }
+
+    for (WorkerThread runningThread : runningThreads) {
+      if(clazz.isInstance(runningThread.getWrappedTask().getActualTask())) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
 }
