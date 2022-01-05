@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
@@ -71,14 +72,15 @@ public class SpectralLibraryMatchesType extends
           createEntry(PrecursorMZType.class,
               match -> (double) match.getEntry().getField(DBEntryField.MZ).orElse(null)),
           createEntry(NeutralMassType.class,
-              match -> (double) match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null))
+              match -> (double) match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null)),
+          createEntry(CCSType.class, match -> match.getEntry().getOrElse(DBEntryField.CCS, null))
       );
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(),
       new FormulaType(), new SmilesStructureType(), new InChIStructureType(),
       new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
-      new MatchingSignalsType());
+      new MatchingSignalsType(), new CCSType());
 
   @Override
   protected Map<Class<? extends DataType>, Function<SpectralDBFeatureIdentity, Object>> getMapper() {
