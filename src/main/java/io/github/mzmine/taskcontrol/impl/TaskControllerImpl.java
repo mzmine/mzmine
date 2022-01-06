@@ -32,7 +32,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -269,7 +268,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
       }
     }
 
-    var running = List.of(runningThreads.toArray(WorkerThread[]::new));
+    var running = runningThreads.toArray(WorkerThread[]::new);
     for (WorkerThread runningThread : running) {
       if (clazz.isInstance(runningThread.getWrappedTask().getActualTask())) {
         return true;
