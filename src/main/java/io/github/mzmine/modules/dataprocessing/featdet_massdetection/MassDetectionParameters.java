@@ -151,7 +151,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
       }
     }
 
-    RawDataFile[] files = dataFiles.getValue().getMatchingRawDataFiles();
+    RawDataFile[] files = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
+    getParameter(dataFiles).getValue().resetSelection();
     Optional<RawDataFile> opt = Arrays.stream(files)
         .filter(file -> (file instanceof IMSRawDataFile)).findAny();
     if (opt.isPresent() && !massDetectorName.startsWith("Centroid") && !massDetectorName.contains("Auto")) {
