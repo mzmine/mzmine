@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import org.w3c.dom.Element;
 
 /**
  * Harmonizes the handling of original feature lists
@@ -29,6 +30,8 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
  */
 public class OriginalFeatureListHandlingParameter extends
     ComboParameter<OriginalFeatureListOption> {
+
+  final boolean includeProcessInPlace;
 
   public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace,
       OriginalFeatureListOption startValue) {
@@ -40,6 +43,8 @@ public class OriginalFeatureListHandlingParameter extends
         includeProcessInPlace ? OriginalFeatureListOption.values()
             : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
                 OriginalFeatureListOption.REMOVE}, startValue);
+    this.includeProcessInPlace = includeProcessInPlace;
+    this.value = startValue;
   }
 
   public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace) {
@@ -75,5 +80,21 @@ public class OriginalFeatureListHandlingParameter extends
       }
     }
 
+  }
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    super.loadValueFromXML(xmlElement);
+  }
+
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    super.saveValueToXML(xmlElement);
+  }
+
+  @Override
+  public ComboParameter<OriginalFeatureListOption> cloneParameter() {
+    var clone = new OriginalFeatureListHandlingParameter(includeProcessInPlace, value);
+    return clone;
   }
 }

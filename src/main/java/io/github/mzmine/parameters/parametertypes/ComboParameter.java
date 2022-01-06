@@ -18,12 +18,12 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import org.w3c.dom.Element;
 
 /**
  * Combo Parameter implementation
@@ -33,7 +33,7 @@ public class ComboParameter<ValueType> implements UserParameter<ValueType, Combo
 
   private String name, description;
   private ObservableList<ValueType> choices;
-  private ValueType value;
+  protected ValueType value;
 
   public ComboParameter(String name, String description, ValueType choices[]) {
     this(name, description, choices, null);
