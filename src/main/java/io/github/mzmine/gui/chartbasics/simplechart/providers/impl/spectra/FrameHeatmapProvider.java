@@ -18,15 +18,12 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.preferences.UnitFormat;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.MathUtils;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -34,7 +31,6 @@ import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
-import smile.math.DoubleArrayList;
 
 /**
  * Used to plot a Frame in a {@link io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot}.
@@ -52,13 +48,12 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   protected final UnitFormat unitFormat;
   private final Frame frame;
 
-  private final DoubleArrayList domainValues;
-  private final DoubleArrayList rangeValues;
-  private final DoubleArrayList zValues;
+  private final List<Double> domainValues;
+  private final List<Double> rangeValues;
+  private final List<Double> zValues;
   private final List<MobilityScan> mobilityScanAtValueIndex;
 
   private double finishedPercentage;
-  protected PaintScale paintScale;
 
   public FrameHeatmapProvider(Frame frame) {
     this.frame = frame;
@@ -68,9 +63,9 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
     unitFormat = MZmineCore.getConfiguration().getUnitFormat();
 
-    domainValues = new DoubleArrayList();
-    rangeValues = new DoubleArrayList();
-    zValues = new DoubleArrayList();
+    domainValues = new ArrayList<>();
+    rangeValues = new ArrayList<>();
+    zValues = new ArrayList<>();
     mobilityScanAtValueIndex = new ArrayList<>();
     finishedPercentage = 0d;
   }
@@ -93,7 +88,7 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   @Nullable
   @Override
   public PaintScale getPaintScale() {
-    return paintScale;
+    return null;
   }
 
   @Override
@@ -121,10 +116,6 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
       finishedScans++;
       finishedPercentage = finishedScans / numScans;
     }
-
-    final double[] quantiles = MathUtils.calcQuantile(zValues.toArray(), new double[]{0.50, 0.98});
-    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(
-        PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }
 
   public MobilityScan getMobilityScanAtValueIndex(int index) {
