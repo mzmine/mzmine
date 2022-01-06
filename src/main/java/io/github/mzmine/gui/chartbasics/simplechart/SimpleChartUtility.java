@@ -20,8 +20,11 @@ package io.github.mzmine.gui.chartbasics.simplechart;
 
 import com.google.common.primitives.Ints;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.main.MZmineCore;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -93,5 +96,15 @@ public class SimpleChartUtility {
     }
 
     return Ints.toArray(indices);
+  }
+
+  public static void tryApplyDefaultChartThemeToRenderer(AbstractRenderer r) {
+    try {
+      final Font itemLabelFont = MZmineCore.getConfiguration().getDefaultChartTheme()
+          .getItemLabelFont();
+      r.setDefaultItemLabelFont(itemLabelFont);
+    } catch (Exception e) {
+      // silent
+    }
   }
 }

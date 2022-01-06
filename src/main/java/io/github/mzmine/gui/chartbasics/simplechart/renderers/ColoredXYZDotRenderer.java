@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleToolTipGenerator;
 import java.awt.Graphics2D;
@@ -27,7 +28,6 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
-import javafx.application.Platform;
 import javafx.util.Pair;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
@@ -70,6 +70,7 @@ public class ColoredXYZDotRenderer extends XYShapeRenderer {
   public ColoredXYZDotRenderer() {
     super();
 
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
     SimpleToolTipGenerator toolTipGenerator = new SimpleToolTipGenerator();
     setDefaultToolTipGenerator(toolTipGenerator);
 
