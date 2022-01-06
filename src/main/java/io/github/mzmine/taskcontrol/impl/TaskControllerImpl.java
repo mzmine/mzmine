@@ -32,7 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -57,7 +57,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
    * This vector contains references to all running threads of NORMAL priority. Maximum number of
    * concurrent threads is specified in the preferences dialog.
    */
-  private Vector<WorkerThread> runningThreads;
+  private CopyOnWriteArrayList<WorkerThread> runningThreads;
 
   /**
    * Initialize the task controller
@@ -67,7 +67,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
     logger.finest("Starting task controller thread");
     taskQueue = new TaskQueue();
 
-    runningThreads = new Vector<WorkerThread>();
+    runningThreads = new CopyOnWriteArrayList<>();
 
     // Create a low-priority thread that will manage the queue and start
     // worker threads for tasks
