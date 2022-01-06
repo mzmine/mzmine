@@ -33,7 +33,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +76,8 @@ public class MassDetectionTask extends AbstractTask {
 
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
 
-    this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
+    this.outFilename = parameters.getParameter(MassDetectionParameters.outFilenameOption)
+        .getEmbeddedParameter().getValue();
 
     this.parameters = parameters;
 
@@ -189,102 +189,114 @@ public class MassDetectionTask extends AbstractTask {
         // ************** write mass list
         // *******************************
         final String outFileNamePath = outFilename.getPath();
-        logger.info("Saving mass detector results to netCDF file " + outFileNamePath);
-        NetcdfFileWriter writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3,
-            outFileNamePath, null);
-
-        Dimension dim_massValues = writer.addDimension(null, "mass_values", allMZ.size());
-        Dimension dim_intensityValues = writer.addDimension(null, "intensity_values",
-            allIntensities.size());
-        Dimension dim_scanIndex = writer.addDimension(null, "scan_index", startIndex.size() - 1);
-        Dimension dim_scanAcquisitionTime = writer.addDimension(null, "scan_acquisition_time",
-            scanAcquisitionTime.size());
-        Dimension dim_totalIntensity = writer.addDimension(null, "total_intensity",
-            totalIntensity.size());
-        Dimension dim_pointsInScans = writer.addDimension(null, "point_count",
-            pointsInScans.size());
-
-        // add dimensions to list
-        List<Dimension> dims = new ArrayList<>();
-        dims.add(dim_massValues);
-        dims.add(dim_intensityValues);
-        dims.add(dim_scanIndex);
-        dims.add(dim_scanAcquisitionTime);
-        dims.add(dim_totalIntensity);
-        dims.add(dim_pointsInScans);
-
-        // make the variables that contain the actual data I think.
-        Variable var_massValues = writer.addVariable(null, "mass_values", DataType.DOUBLE,
-            "mass_values");
-        Variable var_intensityValues = writer.addVariable(null, "intensity_values", DataType.DOUBLE,
-            "intensity_values");
-        Variable var_scanIndex = writer.addVariable(null, "scan_index", DataType.INT, "scan_index");
-        Variable var_scanAcquisitionTime = writer.addVariable(null, "scan_acquisition_time",
-            DataType.DOUBLE, "scan_acquisition_time");
-        Variable var_totalIntensity = writer.addVariable(null, "total_intensity", DataType.DOUBLE,
-            "total_intensity");
-        Variable var_pointsInScans = writer.addVariable(null, "point_count", DataType.INT,
-            "point_count");
-
-        var_massValues.addAttribute(new Attribute("units", "M/Z"));
-        var_intensityValues.addAttribute(new Attribute("units", "Arbitrary Intensity Units"));
-        var_scanIndex.addAttribute(new Attribute("units", "index"));
-        var_scanAcquisitionTime.addAttribute(new Attribute("units", "seconds"));
-        var_totalIntensity.addAttribute(new Attribute("units", "Arbitrary Intensity Units"));
-        var_pointsInScans.addAttribute(new Attribute("units", "count"));
-
-        var_massValues.addAttribute(new Attribute("scale_factor", 1.0));
-        var_intensityValues.addAttribute(new Attribute("scale_factor", 1.0));
-        var_scanIndex.addAttribute(new Attribute("scale_factor", 1.0));
-        var_scanAcquisitionTime.addAttribute(new Attribute("scale_factor", 1.0));
-        var_totalIntensity.addAttribute(new Attribute("scale_factor", 1.0));
-        var_pointsInScans.addAttribute(new Attribute("scale_factor", 1.0));
-
-        // create file
-        writer.create();
-
-        ArrayDouble.D1 arr_massValues = new ArrayDouble.D1(dim_massValues.getLength());
-        ArrayDouble.D1 arr_intensityValues = new ArrayDouble.D1(dim_intensityValues.getLength());
-        ArrayDouble.D1 arr_scanIndex = new ArrayDouble.D1(dim_scanIndex.getLength());
-        ArrayDouble.D1 arr_scanAcquisitionTime = new ArrayDouble.D1(
-            dim_scanAcquisitionTime.getLength());
-        ArrayDouble.D1 arr_totalIntensity = new ArrayDouble.D1(dim_totalIntensity.getLength());
-        ArrayDouble.D1 arr_pointsInScans = new ArrayDouble.D1(dim_pointsInScans.getLength());
-
-        for (int i = 0; i < allMZ.size(); i++) {
-          arr_massValues.set(i, allMZ.get(i));
-          arr_intensityValues.set(i, allIntensities.get(i));
+        if (!outFilename.getParentFile().exists()) {
+          final boolean created = outFilename.getParentFile().mkdirs();
+          if (!created) {
+            logger.warning(() -> "Cannot create file " + outFilename.getAbsolutePath()
+                + " to save mass detection results.");
+          }
         }
-        int i = 0;
-        for (; i < scanAcquisitionTime.size(); i++) {
-          arr_scanAcquisitionTime.set(i, scanAcquisitionTime.get(i) * 60);
-          arr_pointsInScans.set(i, pointsInScans.get(i));
-          arr_scanIndex.set(i, startIndex.get(i));
-          arr_totalIntensity.set(i, totalIntensity.get(i));
+
+        if (outFilename.getParentFile().exists()) {
+          logger.info("Saving mass detector results to netCDF file " + outFileNamePath);
+          NetcdfFileWriter writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3,
+              outFileNamePath, null);
+
+          Dimension dim_massValues = writer.addDimension(null, "mass_values", allMZ.size());
+          Dimension dim_intensityValues = writer.addDimension(null, "intensity_values",
+              allIntensities.size());
+          Dimension dim_scanIndex = writer.addDimension(null, "scan_index", startIndex.size() - 1);
+          Dimension dim_scanAcquisitionTime = writer.addDimension(null, "scan_acquisition_time",
+              scanAcquisitionTime.size());
+          Dimension dim_totalIntensity = writer.addDimension(null, "total_intensity",
+              totalIntensity.size());
+          Dimension dim_pointsInScans = writer.addDimension(null, "point_count",
+              pointsInScans.size());
+
+          // add dimensions to list
+          List<Dimension> dims = new ArrayList<>();
+          dims.add(dim_massValues);
+          dims.add(dim_intensityValues);
+          dims.add(dim_scanIndex);
+          dims.add(dim_scanAcquisitionTime);
+          dims.add(dim_totalIntensity);
+          dims.add(dim_pointsInScans);
+
+          // make the variables that contain the actual data I think.
+          Variable var_massValues = writer.addVariable(null, "mass_values", DataType.DOUBLE,
+              "mass_values");
+          Variable var_intensityValues = writer.addVariable(null, "intensity_values",
+              DataType.DOUBLE, "intensity_values");
+          Variable var_scanIndex = writer.addVariable(null, "scan_index", DataType.INT,
+              "scan_index");
+          Variable var_scanAcquisitionTime = writer.addVariable(null, "scan_acquisition_time",
+              DataType.DOUBLE, "scan_acquisition_time");
+          Variable var_totalIntensity = writer.addVariable(null, "total_intensity", DataType.DOUBLE,
+              "total_intensity");
+          Variable var_pointsInScans = writer.addVariable(null, "point_count", DataType.INT,
+              "point_count");
+
+          var_massValues.addAttribute(new Attribute("units", "M/Z"));
+          var_intensityValues.addAttribute(new Attribute("units", "Arbitrary Intensity Units"));
+          var_scanIndex.addAttribute(new Attribute("units", "index"));
+          var_scanAcquisitionTime.addAttribute(new Attribute("units", "seconds"));
+          var_totalIntensity.addAttribute(new Attribute("units", "Arbitrary Intensity Units"));
+          var_pointsInScans.addAttribute(new Attribute("units", "count"));
+
+          var_massValues.addAttribute(new Attribute("scale_factor", 1.0));
+          var_intensityValues.addAttribute(new Attribute("scale_factor", 1.0));
+          var_scanIndex.addAttribute(new Attribute("scale_factor", 1.0));
+          var_scanAcquisitionTime.addAttribute(new Attribute("scale_factor", 1.0));
+          var_totalIntensity.addAttribute(new Attribute("scale_factor", 1.0));
+          var_pointsInScans.addAttribute(new Attribute("scale_factor", 1.0));
+
+          // create file
+          writer.create();
+
+          ArrayDouble.D1 arr_massValues = new ArrayDouble.D1(dim_massValues.getLength());
+          ArrayDouble.D1 arr_intensityValues = new ArrayDouble.D1(dim_intensityValues.getLength());
+          ArrayDouble.D1 arr_scanIndex = new ArrayDouble.D1(dim_scanIndex.getLength());
+          ArrayDouble.D1 arr_scanAcquisitionTime = new ArrayDouble.D1(
+              dim_scanAcquisitionTime.getLength());
+          ArrayDouble.D1 arr_totalIntensity = new ArrayDouble.D1(dim_totalIntensity.getLength());
+          ArrayDouble.D1 arr_pointsInScans = new ArrayDouble.D1(dim_pointsInScans.getLength());
+
+          for (int i = 0; i < allMZ.size(); i++) {
+            arr_massValues.set(i, allMZ.get(i));
+            arr_intensityValues.set(i, allIntensities.get(i));
+          }
+          int i = 0;
+          for (; i < scanAcquisitionTime.size(); i++) {
+            arr_scanAcquisitionTime.set(i, scanAcquisitionTime.get(i) * 60);
+            arr_pointsInScans.set(i, pointsInScans.get(i));
+            arr_scanIndex.set(i, startIndex.get(i));
+            arr_totalIntensity.set(i, totalIntensity.get(i));
+          }
+          // arr_scanIndex.set(i,startIndex.get(i));
+
+          // For tiny test file
+          // arr_intensityValues .set(0,200);
+          // arr_scanIndex .set(0,0);
+          // arr_scanAcquisitionTime .set(0,10);
+          // arr_totalIntensity .set(0,200);
+          // arr_pointsInScans .set(0,0);
+
+          // arr_intensityValues .set(1,300);
+          // arr_scanIndex .set(1,1);
+          // arr_scanAcquisitionTime .set(1,20);
+          // arr_totalIntensity .set(1,300);
+          // arr_pointsInScans .set(1,0);
+
+          writer.write(var_massValues, arr_massValues);
+          writer.write(var_intensityValues, arr_intensityValues);
+          writer.write(var_scanIndex, arr_scanIndex);
+          writer.write(var_scanAcquisitionTime, arr_scanAcquisitionTime);
+          writer.write(var_totalIntensity, arr_totalIntensity);
+          writer.write(var_pointsInScans, arr_pointsInScans);
+          writer.close();
         }
-        // arr_scanIndex.set(i,startIndex.get(i));
-
-        // For tiny test file
-        // arr_intensityValues .set(0,200);
-        // arr_scanIndex .set(0,0);
-        // arr_scanAcquisitionTime .set(0,10);
-        // arr_totalIntensity .set(0,200);
-        // arr_pointsInScans .set(0,0);
-
-        // arr_intensityValues .set(1,300);
-        // arr_scanIndex .set(1,1);
-        // arr_scanAcquisitionTime .set(1,20);
-        // arr_totalIntensity .set(1,300);
-        // arr_pointsInScans .set(1,0);
-
-        writer.write(var_massValues, arr_massValues);
-        writer.write(var_intensityValues, arr_intensityValues);
-        writer.write(var_scanIndex, arr_scanIndex);
-        writer.write(var_scanAcquisitionTime, arr_scanAcquisitionTime);
-        writer.write(var_totalIntensity, arr_totalIntensity);
-        writer.write(var_pointsInScans, arr_pointsInScans);
-        writer.close();
       }
+
       dataFile.getAppliedMethods().add(
           new SimpleFeatureListAppliedMethod(MassDetectionModule.class, parameters,
               getModuleCallDate()));
