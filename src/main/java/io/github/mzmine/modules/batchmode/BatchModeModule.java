@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.batchmode;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
@@ -40,11 +41,40 @@ import org.w3c.dom.Document;
  */
 public class BatchModeModule implements MZmineProcessingModule {
 
+  private static final String MODULE_NAME = "Batch mode";
+  private static final String MODULE_DESCRIPTION = "This module allows execution of multiple processing tasks in a batch.";
   private static Logger logger = Logger.getLogger(BatchModeModule.class.getName());
 
-  private static final String MODULE_NAME = "Batch mode";
-  private static final String MODULE_DESCRIPTION =
-      "This module allows execution of multiple processing tasks in a batch.";
+  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile,
+      @NotNull Instant moduleCallDate) {
+
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Cannot run a second batch while the current batch is not finished.");
+      return ExitCode.ERROR;
+    }
+
+    logger.info("Running batch from file " + batchFile);
+
+    try {
+      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      Document parsedBatchXML = docBuilder.parse(batchFile);
+      BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement());
+      ParameterSet parameters = new BatchModeParameters();
+      parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
+      Task batchTask = new BatchTask(project, parameters, moduleCallDate);
+      batchTask.run();
+      if (batchTask.getStatus() == TaskStatus.FINISHED) {
+        return ExitCode.OK;
+      } else {
+        return ExitCode.ERROR;
+      }
+    } catch (Throwable e) {
+      logger.log(Level.SEVERE, "Error while running batch. " + e.getMessage(), e);
+      e.printStackTrace();
+      return ExitCode.ERROR;
+    }
+  }
 
   @Override
   public @NotNull String getName() {
@@ -60,6 +90,13 @@ public class BatchModeModule implements MZmineProcessingModule {
   @NotNull
   public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+
+    if (MZmineCore.getTaskController().isTaskInstanceRunningOrQueued(BatchTask.class)) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "Cannot run a second batch while the current batch is not finished.");
+      return ExitCode.ERROR;
+    }
+
     BatchTask newTask = new BatchTask(project, parameters, moduleCallDate);
 
     /*
@@ -76,29 +113,6 @@ public class BatchModeModule implements MZmineProcessingModule {
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.PROJECT;
-  }
-
-  public static ExitCode runBatch(@NotNull MZmineProject project, File batchFile, @NotNull Instant moduleCallDate) {
-
-    logger.info("Running batch from file " + batchFile);
-
-    try {
-      DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      Document parsedBatchXML = docBuilder.parse(batchFile);
-      BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML.getDocumentElement());
-      ParameterSet parameters = new BatchModeParameters();
-      parameters.getParameter(BatchModeParameters.batchQueue).setValue(newQueue);
-      Task batchTask = new BatchTask(project, parameters, moduleCallDate);
-      batchTask.run();
-      if (batchTask.getStatus() == TaskStatus.FINISHED)
-        return ExitCode.OK;
-      else
-        return ExitCode.ERROR;
-    } catch (Throwable e) {
-      logger.log(Level.SEVERE, "Error while running batch. "+e.getMessage(), e);
-      e.printStackTrace();
-      return ExitCode.ERROR;
-    }
   }
 
   @Override
