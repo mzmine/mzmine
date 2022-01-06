@@ -65,7 +65,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
           new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter subTitleFont = new FontParameter("Axis labels", "Subtitle font",
+  public static final FontParameter subTitleFont = new FontParameter("Subtitles", "Subtitle font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter axisLabelFont = new FontParameter("Axis Labels", "Axis label font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
