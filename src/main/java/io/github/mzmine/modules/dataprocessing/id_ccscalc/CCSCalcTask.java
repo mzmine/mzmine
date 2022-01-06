@@ -106,6 +106,10 @@ public class CCSCalcTask extends AbstractTask {
 
           Float mobility = feature.getMobility();
           MobilityType mobilityType = feature.getMobilityUnit();
+          if (mobility == null || mobilityType == null) {
+            continue;
+          }
+
           double mz = feature.getMZ();
 
           int charge = feature.getCharge();
