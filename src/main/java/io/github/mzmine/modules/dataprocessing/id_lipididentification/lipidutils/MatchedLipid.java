@@ -19,15 +19,6 @@
 
 package io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-
-import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
-import org.apache.commons.lang.StringUtils;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;
@@ -35,7 +26,14 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.Lip
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidFragment;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.ParsingUtils;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 public class MatchedLipid {
 
@@ -131,7 +129,7 @@ public class MatchedLipid {
         lipidFragment.saveToXML(writer);
       }
     } else {
-      writer.writeCharacters(StringUtils.EMPTY);
+      writer.writeCharacters(CONST.XML_NULL_VALUE);
     }
     writer.writeEndElement();
     writer.writeStartElement(XML_MSMS_SCORE);
