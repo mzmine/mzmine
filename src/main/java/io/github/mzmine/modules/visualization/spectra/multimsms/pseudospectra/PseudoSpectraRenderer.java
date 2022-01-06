@@ -17,13 +17,13 @@
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.GradientPaint;
 import java.awt.Graphics2D;
 import java.awt.Paint;
-import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
@@ -42,11 +42,8 @@ import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.chart.text.TextUtils;
-import org.jfree.chart.ui.GradientPaintTransformer;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYDataset;
-
-import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 
 public class PseudoSpectraRenderer extends XYBarRenderer {
 
@@ -100,6 +97,8 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
             bar.getX() - 1.5 / 2d, bar.getY(), 1.5, bar.getHeight()));
       }
     });
+
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   @Override

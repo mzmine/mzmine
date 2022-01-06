@@ -37,6 +37,7 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.LegendTitle;
@@ -96,6 +97,7 @@ public class EStandardChartTheme extends StandardChartTheme {
   protected boolean useXLabel, useYLabel;
   protected String xlabel, ylabel;
   protected Color clrXGrid, clrYGrid;
+  private Font itemLabelFont;
 
 
   public EStandardChartTheme(String name) {
@@ -364,6 +366,15 @@ public class EStandardChartTheme extends StandardChartTheme {
     newLegend.setFrame(BlockBorder.NONE);
   }
 
+  @Override
+  protected void applyToAbstractRenderer(AbstractRenderer renderer) {
+    super.applyToAbstractRenderer(renderer);
+
+    if(itemLabelFont != null) {
+      renderer.setDefaultItemLabelFont(itemLabelFont);
+    }
+  }
+
   // GETTERS AND SETTERS
   public boolean isShowLegend() {
     return showLegend;
@@ -547,4 +558,11 @@ public class EStandardChartTheme extends StandardChartTheme {
     this.title = title;
   }
 
+  public void setItemLabelFont(Font font) {
+    this.itemLabelFont = font;
+  }
+
+  public Font getItemLabelFont() {
+    return this.itemLabelFont;
+  }
 }
