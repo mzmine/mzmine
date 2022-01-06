@@ -32,6 +32,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -40,15 +41,12 @@ import java.util.logging.Logger;
  */
 public class TaskControllerImpl implements TaskController, Runnable {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
-
   /**
    * Update the task progress window every 300 ms
    */
   private final int TASKCONTROLLER_THREAD_SLEEP = 300;
-
+  ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private Thread taskControllerThread;
 
   private TaskQueue taskQueue;
@@ -92,16 +90,17 @@ public class TaskControllerImpl implements TaskController, Runnable {
    */
   @Override
   public void addTask(Task task, TaskPriority priority) {
-    addTasks(new Task[] {task}, new TaskPriority[] {priority});
+    addTasks(new Task[]{task}, new TaskPriority[]{priority});
   }
 
   @Override
   public WrappedTask[] addTasks(Task tasks[]) {
-    if (tasks == null || tasks.length == 0)
+    if (tasks == null || tasks.length == 0) {
       return new WrappedTask[0];
+    }
 
-    TaskPriority[] prio =
-        Arrays.stream(tasks).map(Task::getTaskPriority).toArray(TaskPriority[]::new);
+    TaskPriority[] prio = Arrays.stream(tasks).map(Task::getTaskPriority)
+        .toArray(TaskPriority[]::new);
     return addTasks(tasks, prio);
   }
 
@@ -109,8 +108,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
   public WrappedTask[] addTasks(Task tasks[], TaskPriority[] priorities) {
     // It can sometimes happen during a batch that no tasks are actually
     // executed --> tasks[] array may be empty
-    if ((tasks == null) || (tasks.length == 0))
+    if ((tasks == null) || (tasks.length == 0)) {
       return new WrappedTask[0];
+    }
 
     WrappedTask[] wrappedTasks = new WrappedTask[tasks.length];
     for (int i = 0; i < tasks.length; i++) {
@@ -148,8 +148,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
       if ((waitingTasks != previousQueueSize) || (percentDone != previousPercentDone)) {
         previousQueueSize = waitingTasks;
         previousPercentDone = percentDone;
-        for (TaskControlListener listener : listeners)
+        for (TaskControlListener listener : listeners) {
           listener.numberOfWaitingTasksChanged(waitingTasks, percentDone);
+        }
       }
 
       // If the queue is empty, we can sleep. When new task is added into
@@ -174,8 +175,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
       Iterator<WorkerThread> threadIterator = runningThreads.iterator();
       while (threadIterator.hasNext()) {
         WorkerThread thread = threadIterator.next();
-        if (thread.isFinished())
+        if (thread.isFinished()) {
           threadIterator.remove();
+        }
       }
 
       // Get a snapshot of the queue
@@ -185,22 +187,24 @@ public class TaskControllerImpl implements TaskController, Runnable {
       NumOfThreadsParameter parameter = MZmineCore.getConfiguration().getPreferences()
           .getParameter(MZminePreferences.numOfThreads);
       int maxRunningThreads;
-      if (parameter.isAutomatic() || (parameter.getValue() == null))
+      if (parameter.isAutomatic() || (parameter.getValue() == null)) {
         maxRunningThreads = Runtime.getRuntime().availableProcessors();
-      else
+      } else {
         maxRunningThreads = parameter.getValue();
+      }
 
       // Check all tasks in the queue
       for (WrappedTask task : queueSnapshot) {
 
         // Skip assigned and canceled tasks
-        if (task.isAssigned() || (task.getActualTask().getStatus() == TaskStatus.CANCELED))
+        if (task.isAssigned() || (task.getActualTask().getStatus() == TaskStatus.CANCELED)) {
           continue;
+        }
 
         // Create a new thread if the task is high-priority or if we
         // have less then maximum # of threads running
-        if ((task.getPriority() == TaskPriority.HIGH)
-            || (runningThreads.size() < maxRunningThreads)) {
+        if ((task.getPriority() == TaskPriority.HIGH) || (runningThreads.size()
+            < maxRunningThreads)) {
           WorkerThread newThread = new WorkerThread(task);
 
           if (task.getPriority() == TaskPriority.NORMAL) {
@@ -260,13 +264,14 @@ public class TaskControllerImpl implements TaskController, Runnable {
   public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz) {
     final WrappedTask[] snapshot = taskQueue.getQueueSnapshot();
     for (WrappedTask wrappedTask : snapshot) {
-      if(clazz.isInstance(wrappedTask.getActualTask())) {
+      if (clazz.isInstance(wrappedTask.getActualTask())) {
         return true;
       }
     }
 
-    for (WorkerThread runningThread : runningThreads) {
-      if(clazz.isInstance(runningThread.getWrappedTask().getActualTask())) {
+    var running = List.of(runningThreads.toArray(WorkerThread[]::new));
+    for (WorkerThread runningThread : running) {
+      if (clazz.isInstance(runningThread.getWrappedTask().getActualTask())) {
         return true;
       }
     }
