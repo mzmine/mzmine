@@ -154,7 +154,7 @@ public class FeatureListUtils {
     }
 
     final Float rt = rtRange != null ? RangeUtils.rangeCenter(rtRange) : null;
-    if (rtRange != null && rt != null && !(row.getAverageRT() == null || !mobilityRange.contains(
+    if (rtRange != null && rt != null && !(row.getAverageRT() == null || !rtRange.contains(
         row.getAverageRT()))) {
       score += 1 - ((Math.abs(row.getAverageRT() - rt)) / (RangeUtils.rangeLength(rtRange) / 2));
       scorers++;
