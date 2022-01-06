@@ -41,8 +41,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.IsotopesUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -61,8 +59,6 @@ class IsotopeFinderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(IsotopeFinderTask.class.getName());
   private final ModularFeatureList featureList;
 
-  private final DataPointSorter mzSorter = new DataPointSorter(SortingProperty.MZ,
-      SortingDirection.Ascending);
   // parameter values
   private final ParameterSet parameters;
   private final MZTolerance isoMzTolerance;
