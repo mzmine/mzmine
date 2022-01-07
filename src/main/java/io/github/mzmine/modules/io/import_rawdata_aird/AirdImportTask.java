@@ -273,8 +273,9 @@ public class AirdImportTask extends AbstractTask {
     if (precursorMz == null) {
       return null;
     }
+    
     DDAMsMsInfoImpl msMsInfo = new DDAMsMsInfoImpl(precursorMz, charge, energy, null, parentScan,
-        MsLevel.MS2.getCode(), method, null);
+        MsLevel.MS2.getCode(), method, Range.closed(range.getStart(), range.getEnd()));
     return msMsInfo;
   }
 }
