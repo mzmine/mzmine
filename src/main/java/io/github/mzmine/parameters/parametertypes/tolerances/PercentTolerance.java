@@ -22,46 +22,57 @@ import com.google.common.collect.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Class to determine if two values lie within a specified tolerance region.
+ *
+ * @author https://github.com/steffenheu
+ */
 public class PercentTolerance {
 
   private final double tolerance;
 
+  /**
+   * @param percentTolerance The tolerance in percent. 0.1 = 10%, 1.5 = 150 %
+   */
   public PercentTolerance(final double percentTolerance) {
     tolerance = percentTolerance;
   }
 
   public boolean matches(int base, int value) {
-    return 1 - Math.abs(value - base) / (double) base <= tolerance;
+    return Double.compare(Math.abs(value - base) / (double) base, tolerance) <= 0;
   }
 
   public boolean matches(long base, long value) {
-    return 1 - Math.abs(value - base) / (double) base <= tolerance;
+    return Double.compare(Math.abs(value - base) / (double) base, tolerance) <= 0;
   }
 
   public boolean matches(float base, float value) {
-    return 1 - Math.abs(value - base) / base <= tolerance;
+    return Double.compare(Math.abs(value - base) / base, tolerance) <= 0;
   }
 
   public boolean matches(double base, double value) {
-    return 1 - Math.abs(value - base) / base <= tolerance;
+    return Double.compare(Math.abs(value - base) / base, tolerance) <= 0;
   }
 
   /**
-   *
-   * @param base The base value of this range ("what it is supposed to be")
+   * @param base  The base value of this range ("what it is supposed to be")
    * @param value The value to be checked.
    * @return true or false. false if any of the input type is null
    */
   public <T extends Number, V extends Number> boolean matches(@Nullable T base, @Nullable V value) {
-    if(base == null || value == null) {
+    if (base == null || value == null) {
       return false;
     }
-    return (1 - Math.abs(value.doubleValue() - base.doubleValue()) / base.doubleValue())
-        <= tolerance;
+    return Double.compare(Math.abs(value.doubleValue() - base.doubleValue()) / (double) base,
+        tolerance) <= 0;
   }
 
   public <T extends Number> Range<Double> getToleranceRange(@NotNull T value) {
     double tol = value.doubleValue() * tolerance;
     return Range.closed(value.doubleValue() - tol, value.doubleValue() + tol);
+  }
+
+  public double getTolerance() {
+    return tolerance;
   }
 }
