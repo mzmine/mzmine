@@ -120,7 +120,7 @@ public class FileNameComponent extends FlowPane implements LastFilesComponent {
   }
 
   public void setValue(File value) {
-    txtFilename.setText(value.getPath());
+    txtFilename.setText(value != null ? value.getPath() : "");
   }
 
   public File getValue(boolean allowEmptyString) {
