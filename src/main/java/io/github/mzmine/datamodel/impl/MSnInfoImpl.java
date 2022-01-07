@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Multi stage fragmentation MSn
+ * Multi stage fragmentation MSn. The precursors that lead to this scan
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
@@ -46,6 +46,10 @@ public class MSnInfoImpl implements DDAMsMsInfo {
 
   public static final String XML_TYPE_NAME = "msn_multi_stage_info";
   private static final Logger logger = Logger.getLogger(MSnInfoImpl.class.getName());
+  /**
+   * All the precursor stages that lead to this scan. An MS4 scan will have these isolation steps:
+   * MS2 --> MS3 --> MS4 in this order.
+   */
   private final List<DDAMsMsInfo> precursors;
 
   public MSnInfoImpl(List<DDAMsMsInfo> precursors) {
