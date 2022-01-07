@@ -45,7 +45,6 @@ repositories {
 
     // TODO change to mavenCentral()
     // mavenLocal()
-    // maven { url = "https://maven.aliyun.com/repository/public" }
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local libraries
     maven { url = "file://" + projectDir + "/src/main/lib" }
