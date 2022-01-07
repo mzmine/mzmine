@@ -39,20 +39,53 @@ public class PercentTolerance {
   }
 
   public boolean matches(int base, int value) {
-    return Double.compare(Math.abs(value - base) / (double) base, tolerance) <= 0;
+    return Double.compare(getPercentError(base, value), tolerance) <= 0;
   }
 
   public boolean matches(long base, long value) {
-    return Double.compare(Math.abs(value - base) / (double) base, tolerance) <= 0;
+    return Double.compare(getPercentError(base, value), tolerance) <= 0;
   }
 
   public boolean matches(float base, float value) {
-    return Double.compare(Math.abs(value - base) / base, tolerance) <= 0;
+    return Double.compare(getPercentError(base, value), tolerance) <= 0;
   }
 
   public boolean matches(double base, double value) {
-    return Double.compare(Math.abs(value - base) / base, tolerance) <= 0;
+    return Double.compare(getPercentError(base, value), tolerance) <= 0;
   }
+
+  /**
+   *
+   * @return The error in per cent. 10 % = 0.1
+   */
+  public static double getPercentError(int base, int value) {
+    return Math.abs(value - base) / (double) base;
+  }
+
+  /**
+   *
+   * @return The error in per cent. 10 % = 0.1
+   */
+  public static double getPercentError(long base, long value) {
+    return Math.abs(value - base) / (double) base;
+  }
+
+  /**
+   *
+   * @return The error in per cent. 10 % = 0.1
+   */
+  public static double getPercentError(float base, float value) {
+    return Math.abs(value - base) / base;
+  }
+
+  /**
+   *
+   * @return The error in per cent. 10 % = 0.1
+   */
+  public static double getPercentError(double base, double value) {
+    return Math.abs(value - base) / base;
+  }
+
 
   /**
    * @param base  The base value of this range ("what it is supposed to be")
@@ -63,8 +96,7 @@ public class PercentTolerance {
     if (base == null || value == null) {
       return false;
     }
-    return Double.compare(Math.abs(value.doubleValue() - base.doubleValue()) / base.doubleValue(),
-        tolerance) <= 0;
+    return Double.compare(getPercentError(base.doubleValue(), value.doubleValue()), tolerance) <= 0;
   }
 
   public <T extends Number> Range<Double> getToleranceRange(@NotNull T value) {
@@ -75,4 +107,5 @@ public class PercentTolerance {
   public double getTolerance() {
     return tolerance;
   }
+
 }
