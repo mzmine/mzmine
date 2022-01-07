@@ -63,12 +63,12 @@ public class PercentTolerance {
     if (base == null || value == null) {
       return false;
     }
-    return Double.compare(Math.abs(value.doubleValue() - base.doubleValue()) / (double) base,
+    return Double.compare(Math.abs(value.doubleValue() - base.doubleValue()) / base.doubleValue(),
         tolerance) <= 0;
   }
 
   public <T extends Number> Range<Double> getToleranceRange(@NotNull T value) {
-    double tol = value.doubleValue() * tolerance;
+    final double tol = value.doubleValue() * tolerance;
     return Range.closed(value.doubleValue() - tol, value.doubleValue() + tol);
   }
 
