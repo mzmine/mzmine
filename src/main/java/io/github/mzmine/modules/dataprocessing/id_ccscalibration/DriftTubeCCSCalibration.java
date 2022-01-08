@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
 
+import java.util.Objects;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.w3c.dom.Element;
 
@@ -85,5 +86,23 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
     int n = Integer.parseInt(element.getAttribute("n"));
 
     return new DriftTubeCCSCalibration(beta, tfix, rsquare, n);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DriftTubeCCSCalibration)) {
+      return false;
+    }
+    DriftTubeCCSCalibration that = (DriftTubeCCSCalibration) o;
+    return Double.compare(that.beta, beta) == 0 && Double.compare(that.tfix, tfix) == 0
+        && Double.compare(that.rsquare, rsquare) == 0 && n == that.n;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(beta, tfix, rsquare, n);
   }
 }

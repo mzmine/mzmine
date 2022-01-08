@@ -19,13 +19,16 @@
 package util;
 
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.AgilentImsCalibrationReader;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrant;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
+import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -84,6 +87,17 @@ public class CCSTest {
     logger.info(String.valueOf(timsCalibration.getCCS(1221.9901, 1, 1.3943f)));
 
     // looks like we can also use the linear calibration for DTIMS for TIMS measurements.
+  }
+
+  @Test
+  void testAgilentCalReader() {
+    String str = CCSTest.class.getClassLoader().getResource("rawdatafiles/OverrideImsCal.xml")
+        .getFile();
+
+    final File calFile = new File(str);
+    CCSCalibration cal = AgilentImsCalibrationReader.readCalibrationFile(calFile);
+    Assertions.assertEquals(
+        new DriftTubeCCSCalibration(0.146486318643186468476, -0.049872168413168131861, -1, -1), cal);
   }
 
   /*@Test
