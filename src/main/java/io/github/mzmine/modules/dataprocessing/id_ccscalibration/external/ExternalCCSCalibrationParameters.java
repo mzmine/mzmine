@@ -26,11 +26,11 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 
 public class ExternalCCSCalibrationParameters extends SimpleParameterSet {
 
-  public static final FileNameParameter referenceList = new FileNameParameter("Reference list",
+  public static final FileNameParameter calibrationFile = new FileNameParameter("Calibration file",
       "The file containing the reference compounds for m/z and mobility.", FileSelectionType.OPEN,
       false);
 
   public ExternalCCSCalibrationParameters() {
-    super(new Parameter[]{referenceList});
+    super(new Parameter[]{calibrationFile});
   }
 }

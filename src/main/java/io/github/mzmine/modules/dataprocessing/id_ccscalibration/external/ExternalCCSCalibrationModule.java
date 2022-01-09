@@ -20,9 +20,11 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalibration.external;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.AgilentImsCalibrationReader;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.parameters.ParameterSet;
+import java.io.File;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +48,9 @@ public class ExternalCCSCalibrationModule implements MZmineModule, CCSCalculator
   public CCSCalibration getCalibration(@NotNull ModularFeatureList flist,
       @NotNull ParameterSet ccsCalculatorParameters) {
 
-    return null;
+    final File calibrationFile = ccsCalculatorParameters.getValue(
+        ExternalCCSCalibrationParameters.calibrationFile);
+
+    return AgilentImsCalibrationReader.readCalibrationFile(calibrationFile);
   }
 }
