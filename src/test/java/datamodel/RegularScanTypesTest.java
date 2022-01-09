@@ -61,7 +61,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -103,7 +102,8 @@ public class RegularScanTypesTest {
     scans = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       scans.add(new SimpleScan(file, i, 1, 0.1f * i, null, new double[]{700, 800, 900, 1000, 1100},
-          new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
+          new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
+          PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
     // add MS2
@@ -147,6 +147,21 @@ public class RegularScanTypesTest {
 
     DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, msMsInfos);
   }
+
+  @Test
+  void testMSnInfo() {
+    MsMsInfoType type = new MsMsInfoType();
+
+    final DDAMsMsInfoImpl ms2Info = new DDAMsMsInfoImpl(550, 1, 30f, null, null, 2,
+        ActivationMethod.HCD, Range.closed(500d, 600d));
+    final DDAMsMsInfoImpl ms3Info = new DDAMsMsInfoImpl(550, 1, 30f, null, null, 3,
+        ActivationMethod.HCD, Range.closed(500d, 600d));
+
+    MSnInfoImpl msnInfo = new MSnInfoImpl(List.of(ms2Info, ms3Info));
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, List.of(msnInfo));
+  }
+
 
   @Test
   void bestScanNumberTypeTest() {
@@ -215,7 +230,8 @@ public class RegularScanTypesTest {
     SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
-    List<SpectralDBFeatureIdentity> value = List.of(new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
+    List<SpectralDBFeatureIdentity> value = List.of(
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
         new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
 
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
@@ -229,16 +245,19 @@ public class RegularScanTypesTest {
     var type = new LipidMatchListType();
 
     LipidFactory lipidFactory = new LipidFactory();
-    SpeciesLevelAnnotation speciesLevelAnnotation = lipidFactory.buildSpeciesLevelLipid(LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2);
+    SpeciesLevelAnnotation speciesLevelAnnotation = lipidFactory.buildSpeciesLevelLipid(
+        LipidClasses.DIACYLGLYCEROPHOSPHATES, 36, 2);
 
     MolecularSpeciesLevelAnnotation molecularSpeciesLevelAnnotation = lipidFactory.buildMolecularSpeciesLevelLipid(
         LipidClasses.DIACYLGLYCEROPHOSPHOCHOLINES, new int[]{12, 14}, new int[]{0, 2});
 
     List<MatchedLipid> value = new ArrayList<>();
 
-    value.add(new MatchedLipid(speciesLevelAnnotation, 785.59346 + 1.003, IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+    value.add(new MatchedLipid(speciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
 
-    value.add(new MatchedLipid(molecularSpeciesLevelAnnotation, 785.59346 + 1.003, IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
+    value.add(new MatchedLipid(molecularSpeciesLevelAnnotation, 785.59346 + 1.003,
+        IonizationType.POSITIVE_HYDROGEN, new HashSet<>(), 0.0d));
 
     List<MatchedLipid> loaded = (List<MatchedLipid>) DataTypeTestUtils.saveAndLoad(type, value,
         flist, row, null, null);

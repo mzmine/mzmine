@@ -28,6 +28,7 @@ import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorEl
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -81,12 +82,16 @@ public class MSnInfoImpl implements DDAMsMsInfo {
    */
   public static MSnInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
     List<DDAMsMsInfo> precursors = new ArrayList<>(4);
+    int childrenOpen = 0;
     try {
       while (reader.hasNext()) {
         int next = reader.next();
-        if (next == XMLEvent.END_ELEMENT && reader.getLocalName()
-            .equals(MSnInfoImpl.XML_TYPE_NAME)) {
-          break;
+        if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(MsMsInfo.XML_ELEMENT)) {
+          if (childrenOpen > 0) {
+            childrenOpen--;
+          } else {
+            break;
+          }
         }
         if (next != XMLEvent.START_ELEMENT) {
           continue;
@@ -94,6 +99,7 @@ public class MSnInfoImpl implements DDAMsMsInfo {
 
         final MsMsInfo loaded = MsMsInfo.loadFromXML(reader, file);
         if (loaded instanceof DDAMsMsInfo child) {
+          childrenOpen++;
           precursors.add(child);
         } else {
           throw new IllegalStateException(
@@ -185,5 +191,22 @@ public class MSnInfoImpl implements DDAMsMsInfo {
 
   public double getMS2PrecursorMz() {
     return precursors.get(0).getIsolationMz();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MSnInfoImpl mSnInfo = (MSnInfoImpl) o;
+    return precursors.equals(mSnInfo.precursors);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(precursors);
   }
 }
