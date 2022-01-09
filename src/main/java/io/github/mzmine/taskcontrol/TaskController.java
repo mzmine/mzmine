@@ -40,4 +40,6 @@ public interface TaskController {
 
   public TaskQueue getTaskQueue();
 
+  public boolean isTaskInstanceRunningOrQueued(Class<? extends AbstractTask> clazz);
+
 }

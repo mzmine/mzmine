@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import java.awt.AlphaComposite;
 import java.awt.Composite;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -32,6 +32,11 @@ import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
 
 public class FeatureTICRenderer extends XYAreaRenderer {
+
+  public FeatureTICRenderer() {
+    super();
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
+  }
 
   /**
    * 

@@ -83,7 +83,7 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
   public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
-      "Use proxy", "Use proxy for internet connection?", new ProxySettings());
+      "Use proxy", "Use proxy for internet connection?", new ProxySettings(), false);
 
   public static final FileNameParameter rExecPath = new FileNameParameter("R executable path",
       "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.",
