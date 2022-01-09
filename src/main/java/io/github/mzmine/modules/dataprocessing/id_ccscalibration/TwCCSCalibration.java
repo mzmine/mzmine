@@ -28,11 +28,13 @@ public class TwCCSCalibration implements CCSCalibration {
   private final double coeff;
   private final double exponent;
   private final double t0;
+  private final double edcDelayCoeff;
 
-  public TwCCSCalibration(double coeff, double exponent, double t0) {
+  public TwCCSCalibration(double coeff, double exponent, double t0, double edcDelayCoeff) {
     this.coeff = coeff;
     this.exponent = exponent;
     this.t0 = t0;
+    this.edcDelayCoeff = edcDelayCoeff;
   }
 
   /**
@@ -45,6 +47,8 @@ public class TwCCSCalibration implements CCSCalibration {
    */
   @Override
   public float getCCS(double mz, int charge, float mobility) {
+    final double correctedDriftTime = mobility - (edcDelayCoeff * Math.sqrt(mz)/1000);
+
     return (float) (coeff * Math.pow(mobility + t0, exponent));
   }
 

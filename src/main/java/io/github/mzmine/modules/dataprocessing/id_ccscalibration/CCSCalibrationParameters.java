@@ -46,9 +46,10 @@ public class CCSCalibrationParameters extends SimpleParameterSet {
   public static final ModuleComboParameter calibrationType = new ModuleComboParameter(
       "Calibration type",
       "Select how mobility values shall be calibrated to calculate CCS values.\n"
-          + "For timsTOF files, internal calibration can be used if mobility values have already been calibrated.\n"
-          + "Other vendors require calibration files with reference compounds.\n"
-          + "The files should contain the columns mz, charge, mobility, and CCS.",
+          + "For timsTOF files, no calibration is required, if the instrument or DataAnalysis recalibtation shall be used.\n"
+          + "Agilent DTIMS files require a calibration run (= feature list) and a list of reference compounds in that calibration run,\n"
+          + "or the external calibration from the masshunter software.\n"
+          + "The reference file must contain the columns mz, charge, mobility, and CCS.",
       calibrationModules, referenceCalcModule);
 
   public static final FeatureListsParameter flists = new FeatureListsParameter();
