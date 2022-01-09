@@ -35,7 +35,6 @@ import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import org.jfree.chart.JFreeChart;
 
 /**
  * JFreeChart theme settings for {@link EStandardChartTheme}s
@@ -65,7 +64,7 @@ public class ChartThemeParameters extends SimpleParameterSet {
           new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter subTitleFont = new FontParameter("Axis labels", "Subtitle font",
+  public static final FontParameter subTitleFont = new FontParameter("Subtitles", "Subtitle font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
   public static final FontParameter axisLabelFont = new FontParameter("Axis Labels", "Axis label font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
@@ -104,54 +103,6 @@ public class ChartThemeParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ChartThemeParametersSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-  @Deprecated
-  public void applyToChart(JFreeChart chart) {
-    // // apply chart settings
-    // boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
-    // boolean changeTitle = this.getParameter(ChartThemeParameters.changeTitle).getValue();
-    // String title =
-    // this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter().getValue();
-    // boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
-    //
-    // boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
-    // boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
-    // String xlabel =
-    // this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
-    // String ylabel =
-    // this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
-    //
-    // Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
-    // // chart.setBackgroundPaint(gbColor);
-    // // chart.getPlot().setBackgroundPaint(gbColor);
-    //
-    // if (changeTitle)
-    // chart.setTitle(title);
-    // chart.getTitle().setVisible(showTitle);
-    // ((List<Title>) chart.getSubtitles()).stream().forEach(t -> t.setVisible(showLegends));
-    //
-    // if (chart.getXYPlot() != null) {
-    // XYPlot p = chart.getXYPlot();
-    // if (usexlabel)
-    // p.getDomainAxis().setLabel(xlabel);
-    // if (useylabel)
-    // p.getRangeAxis().setLabel(ylabel);
-    //
-    // boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
-    // boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
-    // Color cxgrid =
-    // this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
-    // Color cygrid =
-    // this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
-    // p.setDomainGridlinesVisible(xgrid);
-    // p.setDomainGridlinePaint(FxColorUtil.fxColorToAWT(cxgrid));
-    // p.setRangeGridlinesVisible(ygrid);
-    // p.setRangeGridlinePaint(FxColorUtil.fxColorToAWT(cygrid));
-    //
-    // p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
-    // p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
-    // }
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {

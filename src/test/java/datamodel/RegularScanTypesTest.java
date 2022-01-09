@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
@@ -37,6 +38,7 @@ import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
@@ -59,6 +61,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -128,6 +131,21 @@ public class RegularScanTypesTest {
       }
     }
     flist.setSelectedScans(file, scans);
+  }
+
+  @Test
+  void testDDAMsMsInfo() {
+    var type = new MsMsInfoType();
+
+    final List<MsMsInfo> msMsInfos = List.of(
+        new DDAMsMsInfoImpl(550, 1, 30f, null, null, 2, ActivationMethod.HCD,
+            Range.closed(500d, 600d)),
+        new DDAMsMsInfoImpl(550, null, null, null, null, 2, ActivationMethod.UNKNOWN,
+            Range.closed(500d, 600d)));
+
+    Assertions.assertTrue(msMsInfos.size() > 0);
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, msMsInfos);
   }
 
   @Test
