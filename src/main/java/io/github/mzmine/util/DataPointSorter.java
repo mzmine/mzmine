@@ -26,7 +26,7 @@ import java.util.Comparator;
  */
 public class DataPointSorter implements Comparator<DataPoint> {
 
-  public static final DataPointSorter MZ_ASCENDING = new DataPointSorter(SortingProperty.MZ,
+  public static final DataPointSorter DEFAULT_MZ_ASCENDING = new DataPointSorter(SortingProperty.MZ,
       SortingDirection.Ascending);
   public static final DataPointSorter DEFAULT_INTENSITY = new DataPointSorter(
       SortingProperty.Intensity, SortingDirection.Descending);
