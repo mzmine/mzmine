@@ -19,12 +19,15 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.elements.ElementsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.ExitCode;
+import org.intellij.lang.annotations.Language;
 
 public class IsotopeFinderParameters extends SimpleParameterSet {
 
@@ -50,6 +53,19 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
     super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange});
   }
 
+  @Override
+  public ExitCode showSetupDialog(boolean valueCheckRequired) {
+    @Language("HTML") String message = """
+        <p><strong>Important:</strong> The isotope finder will search for all possible isotope signals in the mass lists for each
+          feature. The resulting pattern may contain signals from different charge states as this module tries
+          to capture all available information, whereas the isotope grouper acts as a feature filter.</p>
+                """;
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
+    dialog.showAndWait();
+    return dialog.getExitCode();
+  }
+
+
   public enum ScanRange {
     // IN_FWHM,
     SINGLE_MOST_INTENSE;
@@ -59,5 +75,4 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
       return super.toString().replaceAll("_", " ");
     }
   }
-
 }

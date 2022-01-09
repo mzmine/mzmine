@@ -105,7 +105,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
       true);
 
   public static final BooleanParameter MS2_Filter = new BooleanParameter(
-      "Keep only feature with MS2 scan (GNPS)",
+      "Feature with MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.");
   public static final BooleanParameter Reset_ID = new BooleanParameter(
       "Reset the feature number ID",

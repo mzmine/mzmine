@@ -78,7 +78,7 @@ public class MainMenuController {
      * it is hard-coded here for now
      */
     final Path logFilePath = Paths.get(
-        System.getProperty("java.io.tmpdir") + File.separator + "mzmine.log");
+        System.getProperty("user.home") + File.separator + "mzmine_0_0.log");
 
     try {
       Desktop gui = MZmineCore.getDesktop();

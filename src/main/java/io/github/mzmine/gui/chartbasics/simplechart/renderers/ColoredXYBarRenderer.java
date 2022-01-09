@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
 import java.awt.AlphaComposite;
@@ -59,6 +60,8 @@ public class ColoredXYBarRenderer extends XYBarRenderer {
     // Set the tooltip generator
     setBarPainter(new StandardXYBarPainter());
     setDefaultItemLabelsVisible(true);
+
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   /**
