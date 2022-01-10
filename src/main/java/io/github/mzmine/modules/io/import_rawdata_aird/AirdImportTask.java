@@ -162,6 +162,7 @@ public class AirdImportTask extends AbstractTask {
       setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
       return;
     }
+    boolean isMinute = airdInfo.getRtUnit().equals("minute");
 
     for (int i = 0; i < msList.size(); i++) {
       DDAMs ms1 = msList.get(i);
@@ -170,8 +171,9 @@ public class AirdImportTask extends AbstractTask {
         setErrorMessage("Please check the 'PSI CV' option when using AirdPro for conversion");
         return;
       }
+
       SimpleScan ms1Scan = buildSimpleScan(ms1.getSpectrum(), ms1.getCvList(), null, ms1.getNum(),
-          ms1.getRt(), MsLevel.MS1.getCode(), null);
+          ms1.getRt(), MsLevel.MS1.getCode(), null, isMinute);
       parsedScans++;
       newMZmineFile.addScan(ms1Scan);
       if (ms1.getMs2List() != null && ms1.getMs2List().size() != 0) {
@@ -183,7 +185,7 @@ public class AirdImportTask extends AbstractTask {
             return;
           }
           SimpleScan ms2Scan = buildSimpleScan(ms2.getSpectrum(), ms2.getCvList(), ms2.getRange(),
-              ms2.getNum(), ms2.getRt(), MsLevel.MS2.getCode(), ms1Scan);
+              ms2.getNum(), ms2.getRt(), MsLevel.MS2.getCode(), ms1Scan, isMinute);
           parsedScans++;
           newMZmineFile.addScan(ms2Scan);
         }
@@ -193,6 +195,7 @@ public class AirdImportTask extends AbstractTask {
 
   private void loadAsDIA(DIAParser parser) throws IOException {
     AirdInfo airdInfo = parser.getAirdInfo();
+    boolean isMinute = airdInfo.getRtUnit().equals("minute");
     List<BlockIndex> indexList = airdInfo.getIndexList();
     for (BlockIndex index : indexList) {
       TreeMap<Float, Spectrum> map = parser.getSpectrums(index);
@@ -203,16 +206,15 @@ public class AirdImportTask extends AbstractTask {
         float rt = rtList.get(i);
         SimpleScan scan = buildSimpleScan(map.get(rt), index.getCvList().get(i),
             rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(),
-            null);
+            null, isMinute);
         parsedScans++;
         newMZmineFile.addScan(scan);
       }
     }
-
   }
 
   private SimpleScan buildSimpleScan(Spectrum spectrum, List<CV> cvList, WindowRange windowRange,
-      Integer num, float rt, int msLevel, Scan parentScan) {
+      Integer num, float rt, int msLevel, Scan parentScan, Boolean isMinute) {
     MassSpectrumType massSpectrumType = null;
     PolarityType polarityType = null;
     String filterString = null;
@@ -259,7 +261,9 @@ public class AirdImportTask extends AbstractTask {
     if (msLevel == MsLevel.MS2.getCode()) {
       msMsInfo = buildMsMsInfo(airdInfo, windowRange, parentScan);
     }
-    SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel, rt * 60, msMsInfo,
+
+    SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel,
+        rt * (isMinute ? 60 : 1), msMsInfo,
         ArrayUtil.fromFloatToDouble(spectrum.mzs()), ArrayUtil.fromFloatToDouble(spectrum.ints()),
         massSpectrumType, polarityType, filterString, mzRange);
     return msScan;
@@ -273,7 +277,7 @@ public class AirdImportTask extends AbstractTask {
     if (precursorMz == null) {
       return null;
     }
-    
+
     DDAMsMsInfoImpl msMsInfo = new DDAMsMsInfoImpl(precursorMz, charge, energy, null, parentScan,
         MsLevel.MS2.getCode(), method, Range.closed(range.getStart(), range.getEnd()));
     return msMsInfo;
