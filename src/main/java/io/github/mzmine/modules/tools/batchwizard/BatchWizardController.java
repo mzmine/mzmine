@@ -104,6 +104,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -159,6 +160,7 @@ public class BatchWizardController {
     label.setTooltip(new Tooltip(exportParam.getDescription()));
     label.setStyle("-fx-font-weight: bold");
     HBox box = new HBox(4, label, exportPathComponent);
+    box.setPadding(new Insets(5));
     box.setAlignment(Pos.CENTER_LEFT);
     rightMenu.setSpacing(4);
     rightMenu.getChildren().add(0, box);
