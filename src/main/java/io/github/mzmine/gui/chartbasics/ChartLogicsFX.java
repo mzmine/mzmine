@@ -22,6 +22,7 @@ import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
@@ -514,12 +515,8 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      if (myChart.getRenderingInfo() == null) {
-        z.zoomRangeAxes(0, null, endPoint);
-      } else {
-        PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
-        z.zoomRangeAxes(0, pri, endPoint);
-      }
+      PlotRenderingInfo pri = getPlotRenderingInfo(myChart);
+      z.zoomRangeAxes(0, pri, endPoint);
     }
   }
 
@@ -533,11 +530,19 @@ public class ChartLogicsFX {
     if (plot instanceof Zoomable) {
       Zoomable z = plot;
       Point2D endPoint = new Point2D.Double(0, 0);
-      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
-      if (pri != null) {
-        z.zoomDomainAxes(0, pri, endPoint);
-      }
+      PlotRenderingInfo pri = getPlotRenderingInfo(myChart);
+      z.zoomDomainAxes(0, pri, endPoint);
     }
+  }
+
+  @Nullable
+  private static PlotRenderingInfo getPlotRenderingInfo(ChartViewer myChart) {
+    PlotRenderingInfo pri = null;
+    final ChartRenderingInfo renderingInfo = myChart.getRenderingInfo();
+    if (renderingInfo != null) {
+      pri = renderingInfo.getPlotInfo();
+    }
+    return pri;
   }
 
   /**

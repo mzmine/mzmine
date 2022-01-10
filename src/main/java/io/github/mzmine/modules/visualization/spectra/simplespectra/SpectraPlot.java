@@ -421,8 +421,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
       // if getPlotMode() == AUTO then we use the scan's type, if not we use getPlotMode()
       SpectrumPlotType typeForDataSet =
-          (getPlotMode() == SpectrumPlotType.AUTO) ? SpectrumPlotType.fromScan(scan)
-              : getPlotMode();
+          (getPlotMode() == SpectrumPlotType.AUTO) ? SpectrumPlotType.fromScan(scan) : getPlotMode();
 
       if (typeForDataSet == SpectrumPlotType.CENTROID) {
         newRenderer = new PeakRenderer(color, transparency);
@@ -430,15 +429,30 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
         newRenderer = new ContinuousRenderer(color, transparency);
         ((ContinuousRenderer) newRenderer).setDefaultShapesVisible(dataPointsVisible);
       }
-
-      // add all precursors for MS>=2
-      if (addPrecursorMarkers && scan != null && scan.getMSLevel() > 1) {
-        addPrecursorMarkers(scan);
-      }
     } else if (dataSet instanceof MassListDataSet) {
       newRenderer = new SpectraMassListRenderer(color);
     } else {
       newRenderer = new PeakRenderer(color, transparency);
+    }
+
+    addDataSet(dataSet, color, transparency, newRenderer, labelGenerator, addPrecursorMarkers);
+  }
+
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
+      XYItemRenderer newRenderer, boolean addPrecursorMarkers) {
+    addDataSet(dataSet, color, transparency, newRenderer, new SpectraItemLabelGenerator(this),
+        addPrecursorMarkers);
+  }
+
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
+      XYItemRenderer newRenderer, XYItemLabelGenerator labelGenerator,
+      boolean addPrecursorMarkers) {
+    if (addPrecursorMarkers && dataSet instanceof ScanDataSet scanDataSet) {
+      Scan scan = scanDataSet.getScan();
+      // add all precursors for MS>=2
+      if (scan != null && scan.getMSLevel() > 1) {
+        addPrecursorMarkers(scan);
+      }
     }
 
     // Add label generator for the dataset
@@ -667,5 +681,23 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
   public Map<XYDataset, List<Pair<Double, Double>>> getDatasetToLabelsCoords() {
     return datasetToLabelsCoords;
+  }
+
+  public XYItemRenderer getLastRenderer() {
+    final XYPlot plot = getXYPlot();
+    if (plot == null) {
+      return null;
+    }
+    final int renderer = plot.getRendererCount();
+    return renderer <= 0 ? null : plot.getRenderer(renderer - 1);
+  }
+
+  public XYDataset getLastDataset() {
+    final XYPlot plot = getXYPlot();
+    if (plot == null) {
+      return null;
+    }
+    final int datasets = plot.getDatasetCount();
+    return datasets <= 0 ? null : plot.getDataset(datasets - 1);
   }
 }
