@@ -41,6 +41,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecti
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
@@ -99,9 +101,12 @@ import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -267,6 +272,11 @@ public class BatchWizardController {
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
+    if (cbIonMobility.isSelected() && Arrays.stream(filesComponent.getValue())
+        .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"))) {
+      q.add(makeMobilityScanMergerStep(msParameters));
+    }
+
     q.add(makeAdapStep(msParameters, hplcParameters));
 
     q.add(makeSmoothingStep(hplcParameters, true, false));
@@ -415,6 +425,28 @@ public class BatchWizardController {
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param);
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeMobilityScanMergerStep(
+      @NotNull final ParameterSet msParameters) {
+
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
+
+    param.setParameter(MobilityScanMergerParameters.mzTolerance,
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
+    param.setParameter(MobilityScanMergerParameters.noiseLevel,
+        0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
+    param.setParameter(MobilityScanMergerParameters.mergingType, MergingType.SUMMED);
+    param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
+
+    final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
+        RawDataFilesSelectionType.BATCH_LAST_FILES);
+    param.setParameter(MobilityScanMergerParameters.rawDataFiles, rawDataFilesSelection);
+
+    return new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MobilityScanMergerModule.class), param);
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeAdapStep(
