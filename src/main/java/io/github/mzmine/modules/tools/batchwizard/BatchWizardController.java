@@ -302,21 +302,34 @@ public class BatchWizardController {
       ParameterSet hplcParameters) {
     final int minSamples = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
 
-    // need to create new because we do not want to set all parameters here - go with defaults
-    final ParameterSet param = new RowsFilterParameters().cloneParameterSet();
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(RowsFilterModule.class).cloneParameterSet();
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
+    param.setParameter(RowsFilterParameters.SUFFIX,
+        "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
     param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minSamples > 1);
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
         .setValue((double) minSamples);
     param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, true);
     param.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter()
         .setValue(2);
+    param.setParameter(RowsFilterParameters.MZ_RANGE, false);
+    param.setParameter(RowsFilterParameters.RT_RANGE, false);
+    param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
+    param.setParameter(RowsFilterParameters.FWHM, false);
+    param.setParameter(RowsFilterParameters.CHARGE, false);
+    param.setParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT, false);
+    param.setParameter(RowsFilterParameters.GROUPSPARAMETER, RowsFilterParameters.defaultGrouping);
+    param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
+    param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
+    param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
+    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterParameters.removeRowChoices[0]);
+    param.setParameter(RowsFilterParameters.MS2_Filter, false);
+    param.setParameter(RowsFilterParameters.Reset_ID, false);
+    param.setParameter(RowsFilterParameters.massDefect, false);
     param.setParameter(RowsFilterParameters.handleOriginal,
         hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
-    param.setParameter(RowsFilterParameters.MS2_Filter, false);
-    param.setParameter(RowsFilterParameters.SUFFIX,
-        "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
         param);

@@ -18,6 +18,7 @@
 package io.github.mzmine.parameters;
 
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import javafx.beans.property.BooleanProperty;
@@ -81,10 +82,16 @@ public interface ParameterSet extends ParameterContainer {
     getParameter(parameter).setValue(value);
   }
 
+  default <V, T extends UserParameter<V, ?>> void setParameter(OptionalParameter<T> optParam,
+      boolean enabled, V value) {
+    optParam.setValue(enabled);
+    optParam.getEmbeddedParameter().setValue(value);
+  }
+
   /**
-   * Returns BooleanProperty which value is changed when some parameter of this ParameterSet is changed.
-   * It is useful to perform operations directly dependant on the components corresponding to this
-   * ParameterSet (e.g. TextField of a parameter is changed -> preview plot is updated).
+   * Returns BooleanProperty which value is changed when some parameter of this ParameterSet is
+   * changed. It is useful to perform operations directly dependant on the components corresponding
+   * to this ParameterSet (e.g. TextField of a parameter is changed -> preview plot is updated).
    *
    * @return BooleanProperty signalizing a change of any parameter of this ParameterSet
    */
