@@ -322,9 +322,13 @@ public class RowsSpectralMatchTask extends AbstractTask {
   }
 
   private Float getPrecursorCCSFromMsMs(Scan scan) {
+    if (ccsTolerance == null) {
+      return null;
+    }
+
     Float precursorCCS = null;
-    if (scan instanceof MobilityScan mobScan && mobScan.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo
-        && ccsTolerance != null) {
+    if (scan instanceof MobilityScan mobScan
+        && mobScan.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       if (ddaInfo.getPrecursorCharge() != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
@@ -333,7 +337,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
             MobilityType.TIMS, ddaInfo.getPrecursorCharge());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
-        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo && ccsTolerance != null) {
+        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       MobilityScan mobScan = (MobilityScan) merged.getSourceSpectra().stream()
           .filter(MobilityScan.class::isInstance).max(Comparator.comparingDouble(
               s -> Objects.requireNonNullElse(((MobilityScan) s).getMobility(), 0d))).orElse(null);
