@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
@@ -49,8 +50,12 @@ public class ColoredXYShapeRenderer extends XYAreaRenderer {
    */
   private static final long serialVersionUID = 1L;
   private static final float OPACITY = 0.45f;
-
   private XYDataset currentDataset;
+
+  public ColoredXYShapeRenderer() {
+    super();
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
+  }
 
   private static Composite makeComposite(final float alpha) {
 
@@ -90,20 +95,18 @@ public class ColoredXYShapeRenderer extends XYAreaRenderer {
         String description = label;
         String toolTipText = null;
         if (getLegendItemToolTipGenerator() != null) {
-          toolTipText = getLegendItemToolTipGenerator().generateLabel(
-              dataset, series);
+          toolTipText = getLegendItemToolTipGenerator().generateLabel(dataset, series);
         }
         String urlText = null;
         if (getLegendItemURLGenerator() != null) {
-          urlText = getLegendItemURLGenerator().generateLabel(
-              dataset, series);
+          urlText = getLegendItemURLGenerator().generateLabel(dataset, series);
         }
         Paint paint = lookupSeriesPaint(series);
         if (dataset instanceof ColorProvider) {
           paint = ((ColorProvider) dataset).getAWTColor();
         }
-        result = new LegendItem(label, description, toolTipText,
-            urlText, super.getLegendArea(), paint);
+        result = new LegendItem(label, description, toolTipText, urlText, super.getLegendArea(),
+            paint);
         result.setLabelFont(lookupLegendTextFont(series));
         Paint labelPaint = lookupLegendTextPaint(series);
         if (labelPaint != null) {

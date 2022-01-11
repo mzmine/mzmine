@@ -19,32 +19,47 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
 import io.github.mzmine.datamodel.MassList;
+import java.util.Arrays;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 /**
  * Data set for MassList. Implements IntervalXYDataset to be used in pair with XYBarRenderer.
  */
-public class MassListDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class MassListDataSet extends AbstractXYDataset implements IntervalXYDataset,
+    RelativeOption {
 
-  private final double mzValues[], intensityValues[];
   /**
    *
    */
   private static final long serialVersionUID = 1L;
+  private final double maxIntensity;
+  private final double mzValues[], intensityValues[];
+  private boolean normalize;
 
   public MassListDataSet(MassList massList) {
+    this(massList, false);
+  }
+
+  public MassListDataSet(MassList massList, boolean normalize) {
     this.mzValues = new double[massList.getNumberOfDataPoints()];
     this.intensityValues = new double[massList.getNumberOfDataPoints()];
     massList.getMzValues(this.mzValues);
     massList.getIntensityValues(this.intensityValues);
+    maxIntensity = Arrays.stream(intensityValues).max().orElse(1d);
+    this.normalize = normalize;
   }
 
   public MassListDataSet(double mzValues[], double intensityValues[]) {
-    this.mzValues = mzValues;
-    this.intensityValues = intensityValues;
+    this(mzValues, intensityValues, false);
   }
 
+  public MassListDataSet(double mzValues[], double intensityValues[], boolean normalize) {
+    this.mzValues = mzValues;
+    this.intensityValues = intensityValues;
+    maxIntensity = Arrays.stream(intensityValues).max().orElse(1d);
+    this.normalize = normalize;
+  }
 
   @Override
   public int getSeriesCount() {
@@ -68,7 +83,7 @@ public class MassListDataSet extends AbstractXYDataset implements IntervalXYData
 
   @Override
   public Number getY(int series, int item) {
-    return intensityValues[item];
+    return normalize ? intensityValues[item] / maxIntensity * 100d : intensityValues[item];
   }
 
   @Override
@@ -109,5 +124,10 @@ public class MassListDataSet extends AbstractXYDataset implements IntervalXYData
   @Override
   public double getStartYValue(int series, int item) {
     return getYValue(series, item);
+  }
+
+  @Override
+  public void setRelative(boolean relative) {
+    normalize = relative;
   }
 }

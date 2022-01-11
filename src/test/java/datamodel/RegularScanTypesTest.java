@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package datamodel;
@@ -26,14 +27,18 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
+import io.github.mzmine.datamodel.impl.MSnInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.MolecularSpeciesLevelAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.SpeciesLevelAnnotation;
@@ -62,7 +67,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
+
+@RunWith(MockitoJUnitRunner.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class RegularScanTypesTest {
 
@@ -71,6 +80,7 @@ public class RegularScanTypesTest {
   ModularFeatureListRow row;
   ModularFeature feature;
   List<Scan> scans;
+  private SimpleScan ms3Scan;
 
   @BeforeAll
   void initialise() {
@@ -88,6 +98,7 @@ public class RegularScanTypesTest {
     row.addFeature(file, feature);
     flist.addRow(row);
 
+    // add MS1
     scans = new ArrayList<>();
     for (int i = 0; i < 5; i++) {
       scans.add(new SimpleScan(file, i, 1, 0.1f * i, null, new double[]{700, 800, 900, 1000, 1100},
@@ -95,12 +106,21 @@ public class RegularScanTypesTest {
           PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
 
+    // add MS2
     for (int i = 5; i < 10; i++) {
       scans.add(new SimpleScan(file, i, 2, 0.1f * i,
-          new DDAMsMsInfoImpl(0, null, null, null, null, 2, ActivationMethod.UNKNOWN, null),
-          new double[]{700, 800, 900, 1000, 1100}, new double[]{1700, 1800, 1900, 11000, 11100},
-          MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
+          new DDAMsMsInfoImpl(300, 1, 20f, null, null, 2, ActivationMethod.UNKNOWN,
+              Range.closed(299d, 301d)), new double[]{700, 800, 900, 1000, 1100},
+          new double[]{1700, 1800, 1900, 11000, 11100}, MassSpectrumType.CENTROIDED,
+          PolarityType.POSITIVE, "", Range.closed(0d, 1d)));
     }
+
+    // add ms3 scan
+    ms3Scan = new SimpleScan(file, file.getNumOfScans(), 3, 1000,
+        new MSnInfoImpl(List.of((DDAMsMsInfo) scans.get(scans.size() - 1).getMsMsInfo())),
+        new double[]{700, 800, 900, 1000, 1100}, new double[]{1700, 1800, 1900, 11000, 11100},
+        MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d));
+    scans.add(ms3Scan);
 
     for (Scan scan : scans) {
       try {
@@ -114,6 +134,36 @@ public class RegularScanTypesTest {
   }
 
   @Test
+  void testDDAMsMsInfo() {
+    var type = new MsMsInfoType();
+
+    final List<MsMsInfo> msMsInfos = List.of(
+        new DDAMsMsInfoImpl(550, 1, 30f, null, null, 2, ActivationMethod.HCD,
+            Range.closed(500d, 600d)),
+        new DDAMsMsInfoImpl(550, null, null, null, null, 2, ActivationMethod.UNKNOWN,
+            Range.closed(500d, 600d)));
+
+    Assertions.assertTrue(msMsInfos.size() > 0);
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, msMsInfos);
+  }
+
+  @Test
+  void testMSnInfo() {
+    MsMsInfoType type = new MsMsInfoType();
+
+    final DDAMsMsInfoImpl ms2Info = new DDAMsMsInfoImpl(550, 1, 30f, null, null, 2,
+        ActivationMethod.HCD, Range.closed(500d, 600d));
+    final DDAMsMsInfoImpl ms3Info = new DDAMsMsInfoImpl(550, 1, 30f, null, null, 3,
+        ActivationMethod.HCD, Range.closed(500d, 600d));
+
+    MSnInfoImpl msnInfo = new MSnInfoImpl(List.of(ms2Info, ms3Info));
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, List.of(msnInfo));
+  }
+
+
+  @Test
   void bestScanNumberTypeTest() {
     BestScanNumberType type = new BestScanNumberType();
     Scan value = file.getScan(3);
@@ -123,6 +173,18 @@ public class RegularScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
+
+
+  @Test
+  void msnInfoSaveLoadTest() {
+    BestFragmentScanNumberType type = new BestFragmentScanNumberType();
+    DataTypeTestUtils.testSaveLoad(type, ms3Scan, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, ms3Scan, flist, row, feature, file);
+
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
+    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
+  }
+
 
   @Test
   void bestFragmentScanNumberTypeTest() {
@@ -169,8 +231,8 @@ public class RegularScanTypesTest {
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBFeatureIdentity> value = List.of(
-        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
-        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching", null),
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching", 0.043f));
 
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);

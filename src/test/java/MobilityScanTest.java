@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDa
 import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
+import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.impl.SimpleFrame;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -74,7 +76,9 @@ public class MobilityScanTest {
   }
 
   /**
-   * Generates mobility scans with a random number of data points (0-200), m/z values (0-1) and intensities (0-1)
+   * Generates mobility scans with a random number of data points (0-200), m/z values (0-1) and
+   * intensities (0-1)
+   *
    * @param numScans The number of moiblity scans.
    * @return The mobility scans.
    */
@@ -118,17 +122,23 @@ public class MobilityScanTest {
     return frames;
   }
 
-  @Test
-  public void testStorage() {
-
+  @NotNull
+  private IMSRawDataFile createRawDataFile() {
     logger.info("Creating raw data file.");
-    RawDataFile rawDataFile = null;
+    IMSRawDataFile rawDataFile = null;
     try {
       rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
     } catch (IOException e) {
       e.printStackTrace();
       Assert.fail();
     }
+    return rawDataFile;
+  }
+
+  @Test
+  public void testStorage() {
+
+    RawDataFile rawDataFile = createRawDataFile();
 
     logger.info("Creating frame.");
     SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
@@ -158,19 +168,36 @@ public class MobilityScanTest {
       Assert.assertArrayEquals(originalIntensities, actualIntensities, 1E-8);
     }
     logger.info("Mobility scan storing and loading ok.");
+
+  }
+
+  /**
+   * Mobility scans guaranteed to start at 0 and being consecutive is a crucial requirement for
+   * MZmine. Therefore it is crucial that the exceptions are thrown.
+   */
+  @Test
+  private void testMobilityScanStorageAssumptions() {
+    final IMSRawDataFile rawDataFile = createRawDataFile();
+    final SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
+        new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
+        Range.closed(0d, 1d), MobilityType.TIMS, null);
+
+    // adding scans with mobility scan number 1 as first scan should throw an exception.
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> new MobilityScanStorage(null, frame,
+            List.of(new BuildingMobilityScan(1, new double[0], new double[0]))));
+
+    // non consecutive scan numbers should throw an exception
+    Assertions.assertThrows(IllegalArgumentException.class,
+        () -> new MobilityScanStorage(null, frame,
+            List.of(new BuildingMobilityScan(0, new double[0], new double[0]),
+                new BuildingMobilityScan(2, new double[0], new double[0]))));
   }
 
   @Test
   void testMobilityScanDataAccess() throws IOException, MissingMassListException {
 
-    logger.info("Creating raw data file.");
-    IMSRawDataFile file = null;
-    try {
-      file = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assert.fail();
-    }
+    IMSRawDataFile file = createRawDataFile();
 
     final List<Frame> frames = makeSomeFrames(file, 10);
     for (Frame frame : frames) {
@@ -215,14 +242,7 @@ public class MobilityScanTest {
 
     MZmineCore.main(new String[]{"-r", "-m", "all"});
 
-    logger.info("Creating raw data file.");
-    IMSRawDataFile file = null;
-    try {
-      file = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assert.fail();
-    }
+    IMSRawDataFile file = createRawDataFile();
 
     MassDetector centroidMassDetector = new CentroidMassDetector();
     CentroidMassDetectorParameters param = new CentroidMassDetectorParameters();

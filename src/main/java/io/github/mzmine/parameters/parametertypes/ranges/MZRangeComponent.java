@@ -19,6 +19,7 @@
 package io.github.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
@@ -30,7 +31,8 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import javafx.beans.property.SimpleListProperty;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
+import io.github.mzmine.project.impl.ProjectChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 
@@ -44,9 +46,9 @@ public class MZRangeComponent extends DoubleRangeComponent {
 
     setAutoButton = new Button("Auto range");
     setAutoButton.setMinWidth(100.0);
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
     setAutoButton.setOnAction(e -> {
-      RawDataFile currentFiles[] =
-          MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+      RawDataFile currentFiles[] = project.getDataFiles();
       ScanSelection scanSelection = new ScanSelection();
 
       try {
@@ -71,28 +73,35 @@ public class MZRangeComponent extends DoubleRangeComponent {
         Scan scans[] = scanSelection.getMatchingScans(file);
         for (Scan s : scans) {
           Range<Double> scanRange = s.getDataPointMZRange();
-          if (scanRange == null)
+          if (scanRange == null) {
             continue;
-          if (mzRange == null)
+          }
+          if (mzRange == null) {
             mzRange = scanRange;
-          else
+          } else {
             mzRange = mzRange.span(scanRange);
+          }
         }
       }
-      if (mzRange != null)
+      if (mzRange != null) {
         setValue(mzRange);
+      }
     });
-    SimpleListProperty<RawDataFile> list = new SimpleListProperty<>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    setAutoButton.disableProperty().bind(MZmineCore.getProjectManager().getCurrentProject()
-        .rawDataFilesProperty().sizeProperty().isEqualTo(0));
+
+    project.addProjectListener(new ProjectChangeListener() {
+      @Override
+      public void dataFilesChanged(ProjectChangeEvent<RawDataFile> event) {
+        setAutoButton.setDisable(project.getNumberOfDataFiles() == 0);
+      }
+    });
 
     fromMassButton = new Button("From mass");
     fromMassButton.setMinWidth(100.0);
     fromMassButton.setOnAction(e -> {
       Range<Double> mzRange = MzRangeMassCalculatorModule.showRangeCalculationDialog();
-      if (mzRange != null)
+      if (mzRange != null) {
         setValue(mzRange);
+      }
     });
 
     fromFormulaButton = new Button("From formula");

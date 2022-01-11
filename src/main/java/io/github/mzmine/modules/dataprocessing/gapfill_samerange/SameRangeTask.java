@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -42,7 +43,6 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -52,12 +52,12 @@ import org.jetbrains.annotations.Nullable;
 class SameRangeTask extends AbstractTask {
 
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList peakList, processedPeakList;
 
   private String suffix;
   private MZTolerance mzTolerance;
-  private boolean removeOriginal;
 
   private int processedRows, totalRows;
   private AtomicInteger processedRowsAtomic;
@@ -75,7 +75,8 @@ class SameRangeTask extends AbstractTask {
 
     suffix = parameters.getParameter(SameRangeGapFillerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(SameRangeGapFillerParameters.mzTolerance).getValue();
-    removeOriginal = parameters.getParameter(SameRangeGapFillerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getParameter(SameRangeGapFillerParameters.handleOriginal)
+        .getValue();
 
   }
 
@@ -95,10 +96,6 @@ class SameRangeTask extends AbstractTask {
     // Create new feature list
     processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
         columns);
-
-    /*************************************************************
-     * Creating a stream to process the data in parallel
-     */
 
     processedRowsAtomic = new AtomicInteger(0);
 
@@ -139,14 +136,13 @@ class SameRangeTask extends AbstractTask {
     });
 
     /* End Parallel Implementation */
-    /*******************************************************************************/
 
     // Canceled?
     if (isCanceled()) {
       return;
     }
     // Append processed feature list to the project
-    project.addFeatureList(processedPeakList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 
     // Add quality parameters to peaks
     //QualityParameters.calculateQualityParameters(processedPeakList);
@@ -155,11 +151,6 @@ class SameRangeTask extends AbstractTask {
     processedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
             SameRangeGapFillerModule.class, parameters, getModuleCallDate()));
-
-    // Remove the original peaklist if requested
-    if (removeOriginal) {
-      project.removeFeatureList(peakList);
-    }
 
     setStatus(TaskStatus.FINISHED);
 

@@ -18,13 +18,13 @@
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -198,14 +198,14 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
 
-      final DBCompound compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
+      final CompoundDBAnnotation compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
 
       // In case we failed to retrieve data, skip this compound
       if (compound == null) {
         continue;
       }
 
-      final String formula = compound.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+      final String formula = compound.getFormula();
 
       // If required, check isotope score.
       if (isotopeFilter && rowIsotopePattern != null && formula != null) {
@@ -232,7 +232,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       }
 
       // Add the retrieved identity to the feature list row
-      row.addFeatureIdentity(compound, false);
+      row.addCompoundAnnotation(compound);
 
     }
   }

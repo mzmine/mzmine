@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -30,19 +29,20 @@ import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -72,10 +72,10 @@ class IsotopeGrouperTask extends AbstractTask {
   private final boolean useMobilityTolerance;
   private final MobilityTolerance mobilityTolerance;
   private final boolean monotonicShape;
-  private final boolean removeOriginal;
   private final boolean chooseMostIntense;
   private final int maximumCharge;
   private final ParameterSet parameters;
+  private final OriginalFeatureListOption handleOriginal;
   // peaks counter
   private int processedRows, totalRows;
 
@@ -96,10 +96,10 @@ class IsotopeGrouperTask extends AbstractTask {
     rtTolerance = parameters.getParameter(IsotopeGrouperParameters.rtTolerance).getValue();
     monotonicShape = parameters.getParameter(IsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameters.getParameter(IsotopeGrouperParameters.maximumCharge).getValue();
-    chooseMostIntense = (Objects
-        .equals(parameters.getParameter(IsotopeGrouperParameters.representativeIsotope).getValue(),
-            IsotopeGrouperParameters.ChooseTopIntensity));
-    removeOriginal = parameters.getParameter(IsotopeGrouperParameters.autoRemove).getValue();
+    chooseMostIntense = (Objects.equals(
+        parameters.getParameter(IsotopeGrouperParameters.representativeIsotope).getValue(),
+        IsotopeGrouperParameters.ChooseTopIntensity));
+    handleOriginal = parameters.getValue(IsotopeGrouperParameters.handleOriginal);
     useMobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
         .getValue();
     mobilityTolerance = parameters.getParameter(IsotopeGrouperParameters.mobilityTolerace)
@@ -132,12 +132,13 @@ class IsotopeGrouperTask extends AbstractTask {
       return;
     }
 
-    // Create a new deisotoped peakList
-    ModularFeatureList deisotopedFeatureList = new ModularFeatureList(featureList + " " + suffix,
-        getMemoryMapStorage(), featureList.getRawDataFiles());
-    deisotopedFeatureList.setSelectedScans(featureList.getRawDataFile(0),
-        featureList.getSeletedScans(featureList.getRawDataFile(0)));
-    DataTypeUtils.copyTypes(featureList, deisotopedFeatureList, true, true);
+    // create copy or work on same list
+    ModularFeatureList deisotopedFeatureList = switch (handleOriginal) {
+      case KEEP, REMOVE -> featureList.createCopy(featureList.getName() + " " + suffix,
+          getMemoryMapStorage(), false);
+      case PROCESS_IN_PLACE -> featureList;
+    };
+    //    DataTypeUtils.copyTypes(featureList, deisotopedFeatureList, true, true);
 
     // Collect all selected charge states
     int[] charges = new int[maximumCharge];
@@ -145,17 +146,24 @@ class IsotopeGrouperTask extends AbstractTask {
       charges[i] = i + 1;
     }
 
+    final FeatureListRowSorter rowsHeightSorter = new FeatureListRowSorter(SortingProperty.Height,
+        SortingDirection.Descending);
+    final FeatureListRowSorter rowsMzSorter = new FeatureListRowSorter(SortingProperty.MZ,
+        SortingDirection.Ascending);
+
     // Sort peaks by descending height
-    List<FeatureListRow> rowsSortedByHeight = new ArrayList<>(featureList.getRows());
-    rowsSortedByHeight
-        .sort(new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
+    List<FeatureListRow> rowsSortedByHeight = new ArrayList<>(deisotopedFeatureList.getRows());
+    rowsSortedByHeight.sort(rowsHeightSorter);
 
     // use a second sorted list to limit the number of comparisons
-    List<FeatureListRow> rowsSortedByMz = new ArrayList<>(featureList.getRows());
-    rowsSortedByMz.sort(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    List<FeatureListRow> rowsSortedByMz = new ArrayList<>(deisotopedFeatureList.getRows());
+    rowsSortedByMz.sort(rowsMzSorter);
 
     // Loop through all peaks
     totalRows = rowsSortedByHeight.size();
+
+    // list of final rows (size is usually similar)
+    List<FeatureListRow> finalRows = new ArrayList<>((int) (totalRows * 0.9));
 
     while (!rowsSortedByHeight.isEmpty()) {
 
@@ -170,9 +178,8 @@ class IsotopeGrouperTask extends AbstractTask {
         processedRows++;
         continue;
       }
-
       // find index in mz sorted list
-      int indexMzSorted = rowsSortedByMz.indexOf(mostIntenseRow);
+      int indexMzSorted = Collections.binarySearch(rowsSortedByMz, mostIntenseRow, rowsMzSorter);
       rowsSortedByMz.remove(indexMzSorted);
 
       // Check which charge state fits best around this peak
@@ -200,9 +207,7 @@ class IsotopeGrouperTask extends AbstractTask {
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the feature list.
       if (bestFitRows.size() == 1) {
-        deisotopedFeatureList.addRow(
-            new ModularFeatureListRow(deisotopedFeatureList, mostIntenseRow.getID(), mostIntenseRow,
-                true));
+        finalRows.add(mostIntenseRow);
         processedRows++;
         continue;
       }
@@ -218,39 +223,27 @@ class IsotopeGrouperTask extends AbstractTask {
       // Depending on user's choice, we leave either the most intense, or
       // the lowest m/z peak
       if (chooseMostIntense) {
-        bestFitRows
-            .sort(new FeatureListRowSorter(SortingProperty.Height, SortingDirection.Descending));
+        bestFitRows.sort(rowsHeightSorter);
       } else {
-        bestFitRows.sort(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+        bestFitRows.sort(rowsMzSorter);
       }
 
-      // copy row
-      FeatureListRow newRow = new ModularFeatureListRow(deisotopedFeatureList,
-          bestFitRows.get(0).getID(), (ModularFeatureListRow) bestFitRows.get(0), true);
-      deisotopedFeatureList.addRow(newRow);
+      // add to final rows
+      final FeatureListRow mainRow = bestFitRows.get(0);
+      finalRows.add(mainRow);
       // set isotope pattern
-      Feature feature = newRow.getFeatures().get(0);
+      Feature feature = mainRow.getFeatures().get(0);
       feature.setIsotopePattern(newPattern);
       feature.setCharge(bestFitCharge);
 
       // Remove all peaks already assigned to isotope pattern
       // first is already removed
-      for (int r = 1; r < bestFitRows.size(); r++) {
-        FeatureListRow fit = bestFitRows.get(r);
-        rowsSortedByHeight.remove(fit);
-        rowsSortedByMz.remove(fit);
-      }
+      bestFitRows.remove(0);
+      rowsSortedByHeight.removeAll(bestFitRows);
+      rowsSortedByMz.removeAll(bestFitRows);
 
       // Update completion rate
       processedRows += bestFitRows.size();
-    }
-
-    // Add new feature list to the project
-    project.addFeatureList(deisotopedFeatureList);
-
-    // Load previous applied methods
-    for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
-      deisotopedFeatureList.addDescriptionOfAppliedTask(proc);
     }
 
     // Add task description to peakList
@@ -258,10 +251,12 @@ class IsotopeGrouperTask extends AbstractTask {
         new SimpleFeatureListAppliedMethod("Isotopic peaks grouper", IsotopeGrouperModule.class,
             parameters, getModuleCallDate()));
 
-    // Remove the original peakList if requested
-    if (removeOriginal) {
-      project.removeFeatureList(featureList);
-    }
+    // replace rows in list
+    deisotopedFeatureList.setRows(finalRows);
+
+    // Remove the original peakList if requested, or add, or work in place
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, deisotopedFeatureList,
+        featureList);
 
     logger.info("Finished isotopic peak grouper on " + featureList);
     setStatus(TaskStatus.FINISHED);
@@ -351,8 +346,8 @@ class IsotopeGrouperTask extends AbstractTask {
         }
 
         // check if in range
-        if (Math.abs(deltaMZ) <= absoluteMzTolerance && rtTolerance
-            .checkWithinTolerance(candidatePeak.getAverageRT(), mainRT)) {
+        if (Math.abs(deltaMZ) <= absoluteMzTolerance && rtTolerance.checkWithinTolerance(
+            candidatePeak.getAverageRT(), mainRT)) {
           if (!useMobilityTolerance || mainMobility == null || checkCandidateMobility(mainMobility,
               candidatePeak)) {
             goodCandidates.add(candidatePeak);
@@ -378,8 +373,8 @@ class IsotopeGrouperTask extends AbstractTask {
 
   private boolean checkCandidateMobility(Float mainMobility, FeatureListRow row) {
     Float candidateMobility = row.getAverageMobility();
-    return candidateMobility == null || mobilityTolerance
-        .checkWithinTolerance(mainMobility, candidateMobility);
+    return candidateMobility == null || mobilityTolerance.checkWithinTolerance(mainMobility,
+        candidateMobility);
   }
 
 }

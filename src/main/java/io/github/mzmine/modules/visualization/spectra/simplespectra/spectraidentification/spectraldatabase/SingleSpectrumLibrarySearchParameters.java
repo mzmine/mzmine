@@ -31,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceComponent;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -47,8 +48,8 @@ import javafx.scene.control.CheckBox;
  */
 public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
 
-  public static final SpectralLibrariesSelectionParameter libraries =
-      new SpectralLibrariesSelectionParameter(1);
+  public static final SpectralLibrariesSelectionParameter libraries = new SpectralLibrariesSelectionParameter(
+      1);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Spectral m/z tolerance",
@@ -63,6 +64,11 @@ public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
       "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
       5);
 
+  public static final OptionalParameter<PercentParameter> ccsTolerance = new OptionalParameter<>(
+      new PercentParameter("CCS tolerance [%]",
+          "CCS tolerance for spectral library entries to be matched against a feature.\n"
+              + "If the row or the library entry does not have a CCS value, no spectrum will be matched.",
+          0.05), true);
 
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
       "For MS2 scans, remove precursor signal prior to matching (+- precursor m/z tolerance)",
@@ -96,8 +102,8 @@ public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
 
   public SingleSpectrumLibrarySearchParameters() {
     super(new Parameter[]{libraries, usePrecursorMZ, mzTolerancePrecursor, removePrecursor,
-        noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance, minMatch,
-        similarityFunction});
+        ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
+        mzTolerance, minMatch, similarityFunction});
   }
 
   @Override
@@ -108,8 +114,8 @@ public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
     boolean isotope =
         !getParameter(deisotoping).getValue() || !getParameter(needsIsotopePattern).getValue();
     if (!isotope) {
-      errorMessages
-          .add("Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
+      errorMessages.add(
+          "Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
       return false;
     }
     return check;
@@ -141,8 +147,8 @@ public class SingleSpectrumLibrarySearchParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
     // set precursor mz to parameter if MS2 scan
     // otherwise leave the value to the one specified before
-    double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
-        info.getIsolationMz() : 0d;
+    double precursorMz =
+        scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
     if (precursorMz != 0) {
       this.getParameter(usePrecursorMZ).getEmbeddedParameter().setValue(precursorMz);
     } else {

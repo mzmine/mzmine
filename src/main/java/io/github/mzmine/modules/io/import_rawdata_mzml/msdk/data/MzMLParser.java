@@ -1,14 +1,19 @@
 /*
- * (C) Copyright 2015-2017 by MSDK Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This software is dual-licensed under either
+ * This file is part of MZmine.
  *
- * (a) the terms of the GNU Lesser General Public License version 2.1 as published by the Free
- * Software Foundation
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * or (per the licensee's choosing)
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * (b) the terms of the Eclipse Public License v1.0 as published by the Eclipse Foundation.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
@@ -229,6 +234,15 @@ public class MzMLParser {
             MzMLCVParam cvParam = createMzMLCVParam(xmlStreamReader);
             vars.isolationWindow.addCVParam(cvParam);
           }
+          if (openingTagName.contentEquals(MzMLTags.TAG_USER_PARAM)) {
+            //            <userParam name="ms level" value="1"/>
+            // user params are optional - MS convert 3.0 21341  uses this format for MSn
+            final MzMLUserParam userParam = createMzMLUserParam(xmlStreamReader);
+            if (userParam != null && MzMLUserParam.MS_LEVEL_IN_PRECURSOR_LIST.equals(
+                userParam.name())) {
+              vars.isolationWindow.setMSLevel(userParam.value());
+            }
+          }
 
         } else if (tracker.inside(MzMLTags.TAG_SELECTED_ION_LIST)) {
           if (openingTagName.contentEquals(MzMLTags.TAG_SELECTED_ION)) {
@@ -381,6 +395,15 @@ public class MzMLParser {
       }
 
     }
+  }
+
+  private MzMLUserParam createMzMLUserParam(XMLStreamReaderImpl xmlStreamReader) {
+    CharArray name = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_NAME);
+    CharArray value = xmlStreamReader.getAttributeValue(null, MzMLTags.ATTR_VALUE);
+    if (name != null && value != null) {
+      return new MzMLUserParam(name.toString(), value.toString());
+    }
+    return null;
   }
 
   /**

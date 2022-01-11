@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +38,7 @@ public class DataTypes {
   private static final Logger logger = Logger.getLogger(DataTypes.class.getName());
 
   // map class to instance
-  public static final HashMap<Class<? extends DataType>, DataType> TYPES = new HashMap<>();
+  private static final HashMap<Class<? extends DataType>, DataType> TYPES = new HashMap<>();
   // map unique ID to instance
   private static final HashMap<String, DataType<?>> map = new HashMap<>();
 
@@ -70,8 +71,24 @@ public class DataTypes {
     return map.get(uniqueId);
   }
 
+  public static <T> DataType<T> get(DataType<T> instance) {
+    return get((Class)instance.getClass());
+  }
+
   public static <T> DataType<T> get(Class<? extends DataType<T>> clazz) {
     return TYPES.get(clazz);
+  }
+
+  /**
+   *
+   * @return A collection of all data type instances.
+   */
+  public static Collection<DataType> getInstances() {
+    return TYPES.values();
+  }
+
+  public static Collection<Class<? extends DataType>> getClasses() {
+    return TYPES.keySet();
   }
 
   public static boolean isMainAnnotation(DataType<?> dataType) {

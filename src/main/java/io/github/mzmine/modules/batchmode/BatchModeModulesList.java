@@ -71,13 +71,10 @@ import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFil
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
-import io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
-import io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule;
@@ -275,14 +272,11 @@ public class BatchModeModulesList {
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
        */
-      AdductSearchModule.class, //
       CameraSearchModule.class, //
       CCSCalcModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
-      ComplexSearchModule.class, //
       FormulaPredictionFeatureListModule.class, //
-      FragmentSearchModule.class, //
       IsotopePeakScannerModule.class, //
       LipidSearchModule.class, //
       LocalCSVDatabaseSearchModule.class, //

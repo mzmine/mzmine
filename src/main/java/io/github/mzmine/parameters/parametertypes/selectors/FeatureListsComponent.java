@@ -67,11 +67,11 @@ public class FeatureListsComponent extends BorderPane {
       FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
       if (type == FeatureListsSelectionType.SPECIFIC_FEATURELISTS) {
-        final MultiChoiceParameter<FeatureList> plsParameter =
-            new MultiChoiceParameter<FeatureList>("Select feature lists", "Select feature lists",
-                MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new),
-                currentValue.getSpecificFeatureLists());
-        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {plsParameter});
+        final MultiChoiceParameter<FeatureList> plsParameter = new MultiChoiceParameter<FeatureList>(
+            "Select feature lists", "Select feature lists",
+            MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+                .toArray(FeatureList[]::new), currentValue.getSpecificFeatureLists());
+        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           FeatureList pls[] = paramSet.getParameter(plsParameter).getValue();

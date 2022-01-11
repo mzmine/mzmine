@@ -18,10 +18,10 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
 import javafx.scene.control.CheckBox;
+import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation
@@ -34,10 +34,10 @@ public class BooleanParameter implements UserParameter<Boolean, CheckBox> {
   private Boolean value;
 
   public BooleanParameter(String name, String description) {
-    this(name, description, null);
+    this(name, description, false);
   }
 
-  public BooleanParameter(String name, String description, Boolean defaultValue) {
+  public BooleanParameter(String name, String description, boolean defaultValue) {
     this.name = name;
     this.description = description;
     this.value = defaultValue;
