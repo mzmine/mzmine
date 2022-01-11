@@ -43,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureCorrelationUtil {
 
@@ -471,8 +472,8 @@ public class FeatureCorrelationUtil {
 
       double[][] f1, f2;
 
-      // f1 should be the higher feature
-      if (Arrays.stream(y1).max().getAsDouble() > Arrays.stream(y2).max().getAsDouble()) {
+      // f1 should be the "longer" feature
+      if (y1.length > y2.length) {
         f1 = new double[][]{x1, y1};
         f2 = new double[][]{x2, y2};
       } else {
@@ -481,8 +482,13 @@ public class FeatureCorrelationUtil {
       }
 
       // interpolate the feature shape of f2 onto f1
-      f2 = getInterpolatedShape(f1[0], f1[1], f2[0], f2[1]);
-      if (f2 == null) {
+      var tempF2 = getInterpolatedShape(f1[0], f1[1], f2[0], f2[1]);
+
+      // interpolate the shape of feature f1 onto original f2
+      f1 = getInterpolatedShape(f2[0], f2[1], f1[0], f1[1]);
+      f2 = tempF2;
+
+      if (f2 == null || f1 == null) {
         return null;
       }
 
@@ -546,12 +552,17 @@ public class FeatureCorrelationUtil {
       int right = corrData.size() - 1 - left;
       // return pearson r
       if (corrData.size() >= minCorrelatedDataPoints && right >= minCorrDPOnFeatureEdge) {
+        /*System.out.println("x1;y1;x2;y2");
+        for (int i = 0; i < f1[0].length; i++) {
+          System.out.println(String.format(Locale.ENGLISH,"%1.5E;%1.5E;%1.5E;%1.5E", f1[0][i], f1[1][i], f2[0][i], f2[1][i]));
+        }*/
         return new FullCorrelationData(corrData);
       }
 
       return null;
     }
 
+    @Nullable
     public static double[][] getInterpolatedShape(final double[] mainX, final double[] mainY,
         final double[] otherX, final double[] otherY) {
       assert mainX.length == mainY.length;
@@ -574,8 +585,13 @@ public class FeatureCorrelationUtil {
       final int otherEnd = otherIndicesEndExclusive[1];
 
       // create array for the interpolated data
-      final double newX[] = Arrays.copyOfRange(mainX, mainStart, mainEnd); // use same x data
-      final double newY[] = new double[mainEnd - mainStart];
+//      final double newX[] = Arrays.copyOfRange(mainX, mainStart, mainEnd); // use same x data
+      // copy the x values of both arrays to the new array
+      final double newX[]= new double[mainEnd - mainStart + otherEnd - otherStart];
+      System.arraycopy(mainX, mainStart, newX, 0, mainEnd - mainStart);
+      System.arraycopy(otherX, otherStart, newX, mainEnd - mainStart, otherEnd - otherStart);
+      Arrays.sort(newX);
+      final double newY[] = new double[newX.length];
 
       for (int i = 0; i < newX.length; i++) {
         newY[i] = interpolateY(newX[i], otherX, otherY);
@@ -622,7 +638,7 @@ public class FeatureCorrelationUtil {
     private static double interpolateY(double x, final double[] otherX, final double[] otherY) {
       // check arguments
       assert otherX.length == otherY.length;
-      if (!(otherX[0] < x) || !(x <= otherX[otherX.length - 1])) {
+      if (!(otherX[0] <= x) || !(x <= otherX[otherX.length - 1])) {
         throw new IllegalArgumentException(
             String.format("Cannot interpolate y for x value %.3f within given bounds %.3f - %.3f",
                 x, otherX[0], otherX[otherX.length - 1]));
