@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -68,6 +69,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedSet;
@@ -85,55 +87,30 @@ public class FeatureConvertors {
    * @param chromatogram input ADAP chromatogram
    * @return output modular feature
    */
-  static public ModularFeature ADAPChromatogramToModularFeature(
-      @NotNull ADAPChromatogram chromatogram) {
-
-    if (chromatogram.getFeatureList() == null) {
-      throw new NullPointerException("Feature list of the ADAP chromatogram is null.");
-    }
-
-    if (!(chromatogram.getFeatureList() instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Can not create modular feature from ADAP chromatogram of non-modular feature list.");
-    }
-
-    ModularFeature modularFeature = new ModularFeature(
-        (ModularFeatureList) chromatogram.getFeatureList());
-
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(chromatogram.getAllMS2FragmentScanNumbers()));
-//    modularFeature.set(ScanNumbersType.class, List.of(chromatogram.getScanNumbers()));
-
-    modularFeature.set(BestFragmentScanNumberType.class,
-        chromatogram.getMostIntenseFragmentScanNumber());
-    modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
-    if (chromatogram.getIsotopePattern() != null) {
-      modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
-    }
-    modularFeature.set(ChargeType.class, chromatogram.getCharge());
-
-    modularFeature.set(RawFileType.class, chromatogram.getDataFile());
-    modularFeature.set(DetectionType.class, chromatogram.getFeatureStatus());
-
+  static public ModularFeature ADAPChromatogramToModularFeature(ModularFeatureList featureList,
+      RawDataFile dataFile, @NotNull ADAPChromatogram chromatogram) {
     // Data points of feature
-//    modularFeature.set(DataPointsType.class, new ArrayList<>(chromatogram.getDataPoints()));
-    if (chromatogram.getDataPoints().size() != chromatogram.getScanNumbers().length) {
+    final Collection<DataPoint> dataPoints = chromatogram.getDataPoints();
+    final Collection<Scan> scans = chromatogram.getScanNumbers();
+    if (dataPoints.size() != scans.size()) {
       throw new IllegalArgumentException(
           "Number of data points does not match number of scan numbers");
     }
 
-    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
-        ((ModularFeatureList) chromatogram.getFeatureList()).getMemoryMapStorage(),
-        chromatogram.getDataPoints().stream().collect(Collectors.toList()),
-        Arrays.asList(chromatogram.getScanNumbers()));
+    ModularFeature modularFeature = new ModularFeature(featureList);
+    modularFeature.set(RawFileType.class, dataFile);
+    modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
+
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
+        new ArrayList<>(dataPoints), new ArrayList<>(scans));
     modularFeature.set(FeatureDataType.class, timeSeries);
 
     // recalculate data dependent types
     FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
 
     ObservableList<Scan> allMS2 = Arrays.stream(
-            ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(),
-                modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
+            ScanUtils.findAllMS2FragmentScans(dataFile, modularFeature.getRawDataPointsRTRange(),
+                modularFeature.getRawDataPointsMZRange()))
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
     modularFeature.setAllMS2FragmentScans(allMS2);
 

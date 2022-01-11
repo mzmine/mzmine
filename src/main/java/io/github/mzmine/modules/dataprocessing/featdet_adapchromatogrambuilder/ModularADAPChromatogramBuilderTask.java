@@ -39,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.ADAPChromatogramSorter;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
@@ -65,12 +64,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
   private final MZmineProject project;
   private final RawDataFile dataFile;
-
-  private double progress = 0.0;
   private final ScanSelection scanSelection;
-  private int newFeatureID = 1;
-  private Scan[] scans;
-
   // User parameters
   private final String suffix;
   private final MZTolerance mzTolerance;
@@ -78,9 +72,10 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   // Owen added User parameers;
   private final double IntensityThresh2;
   private final double minIntensityForStartChrom;
-
-  private ModularFeatureList newFeatureList;
   private final ParameterSet parameters;
+  private double progress = 0.0;
+  private int newFeatureID = 1;
+  private ModularFeatureList newFeatureList;
 
   /**
    *
@@ -130,7 +125,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
     logger.info(() -> "Started chromatogram builder on " + dataFile);
 
-    scans = scanSelection.getMatchingScans(dataFile);
+    Scan[] scans = scanSelection.getMatchingScans(dataFile);
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
@@ -158,15 +153,14 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     }
 
     // Check if the scans are MS1-only or MS2-only.
-    int minMsLevel = Arrays.stream(scans).mapToInt(Scan::getMSLevel).min().orElseThrow(() -> new IllegalStateException("Cannot find the minimum MS level"));
-
-    int maxMsLevel = Arrays.stream(scans).mapToInt(Scan::getMSLevel).max().orElseThrow(() -> new IllegalStateException("Cannot find the maximum MS level"));
-
-    if (minMsLevel != maxMsLevel) {
-      MZmineCore.getDesktop().displayMessage(null,
-          "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-          + "This will likely produce wrong results. "
-          + "Please, set the scan filter parameter to a specific MS level");
+    int level = scans[0].getMSLevel();
+    for (int i = 1; i < scans.length; i++) {
+      if (level != scans[i].getMSLevel()) {
+        MZmineCore.getDesktop().displayMessage(null,
+            "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
+            + "This will likely produce wrong results. "
+            + "Please, set the scan filter parameter to a specific MS level");
+      }
     }
 
     // make a list of all the data points
@@ -177,7 +171,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     //
 
     // map the mz tolerance to chromatograms
-    RangeMap<Double, ADAPChromatogram> rangeToChromMap2 = TreeRangeMap.create();
+    RangeMap<Double, ADAPChromatogram> rangeToChromMap = TreeRangeMap.create();
 
     // make a list of all the data points
     List<ExpandedDataPoint> allMzValues = new ArrayList<>();
@@ -204,7 +198,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       int dps = scanData.getNumberOfDataPoints();
       for (int i = 0; i < dps; i++) {
-        ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i), scanData.getIntensityValue(i), scan);
+        ExpandedDataPoint curDatP = new ExpandedDataPoint(scanData.getMzValue(i),
+            scanData.getIntensityValue(i), scan);
         allMzValues.add(curDatP);
       }
     }
@@ -229,7 +224,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         continue;
       }
 
-      final Entry<Range<Double>, ADAPChromatogram> existing = rangeToChromMap2.getEntry(
+      final Entry<Range<Double>, ADAPChromatogram> existing = rangeToChromMap.getEntry(
           mzFeature.getMZ());
       if (existing != null) {
         // add data point to chromatogram
@@ -240,39 +235,15 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
           continue;
         }
         // add a new chromatogram to the range map - limit ranges to avoid overlap
-        startNewChromatogramLimitMzRanges(rangeToChromMap2, mzFeature);
+        startNewChromatogramLimitMzRanges(rangeToChromMap, mzFeature);
       }
     }
 
-    // finish chromatograms
-    final Map<Range<Double>, ADAPChromatogram> finalRangeMap = rangeToChromMap2.asMapOfRanges();
+    // finish chromatograms sorted by m/z
+    final Map<Range<Double>, ADAPChromatogram> finalRangeMap = rangeToChromMap.asMapOfRanges();
 
-    List<ADAPChromatogram> buildingChromatograms = new ArrayList<>();
     int numChromatograms = finalRangeMap.size();
     progressStep = numChromatograms > 0 ? 0.5 / numChromatograms : 0.0;
-
-    for (var chromatogram : finalRangeMap.values()) {
-      if (isCanceled()) {
-        return;
-      }
-
-      chromatogram.finishChromatogram();
-      progress += progressStep;
-
-      // And remove chromatograms who dont have a certian number of continous points above the
-      // IntensityThresh2 level.
-      double numberOfContinuousPointsAboveNoise = chromatogram.findNumberOfContinuousPointsAboveNoise(
-          IntensityThresh2);
-      if (numberOfContinuousPointsAboveNoise >= minimumScanSpan) {
-        // add zeros to edges
-        chromatogram.addNZeros(1, 1);
-        buildingChromatograms.add(chromatogram);
-      }
-    }
-
-    // Sort the final chromatograms by m/z
-    buildingChromatograms.sort(
-        new ADAPChromatogramSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // Create new feature list
     newFeatureList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(),
@@ -280,16 +251,30 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(newFeatureList);
 
-    // Add the chromatograms to the new feature list
-    for (ADAPChromatogram finishedFeature : buildingChromatograms) {
-      finishedFeature.setFeatureList(newFeatureList);
-      ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(finishedFeature);
-      ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newFeatureID,
-          modular);
-      newFeatureList.addRow(newRow);
-      // activate shape for this row
-      newRow.set(FeatureShapeType.class, true);
-      newFeatureID++;
+    // add chromatograms that match criteria
+    for (ADAPChromatogram chromatogram : finalRangeMap.values()) {
+      if (isCanceled()) {
+        return;
+      }
+
+      progress += progressStep;
+
+      // And remove chromatograms who dont have a certian number of continous points above the
+      // IntensityThresh2 level.
+      if (chromatogram.matchesMinContinuousDataPoints(scans, IntensityThresh2, minimumScanSpan)) {
+        // add zeros to edges
+        chromatogram.addNZeros(scans, 1, 1);
+
+        // add to list
+        ModularFeature modular = FeatureConvertors.ADAPChromatogramToModularFeature(newFeatureList,
+            dataFile, chromatogram);
+        ModularFeatureListRow newRow = new ModularFeatureListRow(newFeatureList, newFeatureID,
+            modular);
+        newFeatureList.addRow(newRow);
+        // activate shape for this row
+        newRow.set(FeatureShapeType.class, true);
+        newFeatureID++;
+      }
     }
 
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
@@ -341,9 +326,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     if (toBeLowerBound < toBeUpperBound) {
       // use closed open so that every value may be captured by rangeMap
       Range<Double> newRange = Range.closedOpen(toBeLowerBound, toBeUpperBound);
-      ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, scans);
+      ADAPChromatogram newChrom = new ADAPChromatogram();
       newChrom.addMzFeature(mzFeature.getScan(), mzFeature);
-      newChrom.setHighPointMZ(mzFeature.getMZ());
 
       rangeToChromMap.put(newRange, newChrom);
     } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
