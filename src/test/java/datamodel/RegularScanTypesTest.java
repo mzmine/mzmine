@@ -231,8 +231,8 @@ public class RegularScanTypesTest {
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
     List<SpectralDBFeatureIdentity> value = List.of(
-        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"),
-        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching"));
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching", null),
+        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching", 0.043f));
 
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);

@@ -116,7 +116,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   @Nullable Float getAverageMobility();
 
-  Float getAverageCCS();
+  @Nullable Float getAverageCCS();
 
   /**
    * Returns average height for features on this row

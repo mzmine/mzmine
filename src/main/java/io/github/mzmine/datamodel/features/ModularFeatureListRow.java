@@ -327,11 +327,13 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
+  @Nullable
   public Float getAverageMobility() {
     return get(MobilityType.class);
   }
 
   @Override
+  @Nullable
   public Float getAverageCCS() {
     return get(CCSType.class);
   }
