@@ -64,13 +64,19 @@ public class ADAPChromatogram {
    * @return true if a minimum number of scans are connected (without holes)
    */
   public boolean matchesMinContinuousDataPoints(Scan[] allScans, double intensityThresh,
-      int minimumScanSpan) {
+      int minimumScanSpan, double minHeight) {
     int connectedScans = 0;
+    double maxCurrentHeight = 0d;
     for (Scan scan : allScans) {
       final DataPoint dataPoint = getDataPoint(scan);
       if (dataPoint != null && dataPoint.getIntensity() >= intensityThresh) {
         connectedScans++;
-        if (connectedScans >= minimumScanSpan) {
+        // track height of current segment
+        if (maxCurrentHeight < dataPoint.getIntensity()) {
+          maxCurrentHeight = dataPoint.getIntensity();
+        }
+        // check conditions
+        if (connectedScans >= minimumScanSpan && maxCurrentHeight >= minHeight) {
           return true;
         }
       } else {

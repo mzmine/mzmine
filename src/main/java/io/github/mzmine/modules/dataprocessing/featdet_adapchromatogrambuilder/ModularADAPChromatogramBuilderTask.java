@@ -71,7 +71,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private final int minimumScanSpan;
   // Owen added User parameers;
   private final double IntensityThresh2;
-  private final double minIntensityForStartChrom;
+  private final double minHeight;
   private final ParameterSet parameters;
   private double progress = 0.0;
   private int newFeatureID = 1;
@@ -99,8 +99,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // Owen added parameters
     this.IntensityThresh2 = parameters.getParameter(
         ADAPChromatogramBuilderParameters.IntensityThresh2).getValue();
-    this.minIntensityForStartChrom = parameters.getParameter(
-        ADAPChromatogramBuilderParameters.startIntensity).getValue();
+    this.minHeight = parameters.getParameter(ADAPChromatogramBuilderParameters.startIntensity)
+        .getValue();
     this.parameters = parameters;
   }
 
@@ -231,7 +231,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         existing.getValue().addMzFeature(mzFeature.getScan(), mzFeature);
       } else {
         // skip it entierly if the intensity is not high enough
-        if (mzFeature.getIntensity() < minIntensityForStartChrom) {
+        if (mzFeature.getIntensity() < minHeight) {
           continue;
         }
         // add a new chromatogram to the range map - limit ranges to avoid overlap
@@ -261,7 +261,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
 
       // And remove chromatograms who dont have a certian number of continous points above the
       // IntensityThresh2 level.
-      if (chromatogram.matchesMinContinuousDataPoints(scans, IntensityThresh2, minimumScanSpan)) {
+      if (chromatogram.matchesMinContinuousDataPoints(scans, IntensityThresh2, minimumScanSpan,
+          minHeight)) {
         // add zeros to edges
         chromatogram.addNZeros(scans, 1, 1);
 
