@@ -48,12 +48,4 @@ public enum SelectedScanTypes {
       case MOBLITY_SCANS -> scan instanceof MobilityScan;
     };
   }
-
-  public boolean applyTo(SelectedScanTypes type) {
-    return switch (this) {
-      case SCANS -> true;
-      case FRAMES -> type == FRAMES;
-      case MOBLITY_SCANS -> type == MOBLITY_SCANS;
-    };
-  }
 }

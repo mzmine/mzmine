@@ -76,8 +76,7 @@ public class MassDetectionTask extends AbstractTask {
     this.scanSelection = parameters.getParameter(MassDetectionParameters.scanSelection).getValue();
 
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
-    this.scanTypes = parameters.getParameter(MassDetectionParameters.scanTypes)
-        .getValue();
+    this.scanTypes = parameters.getParameter(MassDetectionParameters.scanTypes).getValue();
 
     this.outFilename = parameters.getParameter(MassDetectionParameters.outFilenameOption)
         .getEmbeddedParameter().getValue();
@@ -152,9 +151,8 @@ public class MassDetectionTask extends AbstractTask {
 
         MassDetector detector = massDetector.getModule();
 
-
         double[][] mzPeaks = null;
-        if(scanTypes.applyTo(scan)) {
+        if (scanTypes.applyTo(scan)) {
           // run mass detection on data object
           // [mzs, intensities]
           mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
@@ -163,7 +161,8 @@ public class MassDetectionTask extends AbstractTask {
           scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
         }
 
-        if (scan instanceof SimpleFrame frame && scanTypes.applyTo(SelectedScanTypes.MOBLITY_SCANS)) {
+        if (scan instanceof SimpleFrame frame && (scanTypes == SelectedScanTypes.MOBLITY_SCANS
+            || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
               .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
