@@ -161,6 +161,15 @@ public interface FeatureList {
   void setRows(FeatureListRow... rows);
 
   /**
+   * Clear all rows and set new rows
+   *
+   * @param rows new rows to set
+   */
+  default void setRows(List<FeatureListRow> rows) {
+    setRows(rows.toArray(FeatureListRow[]::new));
+  }
+
+  /**
    * Creates a stream of FeatureListRows
    *
    * @return

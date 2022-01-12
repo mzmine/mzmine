@@ -16,16 +16,15 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
 
-import io.github.mzmine.parameters.Parameter;
+/**
+ * Standard user parameter
+ *
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public record MzMLUserParam(String name, String value) {
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
-
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
-        ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
-        mzTolerance, rtTolerance, minMatch, similarityFunction});
-  }
+  public final static String MS_LEVEL_IN_PRECURSOR_LIST = "ms level";
 
 }

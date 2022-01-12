@@ -22,7 +22,6 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import com.google.common.collect.Range;
@@ -32,9 +31,11 @@ import de.isas.mztab2.model.MsRun;
 import de.isas.mztab2.model.MzTab;
 import de.isas.mztab2.model.MzTabAccess;
 import de.isas.mztab2.model.OptColumnMapping;
+import de.isas.mztab2.model.Parameter;
 import de.isas.mztab2.model.SmallMoleculeEvidence;
 import de.isas.mztab2.model.SmallMoleculeFeature;
 import de.isas.mztab2.model.SmallMoleculeSummary;
+import de.isas.mztab2.model.SpectraRef;
 import de.isas.mztab2.model.StudyVariable;
 import de.isas.mztab2.model.ValidationMessage;
 import io.github.mzmine.datamodel.DataPoint;
@@ -57,8 +58,12 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.RawDataFileUtils;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import uk.ac.ebi.pride.jmztab2.model.MZTabConstants;
+import uk.ac.ebi.pride.jmztab2.utils.errors.LogicalErrorType;
+import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabError;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 
@@ -324,6 +329,8 @@ public class MzTabmImportTask extends AbstractTask {
     int rowCounter = 0;
     List<SmallMoleculeFeature> smfList = mzTabmFile.getSmallMoleculeFeature();
     List<SmallMoleculeEvidence> smeList = mzTabmFile.getSmallMoleculeEvidence();
+    
+    MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
 
     for (SmallMoleculeFeature smf : smfList) {
       // Stop the process if cancel() is called
@@ -347,16 +354,10 @@ public class MzTabmImportTask extends AbstractTask {
       if (sml.getUri().size() != 0) {
         url = sml.getUri().get(0);
       }
-      // Average Retention Time
-      rtValue = smf.getRetentionTimeInSeconds().floatValue();
+      // Average Retention Time, convert to minutes for MZmine
+      rtValue = smf.getRetentionTimeInSeconds().floatValue()/60.0f;
       // Get corresponding SME objects from SMF
-      List<SmallMoleculeEvidence> corrSMEList = new ArrayList<>();
-      List<Integer> smeIDRefList = smf.getSmeIdRefs();
-      for (SmallMoleculeEvidence sme : smeList) {
-        if (smeIDRefList.contains(sme.getSmeId())) {
-          corrSMEList.add(sme);
-        }
-      }
+      List<SmallMoleculeEvidence> corrSMEList = mzTabAccess.getEvidences(smf);
       // Identification Method
       method = corrSMEList.get(0).getIdentificationMethod().getName();
       // Identifier
@@ -372,7 +373,7 @@ public class MzTabmImportTask extends AbstractTask {
       }
       // m/z value
       mzExp = smf.getExpMassToCharge();
-      // Add shared infor to peakListRow
+      // Add shared info to peakListRow
       FeatureListRow newRow = new ModularFeatureListRow(newFeatureList, rowCounter);
       newRow.setAverageMZ(mzExp);
       newRow.setAverageRT(rtValue);
@@ -393,10 +394,10 @@ public class MzTabmImportTask extends AbstractTask {
         List<OptColumnMapping> optColList = sml.getOpt();
         // Use average values if optional data for each msrun is not provided
         feature_mz = mzExp;
+        // MzMine expects minutes, mzTab-M uses seconds
         feature_rt = rtValue;
         if (optColList != null) {
           for (OptColumnMapping optCol : optColList) {
-            MzTabAccess mzTabAccess = new MzTabAccess(mzTabmFile);
             Optional<Assay> optAssay = mzTabAccess.getAssayFor(optCol, mzTabmFile.getMetadata());
             if (!optAssay.isEmpty()) {
               if (dataFileAssay.getName().equals(optAssay.get().getName())
@@ -412,7 +413,7 @@ public class MzTabmImportTask extends AbstractTask {
             }
           }
         }
-        Scan scanNumbers[] = {};
+        Scan scans[] = {rawData.getScanNumberAtRT(rtValue)};
         DataPoint finalDataPoint[] = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         Scan representativeScan = null;
@@ -427,9 +428,9 @@ public class MzTabmImportTask extends AbstractTask {
           status = FeatureStatus.UNKNOWN;
         }
 
-        Feature feature =
+        Feature feature = 
             new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt, feature_height,
-                (float) abundance, scanNumbers, finalDataPoint, status, representativeScan,
+                (float) abundance, scans, finalDataPoint, status, representativeScan,
                 fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
 
         feature.setCharge(charge);

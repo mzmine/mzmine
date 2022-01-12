@@ -264,14 +264,13 @@ runtime {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico"]
+            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico", "--add-launcher", "MZmine_console=gradle/win_console_launcher.properties"]
             installerOptions = ["--win-menu",
                                 "--win-menu-group", "MZmine",
                                 "--win-shortcut",
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$win_uuid",
-                                "--license-file", "LICENSE.txt"
-            ]
+                                "--license-file", "LICENSE.txt"]
         }
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"

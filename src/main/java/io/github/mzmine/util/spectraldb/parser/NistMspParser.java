@@ -126,6 +126,16 @@ public class NistMspParser extends SpectralDBTextParser {
         logger.log(Level.WARNING, "Cannot parse data point", e);
       }
     }
+
+    data = dataAndComment[0].split("\t");
+    if (data.length == 2) {
+      try {
+        return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Cannot parse data point", e);
+      }
+    }
+
     return null;
   }
 

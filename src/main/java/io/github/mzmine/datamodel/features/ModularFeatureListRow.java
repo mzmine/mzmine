@@ -327,11 +327,13 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
+  @Nullable
   public Float getAverageMobility() {
     return get(MobilityType.class);
   }
 
   @Override
+  @Nullable
   public Float getAverageCCS() {
     return get(CCSType.class);
   }
@@ -490,6 +492,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     set(ManualAnnotationType.class, manual);
   }
 
+  @Nullable
   public ManualAnnotation getManualAnnotation() {
     return get(ManualAnnotationType.class);
   }
@@ -514,8 +517,14 @@ public class ModularFeatureListRow implements FeatureListRow {
     ManualAnnotation manual = Objects
         .requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
 
-    List<FeatureIdentity> peakIdentities = Objects
-        .requireNonNullElse(getPeakIdentities(), new ArrayList<>());
+    List<FeatureIdentity> peakIdentities;
+    // getPeakIdentities initializes the returned list as an immutable list if manual is null
+    // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
+    if (getManualAnnotation() == null) {
+        peakIdentities = new ArrayList<>();
+    } else {
+        peakIdentities = getPeakIdentities();
+    }
     peakIdentities.remove(identity);
     if (preferred) {
       peakIdentities.add(0, identity);

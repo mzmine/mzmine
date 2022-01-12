@@ -23,6 +23,8 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
@@ -69,9 +71,12 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       + "Uncheck for varying salt content or variations in ionization conditions.\n"
       + "Used in feature grouping.", true);
 
+  public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
+      false, OriginalFeatureListOption.REMOVE);
+
   public BatchWizardHPLCParameters() {
     super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfSamples, minNumberOfDataPoints, approximateChromatographicFWHM,
-        intraSampleRTTolerance, interSampleRTTolerance});
+        intraSampleRTTolerance, interSampleRTTolerance, handleOriginalFeatureLists});
   }
 }
