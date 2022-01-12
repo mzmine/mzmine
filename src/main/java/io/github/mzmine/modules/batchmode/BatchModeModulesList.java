@@ -73,7 +73,8 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.Export
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrationModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
@@ -275,7 +276,8 @@ public class BatchModeModulesList {
        */
       CameraSearchModule.class, //
       CCSCalcModule.class, //
-      CCSCalibrationModule.class, //
+      ExternalCCSCalibrationModule.class, //
+      ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //

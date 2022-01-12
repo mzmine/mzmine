@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
@@ -100,7 +99,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.ANNOTATION;
   }
 
   @Override

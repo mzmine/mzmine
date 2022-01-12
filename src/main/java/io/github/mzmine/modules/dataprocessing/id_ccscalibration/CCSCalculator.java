@@ -21,9 +21,10 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.parameters.ParameterSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface CCSCalculator {
 
-  CCSCalibration getCalibration(@NotNull final ModularFeatureList flist,
+  CCSCalibration getCalibration(@Nullable final ModularFeatureList flist,
       @NotNull final ParameterSet ccsCalculatorParameters);
 }

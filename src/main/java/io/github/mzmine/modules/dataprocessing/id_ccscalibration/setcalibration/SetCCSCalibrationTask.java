@@ -27,10 +27,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
+import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SetCCSCalibrationTask extends AbstractTask {
+
+  private static final Logger logger = Logger.getLogger(SetCCSCalibrationTask.class.getName());
 
   private final ParameterSet parameterSet;
 
@@ -58,6 +61,8 @@ public class SetCCSCalibrationTask extends AbstractTask {
     final CCSCalibration calibration = parameterSet.getValue(SetCCSCalibrationParameters.ccsCal);
     for (RawDataFile file : files) {
       if (file instanceof IMSRawDataFile imsFile) {
+        logger.finest(
+            () -> "Setting CCS calibration " + calibration + " to file " + file.getName());
         imsFile.setCCSCalibration(calibration);
         imsFile.getAppliedMethods().add(
             new SimpleFeatureListAppliedMethod(SetCCSCalibrationModule.class, parameterSet,

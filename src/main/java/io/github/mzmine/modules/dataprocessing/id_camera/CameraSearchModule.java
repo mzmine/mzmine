@@ -77,7 +77,7 @@ public class CameraSearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.ANNOTATION;
   }
 
   @Override

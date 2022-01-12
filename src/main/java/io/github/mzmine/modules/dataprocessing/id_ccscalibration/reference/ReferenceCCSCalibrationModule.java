@@ -20,8 +20,10 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineModuleCategory;
+import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrant;
@@ -30,9 +32,13 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCal
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.RangeUtils;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,9 +46,9 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ReferenceCCSCalcModule implements MZmineModule, CCSCalculator {
+public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CCSCalculator {
 
-  private static final Logger logger = Logger.getLogger(ReferenceCCSCalcModule.class.getName());
+  private static final Logger logger = Logger.getLogger(ReferenceCCSCalibrationModule.class.getName());
 
   @Override
   public @NotNull String getName() {
@@ -51,14 +57,19 @@ public class ReferenceCCSCalcModule implements MZmineModule, CCSCalculator {
 
   @Override
   public @Nullable Class<? extends ParameterSet> getParameterSetClass() {
-    return ReferenceCCSCalcParameters.class;
+    return ReferenceCCSCalibrationParameters.class;
   }
 
   @Override
-  public CCSCalibration getCalibration(@NotNull ModularFeatureList flist,
+  public CCSCalibration getCalibration(@Nullable ModularFeatureList flist,
       @NotNull ParameterSet ccsCalculatorParameters) {
+    if (flist == null) {
+      logger.warning("Cannot find calibration without a feature list.");
+      return null;
+    }
+
     final File calibrantFile = ccsCalculatorParameters.getParameter(
-        ReferenceCCSCalcParameters.referenceList).getValue();
+        ReferenceCCSCalibrationParameters.referenceList).getValue();
     if (!(calibrantFile.exists() && calibrantFile.canRead())) {
       logger.warning(() -> "Cannot read calibrant file " + calibrantFile.getAbsolutePath());
       return null;
@@ -74,12 +85,12 @@ public class ReferenceCCSCalcModule implements MZmineModule, CCSCalculator {
     }
 
     final MZTolerance mzTol = ccsCalculatorParameters.getValue(
-        ReferenceCCSCalcParameters.mzTolerance);
+        ReferenceCCSCalibrationParameters.mzTolerance);
     final Range<Float> rtRange = RangeUtils.toFloatRange(
-        ccsCalculatorParameters.getValue(ReferenceCCSCalcParameters.rtRange));
+        ccsCalculatorParameters.getValue(ReferenceCCSCalibrationParameters.rtRange));
     final MobilityTolerance mobTol = ccsCalculatorParameters.getValue(
-        ReferenceCCSCalcParameters.mobTolerance);
-    final Double minHeight = ccsCalculatorParameters.getValue(ReferenceCCSCalcParameters.minHeight);
+        ReferenceCCSCalibrationParameters.mobTolerance);
+    final Double minHeight = ccsCalculatorParameters.getValue(ReferenceCCSCalibrationParameters.minHeight);
 
     final List<CCSCalibrant> detectedCalibrants = CCSUtils.findCalibrants(flist, calibrants, mzTol,
         rtRange, mobTol, minHeight);
@@ -95,5 +106,23 @@ public class ReferenceCCSCalcModule implements MZmineModule, CCSCalculator {
     logger.info(() -> "Found calibration " + driftTubeCCSCalibration.toString());
 
     return driftTubeCCSCalibration;
+  }
+
+  @Override
+  public @NotNull String getDescription() {
+    return "Calculates CCS values based on an reference compound list and it's detected features in a feature list.";
+  }
+
+  @Override
+  public @NotNull ExitCode runModule(@NotNull MZmineProject project,
+      @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
+      @NotNull Instant moduleCallDate) {
+    tasks.add(new ReferenceCCSCalibrationTask(null, moduleCallDate, parameters));
+    return ExitCode.OK;
+  }
+
+  @Override
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.ANNOTATION;
   }
 }

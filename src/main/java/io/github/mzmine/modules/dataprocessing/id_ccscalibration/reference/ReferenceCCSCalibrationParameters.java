@@ -20,18 +20,31 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
+import java.util.Collection;
 
-public class ReferenceCCSCalcParameters extends SimpleParameterSet {
+public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
+
+  public static final OptionalParameter<RawDataFilesParameter> files = new OptionalParameter<>(
+      new RawDataFilesParameter("Set to additional raw files", 0, Integer.MAX_VALUE), false);
+
+  public static final FeatureListsParameter flists = new FeatureListsParameter(
+      "Feature list (with reference compounds)", 1, Integer.MAX_VALUE);
 
   public static final FileNameParameter referenceList = new FileNameParameter("Reference list",
       "The file containing the reference compounds for m/z and mobility.", FileSelectionType.OPEN,
@@ -52,7 +65,34 @@ public class ReferenceCCSCalcParameters extends SimpleParameterSet {
       "The minimum intensity of a calibrant feature to be used for calibration.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
-  public ReferenceCCSCalcParameters() {
-    super(new Parameter[]{referenceList, mzTolerance, mobTolerance, rtRange, minHeight});
+  public ReferenceCCSCalibrationParameters() {
+    super(new Parameter[]{files, flists, referenceList, mzTolerance, mobTolerance, rtRange,
+        minHeight});
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    if (!super.checkParameterValues(errorMessages)) {
+      return false;
+    }
+
+    boolean check = true;
+
+    if (getValue(files)) {
+      final RawDataFilesSelection value = getParameter(files).getEmbeddedParameter().getValue();
+      final RawDataFilesSelection clone = value.clone();
+      final RawDataFile[] files = clone.getMatchingRawDataFiles(); // dont evaluate the real parameter, otherwise we have to reset it.
+
+      ModularFeatureList[] flists = getValue(
+          ReferenceCCSCalibrationParameters.flists).getMatchingFeatureLists();
+
+      if (files.length != 0 && flists.length > 1) {
+        errorMessages.add(
+            "Invalid parameter selection. Either select one feature list and >= 1 raw data file or no raw data files. (Reference calibration)");
+        check = false;
+      }
+    }
+
+    return check;
   }
 }

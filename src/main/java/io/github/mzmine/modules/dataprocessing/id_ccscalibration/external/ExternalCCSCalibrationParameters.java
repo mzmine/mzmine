@@ -23,14 +23,18 @@ import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 public class ExternalCCSCalibrationParameters extends SimpleParameterSet {
+
+  public static final RawDataFilesParameter files = new RawDataFilesParameter("Raw files", 0,
+      Integer.MAX_VALUE);
 
   public static final FileNameParameter calibrationFile = new FileNameParameter("Calibration file",
       "The file containing the reference compounds for m/z and mobility.", FileSelectionType.OPEN,
       false);
 
   public ExternalCCSCalibrationParameters() {
-    super(new Parameter[]{calibrationFile});
+    super(new Parameter[]{files, calibrationFile});
   }
 }
