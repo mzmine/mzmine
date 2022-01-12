@@ -22,6 +22,7 @@ import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Polygon;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 /**
@@ -29,29 +30,45 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
  */
 public class ArrowRenderer extends XYLineAndShapeRenderer {
 
+
+  public static final Ellipse2D circle = new Ellipse2D.Double(-2.5, 5, 5, 5);
+
   public static final Shape rightArrow = new Polygon(new int[]{0, 0, 3}, new int[]{-3, 3, 0}, 3);
   public static final Shape leftArrow = new Polygon(new int[]{0, 0, -3}, new int[]{-3, 3, 0}, 3);
-  public static final Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, -3}, 3);
-  public static final Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{-3, -3, 0}, 3);
-  public static final Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, -3, -6, -3},
-      4);
+  public static final Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
+  public static final Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
+  public static final Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
+  private final ShapeType shapeType;
 
   private final Color[] color;
-  private final Shape shape;
 
   public ArrowRenderer(Color... color) {
-    this(diamond, color);
+    this(ShapeType.CIRCLE, color);
   }
 
-  public ArrowRenderer(Shape shape, Color... color) {
+
+  public ArrowRenderer(ShapeType shapeType, Color... color) {
+    this(shapeType, circle, color);
+  }
+
+  public ArrowRenderer(ShapeType shapeType, Shape shape, Color... color) {
     super(false, true);
     this.color = color;
-    this.shape = shape;
+    this.shapeType = shapeType;
+    setDefaultShape(shape);
+  }
+
+  public ShapeType getShapeType() {
+    return shapeType;
   }
 
   @Override
   public Shape getItemShape(int series, int item) {
-    return shape;
+    return getDefaultShape();
+  }
+
+  public enum ShapeType {
+    UP, DOWN, LEFT, RIGHT, DIAMOND, CIRCLE;
   }
 
   @Override

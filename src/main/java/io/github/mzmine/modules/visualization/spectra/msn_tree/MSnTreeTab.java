@@ -33,15 +33,22 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.RelativeOption;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.ArrowRenderer.ShapeType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.LabelOnlyRenderer;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import it.unimi.dsi.fastutil.doubles.Double2DoubleOpenHashMap;
 import java.awt.Color;
+import java.awt.Polygon;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +59,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -59,6 +67,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -86,9 +95,16 @@ public class MSnTreeTab extends SimpleTab {
   private final CheckBox cbRelative;
   private final CheckBox cbDenoise;
   private final List<SpectraPlot> spectraPlots = new ArrayList<>(1);
+  private final Spinner<Integer> sizeSpinner;
+  // current shapes
+  public Shape downArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{0, 0, 3}, 3);
+  public Shape upArrow = new Polygon(new int[]{-3, 3, 0}, new int[]{3, 3, 0}, 3);
+  public Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
+  public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
   private int lastSelectedItem = -1;
   private ChartGroup chartGroup;
   private PrecursorIonTreeNode currentRoot = null;
+
 
   public MSnTreeTab() {
     super("MSn Tree", true, false);
@@ -144,20 +160,26 @@ public class MSnTreeTab extends SimpleTab {
     BorderPane center = new BorderPane(scrollSpectra);
 
     // add menu to spectra
-    HBox spectraMenu = new HBox(4);
+    HBox spectraMenu = new HBox(8);
+    spectraMenu.setAlignment(Pos.CENTER_LEFT);
     center.setTop(spectraMenu);
 
-    legendEnergies = new Label("");
+    sizeSpinner = new Spinner<>(1, 100, 3);
+    sizeSpinner.getEditor().setPrefColumnCount(4);
+    sizeSpinner.valueProperty().addListener((o, ov, nv) -> changeSymbolSize());
+
     cbRelative = new CheckBox("Relative");
     cbRelative.selectedProperty().addListener((o, ov, nv) -> changeRelative());
 
     cbDenoise = new CheckBox("Denoise");
     cbDenoise.selectedProperty().addListener((o, ov, nv) -> updateCurrentSpectra());
 
+    legendEnergies = new Label("");
+
     // menu
     spectraMenu.getChildren().addAll( // menu
         createButton("Auto range", this::autoRange), //
-        cbRelative, cbDenoise, legendEnergies);
+        cbRelative, cbDenoise, new Label("Size"), sizeSpinner, legendEnergies);
 
     SplitPane splitPane = new SplitPane(left, center);
     splitPane.setDividerPositions(0.22);
@@ -180,9 +202,40 @@ public class MSnTreeTab extends SimpleTab {
     });
   }
 
+  private void changeSymbolSize() {
+    int size = sizeSpinner.getValue();
+
+    downArrow = new Polygon(new int[]{-size, size, 0}, new int[]{0, 0, size}, 3);
+    upArrow = new Polygon(new int[]{-size, size, 0}, new int[]{size, size, 0}, 3);
+    diamond = new Polygon(new int[]{0, -size, 0, size}, new int[]{0, size, size * 2, size}, 4);
+    circle = new Ellipse2D.Double(-size / 2d, size, size, size);
+
+    for (var p : spectraPlots) {
+      for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
+        final var renderer = p.getXYPlot().getRenderer(i);
+        if (renderer instanceof ArrowRenderer arrowRenderer) {
+          final ShapeType type = arrowRenderer.getShapeType();
+          renderer.setDefaultShape(getShape(type));
+        }
+      }
+      p.getChart().fireChartChanged();
+    }
+  }
+
+  private Shape getShape(ShapeType type) {
+    return switch (type) {
+      case UP -> upArrow;
+      case DOWN -> downArrow;
+      case CIRCLE -> circle;
+      case DIAMOND -> diamond;
+      case LEFT -> null;
+      case RIGHT -> null;
+    };
+  }
+
   private void changeRelative() {
     if (currentRoot != null) {
-        final boolean normalize = cbRelative.isSelected();
+      final boolean normalize = cbRelative.isSelected();
       for (var p : spectraPlots) {
         for (int i = 0; i < p.getXYPlot().getDatasetCount(); i++) {
           final XYDataset data = p.getXYPlot().getDataset(i);
@@ -191,13 +244,7 @@ public class MSnTreeTab extends SimpleTab {
           }
         }
 
-        if (p.getXYPlot().getRangeAxis() instanceof NumberAxis va) {
-          if (normalize) {
-            va.setNumberFormatOverride(new DecimalFormat("0.#"));
-          } else {
-            va.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
-          }
-        }
+        applyIntensityFormatToAxis(p, normalize);
 
         p.getChart().fireChartChanged();
       }
@@ -309,6 +356,8 @@ public class MSnTreeTab extends SimpleTab {
 
     List<PrecursorIonTreeNode> levelPrecursors = List.of(currentRoot);
     int levelFromRoot = 0;
+
+    // for each MS level
     do {
       // create one spectra plot for each MS level
       if (levelFromRoot >= spectraPlots.size()) {
@@ -318,37 +367,40 @@ public class MSnTreeTab extends SimpleTab {
       }
       SpectraPlot spectraPlot = spectraPlots.get(levelFromRoot);
 
-      if (spectraPlot.getXYPlot().getRangeAxis() instanceof NumberAxis va) {
-        if (normalizeIntensities) {
-          va.setNumberFormatOverride(new DecimalFormat("0.#"));
-        } else {
-          va.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
-        }
-      }
-      // create combined dataset for each MS level
+      // relative or absolute
+      applyIntensityFormatToAxis(spectraPlot, normalizeIntensities);
+
+      // create one dataset for labels - otherwise there are too many labels
+      Double2DoubleOpenHashMap combinedData = new Double2DoubleOpenHashMap();
+
+      // create combined SpectraPlot for each MS level - multiple datasets for shapes and lines
       int c = 0;
       for (PrecursorIonTreeNode precursor : levelPrecursors) {
         final Color color = FxColorUtil.fxColorToAWT(colors.get(c % colors.size()));
         final List<Scan> fragmentScans = precursor.getFragmentScans();
         for (final Scan scan : fragmentScans) {
           AbstractXYDataset data = ensureCentroidDataset(normalizeIntensities, denoise, scan);
-          // add peak renderer to show centroids
-          spectraPlot.addDataSet(data, color, false, false);
-          spectraPlot.getXYPlot()
-              .setRenderer(spectraPlot.getNumOfDataSets() - 1, new PeakRenderer(color, false));
+          // add peak renderer to show centroids - no labels
+          spectraPlot.addDataSet(data, color, false, new PeakRenderer(color, false), null, false);
 
-          // add shapes
-          spectraPlot.addDataSet(data, color, false, null, false);
-          final Shape shape = getActivationEnergyShape(scan.getMsMsInfo().getActivationEnergy(),
-              minEnergy, medEnergy, maxEnergy);
-          spectraPlot.getXYPlot()
-              .setRenderer(spectraPlot.getNumOfDataSets() - 1, new ArrowRenderer(shape, color));
+          // add shapes dataset and renderer - no labels
+          final ShapeType shapeType = getActivationEnergyShape(
+              scan.getMsMsInfo().getActivationEnergy(), minEnergy, medEnergy, maxEnergy);
+          spectraPlot.addDataSet(data, color, false,
+              new ArrowRenderer(shapeType, getShape(shapeType), color), null, false);
+
+          // combine all to one dataset for label
+          combineDatasetsToOne(combinedData, data);
         }
 
         // add precursor markers for each different precursor only once
         spectraPlot.addPrecursorMarkers(precursor.getFragmentScans().get(0), color, 0.25f);
         c++;
       }
+
+      // add the combined dataset
+      addCombinedDatasetForLabels(spectraPlot, combinedData);
+
       // hide x axis
       if (previousPlot != null) {
         previousPlot.getXYPlot().getDomainAxis().setVisible(false);
@@ -366,6 +418,46 @@ public class MSnTreeTab extends SimpleTab {
 
     if (rootHasChanged) {
       chartGroup.applyAutoRange(true);
+    }
+  }
+
+  private void addCombinedDatasetForLabels(SpectraPlot spectraPlot,
+      Double2DoubleOpenHashMap combinedData) {
+    final double[] mzs = combinedData.keySet().toDoubleArray();
+    final double[] intensities = combinedData.values().toDoubleArray();
+    MassListDataSet data = new MassListDataSet(mzs, intensities);
+
+    final Color labelColor = MZmineCore.getConfiguration().getDefaultChartTheme()
+        .getMasterFontColor();
+    spectraPlot.addDataSet(data, labelColor, false, new LabelOnlyRenderer(), false);
+  }
+
+  /**
+   * Uses the mz format to reduce the number of data points for labels
+   */
+  private void combineDatasetsToOne(Double2DoubleOpenHashMap combinedData, XYDataset data) {
+    // reduce number of values based on mzformat
+    final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();
+    for (int s = 0; s < data.getSeriesCount(); s++) {
+      for (int i = 0; i < data.getItemCount(s); i++) {
+        final double key = Double.parseDouble(format.format(data.getXValue(s, i)));
+        final double intensity = data.getYValue(s, i);
+        final double old = combinedData.getOrDefault(key, intensity);
+        // maximize intensity for this entry
+        if (Double.compare(old, intensity) <= 0) {
+          combinedData.put(key, intensity);
+        }
+      }
+    }
+  }
+
+  private void applyIntensityFormatToAxis(SpectraPlot spectraPlot, boolean normalizeIntensities) {
+    if (spectraPlot.getXYPlot().getRangeAxis() instanceof NumberAxis va) {
+      if (normalizeIntensities) {
+        va.setNumberFormatOverride(new DecimalFormat("0.#"));
+      } else {
+        va.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
+      }
     }
   }
 
@@ -387,11 +479,13 @@ public class MSnTreeTab extends SimpleTab {
     if (denoise) {
       final double[] sortedIntensities = Arrays.stream(masses[1]).filter(v -> v > 0).sorted()
           .toArray();
-      double min = sortedIntensities[0];
-      // remove everything <2xmin
-      for (int i = 0; i < masses[0].length; i++) {
-        if (masses[1][i] > min * 2.5d) {
-          dps.add(new SimpleDataPoint(masses[0][i], masses[1][i]));
+      if (sortedIntensities.length > 0) {
+        double min = sortedIntensities[0];
+        // remove everything <2xmin
+        for (int i = 0; i < masses[0].length; i++) {
+          if (masses[1][i] > min * 2.5d) {
+            dps.add(new SimpleDataPoint(masses[0][i], masses[1][i]));
+          }
         }
       }
     } else {
@@ -411,14 +505,14 @@ public class MSnTreeTab extends SimpleTab {
    * @param ae current activation energy
    * @return a shape from the {@link ArrowRenderer}
    */
-  private Shape getActivationEnergyShape(Float ae, float minEnergy, float medEnergy,
+  private ShapeType getActivationEnergyShape(Float ae, float minEnergy, float medEnergy,
       float maxEnergy) {
     if (ae == null) {
-      return ArrowRenderer.diamond;
+      return ShapeType.CIRCLE;
     }
     final float med = Math.abs(medEnergy - ae);
-    return ae - minEnergy < med ? ArrowRenderer.downArrow
-        : (med < maxEnergy - ae ? ArrowRenderer.upArrow : ArrowRenderer.diamond);
+    return ae - minEnergy < med ? ShapeType.DOWN
+        : (med < maxEnergy - ae ? ShapeType.UP : ShapeType.DIAMOND);
   }
 
   private void expandTreeView(boolean expanded) {

@@ -98,7 +98,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> REMOVE_ROW = new ComboParameter<String>(
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
-      removeRowChoices);
+      removeRowChoices, removeRowChoices[0]);
 
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
