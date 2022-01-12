@@ -180,6 +180,17 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
     testImplementation "org.mockito:mockito-inline:$mockitoversion"
     testImplementation "org.mockito:mockito-junit-jupiter:$mockitoversion"
+
+//    https://blog.gradle.org/log4j-vulnerability
+    constraints {
+        implementation("org.apache.logging.log4j:log4j-core") {
+            version {
+                strictly("[2.17, 3[")
+                prefer("2.17.0")
+            }
+            because("CVE-2021-44228, CVE-2021-45046, CVE-2021-45105: Log4j vulnerable to remote code execution and other critical security vulnerabilities")
+        }
+    }
 }
 
 /*
