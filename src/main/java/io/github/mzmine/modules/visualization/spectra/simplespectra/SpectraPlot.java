@@ -327,23 +327,18 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   void switchDataPointsVisible() {
-    final boolean oldNotify = isNotifyChange();
-    setNotifyChange(false);
+    applyWithNotifyChanges(false, () -> {
 
-    dataPointsVisible = !dataPointsVisible;
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYItemRenderer renderer = plot.getRenderer(i);
-      if (!(renderer instanceof ContinuousRenderer)) {
-        continue;
+      dataPointsVisible = !dataPointsVisible;
+      for (int i = 0; i < plot.getDatasetCount(); i++) {
+        XYItemRenderer renderer = plot.getRenderer(i);
+        if (!(renderer instanceof ContinuousRenderer)) {
+          continue;
+        }
+        ContinuousRenderer contRend = (ContinuousRenderer) renderer;
+        contRend.setDefaultShapesVisible(dataPointsVisible);
       }
-      ContinuousRenderer contRend = (ContinuousRenderer) renderer;
-      contRend.setDefaultShapesVisible(dataPointsVisible);
-    }
-
-    setNotifyChange(oldNotify);
-    if (oldNotify) {
-      fireChangeEvent();
-    }
+    });
   }
 
   void switchPickedPeaksVisible() {
@@ -395,24 +390,19 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
    */
 
   public synchronized void removeAllDataSets() {
-    final boolean notifyChange = isNotifyChange();
-    setNotifyChange(false);
-    // if the data sets are removed, we have to cancel the tasks.
-    if (controller != null) {
-      controller.cancelTasks();
-    }
-    controller = null;
+    applyWithNotifyChanges(false, () -> {
+      // if the data sets are removed, we have to cancel the tasks.
+      if (controller != null) {
+        controller.cancelTasks();
+      }
+      controller = null;
 
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      plot.setDataset(i, null);
-    }
-    numOfDataSets = 0;
-    plot.clearDomainMarkers();
-
-    setNotifyChange(notifyChange);
-    if (isNotifyChange()) {
-      fireChangeEvent();
-    }
+      for (int i = 0; i < plot.getDatasetCount(); i++) {
+        plot.setDataset(i, null);
+      }
+      numOfDataSets = 0;
+      plot.clearDomainMarkers();
+    });
   }
 
   public synchronized int getNumOfDataSets() {
@@ -474,39 +464,32 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
       XYItemRenderer newRenderer, XYItemLabelGenerator labelGenerator, boolean addPrecursorMarkers,
       boolean notifyChange) {
-    final boolean oldNotify = isNotifyChange();
-    setNotifyChange(false);
+    applyWithNotifyChanges(notifyChange, () -> {
 
-    if (addPrecursorMarkers && dataSet instanceof ScanDataSet scanDataSet) {
-      Scan scan = scanDataSet.getScan();
-      // add all precursors for MS>=2
-      if (scan != null && scan.getMSLevel() > 1) {
-        addPrecursorMarkers(scan);
+      if (addPrecursorMarkers && dataSet instanceof ScanDataSet scanDataSet) {
+        Scan scan = scanDataSet.getScan();
+        // add all precursors for MS>=2
+        if (scan != null && scan.getMSLevel() > 1) {
+          addPrecursorMarkers(scan);
+        }
       }
-    }
 
-    // Add label generator for the dataset
-    newRenderer.setDefaultItemLabelGenerator(labelGenerator);
-    newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
-    if (matchLabelColors.get()) {
-      newRenderer.setDefaultItemLabelPaint(color);
-    }
-    ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
+      // Add label generator for the dataset
+      newRenderer.setDefaultItemLabelGenerator(labelGenerator);
+      newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
+      if (matchLabelColors.get()) {
+        newRenderer.setDefaultItemLabelPaint(color);
+      }
+      ((AbstractRenderer) newRenderer).setItemLabelAnchorOffset(1.3d);
 
-    plot.setDataset(numOfDataSets, dataSet);
-    plot.setRenderer(numOfDataSets, newRenderer);
-    numOfDataSets++;
+      plot.setDataset(numOfDataSets, dataSet);
+      plot.setRenderer(numOfDataSets, newRenderer);
+      numOfDataSets++;
 
-    if (dataSet instanceof ScanDataSet) {
-      checkAndRunController();
-    }
-
-    setNotifyChange(notifyChange);
-    if (notifyChange) {
-      fireChangeEvent();
-    }
-    // reset to old value
-    setNotifyChange(oldNotify);
+      if (dataSet instanceof ScanDataSet) {
+        checkAndRunController();
+      }
+    });
   }
 
   public void addPrecursorMarkers(Scan scan) {
@@ -563,19 +546,15 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void removePeakListDataSets() {
-    final boolean notifyChange = isNotifyChange();
-    setNotifyChange(false);
+    applyWithNotifyChanges(false, () -> {
 
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYDataset dataSet = plot.getDataset(i);
-      if (dataSet instanceof PeakListDataSet) {
-        plot.setDataset(i, null);
+      for (int i = 0; i < plot.getDatasetCount(); i++) {
+        XYDataset dataSet = plot.getDataset(i);
+        if (dataSet instanceof PeakListDataSet) {
+          plot.setDataset(i, null);
+        }
       }
-    }
-    setNotifyChange(notifyChange);
-    if (notifyChange) {
-      fireChangeEvent();
-    }
+    });
   }
 
   public ScanDataSet getMainScanDataSet() {
@@ -630,24 +609,19 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void removeDataPointProcessingResultDataSets() {
-    final boolean oldNotify = isNotifyChange();
-    setNotifyChange(false);
+    applyWithNotifyChanges(false, () -> {
 
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYDataset dataSet = plot.getDataset(i);
-      if (dataSet instanceof DPPResultsDataSet) {
-        plot.setDataset(i, null);
+      for (int i = 0; i < plot.getDatasetCount(); i++) {
+        XYDataset dataSet = plot.getDataset(i);
+        if (dataSet instanceof DPPResultsDataSet) {
+          plot.setDataset(i, null);
+        }
       }
-    }
-    // when adding DPPResultDataSet the label generator is overwritten,
-    // revert here
-    SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
-    plot.getRenderer().setDefaultItemLabelGenerator(labelGenerator);
-
-    setNotifyChange(oldNotify);
-    if (oldNotify) {
-      fireChangeEvent();
-    }
+      // when adding DPPResultDataSet the label generator is overwritten,
+      // revert here
+      SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
+      plot.getRenderer().setDefaultItemLabelGenerator(labelGenerator);
+    });
   }
 
   @Override

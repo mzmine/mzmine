@@ -187,7 +187,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   @Override
   protected void parametersChanged() {
     updateParameterSetFromComponents();
-    if(checkParameters()) {
+    if (checkParameters()) {
       updateWindow();
     }
   }
@@ -198,14 +198,15 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   public void updateWindow() {
     if (!updateParameters()) {
       logger.warning("updateWindow() failed. Could not update parameters or parameters are invalid."
-          + "\nPlease check the parameters.");
+                     + "\nPlease check the parameters.");
       return;
     }
 
     if (FormulaUtils.getFormulaSize(formula) > 5E3 && ((System.nanoTime() - lastCalc) * 1E-6
-        < 150)) {
+                                                       < 150)) {
       logger.finest("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula)
-          + " or last calculation recent: " + (System.nanoTime() - lastCalc) / 1E6 + " ms");
+                    + " or last calculation recent: " + (System.nanoTime() - lastCalc) / 1E6
+                    + " ms");
     }
 
     if (task != null && task.getStatus() == TaskStatus.PROCESSING
@@ -231,29 +232,27 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    * @param pattern
    */
   protected void updateChart(SimpleIsotopePattern pattern, XYDataset fit) {
-    spectraPlot.setNotifyChange(false);
+    spectraPlot.applyWithNotifyChanges(false, () -> {
 
-    dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
+      dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
 
-    if (pol == PolarityType.NEUTRAL) {
-      spectraPlot.getXYPlot().getRangeAxis().setLabel("Exact mass / Da");
-    } else {
-      spectraPlot.getXYPlot().getRangeAxis().setLabel("m/z");
-    }
-    spectraPlot.removeAllDataSets();
-    spectraPlot.addDataSet(dataset,
-        MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true, false);
-    if (fit != null) {
-      spectraPlot.addDataSet(fit,
-          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false,
-          false);
-      spectraPlot.getXYPlot()
-          .setRenderer(spectraPlot.getXYPlot().indexOf(fit), new ColoredXYLineRenderer());
-    }
-    formatChart();
-
-    spectraPlot.setNotifyChange(true);
-    spectraPlot.fireChangeEvent();
+      if (pol == PolarityType.NEUTRAL) {
+        spectraPlot.getXYPlot().getRangeAxis().setLabel("Exact mass / Da");
+      } else {
+        spectraPlot.getXYPlot().getRangeAxis().setLabel("m/z");
+      }
+      spectraPlot.removeAllDataSets();
+      spectraPlot.addDataSet(dataset,
+          MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true, false);
+      if (fit != null) {
+        spectraPlot.addDataSet(fit,
+            MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false,
+            false);
+        spectraPlot.getXYPlot()
+            .setRenderer(spectraPlot.getXYPlot().indexOf(fit), new ColoredXYLineRenderer());
+      }
+      formatChart();
+    });
   }
 
   /**

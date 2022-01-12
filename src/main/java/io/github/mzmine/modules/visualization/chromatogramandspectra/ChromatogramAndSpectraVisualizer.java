@@ -316,14 +316,14 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
 
   private void updateAllChromatogramDataSets() {
     List<RawDataFile> rawDataFiles = new ArrayList<>(filesAndDataSets.keySet());
-    chromPlot.setNotifyChange(false);
-    chromPlot.getXYPlot().clearDomainMarkers();
-    for (RawDataFile raw : rawDataFiles) {
-      removeRawDataFile(raw);
-      addRawDataFile(raw);
-    }
-    chromPlot.setNotifyChange(true);
-    chromPlot.fireChangeEvent();
+    // update all datasets and force update at the end by setting the state to true
+    chromPlot.applyWithNotifyChanges(false, true, () -> {
+      chromPlot.getXYPlot().clearDomainMarkers();
+      for (RawDataFile raw : rawDataFiles) {
+        removeRawDataFile(raw);
+        addRawDataFile(raw);
+      }
+    });
   }
 
   /**
@@ -342,27 +342,25 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param rawDataFiles
    */
   public void setRawDataFiles(@NotNull Collection<RawDataFile> rawDataFiles) {
-    spectrumPlot.setNotifyChange(false);
-    chromPlot.setNotifyChange(false);
+    // disable update until all changes are applied, then set true and force update
+    spectrumPlot.applyWithNotifyChanges(false, true, () -> {
+      chromPlot.applyWithNotifyChanges(false, true, () -> {
 
-    // remove files first
-    for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
-      if (!rawDataFiles.contains(rawDataFile)) {
-        removeRawDataFile(rawDataFile);
-      }
-    }
+        // remove files first
+        for (RawDataFile rawDataFile : filesAndDataSets.keySet()) {
+          if (!rawDataFiles.contains(rawDataFile)) {
+            removeRawDataFile(rawDataFile);
+          }
+        }
 
-    // presence of file is checked in the add method
-    for (RawDataFile r : rawDataFiles) {
-      if (!(r instanceof ImagingRawDataFile)) {
-        addRawDataFile(r);
-      }
-    }
-
-    spectrumPlot.setNotifyChange(true);
-    chromPlot.setNotifyChange(true);
-    spectrumPlot.fireChangeEvent();
-    chromPlot.fireChangeEvent();
+        // presence of file is checked in the add method
+        for (RawDataFile r : rawDataFiles) {
+          if (!(r instanceof ImagingRawDataFile)) {
+            addRawDataFile(r);
+          }
+        }
+      });
+    });
   }
 
   /**
@@ -451,47 +449,38 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param pos
    */
   private void updateChromatogramDomainMarker(@NotNull ChromatogramCursorPosition pos) {
-    final boolean oldNotify = chromPlot.isNotifyChange();
-    chromPlot.setNotifyChange(false);
+    chromPlot.applyWithNotifyChanges(false, () -> {
 
-    chromPlot.getXYPlot().clearDomainMarkers();
+      chromPlot.getXYPlot().clearDomainMarkers();
 
-    if (rtMarker == null) {
-      rtMarker = new ValueMarker(pos.getScan().getRetentionTime());
-      rtMarker.setStroke(MARKER_STROKE);
-    } else {
-      rtMarker.setValue(pos.getScan().getRetentionTime());
-    }
-    rtMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
+      if (rtMarker == null) {
+        rtMarker = new ValueMarker(pos.getScan().getRetentionTime());
+        rtMarker.setStroke(MARKER_STROKE);
+      } else {
+        rtMarker.setValue(pos.getScan().getRetentionTime());
+      }
+      rtMarker.setPaint(
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
 
-    chromPlot.getXYPlot().addDomainMarker(rtMarker);
-    // update after setting everything
-    chromPlot.setNotifyChange(oldNotify);
-    if (oldNotify) {
-      chromPlot.fireChangeEvent();
-    }
+      chromPlot.getXYPlot().addDomainMarker(rtMarker);
+    });
   }
 
   private void updateSpectrumDomainMarker(@NotNull SpectrumCursorPosition pos) {
-    final boolean oldNotify = spectrumPlot.isNotifyChange();
-    spectrumPlot.setNotifyChange(false);
-    spectrumPlot.getXYPlot().clearDomainMarkers();
+    spectrumPlot.applyWithNotifyChanges(false, () -> {
+      spectrumPlot.getXYPlot().clearDomainMarkers();
 
-    if (mzMarker == null) {
-      mzMarker = new ValueMarker(pos.getMz());
-      mzMarker.setStroke(MARKER_STROKE);
-    } else {
-      mzMarker.setValue(pos.getMz());
-    }
-    mzMarker.setPaint(MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
+      if (mzMarker == null) {
+        mzMarker = new ValueMarker(pos.getMz());
+        mzMarker.setStroke(MARKER_STROKE);
+      } else {
+        mzMarker.setValue(pos.getMz());
+      }
+      mzMarker.setPaint(
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColorAWT());
 
-    spectrumPlot.getXYPlot().addDomainMarker(mzMarker);
-
-    // update after setting everything
-    spectrumPlot.setNotifyChange(oldNotify);
-    if (oldNotify) {
-      spectrumPlot.fireChangeEvent();
-    }
+      spectrumPlot.getXYPlot().addDomainMarker(mzMarker);
+    });
   }
 
   /**
@@ -518,19 +507,12 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
    * @param scanNum     The number of the scan
    */
   private void forceScanDataSet(@NotNull RawDataFile rawDataFile, Scan scanNum) {
-    final boolean oldNotify = spectrumPlot.isNotifyChange();
-    spectrumPlot.setNotifyChange(false);
-
-    spectrumPlot.removeAllDataSets();
-    ScanDataSet dataSet = new ScanDataSet(scanNum);
-    spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false, false);
-    spectrumPlot.setTitle(rawDataFile.getName() + "(#" + scanNum + ")", "");
-
-    // update after setting everything
-    spectrumPlot.setNotifyChange(oldNotify);
-    if (oldNotify) {
-      spectrumPlot.fireChangeEvent();
-    }
+    spectrumPlot.applyWithNotifyChanges(false, () -> {
+      spectrumPlot.removeAllDataSets();
+      ScanDataSet dataSet = new ScanDataSet(scanNum);
+      spectrumPlot.addDataSet(dataSet, rawDataFile.getColorAWT(), false, false);
+      spectrumPlot.setTitle(rawDataFile.getName() + "(#" + scanNum + ")", "");
+    });
   }
 
   /**

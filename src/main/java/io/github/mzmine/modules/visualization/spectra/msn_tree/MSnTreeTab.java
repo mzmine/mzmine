@@ -417,13 +417,16 @@ public class MSnTreeTab extends SimpleTab {
       levelFromRoot++;
       levelPrecursors = currentRoot.getPrecursors(levelFromRoot);
 
-      // update chart
-      spectraPlot.setNotifyChange(true);
-      spectraPlot.fireChangeEvent();
     } while (!levelPrecursors.isEmpty());
 
     if (rootHasChanged) {
       chartGroup.applyAutoRange(true);
+    }
+
+    // update chart
+    for (var spectraPlot : spectraPlots) {
+      spectraPlot.setNotifyChange(true);
+      spectraPlot.fireChangeEvent();
     }
   }
 
