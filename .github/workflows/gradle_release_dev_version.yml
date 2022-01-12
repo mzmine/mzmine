@@ -18,7 +18,7 @@ jobs:
         - os: macos-11
         - os: ubuntu-latest
         - os: windows-latest
-        
+
 # Checkout OS and java version
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew
-      
+
     - name: Upload builds
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v2
@@ -78,27 +78,27 @@ jobs:
           retention-days: 7  # store for 7 days
 
       - name: Update Automatic Release Ubuntu
-      if: matrix.os == 'ubuntu-latest'
-      uses: marvinpinto/action-automatic-releases@latest
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN}}"
-        automatic_release_tag: "Ubuntu-latest"
-        prerelease: true
-        title: "Ubuntu Development Build"
-        files: |
-          build/jpackage/*.deb
-          build/jpackage/*.rpm
-      
+        if: matrix.os == 'ubuntu-latest'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: "Ubuntu-latest"
+          prerelease: true
+          title: "Ubuntu Development Build"
+          files: |
+            build/jpackage/*.deb
+            build/jpackage/*.rpm
 
-      - name: Update Automatic Release Window
-      if: matrix.os == 'windows-latest'
-      uses: marvinpinto/action-automatic-releases@latest
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN}}"
-        automatic_release_tag: "Windows-latest"
-        prerelease: true
-        title: "Windows Development Build"
-        files: build/jpackage/*.msi
+
+        - name: Update Automatic Release Window
+          if: matrix.os == 'windows-latest'
+          uses: marvinpinto/action-automatic-releases@latest
+          with:
+            repo_token: "${{ secrets.GITHUB_TOKEN}}"
+            automatic_release_tag: "Windows-latest"
+            prerelease: true
+            title: "Windows Development Build"
+            files: build/jpackage/*.msi
 
 
     - name: Update Automatic Release MacOS
@@ -111,7 +111,7 @@ jobs:
         title: "MacOS Development Build"
         files: build/jpackage/*.dmg
 
-# clean cache important but DOES NOT WORK on windows - -f not allowed 
+      # clean cache important but DOES NOT WORK on windows - -f not allowed
 
 # Remove some files from the Gradle cache, so they aren't cached by GitHub Actions.
 # Restoring these files from a GitHub Actions cache might cause problems for future builds.
