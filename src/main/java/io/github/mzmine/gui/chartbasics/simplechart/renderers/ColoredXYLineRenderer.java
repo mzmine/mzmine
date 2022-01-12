@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
 import java.awt.AlphaComposite;
@@ -58,6 +59,7 @@ public class ColoredXYLineRenderer extends XYLineAndShapeRenderer {
   public ColoredXYLineRenderer() {
     super(true, false);
     setDrawSeriesLineAsPath(true);
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   private AlphaComposite makeComposite(double alpha) {

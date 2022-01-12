@@ -18,16 +18,13 @@
 
 package io.github.mzmine.parameters.parametertypes.ranges;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.parameters.UserParameter;
 import java.text.NumberFormat;
 import java.util.Collection;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.UserParameter;
 
 public class DoubleRangeParameter implements UserParameter<Range<Double>, DoubleRangeComponent> {
 
@@ -68,17 +65,11 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
     this.maxAllowedRange = maxAllowedRange;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;

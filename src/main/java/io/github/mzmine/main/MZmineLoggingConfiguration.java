@@ -19,13 +19,16 @@
 package io.github.mzmine.main;
 
 import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * MZmine logging support
  */
 public final class MZmineLoggingConfiguration {
 
+  private static final Logger logger = Logger.getLogger(MZmineLoggingConfiguration.class.getName());
   /**
    * Configures the logging properties according to the logging.properties file found in the jar
    * resources
@@ -39,6 +42,7 @@ public final class MZmineLoggingConfiguration {
       logMan.readConfiguration(loggingProperties);
       loggingProperties.close();
     } catch (Exception e) {
+      logger.log(Level.WARNING, "error during logger setup: " + e.getMessage(), e);
       e.printStackTrace();
     }
 

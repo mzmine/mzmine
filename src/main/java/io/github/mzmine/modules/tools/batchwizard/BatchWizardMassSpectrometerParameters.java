@@ -36,18 +36,19 @@ public class BatchWizardMassSpectrometerParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minimumFeatureHeight = new DoubleParameter(
       "Minimum feature height",
-      "Intensity threshold at one retention time to be recognised as a feature.");
+      "Intensity threshold at one retention time to be recognised as a feature.",
+      MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final MZToleranceParameter scanToScanMzTolerance = new MZToleranceParameter(
       "Scan to scan m/z tolerance",
       "Describes the m/z fluctuations of peaks from one scan to another within the same"
-          + " sample.\nUsed for chromatogram building.");
+      + " sample.\nUsed for chromatogram building.");
 
   public static final MZToleranceParameter featureToFeatureMzTolerance = new MZToleranceParameter(
       "Feature to feature m/z tolerance",
       "Describes the m/z variations of features that belong together, such as isotopic"
-          + " signals. The values are averaged along the whole feature.\nUsed for recognition of"
-          + "isotopic signals and ion identity networks.");
+      + " signals. The values are averaged along the whole feature.\nUsed for recognition of"
+      + "isotopic signals and ion identity networks.");
 
   public static final MZToleranceParameter sampleToSampleMzTolerance = new MZToleranceParameter(
       "Sample to sample m/z tolerace",

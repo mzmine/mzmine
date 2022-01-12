@@ -73,6 +73,7 @@ import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -384,11 +385,17 @@ public class SpectraVisualizerTab extends MZmineTab {
 
     // Set plot data set
     spectrumPlot.removeAllDataSets();
+    spectrumPlot.getXYPlot().clearDomainMarkers();
     spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
     spectrumPlot.addDataSet(massListDataSet, massListColor, false);
     spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
     // });
 
+    if (scan != null && scan.getMSLevel() > 1) {
+      // add all precursors
+      final Double prmz = scan.getPrecursorMz();
+      spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
+    }
   }
 
   public void loadPeaks(FeatureList selectedPeakList) {

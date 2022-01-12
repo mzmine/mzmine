@@ -30,18 +30,22 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.exception.InvalidSmilesException;
+import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
-  private static Logger logger = Logger.getLogger(FormulaUtils.class.getName());
   private static final double electronMass = 0.00054857990946;
+  private static Logger logger = Logger.getLogger(FormulaUtils.class.getName());
 
   /**
    * Sort all molecular formulas by score of ppm distance, isotope sccore and msms score (with
@@ -67,8 +71,7 @@ public class FormulaUtils {
   }
 
   public static void sortFormulaList(List<? extends MolecularFormulaIdentity> list,
-      double neutralMassOverride, float ppmMax,
-      float weightIsotopeScore, float weightMSMSscore) {
+      double neutralMassOverride, float ppmMax, float weightIsotopeScore, float weightMSMSscore) {
     if (list == null) {
       return;
     }
@@ -187,9 +190,9 @@ public class FormulaUtils {
    * used For charge of more than -1 or +1 use square brackets Uses monoisotopic masses of each atom
    * present in the compound
    * <p>
-   * Example outputs C23H39N7O17P3S+    gives 810.1330500980904 (charge is +1) C23H39N7O17P3S-
-   * gives 810.1341472579095 (charge is -1) C10H16N5O10P2+     gives 428.03669139209063 (charge is
-   * +1) C5H6(CH2)5N5O10P2+ gives 428.03669139209063 (charge is +1) [C21H30N7O17P3]2+  gives
+   * Example outputs C23H39N7O17P3S+    gives 810.1330500980904 (charge is +1) C23H39N7O17P3S- gives
+   * 810.1341472579095 (charge is -1) C10H16N5O10P2+     gives 428.03669139209063 (charge is +1)
+   * C5H6(CH2)5N5O10P2+ gives 428.03669139209063 (charge is +1) [C21H30N7O17P3]2+  gives
    * 372.54500261509054 (charge is +2)
    *
    * @param ionicFormula ionic formula string
@@ -296,7 +299,7 @@ public class FormulaUtils {
     IMolecularFormula molFormula;
 
     molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
-    if(molFormula == null) {
+    if (molFormula == null) {
       return false;
     }
 
@@ -329,8 +332,8 @@ public class FormulaUtils {
     try {
       // new formula consists of isotopes without exact mass
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula f = MolecularFormulaManipulator
-          .getMajorIsotopeMolecularFormula(formula.replace(" ", ""), builder);
+      IMolecularFormula f = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+          formula.replace(" ", ""), builder);
 
       if (f == null) {
         return null;
@@ -478,5 +481,80 @@ public class FormulaUtils {
     }
 
     return size;
+  }
+
+  /**
+   * @param smiles The smiles string.
+   * @return A molecular formula representing the smiles or null, if the smiles cannot be parsed.
+   */
+  @Nullable
+  public static IMolecularFormula getFomulaFromSmiles(@Nullable String smiles) {
+    if(smiles == null) {
+      return null;
+    }
+    try {
+      final IAtomContainer iAtomContainer = new SmilesParser(
+          SilentChemObjectBuilder.getInstance()).parseSmiles(smiles);
+      IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
+          iAtomContainer);
+      return molecularFormula;
+    } catch (InvalidSmilesException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+    }
+    return null;
+  }
+
+  /**
+   * Creates a neutral formula from the given formula string. In case the formula is not neutral,
+   * the formula is neutralized using protons.
+   *
+   * @param formula The formula.
+   * @return The neutral formula.
+   */
+  @Nullable
+  public static IMolecularFormula getNeutralFormula(@Nullable final String formula) {
+    if(formula == null) {
+      return null;
+    }
+    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
+        formula, SilentChemObjectBuilder.getInstance());
+    return getNeutralFormula(molecularFormula);
+  }
+
+  /**
+   * Creates a neutral formula from the given formula string. In case the formula is not neutral,
+   * the formula is neutralized using protons.
+   *
+   * @param formula The formula. Remains unaltered, cloned during this method.
+   * @return The neutral or null if the formula cannot be cloned or neutralized by protonation.
+   */
+  @Nullable
+  public static IMolecularFormula getNeutralFormula(@Nullable final IMolecularFormula formula) {
+    if(formula == null) {
+      return null;
+    }
+
+    try {
+      final IMolecularFormula molecularFormula = (IMolecularFormula) formula.clone();
+      final Integer charge = molecularFormula.getCharge();
+      if (charge != null && charge != 0) {
+        final String string = MolecularFormulaManipulator.getString(molecularFormula);
+
+        logger.finest(
+            () -> "Compound " + string + " is not neutral as determined by molFormula. charge = "
+                + charge + ". Adjusting protonation.");
+
+        final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
+            -charge);
+        if (!adjusted || formula.getCharge() != null) {
+          logger.info(() -> "Cannot determine neutral formula by adjusting protons. " + string);
+          return null;
+        }
+      }
+      return molecularFormula;
+    } catch (CloneNotSupportedException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      return null;
+    }
   }
 }

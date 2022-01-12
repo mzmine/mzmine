@@ -58,7 +58,7 @@ public class FeatureListsSelection implements Cloneable {
         return Stream.of(MZmineCore.getDesktop().getSelectedPeakLists())
             .map(ModularFeatureList.class::cast).toArray(ModularFeatureList[]::new);
       case ALL_FEATURELISTS:
-        return MZmineCore.getProjectManager().getCurrentProject().getFeatureLists()
+        return MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
             .toArray(ModularFeatureList[]::new);
       case SPECIFIC_FEATURELISTS:
         if (specificFeatureLists == null) {
@@ -71,7 +71,7 @@ public class FeatureListsSelection implements Cloneable {
         }
         ArrayList<ModularFeatureList> matchingFeatureLists = new ArrayList<>();
         ModularFeatureList allFeatureLists[] = MZmineCore.getProjectManager().getCurrentProject()
-            .getFeatureLists().toArray(ModularFeatureList[]::new);
+            .getCurrentFeatureLists().toArray(ModularFeatureList[]::new);
 
         plCheck:
         for (ModularFeatureList pl : allFeatureLists) {

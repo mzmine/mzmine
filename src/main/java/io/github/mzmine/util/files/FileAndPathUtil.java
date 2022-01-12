@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.files;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -234,28 +235,32 @@ public class FileAndPathUtil {
    * @return sorted array of files
    */
   public static File[] sortFilesByNumber(File[] files, boolean reverse) {
-    Comparator<File> fileNumberComparator = new Comparator<>() {
-      private Boolean endsWithNumber = null;
+    try {
+      Comparator<File> fileNumberComparator = new Comparator<>() {
+        private Boolean endsWithNumber = null;
 
-      @Override
-      public int compare(File o1, File o2) {
-        try {
-          if (endsWithNumber == null) {
-            endsWithNumber = checkEndsWithNumber(o1.getName());
+        @Override
+        public int compare(File o1, File o2) {
+          try {
+            if (endsWithNumber == null) {
+              endsWithNumber = checkEndsWithNumber(o1.getName());
+            }
+            int n1 = extractNumber(o1, endsWithNumber);
+            int n2 = extractNumber(o2, endsWithNumber);
+            return Integer.compare(n1, n2);
+          } catch (Exception e) {
+            return o1.compareTo(o2);
           }
-          int n1 = extractNumber(o1, endsWithNumber);
-          int n2 = extractNumber(o2, endsWithNumber);
-          return Integer.compare(n1, n2);
-        } catch (Exception e) {
-          return o1.compareTo(o2);
         }
+      };
+      if (reverse) {
+        fileNumberComparator = fileNumberComparator.reversed();
       }
-    };
-    if (reverse) {
-      fileNumberComparator = fileNumberComparator.reversed();
+      Arrays.sort(files, fileNumberComparator);
+      return files;
+    } catch (Exception ex) {
+      return files;
     }
-    Arrays.sort(files, fileNumberComparator);
-    return files;
   }
 
   public static boolean isNumber(char c) {
@@ -339,20 +344,12 @@ public class FileAndPathUtil {
   // search for files
 
   public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter) {
-    String ext = fileFilter.getExtensions().get(0);
-    if (ext.startsWith("*.")) {
-      ext = ext.substring(2);
-    }
-    return findFilesInDir(dir, new FileNameExtFilter("", ext), true, false);
+    return findFilesInDir(dir, fileFilter, true);
   }
 
   public static List<File[]> findFilesInDir(File dir, ExtensionFilter fileFilter,
       boolean searchSubdir) {
-    String ext = fileFilter.getExtensions().get(0);
-    if (ext.startsWith("*.")) {
-      ext = ext.substring(2);
-    }
-    return findFilesInDir(dir, new FileNameExtFilter("", ext), searchSubdir, false);
+    return findFilesInDir(dir, new FileTypeFilter(fileFilter, ""), searchSubdir, false);
   }
 
   /**
@@ -360,25 +357,24 @@ public class FileAndPathUtil {
    * @param fileFilter filter files
    * @return list of all files in directory and sub directories
    */
-  public static List<File[]> findFilesInDir(File dir, FileNameExtFilter fileFilter) {
+  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter) {
     return findFilesInDir(dir, fileFilter, true, false);
   }
 
-  public static List<File[]> findFilesInDir(File dir, FileNameExtFilter fileFilter,
-      boolean searchSubdir) {
+  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter, boolean searchSubdir) {
     return findFilesInDir(dir, fileFilter, searchSubdir, false);
   }
 
-  public static List<File[]> findFilesInDir(File dir, FileNameExtFilter fileFilter,
-      boolean searchSubdir, boolean filesInSeparateFolders) {
+  public static List<File[]> findFilesInDir(File dir, FileFilter fileFilter, boolean searchSubdir,
+      boolean filesInSeparateFolders) {
     File[] subDir = FileAndPathUtil.getSubDirectories(dir);
-    // result: each vector element stands for one img
+    // result: each vector element stands for one file
     List<File[]> list = new ArrayList<>();
-    // add all files as first image
+    // add all files as first
     // sort all files and return them
     File[] files = dir.listFiles(fileFilter);
-    files = FileAndPathUtil.sortFilesByNumber(files, false);
     if (files != null && files.length > 0) {
+      files = FileAndPathUtil.sortFilesByNumber(files, false);
       list.add(files);
     }
 
@@ -406,8 +402,8 @@ public class FileAndPathUtil {
    * @param dirs musst be sorted!
    * @param list
    */
-  private static void findFilesInSubDirSeparatedFolders(File parent, File[] dirs,
-      List<File[]> list, FileNameExtFilter fileFilter) {
+  private static void findFilesInSubDirSeparatedFolders(File parent, File[] dirs, List<File[]> list,
+      FileFilter fileFilter) {
     // go into folder and find files
     List<File> img = null;
     // each file in one folder
@@ -426,8 +422,8 @@ public class FileAndPathUtil {
       } else {
         // search in subfolders for data
         // find all subfolders, sort them and do the same iterative
-        File[] subDir =
-            FileAndPathUtil.sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir), false);
+        File[] subDir = FileAndPathUtil
+            .sortFilesByNumber(FileAndPathUtil.getSubDirectories(dir), false);
         // call this method
         findFilesInSubDirSeparatedFolders(dir, subDir, list, fileFilter);
       }
@@ -444,8 +440,7 @@ public class FileAndPathUtil {
    * @param dirs musst be sorted!
    * @param list
    */
-  private static void findFilesInSubDir(File[] dirs, List<File[]> list,
-      FileNameExtFilter fileFilter) {
+  private static void findFilesInSubDir(File[] dirs, List<File[]> list, FileFilter fileFilter) {
     // All files in one folder
     for (File dir : dirs) {
       // find all suiting files
@@ -473,8 +468,9 @@ public class FileAndPathUtil {
      * f.getAbsoluteFile().getParentFile(); return dir;
      */
     try {
-      File jar = new File(FileAndPathUtil.class.getProtectionDomain().getCodeSource().getLocation()
-          .toURI().getPath());
+      File jar = new File(
+          FileAndPathUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI()
+              .getPath());
       return jar.getParentFile();
     } catch (Exception ex) {
       return new File("");
@@ -493,12 +489,10 @@ public class FileAndPathUtil {
     final File noExtension = eraseFormat(file);
 
     int i = 1;
-    File uniqueFile = new File(
-        noExtension.getAbsolutePath() + "(" + i + ")." + extension);
+    File uniqueFile = new File(noExtension.getAbsolutePath() + "(" + i + ")." + extension);
     while (uniqueFile.exists()) {
       i++;
-      uniqueFile = new File(
-          noExtension.getAbsolutePath() + "(" + i + ")." + extension);
+      uniqueFile = new File(noExtension.getAbsolutePath() + "(" + i + ")." + extension);
     }
     return uniqueFile;
   }

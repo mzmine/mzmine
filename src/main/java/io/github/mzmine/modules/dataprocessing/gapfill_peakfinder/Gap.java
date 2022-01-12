@@ -67,15 +67,10 @@ public class Gap {
 
   public void offerNextScan(Scan scan) {
 
-    double scanRT = scan.getRetentionTime();
+    float scanRT = scan.getRetentionTime();
 
     // If not yet inside the RT range
-    if (scanRT < rtRange.lowerEndpoint()) {
-      return;
-    }
-
-    // If we have passed the RT range and finished processing last peak
-    if ((scanRT > rtRange.upperEndpoint()) && (currentPeakDataPoints == null)) {
+    if (!rtRange.contains(scanRT)) {
       return;
     }
 
@@ -84,7 +79,8 @@ public class Gap {
 
     GapDataPointImpl currentDataPoint;
     if (basePeak != null) {
-      currentDataPoint = new GapDataPointImpl(scan, basePeak.getMZ(), scanRT, basePeak.getIntensity());
+      currentDataPoint = new GapDataPointImpl(scan, basePeak.getMZ(), scanRT,
+          basePeak.getIntensity());
     } else {
       currentDataPoint = new GapDataPointImpl(scan, RangeUtils.rangeCenter(mzRange), scanRT, 0);
     }
@@ -117,7 +113,14 @@ public class Gap {
   /**
    * Finalizes the gap, adds a peak
    */
-  public void noMoreOffers() {
+  public boolean noMoreOffers() {
+    return noMoreOffers(1);
+  }
+
+  /**
+   * Finalizes the gap, adds a peak
+   */
+  public boolean noMoreOffers(int minDataPoints) {
 
     // Check peak that was last constructed
     if (currentPeakDataPoints != null) {
@@ -126,21 +129,25 @@ public class Gap {
     }
 
     // does not meet filters
-    if(bestPeakDataPoints==null) {
-      return;
+    if (bestPeakDataPoints == null || bestPeakDataPoints.size() < minDataPoints) {
+      return false;
     }
 
+    return addFeatureToRow();
+  }
+
+  protected boolean addFeatureToRow() {
     final double[][] mzIntensities = DataPointUtils.getDataPointsAsDoubleArray(bestPeakDataPoints);
     final IonTimeSeries<?> series = new SimpleIonTimeSeries(
         ((ModularFeatureList) peakListRow.getFeatureList()).getMemoryMapStorage(), mzIntensities[0],
         mzIntensities[1], bestPeakDataPoints.stream().map(GapDataPoint::getScan).toList());
 
     final Feature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(),
-        rawDataFile, series, FeatureStatus.MANUAL);
-
+        rawDataFile, series, FeatureStatus.ESTIMATED);
 
     // Fill the gap
     peakListRow.addFeature(rawDataFile, newPeak);
+    return true;
   }
 
   /**
@@ -182,7 +189,7 @@ public class Gap {
 
         if ((currentPeakDataPoints.get(i).getIntensity() >= currentPeakDataPoints.get(i + 1)
             .getIntensity()) && (currentPeakDataPoints.get(i).getIntensity()
-            >= currentPeakDataPoints.get(i - 1).getIntensity())) {
+                                 >= currentPeakDataPoints.get(i - 1).getIntensity())) {
 
           if (currentPeakDataPoints.get(i).getIntensity() > currentMaxHeight) {
 
@@ -236,6 +243,7 @@ public class Gap {
     // 3) Check if this is the best candidate for a peak
     if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
       bestPeakDataPoints = currentPeakDataPoints.subList(startInd, toIndex);
+      bestPeakHeight = currentMaxHeight;
     }
 
   }

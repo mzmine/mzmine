@@ -19,22 +19,22 @@
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.FeatureTableFXUtil;
-import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureTableFXModule implements MZmineModule {
 
   /**
-   * Opens a new FeateTable window, using {@link Platform#runLater(Runnable)}.
+   * Opens a new FeateTable window on the FX thread
    *
-   * @param flist
+   * @param flist target feature list
    */
   public static void createFeatureListTable(ModularFeatureList flist) {
-    Platform.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
+    MZmineCore.runLater(() -> FeatureTableFXUtil.addFeatureTableTab(flist));
   }
 
   @NotNull

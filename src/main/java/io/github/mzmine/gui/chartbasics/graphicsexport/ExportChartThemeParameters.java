@@ -38,20 +38,19 @@ import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import org.jfree.chart.JFreeChart;
 
 /**
  * JFreeChart theme settings for {@link EStandardChartTheme}s
  */
 public class ExportChartThemeParameters extends SimpleParameterSet {
 
-  public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", false);
+  public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", true);
   public static final OptionalParameter<StringParameter> changeTitle =
       new OptionalParameter<StringParameter>(new StringParameter("Change title", "", ""));
   public static final BooleanParameter showSubtitles = new BooleanParameter("Show subtitle", "",
-      false);
+      true);
   public static final BooleanParameter showLegends =
-      new BooleanParameter("Show legends", "", false);
+      new BooleanParameter("Show legends", "", true);
 
   public static final OptionalParameter<StringParameter> xlabel =
       new OptionalParameter<StringParameter>(new StringParameter("Change x", "", "x"));
@@ -66,9 +65,11 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
           new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 11.0)));
   public static final FontParameter titleFont = new FontParameter("Title", "Title font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter subTitleFont = new FontParameter("Axis labels", "Subtitle font",
+  public static final FontParameter subTitleFont = new FontParameter("Subtitles", "Subtitle font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.BOLD, 11.0)));
-  public static final FontParameter labelFont = new FontParameter("Labels", "Item label font",
+  public static final FontParameter axisLabelFont = new FontParameter("Axis Labels", "Axis label font",
+      new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
+  public static final FontParameter itemLabelFont = new FontParameter("Item Labels", "Item label font",
       new FontSpecs(Color.BLACK, Font.font("Arial", FontWeight.NORMAL, 9.0)));
 
   public static final OptionalParameter<ColorParameter> xGridPaint =
@@ -83,7 +84,7 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
 
   public ExportChartThemeParameters() {
     super(new Parameter[]{showTitle, changeTitle, showSubtitles, showLegends, xlabel,
-        ylabel, color, masterFont, titleFont, subTitleFont, labelFont, xGridPaint, yGridPaint,
+        ylabel, color, masterFont, titleFont, subTitleFont, axisLabelFont, itemLabelFont, xGridPaint, yGridPaint,
         showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
@@ -103,54 +104,6 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ChartThemeParametersSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-  @Deprecated
-  public void applyToChart(JFreeChart chart) {
-    // // apply chart settings
-    // boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
-    // boolean changeTitle = this.getParameter(ChartThemeParameters.changeTitle).getValue();
-    // String title =
-    // this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter().getValue();
-    // boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
-    //
-    // boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
-    // boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
-    // String xlabel =
-    // this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
-    // String ylabel =
-    // this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
-    //
-    // Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
-    // // chart.setBackgroundPaint(gbColor);
-    // // chart.getPlot().setBackgroundPaint(gbColor);
-    //
-    // if (changeTitle)
-    // chart.setTitle(title);
-    // chart.getTitle().setVisible(showTitle);
-    // ((List<Title>) chart.getSubtitles()).stream().forEach(t -> t.setVisible(showLegends));
-    //
-    // if (chart.getXYPlot() != null) {
-    // XYPlot p = chart.getXYPlot();
-    // if (usexlabel)
-    // p.getDomainAxis().setLabel(xlabel);
-    // if (useylabel)
-    // p.getRangeAxis().setLabel(ylabel);
-    //
-    // boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
-    // boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
-    // Color cxgrid =
-    // this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
-    // Color cygrid =
-    // this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
-    // p.setDomainGridlinesVisible(xgrid);
-    // p.setDomainGridlinePaint(FxColorUtil.fxColorToAWT(cxgrid));
-    // p.setRangeGridlinesVisible(ygrid);
-    // p.setRangeGridlinePaint(FxColorUtil.fxColorToAWT(cygrid));
-    //
-    // p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
-    // p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
-    // }
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
@@ -179,7 +132,8 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
     FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
     FontSpecs titleFont = this.getParameter(ChartThemeParameters.titleFont).getValue();
     FontSpecs subtitleFont = this.getParameter(ChartThemeParameters.subTitleFont).getValue();
-    FontSpecs labelFont = this.getParameter(ChartThemeParameters.labelFont).getValue();
+    FontSpecs axisLabels = this.getParameter(ChartThemeParameters.axisLabelFont).getValue();
+    FontSpecs itemLabels = this.getParameter(ChartThemeParameters.itemLabelFont).getValue();
     Color bgColor = this.getParameter(ChartThemeParameters.color).getValue();
 
     theme.setShowTitle(showTitle);
@@ -193,14 +147,15 @@ public class ExportChartThemeParameters extends SimpleParameterSet {
     theme.setMasterFont(FxFontUtil.fxFontToAWT(master.getFont()));
     theme.setExtraLargeFont(FxFontUtil.fxFontToAWT(titleFont.getFont()));
     theme.setLargeFont(FxFontUtil.fxFontToAWT(subtitleFont.getFont()));
-    theme.setRegularFont(FxFontUtil.fxFontToAWT(labelFont.getFont()));
-    theme.setSmallFont(FxFontUtil.fxFontToAWT(labelFont.getFont()));
+    theme.setRegularFont(FxFontUtil.fxFontToAWT(axisLabels.getFont()));
+    theme.setSmallFont(FxFontUtil.fxFontToAWT(axisLabels.getFont()));
+    theme.setItemLabelFont(FxFontUtil.fxFontToAWT(itemLabels.getFont()));
 
     theme.setMasterFontColor(FxColorUtil.fxColorToAWT(master.getColor()));
     theme.setAxisLabelPaint(FxColorUtil.fxColorToAWT(subtitleFont.getColor()));
-    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
+    theme.setTickLabelPaint(FxColorUtil.fxColorToAWT(axisLabels.getColor()));
     theme.setTitlePaint(FxColorUtil.fxColorToAWT(titleFont.getColor()));
-    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(labelFont.getColor()));
+    theme.setItemLabelPaint(FxColorUtil.fxColorToAWT(axisLabels.getColor()));
     theme.setLegendItemPaint(FxColorUtil.fxColorToAWT(subtitleFont.getColor()));
     theme.setAxisLinePaint(FxColorUtil.fxColorToAWT(subtitleFont.getColor()));
     theme.setSubtitlePaint(FxColorUtil.fxColorToAWT(titleFont.getColor()));

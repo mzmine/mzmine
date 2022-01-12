@@ -28,7 +28,6 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidident
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipididentificationtools.LipidFragmentationRuleType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidParsingUtils;
-import io.github.mzmine.util.ParsingUtils;
 
 /**
  * This enum contains all lipid classes. Each enum has information on: name, abbreviation,

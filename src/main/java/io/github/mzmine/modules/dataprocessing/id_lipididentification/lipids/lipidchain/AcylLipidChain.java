@@ -28,7 +28,6 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.LipidChainType;
 import io.github.mzmine.util.FormulaUtils;
-import io.github.mzmine.util.ParsingUtils;
 
 public class AcylLipidChain implements ILipidChain {
 

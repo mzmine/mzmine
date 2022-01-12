@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZPieDataset;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -60,6 +61,8 @@ public class ColoredXYZPieRenderer extends AbstractXYItemRenderer
    * Creates a new {@code ColoredXYZPieRenderer} instance with default attributes.
    */
   public ColoredXYZPieRenderer() {
+    super();
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
     // default
   }
 

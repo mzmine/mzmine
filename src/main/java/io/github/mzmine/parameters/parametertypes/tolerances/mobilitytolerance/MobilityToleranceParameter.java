@@ -30,7 +30,12 @@ public class MobilityToleranceParameter implements UserParameter<MobilityToleran
 
   public MobilityToleranceParameter() {
     this("Mobility time tolerance",
-        "Maximum allowed difference between two mobility time values");
+        "Maximum allowed difference between two mobility values");
+  }
+
+  public MobilityToleranceParameter(MobilityTolerance defaultValue) {
+    this();
+    value = defaultValue;
   }
 
   public MobilityToleranceParameter(String name, String description) {

@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import java.awt.Color;
@@ -53,7 +54,6 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
   /**
    * This function set all the information into the plot chart
-   *
    */
   @Override
   protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
@@ -71,13 +71,15 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
     // If the parameters are not complete, exit
     ArrayList<String> errors = new ArrayList<String>();
     boolean paramsOK = parameters.checkParameterValues(errors);
-    if (!paramsOK)
+    if (!paramsOK) {
       return;
+    }
 
     // Get mass list
     MassList massList = previewScan.getMassList();
-    if (massList == null)
+    if (massList == null) {
       return;
+    }
 
     // Perform filtering
     DataPoint mzValues[] = massList.getDataPoints();
@@ -90,11 +92,16 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
     // Add mass list data sets
     DataPointsDataSet removedPeaksDataSet = new DataPointsDataSet("Removed peaks", removedMzValues);
-    DataPointsDataSet remainingPeaksDataSet =
-        new DataPointsDataSet("Remaining peaks", remainingMzValues);
+    DataPointsDataSet remainingPeaksDataSet = new DataPointsDataSet("Remaining peaks",
+        remainingMzValues);
 
-    spectrumPlot.addDataSet(removedPeaksDataSet, removedPeaksColor, false);
-    spectrumPlot.addDataSet(remainingPeaksDataSet, SpectraVisualizerTab.peaksColor, false);
+    final Color positiveColor = MZmineCore.getConfiguration().getDefaultColorPalette()
+        .getPositiveColorAWT();
+    final Color negativeColor = MZmineCore.getConfiguration().getDefaultColorPalette()
+        .getNegativeColorAWT();
+
+    spectrumPlot.addDataSet(removedPeaksDataSet, negativeColor, false);
+    spectrumPlot.addDataSet(remainingPeaksDataSet, positiveColor, false);
 
   }
 

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CCSType extends FloatType {
 
-  private final String headerString = UnitFormat.DIVIDE.format("CCS", "\u212B\u00B2");
+  private static final String headerString = UnitFormat.DIVIDE.format("CCS", "\u212B\u00B2");
 
   public CCSType() {
     super(new DecimalFormat("0.0"));

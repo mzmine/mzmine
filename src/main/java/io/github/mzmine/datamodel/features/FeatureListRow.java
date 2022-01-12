@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features;
@@ -24,6 +25,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -114,7 +116,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   @Nullable Float getAverageMobility();
 
-  Float getAverageCCS();
+  @Nullable Float getAverageCCS();
 
   /**
    * Returns average height for features on this row
@@ -155,6 +157,8 @@ public interface FeatureListRow extends ModularDataModel {
    * @param identity Feature identity
    */
   void removeFeatureIdentity(FeatureIdentity identity);
+
+  void addCompoundAnnotation(CompoundDBAnnotation id);
 
   /**
    * Returns all candidates for this feature's identity
@@ -227,6 +231,10 @@ public interface FeatureListRow extends ModularDataModel {
   @Nullable FeatureList getFeatureList();
 
   void setFeatureList(@NotNull FeatureList flist);
+
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
+
+  @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
   void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
 
@@ -407,4 +415,6 @@ public interface FeatureListRow extends ModularDataModel {
   Stream<ModularFeature> streamFeatures();
 
   void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
+
+  @Nullable Range<Float> getMobilityRange();
 }

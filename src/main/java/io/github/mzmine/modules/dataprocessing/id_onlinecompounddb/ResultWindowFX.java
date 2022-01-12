@@ -20,8 +20,8 @@
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb;
 
 
-
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.taskcontrol.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -30,29 +30,27 @@ import javafx.stage.Stage;
 
 public class ResultWindowFX extends Stage {
 
-    public ResultWindowController controller;
+  public ResultWindowController controller;
 
-    public ResultWindowFX(FeatureListRow peakListRow, double searchedMass, Task searchTask){
+  public ResultWindowFX(FeatureListRow peakListRow, double searchedMass, Task searchTask) {
 
-        try {
+    try {
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("ResultWindow.fxml"));
-            Scene rootScene = loader.load();
-            setScene(rootScene);
-            setMinWidth(700);
-            setMinHeight(550);
-            controller =loader.getController();
-            controller.initValues(peakListRow,searchTask,searchedMass);
-        }
-
-        catch(Exception e){
-            e.printStackTrace();
-        }
-
+      FXMLLoader loader = new FXMLLoader(getClass().getResource("ResultWindow.fxml"));
+      Scene rootScene = loader.load();
+      setScene(rootScene);
+      setMinWidth(700);
+      setMinHeight(550);
+      controller = loader.getController();
+      controller.initValues(peakListRow, searchTask, searchedMass);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
-    public void addNewListItem(final DBCompound compound) {
-        controller.addNewListItem(compound);
-    }
+  }
+
+  public void addNewListItem(final CompoundDBAnnotation compound) {
+    controller.addNewListItem(compound);
+  }
 
 }

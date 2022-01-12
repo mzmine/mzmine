@@ -49,13 +49,14 @@ import io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureD
 import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
-import io.github.mzmine.modules.dataprocessing.filter_clearannotations.FeatureListClearAnnotationsModule;
+import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
 import io.github.mzmine.modules.dataprocessing.filter_interestingfeaturefinder.AnnotateIsomersModule;
+import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_merge.RawFileMergeModule;
 import io.github.mzmine.modules.dataprocessing.filter_mobilitymzregionextraction.MobilityMzRegionExtractionModule;
@@ -70,13 +71,10 @@ import io.github.mzmine.modules.dataprocessing.gapfill_samerange.SameRangeGapFil
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.corrgrouping.CorrelateGroupingModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationModule;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule;
-import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
-import io.github.mzmine.modules.dataprocessing.id_complexsearch.ComplexSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
-import io.github.mzmine.modules.dataprocessing.id_fragmentsearch.FragmentSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.checkmsms.IonNetworkMSMSCheckModule;
@@ -237,6 +235,7 @@ public class BatchModeModulesList {
       FeatureFilterModule.class, //
       RowsFilterModule.class, //
       IsotopeGrouperModule.class, //
+      IsotopeFinderModule.class, //
       FeatureListBlankSubtractionModule.class, //
       DuplicateFilterModule.class, //
       MobilityMzRegionExtractionModule.class, //
@@ -246,7 +245,7 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_PROCESSING}
        */
-      FeatureListClearAnnotationsModule.class, //
+      ClearFeatureAnnotationsModule.class, //
       LinearNormalizerModule.class, //
       RTCalibrationModule.class, //
       StandardCompoundNormalizerModule.class, //
@@ -273,14 +272,11 @@ public class BatchModeModulesList {
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
        */
-      AdductSearchModule.class, //
       CameraSearchModule.class, //
       CCSCalcModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
-      ComplexSearchModule.class, //
       FormulaPredictionFeatureListModule.class, //
-      FragmentSearchModule.class, //
       IsotopePeakScannerModule.class, //
       LipidSearchModule.class, //
       LocalCSVDatabaseSearchModule.class, //

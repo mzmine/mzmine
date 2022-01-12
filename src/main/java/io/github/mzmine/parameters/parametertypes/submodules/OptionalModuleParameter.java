@@ -39,14 +39,14 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters,
       boolean defaultVal) {
-    this(name, description, embeddedParameters);
+    this.name = name;
+    this.description = description;
+    this.embeddedParameters = embeddedParameters;
     value = defaultVal;
   }
 
   public OptionalModuleParameter(String name, String description, T embeddedParameters) {
-    this.name = name;
-    this.description = description;
-    this.embeddedParameters = embeddedParameters;
+    this(name, description, embeddedParameters, false);
   }
 
   public T getEmbeddedParameters() {
@@ -57,17 +57,11 @@ public class OptionalModuleParameter<T extends ParameterSet> implements
     this.embeddedParameters = embeddedParameters;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;
