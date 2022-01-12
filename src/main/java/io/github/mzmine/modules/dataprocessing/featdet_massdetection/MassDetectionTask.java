@@ -50,6 +50,7 @@ public class MassDetectionTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
   private final ScanSelection scanSelection;
+  private final SelectedScanTypes scanTypes;
   // scan counter
   private int processedScans = 0, totalScans = 0;
   // Mass detector
@@ -75,6 +76,7 @@ public class MassDetectionTask extends AbstractTask {
     this.scanSelection = parameters.getParameter(MassDetectionParameters.scanSelection).getValue();
 
     this.saveToCDF = parameters.getParameter(MassDetectionParameters.outFilenameOption).getValue();
+    this.scanTypes = parameters.getParameter(MassDetectionParameters.scanTypes).getValue();
 
     this.outFilename = parameters.getParameter(MassDetectionParameters.outFilenameOption)
         .getEmbeddedParameter().getValue();
@@ -149,21 +151,25 @@ public class MassDetectionTask extends AbstractTask {
 
         MassDetector detector = massDetector.getModule();
 
-        // run mass detection on data object
-        // [mzs, intensities]
-        double[][] mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
+        double[][] mzPeaks = null;
+        if (scanTypes.applyTo(scan)) {
+          // run mass detection on data object
+          // [mzs, intensities]
+          mzPeaks = detector.getMassValues(data, massDetector.getParameterSet());
 
-        // add mass list to scans and frames
-        scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
+          // add mass list to scans and frames
+          scan.addMassList(new SimpleMassList(getMemoryMapStorage(), mzPeaks[0], mzPeaks[1]));
+        }
 
-        if (scan instanceof SimpleFrame frame) {
+        if (scan instanceof SimpleFrame frame && (scanTypes == SelectedScanTypes.MOBLITY_SCANS
+            || scanTypes == SelectedScanTypes.SCANS)) {
           // for ion mobility, detect subscans, too
           frame.getMobilityScanStorage()
               .generateAndAddMobilityScanMassLists(getMemoryMapStorage(), detector,
                   massDetector.getParameterSet());
         }
 
-        if (this.saveToCDF) {
+        if (this.saveToCDF && mzPeaks != null) {
           curTotalIntensity = 0;
           double[] mzs = mzPeaks[0];
           double[] intensities = mzPeaks[1];
