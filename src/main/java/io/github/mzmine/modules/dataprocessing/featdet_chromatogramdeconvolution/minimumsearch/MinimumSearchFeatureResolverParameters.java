@@ -40,8 +40,8 @@ import org.jetbrains.annotations.Nullable;
 public class MinimumSearchFeatureResolverParameters extends GeneralResolverParameters {
 
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
-      "Chromatographic threshold", "Threshold for removing noise.\n"
-      + "The algorithm will remove the lowest <X> % of intensities from a chromatogram and only consider\n"
+      "Chromatographic threshold", "Percentile threshold for removing noise.\n"
+      + "The algorithm will remove the lowest abundant X % data points from a chromatogram and only consider\n"
       + "the remaining (highest) values. Important filter for noisy chromatograms.",
       0.90, 0d, 1d);
 
