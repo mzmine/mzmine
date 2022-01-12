@@ -81,7 +81,7 @@ import org.jfree.data.xy.XYDataset;
  */
 public class SpectraVisualizerTab extends MZmineTab {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(SpectraVisualizerTab.class.getName());
 
   private static final Image centroidIcon =
       FxIconUtil.loadImageFromResources("icons/centroidicon.png");
@@ -298,6 +298,7 @@ public class SpectraVisualizerTab extends MZmineTab {
   }
 
   public void loadRawData(Scan scan) {
+    spectrumPlot.setNotifyChange(false);
 
     logger.finest(
         "Loading scan #" + scan.getScanNumber() + " from " + dataFile + " for spectra visualizer");
@@ -386,8 +387,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     // Set plot data set
     spectrumPlot.removeAllDataSets();
     spectrumPlot.getXYPlot().clearDomainMarkers();
-    spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
-    spectrumPlot.addDataSet(massListDataSet, massListColor, false);
+    spectrumPlot.addDataSet(spectrumDataSet, scanColor, false, false);
+    spectrumPlot.addDataSet(massListDataSet, massListColor, false, false);
     spectrumPlot.getXYPlot().getRenderer().setDefaultPaint(dataFileColor);
     // });
 
@@ -396,10 +397,14 @@ public class SpectraVisualizerTab extends MZmineTab {
       final Double prmz = scan.getPrecursorMz();
       spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
     }
+
+    // update after setting everything
+    spectrumPlot.setNotifyChange(true);
+    spectrumPlot.fireChangeEvent();
   }
 
   public void loadPeaks(FeatureList selectedPeakList) {
-
+    spectrumPlot.setNotifyChange(false);
     spectrumPlot.removePeakListDataSets();
 
     if (selectedPeakList == null) {
@@ -412,8 +417,11 @@ public class SpectraVisualizerTab extends MZmineTab {
     PeakListDataSet peaksDataSet = new PeakListDataSet(dataFile, currentScan, selectedPeakList);
 
     // Set plot data sets
-    spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
+    spectrumPlot.addDataSet(peaksDataSet, peaksColor, true, false);
 
+    // update after setting everything
+    spectrumPlot.setNotifyChange(true);
+    spectrumPlot.fireChangeEvent();
   }
 
   public void loadSinglePeak(Feature peak) {
@@ -421,11 +429,13 @@ public class SpectraVisualizerTab extends MZmineTab {
     SinglePeakDataSet peakDataSet = new SinglePeakDataSet(currentScan, peak);
 
     // Set plot data sets
-    spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true);
+    spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true, true);
 
   }
 
   public void loadIsotopes(IsotopePattern newPattern) {
+    spectrumPlot.setNotifyChange(false);
+
     // We need to find a normalization factor for the new isotope
     // pattern, to show meaningful intensity range
     Integer basePeak = newPattern.getBasePeakIndex();
@@ -446,33 +456,43 @@ public class SpectraVisualizerTab extends MZmineTab {
       normalizationFactor = scanDataSet.getHighestIntensity(searchMZRange);
     }
 
-    IsotopePattern normalizedPattern =
-        IsotopePatternCalculator.normalizeIsotopePattern(newPattern, normalizationFactor);
+    IsotopePattern normalizedPattern = IsotopePatternCalculator.normalizeIsotopePattern(newPattern,
+        normalizationFactor);
     Color newColor;
-    if (newPattern.getStatus() == IsotopePatternStatus.DETECTED)
+    if (newPattern.getStatus() == IsotopePatternStatus.DETECTED) {
       newColor = detectedIsotopesColor;
-    else
+    } else {
       newColor = predictedIsotopesColor;
+    }
     IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern);
-    spectrumPlot.addDataSet(newDataSet, newColor, true);
+    spectrumPlot.addDataSet(newDataSet, newColor, true, false);
 
+    // update after setting everything
+    spectrumPlot.setNotifyChange(true);
+    spectrumPlot.fireChangeEvent();
   }
 
   public void loadSpectrum(IsotopePattern newPattern) {
     Color newColor = newPattern.getStatus() == IsotopePatternStatus.DETECTED ? detectedIsotopesColor
         : predictedIsotopesColor;
     IsotopesDataSet newDataSet = new IsotopesDataSet(newPattern);
-    spectrumPlot.addDataSet(newDataSet, newColor, true);
+    spectrumPlot.addDataSet(newDataSet, newColor, true, true);
   }
 
   public void setAxesRange(double xMin, double xMax, double xTickSize, double yMin, double yMax,
       double yTickSize) {
+    spectrumPlot.setNotifyChange(false);
+
     NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot().getDomainAxis();
     NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();
     xAxis.setRange(xMin, xMax);
     xAxis.setTickUnit(new NumberTickUnit(xTickSize));
     yAxis.setRange(yMin, yMax);
     yAxis.setTickUnit(new NumberTickUnit(yTickSize));
+
+    // update after setting everything
+    spectrumPlot.setNotifyChange(true);
+    spectrumPlot.fireChangeEvent();
   }
 
   public void loadPreviousScan() {
@@ -485,16 +505,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     int scanIndex = scans.indexOf(currentScan);
     if (scanIndex > 0) {
       final Scan prevScan = scans.get(scanIndex - 1);
-
-      Runnable newThreadRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-          loadRawData(prevScan);
-        }
-      };
-
-      Thread newThread = new Thread(newThreadRunnable);
+      Thread newThread = new Thread(() -> loadRawData(prevScan));
       newThread.start();
     }
   }
@@ -612,8 +623,8 @@ public class SpectraVisualizerTab extends MZmineTab {
     return toolBar;
   }
 
-  public void addDataSet(XYDataset dataset, Color color) {
-    spectrumPlot.addDataSet(dataset, color, true);
+  public void addDataSet(XYDataset dataset, Color color, boolean notifyChange) {
+    spectrumPlot.addDataSet(dataset, color, true, notifyChange);
   }
 
   @NotNull

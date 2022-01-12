@@ -18,16 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.anyelementdeisotoper;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
-import org.openscience.cdk.interfaces.IIsotope;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -50,6 +40,16 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.IsotopePatternUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Logger;
+import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  *
@@ -275,8 +275,8 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
       for (ProcessedDataPoint result : getResults())
         if (result.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
           getTargetPlot().addDataSet(new IsotopesDataSet(
-              (IsotopePattern) result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
-              clr.get(j), false);
+                  (IsotopePattern) result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
+              clr.get(j), false, true);
           j++;
         }
       // getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" +

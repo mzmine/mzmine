@@ -18,21 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_shoulderpeaksfilter;
 
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Vector;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
@@ -63,7 +63,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 
     // Add scan data set
     ScanDataSet scanDataSet = new ScanDataSet(previewScan);
-    spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerTab.scanColor, false);
+    spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerTab.scanColor, false, true);
 
     // If the scan is centroided, switch to centroid mode
     spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
@@ -100,8 +100,8 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
     final Color negativeColor = MZmineCore.getConfiguration().getDefaultColorPalette()
         .getNegativeColorAWT();
 
-    spectrumPlot.addDataSet(removedPeaksDataSet, negativeColor, false);
-    spectrumPlot.addDataSet(remainingPeaksDataSet, positiveColor, false);
+    spectrumPlot.addDataSet(removedPeaksDataSet, negativeColor, false, true);
+    spectrumPlot.addDataSet(remainingPeaksDataSet, positiveColor, false, true);
 
   }
 

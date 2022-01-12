@@ -231,6 +231,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    * @param pattern
    */
   protected void updateChart(SimpleIsotopePattern pattern, XYDataset fit) {
+    spectraPlot.setNotifyChange(false);
+
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
 
     if (pol == PolarityType.NEUTRAL) {
@@ -240,14 +242,18 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     }
     spectraPlot.removeAllDataSets();
     spectraPlot.addDataSet(dataset,
-        MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true);
+        MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true, false);
     if (fit != null) {
       spectraPlot.addDataSet(fit,
-          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
-      spectraPlot.getXYPlot().setRenderer(spectraPlot.getXYPlot().indexOf(fit),
-          new ColoredXYLineRenderer());
+          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false,
+          false);
+      spectraPlot.getXYPlot()
+          .setRenderer(spectraPlot.getXYPlot().indexOf(fit), new ColoredXYLineRenderer());
     }
     formatChart();
+
+    spectraPlot.setNotifyChange(true);
+    spectraPlot.fireChangeEvent();
   }
 
   /**

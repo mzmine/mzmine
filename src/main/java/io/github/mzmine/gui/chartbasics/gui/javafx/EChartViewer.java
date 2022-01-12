@@ -77,7 +77,7 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class EChartViewer extends ChartViewer implements DatasetChangeListener {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(EChartViewer.class.getName());
 
   // one history for each plot/subplot
   protected ZoomHistory zoomHistory;
@@ -538,5 +538,23 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   @Override
   public void datasetChanged(DatasetChangeEvent event) {
     // may be overridden by extending classes
+  }
+
+
+  public boolean isNotifyChange() {
+    return getChart() == null ? true : getChart().isNotify();
+  }
+
+  public void setNotifyChange(boolean notifyChange) {
+    if (getChart() == null) {
+      return;
+    }
+    getChart().setNotify(notifyChange);
+  }
+
+  public void fireChangeEvent() {
+    if (getChart() != null) {
+      getChart().fireChartChanged();
+    }
   }
 }

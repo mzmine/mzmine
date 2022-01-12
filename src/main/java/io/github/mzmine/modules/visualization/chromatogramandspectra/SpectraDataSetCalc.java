@@ -109,11 +109,12 @@ public class SpectraDataSetCalc extends AbstractTask {
       if (getStatus() == TaskStatus.CANCELED) {
         return;
       }
-      spectrumPlot.getXYPlot().setNotify(false);
+      final boolean oldNotify = spectrumPlot.isNotifyChange();
+      spectrumPlot.setNotifyChange(false);
       spectrumPlot.removeAllDataSets();
 
       filesAndDataSets.keySet().forEach(rawDataFile -> {
-        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(),
+        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(), false,
             false);
 
         // If the scan contains a mass list then add dataset for it
@@ -122,13 +123,15 @@ public class SpectraDataSetCalc extends AbstractTask {
           if (massList != null) {
             MassListDataSet massListDataset = new MassListDataSet(massList);
 
-            spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false);
+            spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false, false);
           }
         }
       });
 
-      spectrumPlot.getXYPlot().setNotify(true);
-      spectrumPlot.getChart().fireChartChanged();
+      spectrumPlot.setNotifyChange(oldNotify);
+      if (oldNotify) {
+        spectrumPlot.fireChangeEvent();
+      }
     });
     setStatus(TaskStatus.FINISHED);
   }
