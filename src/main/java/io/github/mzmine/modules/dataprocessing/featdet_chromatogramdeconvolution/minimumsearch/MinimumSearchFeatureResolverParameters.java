@@ -43,7 +43,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       "Chromatographic threshold", "Percentile threshold for removing noise.\n"
       + "The algorithm will remove the lowest abundant X % data points from a chromatogram and only consider\n"
       + "the remaining (highest) values. Important filter for noisy chromatograms.",
-      0.90, 0d, 1d);
+      0.85d, 0d, 1d);
 
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
       "Minimum search range RT/Mobility (absolute)",
