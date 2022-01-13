@@ -71,9 +71,22 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
 
   public MinimumSearchFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
-        CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT,
-        MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
+    super(createParams(Setup.FULL));
+  }
+
+  public MinimumSearchFeatureResolverParameters(Setup setup) {
+    super(createParams(setup));
+  }
+
+  private static Parameter[] createParams(Setup setup) {
+    return switch (setup) {
+      case FULL -> new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters,
+          dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT,
+          MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS};
+      case INTEGRATED -> new Parameter[]{CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
+          MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION,
+          MIN_NUMBER_OF_DATAPOINTS};
+    };
   }
 
   @Override
@@ -99,5 +112,9 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;
+  }
+
+  private enum Setup {
+    FULL, INTEGRATED;
   }
 }

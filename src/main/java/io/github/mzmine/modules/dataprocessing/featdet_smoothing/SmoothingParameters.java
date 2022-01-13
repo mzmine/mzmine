@@ -56,7 +56,22 @@ public class SmoothingParameters extends SimpleParameterSet {
       "The suffix to be added to processed feature lists.", " sm");
 
   public SmoothingParameters() {
-    super(new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix});
+    super(createParams(Setup.FULL));
+  }
+
+  public SmoothingParameters(Setup setup) {
+    super(createParams(setup));
+  }
+
+  private enum Setup {
+    FULL, INTEGRATED;
+  }
+
+  private static Parameter[] createParams(Setup setup) {
+    return switch (setup) {
+      case FULL -> new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix};
+      case INTEGRATED -> new Parameter[]{smoothingAlgorithm};
+    };
   }
 
   @Override
