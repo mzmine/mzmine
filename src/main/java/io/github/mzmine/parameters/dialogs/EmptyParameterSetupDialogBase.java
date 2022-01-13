@@ -53,6 +53,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -244,7 +245,10 @@ public class EmptyParameterSetupDialogBase extends Stage {
       Label label = new Label(p.getName());
       label.minWidthProperty().bind(label.widthProperty());
       label.setPadding(new Insets(0.0, 10.0, 0.0, 0.0));
-      label.setTooltip(new Tooltip(up.getDescription()));
+
+      final Tooltip tooltip = new Tooltip(up.getDescription());
+      tooltip.setShowDuration(new Duration(20_000));
+      label.setTooltip(tooltip);
 
       label.setStyle("-fx-font-weight: bold");
       paramsPane.add(label, 0, rowCounter);
