@@ -500,7 +500,7 @@ public class FeatureCorrelationUtil {
 
       // index offset between f1 and f2 data arrays (not all features are based on the same scans)
       final int maxIndexInB = ArrayUtils.indexOf(f1[0][maxIndexOfA], f2[0]);
-      if(maxIndexInB == -1) {
+      if (maxIndexInB == -1) {
         throw new IllegalStateException("Could not find original x value in interpolated shape.");
       }
 
@@ -587,14 +587,15 @@ public class FeatureCorrelationUtil {
       // create array for the interpolated data
 //      final double newX[] = Arrays.copyOfRange(mainX, mainStart, mainEnd); // use same x data
       // copy the x values of both arrays to the new array
-      final double newX[]= new double[mainEnd - mainStart + otherEnd - otherStart];
+      final double newX[] = new double[mainEnd - mainStart + otherEnd - otherStart];
       System.arraycopy(mainX, mainStart, newX, 0, mainEnd - mainStart);
       System.arraycopy(otherX, otherStart, newX, mainEnd - mainStart, otherEnd - otherStart);
       Arrays.sort(newX);
       final double newY[] = new double[newX.length];
 
+      final int[] lastVal = new int[]{0};
       for (int i = 0; i < newX.length; i++) {
-        newY[i] = interpolateY(newX[i], otherX, otherY);
+        newY[i] = interpolateY(newX[i], otherX, otherY, lastVal);
       }
 
       return new double[][]{newX, newY};
@@ -630,12 +631,15 @@ public class FeatureCorrelationUtil {
      * Interpolates a Y value from otherX and otherY at the given point x. x must be within the
      * bounds of otherX.
      *
-     * @param x      The x value to interpolate y for.
-     * @param otherX The x values-.
-     * @param otherY The y values.
+     * @param x         The x value to interpolate y for.
+     * @param otherX    The x values-.
+     * @param otherY    The y values.
+     * @param prevIndex An index to start searching for the new x value. Also serves as an *out*
+     *                  variable to be passed to the next call.
      * @return the interpolated y value.
      */
-    private static double interpolateY(double x, final double[] otherX, final double[] otherY) {
+    private static double interpolateY(double x, final double[] otherX, final double[] otherY,
+        int[] prevIndex) {
       // check arguments
       assert otherX.length == otherY.length;
       if (!(otherX[0] <= x) || !(x <= otherX[otherX.length - 1])) {
@@ -648,11 +652,12 @@ public class FeatureCorrelationUtil {
       int end = -1;
 
       // find the two points that lie around the given x value
-      for (int i = 0; i < otherX.length;
+      for (int i = prevIndex[0]; i < otherX.length;
           i++) { // could be optimized to start at the last found index
         if (otherX[i] >= x) { // may also be equal
           // if equal, return that value
           if (Double.compare(otherX[i], x) == 0) {
+            prevIndex[0] = i;
             return otherY[i];
           }
 
@@ -667,6 +672,8 @@ public class FeatureCorrelationUtil {
           break;
         }
       }
+
+      prevIndex[0] = end;
 
       return MathUtils.twoPointGetYForX(otherX[start], otherY[start], otherX[end], otherY[end], x);
     }
