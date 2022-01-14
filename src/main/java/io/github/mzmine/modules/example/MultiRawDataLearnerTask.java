@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -37,7 +38,6 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +47,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(MultiRawDataLearnerTask.class.getName());
 
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
   private FeatureList featureList;
   private FeatureList resultFeatureList;
 
@@ -58,7 +59,6 @@ class MultiRawDataLearnerTask extends AbstractTask {
   private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
   /**
@@ -74,7 +74,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getValue(LearnerParameters.handleOriginal);
   }
 
   /**
@@ -163,7 +163,7 @@ class MultiRawDataLearnerTask extends AbstractTask {
    */
   public void addResultToProject() {
     // Add new feature list to the project
-    project.addFeatureList(resultFeatureList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, resultFeatureList, featureList);
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
@@ -175,10 +175,6 @@ class MultiRawDataLearnerTask extends AbstractTask {
         .addDescriptionOfAppliedTask(
             new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
 
-    // Remove the original feature list if requested
-    if (removeOriginal) {
-      project.removeFeatureList(featureList);
-    }
   }
 
 }

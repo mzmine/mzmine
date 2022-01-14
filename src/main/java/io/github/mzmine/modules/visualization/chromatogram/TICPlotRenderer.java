@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.visualization.chromatogram;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.plot.CrosshairState;
@@ -43,6 +43,7 @@ public class TICPlotRenderer extends XYLineAndShapeRenderer {
   public TICPlotRenderer() {
     super(true, false);
     setDrawSeriesLineAsPath(true);
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   private AlphaComposite makeComposite(double alpha) {

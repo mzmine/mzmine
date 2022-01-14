@@ -18,13 +18,14 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
-import java.awt.Font;
-import java.util.logging.Logger;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import java.awt.Font;
+import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -85,8 +86,8 @@ class SpectraBottomPanel extends BorderPane {
 
     Label featureListLabel = new Label("Feature list: ");
 
-    peakListSelector = new ComboBox<FeatureList>(
-        MZmineCore.getProjectManager().getCurrentProject().getFeatureLists());
+    peakListSelector = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()));
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);
     peakListSelector.setOnAction(

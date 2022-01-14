@@ -18,7 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
-import java.awt.Color;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
@@ -29,6 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.awt.Color;
 
 /**
  * This is the heart of every DataPointProcessingModule, the actual task being executed. Every new
@@ -100,8 +100,9 @@ public class DPPLearnerModuleTask extends DataPointProcessingTask {
   public void displayResults() {
     // if this is the last task, display even if not checked.
     if (getController().isLastTaskRunning() || isDisplayResults()) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet(
-          "Mass detection results (" + getResults().length + ")", getResults()), getColor(), false);
+      getTargetPlot().addDataSet(
+          new DPPResultsDataSet("Mass detection results (" + getResults().length + ")",
+              getResults()), getColor(), false, true);
     }
   }
 

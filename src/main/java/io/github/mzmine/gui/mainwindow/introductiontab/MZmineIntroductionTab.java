@@ -18,51 +18,16 @@
 
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.mainwindow.MZmineTab;
-import java.util.Collection;
-import java.util.Collections;
+import io.github.mzmine.gui.mainwindow.SimpleTab;
 import javafx.scene.web.WebView;
-import org.jetbrains.annotations.NotNull;
 
-public class MZmineIntroductionTab extends MZmineTab {
+public class MZmineIntroductionTab extends SimpleTab {
 
   public MZmineIntroductionTab() {
-    super("Welcome to MZmine 3", false, false);
+    super("Welcome to MZmine 3");
 
     final WebView browser = new WebView();
     browser.getEngine().load(getClass().getResource("MZmineIntroduction.html").toString());
     super.setContent(browser);
-  }
-
-  @Override
-  public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public @NotNull Collection<? extends FeatureList> getAlignedFeatureLists() {
-    return Collections.emptyList();
-  }
-
-  @Override
-  public void onRawDataFileSelectionChanged(Collection<? extends RawDataFile> rawDataFiles) {
-
-  }
-
-  @Override
-  public void onFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
-  }
-
-  @Override
-  public void onAlignedFeatureListSelectionChanged(Collection<? extends FeatureList> featureLists) {
-
   }
 }

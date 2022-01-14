@@ -18,12 +18,11 @@
 
 package io.github.mzmine.modules.tools.isotopepatternpreview;
 
-import java.awt.Window;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
@@ -31,9 +30,7 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
 
 /**
- * 
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
  */
 public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
@@ -46,25 +43,27 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
   public static final PercentParameter minIntensity = new PercentParameter("Minimum intensity",
       "The minimum natural abundance of an isotope and normalized intensity in the calculated isotope pattern.\n"
-          + "Min = 0.0, Max = 0.99...",
-      0.001, 0.0, 0.9999999999);
+      + "Min = 0.0, Max = 0.99...", 0.001, 0.0, 0.9999999999);
 
   public static final IntegerParameter charge = new IntegerParameter("Charge",
       "Enter a charge to apply to the molecule. (e.g. [M]+ = +1 / [M]- = -1\n"
-          + "This can also be set to 0 to plot the exact mass.",
-      1, true);
+      + "This can also be set to 0 to plot the exact mass.", 1, true);
+
+  public static final BooleanParameter applyFit = new BooleanParameter("Apply fit (visual)",
+      "Shows a fitted curve for each signal.", false);
+
+  public IsotopePatternPreviewParameters() {
+    super(new Parameter[]{formula, minIntensity, mergeWidth, charge, applyFit});
+  }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
+    if ((getParameters() == null) || (getParameters().length == 0)) {
       return ExitCode.OK;
+    }
 
     ParameterSetupDialog dialog = new IsotopePatternPreviewDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
-  }
-
-  public IsotopePatternPreviewParameters() {
-    super(new Parameter[] {formula, minIntensity, mergeWidth, charge});
   }
 }

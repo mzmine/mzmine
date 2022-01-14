@@ -122,6 +122,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
     final ModularFeatureList result = new ModularFeatureList(
         alignedFeatureList.getName() + " " + suffix, getMemoryMapStorage(), nonBlankFiles);
     alignedFeatureList.getRowTypes().values().forEach(result::addRowType);
+    nonBlankFiles.forEach(f -> result.setSelectedScans(f, alignedFeatureList.getSeletedScans(f)));
 
     Set<ModularFeatureListRow> filteredRows = ConcurrentHashMap.newKeySet();
     alignedFeatureList.modularStream()/*.parallel()*/.forEach(row -> {
@@ -176,7 +177,7 @@ public class FeatureListBlankSubtractionTask extends AbstractTask {
 
     for (RawDataFile file : blankRaws) {
       final ModularFeature f = row.getFeature(file);
-      if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+      if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
         if (intensityType == BlankIntensityType.Average) {
           intensity += f.getHeight();
           numDetections++;

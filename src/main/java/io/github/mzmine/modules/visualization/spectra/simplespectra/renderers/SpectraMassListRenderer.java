@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -36,6 +37,7 @@ public class SpectraMassListRenderer extends XYLineAndShapeRenderer {
     super(false, true);
 
     this.color = color;
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   @Override
