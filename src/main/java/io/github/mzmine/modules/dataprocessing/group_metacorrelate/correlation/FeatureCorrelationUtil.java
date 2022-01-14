@@ -579,6 +579,9 @@ public class FeatureCorrelationUtil {
       // find indices for the overlapping range
       final int[] otherIndicesEndExclusive = getAllowedRange(otherX, overlap);
       final int[] mainIndicesEndExclusive = getAllowedRange(mainX, overlap);
+      if (otherIndicesEndExclusive == null || mainIndicesEndExclusive == null) {
+        return null;
+      }
       final int mainStart = mainIndicesEndExclusive[0];
       final int mainEnd = mainIndicesEndExclusive[1];
       final int otherStart = otherIndicesEndExclusive[0];
@@ -601,6 +604,7 @@ public class FeatureCorrelationUtil {
       return new double[][]{newX, newY};
     }
 
+    @Nullable
     private static int[] getAllowedRange(double[] x, Range<Double> allowedXRange) {
       int startIndex = -1;
       int endIndex = x.length - 1;

@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -170,7 +171,7 @@ public class IonMobilityUtils {
    * @return The mobility scan. Null if this feature does not possess a mobility dimension.
    */
   @Nullable
-  public static MobilityScan getBestMobilityScan(@NotNull final ModularFeature f) {
+  public static MobilityScan getBestMobilityScan(@NotNull final Feature f) {
     Scan bestScan = f.getRepresentativeScan();
     if (!(bestScan instanceof Frame bestFrame)) {
       return null;
@@ -231,19 +232,19 @@ public class IonMobilityUtils {
       }
     }
 
-    final double startMobility = MathUtils
+    final float startMobility = (float) MathUtils
         .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
             series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
             series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
             halfIntensity);
 
-    final double endMobility = MathUtils
+    final float endMobility = (float) MathUtils
         .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
             series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
             series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
-    return Range.closed((float) startMobility, (float) endMobility);
+    return Range.closed(Math.min(startMobility, endMobility), Math.max(startMobility, endMobility));
   }
 
   /**

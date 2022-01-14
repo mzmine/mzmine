@@ -22,14 +22,18 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
+import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
@@ -51,6 +55,7 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.FinishedTask;
+import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
@@ -80,9 +85,9 @@ public class DiaMs2CorrTask extends AbstractTask {
   //  private final ParameterSet smoothingParameters;
 //  private final ParameterSet resolverParameters;
   private final int numRows;
+  private final int numSubTasks = 2;
   private AbstractTask adapTask = null;
   private int currentTaksIndex = 1;
-  private int numSubTasks = 2;
   private int currentRow = 0;
 
   private String description = "";
@@ -124,8 +129,8 @@ public class DiaMs2CorrTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return adapTask != null ? adapTask.getFinishedPercentage() * 0.5
-        : 0 + currentRow / (double) numRows * 0.5d;
+    return (adapTask != null ? adapTask.getFinishedPercentage() * 0.5 : 0)
+        + (currentRow / (double) numRows) * 0.5d;
   }
 
   @Override
@@ -150,9 +155,8 @@ public class DiaMs2CorrTask extends AbstractTask {
     // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
     final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
     ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull).forEach(
-        feature -> ms2Eics.put(
-            SpectraMerging.createNewNonOverlappingRange(ms2Eics, feature.getRawDataPointsMZRange()),
-            feature.getFeatureData()));
+        feature -> ms2Eics.put(SpectraMerging.createNewNonOverlappingRange(ms2Eics,
+            mzTolerance.getToleranceRange(feature.getMZ())), feature.getFeatureData()));
     assert ms2Flist.getNumberOfRows() == ms2Eics.asMapOfRanges().size();
 
     // go through all features and find ms2s
@@ -169,6 +173,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         continue;
       }
 
+      MergedMassSpectrum mergedMobilityScan = null; // for IMS
       final IonTimeSeries<? extends Scan> featureEIC = feature.getFeatureData();
       final int numPoints = featureEIC.getNumberOfValues();
       final double[] ms1Intensities = new double[numPoints];
@@ -209,6 +214,22 @@ public class DiaMs2CorrTask extends AbstractTask {
         continue;
       }
 
+      // for ims data, later check if we can find the mz in the closest ms2 frame with the same mobility
+      final MobilityScan bestMobilityScan = IonMobilityUtils.getBestMobilityScan(feature);
+      if (bestMobilityScan != null && closestMs2 instanceof Frame) {
+        final Range<Float> mobilityRange = IonMobilityUtils.getMobilityFWHM(
+            ((IonMobilogramTimeSeries) featureEIC).getSummedMobilogram());
+        final List<MobilityScan> mobilityScans = ms2Scans.stream()
+            .filter(s -> rtRange.contains(s.getRetentionTime()))
+            .flatMap(s -> ((Frame) s).getMobilityScans().stream())
+            .filter(m -> mobilityRange.contains((float) m.getMobility())).toList();
+        if (!mobilityScans.isEmpty()) {
+          mergedMobilityScan = SpectraMerging.mergeSpectra(mobilityScans, mzTolerance, null);
+        } else {
+          continue; // if we have ims data, and there are no mobility scans to be merged, something is fishy.
+        }
+      }
+
       DoubleArrayList ms2Mzs = new DoubleArrayList();
       DoubleArrayList ms2Intensities = new DoubleArrayList();
       for (IonTimeSeries<?> eic : eligibleEICs) {
@@ -244,6 +265,22 @@ public class DiaMs2CorrTask extends AbstractTask {
 
           final double mz = FeatureDataUtils.calculateMz(eic,
               FeatureDataUtils.DEFAULT_CENTER_FUNCTION, startIndex, endIndex);
+
+          if (mergedMobilityScan != null && mergedMobilityScan.getNumberOfDataPoints() > 1) {
+            boolean mzFound = false;
+            final double upper = mzTolerance.getToleranceRange(mz).upperEndpoint();
+            for (int i = 0; i < mergedMobilityScan.getNumberOfDataPoints(); i++) {
+              if (mzTolerance.checkWithinTolerance(mz, mergedMobilityScan.getMzValue(i))) {
+                mzFound = true;
+                break;
+              } else if (mergedMobilityScan.getMzValue(i) > upper) {
+                break;
+              }
+            }
+            if (!mzFound) {
+              continue; // dont add this mz
+            }
+          }
           ms2Mzs.add(mz);
           ms2Intensities.add(maxIntensity);
         }
@@ -255,13 +292,12 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       MergedMsMsSpectrum ms2 = new SimpleMergedMsMsSpectrum(getMemoryMapStorage(),
           ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(), closestMs2.getMsMsInfo(),
-          closestMs2.getMSLevel(), ms2sInRtRange, MergingType.MAXIMUM,
-          FeatureDataUtils.DEFAULT_CENTER_FUNCTION);
+          closestMs2.getMSLevel(),
+          mergedMobilityScan != null ? mergedMobilityScan.getSourceSpectra() : ms2sInRtRange,
+          MergingType.MAXIMUM, FeatureDataUtils.DEFAULT_CENTER_FUNCTION);
       feature.setFragmentScan(ms2);
+      feature.setAllMS2FragmentScans(new ArrayList<>(List.of(ms2)));
     }
-
-//    ms2Flist = runSmoothing(dummyProject, ms2Flist);
-//    ms2Flist = runResolving(dummyProject, ms2Flist);
 
     flist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
