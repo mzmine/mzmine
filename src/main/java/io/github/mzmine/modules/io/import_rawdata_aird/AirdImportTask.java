@@ -214,7 +214,7 @@ public class AirdImportTask extends AbstractTask {
   }
 
   private SimpleScan buildSimpleScan(Spectrum spectrum, List<CV> cvList, WindowRange windowRange,
-      Integer num, float rt, int msLevel, Scan parentScan, Boolean isMinute) {
+      Integer num, float rt, int msLevel, Scan parentScan, boolean isMinute) {
     MassSpectrumType massSpectrumType = null;
     PolarityType polarityType = null;
     String filterString = null;
@@ -264,7 +264,7 @@ public class AirdImportTask extends AbstractTask {
 
     SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel,
         rt * (isMinute ? 60 : 1), msMsInfo,
-        ArrayUtil.fromFloatToDouble(spectrum.mzs()), ArrayUtil.fromFloatToDouble(spectrum.ints()),
+        spectrum.mzs(), ArrayUtil.fromFloatToDouble(spectrum.ints()),
         massSpectrumType, polarityType, filterString, mzRange);
     return msScan;
   }
