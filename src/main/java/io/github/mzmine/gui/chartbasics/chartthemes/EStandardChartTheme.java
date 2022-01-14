@@ -189,6 +189,8 @@ public class EStandardChartTheme extends StandardChartTheme {
   @Override
   public void apply(@NotNull JFreeChart chart) {
     assert chart != null;
+    final boolean oldNotify = chart.isNotify();
+    chart.setNotify(false);
 
     super.apply(chart);
     Plot p = chart.getPlot();
@@ -219,6 +221,11 @@ public class EStandardChartTheme extends StandardChartTheme {
           applyToAbstractRenderer(renderer);
         }
       }
+    }
+
+    chart.setNotify(oldNotify);
+    if (oldNotify) {
+      chart.fireChartChanged();
     }
   }
 

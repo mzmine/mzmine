@@ -40,14 +40,16 @@ import org.jetbrains.annotations.Nullable;
 public class MinimumSearchFeatureResolverParameters extends GeneralResolverParameters {
 
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
-      "Chromatographic threshold",
-      "Threshold for removing noise. The algorithm finds such intensity that given percentage of the"
-          + "\nchromatogram data points is below that intensity, and removes all data points below that level.");
+      "Chromatographic threshold", "Percentile threshold for removing noise.\n"
+      + "The algorithm will remove the lowest abundant X % data points from a chromatogram and only consider\n"
+      + "the remaining (highest) values. Important filter for noisy chromatograms.",
+      0.85d, 0d, 1d);
 
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
-      "Search minimum in RT range (min)",
-      "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
-      MZmineCore.getConfiguration().getRTFormat(), 0.05);
+      "Minimum search range RT/Mobility (absolute)",
+      "If a local minimum is minimal in this range of retention time or mobility, it will be considered a border between two peaks.\n"
+          + "Start optimising with a value close to the FWHM of a peak.",
+      new DecimalFormat("0.000"), 0.05);
 
   public static final PercentParameter MIN_RELATIVE_HEIGHT = new PercentParameter(
       "Minimum relative height",
@@ -63,7 +65,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
       new DecimalFormat("0.00"), 1.7d);
 
   public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
-      "Peak duration range (min)", "Range of acceptable peak lengths",
+      "Peak duration range (min/mobility)", "Range of acceptable peak lengths",
       MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
   public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter(

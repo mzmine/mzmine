@@ -18,20 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase;
 
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import java.awt.Color;
-import java.io.File;
-import java.io.FileReader;
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.labels.ItemLabelAnchor;
-import org.jfree.chart.labels.ItemLabelPosition;
-import org.jfree.chart.ui.TextAnchor;
 import com.Ostermiller.util.CSVParser;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
@@ -56,8 +42,8 @@ import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +58,8 @@ import org.jfree.chart.ui.TextAnchor;
  */
 public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(
+      SpectraIdentificationCustomDatabaseTask.class.getName());
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
@@ -239,7 +226,7 @@ public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
     // Add label generator for the dataset
     SpectraDatabaseSearchLabelGenerator labelGenerator =
         new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
+    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
     spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(
