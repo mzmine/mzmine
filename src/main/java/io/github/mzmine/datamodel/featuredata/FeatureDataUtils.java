@@ -236,6 +236,24 @@ public class FeatureDataUtils {
   }
 
   /**
+   * Calculates the m/z of the given series.
+   *
+   * @param series The series.
+   * @param cf     The center function ({@link #DEFAULT_CENTER_FUNCTION} default)
+   * @return The m/z value
+   */
+  public static double calculateMz(@NotNull final IonSeries series,
+      @NotNull final CenterFunction cf, int startInclusive, int endInclusive) {
+    double[] mz = new double[endInclusive - startInclusive];
+    double[] intensity = new double[endInclusive - startInclusive];
+
+    series.getMZValueBuffer().get(startInclusive, mz, 0, endInclusive - startInclusive);
+    series.getIntensityValueBuffer()
+        .get(startInclusive, intensity, 0, endInclusive - startInclusive);
+    return cf.calcCenter(mz, intensity);
+  }
+
+  /**
    * Calculates the all feature for the given feature.
    *
    * @param feature The feature.

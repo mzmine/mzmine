@@ -18,32 +18,47 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_diams2;
 
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.TreeRangeMap;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
+import io.github.mzmine.datamodel.data_access.ScanDataAccess;
 import io.github.mzmine.datamodel.featuredata.FeatureDataUtils;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.features.correlation.CorrelationData;
+import io.github.mzmine.datamodel.impl.SimpleMergedMsMsSpectrum;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineProcessingStep;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverTask;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvingDimension;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverModule;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch.MinimumSearchFeatureResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingAlgorithm;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.FeatureCorrelationUtil.DIA;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.taskcontrol.impl.FinishedTask;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.scans.SpectraMerging;
+import io.github.mzmine.util.scans.SpectraMerging.MergingType;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,35 +68,64 @@ public class DiaMs2CorrTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(DiaMs2CorrTask.class.getName());
 
   private final ModularFeatureList flist;
-  private final ScanSelection scanSelection;
-  private final double minIntensity;
+  private final ScanSelection ms2ScanSelection;
+  private final double minMs1Intensity;
+  private final double minMs2Intensity;
+  private final int minCorrPoints;
   private final MZTolerance mzTolerance;
+  private final double minPearson;
 
+  private final ParameterSet parameters;
   private final ParameterSet adapParameters;
-  private final ParameterSet smoothingParameters;
-  private final ParameterSet resolverParameters;
-
-  private AbstractTask currentTask = null;
+  //  private final ParameterSet smoothingParameters;
+//  private final ParameterSet resolverParameters;
+  private final int numRows;
+  private AbstractTask adapTask = null;
   private int currentTaksIndex = 1;
-  private int numSubTasks = 4;
+  private int numSubTasks = 2;
+  private int currentRow = 0;
 
-  private String description;
+  private String description = "";
 
-  protected DiaMs2CorrTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+  protected DiaMs2CorrTask(@Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate,
+      ModularFeatureList flist, ParameterSet parameters) {
     super(storage, moduleCallDate);
-    description = "DIA MS2 scan builder";
+
+    this.flist = flist;
+    this.parameters = parameters;
+    ms2ScanSelection = parameters.getValue(DiaMs2CorrParameters.ms2ScanSelection);
+    minMs1Intensity = parameters.getValue(DiaMs2CorrParameters.minMs1Intensity);
+    minMs2Intensity = parameters.getValue(DiaMs2CorrParameters.minMs2Intensity);
+    minCorrPoints = parameters.getValue(DiaMs2CorrParameters.minCorrPoints);
+    mzTolerance = parameters.getValue(DiaMs2CorrParameters.ms2ScanToScanAccuracy);
+    minPearson = parameters.getValue(DiaMs2CorrParameters.minPearson);
+    numRows = flist.getNumberOfRows();
+
+    adapParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
+    final RawDataFilesSelection adapFiles = new RawDataFilesSelection(
+        RawDataFilesSelectionType.SPECIFIC_FILES);
+    adapFiles.setSpecificFiles(flist.getRawDataFiles().toArray(new RawDataFile[0]));
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.dataFiles, adapFiles);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.scanSelection, ms2ScanSelection);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minCorrPoints);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolerance);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2,
+        minMs2Intensity / 5);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.startIntensity, minMs2Intensity);
   }
 
   @Override
   public String getTaskDescription() {
-    return "DIA MS2 for feature list: " + flist.getName() + " " + (currentTask != null
-        ? currentTask.getTaskDescription() : "");
+    return "DIA MS2 for feature list: " + flist.getName() + " " + (
+        adapTask != null && !adapTask.isFinished() ? adapTask.getTaskDescription() : description);
   }
 
   @Override
   public double getFinishedPercentage() {
-    return currentTask != null ? currentTask.getFinishedPercentage() * ((double) 1 / numSubTasks)
-        : 0d + ((double) currentTaksIndex / numSubTasks);
+    return adapTask != null ? adapTask.getFinishedPercentage() * 0.5
+        : 0 + currentRow / (double) numRows * 0.5d;
   }
 
   @Override
@@ -94,34 +138,177 @@ public class DiaMs2CorrTask extends AbstractTask {
     }
 
     final RawDataFile file = flist.getRawDataFile(0);
+    final List<Scan> ms2Scans = List.of(ms2ScanSelection.getMatchingScans(file));
+    final ScanDataAccess access = EfficientDataAccess.of(file, ScanDataType.CENTROID,
+        ms2ScanSelection);
 
     // build chromatograms
     final MZmineProject dummyProject = new MZmineProjectImpl();
     var ms2Flist = runADAP(dummyProject, file);
-    ms2Flist = runSmoothing(dummyProject, ms2Flist);
-    ms2Flist = runResolving(dummyProject, ms2Flist);
+    // dann durch ms1 feature, dann ms2 vor und nach feature angucken, optinal dann shapes vergleichen und zum ms2 hinzufügen
 
-    ms2Flist.streamFeatures().sorted(Comparator.comparingDouble(ModularFeature::getMZ));
-    // compare chromatogram shapes with features
+    // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
+    final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
+    ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull).forEach(
+        feature -> ms2Eics.put(
+            SpectraMerging.createNewNonOverlappingRange(ms2Eics, feature.getRawDataPointsMZRange()),
+            feature.getFeatureData()));
+    assert ms2Flist.getNumberOfRows() == ms2Eics.asMapOfRanges().size();
+
+    // go through all features and find ms2s
+    for (FeatureListRow row : flist.getRows()) {
+      currentRow++;
+      description = "Processing row " + currentRow + "/" + numRows;
+      if (isCanceled()) {
+        return;
+      }
+
+      final Feature feature = row.getFeature(file);
+      if (feature == null || feature.getFeatureStatus() != FeatureStatus.DETECTED
+          || feature.getHeight() < minMs1Intensity) {
+        continue;
+      }
+
+      final IonTimeSeries<? extends Scan> featureEIC = feature.getFeatureData();
+      final int numPoints = featureEIC.getNumberOfValues();
+      final double[] ms1Intensities = new double[numPoints];
+      final double[] ms1Rts = new double[numPoints];
+      for (int i = 0; i < numPoints; i++) {
+        ms1Intensities[i] = featureEIC.getIntensity(i);
+        ms1Rts[i] = featureEIC.getRetentionTime(i);
+      }
+
+      final Range<Float> rtRange = feature.getRawDataPointsRTRange();
+      final List<Scan> ms2sInRtRange = ms2Scans.stream()
+          .filter(scan -> rtRange.contains(scan.getRetentionTime())).toList();
+      final Scan closestMs2 = getClosestMs2(feature.getRT(), ms2sInRtRange);
+      if (closestMs2 == null || ms2sInRtRange.isEmpty()) {
+        logger.fine(() -> "Could not find ms2s in rtRange " + rtRange);
+        return;
+      }
+
+      // find m/zs in the closest ms2 scan and get their EICs
+      if (!access.jumpToScan(closestMs2)) {
+        continue;
+      }
+
+      final List<IonTimeSeries<?>> eligibleEICs = new ArrayList<>();
+      for (int i = 0; i < access.getNumberOfDataPoints(); i++) {
+        if (minMs2Intensity > access.getIntensityValue(i)) {
+          continue;
+        }
+
+        final double mz = access.getMzValue(i);
+        final IonTimeSeries<?> series = ms2Eics.get(mz);
+        if (series != null) {
+          eligibleEICs.add(series);
+        }
+      }
+
+      if (eligibleEICs.isEmpty()) {
+        continue;
+      }
+
+      DoubleArrayList ms2Mzs = new DoubleArrayList();
+      DoubleArrayList ms2Intensities = new DoubleArrayList();
+      for (IonTimeSeries<?> eic : eligibleEICs) {
+        final int num = eic.getNumberOfValues();
+        final double[] intensities = new double[num];
+        final double[] rts = new double[num];
+        for (int i = 0; i < num; i++) {
+          intensities[i] = eic.getIntensity(i);
+          rts[i] = eic.getRetentionTime(i);
+        }
+
+        final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
+            intensities, minCorrPoints, 2, minMs2Intensity / 5);
+        if (correlationData != null && correlationData.isValid()
+            && correlationData.getPearsonR() > minPearson) {
+          int startIndex = -1;
+          int endIndex = -1;
+          double maxIntensity = Double.NEGATIVE_INFINITY;
+          final List<Scan> spectra = (List<Scan>) eic.getSpectra();
+          for (int j = 0; j < spectra.size(); j++) {
+            Scan spectrum = spectra.get(j);
+            if (startIndex == -1 && rtRange.contains(spectrum.getRetentionTime())) {
+              startIndex = j;
+            }
+            if (startIndex != -1 && eic.getIntensity(j) > maxIntensity) {
+              maxIntensity = eic.getIntensity(j);
+            }
+            if (startIndex != -1 && !rtRange.contains(spectrum.getRetentionTime())) {
+              endIndex = j - 1;
+              break;
+            }
+          }
+
+          final double mz = FeatureDataUtils.calculateMz(eic,
+              FeatureDataUtils.DEFAULT_CENTER_FUNCTION, startIndex, endIndex);
+          ms2Mzs.add(mz);
+          ms2Intensities.add(maxIntensity);
+        }
+      }
+
+      if (ms2Mzs.isEmpty()) {
+        continue;
+      }
+
+      MergedMsMsSpectrum ms2 = new SimpleMergedMsMsSpectrum(getMemoryMapStorage(),
+          ms2Mzs.toDoubleArray(), ms2Intensities.toDoubleArray(), closestMs2.getMsMsInfo(),
+          closestMs2.getMSLevel(), ms2sInRtRange, MergingType.MAXIMUM,
+          FeatureDataUtils.DEFAULT_CENTER_FUNCTION);
+      feature.setFragmentScan(ms2);
+    }
+
+//    ms2Flist = runSmoothing(dummyProject, ms2Flist);
+//    ms2Flist = runResolving(dummyProject, ms2Flist);
+
+    flist.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(DiaMs2CorrModule.class, parameters,
+            getModuleCallDate()));
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private Scan getClosestMs2(float rt, List<Scan> ms2sInRtRange) {
+    Scan closestMs2 = null;
+    float diff = Float.POSITIVE_INFINITY;
+    for (Scan s : ms2sInRtRange) {
+      if (Math.abs(s.getRetentionTime() - rt) < diff) {
+        closestMs2 = s;
+      } else {
+        break;
+      }
+    }
+    return closestMs2;
   }
 
   private ModularFeatureList runADAP(MZmineProject dummyProject, RawDataFile file) {
-    currentTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
-        flist.getMemoryMapStorage(), getModuleCallDate());
-    currentTask.run();
-    currentTask = null;
+    adapTask = new ModularADAPChromatogramBuilderTask(dummyProject, file, adapParameters,
+        getMemoryMapStorage(), getModuleCallDate());
+    adapTask.run();
+    adapTask = new FinishedTask(adapTask);
     currentTaksIndex++;
 
-    // todo remove method from raw file
     var ms2Flist = dummyProject.getCurrentFeatureLists().get(0);
     if (dummyProject.getCurrentFeatureLists().isEmpty()) {
       logger.warning("Cannot find ms2 feature list.");
       return null;
     }
-
+//    final FeatureListAppliedMethod removed = file.getAppliedMethods()
+//        .remove(file.getAppliedMethods().size() - 1);
+//    assert removed.getModule().getClass().equals(ModularADAPChromatogramBuilderModule.class);
     return (ModularFeatureList) ms2Flist;
   }
 
+  @Override
+  public void cancel() {
+    super.cancel();
+    if (adapTask != null) {
+      adapTask.cancel();
+    }
+  }
+
+  /*
   private ModularFeatureList runSmoothing(MZmineProject dummyProject, ModularFeatureList ms2Flist) {
     if (smoothingParameters != null) {
       final MZmineProcessingStep<SmoothingAlgorithm> smoother = smoothingParameters.getParameter(
@@ -171,12 +358,12 @@ public class DiaMs2CorrTask extends AbstractTask {
     fullResolverParameters.setParameter(MinimumSearchFeatureResolverParameters.groupMS2Parameters,
         false);
 
-    currentTask = new FeatureResolverTask(dummyProject, getMemoryMapStorage(), ms2Flist, fullResolverParameters,
-        FeatureDataUtils.DEFAULT_CENTER_FUNCTION, getModuleCallDate());
+    currentTask = new FeatureResolverTask(dummyProject, getMemoryMapStorage(), ms2Flist,
+        fullResolverParameters, FeatureDataUtils.DEFAULT_CENTER_FUNCTION, getModuleCallDate());
     currentTask.run();
     currentTask = null;
     currentTaksIndex++;
 
     return (ModularFeatureList) dummyProject.getCurrentFeatureLists().get(0);
-  }
+  }*/
 }

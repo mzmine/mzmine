@@ -358,7 +358,7 @@ public class SpectraVisualizerTab extends MZmineTab {
       String massListTitle = "";
       String windowTitle =
           "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber()
-          + massListTitle + "]";
+              + massListTitle + "]";
 
       String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
@@ -366,7 +366,7 @@ public class SpectraVisualizerTab extends MZmineTab {
 
       if (basePeak != null) {
         spectrumTitle += ", base peak: " + mzFormat.format(scan.getBasePeakMz()) + " m/z ("
-                         + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
+            + intensityFormat.format(scan.getBasePeakIntensity()) + ")";
       }
       String spectrumSubtitle = null;
       if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
@@ -392,7 +392,9 @@ public class SpectraVisualizerTab extends MZmineTab {
       if (scan != null && scan.getMSLevel() > 1) {
         // add all precursors
         final Double prmz = scan.getPrecursorMz();
-        spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
+        if (prmz != null) {
+          spectrumPlot.getXYPlot().addDomainMarker(new ValueMarker(prmz));
+        }
       }
 
     });
@@ -654,7 +656,7 @@ public class SpectraVisualizerTab extends MZmineTab {
     if (newScan == null) {
       MZmineCore.getDesktop().displayErrorMessage(
           "Raw data file " + dataFile + " does not contain scan at retention time "
-          + currentScan.getRetentionTime());
+              + currentScan.getRetentionTime());
       return;
     }
 

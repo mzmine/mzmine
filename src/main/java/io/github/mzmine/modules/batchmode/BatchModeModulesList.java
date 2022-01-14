@@ -51,6 +51,7 @@ import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.Baselin
 import io.github.mzmine.modules.dataprocessing.filter_blanksubtraction.FeatureListBlankSubtractionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.ClearFeatureAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_diams2.DiaMs2CorrModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_featurefilter.FeatureFilterModule;
@@ -253,21 +254,21 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
-      CorrelateGroupingModule.class,
-      MS2SimilarityModule.class,
-      AnnotateIsomersModule.class,
+      CorrelateGroupingModule.class, //
+      MS2SimilarityModule.class, //
+      AnnotateIsomersModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
        */
-      IonNetworkingModule.class,
-      AddIonNetworkingModule.class,
-      IonNetworkRefinementModule.class,
-      IonNetworkMSMSCheckModule.class,
-      FormulaPredictionIonNetworkModule.class,
-      CreateAvgNetworkFormulasModule.class,
-      IonNetRelationsModule.class,
-      ClearIonIdentitiesModule.class,
+      IonNetworkingModule.class, //
+      AddIonNetworkingModule.class, //
+      IonNetworkRefinementModule.class, //
+      IonNetworkMSMSCheckModule.class, //
+      FormulaPredictionIonNetworkModule.class, //
+      CreateAvgNetworkFormulasModule.class, //
+      IonNetRelationsModule.class, //
+      ClearIonIdentitiesModule.class, //
 
       /*
         {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_ANNOTATION}
@@ -276,6 +277,7 @@ public class BatchModeModulesList {
       CCSCalcModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
+      DiaMs2CorrModule.class, //
       FormulaPredictionFeatureListModule.class, //
       IsotopePeakScannerModule.class, //
       LipidSearchModule.class, //
@@ -292,8 +294,7 @@ public class BatchModeModulesList {
        */
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
-      ExportCorrAnnotationModule.class,
-      MetaboAnalystExportModule.class, //
+      ExportCorrAnnotationModule.class, MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //
