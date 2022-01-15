@@ -18,9 +18,6 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet;
 
-import java.util.TreeSet;
-import java.util.Vector;
-import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -29,7 +26,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.scans.ScanUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class implements the Continuous Wavelet Transform (CWT), Mexican Hat, over raw datapoints of
@@ -49,24 +49,21 @@ public class WaveletMassDetector implements MassDetector {
   @Override
   public double[][] getMassValues(MassSpectrum scan, ParameterSet parameters) {
 
-    double noiseLevel =
-        parameters.getParameter(WaveletMassDetectorParameters.noiseLevel).getValue();
+    double noiseLevel = parameters.getParameter(WaveletMassDetectorParameters.noiseLevel)
+        .getValue();
     int scaleLevel = parameters.getParameter(WaveletMassDetectorParameters.scaleLevel).getValue();
-    double waveletWindow =
-        parameters.getParameter(WaveletMassDetectorParameters.waveletWindow).getValue();
+    double waveletWindow = parameters.getParameter(WaveletMassDetectorParameters.waveletWindow)
+        .getValue();
 
-    DataPoint originalDataPoints[] = ScanUtils.extractDataPoints(scan);
+    DataPoint waveletDataPoints[] = performCWT(scan, waveletWindow, scaleLevel);
 
-    DataPoint waveletDataPoints[] = performCWT(originalDataPoints, waveletWindow, scaleLevel);
-
-    DataPoint detected[] = getMzPeaks(noiseLevel, originalDataPoints, waveletDataPoints);
-
+    DataPoint detected[] = getMzPeaks(noiseLevel, scan, waveletDataPoints);
 
     // convert to double[][] TODO remove use of DataPoint
     int size = detected.length;
     double[] mzs = new double[size];
     double[] intensities = new double[size];
-    for(int i=0; i<size; i++) {
+    for (int i = 0; i < size; i++) {
       mzs[i] = detected[i].getMZ();
       intensities[i] = detected[i].getIntensity();
     }
@@ -76,11 +73,10 @@ public class WaveletMassDetector implements MassDetector {
   /**
    * Perform the CWT over raw data points in the selected scale level
    *
-   * @param dataPoints
+   * @param scan
    */
-  private SimpleDataPoint[] performCWT(DataPoint[] dataPoints, double waveletWindow,
-      int scaleLevel) {
-    int length = dataPoints.length;
+  private SimpleDataPoint[] performCWT(MassSpectrum scan, double waveletWindow, int scaleLevel) {
+    int length = scan.getNumberOfDataPoints();
     SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
     double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
     double[] W = new double[(int) NPOINTS];
@@ -103,27 +99,32 @@ public class WaveletMassDetector implements MassDetector {
 
       /* Compute wavelet boundaries */
       int t1 = a_esl + dx;
-      if (t1 < 0)
+      if (t1 < 0) {
         t1 = 0;
+      }
       int t2 = a_esr + dx;
-      if (t2 >= length)
+      if (t2 >= length) {
         t2 = (length - 1);
+      }
 
       /* Perform convolution */
       double intensity = 0.0;
       for (int i = t1; i <= t2; i++) {
         int ind = (int) (NPOINTS / 2) - ((d * (i - dx) / scaleLevel) * (-1));
-        if (ind < 0)
+        if (ind < 0) {
           ind = 0;
-        if (ind >= NPOINTS)
+        }
+        if (ind >= NPOINTS) {
           ind = (int) NPOINTS - 1;
-        intensity += dataPoints[i].getIntensity() * W[ind];
+        }
+        intensity += scan.getIntensityValue(i) * W[ind];
       }
       intensity /= sqrtScaleLevel;
       // Eliminate the negative part of the wavelet map
-      if (intensity < 0)
+      if (intensity < 0) {
         intensity = 0;
-      cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(), intensity);
+      }
+      cwtDataPoints[dx] = new SimpleDataPoint(scan.getMzValue(dx), intensity);
     }
 
     return cwtDataPoints;
@@ -142,8 +143,9 @@ public class WaveletMassDetector implements MassDetector {
     double TINY = 1E-200;
     double x2;
 
-    if (a == 0.0)
+    if (a == 0.0) {
       a = TINY;
+    }
     x = (x - b) / a;
     x2 = x * x;
     return c * (1.0 - x2) * Math.exp(-x2 / 2);
@@ -152,13 +154,13 @@ public class WaveletMassDetector implements MassDetector {
   /**
    * This function searches for maximums from wavelet data points
    */
-  private DataPoint[] getMzPeaks(double noiseLevel, DataPoint[] originalDataPoints,
+  private DataPoint[] getMzPeaks(double noiseLevel, MassSpectrum scan,
       DataPoint[] waveletDataPoints) {
 
-    TreeSet<DataPoint> mzPeaks =
-        new TreeSet<DataPoint>(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+    TreeSet<DataPoint> mzPeaks = new TreeSet<>(
+        new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
-    Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
+    List<DataPoint> rawDataPoints = new ArrayList<>();
     int peakMaxInd = 0;
     int stopInd = waveletDataPoints.length - 1;
 
@@ -178,7 +180,7 @@ public class WaveletMassDetector implements MassDetector {
         if (waveletDataPoints[ind].getIntensity() > waveletDataPoints[peakMaxInd].getIntensity()) {
           peakMaxInd = ind;
         }
-        rawDataPoints.add(originalDataPoints[ind]);
+        rawDataPoints.add(new SimpleDataPoint(scan.getMzValue(ind), scan.getIntensityValue(ind)));
         ind++;
       }
 
@@ -186,10 +188,10 @@ public class WaveletMassDetector implements MassDetector {
         break;
       }
 
-      rawDataPoints.add(originalDataPoints[ind]);
+      rawDataPoints.add(new SimpleDataPoint(scan.getMzValue(ind), scan.getIntensityValue(ind)));
 
-      if (originalDataPoints[peakMaxInd].getIntensity() > noiseLevel) {
-        SimpleDataPoint peakDataPoint = new SimpleDataPoint(originalDataPoints[peakMaxInd].getMZ(),
+      if (scan.getIntensityValue(peakMaxInd) > noiseLevel) {
+        SimpleDataPoint peakDataPoint = new SimpleDataPoint(scan.getMzValue(peakMaxInd),
             calcAproxIntensity(rawDataPoints));
 
         mzPeaks.add(peakDataPoint);
@@ -202,13 +204,14 @@ public class WaveletMassDetector implements MassDetector {
 
   }
 
-  private double calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
+  private double calcAproxIntensity(List<DataPoint> rawDataPoints) {
 
     double aproxIntensity = 0;
 
     for (DataPoint d : rawDataPoints) {
-      if (d.getIntensity() > aproxIntensity)
+      if (d.getIntensity() > aproxIntensity) {
         aproxIntensity = d.getIntensity();
+      }
     }
     return aproxIntensity;
   }
