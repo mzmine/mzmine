@@ -183,13 +183,17 @@ public class DiaMs2CorrTask extends AbstractTask {
         ms1Rts[i] = featureEIC.getRetentionTime(i);
       }
 
-      final Range<Float> rtRange = feature.getRawDataPointsRTRange();
+      final Float fwhm = feature.getFWHM();
+      // fwhm sometimes does funny stuff, so we restrict it to the overlap of fwhm + rt range
+      final Range<Float> rtRange = fwhm != null ? feature.getRawDataPointsRTRange()
+          .intersection(Range.closed(feature.getRT() - fwhm / 2, feature.getRT() + fwhm / 2))
+          : feature.getRawDataPointsRTRange();
       final List<Scan> ms2sInRtRange = ms2Scans.stream()
           .filter(scan -> rtRange.contains(scan.getRetentionTime())).toList();
       final Scan closestMs2 = getClosestMs2(feature.getRT(), ms2sInRtRange);
-      if (closestMs2 == null || ms2sInRtRange.isEmpty()) {
-        logger.fine(() -> "Could not find ms2s in rtRange " + rtRange);
-        return;
+      if (closestMs2 == null || ms2sInRtRange.isEmpty() || ms2sInRtRange.size() < minCorrPoints) {
+        logger.fine(() -> "Could not find enough ms2s in rtRange " + rtRange);
+        continue;
       }
 
       // find m/zs in the closest ms2 scan and get their EICs
@@ -242,7 +246,7 @@ public class DiaMs2CorrTask extends AbstractTask {
         }
 
         final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
-            intensities, minCorrPoints, 2, minMs2Intensity / 5);
+            intensities, minCorrPoints, 2, minMs2Intensity / 3);
         if (correlationData != null && correlationData.isValid()
             && correlationData.getPearsonR() > minPearson) {
           int startIndex = -1;
@@ -262,10 +266,22 @@ public class DiaMs2CorrTask extends AbstractTask {
               break;
             }
           }
+          // no value in ms1 feature rt range
+          if (startIndex == -1) {
+            continue;
+          }
+          // all values in ms1 feature rt range
+          if (endIndex == -1) {
+            endIndex = eic.getNumberOfValues() - 1;
+          }
 
           final double mz = FeatureDataUtils.calculateMz(eic,
               FeatureDataUtils.DEFAULT_CENTER_FUNCTION, startIndex, endIndex);
 
+          // for IMS measurements, the ion must be present in the MS2 mobility scans in the during
+          // the feature's rt window and within the mobility scans of the feature's mobility window.
+          // we could also look at mobility shape and correlate that, but it would probably take a
+          // lot of optimisation and/or too long to compute
           if (mergedMobilityScan != null && mergedMobilityScan.getNumberOfDataPoints() > 1) {
             boolean mzFound = false;
             final double upper = mzTolerance.getToleranceRange(mz).upperEndpoint();

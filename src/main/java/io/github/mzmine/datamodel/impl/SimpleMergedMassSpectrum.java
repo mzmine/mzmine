@@ -72,8 +72,8 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
    */
   public SimpleMergedMassSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
       @NotNull double[] intensityValues, int msLevel,
-      @NotNull List<? extends MassSpectrum> sourceSpectra,
-      @NotNull MergingType mergingType, @NotNull CenterFunction centerFunction) {
+      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
+      @NotNull CenterFunction centerFunction) {
     super(storage, mzValues, intensityValues);
 
     assert !sourceSpectra.isEmpty();
@@ -82,22 +82,24 @@ public class SimpleMergedMassSpectrum extends AbstractStorableSpectrum implement
     PolarityType tempPolarity = null;
     Range<Double> tempScanningMzRange = null;
     float tempRt = 0f;
+    int numScans = 0;
     for (MassSpectrum spectrum : sourceSpectra) {
-      if (file == null) {
-        if (spectrum instanceof Scan) {
-          file = ((Scan) spectrum).getDataFile();
-          tempPolarity = ((Scan) spectrum).getPolarity();
-          tempScanningMzRange = ((Scan) spectrum).getScanningMZRange();
-          tempRt = ((Scan) spectrum).getRetentionTime();
+      if (spectrum instanceof Scan scan) {
+        if (file == null) { // set only once
+          file = scan.getDataFile();
+          tempPolarity = scan.getPolarity();
+          tempScanningMzRange = scan.getScanningMZRange();
         }
-      }
-      if (spectrum instanceof Scan && file != ((Scan) spectrum).getDataFile()) {
-        logger.warning("Merging spectra with different raw data files");
+        if (file != scan.getDataFile()) {
+          logger.warning("Merging spectra with different raw data files");
+        }
+        numScans++;
+        tempRt += scan.getRetentionTime();
       }
     }
     rawDataFile = file;
 
-    this.retentionTime = tempRt;
+    retentionTime = tempRt / numScans;
     this.polarity = tempPolarity;
     this.scanningMzRange = tempScanningMzRange;
     this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
