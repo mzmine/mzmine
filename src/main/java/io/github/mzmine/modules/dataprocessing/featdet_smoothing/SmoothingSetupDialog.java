@@ -76,7 +76,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     previewDimension = SmoothingDimension.RETENTION_TIME;
     previewChart.setDomainAxisNumberFormatOverride(rtFormat);
     previewChart.setRangeAxisNumberFormatOverride(intensityFormat);
-    ObservableList<FeatureList> flists = FXCollections.observableList(
+    ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     fBox = new ComboBox<>();
