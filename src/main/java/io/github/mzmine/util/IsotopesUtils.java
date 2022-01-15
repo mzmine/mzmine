@@ -52,6 +52,73 @@ public class IsotopesUtils {
   }
 
   /**
+   * Gets an array of all NATURALLY OCCURRING isotopes known to the IsotopeFactory for the given
+   * element symbol.
+   *
+   * @param elementSymbol An element symbol to search for
+   * @return An array of isotopes that matches the given element symbol or an empty array
+   */
+  public static IIsotope[] getIsotopes(String elementSymbol) {
+    return getIsotopes(elementSymbol, true);
+  }
+
+  /**
+   * Gets an array of all isotopes known to the IsotopeFactory for the given element symbol.
+   *
+   * @param elementSymbol An element symbol to search for
+   * @param onlyNatural   only elements with natural abundance > 0
+   * @return An array of isotopes that matches the given element symbol or an empty array
+   */
+  public static IIsotope[] getIsotopes(String elementSymbol, boolean onlyNatural) {
+    if (onlyNatural) {
+      return isotopes.getIsotopes(elementSymbol);
+    } else {
+      return Arrays.stream(isotopes.getIsotopes(elementSymbol))
+          .filter(iso -> iso.getNaturalAbundance() > 0).toArray(IIsotope[]::new);
+    }
+  }
+
+  /**
+   * The isotope of an element with mass number might include isotopes with no natural abundance.
+   *
+   * @param elementSymbol An element symbol to search for
+   * @param massNumber    the isotope with this mass number
+   * @return the isotope of an element with specific mass number or null if not available (
+   */
+  public static IIsotope getIsotopes(String elementSymbol, int massNumber) {
+    for (IIsotope iso : getIsotopes(elementSymbol, false)) {
+      if (iso.getMassNumber() == massNumber) {
+        return iso;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The isotope of an element with mass number might include isotopes with no natural abundance.
+   *
+   * @param elementSymbol An element symbol to search for
+   * @param massNumber    the isotope with this mass number
+   * @return the isotope of an element with specific mass number or null if not available (
+   */
+  public static Isotope getIsotopeRecord(String elementSymbol, int massNumber) {
+    IIsotope result = null;
+    IIsotope main = null;
+    for (IIsotope iso : getIsotopes(elementSymbol, false)) {
+      if (main == null || main.getNaturalAbundance() < iso.getNaturalAbundance()) {
+        main = iso;
+      }
+      if (iso.getMassNumber() == massNumber) {
+        result = iso;
+      }
+    }
+    return result == null ? null
+        : new Isotope(elementSymbol, result.getAtomicNumber(), result.getExactMass(),
+            Math.abs(result.getExactMass() - main.getExactMass()),
+            result.getNaturalAbundance() / main.getNaturalAbundance());
+  }
+
+  /**
    * Returns pairwise m/z differences between stable isotopes within given chemical elements. Final
    * differences are obtained by dividing isotope mass differences with 1, 2, ..., maxCharge values.
    * For example, for elements == [H, C] and maxCharge == 2 this method returns [C13 - C12, (C13 -
@@ -69,7 +136,8 @@ public class IsotopesUtils {
     for (Element element : elements) {
 
       // Filter out not stable isotopes
-      List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element.getSymbol()))
+      List<IIsotope> abundantIsotopes = Arrays.stream(
+              isotopes.getIsotopes(element.getAtomicNumber()))
           .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > 0d).toList();
 
       // Compute pairwise mass differences and divide each one with charges up to maxCharge
