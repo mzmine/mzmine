@@ -149,10 +149,12 @@ public class RawDataFilesSelection implements Cloneable {
 
     return Arrays.stream(specificFiles).<RawDataFile>mapMulti((specificFile, c) -> {
       for (RawDataFile file : MZmineCore.getProjectManager().getCurrentProject()
-          .getRawDataFiles()) {
+          .getCurrentRawDataFiles()) {
         if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
-            || specificFile.getAbsolutePath() == null || file.getAbsolutePath()
-            .equals(specificFile.getAbsolutePath()))) {
+                                                              || specificFile.getAbsolutePath()
+                                                                 == null || file.getAbsolutePath()
+                                                                  .equals(
+                                                                      specificFile.getAbsolutePath()))) {
           c.accept(file);
           break;
         }

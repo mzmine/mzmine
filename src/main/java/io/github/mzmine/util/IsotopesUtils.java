@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,8 +54,8 @@ public class IsotopesUtils {
   /**
    * Returns pairwise m/z differences between stable isotopes within given chemical elements. Final
    * differences are obtained by dividing isotope mass differences with 1, 2, ..., maxCharge values.
-   * For example, for elements == [H, C] and maxCharge == 2 this method returns [C14 - C13, (C14 -
-   * C13) / 2, H2 - H1, (H2 - H1) / 2], where C14, C13, H2, H1 are corresponding isotopic masses.
+   * For example, for elements == [H, C] and maxCharge == 2 this method returns [C13 - C12, (C13 -
+   * C12) / 2, H2 - H1, (H2 - H1) / 2], where C12, C13, H2, H1 are corresponding isotopic masses.
    *
    * @param elements  List of chemical elements
    * @param maxCharge Maximum possible charge
@@ -73,14 +74,57 @@ public class IsotopesUtils {
 
       // Compute pairwise mass differences and divide each one with charges up to maxCharge
       for (int i = 0; i < abundantIsotopes.size(); i++) {
+        final double smallerMz = abundantIsotopes.get(i).getExactMass();
         for (int j = i + 1; j < abundantIsotopes.size(); j++) {
           for (int charge = 1; charge <= maxCharge; charge++) {
-            isotopeMzDiffs.add(
-                (abundantIsotopes.get(j).getExactMass() - abundantIsotopes.get(i).getExactMass())
-                / charge);
+            final double mzDiff = (abundantIsotopes.get(j).getExactMass() - smallerMz) / charge;
+            isotopeMzDiffs.add(mzDiff);
           }
         }
       }
+    }
+    return isotopeMzDiffs;
+  }
+
+  /**
+   * Returns pairwise m/z differences between stable isotopes within given chemical elements. Final
+   * differences are obtained by dividing isotope mass differences with 1, 2, ..., maxCharge values.
+   * For example, for elements == [H, C] and maxCharge == 2 this method returns [C13 - C12, (C13 -
+   * C12) / 2, H2 - H1, (H2 - H1) / 2], where C12, C13, H2, H1 are corresponding isotopic masses.
+   *
+   * @param elements  List of chemical elements
+   * @param maxCharge Maximum possible charge
+   * @return List of pairwise mass differences per charge state starting at index 0 for charge 1.
+   */
+  public static DoubleArrayList[] getIsotopesMzDiffsForCharge(List<Element> elements,
+      int maxCharge) {
+
+    DoubleArrayList[] isotopeMzDiffs = new DoubleArrayList[maxCharge];
+    for (int i = 0; i < maxCharge; i++) {
+      isotopeMzDiffs[i] = new DoubleArrayList();
+    }
+
+    // Compute pairwise mass differences within isotopes of each element
+    for (Element element : elements) {
+      // Filter out not stable isotopes
+      List<IIsotope> abundantIsotopes = Arrays.stream(isotopes.getIsotopes(element.getSymbol()))
+          .filter(i -> Doubles.compare(i.getNaturalAbundance(), 0) > 0d).toList();
+
+      // Compute pairwise mass differences and divide each one with charges up to maxCharge
+      for (int i = 0; i < abundantIsotopes.size(); i++) {
+        final double smallerMz = abundantIsotopes.get(i).getExactMass();
+        for (int j = i + 1; j < abundantIsotopes.size(); j++) {
+          for (int charge = 1; charge <= maxCharge; charge++) {
+            final double mzDiff = (abundantIsotopes.get(j).getExactMass() - smallerMz) / charge;
+            // add mz diff to charge list
+            isotopeMzDiffs[charge - 1].add(mzDiff);
+          }
+        }
+      }
+    }
+    // sort each by mz diff
+    for (var diffs : isotopeMzDiffs) {
+      Collections.sort(diffs);
     }
     return isotopeMzDiffs;
   }
@@ -301,8 +345,8 @@ public class IsotopesUtils {
     for (; dp >= 0 && mz >= lastMZ - maxIsoMzDiff; dp--) {
       mz = spectrum.getMzValue(dp);
 
-      if (IsotopesUtils
-          .isPossibleIsotopeMzNegativeDirection(mz, candidates, isoMzDiffs, isoMzTolerance)) {
+      if (IsotopesUtils.isPossibleIsotopeMzNegativeDirection(mz, candidates, isoMzDiffs,
+          isoMzTolerance)) {
         candidates.add(new SimpleDataPoint(mz, spectrum.getIntensityValue(dp)));
         lastMZ = mz;
       }

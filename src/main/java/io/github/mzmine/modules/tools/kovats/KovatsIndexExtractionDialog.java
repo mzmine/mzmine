@@ -141,7 +141,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   /**
    *
-   * @param parent
    * @param parameters
    * @param saveFileListener accepts saved files
    */
@@ -233,17 +232,17 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     btnLoad.setOnAction(e -> loadFile());
     pnButtonFlow.getChildren().add(btnLoad);
     Button btnCombineFiles = new Button("Combine files");
-    btnCombineFiles
-        .setTooltip(new Tooltip("Select multiple Kovats index files to be combined into one"));
+    btnCombineFiles.setTooltip(
+        new Tooltip("Select multiple Kovats index files to be combined into one"));
     btnCombineFiles.setOnAction(e -> combineFiles());
     pnButtonFlow.getChildren().add(btnCombineFiles);
 
     // add combo for raw data file
 
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    comboDataFileName2 = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+    comboDataFileName2 = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     cbSecondRaw = new CheckBox();
     initRawDataFileSelection();
 
@@ -317,7 +316,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    */
   private void initRawDataFileSelection() {
 
-    var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles();
+    var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles();
 
     if (dataFiles == null || dataFiles.isEmpty())
       return;

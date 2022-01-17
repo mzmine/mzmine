@@ -78,8 +78,8 @@ public final class MZmineCore {
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)
   // it is also used in headless mode
   private final Desktop defaultHeadlessDesktop = new HeadLessDesktop();
-  private final List<MemoryMapStorage> storageList = Collections
-      .synchronizedList(new ArrayList<>());
+  private final List<MemoryMapStorage> storageList = Collections.synchronizedList(
+      new ArrayList<>());
   private final Map<Class<?>, MZmineModule> initializedModules = new Hashtable<>();
   private TaskControllerImpl taskController;
   private MZmineConfiguration configuration;
@@ -126,8 +126,8 @@ public final class MZmineCore {
       argsParser.parse(args);
 
       // override preferences file by command line argument pref
-      final File prefFile = Objects
-          .requireNonNullElse(argsParser.getPreferencesFile(), MZmineConfiguration.CONFIG_FILE);
+      final File prefFile = Objects.requireNonNullElse(argsParser.getPreferencesFile(),
+          MZmineConfiguration.CONFIG_FILE);
 
       boolean updateTempDir = false;
       // Load configuration
@@ -136,9 +136,8 @@ public final class MZmineCore {
           getInstance().configuration.loadConfiguration(prefFile);
           updateTempDir = true;
         } catch (Exception e) {
-          logger
-              .log(Level.WARNING, "Error while reading configuration " + prefFile.getAbsolutePath(),
-                  e);
+          logger.log(Level.WARNING,
+              "Error while reading configuration " + prefFile.getAbsolutePath(), e);
         }
       } else {
         logger.log(Level.WARNING, "Cannot read configuration " + prefFile.getAbsolutePath());
@@ -210,8 +209,8 @@ public final class MZmineCore {
           }
 
           // run batch file
-          getInstance().batchExitCode = BatchModeModule
-              .runBatch(getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
+          getInstance().batchExitCode = BatchModeModule.runBatch(
+              getInstance().projectManager.getCurrentProject(), batchFile, Instant.now());
         }
 
         // option to keep MZmine running after the batch is finished
@@ -309,8 +308,7 @@ public final class MZmineCore {
   }
 
   public static RawDataFile createNewFile(@NotNull final String name,
-      @Nullable final String absPath,
-      @Nullable final MemoryMapStorage storage) throws IOException {
+      @Nullable final String absPath, @Nullable final MemoryMapStorage storage) throws IOException {
     return new RawDataFileImpl(name, absPath, storage);
   }
 
@@ -320,8 +318,7 @@ public final class MZmineCore {
   }
 
   public static ImagingRawDataFile createNewImagingFile(@NotNull final String name,
-      @Nullable final String absPath, @Nullable final MemoryMapStorage storage)
-      throws IOException {
+      @Nullable final String absPath, @Nullable final MemoryMapStorage storage) throws IOException {
     return new ImagingRawDataFileImpl(name, absPath, storage);
   }
 

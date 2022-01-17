@@ -24,10 +24,12 @@ import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.Single
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -164,14 +166,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
           return;
         }
 
-        DBCompound compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
+        CompoundDBAnnotation compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
 
         // In case we failed to retrieve data, skip this compound
         if (compound == null) {
           continue;
         }
 
-        String formula = compound.getPropertyValue(FeatureIdentity.PROPERTY_FORMULA);
+        String formula = compound.getFormula();
 
         if (formula != null) {
 
@@ -186,7 +188,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
               .calculateIsotopePattern(adjustedFormula, 0.001, charge, ionType.getPolarity());
 
-          compound.setIsotopePattern(compoundIsotopePattern);
+          compound.put(IsotopePatternType.class, compoundIsotopePattern);
 
           IsotopePattern rawDataIsotopePattern = peakListRow.getBestIsotopePattern();
 
@@ -197,7 +199,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
             double score = IsotopePatternScoreCalculator
                 .getSimilarityScore(rawDataIsotopePattern, compoundIsotopePattern,
                     isotopeMZTolerance, isotopeNoiseLevel);
-            compound.setIsotopePatternScore(score);
+            compound.put(IsotopePatternScoreType.class, (float)score);
 
             if (score < minIsotopeScore) {
               finishedItems++;

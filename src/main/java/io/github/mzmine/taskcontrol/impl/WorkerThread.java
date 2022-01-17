@@ -18,13 +18,12 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Task controller worker thread, this thread will process one task and then finish
@@ -109,4 +108,7 @@ class WorkerThread extends Thread {
     return finished;
   }
 
+  public WrappedTask getWrappedTask() {
+    return wrappedTask;
+  }
 }

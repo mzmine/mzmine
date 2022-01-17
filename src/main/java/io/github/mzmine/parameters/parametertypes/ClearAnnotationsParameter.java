@@ -46,7 +46,7 @@ public class ClearAnnotationsParameter implements
   public ClearAnnotationsParameter(String name, String description) {
     this.name = name;
     this.description = description;
-    value = DataTypes.TYPES.values().stream().filter(DataTypes::isMainAnnotation)
+    value = DataTypes.getInstances().stream().filter(DataTypes::isMainAnnotation)
         .collect(Collectors.toMap(t -> t, t -> false));
   }
 
@@ -63,7 +63,7 @@ public class ClearAnnotationsParameter implements
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    value = DataTypes.TYPES.values().stream().filter(DataTypes::isMainAnnotation)
+    value = DataTypes.getInstances().stream().filter(DataTypes::isMainAnnotation)
         .collect(Collectors.toMap(t -> t, t -> false));
 
     final NodeList childNodes = xmlElement.getChildNodes();

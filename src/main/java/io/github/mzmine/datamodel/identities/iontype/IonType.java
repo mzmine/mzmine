@@ -21,13 +21,20 @@ package io.github.mzmine.datamodel.identities.iontype;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.identities.NeutralMolecule;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -40,10 +47,9 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
  */
 public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
-  @NotNull
-  protected final IonModification adduct;
-  @Nullable
-  protected final IonModification mod;
+  public static final String XML_ELEMENT = "iontype";
+  @NotNull protected final IonModification adduct;
+  @Nullable protected final IonModification mod;
   protected final int molecules;
   protected final int charge;
 
@@ -66,6 +72,63 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     this.charge = adduct.charge;
     this.molecules = molecules;
     name = parseName();
+  }
+
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement("iontype");
+    writer.writeAttribute("molecules", String.valueOf(molecules));
+    writer.writeAttribute("charge", String.valueOf(charge));
+
+    writer.writeStartElement("adduct");
+    adduct.saveToXML(writer);
+    writer.writeEndElement();
+
+    if (mod != null) {
+      writer.writeStartElement("modification");
+      mod.saveToXML(writer);
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
+  }
+
+  public static IonType loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
+      throw new IllegalStateException("Current element is not an iontype");
+    }
+
+    final int molecules = Integer.parseInt(reader.getAttributeValue(null, "molecules"));
+    final int charge = Integer.parseInt(reader.getAttributeValue(null, "charge"));
+
+    IonModification adduct = null;
+    IonModification mod = null;
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals("iontype"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+
+      if (reader.getLocalName().equals("adduct")) {
+        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+            CONST.XML_DATA_TYPE_ELEMENT)) {
+          adduct = IonModification.loadFromXML(reader);
+        } else {
+          return null;
+        }
+      }
+      if (reader.getLocalName().equals("modification")) {
+        if (ParsingUtils.progressToStartElement(reader, IonModification.XML_ELEMENT,
+            CONST.XML_DATA_TYPE_ELEMENT)) {
+          mod = IonModification.loadFromXML(reader);
+        }
+      }
+    }
+
+    assert adduct != null;
+
+    return mod != null ? new IonType(molecules, adduct, mod) : new IonType(molecules, adduct);
   }
 
   /**
@@ -93,8 +156,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
       }
     }
 
-    IonModification combinedIonModification =
-        CombinedIonModification.create(allMods);
+    IonModification combinedIonModification = CombinedIonModification.create(allMods);
     return new IonType(this.molecules, this.adduct, combinedIonModification);
   }
 
@@ -296,8 +358,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
    */
   public boolean isModificationOf(IonType parent) {
     if (!hasMods() || !(parent.getModCount() < getModCount() && mass != parent.mass
-                        && adduct.equals(parent.adduct) && molecules == parent.molecules
-                        && charge == parent.charge)) {
+        && adduct.equals(parent.adduct) && molecules == parent.molecules
+        && charge == parent.charge)) {
       return false;
     } else if (!parent.hasMods()) {
       return true;
@@ -462,5 +524,68 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
           .forEach(m -> FormulaUtils.subtractFormula(result, m.getCDKFormula()));
     }
     return result;
+  }
+
+  public static IonType parseFromString(String str) {
+    if(str == null) {
+      return null;
+    }
+
+    // [ 2 M + NH4+H ] 2 +
+    // groups:
+    // 1: [ (opt)
+    // 2: 2 (opt)
+    // 3: M (mandatory)
+    // 4: + (+ or - mandatory)
+    // 5: NH4+H (mandatory)
+    // 6: ] (opt)
+    // 7: 2 (opt)
+    // 8: + (+ or - opt)
+
+    final Pattern pattern = Pattern.compile(
+        "(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]+)([\\]])?([\\d])?([\\+\\-])?");
+    final Matcher matcher = pattern.matcher(str);
+    if (!matcher.matches()) {
+      return null;
+    }
+
+    StringBuilder b = new StringBuilder();
+    for (int i = 0; i < matcher.groupCount(); i++) {
+      b.append("group ").append(i).append(" ").append(matcher.group(i));
+    }
+
+    final int numMolecules = matcher.group(2) == null || matcher.group(2).isBlank() ? 1
+        : Integer.parseInt(matcher.group(2));
+    final int absCharge = matcher.group(7) == null || matcher.group(7).isBlank() ? 1
+        : Integer.parseInt(matcher.group(7));
+
+    final String modification = matcher.group(5);
+    if (modification == null || modification.isBlank()) {
+      return null;
+    }
+
+    final PolarityType pol =
+        matcher.group(8) == null || matcher.group(8).isBlank() ? PolarityType.POSITIVE
+            : PolarityType.fromSingleChar(matcher.group(8));
+
+    IonModification mod = switch (pol) {
+      case POSITIVE -> Arrays.stream(IonModification.DEFAULT_VALUES_POSITIVE)
+          .filter(m -> m.getName().equals(modification) || modification.equals(m.getMolFormula()))
+          .findFirst().orElse(null);
+      case NEGATIVE -> Arrays.stream(IonModification.DEFAULT_VALUES_NEGATIVE)
+          .filter(m -> m.getName().equals(modification) || modification.equals(m.getMolFormula()))
+          .findFirst().orElse(null);
+      default -> null;
+    };
+    if (mod == null) {
+      return null;
+    }
+
+    final IonType ionType = new IonType(numMolecules, mod);
+    if (ionType.getAbsCharge() != absCharge) {
+      return null;
+    }
+
+    return ionType;
   }
 }

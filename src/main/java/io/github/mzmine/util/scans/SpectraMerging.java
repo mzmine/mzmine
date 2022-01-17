@@ -413,7 +413,7 @@ public class SpectraMerging {
     final double[][] mzIntensities = calculatedMergedMzsAndIntensities(spectra, tolerance,
         MergingType.SUMMED, DEFAULT_CENTER_FUNCTION, null, null);
     final int msLevel = source.stream().filter(s -> s instanceof Scan)
-        .mapToInt(s -> ((Scan) s).getScanNumber()).min().orElse(1);
+        .mapToInt(s -> ((Scan) s).getMSLevel()).min().orElse(1);
 
     return new SimpleMergedMassSpectrum(storage, mzIntensities[0], mzIntensities[1], msLevel,
         source, MergingType.SUMMED, DEFAULT_CENTER_FUNCTION);
