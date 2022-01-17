@@ -29,11 +29,9 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.Ext
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
-import io.github.mzmine.parameters.parametertypes.DoubleComponent;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.PercentComponent;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -47,6 +45,7 @@ import java.text.NumberFormat;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -58,7 +57,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -66,9 +64,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
@@ -77,70 +75,58 @@ import org.jfree.data.xy.XYDataset;
  */
 public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
+  private static final Logger logger = Logger.getLogger(
+      IsotopePatternPreviewDialog.class.getName());
+  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat intFormat = new DecimalFormat("0.00 %");
+  private final SpectraPlot spectraPlot;
+  private final EStandardChartTheme theme;
+  private final TableView<IsotopePatternTableData> table;
+  private final ObservableList<IsotopePatternTableData> tableData;
+  private final DoubleParameter pMergeWidth;
+  private final PercentParameter pMinIntensity;
+  private final StringParameter pFormula;
+  private final IntegerParameter pCharge;
+  private final SpectraToolTipGenerator ttGen;
+  private final PauseTransition listenerDelay;
+  private final BooleanParameter pApplyFit;
+  private final String exactMassLabel = "Exact mass / Da";
+  private final String mzLabel = "m/z";
   IsotopePatternPreviewTask task;
   Color aboveMin, belowMin;
-  ParameterSet customParameters;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intFormat = new DecimalFormat("0.00 %");
-  private NumberFormat relFormat = new DecimalFormat("0.00000");
   private double minIntensity, mergeWidth;
   private int charge;
   private PolarityType pol;
   private String formula;
-  private SpectraPlot spectraPlot;
-  private EStandardChartTheme theme;
-  private BorderPane newMainPanel;
-  private HBox pnlParameters;
-  private SplitPane pnSplit;
-  private VBox pnlControl;
-  private TableView<IsotopePatternTableData> table;
-  private ObservableList<IsotopePatternTableData> tableData;
-  private DoubleParameter pMergeWidth;
-  private PercentParameter pMinIntensity;
-  private StringParameter pFormula;
-  private IntegerParameter pCharge;
-  private DoubleComponent cmpMergeWidth;
-  private PercentComponent cmpMinIntensity;
-  private TextField cmpFormula;
-  private IntegerComponent cmpCharge;
   private ExtendedIsotopePatternDataSet dataset;
-  private SpectraToolTipGenerator ttGen;
-  private boolean newParameters;
-  private long lastCalc;
+  private boolean applyFit;
 
   public IsotopePatternPreviewDialog(boolean valueCheckRequired, ParameterSet parameters) {
     super(valueCheckRequired, parameters);
 
+    // one delay to add to all listeners
+    listenerDelay = new PauseTransition(Duration.seconds(2));
+    listenerDelay.setOnFinished(event -> delayedHandlingOfParameterChanges());
+
     aboveMin = MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT();
     belowMin = MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColorAWT();
-
-    lastCalc = 0;
-
-    newParameters = false;
 
     pFormula = parameterSet.getParameter(IsotopePatternPreviewParameters.formula);
     pMinIntensity = parameterSet.getParameter(IsotopePatternPreviewParameters.minIntensity);
     pMergeWidth = parameterSet.getParameter(IsotopePatternPreviewParameters.mergeWidth);
     pCharge = parameterSet.getParameter(IsotopePatternPreviewParameters.charge);
+    pApplyFit = parameterSet.getParameter(IsotopePatternPreviewParameters.applyFit);
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    mainPane.setPrefSize(screenSize.width / 2, screenSize.height / 2);
-
-    cmpMinIntensity = getComponentForParameter(IsotopePatternPreviewParameters.minIntensity);
-    cmpMergeWidth = getComponentForParameter(IsotopePatternPreviewParameters.mergeWidth);
-    cmpCharge = getComponentForParameter(IsotopePatternPreviewParameters.charge);
-    cmpFormula = getComponentForParameter(IsotopePatternPreviewParameters.formula);
+    mainPane.setPrefSize(screenSize.width / 2d, screenSize.height / 2d);
 
     // panels
-    newMainPanel = new BorderPane();
+    BorderPane newMainPanel = new BorderPane();
     // pnText = new ScrollPane();
     spectraPlot = new SpectraPlot();
     table = new TableView<>();
-    pnSplit = new SplitPane(spectraPlot, table);
+    SplitPane pnSplit = new SplitPane(spectraPlot, table);
     pnSplit.setOrientation(Orientation.HORIZONTAL);
-    pnlParameters = new HBox();
-    pnlControl = new VBox();
     newMainPanel.setPadding(new Insets(5));
 
     table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -184,76 +170,72 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     parametersChanged();
   }
 
-  @Override
-  protected void parametersChanged() {
+  private void delayedHandlingOfParameterChanges() {
     updateParameterSetFromComponents();
-    if(checkParameters()) {
+    if (checkParameters()) {
       updateWindow();
     }
   }
 
-  // -----------------------------------------------------
-  // methods
-  // -----------------------------------------------------
+  @Override
+  protected void parametersChanged() {
+    // restart the delay to update everything on any parameter change
+    listenerDelay.playFromStart();
+  }
+
   public void updateWindow() {
     if (!updateParameters()) {
       logger.warning("updateWindow() failed. Could not update parameters or parameters are invalid."
-          + "\nPlease check the parameters.");
+                     + "\nPlease check the parameters.");
       return;
     }
 
-    if (FormulaUtils.getFormulaSize(formula) > 5E3 && ((System.nanoTime() - lastCalc) * 1E-6
-        < 150)) {
-      logger.finest("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula)
-          + " or last calculation recent: " + (System.nanoTime() - lastCalc) / 1E6 + " ms");
+    if (FormulaUtils.getFormulaSize(formula) > 5E3) {
+      logger.finest("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula));
     }
 
-    if (task != null && task.getStatus() == TaskStatus.PROCESSING
-        && FormulaUtils.getFormulaSize(formula) > 1E4) {
-      newParameters = true;
+    if (task != null && task.getStatus() == TaskStatus.PROCESSING) {
       task.setDisplayResult(false);
       task.setStatus(TaskStatus.CANCELED);
-    } else {
-      if (task != null) {
-        task.setDisplayResult(false);
-      }
-      logger.finest("Creating new Thread: " + formula);
-      task = new IsotopePatternPreviewTask(formula, 0.001, mergeWidth, charge, pol, this);
-      MZmineCore.getTaskController().addTask(task);
     }
 
-    lastCalc = System.nanoTime();
+    logger.finest("Creating new Thread: " + formula);
+    task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, applyFit,
+        this);
+    MZmineCore.getTaskController().addTask(task);
   }
 
   /**
    * this is being called by the calculation task to update the pattern
-   *
-   * @param pattern
    */
   protected void updateChart(SimpleIsotopePattern pattern, XYDataset fit) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
 
-    if (pol == PolarityType.NEUTRAL) {
-      spectraPlot.getXYPlot().getRangeAxis().setLabel("Exact mass / Da");
-    } else {
-      spectraPlot.getXYPlot().getRangeAxis().setLabel("m/z");
-    }
-    spectraPlot.removeAllDataSets();
-    spectraPlot.addDataSet(dataset,
-        MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true);
-    if (fit != null) {
-      spectraPlot.addDataSet(fit,
-          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
-      spectraPlot.getXYPlot().setRenderer(spectraPlot.getXYPlot().indexOf(fit),
-          new ColoredXYLineRenderer());
-    }
-    formatChart();
+    spectraPlot.applyWithNotifyChanges(false, true, () -> {
+
+      final ValueAxis domainAxis = spectraPlot.getXYPlot().getRangeAxis();
+      if (pol == PolarityType.NEUTRAL && !exactMassLabel.equals(domainAxis.getLabel())) {
+        domainAxis.setLabel(exactMassLabel);
+      } else if (pol != PolarityType.NEUTRAL && !mzLabel.equals(domainAxis.getLabel())) {
+        domainAxis.setLabel(mzLabel);
+      }
+
+      spectraPlot.removeAllDataSets();
+      spectraPlot.addDataSet(dataset,
+          MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true, false);
+      if (fit != null) {
+        spectraPlot.addDataSet(fit,
+            MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false,
+            false);
+        spectraPlot.getXYPlot()
+            .setRenderer(spectraPlot.getXYPlot().indexOf(fit), new ColoredXYLineRenderer());
+      }
+      formatChart();
+    });
   }
 
   /**
    * this is being called by the calculation task to update the table
-   *
-   * @param pattern
    */
   protected void updateTable(SimpleIsotopePattern pattern) {
     DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
@@ -295,6 +277,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     mergeWidth = pMergeWidth.getValue();
     minIntensity = pMinIntensity.getValue();
     charge = pCharge.getValue();
+    applyFit = pApplyFit.getValue();
 
     if (charge > 0) {
       pol = PolarityType.POSITIVE;
@@ -332,19 +315,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     return true;
   }
 
-  public void startNextThread() {
-    if (newParameters) {
-      newParameters = false;
-      logger.finest("Creating new Thread: " + formula);
-      task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
-      MZmineCore.getTaskController().addTask(task);
-    }
-  }
-
   /**
    * https://stackoverflow.com/a/48126059
-   *
-   * @param table
    */
   @SuppressWarnings("rawtypes")
   public void copySelectionToClipboard(final TableView<?> table) {
@@ -372,5 +344,17 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     final ClipboardContent clipboardContent = new ClipboardContent();
     clipboardContent.putString(strb.toString());
     Clipboard.getSystemClipboard().setContent(clipboardContent);
+  }
+
+  public void taskFinishedUpdate(IsotopePatternPreviewTask finishedTask,
+      SimpleIsotopePattern pattern, XYDataset fit) {
+    // check if task equals latest task
+    if (finishedTask.equals(task)) {
+      updateTable(pattern);
+    }
+    // check again. update table might take a while
+    if (finishedTask.equals(task)) {
+      updateChart(pattern, fit);
+    }
   }
 }

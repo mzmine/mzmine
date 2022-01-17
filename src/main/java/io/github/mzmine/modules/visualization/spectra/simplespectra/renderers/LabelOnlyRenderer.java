@@ -16,16 +16,19 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
+package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
-import io.github.mzmine.parameters.Parameter;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
-public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
+/**
+ * Only render the labels
+ */
+public class LabelOnlyRenderer extends XYLineAndShapeRenderer {
 
-  public SelectedRowsSpectralLibrarySearchParameters() {
-    super(new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
-        ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
-        mzTolerance, rtTolerance, minMatch, similarityFunction});
+
+  public LabelOnlyRenderer() {
+    super(false, false);
+    setDefaultItemLabelsVisible(true);
   }
 
 }

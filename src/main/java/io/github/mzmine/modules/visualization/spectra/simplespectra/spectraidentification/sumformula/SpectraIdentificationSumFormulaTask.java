@@ -263,7 +263,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     // Add label generator for the dataset
     SpectraDatabaseSearchLabelGenerator labelGenerator = new SpectraDatabaseSearchLabelGenerator(
         annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
+    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
     spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(

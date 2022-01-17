@@ -18,20 +18,19 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.javafx.StringToDoubleComparator;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -44,10 +43,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.NotNull;
 
 public class RawDataFileInfoPaneController {
 
-  private static Logger logger = Logger.getLogger(RawDataFileInfoPaneController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      RawDataFileInfoPaneController.class.getName());
 
   private RawDataFile rawDataFile;
   private boolean populated = false;
@@ -111,6 +112,7 @@ public class RawDataFileInfoPaneController {
     if (populated == true) {
       return;
     }
+    logger.fine("Populating table for raw data file " + rawDataFile.getName());
     populated = true;
     this.rawDataFile = rawDataFile;
     updateRawDataFileInfo(rawDataFile);

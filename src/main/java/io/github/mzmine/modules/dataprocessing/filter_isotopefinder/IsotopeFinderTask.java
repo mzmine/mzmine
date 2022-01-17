@@ -41,10 +41,9 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.IsotopesUtils;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -60,8 +59,6 @@ class IsotopeFinderTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(IsotopeFinderTask.class.getName());
   private final ModularFeatureList featureList;
 
-  private final DataPointSorter mzSorter = new DataPointSorter(SortingProperty.MZ,
-      SortingDirection.Ascending);
   // parameter values
   private final ParameterSet parameters;
   private final MZTolerance isoMzTolerance;
@@ -111,15 +108,24 @@ class IsotopeFinderTask extends AbstractTask {
     }
 
     // Update isotopesMzDiffs
-    List<Double> isoMzDiffs = IsotopesUtils.getIsotopesMzDiffs(isotopeElements, isotopeMaxCharge);
-    if (isoMzDiffs.isEmpty()) {
+    DoubleArrayList[] isoMzDiffsForCharge = IsotopesUtils.getIsotopesMzDiffsForCharge(
+        isotopeElements, isotopeMaxCharge);
+    if (isoMzDiffsForCharge.length == 0 || isoMzDiffsForCharge[0].isEmpty()) {
       setErrorMessage("No isotopes found for elements: " + isotopes);
       setStatus(TaskStatus.ERROR);
       return;
     }
-    double maxIsoMzDiff = Collections.max(isoMzDiffs);
-    // add some to the max diff to include more search space
-    maxIsoMzDiff += 10 * isoMzTolerance.getMzToleranceForMass(maxIsoMzDiff);
+    // get maximum difference per charge state
+    double[] maxIsoMzDiff = new double[isotopeMaxCharge];
+    for (int i = 0; i < isotopeMaxCharge; i++) {
+      for (double diff : isoMzDiffsForCharge[i]) {
+        if (diff > maxIsoMzDiff[i]) {
+          maxIsoMzDiff[i] = diff;
+        }
+      }
+      // add some to the max diff to include more search space
+      maxIsoMzDiff[i] += 10 * isoMzTolerance.getMzToleranceForMass(maxIsoMzDiff[i]);
+    }
 
     // start processing
     totalRows = featureList.getNumberOfRows();
@@ -127,9 +133,8 @@ class IsotopeFinderTask extends AbstractTask {
     RawDataFile raw = featureList.getRawDataFile(0);
 
     // Loop through all rows
-    ScanDataAccess scans = EfficientDataAccess
-        .of(raw, ScanDataType.CENTROID, featureList.getSeletedScans(raw));
-    final int totalScans = scans.getNumberOfScans();
+    ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
+        featureList.getSeletedScans(raw));
 
     int missingValues = 0;
     int detected = 0;
@@ -144,26 +149,41 @@ class IsotopeFinderTask extends AbstractTask {
       Feature feature = row.getFeature(raw);
       double mz = feature.getMZ();
       Scan maxScan = feature.getRepresentativeScan();
-      float maxRT = maxScan.getRetentionTime();
       int scanIndex = scans.indexOf(maxScan);
       scans.jumpToIndex(scanIndex);
 
       // find candidate isotope pattern in max scan
-      List<DataPoint> candidates = IsotopesUtils
-          .findIsotopesInScan(isoMzDiffs, maxIsoMzDiff, isoMzTolerance, scans,
-              new SimpleDataPoint(mz, feature.getHeight()));
+      // for each charge state to determine best charge
+      // merge afterward to get one isotope patten with all possible isotopes
+      List<DataPoint> combinedChargesIsotopes = new ArrayList<>();
+      int maxFoundIsotopes = 0;
+      int bestCharge = 0;
 
-      if (candidates.size() <= 1) {
+      for (int i = 0; i < isotopeMaxCharge; i++) {
+        final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
+        final double currentMaxDiff = maxIsoMzDiff[i];
+        List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
+            currentMaxDiff, isoMzTolerance, scans, new SimpleDataPoint(mz, feature.getHeight()));
+
+        combinedChargesIsotopes.addAll(candidates);
+        if (candidates.size() > maxFoundIsotopes) {
+          maxFoundIsotopes = candidates.size();
+          bestCharge = i + 1;
+        }
+      }
+      if (combinedChargesIsotopes.size() <= 1) {
         // no pattern found
         continue;
       }
 
       if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
-        // add isotope pattern
-        candidates.sort(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+        // add isotope pattern and charge
+        combinedChargesIsotopes.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
         IsotopePattern isotopePattern = new SimpleIsotopePattern(
-            candidates.toArray(new DataPoint[0]), IsotopePatternStatus.DETECTED, "Isotope finder");
+            combinedChargesIsotopes.toArray(new DataPoint[0]), IsotopePatternStatus.DETECTED,
+            "Isotope finder");
         feature.setIsotopePattern(isotopePattern);
+        feature.setCharge(bestCharge);
         detected++;
       } else {
         // find pattern in FWHM
@@ -205,8 +225,8 @@ class IsotopeFinderTask extends AbstractTask {
     }
 
     if (missingValues > 0) {
-      logger.info(String
-          .format("There were %d missing FWHM values in %d features", missingValues, totalRows));
+      logger.info(String.format("There were %d missing FWHM values in %d features", missingValues,
+          totalRows));
     }
     if (detected > 0) {
       logger.info(String.format("Found %d isotope pattern in %s", detected, featureList));
