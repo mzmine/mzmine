@@ -86,7 +86,7 @@ class SpectraBottomPanel extends BorderPane {
 
     Label featureListLabel = new Label("Feature list: ");
 
-    peakListSelector = new ComboBox<>(FXCollections.observableList(
+    peakListSelector = new ComboBox<>(FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()));
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);
