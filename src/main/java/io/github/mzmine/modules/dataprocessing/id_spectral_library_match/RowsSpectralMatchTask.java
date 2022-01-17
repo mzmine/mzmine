@@ -309,11 +309,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
         final SpectralSimilarity sim = matchSpectrum(scan.getRetentionTime(), scanPrecursorMZ,
             precursorCCS, masses, entry);
         if (sim != null) {
+          Float ccsError = PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
+              precursorCCS);
+
           matches.incrementAndGet();
           addIdentities(null, List.of(new SpectralDBFeatureIdentity(scan, entry, sim,
-              SingleSpectrumLibrarySearchModule.MODULE_NAME,
-              (float) PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
-                  precursorCCS))));
+              SingleSpectrumLibrarySearchModule.MODULE_NAME, ccsError)));
         }
       }
     } catch (MissingMassListException e) {
@@ -372,19 +373,22 @@ public class RowsSpectralMatchTask extends AbstractTask {
         rowMassLists.add(rowMassList);
       }
 
+      final Float rowCCS = row.getAverageCCS();
       List<SpectralDBFeatureIdentity> ids = null;
       // match against all library entries
       for (SpectralDBEntry ident : entries) {
+        final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
         SpectralDBFeatureIdentity best = null;
         // match all scans against this ident to find best match
         for (int i = 0; i < scans.size(); i++) {
-          SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(),
-              row.getAverageCCS(), rowMassLists.get(i), ident);
+          SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(), rowCCS,
+              rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
                                                              || best.getSimilarity().getScore()
                                                                 < sim.getScore())) {
-            Float ccsRelativeError = getCCSError(row, ident);
+
+            Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 
             best = new SpectralDBFeatureIdentity(scans.get(i), ident, sim, METHOD,
                 ccsRelativeError);
@@ -409,15 +413,6 @@ public class RowsSpectralMatchTask extends AbstractTask {
       logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
       errorCounter.getAndIncrement();
     }
-  }
-
-  private Float getCCSError(FeatureListRow row, SpectralDBEntry ident) {
-    final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
-    final Float rowCCS = row.getAverageCCS();
-    if (libCCS == null || rowCCS == null) {
-      return null;
-    }
-    return PercentTolerance.getPercentError(libCCS, rowCCS);
   }
 
   /**
