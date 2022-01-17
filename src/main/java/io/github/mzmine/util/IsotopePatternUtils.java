@@ -699,7 +699,7 @@ public class IsotopePatternUtils {
 
   public static boolean check13CPattern(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,
       int maxCharge) {
-    return check13CPattern(pattern, mainMZ, mzTol, maxCharge, null);
+    return check13CPattern(pattern, mainMZ, mzTol, maxCharge, true, null);
   }
 
   /**
@@ -707,20 +707,23 @@ public class IsotopePatternUtils {
    * checking the +1 signal with 13C isotope abundances and delta m/z. Returns false, if the pattern
    * contains a 13C isotope with matching abundance preceding the main signal.
    *
-   * @param pattern         the isotope pattern
-   * @param mainMZ          the row m/z that should be the monoisotopic m/z
-   * @param mzTol           tolerance to match signals. All signals in range will be considered -
-   *                        only one has to match the criteria
-   * @param maxCharge       maximum allowed charge. will test charge 1<=max
-   * @param excludedMzDiffs option to exclude specific isotopes. {@link IsotopesUtils#getIsotopeRecord(String,
-   *                        int)} Method will return false when a preceding signal is found matching
-   *                        the intensity and m/z difference of a provided isotope (m/z difference
-   *                        to the maximum abundant isotope)
+   * @param pattern                   the isotope pattern
+   * @param mainMZ                    the row m/z that should be the monoisotopic m/z
+   * @param mzTol                     tolerance to match signals. All signals in range will be
+   *                                  considered - only one has to match the criteria
+   * @param maxCharge                 maximum allowed charge. will test charge 1<=max
+   * @param excludeIfMainIs13CIsotope return false if mainMZ is found to be a 13C isotope. Checks
+   *                                  the -1 signal mz and intensity
+   * @param excludedMzDiffs           option to exclude specific isotopes. {@link
+   *                                  IsotopesUtils#getIsotopeRecord(String, int)} Method will
+   *                                  return false when a preceding signal is found matching the
+   *                                  intensity and m/z difference of a provided isotope (m/z
+   *                                  difference to the maximum abundant isotope)
    * @return only true if the +1 peak for 13C isotope is found. false otherwise or if there is a
    * preceding 13C isotope or one of the excluded isotopes (e.g., 18O)
    */
   public static boolean check13CPattern(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,
-      int maxCharge, @Nullable Isotope[] excludedMzDiffs) {
+      int maxCharge, boolean excludeIfMainIs13CIsotope, @Nullable Isotope[] excludedMzDiffs) {
     // result:
     boolean plusOneIsotopeFound = false;
 
@@ -763,13 +766,15 @@ public class IsotopePatternUtils {
       double maxRatio = estimatedMaxC * C13_REL_ABUNDANCE * 1.15;
 
       // if signal has preceeding 13C signal within intensity range - flag as isotope and return false
-      Range<Double> estimatedIntensityRange = Range.closed(mainHeight / maxRatio,
-          mainHeight / minRatio);
-      double isotopeMZ = newMainMZ - (C13_MZ_DELTA / charge);
-      boolean mainIsIsotopeSignal = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
-          estimatedIntensityRange, maxIndex - 1, -1);
-      if (mainIsIsotopeSignal) {
-        return false;
+      if (excludeIfMainIs13CIsotope) {
+        Range<Double> estimatedIntensityRange = Range.closed(mainHeight / maxRatio,
+            mainHeight / minRatio);
+        double isotopeMZ = newMainMZ - (C13_MZ_DELTA / charge);
+        boolean mainIsIsotopeSignal = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
+            estimatedIntensityRange, maxIndex - 1, -1);
+        if (mainIsIsotopeSignal) {
+          return false;
+        }
       }
 
       // check if this signal is actually the +1 peak
@@ -777,8 +782,9 @@ public class IsotopePatternUtils {
       // when found - still check if other condition for other charge states result in false
       // when charge state is 2, the +2 13C signal may be found as a potential +1 13C signal
       if (!plusOneIsotopeFound) {
-        isotopeMZ = newMainMZ + (C13_MZ_DELTA / charge);
-        estimatedIntensityRange = Range.closed(mainHeight * minRatio, mainHeight * maxRatio);
+        double isotopeMZ = newMainMZ + (C13_MZ_DELTA / charge);
+        Range<Double> estimatedIntensityRange = Range.closed(mainHeight * minRatio,
+            mainHeight * maxRatio);
         plusOneIsotopeFound = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
             estimatedIntensityRange, maxIndex + 1, 1);
       }

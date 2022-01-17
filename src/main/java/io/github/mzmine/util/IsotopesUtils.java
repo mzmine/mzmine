@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -116,6 +117,25 @@ public class IsotopesUtils {
         : new Isotope(elementSymbol, result.getAtomicNumber(), result.getExactMass(),
             Math.abs(result.getExactMass() - main.getExactMass()),
             result.getNaturalAbundance() / main.getNaturalAbundance());
+  }
+
+  /**
+   * The isotope of an element with mass number might include isotopes with no natural abundance.
+   *
+   * @param elementSymbol An element symbol to search for
+   * @return the isotope of an element with specific mass number or empty list if not available
+   */
+  public static List<Isotope> getIsotopeRecord(String elementSymbol) {
+    final IIsotope[] isotopes = getIsotopes(elementSymbol, true);
+    final IIsotope main = Arrays.stream(isotopes)
+        .max(Comparator.comparingDouble(IIsotope::getNaturalAbundance)).orElse(null);
+    if (main == null) {
+      return List.of();
+    }
+    return Arrays.stream(isotopes).filter(iso -> !main.equals(iso)).map(
+        result -> new Isotope(elementSymbol, result.getAtomicNumber(), result.getExactMass(),
+            Math.abs(result.getExactMass() - main.getExactMass()),
+            result.getNaturalAbundance() / main.getNaturalAbundance())).toList();
   }
 
   /**

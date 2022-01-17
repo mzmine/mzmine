@@ -229,10 +229,11 @@ class IsotopesUtilsTest {
                 p, charge));
         for (int i = 1; i < pattern.getNumberOfDataPoints(); i++) {
           // all other should find a previous signal
-          assertFalse(IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(i), mzTol, 4,
-              isotope18O), String.format(
-              "Isotope peak %d of pattern p=%d was falsely identified as potential monoisotopic signal at charge %d",
-              i, p, charge));
+          assertFalse(
+              IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(i), mzTol, 4, true,
+                  isotope18O), String.format(
+                  "Isotope peak %d of pattern p=%d was falsely identified as potential monoisotopic signal at charge %d",
+                  i, p, charge));
         }
       }
     }
@@ -245,7 +246,8 @@ class IsotopesUtilsTest {
     // for the Br containing pattern the +2 peak is at 100 % currently it cannot be destiguished from the monoisotopic peak - it returns true
     for (int i = 1; i < br3C10.getNumberOfDataPoints(); i++) {
       // all other should find a previous signal
-      assertFalse(IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, br),
+      assertFalse(
+          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br),
           String.format("Br3C10 isotope signal i=%d detected as main", i));
     }
 
@@ -255,8 +257,8 @@ class IsotopesUtilsTest {
     final DataPoint old = dps.remove(0);
     dps.add(0, new SimpleDataPoint(old.getMZ(), dps.get(0).getIntensity() * 1.2));
     IsotopePattern pattern = getPattern(dps);
-    assertFalse(
-        IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(0), mzTol, 2, isotope18O));
+    assertFalse(IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(0), mzTol, 2, true,
+        isotope18O));
 
   }
 
@@ -297,7 +299,7 @@ class IsotopesUtilsTest {
 
     // nonsense
     final IIsotope[] nothing = IsotopesUtils.getIsotopes("CBr");
-    assertTrue(nothing.length == 0);
+    assertEquals(0, nothing.length);
   }
 
   private List<DataPoint> applyCharge(List<DataPoint> dps, int charge) {
