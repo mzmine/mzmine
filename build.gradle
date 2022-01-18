@@ -44,7 +44,7 @@ println "OS detected as " + project.ext.osSuffix
 repositories {
 
     // TODO change to mavenCentral()
-//    mavenLocal()
+    mavenLocal()
     maven { url = "https://repo.maven.apache.org/maven2" }
     // local libraries
     maven { url = "file://" + projectDir + "/src/main/lib" }
@@ -174,7 +174,7 @@ dependencies {
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
-    implementation "net.csibio.aird:aird-sdk:1.1.6"
+    implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
     testImplementation "org.mockito:mockito-inline:$mockitoversion"
