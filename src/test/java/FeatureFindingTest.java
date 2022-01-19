@@ -226,8 +226,8 @@ public class FeatureFindingTest {
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 4);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
         new MZTolerance(0.002, 10));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.startIntensity, 3E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2, 1E5);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 1E5);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");

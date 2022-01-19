@@ -451,9 +451,9 @@ public class BatchWizardController {
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
             .getValue());
     param.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
-    param.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2,
+    param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue());
-    param.setParameter(ADAPChromatogramBuilderParameters.startIntensity,
+    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.minimumFeatureHeight)
             .getValue());
 
