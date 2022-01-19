@@ -203,7 +203,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     MZmineCore.getTaskController().addTask(
         new BuildMultipleMobilogramRanges(controlsPanel.getMobilogramRangesList(),
             Set.of(cachedFrame), rawDataFile, this, rangesBinningMobilogramDataAccess, new Date()));
-    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
+    if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
         heatmapChart.getXYPlot().getRangeAxis().getRange(),
         selectedFrame.get().getMobilityRange())) {
       Range<Double> mobilityRange = selectedFrame.get().getMobilityRange();
@@ -212,7 +212,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
             .setRange(mobilityRange.lowerEndpoint(), mobilityRange.upperEndpoint());
       }
     }
-    if (!RangeUtils.isJFreeRangeConnectedToGuavaRange(
+    if (!RangeUtils.isGuavaRangeEnclosingJFreeRange(
         heatmapChart.getXYPlot().getDomainAxis().getRange(),
         selectedFrame.get().getDataPointMZRange())) {
       Range<Double> mzRange = selectedFrame.get().getDataPointMZRange();
