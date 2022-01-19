@@ -18,21 +18,21 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_featurefilter;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.awt.Window;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureFilterParameters extends SimpleParameterSet {
 
@@ -109,5 +109,10 @@ public class FeatureFilterParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

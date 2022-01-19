@@ -21,6 +21,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.check
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -28,6 +29,7 @@ import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Refinement to MS annotation
@@ -49,7 +51,6 @@ public class IonNetworkMSMSCheckParameters extends SimpleParameterSet {
   public static final DoubleParameter MIN_HEIGHT = new DoubleParameter("Min height (in MS2)",
       "Minimum height of signal", MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
-
   public static final BooleanParameter CHECK_MULTIMERS = new BooleanParameter("Check for multimers",
       "Checks the truth of the multimer identification by searching the MS/MS spectra for the connection yM -> xM (x<y)",
       true);
@@ -70,5 +71,10 @@ public class IonNetworkMSMSCheckParameters extends SimpleParameterSet {
         new Parameter[]{MZ_TOLERANCE, MIN_HEIGHT, CHECK_MULTIMERS, CHECK_NEUTRALLOSSES}
         : new Parameter[]{PEAK_LISTS, MZ_TOLERANCE, MIN_HEIGHT, CHECK_MULTIMERS,
             CHECK_NEUTRALLOSSES});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

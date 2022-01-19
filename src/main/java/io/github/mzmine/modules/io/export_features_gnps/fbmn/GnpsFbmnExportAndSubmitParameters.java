@@ -32,6 +32,7 @@ package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
@@ -43,6 +44,7 @@ import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FeatureMeasurementType;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
@@ -101,5 +103,10 @@ public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

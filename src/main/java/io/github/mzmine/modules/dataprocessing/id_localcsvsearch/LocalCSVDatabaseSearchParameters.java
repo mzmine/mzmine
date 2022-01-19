@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
@@ -46,6 +47,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -124,5 +126,10 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
 
   private boolean importTypeListContainsType(List<ImportType> importTypes, DataType<?> type) {
     return importTypes.stream().anyMatch(importType -> importType.getDataType().equals(type));
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

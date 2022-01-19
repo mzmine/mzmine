@@ -226,8 +226,8 @@ public class FeatureFindingTest {
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, 4);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.mzTolerance,
         new MZTolerance(0.002, 10));
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.startIntensity, 3E5);
-    paramChrom.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2, 1E5);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 3E5);
+    paramChrom.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 1E5);
     paramChrom.setParameter(ADAPChromatogramBuilderParameters.suffix, chromSuffix);
 
     logger.info("Testing ADAPChromatogramBuilder");
@@ -251,7 +251,7 @@ public class FeatureFindingTest {
       // assertTrue(MZmineTestUtil.isSorted(flist));
 
       if (equalsFeatureListName(flist, sample1, chromSuffix)) {
-        assertEquals(1011, flist.getNumberOfRows());
+        assertEquals(974, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
         assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
 
@@ -259,18 +259,19 @@ public class FeatureFindingTest {
         FeatureListRow row = flist.getRow(100);
         assertEquals(flist, row.getFeatureList());
         assertEquals(101, row.getID());
-        assertTrue(row.getAverageMZ() > 249.206);
-        assertTrue(row.getAverageRT() > 8.03);
-        assertTrue(row.getAverageHeight() > 320000);
-        assertTrue(row.getAverageArea() > 18354);
+        assertTrue(row.getAverageMZ() > 259.1327);
+        assertTrue(row.getAverageRT() > 7.36);
+        assertTrue(row.getAverageRT() < 7.38);
+        assertTrue(row.getAverageHeight() > 636049);
+        assertTrue(row.getAverageArea() > 646473);
 
         IonTimeSeries<? extends Scan> data = row.getFeatures().get(0).getFeatureData();
-        assertEquals(6, data.getNumberOfValues());
-        assertEquals(6, data.getSpectra().size());
+        assertEquals(87, data.getNumberOfValues());
+        assertEquals(87, data.getSpectra().size());
 
         filesTested++;
       } else if (equalsFeatureListName(flist, sample2, chromSuffix)) {
-        assertEquals(1068, flist.getNumberOfRows());
+        assertEquals(1027, flist.getNumberOfRows());
         // check number of chromatogram scans (equals MS1 scans)
         assertEquals(87, flist.getSeletedScans(flist.getRawDataFile(0)).size());
 
@@ -395,7 +396,7 @@ public class FeatureFindingTest {
         MinimumSearchFeatureResolverParameters.CHROMATOGRAPHIC_THRESHOLD_LEVEL, 0.8);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
-    generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT, 1E5);
+    generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_ABSOLUTE_HEIGHT, 3E5);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_NUMBER_OF_DATAPOINTS, 4);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RATIO, 1.8);
     generalParam.setParameter(MinimumSearchFeatureResolverParameters.MIN_RELATIVE_HEIGHT, 0d);
@@ -447,8 +448,8 @@ public class FeatureFindingTest {
     assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
     assertEquals(lastFlistB.getAppliedMethods().size() + 1, processed2.getAppliedMethods().size());
 
-    assertEquals(158, processed1.getNumberOfRows());
-    assertEquals(169, processed2.getNumberOfRows());
+    assertEquals(127, processed1.getNumberOfRows());
+    assertEquals(131, processed2.getNumberOfRows());
   }
 
 
@@ -509,8 +510,8 @@ public class FeatureFindingTest {
     assertTrue(lastFlistA.getNumberOfRows() > processed1.getNumberOfRows());
     assertTrue(lastFlistB.getNumberOfRows() > processed2.getNumberOfRows());
 
-    assertEquals(137, processed1.getNumberOfRows());
-    assertEquals(135, processed2.getNumberOfRows());
+    assertEquals(108, processed1.getNumberOfRows());
+    assertEquals(104, processed2.getNumberOfRows());
 
     // has isotope pattern
     assertNotNull(
@@ -581,7 +582,7 @@ public class FeatureFindingTest {
     // methods +1
     assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
     // less feature list rows
-    assertEquals(200, processed1.getNumberOfRows());
+    assertEquals(155, processed1.getNumberOfRows());
 
     // at least one row with 2 features
     assertTrue(processed1.stream()
