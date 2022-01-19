@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.dataprocessing.filter_blanksubtraction;
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
@@ -26,6 +27,7 @@ import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
 
@@ -52,4 +54,8 @@ public class FeatureListBlankSubtractionParameters extends SimpleParameterSet {
     super(new Parameter[]{alignedPeakList, blankRawDataFiles, minBlanks, foldChange, suffix});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

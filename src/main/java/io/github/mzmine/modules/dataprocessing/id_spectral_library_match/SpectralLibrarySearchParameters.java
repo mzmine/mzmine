@@ -23,6 +23,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.SpectralLibrariesSelectionParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -40,6 +41,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import java.util.Collection;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
@@ -171,4 +173,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

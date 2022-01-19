@@ -24,6 +24,7 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.modules.tools.msmsscore.MSMSScoreParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
@@ -31,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.elements.ElementsCompositionRa
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
 
@@ -76,5 +78,10 @@ public class FormulaPredictionFeatureListParameters extends SimpleParameterSet {
     super(new Parameter[] {charge, ionization, FEATURE_LISTS, sorting, mzTolerance,
         maxBestFormulasPerFeature, elements, elementalRatios, rdbeRestrictions, isotopeFilter,
         msmsFilter});
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
