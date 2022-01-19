@@ -35,13 +35,15 @@ public class Isotope13CFilter {
   private final MZTolerance mzTolerance;
   private final int maxCharge;
   private final boolean filter13Isotope;
+  private final boolean applyMinCEstimation;
   private final Isotope[] excludedIsotopes;
 
   public Isotope13CFilter(MZTolerance mzTolerance, int maxCharge, boolean filter13Isotope,
-      List<Element> elements) {
+      List<Element> elements, boolean applyMinCEstimation) {
     this.mzTolerance = mzTolerance;
     this.maxCharge = maxCharge;
     this.filter13Isotope = filter13Isotope;
+    this.applyMinCEstimation = applyMinCEstimation;
 
     if (elements != null && !elements.isEmpty()) {
       List<Isotope> isotopes = new ArrayList<>();
@@ -65,6 +67,6 @@ public class Isotope13CFilter {
    */
   public boolean accept(IsotopePattern pattern, double mainMZ) {
     return IsotopePatternUtils.check13CPattern(pattern, mainMZ, mzTolerance, maxCharge,
-        filter13Isotope, excludedIsotopes);
+        filter13Isotope, excludedIsotopes, applyMinCEstimation);
   }
 }

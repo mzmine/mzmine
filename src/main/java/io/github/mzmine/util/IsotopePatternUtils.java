@@ -699,7 +699,7 @@ public class IsotopePatternUtils {
 
   public static boolean check13CPattern(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,
       int maxCharge) {
-    return check13CPattern(pattern, mainMZ, mzTol, maxCharge, true, null);
+    return check13CPattern(pattern, mainMZ, mzTol, maxCharge, true, null, true);
   }
 
   /**
@@ -719,11 +719,14 @@ public class IsotopePatternUtils {
    *                                  return false when a preceding signal is found matching the
    *                                  intensity and m/z difference of a provided isotope (m/z
    *                                  difference to the maximum abundant isotope)
+   * @param applyMinCEstimation       uses some estimates for minimum number of C atoms derived from
+   *                                  COCONUT database. Should include at least 99.9 % of formulas
    * @return only true if the +1 peak for 13C isotope is found. false otherwise or if there is a
    * preceding 13C isotope or one of the excluded isotopes (e.g., 18O)
    */
   public static boolean check13CPattern(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,
-      int maxCharge, boolean excludeIfMainIs13CIsotope, @Nullable Isotope[] excludedMzDiffs) {
+      int maxCharge, boolean excludeIfMainIs13CIsotope, @Nullable Isotope[] excludedMzDiffs,
+      boolean applyMinCEstimation) {
     // result:
     boolean plusOneIsotopeFound = false;
 
@@ -759,8 +762,14 @@ public class IsotopePatternUtils {
       }
 
       // estimate min max carbons
-      double estimatedMinC = estimateMinCAtoms(newMainMZ, charge);
+      double estimatedMinC = applyMinCEstimation ? estimateMinCAtoms(newMainMZ, charge) : 2;
       double estimatedMaxC = estimateMaxCAtoms(newMainMZ, charge);
+
+      // only possible if mass defect is too high (e.g., for multiply charged)
+      if (estimatedMinC >= estimatedMaxC) {
+        continue;
+      }
+
       // add some tolerance on lower and upper bounds
       double minRatio = estimatedMinC * C13_REL_ABUNDANCE * 0.85;
       double maxRatio = estimatedMaxC * C13_REL_ABUNDANCE * 1.15;
@@ -814,8 +823,17 @@ public class IsotopePatternUtils {
     if (mz <= 0) {
       return -1;
     }
-    // N/C ratio <= 4, O/C ratio <= 3, P/C ratio <= 2, S/C ratio <= 3
-    return 3 * charge;
+    // linear equation through lower bound of COCONUT data base m/z values and min carbon
+    // contains 99.9% of structures
+    double minCarbon = mz * 0.0225 - 5;
+
+    // linear equation for mass defect only below 0.5
+    // contains 99.9% of structures
+    final double massDefect = mz - Math.floor(mz);
+    if (massDefect <= 0.5 && charge == 1) {
+      minCarbon = Math.max(minCarbon, massDefect * 55 - 4);
+    }
+    return Math.max(2, minCarbon) * charge;
   }
 
   private static int findMaxIndex(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,

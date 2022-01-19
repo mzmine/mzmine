@@ -231,7 +231,7 @@ class IsotopesUtilsTest {
           // all other should find a previous signal
           assertFalse(
               IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(i), mzTol, 4, true,
-                  isotope18O), String.format(
+                  isotope18O, true), String.format(
                   "Isotope peak %d of pattern p=%d was falsely identified as potential monoisotopic signal at charge %d",
                   i, p, charge));
         }
@@ -247,8 +247,8 @@ class IsotopesUtilsTest {
     for (int i = 1; i < br3C10.getNumberOfDataPoints(); i++) {
       // all other should find a previous signal
       assertFalse(
-          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br),
-          String.format("Br3C10 isotope signal i=%d detected as main", i));
+          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br,
+              true), String.format("Br3C10 isotope signal i=%d detected as main", i));
     }
 
     // change up some of the intensities - should be false in the end
@@ -258,7 +258,7 @@ class IsotopesUtilsTest {
     dps.add(0, new SimpleDataPoint(old.getMZ(), dps.get(0).getIntensity() * 1.2));
     IsotopePattern pattern = getPattern(dps);
     assertFalse(IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(0), mzTol, 2, true,
-        isotope18O));
+        isotope18O, true));
 
   }
 

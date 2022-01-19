@@ -38,12 +38,18 @@ public class Isotope13CFilterParameters extends SimpleParameterSet {
   public static final IntegerParameter maxCharge = new IntegerParameter("Max charge",
       "Maximum allowed charge state", 1);
   public static final BooleanParameter removeIfMainIs13CIsotope = new BooleanParameter(
-      "Remove 13C isotopes",
+      "Remove if 13C",
       "Checks if the main m/z (row) is a 13C isotope of a preceding signal. Default: true", true);
+  public static final BooleanParameter applyMinCEstimation = new BooleanParameter(
+      "Estimate minimum carbon",
+      "Estimates the minimum number of carbons based on m/z and mass defect. Uses estimates derived from the COCONUT database. Default: true",
+      true);
+
   private static final Logger logger = Logger.getLogger(Isotope13CFilterParameters.class.getName());
 
   public Isotope13CFilterParameters() {
-    super(new Parameter[]{mzTolerance, maxCharge, removeIfMainIs13CIsotope, elements});
+    super(new Parameter[]{mzTolerance, maxCharge, applyMinCEstimation, removeIfMainIs13CIsotope,
+        elements});
   }
 
   /**
@@ -56,7 +62,8 @@ public class Isotope13CFilterParameters extends SimpleParameterSet {
   public static Isotope13CFilter createFilter(ParameterSet parameters) {
     try {
       return new Isotope13CFilter(parameters.getValue(mzTolerance), parameters.getValue(maxCharge),
-          parameters.getValue(removeIfMainIs13CIsotope), parameters.getValue(elements));
+          parameters.getValue(removeIfMainIs13CIsotope), parameters.getValue(elements),
+          parameters.getValue((applyMinCEstimation)));
     } catch (Exception ex) {
       logger.log(Level.WARNING, "Cannot create filter. " + ex.getMessage(), ex);
       return null;
