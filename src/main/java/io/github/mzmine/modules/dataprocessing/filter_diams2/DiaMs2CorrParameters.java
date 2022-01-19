@@ -48,14 +48,15 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
       "Minimum fragment intensity", "Minimum intensity of fragment ions to be considered.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
-  public static final IntegerParameter minCorrPoints = new IntegerParameter(
-      "Minimum correlated points",
-      "The minimum number of points to be correlated in MS1 and MS2 features", 5);
+  public static final IntegerParameter numCorrPoints = new IntegerParameter(
+      "Number of correlated points",
+      "The number of points to be correlated in MS1 and MS2 features. Depends on cycle time and chromatographic resolution.",
+      8);
 
   public static final DoubleParameter minPearson = new DoubleParameter(
       "Minimum pearson correlation",
       "The minimum pearson correlation (R\\u00B2) between the MS1 and MS2 ion shapes.",
-      new DecimalFormat("0.00"), 0.90, 0d, 1d);
+      new DecimalFormat("0.00"), 0.80, 0d, 1d);
 
   public static final MZToleranceParameter ms2ScanToScanAccuracy = new MZToleranceParameter(
       "MS2 scan-to-scan accuracy",
@@ -63,7 +64,7 @@ public class DiaMs2CorrParameters extends SimpleParameterSet {
       0.003, 15);
 
   public DiaMs2CorrParameters() {
-    super(new Parameter[]{flists, ms2ScanSelection, minMs1Intensity, minMs2Intensity, minCorrPoints,
+    super(new Parameter[]{flists, ms2ScanSelection, minMs1Intensity, minMs2Intensity, numCorrPoints,
         minPearson, ms2ScanToScanAccuracy});
   }
 

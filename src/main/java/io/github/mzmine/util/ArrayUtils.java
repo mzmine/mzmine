@@ -118,4 +118,9 @@ public class ArrayUtils {
       input[last - i] = temp;
     }
   }
+
+  public static double back(double[] array) {
+    assert array.length > 0;
+    return array[array.length - 1];
+  }
 }

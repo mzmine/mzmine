@@ -55,6 +55,7 @@ import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.FinishedTask;
+import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -62,6 +63,7 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -101,7 +103,7 @@ public class DiaMs2CorrTask extends AbstractTask {
     ms2ScanSelection = parameters.getValue(DiaMs2CorrParameters.ms2ScanSelection);
     minMs1Intensity = parameters.getValue(DiaMs2CorrParameters.minMs1Intensity);
     minMs2Intensity = parameters.getValue(DiaMs2CorrParameters.minMs2Intensity);
-    minCorrPoints = parameters.getValue(DiaMs2CorrParameters.minCorrPoints);
+    minCorrPoints = parameters.getValue(DiaMs2CorrParameters.numCorrPoints);
     mzTolerance = parameters.getValue(DiaMs2CorrParameters.ms2ScanToScanAccuracy);
     minPearson = parameters.getValue(DiaMs2CorrParameters.minPearson);
     numRows = flist.getNumberOfRows();
@@ -150,7 +152,6 @@ public class DiaMs2CorrTask extends AbstractTask {
     // build chromatograms
     final MZmineProject dummyProject = new MZmineProjectImpl();
     var ms2Flist = runADAP(dummyProject, file);
-    // dann durch ms1 feature, dann ms2 vor und nach feature angucken, optinal dann shapes vergleichen und zum ms2 hinzufügen
 
     // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
     final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
@@ -175,19 +176,16 @@ public class DiaMs2CorrTask extends AbstractTask {
 
       MergedMassSpectrum mergedMobilityScan = null; // for IMS
       final IonTimeSeries<? extends Scan> featureEIC = feature.getFeatureData();
-      final int numPoints = featureEIC.getNumberOfValues();
-      final double[] ms1Intensities = new double[numPoints];
-      final double[] ms1Rts = new double[numPoints];
-      for (int i = 0; i < numPoints; i++) {
-        ms1Intensities[i] = featureEIC.getIntensity(i);
-        ms1Rts[i] = featureEIC.getRetentionTime(i);
+      final double[][] shape = extractPointsAroundMaximum(minCorrPoints, featureEIC,
+          feature.getRepresentativeScan());
+      if (shape == null) {
+        continue;
       }
+      final double[] ms1Rts = shape[0];
+      final double[] ms1Intensities = shape[1];
 
-      final Float fwhm = feature.getFWHM();
       // fwhm sometimes does funny stuff, so we restrict it to the overlap of fwhm + rt range
-      final Range<Float> rtRange = fwhm != null ? feature.getRawDataPointsRTRange()
-          .intersection(Range.closed(feature.getRT() - fwhm / 2, feature.getRT() + fwhm / 2))
-          : feature.getRawDataPointsRTRange();
+      final Range<Float> rtRange = Range.closed((float) ms1Rts[0], (float) ArrayUtils.back(ms1Rts));
       final List<Scan> ms2sInRtRange = ms2Scans.stream()
           .filter(scan -> rtRange.contains(scan.getRetentionTime())).toList();
       final Scan closestMs2 = getClosestMs2(feature.getRT(), ms2sInRtRange);
@@ -248,10 +246,11 @@ public class DiaMs2CorrTask extends AbstractTask {
         final CorrelationData correlationData = DIA.corrFeatureShape(ms1Rts, ms1Intensities, rts,
             intensities, minCorrPoints, 2, minMs2Intensity / 3);
         if (correlationData != null && correlationData.isValid()
-            && correlationData.getPearsonR() > minPearson) {
+            && Math.pow(correlationData.getPearsonR(), 2) > minPearson) {
           int startIndex = -1;
           int endIndex = -1;
           double maxIntensity = Double.NEGATIVE_INFINITY;
+
           final List<Scan> spectra = (List<Scan>) eic.getSpectra();
           for (int j = 0; j < spectra.size(); j++) {
             Scan spectrum = spectra.get(j);
@@ -350,6 +349,42 @@ public class DiaMs2CorrTask extends AbstractTask {
 //        .remove(file.getAppliedMethods().size() - 1);
 //    assert removed.getModule().getClass().equals(ModularADAPChromatogramBuilderModule.class);
     return (ModularFeatureList) ms2Flist;
+  }
+
+  /**
+   * Extracts a given number of data points around a maximum. The number of detected points is
+   * automatically limited to the bounds of the chromatogram.
+   *
+   * @param numPoints    the number of points to extract.
+   * @param chromatogram the chromatogram to extract the points from.
+   * @param maximumScan  The maximum scan in the chromatogram.
+   * @return a 2d array [0][] = rts, [1][] = intensities.
+   */
+  @Nullable
+  private double[][] extractPointsAroundMaximum(final int numPoints,
+      final IonTimeSeries<? extends Scan> chromatogram, @Nullable final Scan maximumScan) {
+    if (maximumScan == null) {
+      return null;
+    }
+
+    final List<? extends Scan> spectra = chromatogram.getSpectra();
+    final int index = Math.abs(Collections.binarySearch(spectra, maximumScan));
+    final int index2 = spectra.indexOf(maximumScan);
+
+    // take one point more each, because MS1 and MS2 are acquired in alternating fashion, so we
+    // need one more ms1 point on each side for the rt range, so we can fit the determined number
+    // of ms2 points
+    final int lower = Math.max(index - numPoints / 2 - 1, 0);
+    final int upper = Math.min(index + numPoints / 2 + 1, chromatogram.getNumberOfValues() - 1);
+
+    final double[] rts = new double[upper - lower];
+    final double[] intensities = new double[upper - lower];
+    for (int i = lower; i < upper; i++) {
+      rts[i - lower] = chromatogram.getRetentionTime(i);
+      intensities[i - lower] = chromatogram.getIntensity(i);
+    }
+
+    return new double[][]{rts, intensities};
   }
 
   @Override
