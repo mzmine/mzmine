@@ -59,9 +59,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class AirdImportTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(AirdImportTask.class.getName());
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private File file;
   private MZmineProject project;
@@ -205,8 +205,8 @@ public class AirdImportTask extends AbstractTask {
       for (int i = 0; i < rtList.size(); i++) {
         float rt = rtList.get(i);
         SimpleScan scan = buildSimpleScan(map.get(rt), index.getCvList().get(i),
-            rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(),
-            null, isMinute);
+            rangeList != null ? rangeList.get(0) : null, numList.get(i), rt, index.getLevel(), null,
+            isMinute);
         parsedScans++;
         newMZmineFile.addScan(scan);
       }
@@ -262,10 +262,9 @@ public class AirdImportTask extends AbstractTask {
       msMsInfo = buildMsMsInfo(airdInfo, windowRange, parentScan);
     }
 
-    SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel,
-        rt * (isMinute ? 60 : 1), msMsInfo,
-        spectrum.mzs(), ArrayUtil.fromFloatToDouble(spectrum.ints()),
-        massSpectrumType, polarityType, filterString, mzRange);
+    SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel, rt * (isMinute ? 60 : 1),
+        msMsInfo, spectrum.mzs(), ArrayUtil.fromFloatToDouble(spectrum.ints()), massSpectrumType,
+        polarityType, filterString, mzRange);
     return msScan;
   }
 
