@@ -116,9 +116,9 @@ public class DiaMs2CorrTask extends AbstractTask {
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan, minCorrPoints);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.mzTolerance, mzTolerance);
     adapParameters.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2,
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
         minMs2Intensity / 5);
-    adapParameters.setParameter(ADAPChromatogramBuilderParameters.startIntensity, minMs2Intensity);
+    adapParameters.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, minMs2Intensity);
   }
 
   @Override
