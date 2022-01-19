@@ -45,8 +45,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AirdImportModule implements MZmineProcessingModule {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private static final Logger logger = Logger.getLogger(AirdImportModule.class.getName());
   private static final String MODULE_NAME = "Aird file import";
   private static final String MODULE_DESCRIPTION = "This module imports aird raw data into the project.";
 
@@ -106,7 +105,7 @@ public class AirdImportModule implements MZmineProcessingModule {
         logger.warning("Cannot read index file " + indexFile);
         return ExitCode.ERROR;
       }
-      
+
       // Set the new name by removing the common prefix
       String newName;
       if (!Strings.isNullOrEmpty(commonPrefix)) {
