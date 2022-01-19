@@ -292,7 +292,7 @@ class IsotopesUtilsTest {
   void testGetIsotope() {
     final IIsotope o18 = IsotopesUtils.getIsotopes("O", 18);
     assertTrue(o18.getNaturalAbundance() > 0);
-    assertEquals(16, o18.getAtomicNumber());
+    assertEquals(8, o18.getAtomicNumber());
     assertEquals(18, o18.getMassNumber());
     final IIsotope c13 = IsotopesUtils.getIsotopes("C", 13);
     assertTrue(c13.getNaturalAbundance() > 1);
