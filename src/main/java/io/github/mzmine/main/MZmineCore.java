@@ -72,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
 public final class MZmineCore {
 
   private static final Logger logger = Logger.getLogger(MZmineCore.class.getName());
-
+  
   private static final MZmineCore instance = new MZmineCore();
 
   // the default headless desktop is returned if no other desktop is set (e.g., during start up)

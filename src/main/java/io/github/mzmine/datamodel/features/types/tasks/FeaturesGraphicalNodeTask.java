@@ -42,7 +42,7 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
   private ModularFeatureListRow row;
   private String collHeader;
   private AtomicDouble progress = new AtomicDouble(0d);
-  private int rowID = -1;
+  private final int rowID;
 
   public FeaturesGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane,
       ModularFeatureListRow row, String collHeader) {
@@ -50,13 +50,12 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
     this.nodeClass = nodeClass;
     this.pane = pane;
     this.row = row;
+    rowID = row.getID();
     this.collHeader = collHeader;
   }
 
   @Override
   public void run() {
-    rowID = row.getID();
-
     setStatus(TaskStatus.PROCESSING);
     Node n = null;
     try {
@@ -64,7 +63,7 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
       n = nodeClass.getConstructor(new Class[]{ModularFeatureListRow.class, AtomicDouble.class})
           .newInstance(row, progress);
 
-      if(n != null) {
+      if (n != null) {
         final Node node = n;
         // save chart for later
         row.addBufferedColChart(collHeader, n);
@@ -72,6 +71,10 @@ public class FeaturesGraphicalNodeTask extends AbstractTask {
         Platform.runLater(() -> {
           pane.getChildren().add(node);
         });
+      } else {
+        logger.log(Level.WARNING,
+            () -> String.format("Cannot create graphical column for row %d and %s", rowID,
+                nodeClass.toString()));
       }
     } catch (NoSuchMethodException | IllegalAccessException | InstantiationException
         | InvocationTargetException e) {

@@ -34,6 +34,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CSVUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -225,6 +226,7 @@ public class CSVExportModularTask extends AbstractTask {
       if (feature != null) {
         joinData(b, feature, featureTypes);
       } else {
+        // no feature for this sample - add empty cells
         joinEmptyCells(b, featureTypes);
       }
     }
@@ -277,7 +279,7 @@ public class CSVExportModularTask extends AbstractTask {
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }
-          b.append(field == null ? "" : field);
+          b.append(csvEscape(field));
         }
       } else {
         Object value = data == null ? null : data.get(type);
@@ -295,7 +297,7 @@ public class CSVExportModularTask extends AbstractTask {
               "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
           str = "";
         }
-        b.append(escapeStringForCSV(str));
+        b.append(csvEscape(str));
       }
     }
   }
@@ -324,38 +326,19 @@ public class CSVExportModularTask extends AbstractTask {
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }
-          b.append(field == null ? "" : (header + headerSeparator + field));
+          b.append(csvEscape(header + headerSeparator + field));
         }
       } else {
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
-        b.append(header);
+        b.append(csvEscape(header));
       }
     }
     return b.toString();
   }
 
-  private String escapeStringForCSV(final String inputString) {
-    if (inputString == null) {
-      return "";
-    }
-
-    // Remove all special characters (particularly \n would mess up our CSV
-    // format).
-    String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
-
-    // Skip too long strings (see Excel 2007 specifications)
-    if (result.length() >= 32766) {
-      result = result.substring(0, 32765);
-    }
-
-    // If the text contains fieldSeparator, we will add
-    // parenthesis
-    if (result.contains(fieldSeparator) || result.contains("\"")) {
-      result = "\"" + result.replaceAll("\"", "'") + "\"";
-    }
-
-    return result;
+  private String csvEscape(String input) {
+    return CSVUtils.escape(input, fieldSeparator);
   }
 }
