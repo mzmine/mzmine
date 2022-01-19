@@ -309,11 +309,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
         final SpectralSimilarity sim = matchSpectrum(scan.getRetentionTime(), scanPrecursorMZ,
             precursorCCS, masses, entry);
         if (sim != null) {
+          Float ccsError = PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
+              precursorCCS);
+
           matches.incrementAndGet();
           addIdentities(null, List.of(new SpectralDBFeatureIdentity(scan, entry, sim,
-              SingleSpectrumLibrarySearchModule.MODULE_NAME,
-              (float) PercentTolerance.getPercentError(entry.getOrElse(DBEntryField.CCS, null),
-                  precursorCCS))));
+              SingleSpectrumLibrarySearchModule.MODULE_NAME, ccsError)));
         }
       }
     } catch (MissingMassListException e) {
@@ -332,12 +333,12 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
-        && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
+               && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
       MobilityScan mobScan = (MobilityScan) merged.getSourceSpectra().stream()
           .filter(MobilityScan.class::isInstance).max(Comparator.comparingDouble(
               s -> Objects.requireNonNullElse(((MobilityScan) s).getMobility(), 0d))).orElse(null);
@@ -345,7 +346,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
       if (ddaInfo.getPrecursorCharge() != null && mobScan != null && (/*
           mobScan.getDataFile().getCCSCalibration() != null // enable after ccs calibration pr is merged
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
-          == MobilityType.TIMS)) {
+                   == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
             MobilityType.TIMS, ddaInfo.getPrecursorCharge());
       }
@@ -372,20 +373,25 @@ public class RowsSpectralMatchTask extends AbstractTask {
         rowMassLists.add(rowMassList);
       }
 
+      final Float rowCCS = row.getAverageCCS();
       List<SpectralDBFeatureIdentity> ids = null;
       // match against all library entries
       for (SpectralDBEntry ident : entries) {
+        final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
         SpectralDBFeatureIdentity best = null;
         // match all scans against this ident to find best match
         for (int i = 0; i < scans.size(); i++) {
-          SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(),
-              row.getAverageCCS(), rowMassLists.get(i), ident);
+          SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(), rowCCS,
+              rowMassLists.get(i), ident);
           if (sim != null && (!needsIsotopePattern || checkForIsotopePattern(sim,
               mzToleranceSpectra, minMatchedIsoSignals)) && (best == null
-              || best.getSimilarity().getScore() < sim.getScore())) {
+                                                             || best.getSimilarity().getScore()
+                                                                < sim.getScore())) {
+
+            Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
+
             best = new SpectralDBFeatureIdentity(scans.get(i), ident, sim, METHOD,
-                (float) PercentTolerance.getPercentError(ident.getOrElse(DBEntryField.CCS, null),
-                    Objects.requireNonNullElse(row.getAverageCCS(), null)));
+                ccsRelativeError);
           }
         }
         // has match?
