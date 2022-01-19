@@ -167,7 +167,7 @@ public class FeatureDataUtils {
    */
   public static int getMostIntenseIndex(IntensitySeries series) {
     int maxIndex = -1;
-    double maxIntensity = Double.MIN_VALUE;
+    double maxIntensity = Double.NEGATIVE_INFINITY;
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
       final double intensity = series.getIntensity(i);
