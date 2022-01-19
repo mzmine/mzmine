@@ -74,8 +74,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureConvertors {
@@ -97,21 +95,14 @@ public class FeatureConvertors {
           "Number of data points does not match number of scan numbers");
     }
 
-    ModularFeature modularFeature = new ModularFeature(featureList);
-    modularFeature.set(RawFileType.class, dataFile);
-    modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
-
     SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
         new ArrayList<>(dataPoints), new ArrayList<>(scans));
-    modularFeature.set(FeatureDataType.class, timeSeries);
+    ModularFeature modularFeature = new ModularFeature(featureList, dataFile, timeSeries,
+        FeatureStatus.DETECTED);
 
-    // recalculate data dependent types
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
-
-    ObservableList<Scan> allMS2 = Arrays.stream(
-            ScanUtils.findAllMS2FragmentScans(dataFile, modularFeature.getRawDataPointsRTRange(),
-                modularFeature.getRawDataPointsMZRange()))
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    List<Scan> allMS2 = ScanUtils.streamAllMS2FragmentScans(dataFile,
+            modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange())
+        .toList();
     modularFeature.setAllMS2FragmentScans(allMS2);
 
     return modularFeature;
