@@ -6,5 +6,5 @@ before_install:
 script: ./gradlew
 
 jdk:
-  - openjdk16
+  - openjdk17.0.1
 

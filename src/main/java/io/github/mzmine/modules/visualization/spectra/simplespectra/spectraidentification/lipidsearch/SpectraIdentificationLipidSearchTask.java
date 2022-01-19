@@ -18,22 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch;
 
-import java.awt.Color;
-import java.text.NumberFormat;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jfree.chart.labels.ItemLabelAnchor;
-import org.jfree.chart.labels.ItemLabelPosition;
-import org.jfree.chart.ui.TextAnchor;
-import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IonizationType;
@@ -54,6 +38,21 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.awt.Color;
+import java.text.NumberFormat;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
+import org.jfree.chart.ui.TextAnchor;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * Task to search and annotate lipids in spectra
@@ -196,7 +195,7 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
     // Add label generator for the dataset
     SpectraDatabaseSearchLabelGenerator labelGenerator =
         new SpectraDatabaseSearchLabelGenerator(annotations, spectraPlot);
-    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator);
+    spectraPlot.addDataSet(detectedCompoundsDataset, Color.orange, true, labelGenerator, true);
     spectraPlot.getXYPlot().getRenderer()
         .setSeriesItemLabelGenerator(spectraPlot.getXYPlot().getSeriesCount(), labelGenerator);
     spectraPlot.getXYPlot().getRenderer().setDefaultPositiveItemLabelPosition(new ItemLabelPosition(

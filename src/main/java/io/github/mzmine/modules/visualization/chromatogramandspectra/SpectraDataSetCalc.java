@@ -21,6 +21,7 @@ package io.github.mzmine.modules.visualization.chromatogramandspectra;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramCursorPosition;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
@@ -31,7 +32,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 
 public class SpectraDataSetCalc extends AbstractTask {
@@ -105,30 +105,29 @@ public class SpectraDataSetCalc extends AbstractTask {
       doneFiles++;
     }
 
-    Platform.runLater(() -> {
+    MZmineCore.runLater(() -> {
       if (getStatus() == TaskStatus.CANCELED) {
         return;
       }
-      spectrumPlot.getXYPlot().setNotify(false);
-      spectrumPlot.removeAllDataSets();
+      // apply changes after all updates
+      spectrumPlot.applyWithNotifyChanges(false, true, () -> {
+        spectrumPlot.removeAllDataSets();
 
-      filesAndDataSets.keySet().forEach(rawDataFile -> {
-        spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(),
-            false);
+        filesAndDataSets.keySet().forEach(rawDataFile -> {
+          spectrumPlot.addDataSet(filesAndDataSets.get(rawDataFile), rawDataFile.getColorAWT(),
+              false, false);
 
-        // If the scan contains a mass list then add dataset for it
-        if (showMassListProperty.getValue()) {
-          MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
-          if (massList != null) {
-            MassListDataSet massListDataset = new MassListDataSet(massList);
+          // If the scan contains a mass list then add dataset for it
+          if (showMassListProperty.getValue()) {
+            MassList massList = filesAndDataSets.get(rawDataFile).getScan().getMassList();
+            if (massList != null) {
+              MassListDataSet massListDataset = new MassListDataSet(massList);
 
-            spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false);
+              spectrumPlot.addDataSet(massListDataset, rawDataFile.getColorAWT(), false, false);
+            }
           }
-        }
+        });
       });
-
-      spectrumPlot.getXYPlot().setNotify(true);
-      spectrumPlot.getChart().fireChartChanged();
     });
     setStatus(TaskStatus.FINISHED);
   }

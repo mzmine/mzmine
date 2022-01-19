@@ -371,7 +371,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
       getTargetPlot().addDataSet(
           new DPPResultsDataSet("Sum formula prediction results (" + getResults().length + ")",
-              getResults()), color, false, labelGen);
+              getResults()), color, false, labelGen, true);
     }
   }
 
