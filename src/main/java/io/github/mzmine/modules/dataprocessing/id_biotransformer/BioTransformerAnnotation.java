@@ -20,13 +20,9 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import java.util.logging.Level;
+import io.github.mzmine.util.FormulaUtils;
 import java.util.logging.Logger;
-import org.openscience.cdk.exception.InvalidSmilesException;
-import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.smiles.SmilesParser;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface BioTransformerAnnotation extends CompoundDBAnnotation {
@@ -47,32 +43,15 @@ public interface BioTransformerAnnotation extends CompoundDBAnnotation {
 
   public static BioTransformerAnnotation fromCsvLine(String[] lineValues, IonType ionType) {
 
-    final double mz = 0;
     final String smiles = lineValues[SMILES_INDEX];
+    final IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(
+        FormulaUtils.getFomulaFromSmiles(smiles));
 
-    SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-    try {
-      final IAtomContainer iAtomContainer = parser.parseSmiles(smiles);
-      final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
-          iAtomContainer);
-      final Integer charge = molecularFormula.getCharge();
+    final double mz = ionType.getMZ(MolecularFormulaManipulator.getMass(neutralFormula,
+        MolecularFormulaManipulator.MonoIsotopic));
 
-      // neutralise the molecular formula
-      if (charge != null && charge != 0) {
-        logger.finest(() ->"Formula not neutral, adjusting with " + (charge * -1) + " protons.");
-        MolecularFormulaManipulator.adjustProtonation(molecularFormula, -charge);
-      }
-
-      final String neutralFormula = MolecularFormulaManipulator.getString(molecularFormula);
-
-      ionType.addToFormula(molecularFormula);
-
-      return new BioTransformerAnnotationImpl(neutralFormula, mz, ionType,
-          smiles, lineValues[INCHI_INDEX], lineValues[REACTION_INDEX],
-          lineValues[REACTION_INDEX], Float.valueOf(lineValues[ALOGP_INDEX]));
-    } catch (InvalidSmilesException | CloneNotSupportedException e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
-      return null;
-    }
+    return new BioTransformerAnnotationImpl(MolecularFormulaManipulator.getString(neutralFormula),
+        mz, ionType, smiles, lineValues[INCHI_INDEX], lineValues[REACTION_INDEX],
+        lineValues[REACTION_INDEX], Float.valueOf(lineValues[ALOGP_INDEX]));
   }
 }

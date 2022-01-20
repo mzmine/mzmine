@@ -59,14 +59,14 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
  * carry a flexible amount of data while providing a set of minimum defined entries.
  */
-public class SimpleCompoundDBAnnotation implements
-    CompoundDBAnnotation {
+public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
-  private final Map<DataType<?>, Object> data = new HashMap<>();
+  private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
+
+  protected final Map<DataType<?>, Object> data = new HashMap<>();
 
   public static final String XML_TYPE_NAME = "simplecompounddbannotation";
 
-  private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -201,7 +201,7 @@ public class SimpleCompoundDBAnnotation implements
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
         Object o = typeForId.loadFromXML(reader, flist, row, null, null);
-        id.put((DataType)typeForId, o);
+        id.put((DataType) typeForId, o);
       }
       i++;
 
@@ -316,16 +316,16 @@ public class SimpleCompoundDBAnnotation implements
 
     final StringBuilder b = new StringBuilder();
 
-    if(getCompundName()!= null) {
+    if (getCompundName() != null) {
       b.append(getCompundName()).append(",");
     }
-    if(getAdductType() != null) {
+    if (getAdductType() != null) {
       b.append(" ").append(getAdductType().toString(false)).append(", ");
     }
-    if(getPrecursorMZ() != null) {
+    if (getPrecursorMZ() != null) {
       b.append(mzFormat.format(getPrecursorMZ())).append(", ");
     }
-    if(getScore() != null) {
+    if (getScore() != null) {
       b.append(scoreFormat.format(getScore()));
     }
     return b.toString();

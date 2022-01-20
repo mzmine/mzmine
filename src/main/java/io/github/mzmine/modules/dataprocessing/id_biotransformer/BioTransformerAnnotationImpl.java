@@ -28,12 +28,14 @@ import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.EnzymeType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.IonTypeType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.ReactionType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -41,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class BioTransformerAnnotationImpl extends SimpleCompoundDBAnnotation implements
     BioTransformerAnnotation {
+
+  private static final Logger logger = Logger.getLogger(BioTransformerAnnotationImpl.class.getName());
 
   public static final String XML_TYPE_NAME = "biotransformerannotation";
 
@@ -70,9 +74,9 @@ public class BioTransformerAnnotationImpl extends SimpleCompoundDBAnnotation imp
       ModularFeatureListRow row) throws XMLStreamException {
     writer.writeStartElement(CompoundDBAnnotation.XML_ELEMENT);
     writer.writeAttribute(CompoundDBAnnotation.XML_TYPE_ATTRIBUTE, XML_TYPE_NAME);
-    writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(size()));
+    writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(data.size()));
 
-    for (Entry<DataType<?>, Object> entry : entrySet()) {
+    for (Entry<DataType<?>, Object> entry : data.entrySet()) {
       final DataType<?> key = entry.getKey();
       final Object value = entry.getValue();
 
