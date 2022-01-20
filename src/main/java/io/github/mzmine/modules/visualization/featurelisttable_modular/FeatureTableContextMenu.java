@@ -49,6 +49,9 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.chromatogram.TICDataSet;
+import io.github.mzmine.modules.visualization.chromatogram.TICPlotType;
+import io.github.mzmine.modules.visualization.chromatogram.TICVisualizerTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -64,9 +67,12 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisua
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowFX;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import io.github.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.color.ColorUtils;
 import io.github.mzmine.util.components.ConditionalMenuItem;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.time.Instant;
@@ -362,6 +368,10 @@ public class FeatureTableContextMenu extends ContextMenu {
       }
     });
 
+    final MenuItem showDiaIons = new ConditionalMenuItem("Show DIA ions",
+        () -> selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null);
+    showDiaIons.setOnAction(e -> showDiaMsMsIons());
+
     final MenuItem showMSMSMirrorItem = new ConditionalMenuItem("Mirror MS/MS (2 rows)",
         () -> selectedRows.size() == 2 && getNumberOfRowsWithFragmentScans(selectedRows) == 2);
     showMSMSMirrorItem.setOnAction(e -> {
@@ -408,7 +418,7 @@ public class FeatureTableContextMenu extends ContextMenu {
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
+            showDiaIons, new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
             showMatchedLipidSignals, new SeparatorMenuItem(), showPeakRowSummaryItem);
   }
 
@@ -491,5 +501,28 @@ public class FeatureTableContextMenu extends ContextMenu {
     }
     final RawDataFile file = selectedFeature.getRawDataFile();
     return features.stream().filter(f -> f.getRawDataFile() == file).collect(Collectors.toList());
+  }
+
+  private void showDiaMsMsIons() {
+    final Scan msms = selectedFeature.getMostIntenseFragmentScan();
+    final RawDataFile file = selectedFeature.getRawDataFile();
+    ScanSelection selection = new ScanSelection(
+        Range.closed(selectedFeature.getRawDataPointsRTRange().lowerEndpoint() - 1,
+            selectedFeature.getRawDataPointsRTRange().upperEndpoint() + 1), 2);
+    final List<Scan> matchingScans = selection.getMatchingScans(file.getScans());
+    MZTolerance tol = new MZTolerance(0.005, 15);
+
+    TICVisualizerTab window = new TICVisualizerTab(new RawDataFile[]{file}, TICPlotType.BASEPEAK,
+        new ScanSelection(1), selectedFeature.getRawDataPointsMZRange(), null, null);
+
+    for (int i = 0; i < msms.getNumberOfDataPoints(); i++) {
+      TICDataSet dataSet = new TICDataSet(file, matchingScans,
+          tol.getToleranceRange(msms.getMzValue(i)), null, TICPlotType.BASEPEAK);
+      window.getTICPlot().addTICDataSet(dataSet,
+          ColorUtils.getContrastPaletteColorAWT(file.getColor(),
+              MZmineCore.getConfiguration().getDefaultColorPalette()));
+    }
+
+    MZmineCore.getDesktop().addTab(window);
   }
 }
