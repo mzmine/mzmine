@@ -82,7 +82,7 @@ public class FeatureDataUtils {
   @Nullable
   public static Range<Double> getMzRange(MzSeries series) {
     double min = Double.MAX_VALUE;
-    double max = Double.MIN_VALUE;
+    double max = Double.NEGATIVE_INFINITY;
 
     if (series instanceof IonMobilogramTimeSeries ionTrace) {
       for (IonMobilitySeries mobilogram : ionTrace.getMobilograms()) {
@@ -113,6 +113,9 @@ public class FeatureDataUtils {
         }
       }
     }
+    if (min == max) {
+      return Range.singleton(min);
+    }
     return min < max ? Range.closed(min, max) : null;
   }
 
@@ -122,7 +125,7 @@ public class FeatureDataUtils {
    */
   public static Range<Float> getIntensityRange(IntensitySeries series) {
     double min = Double.MAX_VALUE;
-    double max = Double.MIN_VALUE;
+    double max = Double.NEGATIVE_INFINITY;
 
     if (series.getNumberOfValues() == 1) {
       return Range.singleton((float) series.getIntensity(0));
@@ -137,6 +140,9 @@ public class FeatureDataUtils {
       if (intensity > max) {
         max = intensity;
       }
+    }
+    if (min == max) {
+      return Range.singleton((float) min);
     }
     return min < max ? Range.closed((float) min, (float) max) : null;
   }
@@ -161,7 +167,7 @@ public class FeatureDataUtils {
    */
   public static int getMostIntenseIndex(IntensitySeries series) {
     int maxIndex = -1;
-    double maxIntensity = Double.MIN_VALUE;
+    double maxIntensity = Double.NEGATIVE_INFINITY;
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
       final double intensity = series.getIntensity(i);

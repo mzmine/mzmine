@@ -18,26 +18,29 @@
 
 package io.github.mzmine.modules.visualization.image;
 
-import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYZScatterPlot;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.RunOption;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.FeatureImageProvider;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.imageplot.ImageHeatMapPlot;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.import_rawdata_imzml.ImagingParameters;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXModule;
+import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFXParameters;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.PaintScaleComponent;
-import io.github.mzmine.parameters.parametertypes.PaintScaleParameter;
+import java.awt.Color;
+import java.awt.Image;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -46,20 +49,74 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
+import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.XYZDataset;
 
 /*
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class ImageVisualizerTab extends MZmineTab {
-  private final ImageVisualizerPaneController controller;
-  private ImageHeatMapPlot imageHeatMapPlot;
-  private ImagingRawDataFile rawDataFile;
 
-  public ImageVisualizerTab(ParameterSet parameters, ImageHeatMapPlot imageHeatMapPlot,
+  private final ImageVisualizerPaneController controller;
+  private final EChartViewer imageHeatMapPlot;
+  private final ImagingRawDataFile rawDataFile;
+
+  public ImageVisualizerTab(ModularFeature feature){
+    super("Image viewer", true, false);
+    FeatureImageProvider prov = new FeatureImageProvider(feature);
+    ColoredXYZDataset ds = new ColoredXYZDataset(prov, RunOption.THIS_THREAD);
+
+    SimpleXYZScatterPlot<FeatureImageProvider> chart = new SimpleXYZScatterPlot<>();
+    chart.setRangeAxisLabel("µm");
+    chart.setDomainAxisLabel("µm");
+    ImagingRawDataFile imagingFile = (ImagingRawDataFile) feature.getRawDataFile();
+    ImagingParameters imagingParameters = imagingFile.getImagingParam();
+    final boolean hideAxes = MZmineCore.getConfiguration()
+        .getModuleParameters(FeatureTableFXModule.class).getParameter(
+            FeatureTableFXParameters.hideImageAxes).getValue();
+
+    NumberAxis axis = (NumberAxis) chart.getXYPlot().getRangeAxis();
+    chart.setDataset(ds);
+    axis.setInverted(true);
+    axis.setAutoRangeStickyZero(false);
+    axis.setAutoRangeIncludesZero(false);
+    axis.setRange(new org.jfree.data.Range(0, imagingParameters.getLateralHeight()));
+    axis.setVisible(!hideAxes);
+
+    axis = (NumberAxis) chart.getXYPlot().getDomainAxis();
+    axis.setAutoRangeStickyZero(false);
+    axis.setAutoRangeIncludesZero(false);
+    chart.getXYPlot().setDomainAxisLocation(AxisLocation.TOP_OR_RIGHT);
+    axis.setRange(new org.jfree.data.Range(0, imagingParameters.getLateralWidth()));
+    axis.setVisible(!hideAxes);
+
+    final boolean lockOnAspectRatio = MZmineCore.getConfiguration()
+        .getModuleParameters(FeatureTableFXModule.class).getParameter(
+            FeatureTableFXParameters.lockImagesToAspectRatio).getValue();
+    chart.getXYPlot().setBackgroundPaint(Color.BLACK);
+    this.imageHeatMapPlot = chart;
+    this.rawDataFile = imagingFile;
+    AnchorPane root = null;
+    FXMLLoader loader = new FXMLLoader((getClass().getResource("ImageVisualizerPane.fxml")));
+    try {
+      root = loader.load();
+      logger.finest(
+          "Root element of Image visualizer tab has been successfully loaded from the FXML loader.");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // Get controller
+    controller = loader.getController();
+    updateHeatMapPlot();
+    addRawDataInfo(rawDataFile);
+    addImagingInfo(imagingParameters);
+    setContent(root);
+  }
+  public ImageVisualizerTab(EChartViewer imageHeatMapPlot,
       ImagingRawDataFile rawDataFile, ImagingParameters imagingParameters) {
     super("Image viewer", true, false);
 
@@ -80,7 +137,6 @@ public class ImageVisualizerTab extends MZmineTab {
     updateHeatMapPlot();
     addRawDataInfo(rawDataFile);
     addImagingInfo(imagingParameters);
-    addPlotSettings(parameters);
     setContent(root);
   }
 
@@ -95,7 +151,8 @@ public class ImageVisualizerTab extends MZmineTab {
     imageHeatMapPlot.addChartMouseListener(new ChartMouseListenerFX() {
 
       @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {}
+      public void chartMouseMoved(ChartMouseEventFX event) {
+      }
 
       @Override
       public void chartMouseClicked(ChartMouseEventFX event) {
@@ -131,8 +188,8 @@ public class ImageVisualizerTab extends MZmineTab {
     rawDataInfoPane.add(new Label(rawDataInfo.getNumberOfScans().toString()), 1, 1);
     rawDataInfoPane.add(new Label("Range m/z:"), 0, 2);
     rawDataInfoPane.add(new Label(
-        MZminePreferences.mzFormat.getValue().format(rawDataInfo.getDataMzRange().lowerEndpoint())
-            + "-" + MZminePreferences.mzFormat.getValue()
+            MZminePreferences.mzFormat.getValue().format(rawDataInfo.getDataMzRange().lowerEndpoint())
+                + "-" + MZminePreferences.mzFormat.getValue()
                 .format(rawDataInfo.getDataMzRange().upperEndpoint())),
         1, 2);
   }
@@ -157,34 +214,6 @@ public class ImageVisualizerTab extends MZmineTab {
     imagingParametersInfoPane.add(new Label(imagingParameters.getvStart().toString()), 1, 5);
     imagingParametersInfoPane.add(new Label("Horizontal start:"), 0, 6);
     imagingParametersInfoPane.add(new Label(imagingParameters.gethStart().toString()), 1, 6);
-  }
-
-  private void addPlotSettings(ParameterSet parameters) {
-    parameters.getParameter(ImageVisualizerParameters.paintScale);
-    GridPane plotSettingsInfoPane = controller.getPlotSettingsInfoGridPane();
-    plotSettingsInfoPane.add(new Label("Paint scale:"), 0, 0);
-    PaintScaleParameter paintScaleParamter =
-        parameters.getParameter(ImageVisualizerParameters.paintScale).cloneParameter();
-    PaintScaleComponent paintScaleComponent = paintScaleParamter.createEditingComponent();
-    paintScaleParamter.setValueToComponent(paintScaleComponent, paintScaleParamter.getValue());
-    paintScaleComponent.getComboBox().valueProperty().addListener(new ChangeListener<PaintScale>() {
-
-      @Override
-      public void changed(ObservableValue<? extends PaintScale> observable, PaintScale oldValue,
-          PaintScale newValue) {
-        PaintScale newPaintScale =
-            new PaintScale(newValue.getPaintScaleColorStyle(), newValue.getPaintScaleBoundStyle(),
-                Range.closed(imageHeatMapPlot.getPaintScale().getLowerBound(),
-                    imageHeatMapPlot.getPaintScale().getUpperBound()));
-        ImageHeatMapPlot newImageHeatMapPlot = new ImageHeatMapPlot(
-            (XYZDataset) imageHeatMapPlot.getPlot().getDataset(), newPaintScale,
-            imageHeatMapPlot.getDataPointWidth(), imageHeatMapPlot.getDataPointHeight());
-        imageHeatMapPlot = newImageHeatMapPlot;
-        updateHeatMapPlot();
-      }
-
-    });
-    plotSettingsInfoPane.add(paintScaleComponent, 1, 0);
   }
 
   @NotNull

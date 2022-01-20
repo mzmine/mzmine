@@ -28,16 +28,26 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
 import java.time.Instant;
-import java.util.Date;
+import java.util.ArrayList;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.apache.commons.text.WordUtils;
-
-import java.util.ArrayList;
 
 /**
  * This class extends ParameterSetupDialog class to include mass calibration plots. This is used to
@@ -103,8 +113,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
 
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     comboDataFileName.setOnAction(e -> {
       parametersChanged(false);
     });
@@ -161,7 +171,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
     chartsPane.visibleProperty().addListener((c, o, n) -> {
-      if (n == true) {
+      if (n) {
         mainPane.setCenter(chartsPane);
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
@@ -193,7 +203,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   }
 
   protected void loadPreview(boolean rerun) {
-    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<String> errors = new ArrayList<>();
     boolean paramsOK = parameterSet.checkParameterValues(errors);
     if (!paramsOK) {
       return;

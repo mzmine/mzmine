@@ -75,6 +75,7 @@ import org.jetbrains.annotations.Nullable;
  * A task to perform a CAMERA search.
  *
  */
+@Deprecated
 public class CameraSearchTask extends AbstractTask {
 
   // Logger.

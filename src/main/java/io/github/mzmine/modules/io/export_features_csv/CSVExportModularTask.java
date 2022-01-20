@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.export_features_csv;
@@ -33,6 +34,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.io.CSVUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -224,6 +226,7 @@ public class CSVExportModularTask extends AbstractTask {
       if (feature != null) {
         joinData(b, feature, featureTypes);
       } else {
+        // no feature for this sample - add empty cells
         joinEmptyCells(b, featureTypes);
       }
     }
@@ -276,7 +279,7 @@ public class CSVExportModularTask extends AbstractTask {
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }
-          b.append(field == null ? "" : field);
+          b.append(csvEscape(field));
         }
       } else {
         Object value = data == null ? null : data.get(type);
@@ -290,11 +293,11 @@ public class CSVExportModularTask extends AbstractTask {
         try {
           str = type.getFormattedString(value);
         } catch (Exception e) {
-          logger.log(Level.INFO, "Cannot format value of type " + type.getClass().getName()
-                                 + " value: " + value, e);
+          logger.log(Level.FINEST,
+              "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
           str = "";
         }
-        b.append(escapeStringForCSV(str));
+        b.append(csvEscape(str));
       }
     }
   }
@@ -323,38 +326,19 @@ public class CSVExportModularTask extends AbstractTask {
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }
-          b.append(field == null ? "" : (header + headerSeparator + field));
+          b.append(csvEscape(header + headerSeparator + field));
         }
       } else {
         if (b.length() != 0) {
           b.append(fieldSeparator);
         }
-        b.append(header);
+        b.append(csvEscape(header));
       }
     }
     return b.toString();
   }
 
-  private String escapeStringForCSV(final String inputString) {
-    if (inputString == null) {
-      return "";
-    }
-
-    // Remove all special characters (particularly \n would mess up our CSV
-    // format).
-    String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
-
-    // Skip too long strings (see Excel 2007 specifications)
-    if (result.length() >= 32766) {
-      result = result.substring(0, 32765);
-    }
-
-    // If the text contains fieldSeparator, we will add
-    // parenthesis
-    if (result.contains(fieldSeparator) || result.contains("\"")) {
-      result = "\"" + result.replaceAll("\"", "'") + "\"";
-    }
-
-    return result;
+  private String csvEscape(String input) {
+    return CSVUtils.escape(input, fieldSeparator);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -27,10 +28,12 @@ import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
-import io.github.mzmine.datamodel.features.types.numbers.CosineScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -69,16 +72,17 @@ public class SpectralLibraryMatchesType extends
           createEntry(CosineScoreType.class, match -> (float) match.getSimilarity().getScore()),
           createEntry(MatchingSignalsType.class, match -> match.getSimilarity().getOverlap()),
           createEntry(PrecursorMZType.class,
-              match -> (double) match.getEntry().getField(DBEntryField.MZ).orElse(null)),
+              match -> match.getEntry().getField(DBEntryField.MZ).orElse(null)),
           createEntry(NeutralMassType.class,
-              match -> (double) match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null))
-      );
+              match -> match.getEntry().getField(DBEntryField.EXACT_MASS).orElse(null)),
+          createEntry(CCSType.class, match -> match.getEntry().getOrElse(DBEntryField.CCS, null)),
+          createEntry(CCSRelativeErrorType.class, SpectralDBFeatureIdentity::getCCSError));
   // Unmodifiable list of all subtypes
   private static final List<DataType> subTypes = List.of(new SpectralLibraryMatchesType(),
       new CompoundNameType(), new IonAdductType(),
       new FormulaType(), new SmilesStructureType(), new InChIStructureType(),
       new PrecursorMZType(), new NeutralMassType(), new CosineScoreType(),
-      new MatchingSignalsType());
+      new MatchingSignalsType(), new CCSType(), new CCSRelativeErrorType());
 
   @Override
   protected Map<Class<? extends DataType>, Function<SpectralDBFeatureIdentity, Object>> getMapper() {

@@ -30,12 +30,12 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 
 class LinearNormalizerTask extends AbstractTask {
 
+  private final OriginalFeatureListOption handleOriginal;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   static final float maximumOverallFeatureHeightAfterNormalization = 100000.0f;
@@ -57,7 +58,6 @@ class LinearNormalizerTask extends AbstractTask {
   private String suffix;
   private NormalizationType normalizationType;
   private FeatureMeasurementType featureMeasurementType;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
   public LinearNormalizerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
@@ -73,9 +73,9 @@ class LinearNormalizerTask extends AbstractTask {
     suffix = parameters.getParameter(LinearNormalizerParameters.suffix).getValue();
     normalizationType =
         parameters.getParameter(LinearNormalizerParameters.normalizationType).getValue();
-    featureMeasurementType =
-        parameters.getParameter(LinearNormalizerParameters.featureMeasurementType).getValue();
-    removeOriginal = parameters.getParameter(LinearNormalizerParameters.autoRemove).getValue();
+    featureMeasurementType = parameters.getParameter(
+        LinearNormalizerParameters.featureMeasurementType).getValue();
+    handleOriginal = parameters.getParameter(LinearNormalizerParameters.handleOriginal).getValue();
 
   }
 
@@ -245,7 +245,8 @@ class LinearNormalizerTask extends AbstractTask {
     }
 
     // Add new feature list to the project
-    project.addFeatureList(normalizedFeatureList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, normalizedFeatureList,
+        originalFeatureList);
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : originalFeatureList.getAppliedMethods()) {
@@ -256,10 +257,6 @@ class LinearNormalizerTask extends AbstractTask {
     normalizedFeatureList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
         "Linear normalization of by " + normalizationType,
         LinearNormalizerModule.class, parameters, getModuleCallDate()));
-
-    // Remove the original feature list if requested
-    if (removeOriginal)
-      project.removeFeatureList(originalFeatureList);
 
     logger.info("Finished linear normalizer");
     setStatus(TaskStatus.FINISHED);

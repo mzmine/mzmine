@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util;
@@ -59,7 +60,6 @@ import io.github.mzmine.datamodel.features.types.numbers.TailingFactorType;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.Chromatogram;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
-import io.github.mzmine.modules.dataprocessing.featdet_imagebuilder.IImage;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.IIonMobilityTrace;
 import io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder.RetentionTimeMobilityDataPoint;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
@@ -69,12 +69,11 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 public class FeatureConvertors {
@@ -86,56 +85,24 @@ public class FeatureConvertors {
    * @param chromatogram input ADAP chromatogram
    * @return output modular feature
    */
-  static public ModularFeature ADAPChromatogramToModularFeature(
-      @NotNull ADAPChromatogram chromatogram) {
-
-    if (chromatogram.getFeatureList() == null) {
-      throw new NullPointerException("Feature list of the ADAP chromatogram is null.");
-    }
-
-    if (!(chromatogram.getFeatureList() instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Can not create modular feature from ADAP chromatogram of non-modular feature list.");
-    }
-
-    ModularFeature modularFeature = new ModularFeature(
-        (ModularFeatureList) chromatogram.getFeatureList());
-
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(chromatogram.getAllMS2FragmentScanNumbers()));
-//    modularFeature.set(ScanNumbersType.class, List.of(chromatogram.getScanNumbers()));
-
-    modularFeature.set(BestFragmentScanNumberType.class,
-        chromatogram.getMostIntenseFragmentScanNumber());
-    modularFeature.set(BestScanNumberType.class, chromatogram.getRepresentativeScanNumber());
-    if (chromatogram.getIsotopePattern() != null) {
-      modularFeature.set(IsotopePatternType.class, chromatogram.getIsotopePattern());
-    }
-    modularFeature.set(ChargeType.class, chromatogram.getCharge());
-
-    modularFeature.set(RawFileType.class, chromatogram.getDataFile());
-    modularFeature.set(DetectionType.class, chromatogram.getFeatureStatus());
-
+  static public ModularFeature ADAPChromatogramToModularFeature(ModularFeatureList featureList,
+      RawDataFile dataFile, @NotNull ADAPChromatogram chromatogram) {
     // Data points of feature
-//    modularFeature.set(DataPointsType.class, new ArrayList<>(chromatogram.getDataPoints()));
-    if (chromatogram.getDataPoints().size() != chromatogram.getScanNumbers().length) {
+    final Collection<DataPoint> dataPoints = chromatogram.getDataPoints();
+    final Collection<Scan> scans = chromatogram.getScanNumbers();
+    if (dataPoints.size() != scans.size()) {
       throw new IllegalArgumentException(
           "Number of data points does not match number of scan numbers");
     }
 
-    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
-        ((ModularFeatureList) chromatogram.getFeatureList()).getMemoryMapStorage(),
-        chromatogram.getDataPoints().stream().collect(Collectors.toList()),
-        Arrays.asList(chromatogram.getScanNumbers()));
-    modularFeature.set(FeatureDataType.class, timeSeries);
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
+        new ArrayList<>(dataPoints), new ArrayList<>(scans));
+    ModularFeature modularFeature = new ModularFeature(featureList, dataFile, timeSeries,
+        FeatureStatus.DETECTED);
 
-    // recalculate data dependent types
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
-
-    ObservableList<Scan> allMS2 = Arrays.stream(
-            ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(),
-                modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange()))
-        .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    List<Scan> allMS2 = ScanUtils.streamAllMS2FragmentScans(dataFile,
+            modularFeature.getRawDataPointsRTRange(), modularFeature.getRawDataPointsMZRange())
+        .toList();
     modularFeature.setAllMS2FragmentScans(allMS2);
 
     return modularFeature;
@@ -206,76 +173,6 @@ public class FeatureConvertors {
 
     return modularFeature;
   }
-
-  public static ModularFeature ImageToModularFeature(@NotNull IImage image,
-      RawDataFile rawDataFile) {
-
-    if (image.getFeatureList() == null) {
-      throw new NullPointerException("Feature list of the image is null.");
-    }
-
-    if (!(image.getFeatureList() instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Can not create modular feature from image of non-modular feature list.");
-    }
-
-    ModularFeature modularFeature = new ModularFeature((ModularFeatureList) image.getFeatureList());
-
-    // TODO
-    modularFeature.setFragmentScan(null);
-    modularFeature.setRepresentativeScan(null);
-    // Add values to feature
-    modularFeature.set(RawFileType.class, rawDataFile);
-    modularFeature.set(DetectionType.class, FeatureStatus.DETECTED);
-    modularFeature.set(MZType.class, image.getMz());
-    modularFeature.set(RTType.class, (float) 0.f);
-
-    modularFeature.set(HeightType.class, (float) image.getMaximumIntensity());
-    // TODO
-    modularFeature.set(AreaType.class, (float) 0);
-    // TODO
-    modularFeature.set(BestScanNumberType.class, null);
-
-    // Data points of feature
-    double[][] dp = DataPointUtils.getDataPointsAsDoubleArray(image.getDataPoints());
-    SimpleIonTimeSeries data = new SimpleIonTimeSeries(
-        ((ModularFeatureList) image.getFeatureList()).getMemoryMapStorage(), dp[0], dp[1],
-        image.getScanNumbers().stream().collect(Collectors.toList()));
-    modularFeature.set(FeatureDataType.class, data);
-
-    // Ranges
-    Range<Float> rtRange = Range.closed(0.f, 0.f);
-    Range<Double> mzRange = Range.closed(image.getMzRange().lowerEndpoint(),
-        image.getMzRange().upperEndpoint());
-    Range<Float> intensityRange = Range.closed(
-        image.getIntensityRange().lowerEndpoint().floatValue(),
-        image.getIntensityRange().upperEndpoint().floatValue());
-    modularFeature.set(MZRangeType.class, mzRange);
-    modularFeature.set(RTRangeType.class, rtRange);
-    modularFeature.set(IntensityRangeType.class, intensityRange);
-    // modularFeature.setAllMS2FragmentScanNumbers(IntStream
-    // .of(ScanUtils.findAllMS2FragmentScans(chromatogram.getDataFile(), rtRange, mzRange)).boxed()
-    // .collect(Collectors.toCollection(FXCollections::observableArrayList)));
-
-    // Quality parameters
-    // float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    // if (!Float.isNaN(fwhm)) {
-    modularFeature.set(FwhmType.class, -1f);
-    // }
-    // float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    // if (!Float.isNaN(tf)) {
-    modularFeature.set(TailingFactorType.class, -1f);
-    // }
-    // float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    // if (!Float.isNaN(af)) {
-    modularFeature.set(AsymmetryFactorType.class, -1f);
-    // }
-
-    FeatureDataUtils.recalculateIonSeriesDependingTypes(modularFeature);
-
-    return modularFeature;
-  }
-
 
   /**
    * Creates a ModularFeature on the basis of manually picked feature {@link

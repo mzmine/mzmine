@@ -23,8 +23,8 @@ import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2SubParame
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -39,9 +39,8 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
       "This string is added to feature list name as suffix", "resolved");
 
-  public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-      "Remove original feature list",
-      "If checked, original chromatogram will be removed and only the deconvolved version remains");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = //
+      new OriginalFeatureListHandlingParameter(true);
 
   public static final OptionalModuleParameter<GroupMS2SubParameters> groupMS2Parameters = new OptionalModuleParameter<>(
       "MS/MS scan pairing", "Set MS/MS scan pairing parameters.", new GroupMS2SubParameters());

@@ -71,11 +71,11 @@ public class DataTypes {
     return map.get(uniqueId);
   }
 
-  public static <T> DataType<T> getInstance(DataType<T> instance) {
-    return getInstance((Class)instance.getClass());
+  public static <T> DataType<T> get(DataType<T> instance) {
+    return get((Class)instance.getClass());
   }
 
-  public static <T> DataType<T> getInstance(Class<? extends DataType<T>> clazz) {
+  public static <T> DataType<T> get(Class<? extends DataType<T>> clazz) {
     return TYPES.get(clazz);
   }
 

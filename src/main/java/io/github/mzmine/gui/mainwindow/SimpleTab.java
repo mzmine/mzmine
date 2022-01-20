@@ -26,8 +26,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleTab extends MZmineTab {
 
+  public SimpleTab(String title, boolean showBinding, boolean defaultBindingState) {
+    super(title, showBinding, defaultBindingState);
+  }
+
   public SimpleTab(String title) {
-    super(title, false, false);
+    this(title, false, false);
   }
 
   @Override

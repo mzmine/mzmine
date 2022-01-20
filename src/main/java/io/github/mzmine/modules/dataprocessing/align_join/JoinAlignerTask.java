@@ -35,6 +35,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -270,6 +271,11 @@ public class JoinAlignerTask extends AbstractTask {
             getModuleCallDate()));
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);
+
+    if (parameters.getValue(JoinAlignerParameters.handleOriginal)
+        == OriginalFeatureListOption.REMOVE) {
+      project.removeFeatureLists(featureLists);
+    }
 
     logger.info("Finished join aligner");
 

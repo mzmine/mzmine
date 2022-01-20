@@ -130,6 +130,9 @@ public class RowToCCSMzHeatmapProvider implements
       final ModularFeatureListRow row = rows.get(i);
       for(final IMSRawDataFile file : files) {
         final ModularFeature feature = row.getFeature(file);
+        if(feature == null) {
+          continue;
+        }
         if(feature.getFeatureStatus() != FeatureStatus.UNKNOWN) {
           summedValues[i] += feature.getHeight();
         }
@@ -179,7 +182,7 @@ public class RowToCCSMzHeatmapProvider implements
   public double getZValue(int series, int item) {
     final ModularFeatureListRow row = rows.get(item);
     final ModularFeature f = row.getFeature(files[series]);
-    if (f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
+    if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN) {
       return f.getHeight();
     }
     return 0d;

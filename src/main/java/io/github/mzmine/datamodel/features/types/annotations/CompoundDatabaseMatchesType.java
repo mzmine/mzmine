@@ -21,16 +21,19 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
-import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,20 +48,29 @@ import org.jetbrains.annotations.Nullable;
 public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnnotation> implements
     AnnotationType {
 
-  public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(), new CompoundNameType(), new FormulaType(),
-      new IonAdductType(), new SmilesStructureType(), new InChIStructureType(),
-      new PrecursorMZType(), new NeutralMassType(), new RTType(), new CCSType());
-  private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries( //
+  public CompoundDatabaseMatchesType() {
+  }
+
+
+  public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
+      new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
+      new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
+      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new DatabaseMatchInfoType());
+  private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries(
+      //
       createEntry(CompoundDatabaseMatchesType.class, match -> match.getCompundName()), //
       createEntry(CompoundNameType.class, CompoundDBAnnotation::getCompundName), //
+      createEntry(CompoundAnnotationScoreType.class, CompoundDBAnnotation::getScore),
       createEntry(FormulaType.class, CompoundDBAnnotation::getFormula), //
-      createEntry(IonAdductType.class, CompoundDBAnnotation::getAdductType), //
+      createEntry(IonTypeType.class, CompoundDBAnnotation::getAdductType), //
       createEntry(SmilesStructureType.class, CompoundDBAnnotation::getSmiles), //
       createEntry(InChIStructureType.class, match -> match.get(new InChIStructureType())), //
-      createEntry(PrecursorMZType.class, CompoundDBAnnotation::getExactMass), //
+      createEntry(PrecursorMZType.class, CompoundDBAnnotation::getPrecursorMZ), //
+      createEntry(MzPpmDifferenceType.class, match -> match.get(MzPpmDifferenceType.class)), //
       createEntry(NeutralMassType.class, match -> match.get(new NeutralMassType())), //
       createEntry(RTType.class, match -> match.get(new RTType())), //
-      createEntry(CCSType.class, CompoundDBAnnotation::getCCS));
+      createEntry(CCSType.class, CompoundDBAnnotation::getCCS),
+      createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)));
 
   @Override
   public @NotNull String getUniqueID() {

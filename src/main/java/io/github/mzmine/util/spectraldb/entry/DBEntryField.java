@@ -24,18 +24,19 @@ public enum DBEntryField {
 
   ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Float.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
-          Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
-              Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
+      Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
+      Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION, CCS(
+      Float.class);
 
   // group of DBEntryFields logically
-  public static final DBEntryField[] OTHER_FIELDS =
-      new DBEntryField[] {PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, ENTRY_ID, COMMENT};
-  public static final DBEntryField[] DATABASE_FIELDS =
-      new DBEntryField[] {PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, CAS};
-  public static final DBEntryField[] COMPOUND_FIELDS =
-      new DBEntryField[] {NAME, SYNONYM, FORMULA, MOLWEIGHT, EXACT_MASS, ION_TYPE, MZ, CHARGE, RT,
-          ION_MODE, INCHI, INCHIKEY, SMILES, NUM_PEAKS};
-  public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[] {INSTRUMENT_TYPE,
+  public static final DBEntryField[] OTHER_FIELDS = new DBEntryField[]{PRINCIPAL_INVESTIGATOR,
+      DATA_COLLECTOR, ENTRY_ID, COMMENT};
+  public static final DBEntryField[] DATABASE_FIELDS = new DBEntryField[]{PUBMED, PUBCHEM, MONA_ID,
+      CHEMSPIDER, CAS};
+  public static final DBEntryField[] COMPOUND_FIELDS = new DBEntryField[]{NAME, SYNONYM, FORMULA,
+      MOLWEIGHT, EXACT_MASS, ION_TYPE, MZ, CHARGE, RT, CCS, ION_MODE, INCHI, INCHIKEY, SMILES,
+      NUM_PEAKS};
+  public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[]{INSTRUMENT_TYPE,
       INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, ACQUISITION, SOFTWARE};
 
   private final Class clazz;
@@ -48,106 +49,9 @@ public enum DBEntryField {
     this.clazz = clazz;
   }
 
-  public Class getObjectClass() {
-    return clazz;
-  }
-
-  @Override
-  public String toString() {
-    switch (this) {
-      case RT:
-      case SMILES:
-      case CAS:
-        return super.toString().replace('_', ' ');
-      case ENTRY_ID:
-        return "Entry ID";
-      case INCHI:
-        return "InChI";
-      case INCHIKEY:
-        return "InChI key";
-      case MOLWEIGHT:
-        return "Mol. weight";
-      case MONA_ID:
-        return "MoNA ID";
-      case MZ:
-        return "Precursor m/z";
-      default:
-        return StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
-    }
-  }
-
-  /**
-   *
-   * @return The gnps json format key or an empty String
-   */
-  public String getGnpsJsonID() {
-    switch (this) {
-      case ACQUISITION:
-        return "ACQUISITION";
-      case SOFTWARE:
-        return "softwaresource";
-      case CAS:
-        return "CASNUMBER";
-      case CHARGE:
-        return "CHARGE";
-      case COLLISION_ENERGY:
-        return "FRAGMENTATION_METHOD";
-      case COMMENT:
-        return "description";
-      case DATA_COLLECTOR:
-        return "DATACOLLECTOR";
-      case EXACT_MASS:
-        return "EXACTMASS";
-      case FORMULA:
-        return "FORMULA";
-      case INCHI:
-        return "INCHI";
-      case INCHIKEY:
-        return "INCHIAUX";
-      case INSTRUMENT:
-        return "INSTRUMENT_NAME";
-      case INSTRUMENT_TYPE:
-        return "INSTRUMENT";
-      case ION_TYPE:
-        return "ADDUCT";
-      case ION_MODE:
-        return "IONMODE";
-      case ION_SOURCE:
-        return "IONSOURCE";
-      case MZ:
-        return "MZ";
-      case NAME:
-        return "COMPOUND_NAME";
-      case PRINCIPAL_INVESTIGATOR:
-        return "PI";
-      case PUBMED:
-        return "PUBMED";
-      case RT:
-        return "RT";
-      case SMILES:
-        return "SMILES";
-      case MS_LEVEL:
-        return "MS_LEVEL";
-      case PUBCHEM:
-        return "PUBCHEM";
-      case CHEMSPIDER:
-        return "CHEMSPIDER";
-      case MONA_ID:
-        return "MONA_ID";
-      case RESOLUTION:
-      case NUM_PEAKS:
-      case ENTRY_ID:
-      case SYNONYM:
-      case MOLWEIGHT:
-        return "";
-      default:
-        return "";
-    }
-  }
-
   /**
    * DBENtryField for GNPS json key
-   * 
+   *
    * @param key
    * @return
    */
@@ -155,86 +59,16 @@ public enum DBEntryField {
     for (DBEntryField f : values()) {
       // equalsIgnoreCase is more robust against changes in library
       // consistency
-      if (f.getGnpsJsonID().equalsIgnoreCase(key))
+      if (f.getGnpsJsonID().equalsIgnoreCase(key)) {
         return f;
+      }
     }
     return null;
   }
 
   /**
-   *
-   * @return The NIST MSP format key or an empty String
-   */
-  public String getNistMspID() {
-    switch (this) {
-      case ENTRY_ID:
-        return "DB#";
-      case ACQUISITION:
-        return "";
-      case SOFTWARE:
-        return "";
-      case CAS:
-        return "";
-      case CHARGE:
-        return "";
-      case COLLISION_ENERGY:
-        return "Collision_energy";
-      case COMMENT:
-        return "Comments";
-      case DATA_COLLECTOR:
-        return "";
-      case EXACT_MASS:
-        return "ExactMass";
-      case FORMULA:
-        return "Formula";
-      case INCHI:
-        return "";
-      case INCHIKEY:
-        return "InChIKey";
-      case INSTRUMENT:
-        return "Instrument";
-      case INSTRUMENT_TYPE:
-        return "Instrument_type";
-      case ION_TYPE:
-        return "Precursor_type";
-      case ION_MODE:
-        return "Ion_mode"; // P / N
-      case ION_SOURCE:
-        return "";
-      case MZ:
-        return "PrecursorMZ";
-      case NAME:
-        return "Name";
-      case PRINCIPAL_INVESTIGATOR:
-        return "";
-      case PUBMED:
-        return "";
-      case RT:
-        return "RT";
-      case SMILES:
-        return "";
-      case MS_LEVEL:
-        return "Spectrum_type";
-      case PUBCHEM:
-        return "";
-      case CHEMSPIDER:
-        return "";
-      case MONA_ID:
-        return "";
-      case NUM_PEAKS:
-        return "Num Peaks";
-      case RESOLUTION:
-      case SYNONYM:
-      case MOLWEIGHT:
-        return "";
-      default:
-        return "";
-    }
-  }
-
-  /**
    * DBENtryField for NIST msp key
-   * 
+   *
    * @param key
    * @return
    */
@@ -242,87 +76,16 @@ public enum DBEntryField {
     for (DBEntryField f : values()) {
       // equalsIgnoreCase is more robust against changes in library
       // consistency
-      if (f.getNistMspID().equalsIgnoreCase(key))
+      if (f.getNistMspID().equalsIgnoreCase(key)) {
         return f;
+      }
     }
     return null;
   }
 
   /**
-   *
-   * @return The mgf format (used by GNPS)
-   */
-  public String getMgfID() {
-    switch (this) {
-      case ENTRY_ID:
-        return "SPECTRUMID";
-      case ACQUISITION:
-        return "";
-      case SOFTWARE:
-        return "";
-      case CAS:
-        return "";
-      case CHARGE:
-        return "CHARGE";
-      case COLLISION_ENERGY:
-        return "";
-      case COMMENT:
-        return "ORGANISM";
-      case DATA_COLLECTOR:
-        return "DATACOLLECTOR";
-      case EXACT_MASS:
-        return "ExactMass";
-      case FORMULA:
-        return "Formula";
-      case INCHI:
-        return "INCHI";
-      case INCHIKEY:
-        return "INCHIAUX";
-      case INSTRUMENT:
-        return "SOURCE_INSTRUMENT";
-      case INSTRUMENT_TYPE:
-        return "Instrument_type";
-      case ION_TYPE:
-        return "Precursor_type";
-      case ION_MODE:
-        return "IONMODE"; // Positive Negative
-      case ION_SOURCE:
-        return "";
-      case MZ:
-        return "PEPMASS";
-      case NAME:
-        return "NAME";
-      case PRINCIPAL_INVESTIGATOR:
-        return "PI";
-      case PUBMED:
-        return "PUBMED";
-      case RT:
-        return "";
-      case SMILES:
-        return "SMILES";
-      case MS_LEVEL:
-        return "MSLEVEL";
-      case PUBCHEM:
-        return "";
-      case CHEMSPIDER:
-        return "";
-      case MONA_ID:
-        return "";
-      case NUM_PEAKS:
-        return "";
-      case RESOLUTION:
-      case SYNONYM:
-      case MOLWEIGHT:
-        return "";
-      // SUBMITUSER
-      // LIBRARYQUALITY
-    }
-    return "";
-  }
-
-  /**
    * DBENtryField for mgf (GNPS) key
-   * 
+   *
    * @param key
    * @return
    */
@@ -330,86 +93,16 @@ public enum DBEntryField {
     for (DBEntryField f : values()) {
       // equalsIgnoreCase is more robust against changes in library
       // consistency
-      if (f.getMgfID().equalsIgnoreCase(key))
+      if (f.getMgfID().equalsIgnoreCase(key)) {
         return f;
+      }
     }
     return null;
   }
 
   /**
-   *
-   * @return The JCAMP-DX format key or an empty String
-   */
-  public String getJdxID() {
-    switch (this) {
-      case ENTRY_ID:
-        return "";
-      case ACQUISITION:
-        return "";
-      case SOFTWARE:
-        return "";
-      case CAS:
-        return "##CAS REGISTRY NO";
-      case CHARGE:
-        return "";
-      case COLLISION_ENERGY:
-        return "";
-      case COMMENT:
-        return "";
-      case DATA_COLLECTOR:
-        return "";
-      case EXACT_MASS:
-        return "##MW";
-      case FORMULA:
-        return "##MOLFORM";
-      case INCHI:
-        return "";
-      case INCHIKEY:
-        return "";
-      case INSTRUMENT:
-        return "";
-      case INSTRUMENT_TYPE:
-        return "";
-      case ION_TYPE:
-        return "";
-      case ION_MODE:
-        return "";
-      case ION_SOURCE:
-        return "";
-      case MZ:
-        return "";
-      case NAME:
-        return "##TITLE";
-      case PRINCIPAL_INVESTIGATOR:
-        return "";
-      case PUBMED:
-        return "";
-      case RT:
-        return "RT";
-      case SMILES:
-        return "";
-      case MS_LEVEL:
-        return "";
-      case PUBCHEM:
-        return "";
-      case CHEMSPIDER:
-        return "";
-      case MONA_ID:
-        return "";
-      case NUM_PEAKS:
-        return "##NPOINTS";
-      case RESOLUTION:
-      case SYNONYM:
-      case MOLWEIGHT:
-        return "";
-      default:
-        return "";
-    }
-  }
-
-  /**
    * DBENtryField for JDX key
-   * 
+   *
    * @param key
    * @return
    */
@@ -417,26 +110,178 @@ public enum DBEntryField {
     for (DBEntryField f : values()) {
       // equalsIgnoreCase is more robust against changes in library
       // consistency
-      if (f.getJdxID().equalsIgnoreCase(key))
+      if (f.getJdxID().equalsIgnoreCase(key)) {
         return f;
+      }
     }
     return null;
   }
 
+  public Class getObjectClass() {
+    return clazz;
+  }
+
+  @Override
+  public String toString() {
+    return switch (this) {
+      case RT, SMILES, CAS -> super.toString().replace('_', ' ');
+      case ENTRY_ID -> "Entry ID";
+      case INCHI -> "InChI";
+      case INCHIKEY -> "InChI key";
+      case MOLWEIGHT -> "Mol. weight";
+      case MONA_ID -> "MoNA ID";
+      case MZ -> "Precursor m/z";
+      default -> StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
+    };
+  }
+
+  /**
+   * @return The gnps json format key or an empty String
+   */
+  public String getGnpsJsonID() {
+    return switch (this) {
+      case ACQUISITION -> "ACQUISITION";
+      case SOFTWARE -> "softwaresource";
+      case CAS -> "CASNUMBER";
+      case CHARGE -> "CHARGE";
+      case COLLISION_ENERGY -> "FRAGMENTATION_METHOD";
+      case COMMENT -> "description";
+      case DATA_COLLECTOR -> "DATACOLLECTOR";
+      case EXACT_MASS -> "EXACTMASS";
+      case FORMULA -> "FORMULA";
+      case INCHI -> "INCHI";
+      case INCHIKEY -> "INCHIAUX";
+      case INSTRUMENT -> "INSTRUMENT_NAME";
+      case INSTRUMENT_TYPE -> "INSTRUMENT";
+      case ION_TYPE -> "ADDUCT";
+      case ION_MODE -> "IONMODE";
+      case ION_SOURCE -> "IONSOURCE";
+      case MZ -> "MZ";
+      case NAME -> "COMPOUND_NAME";
+      case PRINCIPAL_INVESTIGATOR -> "PI";
+      case PUBMED -> "PUBMED";
+      case RT -> "RT";
+      case SMILES -> "SMILES";
+      case MS_LEVEL -> "MS_LEVEL";
+      case PUBCHEM -> "PUBCHEM";
+      case CHEMSPIDER -> "CHEMSPIDER";
+      case MONA_ID -> "MONA_ID";
+      case CCS -> "CCS";
+      case RESOLUTION, NUM_PEAKS, ENTRY_ID, SYNONYM, MOLWEIGHT -> "";
+    };
+  }
+
+  /**
+   * @return The NIST MSP format key or an empty String
+   */
+  public String getNistMspID() {
+    return switch (this) {
+      case ENTRY_ID -> "DB#";
+      case COLLISION_ENERGY -> "Collision_energy";
+      case COMMENT -> "Comments";
+      case EXACT_MASS -> "ExactMass";
+      case FORMULA -> "Formula";
+      case INCHIKEY -> "InChIKey";
+      case INSTRUMENT -> "Instrument";
+      case INSTRUMENT_TYPE -> "Instrument_type";
+      case ION_TYPE -> "Precursor_type";
+      case ION_MODE -> "Ion_mode"; // P / N
+      case ION_SOURCE -> "";
+      case MZ -> "PrecursorMZ";
+      case NAME -> "Name";
+      case RT -> "RT";
+      case MS_LEVEL -> "Spectrum_type";
+      case NUM_PEAKS -> "Num Peaks";
+      case CCS -> "CCS";
+      case SMILES -> "SMILES";
+      case ACQUISITION, MONA_ID, CHEMSPIDER, RESOLUTION, SYNONYM, MOLWEIGHT, PUBCHEM, PUBMED, PRINCIPAL_INVESTIGATOR, CHARGE, CAS, SOFTWARE, INCHI, DATA_COLLECTOR -> "";
+    };
+  }
+
+  /**
+   * @return The mgf format (used by GNPS)
+   */
+  public String getMgfID() {
+    return switch (this) {
+      case ENTRY_ID -> "SPECTRUMID";
+      case CHARGE -> "CHARGE";
+      case COMMENT -> "ORGANISM";
+      case DATA_COLLECTOR -> "DATACOLLECTOR";
+      case EXACT_MASS -> "ExactMass";
+      case FORMULA -> "Formula";
+      case INCHI -> "INCHI";
+      case INCHIKEY -> "INCHIAUX";
+      case INSTRUMENT -> "SOURCE_INSTRUMENT";
+      case INSTRUMENT_TYPE -> "Instrument_type";
+      case ION_TYPE -> "Precursor_type";
+      case ION_MODE -> "IONMODE"; // Positive Negative
+      case ION_SOURCE -> "";
+      case MZ -> "PEPMASS";
+      case NAME -> "NAME";
+      case PRINCIPAL_INVESTIGATOR -> "PI";
+      case PUBMED -> "PUBMED";
+      case SMILES -> "SMILES";
+      case MS_LEVEL -> "MSLEVEL";
+      case CCS -> "CCS";
+      case ACQUISITION, NUM_PEAKS, MONA_ID, CHEMSPIDER, PUBCHEM, RT, RESOLUTION, SYNONYM, MOLWEIGHT, CAS, SOFTWARE, COLLISION_ENERGY -> "";
+    };
+  }
+
+  /**
+   * @return The JCAMP-DX format key or an empty String
+   */
+  public String getJdxID() {
+    return switch (this) {
+      case ENTRY_ID -> "";
+      case ACQUISITION -> "";
+      case SOFTWARE -> "";
+      case CAS -> "##CAS REGISTRY NO";
+      case CHARGE -> "";
+      case COLLISION_ENERGY -> "";
+      case COMMENT -> "";
+      case DATA_COLLECTOR -> "";
+      case EXACT_MASS -> "##MW";
+      case FORMULA -> "##MOLFORM";
+      case INCHI -> "";
+      case INCHIKEY -> "";
+      case INSTRUMENT -> "";
+      case INSTRUMENT_TYPE -> "";
+      case ION_TYPE -> "";
+      case ION_MODE -> "";
+      case ION_SOURCE -> "";
+      case MZ -> "";
+      case NAME -> "##TITLE";
+      case PRINCIPAL_INVESTIGATOR -> "";
+      case PUBMED -> "";
+      case RT -> "RT";
+      case SMILES -> "";
+      case MS_LEVEL -> "";
+      case PUBCHEM -> "";
+      case CHEMSPIDER -> "";
+      case MONA_ID -> "";
+      case NUM_PEAKS -> "##NPOINTS";
+      case RESOLUTION, SYNONYM, MOLWEIGHT -> "";
+      case CCS -> "";
+    };
+  }
+
   /**
    * Converts the content to the correct value type
-   * 
+   *
    * @param content
    * @return
    * @throws NumberFormatException
    */
   public Object convertValue(String content) throws NumberFormatException {
-    if (getObjectClass() == Double.class)
+    if (getObjectClass() == Double.class) {
       return Double.parseDouble(content);
-    if (getObjectClass() == Float.class)
+    }
+    if (getObjectClass() == Float.class) {
       return Float.parseFloat(content);
-    if (getObjectClass() == Integer.class)
+    }
+    if (getObjectClass() == Integer.class) {
       return Integer.parseInt(content);
+    }
     return content;
   }
 
