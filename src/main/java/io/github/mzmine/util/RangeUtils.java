@@ -207,6 +207,26 @@ public class RangeUtils {
         guavaRange.upperEndpoint().doubleValue());
   }
 
+  public static boolean isJFreeRangeEnclosingGuavaRange(org.jfree.data.Range jfreeRange,
+      Range<? extends Number> guavaRange) {
+    if (jfreeRange == null || guavaRange == null) {
+      return false;
+    }
+    return jfreeRange.contains(guavaRange.lowerEndpoint().doubleValue()) && jfreeRange.contains(
+        guavaRange.upperEndpoint().doubleValue());
+  }
+
+  public static boolean isGuavaRangeEnclosingJFreeRange(org.jfree.data.Range jfreeRange,
+      Range<? extends Number> guavaRange) {
+    if (jfreeRange == null || guavaRange == null) {
+      return false;
+    }
+    Range<Double> r = Range.range(guavaRange.lowerEndpoint().doubleValue(),
+        guavaRange.lowerBoundType(), guavaRange.upperEndpoint().doubleValue(),
+        guavaRange.upperBoundType());
+    return r.contains(jfreeRange.getLowerBound()) && r.contains(jfreeRange.getUpperBound());
+  }
+
   public static org.jfree.data.Range guavaToJFree(Range<? extends Number> range) {
     return new org.jfree.data.Range(range.lowerEndpoint().doubleValue(),
         range.upperEndpoint().doubleValue());

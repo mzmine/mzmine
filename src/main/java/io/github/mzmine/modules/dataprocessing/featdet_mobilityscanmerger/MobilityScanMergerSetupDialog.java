@@ -54,8 +54,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
   private final SimpleParameterSet parameterSet;
   private final ComboBox<Frame> frameComboBox;
 
-  public MobilityScanMergerSetupDialog(SimpleParameterSet parameterSet) {
-    super(true, parameterSet);
+  public MobilityScanMergerSetupDialog(boolean valueCheckRequired, SimpleParameterSet parameterSet) {
+    super(valueCheckRequired, parameterSet);
     this.parameterSet = parameterSet;
 
     plot = new SimpleXYChart<>();
@@ -96,6 +96,10 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     controlPane.add(fileComboBox, 1, 0);
     controlPane.add(new Label("Frame"), 0, 1);
     controlPane.add(frameComboBox, 1, 1);
+  }
+
+  public MobilityScanMergerSetupDialog(SimpleParameterSet parameterSet) {
+    this(true, parameterSet);
   }
 
   @Override
