@@ -63,8 +63,10 @@ import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -155,10 +157,12 @@ public class DiaMs2CorrTask extends AbstractTask {
 
     // store feature data in TreeRangeMap, to query by m/z in ms2 spectra
     final RangeMap<Double, IonTimeSeries<?>> ms2Eics = TreeRangeMap.create();
-    ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull).forEach(
+    ms2Flist.getRows().stream().map(row -> row.getFeature(file)).filter(Objects::nonNull).sorted(
+        Comparator.comparingDouble(Feature::getHeight).reversed()).forEach(
         feature -> ms2Eics.put(SpectraMerging.createNewNonOverlappingRange(ms2Eics,
-            mzTolerance.getToleranceRange(feature.getMZ())), feature.getFeatureData()));
-    assert ms2Flist.getNumberOfRows() == ms2Eics.asMapOfRanges().size();
+            feature.getRawDataPointsMZRange()), feature.getFeatureData()));
+    var size = ms2Eics.asMapOfRanges().size();
+    assert ms2Flist.getNumberOfRows() == size;
 
     // go through all features and find ms2s
     for (FeatureListRow row : flist.getRows()) {
