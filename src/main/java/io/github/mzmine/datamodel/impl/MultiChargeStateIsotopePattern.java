@@ -43,7 +43,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
   public static final String XML_ELEMENT = "multi_charge_state_isotopepattern";
 
   @NotNull
-  private final List<IsotopePattern> patterns;
+  private final List<IsotopePattern> patterns = new ArrayList<>();
 
 
   public MultiChargeStateIsotopePattern(@NotNull IsotopePattern... patterns) {
@@ -54,7 +54,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
     if (patterns.isEmpty()) {
       throw new IllegalArgumentException("List of isotope patterns cannot be empty");
     }
-    this.patterns = patterns;
+    this.patterns.addAll(patterns);
   }
 
   public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {

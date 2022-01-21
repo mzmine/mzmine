@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.datamodel.impl.masslist.SimpleMassList;
@@ -200,6 +201,45 @@ class IsotopesUtilsTest {
   }
 
   @Test
+  void testFilter13CMultiChargePattern() {
+    final MZTolerance mzTol = new MZTolerance(0.0015, 10);
+
+    final Isotope[] isotope18O = new Isotope[]{IsotopesUtils.getIsotopeRecord("O", 18),
+        IsotopesUtils.getIsotopeRecord("H", 2)};
+    final List<List<DataPoint>> patterns = List.of(getC12H24O12IsotopePattern(),
+        getC120H200IsotopePattern(), getC300H600IsotopePattern());
+
+    // test the multi charge isotope pattern
+    for (int p = 0; p < patterns.size(); p++) {
+      final List<DataPoint> dataPoints = patterns.get(p);
+
+      // we only add one pattern here just to test basic functionality
+      MultiChargeStateIsotopePattern multi = new MultiChargeStateIsotopePattern(
+          getPattern(dataPoints, 1));
+
+      assertTrue(IsotopePatternUtils.check13CPattern(multi, multi.getMzValue(0), mzTol, 4),
+          String.format(
+              "Monoisotopic peak of pattern p=%d was falsely identified as potential isotope signal in multi charge pattern",
+              p));
+      assertTrue(IsotopePatternUtils.check13CPattern(multi, multi.getMzValue(0) + 0.001, mzTol, 4),
+          String.format(
+              "Monoisotopic peak of pattern p=%d was falsely identified as potential isotope signal in multi charge pattern",
+              p));
+      assertTrue(IsotopePatternUtils.check13CPattern(multi, multi.getMzValue(0) - 0.001, mzTol, 4),
+          String.format(
+              "Monoisotopic peak of pattern p=%d was falsely identified as potential isotope signal in multi charge pattern",
+              p));
+      for (int i = 1; i < multi.getNumberOfDataPoints(); i++) {
+        // all other should find a previous signal
+        assertFalse(IsotopePatternUtils.check13CPattern(multi, multi.getMzValue(i), mzTol, 4, true,
+            isotope18O, true), String.format(
+            "Isotope peak %d of pattern p=%d was falsely identified as potential monoisotopic signal in multi charge pattern",
+            i, p));
+      }
+    }
+  }
+
+  @Test
   void testFilter13C() {
     final MZTolerance mzTol = new MZTolerance(0.0015, 10);
 
@@ -208,6 +248,7 @@ class IsotopesUtilsTest {
     final List<List<DataPoint>> patterns = List.of(getC12H24O12IsotopePattern(),
         getC120H200IsotopePattern(), getC300H600IsotopePattern());
 
+    // test each individual isotope pattern
     for (int p = 0; p < patterns.size(); p++) {
       final List<DataPoint> dataPoints = patterns.get(p);
       for (int charge = 1; charge <= 4; charge++) {
@@ -247,8 +288,7 @@ class IsotopesUtilsTest {
     for (int i = 1; i < br3C10.getNumberOfDataPoints(); i++) {
       // all other should find a previous signal
       assertFalse(
-          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br,
-              true), String.format("Br3C10 isotope signal i=%d detected as main", i));
+          IsotopePatternUtils.check13CPattern(br3C10, br3C10.getMzValue(i), mzTol, 2, true, br, true), String.format("Br3C10 isotope signal i=%d detected as main", i));
     }
 
     // change up some of the intensities - should be false in the end

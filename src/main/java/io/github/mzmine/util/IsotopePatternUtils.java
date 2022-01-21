@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
@@ -638,11 +639,43 @@ public class IsotopePatternUtils {
   public static boolean check13CPattern(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,
       int maxCharge, boolean excludeIfMainIs13CIsotope, @Nullable Isotope[] excludedMzDiffs,
       boolean applyMinCEstimation) {
-    // result:
-    boolean plusOneIsotopeFound = false;
 
+    if (pattern instanceof SimpleIsotopePattern simple && simple.getCharge() > 0) {
+      // handle one isotope patter with defined charge state - only use this charge state
+      return check13CPatternForChargeState(pattern, pattern.getCharge(), mainMZ, mzTol,
+          excludeIfMainIs13CIsotope, excludedMzDiffs, applyMinCEstimation);
+    } else if (pattern instanceof MultiChargeStateIsotopePattern multi) {
+      for (IsotopePattern patternForCharge : multi.getPatterns()) {
+        // if for any pattern a 13C isotope pattern was detected: true, return true
+        if (check13CPatternForChargeState(patternForCharge, patternForCharge.getCharge(), mainMZ,
+            mzTol, excludeIfMainIs13CIsotope, excludedMzDiffs, applyMinCEstimation)) {
+          return true;
+        }
+      }
+    } else {
+      // look at +1 peak for 13C
+      // exclude all -1 peaks from excludedMzDiffs
+      // if for any pattern a 13C isotope pattern was detected: true, return true
+      for (int charge = 1; charge <= maxCharge; charge++) {
+        if (check13CPatternForChargeState(pattern, charge, mainMZ, mzTol, excludeIfMainIs13CIsotope,
+            excludedMzDiffs, applyMinCEstimation)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean check13CPatternForChargeState(IsotopePattern pattern, int charge,
+      double mainMZ, MZTolerance mzTol, boolean excludeIfMainIs13CIsotope,
+      Isotope[] excludedMzDiffs, boolean applyMinCEstimation) {
     int maxIndex = findMaxIndex(pattern, mainMZ, mzTol, 0);
     if (maxIndex < 0) {
+      // should be there - maybe picked with different mz tol
+      logger.warning(
+          () -> String.format("No main signal found for isotope pattern of main m/z=%.4f, mzTol=%s",
+              mainMZ, mzTol));
+      // no main peak found
       return false;
     }
 
@@ -650,66 +683,59 @@ public class IsotopePatternUtils {
     final double newMainMZ = pattern.getMzValue(maxIndex);
     final double mainHeight = pattern.getIntensityValue(maxIndex);
 
-    // look at +1 peak for 13C
-    // exclude all -1 peaks from excludedMzDiffs
-    for (int charge = 1; charge <= maxCharge; charge++) {
-      // looks at a -1 peak
-      if (excludedMzDiffs != null) {
-        for (Isotope excludedMzDiff : excludedMzDiffs) {
-          // open limits for the minimum ratio - which defines the maximum intensity of the preceding signal
-          double minRatio = excludedMzDiff.relativeIntensity() * 0.2;
-          double maxRatio =
-              estimateMaxXAtoms(excludedMzDiff, mainMZ, charge) * excludedMzDiff.relativeIntensity()
-              * 1.15;
-          double isotopeMZ = newMainMZ - (excludedMzDiff.deltaMass() / charge);
-          Range<Double> estimatedIntensityRange = Range.closed(mainHeight / maxRatio,
-              mainHeight / minRatio);
-          boolean mainIsIsotopeSignal = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
-              estimatedIntensityRange, maxIndex - 1, -1);
-          if (mainIsIsotopeSignal) {
-            return false;
-          }
-        }
-      }
-
-      // estimate min max carbons
-      double estimatedMinC = applyMinCEstimation ? estimateMinCAtoms(newMainMZ, charge) : 2;
-      double estimatedMaxC = estimateMaxCAtoms(newMainMZ, charge);
-
-      // only possible if mass defect is too high (e.g., for multiply charged)
-      if (estimatedMinC >= estimatedMaxC) {
-        continue;
-      }
-
-      // add some tolerance on lower and upper bounds
-      double minRatio = estimatedMinC * C13_REL_ABUNDANCE * 0.85;
-      double maxRatio = estimatedMaxC * C13_REL_ABUNDANCE * 1.15;
-
-      // if signal has preceeding 13C signal within intensity range - flag as isotope and return false
-      if (excludeIfMainIs13CIsotope) {
+    // looks at a -1 peak
+    if (excludedMzDiffs != null) {
+      for (Isotope excludedMzDiff : excludedMzDiffs) {
+        // open limits for the minimum ratio - which defines the maximum intensity of the preceding signal
+        double minRatio = excludedMzDiff.relativeIntensity() * 0.2;
+        double maxRatio =
+            estimateMaxXAtoms(excludedMzDiff, mainMZ, charge) * excludedMzDiff.relativeIntensity()
+            * 1.15;
+        double isotopeMZ = newMainMZ - (excludedMzDiff.deltaMass() / charge);
         Range<Double> estimatedIntensityRange = Range.closed(mainHeight / maxRatio,
             mainHeight / minRatio);
-        double isotopeMZ = newMainMZ - (C13_MZ_DELTA / charge);
         boolean mainIsIsotopeSignal = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
             estimatedIntensityRange, maxIndex - 1, -1);
         if (mainIsIsotopeSignal) {
           return false;
         }
       }
+    }
 
-      // check if this signal is actually the +1 peak
-      // +1 carbon isotope peak
-      // when found - still check if other condition for other charge states result in false
-      // when charge state is 2, the +2 13C signal may be found as a potential +1 13C signal
-      if (!plusOneIsotopeFound) {
-        double isotopeMZ = newMainMZ + (C13_MZ_DELTA / charge);
-        Range<Double> estimatedIntensityRange = Range.closed(mainHeight * minRatio,
-            mainHeight * maxRatio);
-        plusOneIsotopeFound = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
-            estimatedIntensityRange, maxIndex + 1, 1);
+    // estimate min max carbons
+    double estimatedMinC = applyMinCEstimation ? estimateMinCAtoms(newMainMZ, charge) : 2;
+    double estimatedMaxC = estimateMaxCAtoms(newMainMZ, charge);
+
+    // only possible if mass defect is too high (e.g., for multiply charged)
+    if (estimatedMinC >= estimatedMaxC) {
+      return false;
+    }
+
+    // add some tolerance on lower and upper bounds
+    double minRatio = estimatedMinC * C13_REL_ABUNDANCE * 0.85;
+    double maxRatio = estimatedMaxC * C13_REL_ABUNDANCE * 1.15;
+
+    // if signal has preceeding 13C signal within intensity range - flag as isotope and return false
+    if (excludeIfMainIs13CIsotope) {
+      Range<Double> estimatedIntensityRange = Range.closed(mainHeight / maxRatio,
+          mainHeight / minRatio);
+      double isotopeMZ = newMainMZ - (C13_MZ_DELTA / charge);
+      boolean mainIsIsotopeSignal = hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol,
+          estimatedIntensityRange, maxIndex - 1, -1);
+      if (mainIsIsotopeSignal) {
+        return false;
       }
     }
-    return plusOneIsotopeFound;
+
+    // check if this signal is actually the +1 peak
+    // +1 carbon isotope peak
+    // when found - still check if other condition for other charge states result in false
+    // when charge state is 2, the +2 13C signal may be found as a potential +1 13C signal
+    double isotopeMZ = newMainMZ + (C13_MZ_DELTA / charge);
+    Range<Double> estimatedIntensityRange = Range.closed(mainHeight * minRatio,
+        mainHeight * maxRatio);
+    return hasSignalMatchingIntensityRange(pattern, isotopeMZ, mzTol, estimatedIntensityRange,
+        maxIndex + 1, 1);
   }
 
   private static double estimateMaxXAtoms(Isotope isotope, double mz, int charge) {
