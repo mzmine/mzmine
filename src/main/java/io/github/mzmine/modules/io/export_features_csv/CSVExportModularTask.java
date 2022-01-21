@@ -194,7 +194,7 @@ public class CSVExportModularTask extends AbstractTask {
 
     // write data
     for (FeatureListRow row : flist.getRows()) {
-      if (!filter.filter(row)) {
+      if (!filter.accept(row)) {
         processedRows++;
         continue;
       }

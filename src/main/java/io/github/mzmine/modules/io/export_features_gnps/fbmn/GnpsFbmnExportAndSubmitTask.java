@@ -234,8 +234,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
             ? LegacyExportRowDataFileElement.FEATURE_AREA
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
-    FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
-        .getValue();
+    FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);
 
     ModularFeatureList[] flist = parameters.getParameter(
         GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();

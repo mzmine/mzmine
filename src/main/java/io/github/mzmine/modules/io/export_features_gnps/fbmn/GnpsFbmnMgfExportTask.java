@@ -175,7 +175,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     int count = 0;
     for (FeatureListRow row : featureList.getRows()) {
       // do not export if no MSMS
-      if (!filter.filter(row)) {
+      if (!filter.accept(row)) {
         continue;
       }
 
