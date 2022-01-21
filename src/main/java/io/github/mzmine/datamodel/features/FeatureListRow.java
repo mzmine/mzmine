@@ -376,7 +376,8 @@ public interface FeatureListRow extends ModularDataModel {
    */
   default boolean hasMs2Fragmentation() {
     // should be faster. Best fragmentation loops through all spectra to find best
-    return getAllFragmentScans() != null && !getAllFragmentScans().isEmpty();
+    final List<Scan> ms2 = getAllFragmentScans();
+    return ms2 != null && !ms2.isEmpty();
   }
 
   /**

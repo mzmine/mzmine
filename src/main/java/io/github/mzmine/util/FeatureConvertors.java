@@ -204,8 +204,7 @@ public class FeatureConvertors {
     modularFeature.setRepresentativeScan(manualFeature.getRepresentativeScanNumber());
     // Add values to feature
 
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(manualFeature.getAllMS2FragmentScanNumbers()));
+    modularFeature.setAllMS2FragmentScans(List.of(manualFeature.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
 
     modularFeature.set(RawFileType.class, manualFeature.getRawDataFile());

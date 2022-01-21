@@ -183,6 +183,7 @@ public interface Feature {
   /**
    * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
    */
+  @NotNull
   List<Scan> getAllMS2FragmentScans();
 
   /**

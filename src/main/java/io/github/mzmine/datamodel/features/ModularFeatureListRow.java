@@ -665,16 +665,12 @@ public class ModularFeatureListRow implements FeatureListRow {
     double bestTIC = 0.0;
     Scan bestScan = null;
     for (Feature feature : getFeatures()) {
-      RawDataFile rawData = feature.getRawDataFile();
-      if (rawData == null || feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
+      Scan theScan = feature.getMostIntenseFragmentScan();
+      if (theScan == null) {
         continue;
       }
 
-      Scan theScan = feature.getMostIntenseFragmentScan();
-      double theTIC = 0.0;
-      if (theScan != null) {
-        theTIC = theScan.getTIC();
-      }
+      double theTIC = Objects.requireNonNullElse(theScan.getTIC(), 0d);
 
       if (theTIC > bestTIC) {
         bestTIC = theTIC;
