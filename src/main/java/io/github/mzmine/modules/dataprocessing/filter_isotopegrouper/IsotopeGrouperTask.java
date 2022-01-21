@@ -61,8 +61,8 @@ class IsotopeGrouperTask extends AbstractTask {
    * Since we don't know the formula, we can assume the distance to be ~1.0033 Da, with user-defined
    * tolerance.
    */
+  private static final Logger logger = Logger.getLogger(IsotopeGrouperTask.class.getName());
   private static final double isotopeDistance = 1.0033;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject project;
   private final ModularFeatureList featureList;
   // parameter values
