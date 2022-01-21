@@ -233,8 +233,16 @@ class IsotopeGrouperTask extends AbstractTask {
       finalRows.add(mainRow);
       // set isotope pattern
       Feature feature = mainRow.getFeatures().get(0);
-      feature.setIsotopePattern(newPattern);
-      feature.setCharge(bestFitCharge);
+
+      // do not set isotope pattern if feature already has an isotope pattern
+      // this means the isotope finder (or another module already ran) keep the old pattern
+      // we trust the isotope finder more on detecting all isotope signals
+      if (feature.getIsotopePattern() != null) {
+        feature.setIsotopePattern(newPattern);
+      }
+      if (feature.getCharge() != null) {
+        feature.setCharge(bestFitCharge);
+      }
 
       // Remove all peaks already assigned to isotope pattern
       // first is already removed
