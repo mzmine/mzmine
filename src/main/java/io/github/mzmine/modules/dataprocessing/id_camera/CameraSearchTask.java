@@ -16,12 +16,6 @@
  *
  */
 
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
 import com.google.common.collect.Range;
@@ -675,8 +669,8 @@ public class CameraSearchTask extends AbstractTask {
       for (Entry<Double, Double> e : spectrum.entrySet())
         dataPoints[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
 
-      IsotopePattern pattern =
-          new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
+      IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
+          IsotopePatternStatus.PREDICTED, "Spectrum");
 
       groupRow.getBestFeature().setIsotopePattern(pattern);
 
@@ -699,8 +693,8 @@ public class CameraSearchTask extends AbstractTask {
           DataPoint[] dataPoints = new DataPoint[1];
           dataPoints[0] = new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight());
 
-          IsotopePattern pattern =
-              new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
+          IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
+              IsotopePatternStatus.PREDICTED, "Spectrum");
 
           row.getBestFeature().setIsotopePattern(pattern);
 
@@ -824,8 +818,8 @@ public class CameraSearchTask extends AbstractTask {
       for (Entry<Double, Double> e : spectrum.entrySet())
         dataPoints[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
 
-      IsotopePattern pattern =
-          new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
+      IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
+          IsotopePatternStatus.PREDICTED, "Spectrum");
 
       groupRow.getBestFeature().setIsotopePattern(pattern);
 

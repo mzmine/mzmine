@@ -194,8 +194,8 @@ class IsotopesUtilsTest {
     return new SimpleMassList(null, mzIntensity[0], mzIntensity[1]);
   }
 
-  private IsotopePattern getPattern(List<DataPoint> dataPoints) {
-    return new SimpleIsotopePattern(dataPoints.toArray(DataPoint[]::new),
+  private IsotopePattern getPattern(List<DataPoint> dataPoints, int charge) {
+    return new SimpleIsotopePattern(dataPoints.toArray(DataPoint[]::new), charge,
         IsotopePatternStatus.DETECTED, "");
   }
 
@@ -212,7 +212,7 @@ class IsotopesUtilsTest {
       final List<DataPoint> dataPoints = patterns.get(p);
       for (int charge = 1; charge <= 4; charge++) {
         IsotopePattern pattern = getPattern(
-            charge > 1 ? applyCharge(dataPoints, charge) : dataPoints);
+            charge > 1 ? applyCharge(dataPoints, charge) : dataPoints, charge);
         assertTrue(IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(0), mzTol, 4),
             String.format(
                 "Monoisotopic peak of pattern p=%d was falsely identified as potential isotope signal at charge %d",
@@ -239,7 +239,7 @@ class IsotopesUtilsTest {
     }
 
     final Isotope[] br = new Isotope[]{IsotopesUtils.getIsotopeRecord("Br", 81)};
-    final IsotopePattern br3C10 = getPattern(getBr3C10IsotopePatter());
+    final IsotopePattern br3C10 = getPattern(getBr3C10IsotopePatter(), 1);
     // check different main m/z (owuld be row m/z)
     double mz1 = br3C10.getMzValue(0);
     assertTrue(IsotopePatternUtils.check13CPattern(br3C10, mz1, mzTol, 3));
@@ -256,7 +256,7 @@ class IsotopesUtilsTest {
     final List<DataPoint> dps = getC12H24O12IsotopePattern();
     final DataPoint old = dps.remove(0);
     dps.add(0, new SimpleDataPoint(old.getMZ(), dps.get(0).getIntensity() * 1.2));
-    IsotopePattern pattern = getPattern(dps);
+    IsotopePattern pattern = getPattern(dps, 1);
     assertFalse(IsotopePatternUtils.check13CPattern(pattern, pattern.getMzValue(0), mzTol, 2, true,
         isotope18O, true));
 
@@ -264,7 +264,7 @@ class IsotopesUtilsTest {
 
   @Test
   void testBinarySearchMassSpectrum() {
-    final IsotopePattern isotopes = getPattern(getBr3C10IsotopePatter());
+    final IsotopePattern isotopes = getPattern(getBr3C10IsotopePatter(), 1);
     final double mz3 = isotopes.getMzValue(3);
 
     assertEquals(3, isotopes.binarySearch(mz3, true));

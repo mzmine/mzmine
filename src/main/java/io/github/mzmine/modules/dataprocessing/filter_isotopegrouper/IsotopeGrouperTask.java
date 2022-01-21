@@ -217,7 +217,7 @@ class IsotopeGrouperTask extends AbstractTask {
           .map(r -> new SimpleDataPoint(r.getAverageMZ(), r.getAverageHeight()))
           .sorted(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending))
           .toArray(DataPoint[]::new);
-      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes,
+      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes, bestFitCharge,
           IsotopePatternStatus.DETECTED, mostIntenseRow.toString());
 
       // Depending on user's choice, we leave either the most intense, or

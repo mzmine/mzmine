@@ -26,7 +26,6 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopeCompositionResult;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopicPeakResult;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
@@ -274,7 +273,7 @@ public class IsotopePatternUtils {
       ProcessedDataPoint dps[] = peaks.toArray(new ProcessedDataPoint[0]);
       String[] isos = isotopes.toArray(new String[0]);
 
-      SimpleIsotopePattern pattern = new SimpleIsotopePattern(dps, IsotopePatternStatus.DETECTED,
+      SimpleIsotopePattern pattern = new SimpleIsotopePattern(dps, 1, IsotopePatternStatus.DETECTED,
           format.format(dp.getMZ()) /* + Arrays.toString(isos) */, isos);
 
       dp.addResult(new DPPIsotopePatternResult(pattern, dps, charge));
@@ -496,29 +495,6 @@ public class IsotopePatternUtils {
   }
 
   /**
-   * Convenience method to get all isotope pattern results in a List<DPPIsotopePatternResult> list
-   *
-   * @param dp
-   * @return
-   */
-  public static @NotNull List<DPPIsotopePatternResult> getIsotopePatternResults(
-      @NotNull ProcessedDataPoint dp) {
-    List<DPPIsotopePatternResult> results = new ArrayList<>();
-
-    if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-      return results;
-    }
-
-    List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-
-    for (int i = 0; i < patternResults.size(); i++) {
-      results.add((DPPIsotopePatternResult) patternResults.get(i));
-    }
-
-    return results;
-  }
-
-  /**
    * @param dp a processed data point.
    * @return an empty list if no isotope pattern was detected, a list of the charge states if there
    * was at least one charge detected.
@@ -628,73 +604,8 @@ public class IsotopePatternUtils {
       return Double.compare(o1.getMZ(), o2.getMZ());
     });
 
-    return new SimpleIsotopePattern(newPeaks.toArray(new DataPoint[0]),
+    return new SimpleIsotopePattern(newPeaks.toArray(new DataPoint[0]), pattern.getCharge(),
         IsotopePatternStatus.PREDICTED, "");
-  }
-
-  // -------------------------------------------------------------------------------------------
-  // -------------------------------------------------------------------------------------------
-  // -------------------------------------------------------------------------------------------
-  // old-new
-  public static void mergeIsotopePatternResults(ProcessedDataPoint dp) {
-    if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-      return;
-    }
-
-    List<DPPIsotopePatternResult> patternResults = getIsotopePatternResults(dp);
-    List<DPPResult<?>> newResults = new ArrayList<>();
-
-    for (DPPIsotopePatternResult dpPatternResult : patternResults) {
-      ProcessedDataPoint[] dpPattern = dpPatternResult.getLinkedDataPoints();
-
-      int patternCharge = dpPatternResult.getCharge();
-
-      for (ProcessedDataPoint p : dpPattern) {
-        List<DPPIsotopePatternResult> pPatternResults = getIsotopePatternResults(p);
-
-        for (DPPIsotopePatternResult pPatternResult : pPatternResults) {
-          if (pPatternResult.getCharge() != patternCharge) {
-            continue;
-          }
-
-          ProcessedDataPoint[] dataPoints = pPatternResult.getLinkedDataPoints();
-          p.removeResult(pPatternResult);
-
-          newResults.add(new DPPIsotopePatternResult(
-              new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.DETECTED, ""), dataPoints,
-              patternCharge));
-        }
-      }
-    }
-
-    dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-    dp.addAllResults(newResults);
-
-    logger.finest("-------------------------");
-    for (DPPResult<?> result : newResults) {
-      logger.finest("FINAL: " + format.format(dp.getMZ()) + " pattern: " + getResultIsoComp(
-          (DPPIsotopePatternResult) result));
-    }
-
-    // TODO: test
-  }
-
-  private static String getResultIsoComp(DPPIsotopePatternResult result) {
-    String str = "";
-    for (ProcessedDataPoint dp : result.getLinkedDataPoints()) {
-      String c = "";
-      DPPIsotopeCompositionResult comps = (DPPIsotopeCompositionResult) dp.getFirstResultByType(
-          ResultType.ISOTOPECOMPOSITION);
-      for (String comp : comps.getValue()) {
-        c += comp + ", ";
-      }
-      if (c.length() > 2) {
-        c = c.substring(0, c.length() - 2);
-      }
-      str += format.format(dp.getMZ()) + " (" + c + "), ";
-    }
-    str = str.substring(0, str.length() - 2);
-    return str;
   }
 
   public static boolean check13CPattern(IsotopePattern pattern, double mainMZ, MZTolerance mzTol,

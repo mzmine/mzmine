@@ -30,16 +30,13 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import io.github.mzmine.util.scans.ScanUtils;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -177,8 +174,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       }
 
       DataPoint[] originalPeaks = bestFitPeaks.toArray(new DataPoint[0]);
-      SimpleIsotopePattern newPattern =
-          new SimpleIsotopePattern(originalPeaks, IsotopePatternStatus.DETECTED, aPeak.toString());
+      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(originalPeaks, bestFitCharge,
+          IsotopePatternStatus.DETECTED, aPeak.toString());
 
       sortedDataPoints[i].addResult(new DPPIsotopePatternResult(newPattern, bestFitCharge));
       deisotopedDataPoints.add(sortedDataPoints[i]);
@@ -319,36 +316,4 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     }
   }
 
-  /**
-   * This method generates a single IsotopesDataSet from all detected isotope patterns in the
-   * results.
-   *
-   * @param dataPoints
-   * @return
-   */
-  private IsotopesDataSet compressIsotopeDataSets(ProcessedDataPoint[] dataPoints) {
-    List<IsotopePattern> list = new ArrayList<>();
-
-    for (ProcessedDataPoint dp : dataPoints) {
-      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-        list.add(((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))
-            .getValue());
-      }
-    }
-    if (list.isEmpty())
-      return null;
-
-    List<DataPoint> dpList = new ArrayList<>();
-
-    for (IsotopePattern pattern : list) {
-      for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
-        dpList.add(dp);
-    }
-    if (dpList.isEmpty())
-      return null;
-
-    IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
-        IsotopePatternStatus.DETECTED, "Isotope patterns");
-    return new IsotopesDataSet(full);
-  }
 }
