@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package datamodel;
@@ -29,7 +30,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.BuildingMobilityScan;
@@ -169,29 +169,6 @@ public class IMSScanTypesTest {
     DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
   }
 
-  @Test
-  void bestFragmentScanNumberTypeTest() {
-    BestFragmentScanNumberType type = new BestFragmentScanNumberType();
-    PasefMsMsInfo info = new PasefMsMsInfoImpl(300d, Range.closed(1, 3), 30f, 1, file.getFrame(4),
-        file.getFrame(6), Range.closed(299d, 301d));
-
-    MergedMsMsSpectrum value = SpectraMerging.getMergedMsMsSpectrumForPASEF(info,
-        new MZTolerance(0.01, 10), MergingType.SUMMED, null,
-        RangeUtils.toFloatRange(file.getFrame(5).getMobilityRange()), null);
-
-    MergedMsMsSpectrum loaded = (MergedMsMsSpectrum) DataTypeTestUtils.saveAndLoad(type, value,
-        flist, row, null, null);
-
-    compareMergedMsMs(value, loaded);
-
-    loaded = (MergedMsMsSpectrum) DataTypeTestUtils.saveAndLoad(type, value, flist, row, feature,
-        file);
-
-    compareMergedMsMs(value, loaded);
-
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
-  }
 
   @Test
   void fragmentScanNumbersTypeTest() {

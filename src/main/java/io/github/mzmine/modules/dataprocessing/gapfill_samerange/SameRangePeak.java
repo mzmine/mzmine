@@ -40,7 +40,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * This class represents a manually picked chromatographic peak.
  */
-public class SameRangePeak{
+public class SameRangePeak {
+
   private SimpleFeatureInformation peakInfo;
 
   private RawDataFile dataFile;
@@ -66,6 +67,7 @@ public class SameRangePeak{
   // method.
   private IsotopePattern isotopePattern;
   private int charge = 0;
+  private FeatureList peakList;
 
   /**
    * Initializes empty peak for adding data points
@@ -87,6 +89,10 @@ public class SameRangePeak{
    */
   public double getMZ() {
     return mz;
+  }
+
+  public void setMZ(double mz) {
+    this.mz = mz;
   }
 
   /**
@@ -183,14 +189,16 @@ public class SameRangePeak{
     // Trim the zero-intensity data points from the beginning and end
     while (!mzPeakMap.isEmpty()) {
       Scan scanNumber = mzPeakMap.firstKey();
-      if (mzPeakMap.get(scanNumber).getIntensity() > 0)
+      if (mzPeakMap.get(scanNumber).getIntensity() > 0) {
         break;
+      }
       mzPeakMap.remove(scanNumber);
     }
     while (!mzPeakMap.isEmpty()) {
       Scan scanNumber = mzPeakMap.lastKey();
-      if (mzPeakMap.get(scanNumber).getIntensity() > 0)
+      if (mzPeakMap.get(scanNumber).getIntensity() > 0) {
         break;
+      }
       mzPeakMap.remove(scanNumber);
     }
 
@@ -200,10 +208,10 @@ public class SameRangePeak{
     }
 
     // Get all scan numbers
-    Entry<Scan, DataPoint> [] allScanNumbers = mzPeakMap.entrySet().toArray(Entry[]::new);
+    Entry<Scan, DataPoint>[] allScanNumbers = mzPeakMap.entrySet().toArray(Entry[]::new);
 
     // Find the data point with top intensity and use its RT and height
-    for(Map.Entry<Scan, DataPoint> entry : allScanNumbers) {
+    for (Map.Entry<Scan, DataPoint> entry : allScanNumbers) {
       DataPoint dataPoint = entry.getValue();
       double rt = entry.getKey().getRetentionTime();
       if (dataPoint.getIntensity() > height) {
@@ -242,16 +250,13 @@ public class SameRangePeak{
     allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getMsMsInfo() != null &&
-          fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda && dda.getPrecursorCharge() != null
-          ? dda.getPrecursorCharge() : 0;
-      if ((precursorCharge > 0) && (this.charge == 0))
+      int precursorCharge = fragmentScan.getMsMsInfo() != null
+                            && fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda
+                            && dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : 0;
+      if ((precursorCharge > 0) && (this.charge == 0)) {
         this.charge = precursorCharge;
+      }
     }
-  }
-
-  public void setMZ(double mz) {
-    this.mz = mz;
   }
 
   public Scan getRepresentativeScanNumber() {
@@ -264,6 +269,21 @@ public class SameRangePeak{
 
   public Scan[] getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
+  }
+
+  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    // also set best scan by TIC
+    Scan best = null;
+    double tic = 0;
+    if (allMS2FragmentScanNumbers != null) {
+      for (Scan scan : allMS2FragmentScanNumbers) {
+        if (tic < scan.getTIC()) {
+          best = scan;
+        }
+      }
+    }
+    setFragmentScanNumber(best);
   }
 
   public IsotopePattern getIsotopePattern() {
@@ -311,34 +331,18 @@ public class SameRangePeak{
     int nothing = -1;
   }
 
-  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
-    this.peakInfo = peakInfoIn;
-  }
-
   public SimpleFeatureInformation getPeakInformation() {
     return peakInfo;
   }
 
-  public void setFragmentScanNumber(Scan fragmentScanNumber) {
-    this.fragmentScan = fragmentScanNumber;
-  }
-
-  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
-    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
-    // also set best scan by TIC
-    Scan best = null;
-    double tic = 0;
-    if (allMS2FragmentScanNumbers != null) {
-      for (Scan scan : allMS2FragmentScanNumbers) {
-        if (tic < scan.getTIC())
-          best = scan;
-      }
-    }
-    setFragmentScanNumber(best);
+  public void setPeakInformation(SimpleFeatureInformation peakInfoIn) {
+    this.peakInfo = peakInfoIn;
   }
   // End dulab Edit
 
-  private FeatureList peakList;
+  public void setFragmentScanNumber(Scan fragmentScanNumber) {
+    this.fragmentScan = fragmentScanNumber;
+  }
 
   public FeatureList getPeakList() {
     return peakList;

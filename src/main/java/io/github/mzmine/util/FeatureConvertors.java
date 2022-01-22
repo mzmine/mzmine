@@ -45,7 +45,6 @@ import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
@@ -280,10 +279,7 @@ public class FeatureConvertors {
 
     modularFeature.set(FragmentScanNumbersType.class,
         List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
-//    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -357,8 +353,6 @@ public class FeatureConvertors {
         List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        sameRangePeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
@@ -433,8 +427,6 @@ public class FeatureConvertors {
         List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
 //    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
 
-    modularFeature.set(BestFragmentScanNumberType.class,
-        resolvedPeak.getMostIntenseFragmentScanNumber());
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
     modularFeature.set(IsotopePatternType.class, resolvedPeak.getIsotopePattern());
     modularFeature.set(FeatureInformationType.class, resolvedPeak.getPeakInformation());

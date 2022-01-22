@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -58,6 +57,7 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -223,8 +223,7 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(HeightType.class, (f.getHeight()));
       set(AreaType.class, (f.getArea()));
       set(BestScanNumberType.class, (f.getRepresentativeScan()));
-      set(BestFragmentScanNumberType.class, (f.getMostIntenseFragmentScan()));
-      set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
+      setAllMS2FragmentScans(f.getAllMS2FragmentScans());
 
       // datapoints of feature
       //      set(DataPointsType.class, f.getDataPoints());
@@ -355,12 +354,24 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Scan getMostIntenseFragmentScan() {
-    return get(BestFragmentScanNumberType.class);
+    List<Scan> allMS2 = get(FragmentScanNumbersType.class);
+    if (allMS2 != null && !allMS2.isEmpty()) {
+      return allMS2.get(0);
+    } else {
+      return null;
+    }
   }
 
   @Override
   public void setFragmentScan(Scan fragmentScan) {
-    set(BestFragmentScanNumberType.class, fragmentScan);
+    if (fragmentScan == null) {
+      return;
+    }
+    // make sure its mutable
+    final List<Scan> allMS2 = new ArrayList<>(getAllMS2FragmentScans());
+    allMS2.remove(fragmentScan);
+    allMS2.add(0, fragmentScan);
+    setAllMS2FragmentScans(allMS2);
   }
 
   @Override

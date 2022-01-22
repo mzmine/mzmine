@@ -39,8 +39,7 @@ public interface Feature {
   /**
    * This method returns the status of the feature
    */
-  @NotNull
-  FeatureStatus getFeatureStatus();
+  @NotNull FeatureStatus getFeatureStatus();
 
   /**
    * This method returns raw M/Z value of the feature
@@ -85,14 +84,12 @@ public interface Feature {
   /**
    * Returns raw data file where this feature is present
    */
-  @Nullable
-  RawDataFile getRawDataFile();
+  @Nullable RawDataFile getRawDataFile();
 
   /**
    * This method returns numbers of scans that contain this feature
    */
-  @NotNull
-  List<Scan> getScanNumbers();
+  @NotNull List<Scan> getScanNumbers();
 
   /**
    * Used to loop over scans and data points in combination with ({@link #getDataPointAtIndex(int)}
@@ -131,8 +128,7 @@ public interface Feature {
   /**
    * This method returns the best scan (null if no raw file is attached)
    */
-  @Nullable
-  Scan getRepresentativeScan();
+  @Nullable Scan getRepresentativeScan();
 
   /**
    * The representative scan of this feature
@@ -160,35 +156,35 @@ public interface Feature {
   /**
    * Returns the retention time range of all raw data points used to detect this feature
    */
-  @NotNull
-  Range<Float> getRawDataPointsRTRange();
+  @NotNull Range<Float> getRawDataPointsRTRange();
 
   /**
    * Returns the range of m/z values of all raw data points used to detect this feature
    */
-  @NotNull
-  Range<Double> getRawDataPointsMZRange();
+  @NotNull Range<Double> getRawDataPointsMZRange();
 
   /**
    * Returns the range of intensity values of all raw data points used to detect this feature
    */
-  @NotNull
-  Range<Float> getRawDataPointsIntensityRange();
+  @NotNull Range<Float> getRawDataPointsIntensityRange();
 
   /**
-   * Returns the scan that represents the fragmentation of this feature in MS2 level.
+   * Returns the scan that represents the fragmentation of this feature in MS2 level. The first in
+   * the list of all fragment scans
    */
   Scan getMostIntenseFragmentScan();
 
   /**
-   * Returns all scan numbers that represent fragmentations of this feature in MS2 level.
+   * Sorted list of all fragmentation scans of this feature. First is the representative ("best")
+   * fragmentation spectrum.
    */
   List<Scan> getAllMS2FragmentScans();
 
   /**
-   * Set all fragment scan numbers
+   * Set all fragmentation scans. First element is "best" representative scan
    *
-   * @param allMS2FragmentScanNumbers
+   * @param allMS2FragmentScanNumbers usually sorted by most intense scans first (represantative
+   *                                  scan as first element)
    */
   void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers);
 
@@ -197,8 +193,7 @@ public interface Feature {
    * units.
    * @see Feature#getMobilityUnit()
    */
-  @Nullable
-  Float getMobility();
+  @Nullable Float getMobility();
 
   /**
    * Sets the mobility of this feature. Note that mobility has a unit, which should be set by {@link
@@ -211,8 +206,7 @@ public interface Feature {
   /**
    * @return The unit of the mobility of this feature or null, if no mobility unit was set.
    */
-  @Nullable
-  MobilityType getMobilityUnit();
+  @Nullable MobilityType getMobilityUnit();
 
   /**
    * Sets the {@link MobilityType} of this feature.
@@ -224,8 +218,7 @@ public interface Feature {
   /**
    * @return The ccs value or null, if no value was set.
    */
-  @Nullable
-  Float getCCS();
+  @Nullable Float getCCS();
 
   /**
    * Sets the collision cross section of this feature.
@@ -237,8 +230,7 @@ public interface Feature {
   /**
    * @return The mobility range of this feature or null, if no range was set.
    */
-  @Nullable
-  Range<Float> getMobilityRange();
+  @Nullable Range<Float> getMobilityRange();
 
   /**
    * Sets the mobiltiy range
@@ -246,9 +238,10 @@ public interface Feature {
   void setMobilityRange(Range<Float> range);
 
   /**
-   * Set best fragment scan
+   * Set best fragment scan (pushes the provided scan at first index of the all fragment scans
+   * list)
    *
-   * @param fragmentScan
+   * @param fragmentScan scan to be first index in list of all scans
    */
   void setFragmentScan(Scan fragmentScan);
 
@@ -317,8 +310,7 @@ public interface Feature {
     return null;
   }
 
-  @Nullable
-  FeatureList getFeatureList();
+  @Nullable FeatureList getFeatureList();
 
   void setFeatureList(@NotNull FeatureList featureList);
 

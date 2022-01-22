@@ -683,26 +683,19 @@ public class ScanUtils {
    * Finds the MS/MS scan with highest intensity, within given retention time range and with
    * precursor m/z within given m/z range
    */
-  public static Scan findBestFragmentScan(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
+  public static Scan findBestFragmentScan(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange) {
 
-    assert dataFile != null;
-    assert rtRange != null;
-    assert mzRange != null;
-
-    return dataFile.getScanNumbers(2).stream().filter(
-            s -> s.getBasePeakIntensity() != null && rtRange.contains(s.getRetentionTime()) && (
-                s.getMsMsInfo() != null && s.getMsMsInfo() instanceof DDAMsMsInfo dda
-                && mzRange.contains(dda.getIsolationMz())))
-        .max(Comparator.comparingDouble(s -> s.getBasePeakIntensity())).orElse(null);
+    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange).filter(s -> s.getTIC() != null)
+        .max(Comparator.comparingDouble(s -> s.getTIC())).orElse(null);
   }
 
   /**
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static Stream<Scan> streamAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
-      Range<Double> mzRange) {
+  public static Stream<Scan> streamAllMS2FragmentScans(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange) {
     assert dataFile != null;
     assert mzRange != null;
 
