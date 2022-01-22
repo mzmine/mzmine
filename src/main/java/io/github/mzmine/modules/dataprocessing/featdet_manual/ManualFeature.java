@@ -32,6 +32,7 @@ import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -59,10 +60,10 @@ public class ManualFeature {
   private TreeMap<Scan, DataPoint> dataPointMap;
 
   // Number of most intense fragment scan
-  private Scan fragmentScan, representativeScan;
+  private Scan representativeScan;
 
   // Number of all MS2 fragment scans
-  private Scan[] allMS2FragmentScanNumbers;
+  private List<Scan> allMS2FragmentScanNumbers;
 
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
@@ -146,7 +147,7 @@ public class ManualFeature {
   }
 
   public String getName() {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
     buf.append("m/z ");
@@ -246,14 +247,15 @@ public class ManualFeature {
     double[] mzArray = dataPointMap.values().stream().mapToDouble(dp -> dp.getMZ()).toArray();
     this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
-    fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
+    allMS2FragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(dataFile, rtRange, mzRange)
+        .toList();
 
-    allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
-
-    if (fragmentScan != null) {
+    if (!allMS2FragmentScanNumbers.isEmpty()) {
+      Scan fragmentScan = allMS2FragmentScanNumbers.get(0);
       int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
-      if ((precursorCharge > 0) && (this.charge == 0))
+      if ((precursorCharge > 0) && (this.charge == 0)) {
         this.charge = precursorCharge;
+      }
     }
 
   }
@@ -262,11 +264,7 @@ public class ManualFeature {
     return representativeScan;
   }
 
-  public Scan getMostIntenseFragmentScanNumber() {
-    return fragmentScan;
-  }
-
-  public Scan[] getAllMS2FragmentScanNumbers() {
+  public List<Scan> getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
@@ -315,24 +313,8 @@ public class ManualFeature {
     return featureInfo;
   }
 
-  public void setFragmentScanNumber(Scan fragmentScanNumber) {
-    this.fragmentScan = fragmentScanNumber;
-  }
-
-  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
+  public void setAllMS2FragmentScanNumbers(List<Scan> allMS2FragmentScanNumbers) {
     this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
-    // also set best scan by TIC
-    Scan best = null;
-    double tic = 0;
-    if (allMS2FragmentScanNumbers != null) {
-      for (Scan scan : allMS2FragmentScanNumbers) {
-        if (tic < scan.getTIC()) {
-          best = scan;
-          tic = scan.getTIC();
-        }
-      }
-    }
-    setFragmentScanNumber(best);
   }
   // End dulab Edit
 

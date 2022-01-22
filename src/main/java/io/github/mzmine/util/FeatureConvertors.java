@@ -198,12 +198,10 @@ public class FeatureConvertors {
 
     ModularFeature modularFeature = new ModularFeature(featureList);
 
-    modularFeature.setFragmentScan(manualFeature.getMostIntenseFragmentScanNumber());
     modularFeature.setRepresentativeScan(manualFeature.getRepresentativeScanNumber());
     // Add values to feature
 
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(manualFeature.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class, manualFeature.getAllMS2FragmentScanNumbers());
     //    modularFeature.set(ScanNumbersType.class, List.of(manualFeature.getScanNumbers()));
 
     modularFeature.set(RawFileType.class, manualFeature.getRawDataFile());
@@ -350,8 +348,7 @@ public class FeatureConvertors {
     ModularFeature modularFeature = new ModularFeature(featureList);
 
     // Add values to feature
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(resolvedPeak.getAllMS2FragmentScanNumbers()));
+    modularFeature.set(FragmentScanNumbersType.class, resolvedPeak.getAllMS2FragmentScanNumbers());
     //    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
 
     modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());

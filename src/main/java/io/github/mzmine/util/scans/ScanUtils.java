@@ -18,7 +18,6 @@
 
 package io.github.mzmine.util.scans;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
@@ -67,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -677,17 +675,6 @@ public class ScanUtils {
       }
     }
 
-  }
-
-  /**
-   * Finds the MS/MS scan with highest intensity, within given retention time range and with
-   * precursor m/z within given m/z range
-   */
-  public static Scan findBestFragmentScan(@NotNull RawDataFile dataFile,
-      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange) {
-
-    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange).filter(s -> s.getTIC() != null)
-        .max(Comparator.comparingDouble(s -> s.getTIC())).orElse(null);
   }
 
   /**
@@ -1331,15 +1318,8 @@ public class ScanUtils {
     assert topN != null;
 
     // Keeps MS2 scans sorted by decreasing quality
-    TreeSet<Scan> sortedScans = new TreeSet<>(
-        Collections.reverseOrder(new ScanSorter(0, ScanSortMode.MAX_TIC)));
-    sortedScans.addAll(scans);
-
     // Filter top N scans into an immutable list
-    final List<Scan> topNScansList = sortedScans.stream().limit(topN)
-        .collect(ImmutableList.toImmutableList());
-
-    return topNScansList;
+    return scans.stream().sorted(new ScanSorter(0, ScanSortMode.MAX_TIC)).limit(topN).toList();
   }
 
   /**
