@@ -693,13 +693,28 @@ public class ScanUtils {
   /**
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
+   *
+   * @return stream sorted by default sorting (highest TIC)
    */
   public static Stream<Scan> streamAllMS2FragmentScans(@NotNull RawDataFile dataFile,
       @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange) {
-    assert dataFile != null;
-    assert mzRange != null;
+    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange, FragmentScanSorter.DEFAULT_TIC);
+  }
 
-    return dataFile.getScanNumbers(2).stream().filter(s -> matchesMS2Scan(s, rtRange, mzRange));
+  /**
+   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
+   * within given m/z range. Applies sorting if sorter is not null
+   *
+   * @param sorter sorted stream see {@link FragmentScanSorter}. Unsorted if null
+   * @return sorted stream
+   */
+  public static Stream<Scan> streamAllMS2FragmentScans(@NotNull RawDataFile dataFile,
+      @Nullable Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @Nullable Comparator<Scan> sorter) {
+
+    final Stream<Scan> stream = dataFile.getScanNumbers(2).stream()
+        .filter(s -> matchesMS2Scan(s, rtRange, mzRange));
+    return sorter == null ? stream : stream.sorted(sorter);
   }
 
   /**

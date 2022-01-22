@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
@@ -36,7 +37,6 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
@@ -160,8 +160,6 @@ class SameRangeTask extends AbstractTask {
 
   private Feature fillGap(FeatureListRow row, RawDataFile column) {
 
-    SameRangePeak newPeak = new SameRangePeak(column);
-
     Range<Double> mzRange = null;
     Range<Float> rtRange = null;
 
@@ -184,11 +182,15 @@ class SameRangeTask extends AbstractTask {
     assert rtRange != null;
 
     Range<Double> mzRangeWithTol = mzTolerance.getToleranceRange(mzRange);
+    final double centerMZ = RangeUtils.rangeCenter(mzRangeWithTol);
 
     // Get scan numbers
     Scan[] scanNumbers = column.getScanNumbers(1, rtRange);
 
     boolean dataPointFound = false;
+
+    // results
+    SimpleGapFeature gapFeature = new SimpleGapFeature();
 
     for (Scan scan : scanNumbers) {
 
@@ -203,20 +205,26 @@ class SameRangeTask extends AbstractTask {
         if (basePeak.getIntensity() > 0) {
           dataPointFound = true;
         }
-        newPeak.addDatapoint(scan, basePeak);
+        gapFeature.addDataPoint(scan, basePeak);
       } else {
-        DataPoint fakeDataPoint = new SimpleDataPoint(RangeUtils.rangeCenter(mzRangeWithTol), 0);
-        newPeak.addDatapoint(scan, fakeDataPoint);
+        DataPoint fakeDataPoint = new SimpleDataPoint(centerMZ, 0);
+        gapFeature.addDataPoint(scan, fakeDataPoint);
       }
 
     }
 
     if (dataPointFound) {
-      newPeak.finalizePeak();
-      if (newPeak.getArea() == 0) {
+      gapFeature.removeEdgeZeroIntensities();
+      if (gapFeature.isEmpty()) {
         return null;
       }
-      return FeatureConvertors.SameRangePeakToModularFeature(processedPeakList, newPeak);
+      final ModularFeature feature = new ModularFeature(processedPeakList, column,
+          gapFeature.toIonTimeSeries(processedPeakList.getMemoryMapStorage()),
+          FeatureStatus.ESTIMATED);
+
+      var allMS2 = ScanUtils.streamAllMS2FragmentScans(column, rtRange, mzRange).toList();
+      feature.setAllMS2FragmentScans(allMS2);
+      return feature;
     }
 
     return null;
