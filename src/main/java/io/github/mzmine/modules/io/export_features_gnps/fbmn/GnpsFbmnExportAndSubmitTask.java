@@ -51,7 +51,6 @@ import java.awt.Desktop;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,15 +65,20 @@ import org.jetbrains.annotations.NotNull;
 public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
   // Logger.
-  private final Logger logger = Logger.getLogger(getClass().getName());
-
-  private ParameterSet parameters;
-  private AtomicDouble progress = new AtomicDouble(0);
-  private FeatureMeasurementType featureMeasure;
+  private static final Logger logger = Logger.getLogger(
+      GnpsFbmnExportAndSubmitTask.class.getName());
+  private final ParameterSet parameters;
+  private final AtomicDouble progress = new AtomicDouble(0);
+  private final FeatureMeasurementType featureMeasure;
+  private final File baseFile;
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
+    featureMeasure = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY);
+    baseFile = FileAndPathUtil.eraseFormat(
+        parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILENAME));
+    parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(baseFile);
   }
 
   @Override
@@ -98,40 +102,33 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     final AbstractTask thistask = this;
     setStatus(TaskStatus.PROCESSING);
 
-    boolean openFolder =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER).getValue();
+    boolean openFolder = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER)
+        .getValue();
     boolean submit = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue();
-    File file = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    file = FileAndPathUtil.eraseFormat(file);
-    parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
-
-    featureMeasure =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY).getValue();
 
     List<AbstractTask> list = new ArrayList<>(4);
     GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
     list.add(task);
 
     // add old csv quant table for old FBMN support
-    list.add(addLegacyQuantTableTask(parameters, null));
+    list.add(addLegacyQuantTableTask(parameters));
     // add new csv export for whole table
-    list.add(addFullQuantTableTask(parameters, null));
+    list.add(addFullQuantTableTask(parameters));
 
     // add csv extra edges
-    list.add(addExtraEdgesTask(parameters, null));
+    list.add(addExtraEdgesTask(parameters));
 
     // finish listener to submit
-    final File fileName = file;
-    final File folder = file.getParentFile();
+    final File folder = baseFile.getParentFile();
     new AllTasksFinishedListener(list, true,
         // succeed
         l -> {
           try {
             logger.info("succeed" + thistask.getStatus().toString());
             if (submit) {
-              GnpsFbmnSubmitParameters param = parameters
-                  .getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
-              submit(fileName, param);
+              GnpsFbmnSubmitParameters param = parameters.getParameter(
+                  GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
+              submit(baseFile, param);
             }
 
             // open folder
@@ -197,27 +194,19 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
    * Export the whole quant table in the new format
    *
    * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
-   * @param tasks      new task is added to this list of tasks
    */
-  private AbstractTask addFullQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
+  private AbstractTask addFullQuantTableTask(ParameterSet parameters) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant_full.csv");
 
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
+    ModularFeatureList[] flist = parameters.getParameter(
+        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
-    FeatureListRowsFilter filter =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+    FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
+        .getValue();
 
-    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
-        filter, getModuleCallDate());
-
-    if (tasks != null) {
-      tasks.add(quanExportModular);
-    }
-    return quanExportModular;
+    return new CSVExportModularTask(flist, full, ",", ";", filter, getModuleCallDate());
   }
 
 
@@ -225,71 +214,55 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
    * Export quant table in new and old format
    *
    * @param parameters export parameters {@link GnpsFbmnExportAndSubmitParameters}
-   * @param tasks      new task is added to this list of tasks
    */
-  private AbstractTask addLegacyQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
-    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
-    final String name = FilenameUtils.removeExtension(full.getName());
-    full = new File(full.getParentFile(), name + "_quant.csv");
+  private AbstractTask addLegacyQuantTableTask(ParameterSet parameters) {
+    final String name = FilenameUtils.removeExtension(baseFile.getName());
+    File full = new File(baseFile.getParentFile(), name + "_quant.csv");
     // add old CSV export
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
         LegacyExportRowCommonElement.ROW_RT,
         // extra for ion identity networking
-        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID, LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
+        LegacyExportRowCommonElement.ROW_CORR_GROUP_ID,
+        LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
         LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
         LegacyExportRowCommonElement.ROW_NEUTRAL_MASS};
 
     // per raw data file
-    LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]
-        {featureMeasure.equals(FeatureMeasurementType.AREA)
+    LegacyExportRowDataFileElement[] rawdata = new LegacyExportRowDataFileElement[]{
+        featureMeasure.equals(FeatureMeasurementType.AREA)
             ? LegacyExportRowDataFileElement.FEATURE_AREA
             : LegacyExportRowDataFileElement.FEATURE_HEIGHT};
 
-    FeatureListRowsFilter filter =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+    FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);
 
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
+    ModularFeatureList[] flist = parameters.getParameter(
+        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
-    LegacyCSVExportTask quanExport = new LegacyCSVExportTask(flist, full, ",", common, rawdata,
-        false, ";", filter, getModuleCallDate());
-
-    if (tasks != null) {
-      tasks.add(quanExport);
-    }
-    return quanExport;
+    return new LegacyCSVExportTask(flist, full, ",", common, rawdata, false, ";", filter,
+        getModuleCallDate());
   }
 
 
   /**
    * Export extra edges (wont create files if empty)
-   *
-   * @param parameters
-   * @param tasks
    */
-  private AbstractTask addExtraEdgesTask(ParameterSet parameters, Collection<Task> tasks) {
+  private AbstractTask addExtraEdgesTask(ParameterSet parameters) {
     File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
         .getValue();
-    boolean mergeLists =
-        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue();
 
     boolean exAnn = true;
     if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue()) {
-      exAnn = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters()
+      exAnn = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT)
+          .getEmbeddedParameters()
           .getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
     }
-    ModularFeatureList[] flist = parameters
-        .getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue()
-        .getMatchingFeatureLists();
+    ModularFeatureList[] flist = parameters.getParameter(
+        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
-    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false, getModuleCallDate());
-
-    if (tasks != null)
-      tasks.add(extraEdgeExport);
-    return extraEdgeExport;
+    return new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false,
+        getModuleCallDate());
   }
 
 }

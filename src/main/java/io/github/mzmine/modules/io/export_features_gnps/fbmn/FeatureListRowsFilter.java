@@ -39,7 +39,7 @@ public enum FeatureListRowsFilter {
    *
    * @return true if row conforms to the filter
    */
-  public boolean filter(FeatureListRow row) {
+  public boolean accept(FeatureListRow row) {
     return switch (this) {
       case ALL -> true;
       case ONLY_WITH_MS2 -> row.hasMs2Fragmentation();

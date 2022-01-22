@@ -373,6 +373,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
+  @NotNull
   public List<Scan> getAllMS2FragmentScans() {
     // return empty list instead
     return Objects.requireNonNullElse(get(FragmentScanNumbersType.class), List.of());

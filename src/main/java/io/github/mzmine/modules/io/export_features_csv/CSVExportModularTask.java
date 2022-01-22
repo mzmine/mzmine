@@ -55,25 +55,21 @@ public class CSVExportModularTask extends AbstractTask {
 
   public static final String DATAFILE_PREFIX = "DATAFILE";
   private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
-  private ModularFeatureList[] featureLists;
-  private int processedRows = 0, totalRows = 0;
-
+  private final ModularFeatureList[] featureLists;
   // parameter values
-  private File fileName;
-  private String plNamePattern = "{}";
-  private String fieldSeparator;
-  private String idSeparator;
-  private String headerSeparator = ":";
-  private FeatureListRowsFilter filter;
+  private final File fileName;
+  private final String fieldSeparator;
+  private final String idSeparator;
+  private final String headerSeparator = ":";
+  private final FeatureListRowsFilter filter;
+  private int processedRows = 0, totalRows = 0;
 
   public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
-    this.featureLists =
-        parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
-            .getMatchingFeatureLists();
+    this.featureLists = parameters.getParameter(CSVExportModularParameters.featureLists).getValue()
+        .getMatchingFeatureLists();
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
-    fieldSeparator = parameters.getParameter(
-        CSVExportModularParameters.fieldSeparator).getValue();
+    fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
   }
@@ -86,13 +82,12 @@ public class CSVExportModularTask extends AbstractTask {
    * @param filter         Row filter
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
-      String fieldSeparator,
-      String idSeparator, FeatureListRowsFilter filter, @NotNull Instant moduleCallDate) {
+      String fieldSeparator, String idSeparator, FeatureListRowsFilter filter,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
-      throw new IllegalArgumentException(MessageFormat
-          .format("Column separator cannot equal the identity separator (currently {0})",
-              idSeparator));
+      throw new IllegalArgumentException(MessageFormat.format(
+          "Column separator cannot equal the identity separator (currently {0})", idSeparator));
     }
     this.featureLists = featureLists;
     this.fileName = fileName;
@@ -120,6 +115,7 @@ public class CSVExportModularTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // Shall export several files?
+    String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Total number of rows
@@ -129,6 +125,10 @@ public class CSVExportModularTask extends AbstractTask {
 
     // Process feature lists
     for (ModularFeatureList featureList : featureLists) {
+      // Cancel?
+      if (isCanceled()) {
+        return;
+      }
 
       // Filename
       File curFile = fileName;
@@ -136,25 +136,24 @@ public class CSVExportModularTask extends AbstractTask {
         // Cleanup from illegal filename characters
         String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
-        String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+        String newFilename = fileName.getPath()
+            .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
       curFile = FileAndPathUtil.getRealFilePath(curFile, "csv");
 
       // Open file
 
-      try (BufferedWriter writer = Files
-          .newBufferedWriter(curFile.toPath(), StandardCharsets.UTF_8)) {
-        exportFeatureList(featureList, writer, curFile);
+      try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
+          StandardCharsets.UTF_8)) {
+        exportFeatureList(featureList, writer);
+
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Could not open file " + curFile + " for writing.");
-        return;
-      }
-
-      // Cancel?
-      if (isCanceled()) {
+        logger.log(Level.WARNING, String.format(
+            "Error writing new CSV format to file: %s for feature list: %s. Message: %s",
+            curFile.getAbsolutePath(), featureList.getName(), e.getMessage()), e);
         return;
       }
 
@@ -170,31 +169,30 @@ public class CSVExportModularTask extends AbstractTask {
     }
   }
 
-  private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer, File fileName)
+  @SuppressWarnings("rawtypes")
+  private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
       throws IOException {
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
-    List<DataType> rowTypes = flist.getRowTypes().values().stream()
-        .filter(this::filterType)
+    List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
         .collect(Collectors.toList());
 
-    List<DataType> featureTypes = flist.getFeatureTypes().values().stream()
-        .filter(this::filterType)
+    List<DataType> featureTypes = flist.getFeatureTypes().values().stream().filter(this::filterType)
         .collect(Collectors.toList());
 
     // Write feature row headers
-    String header = getJoinedHeader(rowTypes, "");
+    StringBuilder header = new StringBuilder(getJoinedHeader(rowTypes, ""));
     for (RawDataFile raw : rawDataFiles) {
-      header += (header.isEmpty() ? "" : fieldSeparator) + getJoinedHeader(featureTypes,
-          DATAFILE_PREFIX + headerSeparator + raw.getName());
+      header.append((header.length() == 0) ? "" : fieldSeparator)
+          .append(getJoinedHeader(featureTypes, DATAFILE_PREFIX + headerSeparator + raw.getName()));
     }
 
-    writer.append(header);
+    writer.append(header.toString());
     writer.newLine();
 
     // write data
     for (FeatureListRow row : flist.getRows()) {
-      if (!filter.filter(row)) {
+      if (!filter.accept(row)) {
         processedRows++;
         continue;
       }
@@ -215,8 +213,8 @@ public class CSVExportModularTask extends AbstractTask {
              || type instanceof LinkedGraphicalType);
   }
 
-  private String joinRowData(ModularFeatureListRow row,
-      List<RawDataFile> raws, List<DataType> rowTypes, List<DataType> featureTypes) {
+  private String joinRowData(ModularFeatureListRow row, List<RawDataFile> raws,
+      List<DataType> rowTypes, List<DataType> featureTypes) {
     StringBuilder b = new StringBuilder();
     joinData(b, row, rowTypes);
 
@@ -313,8 +311,8 @@ public class CSVExportModularTask extends AbstractTask {
   private String getJoinedHeader(List<DataType> types, String prefix) {
     StringBuilder b = new StringBuilder();
     for (DataType t : types) {
-      String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator) + t
-          .getHeaderString();
+      String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator)
+                      + t.getHeaderString();
       if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {

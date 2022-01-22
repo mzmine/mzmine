@@ -63,7 +63,6 @@ import org.jetbrains.annotations.NotNull;
 public class GnpsFbmnExportTask extends AbstractTask {
   private final FeatureList[] featureLists;
   private final File fileName;
-  private final String plNamePattern = "{}";
   private int currentIndex = 0;
   private final MsMsSpectraMergeParameters mergeParameters;
 
@@ -86,8 +85,9 @@ public class GnpsFbmnExportTask extends AbstractTask {
   public double getFinishedPercentage() {
     if (featureLists.length == 0)
       return 1;
-    else
-      return currentIndex / featureLists.length;
+    else {
+      return currentIndex / (double) featureLists.length;
+    }
   }
 
   @Override
@@ -95,6 +95,7 @@ public class GnpsFbmnExportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     // Shall export several files?
+    String plNamePattern = "{}";
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
     // Process feature lists
