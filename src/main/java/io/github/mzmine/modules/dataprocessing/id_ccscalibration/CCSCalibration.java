@@ -32,7 +32,12 @@ public interface CCSCalibration {
   static CCSCalibration loadFromXML(Element element) {
     return switch (element.getAttribute(XML_TYPE_ATTR)) {
       case DriftTubeCCSCalibration.XML_TYPE_NAME -> DriftTubeCCSCalibration.loadFromXML(element);
+      case TwCCSCalibration.XML_TYPE_NAME -> TwCCSCalibration.loadFromXML(element);
       default -> null;
     };
+  }
+
+  static double getReducedMass(final double mz, final int charge, final double gasWeight) {
+      return 1 / (double) charge * Math.sqrt(mz * charge / (mz * charge + gasWeight));
   }
 }

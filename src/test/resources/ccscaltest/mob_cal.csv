@@ -1,0 +1,16 @@
+* This file contains selected reference data values generated for a CCS calibration
+* The calibration curve is given as Adjusted CCS (OmegaC) = Coefficient(tc + t0)^Exponent
+* Coefficient: 208.037
+* Exponent: 0.798364
+* RMS % CCS: 0.963201
+* RSqd: 0.998527
+* t0: 2
+* tc,OmegaC,m/z
+6.9371,1186.69,556.271
+6.83092,1176.01,472.314
+5.79406,1072.56,455.284
+4.89843,979.137,380.212
+3.76733,853.645,311.075
+2.7512,730.797,215.054
+2.45407,683.962,195.082
+2.12313,634.196,152.066

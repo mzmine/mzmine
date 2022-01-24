@@ -31,7 +31,8 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
   private final double rsquare;
   private final int n;
 
-  public DriftTubeCCSCalibration(final double beta, final double tfix, final double rsquare, final int n) {
+  public DriftTubeCCSCalibration(final double beta, final double tfix, final double rsquare,
+      final int n) {
     this.beta = beta;
     this.tfix = tfix;
     this.rsquare = rsquare;
@@ -49,7 +50,7 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
   }
 
   private double getN2Gamma(double mz, int charge) {
-    return 1 / (double) charge * Math.sqrt(mz * charge / (mz * charge + CCSCalibrant.n2));
+    return 1 / (double) charge * CCSCalibration.getReducedMass(mz, charge, CCSCalibrant.n2);
   }
 
   @Override

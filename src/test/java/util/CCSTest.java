@@ -23,6 +23,8 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.AgilentImsCalib
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrant;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.TwCCSCalibration;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.WatersImsCalibrationReader;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import java.io.File;
 import java.util.List;
@@ -91,13 +93,23 @@ public class CCSTest {
 
   @Test
   void testAgilentCalReader() {
-    String str = CCSTest.class.getClassLoader().getResource("rawdatafiles/OverrideImsCal.xml")
+    String str = CCSTest.class.getClassLoader().getResource("ccscaltest/OverrideImsCal.xml")
         .getFile();
 
     final File calFile = new File(str);
     CCSCalibration cal = AgilentImsCalibrationReader.readCalibrationFile(calFile);
     Assertions.assertEquals(
-        new DriftTubeCCSCalibration(0.146486318643186468476, -0.049872168413168131861, -1, -1), cal);
+        new DriftTubeCCSCalibration(0.146486318643186468476, -0.049872168413168131861, -1, -1),
+        cal);
+  }
+
+  @Test
+  void testWatersCalReader() {
+    String str = CCSTest.class.getClassLoader().getResource("ccscaltest/mob_cal.csv").getFile();
+
+    final File calFile = new File(str);
+    CCSCalibration cal = WatersImsCalibrationReader.readCalibrationFile(calFile);
+    Assertions.assertEquals(new TwCCSCalibration(208.037, 0.798364, 2, 1.3500), cal);
   }
 
   /*@Test

@@ -25,6 +25,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.AgilentImsCalibrationReader;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.WatersImsCalibrationReader;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -57,7 +58,12 @@ public class ExternalCCSCalibrationModule implements MZmineProcessingModule, CCS
     final File calibrationFile = ccsCalculatorParameters.getValue(
         ExternalCCSCalibrationParameters.calibrationFile);
 
-    return AgilentImsCalibrationReader.readCalibrationFile(calibrationFile);
+    if (calibrationFile.getName().endsWith(".xml")) {
+      return AgilentImsCalibrationReader.readCalibrationFile(calibrationFile);
+    } else if (calibrationFile.getName().endsWith(".csv")) {
+      return WatersImsCalibrationReader.readCalibrationFile(calibrationFile);
+    }
+    throw new IllegalArgumentException("Invalid calibration file.");
   }
 
   @Override
