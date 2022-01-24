@@ -18,17 +18,15 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
 
-import java.text.NumberFormat;
-import java.util.TreeMap;
 import com.google.common.collect.Range;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.combonested.NestedComboParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
@@ -37,6 +35,9 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
+import java.text.NumberFormat;
+import java.util.TreeMap;
+import org.jetbrains.annotations.NotNull;
 
 public class MassCalibrationParameters extends SimpleParameterSet {
 
@@ -58,27 +59,24 @@ public class MassCalibrationParameters extends SimpleParameterSet {
     }
   }
 
-  public static final FileNameParameter standardsList =
-      new FileNameParameter("Standard Calibrant Library file",
-          "File with a list of standard calibrants (ionic formula and retention time)"
-              + " expected to appear in the dataset",
-          FileSelectionType.OPEN, false);
+  public static final FileNameParameter standardsList = new FileNameParameter(
+      "Standard Calibrant Library file",
+      "File with a list of standard calibrants (ionic formula and retention time)"
+          + " expected to appear in the dataset", FileSelectionType.OPEN, false);
 
-  public static final MZToleranceParameter mzToleranceSCL =
-      new MZToleranceParameter("m/z tolerance",
-          "Max difference between actual mz peaks and standard calibrants to consider a match,"
-              + " max of m/z and ppm is used",
-          0.001, 5, true);
+  public static final MZToleranceParameter mzToleranceSCL = new MZToleranceParameter(
+      "m/z tolerance",
+      "Max difference between actual mz peaks and standard calibrants to consider a match,"
+          + " max of m/z and ppm is used", 0.001, 5, true);
 
   public static final RTToleranceParameter retentionTimeTolerance = new RTToleranceParameter(
       "Retention time tolerance",
       "Max retention time difference between mass peaks and standard calibrants to consider a match.");
 
-  public static final MZToleranceParameter mzToleranceUCL =
-      new MZToleranceParameter("m/z tolerance ",
-          "Max difference between actual mz peaks and universal calibrants to consider a match,"
-              + " max of m/z and ppm is used",
-          0.001, 5, true);
+  public static final MZToleranceParameter mzToleranceUCL = new MZToleranceParameter(
+      "m/z tolerance ",
+      "Max difference between actual mz peaks and universal calibrants to consider a match,"
+          + " max of m/z and ppm is used", 0.001, 5, true);
 
   public static final TreeMap<String, String> ionizationModeChoices = new TreeMap<>() {
     {
@@ -95,35 +93,35 @@ public class MassCalibrationParameters extends SimpleParameterSet {
     }
   };
 
-  public static final ComboParameter<String> ionizationMode =
-      new ComboParameter<String>("Ionization mode",
-          "Ionization mode for which to use an appropriate universal calibrants list",
-          ionizationModeChoices.keySet().toArray(new String[0]));
+  public static final ComboParameter<String> ionizationMode = new ComboParameter<String>(
+      "Ionization mode",
+      "Ionization mode for which to use an appropriate universal calibrants list",
+      ionizationModeChoices.keySet().toArray(new String[0]));
 
   public static final TreeMap<String, ParameterSet> massPeakMatchingChoices = new TreeMap<>() {
     {
       put(MassPeakMatchingChoice.STANDARDS_LIST.toString(), new SimpleParameterSet(
-          new Parameter[] {standardsList, mzToleranceSCL, retentionTimeTolerance}));
+          new Parameter[]{standardsList, mzToleranceSCL, retentionTimeTolerance}));
       put(MassPeakMatchingChoice.UNIVERSAL_CALIBRANTS.toString(),
-          new SimpleParameterSet(new Parameter[] {ionizationMode, mzToleranceUCL}));
+          new SimpleParameterSet(new Parameter[]{ionizationMode, mzToleranceUCL}));
     }
   };
 
-  public static final NestedComboParameter referenceLibrary =
-      new NestedComboParameter("Reference library of ions",
-          "Method used to match mass peaks from the dataset with reference values",
-          massPeakMatchingChoices, MassPeakMatchingChoice.STANDARDS_LIST.toString(), true, 250);
+  public static final NestedComboParameter referenceLibrary = new NestedComboParameter(
+      "Reference library of ions",
+      "Method used to match mass peaks from the dataset with reference values",
+      massPeakMatchingChoices, MassPeakMatchingChoice.STANDARDS_LIST.toString(), true, 250);
 
   public static final DoubleParameter intensityThreshold = new DoubleParameter(
       "Intensity threshold",
       "Intensity threshold of m/z peaks to use for matching. This parameter is used to facilitate"
           + " noise filtering. Only mass peaks with intensity equal or above the threshold will be used for"
-          + " matching, use 0 to allow all.",
-      NumberFormat.getNumberInstance(), 0.0, 0.0, Double.POSITIVE_INFINITY);
+          + " matching, use 0 to allow all.", NumberFormat.getNumberInstance(), 0.0, 0.0,
+      Double.POSITIVE_INFINITY);
 
-  public static final BooleanParameter duplicateErrorFilter =
-      new BooleanParameter("Duplicate error filter",
-          "If checked, the distribution of errors will be filtered to remove duplicates");
+  public static final BooleanParameter duplicateErrorFilter = new BooleanParameter(
+      "Duplicate error filter",
+      "If checked, the distribution of errors will be filtered to remove duplicates");
 
   public enum RangeExtractionChoice {
     RANGE_METHOD("High-density range of errors"), //
@@ -155,28 +153,28 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           + " This is used when extending the most populated error range, if next closest error is within that"
           + " tolerance, the range is extended to contain it. The process is repeated until no new errors can be"
           + " included in that range. The tolerance is the absolute difference between PPM errors of m/z ratio."
-          + " See help for more details.",
-      NumberFormat.getNumberInstance(), 0.4, 0.0, Double.POSITIVE_INFINITY);
+          + " See help for more details.", NumberFormat.getNumberInstance(), 0.4, 0.0,
+      Double.POSITIVE_INFINITY);
 
-  public static final DoubleRangeParameter percentileRange =
-      new DoubleRangeParameter("Percentile range",
-          "The percentile range used for extraction of errors.", NumberFormat.getNumberInstance(),
-          true, false, Range.closed(25.0, 75.0), Range.closed(0.0, 100.0));
+  public static final DoubleRangeParameter percentileRange = new DoubleRangeParameter(
+      "Percentile range", "The percentile range used for extraction of errors.",
+      NumberFormat.getNumberInstance(), true, false, Range.closed(25.0, 75.0),
+      Range.closed(0.0, 100.0));
 
   public static final TreeMap<String, ParameterSet> rangeExtractionChoices = new TreeMap<>() {
     {
       put(RangeExtractionChoice.RANGE_METHOD.toString(),
-          new SimpleParameterSet(new Parameter[] {errorRangeSize, errorRangeTolerance}));
+          new SimpleParameterSet(new Parameter[]{errorRangeSize, errorRangeTolerance}));
       put(RangeExtractionChoice.PERCENTILE_RANGE.toString(),
-          new SimpleParameterSet(new Parameter[] {percentileRange}));
+          new SimpleParameterSet(new Parameter[]{percentileRange}));
     }
   };
 
-  public static final NestedComboParameter rangeExtractionMethod =
-      new NestedComboParameter("Overall mass bias estimation",
-          "Method used to extract range of errors considered substantial to the bias estimation of"
-              + " mass peaks m/z measurement",
-          rangeExtractionChoices, RangeExtractionChoice.RANGE_METHOD.toString(), true, 250);
+  public static final NestedComboParameter rangeExtractionMethod = new NestedComboParameter(
+      "Overall mass bias estimation",
+      "Method used to extract range of errors considered substantial to the bias estimation of"
+          + " mass peaks m/z measurement", rangeExtractionChoices,
+      RangeExtractionChoice.RANGE_METHOD.toString(), true, 250);
 
   public enum BiasEstimationChoice {
     ARITHMETIC_MEAN("Arithmetic mean"), //
@@ -205,28 +203,26 @@ public class MassCalibrationParameters extends SimpleParameterSet {
           + " percentage of m/z errors in the distribution that are used as neighbors.",
       NumberFormat.getNumberInstance(), 10.0, 0.0, 100.0);
 
-  public static final IntegerParameter polynomialDegree =
-      new IntegerParameter("Polynomial degree",
-          "The degree of the polynomial feature used in OLS regression. Use 0 just for the constant"
-              + " component, 1 for linear, 2 for quadratic and so on.",
-          1, true, 0, Integer.MAX_VALUE);
+  public static final IntegerParameter polynomialDegree = new IntegerParameter("Polynomial degree",
+      "The degree of the polynomial feature used in OLS regression. Use 0 just for the constant"
+          + " component, 1 for linear, 2 for quadratic and so on.", 1, true, 0, Integer.MAX_VALUE);
 
-  public static final BooleanParameter exponentialFeature =
-      new BooleanParameter("Exponential feature",
-          "Check this to include exponential feature exp(x) in the OLS regression.", false);
+  public static final BooleanParameter exponentialFeature = new BooleanParameter(
+      "Exponential feature",
+      "Check this to include exponential feature exp(x) in the OLS regression.", false);
 
-  public static final BooleanParameter logarithmicFeature =
-      new BooleanParameter("Logarithmic feature",
-          "Check this to include logarithmic feature ln(x) in the OLS regression.", false);
+  public static final BooleanParameter logarithmicFeature = new BooleanParameter(
+      "Logarithmic feature",
+      "Check this to include logarithmic feature ln(x) in the OLS regression.", false);
 
   public static final TreeMap<String, ParameterSet> biasEstimationChoices = new TreeMap<>() {
     {
       put(BiasEstimationChoice.ARITHMETIC_MEAN.toString(),
-          new SimpleParameterSet(new Parameter[] {}));
+          new SimpleParameterSet(new Parameter[]{}));
       put(BiasEstimationChoice.KNN_REGRESSION.toString(),
-          new SimpleParameterSet(new Parameter[] {nearestNeighborsPercentage}));
+          new SimpleParameterSet(new Parameter[]{nearestNeighborsPercentage}));
       put(BiasEstimationChoice.OLS_REGRESSION.toString(), new SimpleParameterSet(
-          new Parameter[] {polynomialDegree, exponentialFeature, logarithmicFeature}));
+          new Parameter[]{polynomialDegree, exponentialFeature, logarithmicFeature}));
     }
   };
 
@@ -240,8 +236,8 @@ public class MassCalibrationParameters extends SimpleParameterSet {
       biasEstimationChoices, BiasEstimationChoice.ARITHMETIC_MEAN.toString(), true, 250);
 
   public MassCalibrationParameters() {
-    super(new Parameter[] {dataFiles, intensityThreshold, duplicateErrorFilter,
-        referenceLibrary, rangeExtractionMethod, biasEstimationMethod });
+    super(new Parameter[]{dataFiles, intensityThreshold, duplicateErrorFilter, referenceLibrary,
+        rangeExtractionMethod, biasEstimationMethod});
   }
 
   @Override
@@ -251,4 +247,14 @@ public class MassCalibrationParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Override
+  public String getRestrictedIonMobilitySupportMessage() {
+    return "This will only recalibrate accumulated frame spectra. "
+        + "Please use vendor software to recalibrate mobility scans.";
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.RESTRICTED;
+  }
 }
