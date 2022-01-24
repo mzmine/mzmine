@@ -29,7 +29,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.Date;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,8 +42,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   private final AbstractTask importTask;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
-  private Logger logger = Logger.getLogger(
-      MsDataImportAndMassDetectWrapperTask.class.getName());
+  private Logger logger = Logger.getLogger(MsDataImportAndMassDetectWrapperTask.class.getName());
 
   private int totalScans = 1;
   private int parsedScans = 0;
@@ -61,8 +59,9 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
    *                         to directly centroid/threshold)
    * @param advancedParam    advanced parameters to apply mass detection
    */
-  public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists, RawDataFile newMZmineFile,
-      AbstractTask importTask, @NotNull AdvancedSpectraImportParameters advancedParam, @NotNull Instant moduleCallDate) {
+  public MsDataImportAndMassDetectWrapperTask(MemoryMapStorage storageMassLists,
+      RawDataFile newMZmineFile, AbstractTask importTask,
+      @NotNull AdvancedSpectraImportParameters advancedParam, @NotNull Instant moduleCallDate) {
     super(storageMassLists, moduleCallDate);
     this.newMZmineFile = newMZmineFile;
     this.importTask = importTask;
@@ -80,14 +79,13 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return importTask.isFinished() || importTask.isCanceled() ? "Applying mass detection on "
-        + newMZmineFile.getName()
-        : importTask.getTaskDescription();
+        + newMZmineFile.getName() : importTask.getTaskDescription();
   }
 
   @Override
   public double getFinishedPercentage() {
-    return totalScans > 0 ? (importTask.getFinishedPercentage() + parsedScans / (double)totalScans) / 2d
-        : importTask.getFinishedPercentage() / 2d;
+    return totalScans > 0 ? (importTask.getFinishedPercentage() + parsedScans / (double) totalScans)
+        / 2d : importTask.getFinishedPercentage() / 2d;
   }
 
   @Override
@@ -107,7 +105,7 @@ public class MsDataImportAndMassDetectWrapperTask extends AbstractTask {
         totalScans = data.getNumberOfScans();
 
         // all scans
-        while(data.hasNextScan()) {
+        while (data.hasNextScan()) {
           if (isCanceled()) {
             return;
           }

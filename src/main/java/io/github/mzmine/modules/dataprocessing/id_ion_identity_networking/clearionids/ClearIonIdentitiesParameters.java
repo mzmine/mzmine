@@ -20,8 +20,10 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.clear
 
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class ClearIonIdentitiesParameters extends SimpleParameterSet {
 
@@ -31,4 +33,8 @@ public class ClearIonIdentitiesParameters extends SimpleParameterSet {
     super(new Parameter[] {PEAK_LISTS});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

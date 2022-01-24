@@ -28,15 +28,16 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class AllSpectralDataImportParameters extends SimpleParameterSet {
 
   public static final List<ExtensionFilter> extensions = List.of( //
-      new ExtensionFilter("MS data", "*.mzML", "*.mzml", "*.mzXML", "*.mzxml",
-          "*.imzML", "*.imzml", "*.d", "*.raw", "*.RAW", "*.mzData", "*.mzdata"), //
+      new ExtensionFilter("MS data", "*.mzML", "*.mzml", "*.mzXML", "*.mzxml", "*.imzML", "*.imzml",
+          "*.d", "*.raw", "*.RAW", "*.mzData", "*.mzdata", "*.aird"), //
       new ExtensionFilter("mzML MS data", "*.mzML", "*.mzml"), //
       new ExtensionFilter("mzXML MS data", "*.mzXML", "*.mzxml"), //
       new ExtensionFilter("imzML MS imaging data", "*.imzML", "*.imzml"), //
       new ExtensionFilter("Bruker tdf files", "*.d"), //
       new ExtensionFilter("Thermo RAW files", "*.raw", "*.RAW"), //
       new ExtensionFilter("Waters RAW folders", "*.raw", "*.RAW"), //
-      new ExtensionFilter("mzData MS data", "*.mzData", "*.mzdata"), //
+      new ExtensionFilter("mzData MS data", "*.mzData", "*.mzdata"),
+      new ExtensionFilter("aird MS data", "*.aird", "*.Aird", "*.AIRD"), //
       new ExtensionFilter("All files", "*.*") //
   );
 
@@ -47,12 +48,13 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       new ExtensionFilter("All files", "*.*") //
   );
 
-  public static final FileNamesParameter fileNames =
-      new FileNamesParameter("File names", "", extensions);
+  public static final FileNamesParameter fileNames = new FileNamesParameter("File names", "",
+      extensions);
 
   public static final OptionalModuleParameter<AdvancedSpectraImportParameters> advancedImport = new OptionalModuleParameter<>(
-      "Advanced import", "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help). Positive: Lower memory consumption; Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or inial results apart from the current state.", new AdvancedSpectraImportParameters(), true
-  );
+      "Advanced import",
+      "Caution: Advanced option that applies mass detection (centroiding+thresholding) directly to imported scans (see help). Positive: Lower memory consumption; Caution: All processing steps will directly change the underlying data, with no way of retrieving raw data or inial results apart from the current state.",
+      new AdvancedSpectraImportParameters(), true);
 
   public AllSpectralDataImportParameters() {
     super(new Parameter[]{fileNames, advancedImport});

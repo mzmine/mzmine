@@ -76,7 +76,7 @@ class TwoDBottomPanel extends HBox {
     // peakTextField.setFont(smallFont);
     // peakTextField.addActionListener(this);
 
-    featureListSelector = new ComboBox<FeatureList>(FXCollections.observableList(
+    featureListSelector = new ComboBox<FeatureList>(FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()));
     // peakListSelector.setBackground(Color.white);
     // peakListSelector.setFont(smallFont);

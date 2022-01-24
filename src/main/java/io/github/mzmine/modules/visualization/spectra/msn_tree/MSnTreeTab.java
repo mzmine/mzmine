@@ -102,7 +102,7 @@ public class MSnTreeTab extends SimpleTab {
   public Shape diamond = new Polygon(new int[]{0, -3, 0, 3}, new int[]{0, 3, 6, 3}, 4);
   public Ellipse2D circle = new Ellipse2D.Double(-2.5d, 5, 5, 5);
   private int lastSelectedItem = -1;
-  private ChartGroup chartGroup;
+  private final ChartGroup chartGroup;
   private PrecursorIonTreeNode currentRoot = null;
 
 
@@ -366,6 +366,7 @@ public class MSnTreeTab extends SimpleTab {
         chartGroup.add(new ChartViewWrapper(plot));
       }
       SpectraPlot spectraPlot = spectraPlots.get(levelFromRoot);
+      spectraPlot.setNotifyChange(false);
 
       // relative or absolute
       applyIntensityFormatToAxis(spectraPlot, normalizeIntensities);
@@ -381,13 +382,14 @@ public class MSnTreeTab extends SimpleTab {
         for (final Scan scan : fragmentScans) {
           AbstractXYDataset data = ensureCentroidDataset(normalizeIntensities, denoise, scan);
           // add peak renderer to show centroids - no labels
-          spectraPlot.addDataSet(data, color, false, new PeakRenderer(color, false), null, false);
+          spectraPlot.addDataSet(data, color, false, new PeakRenderer(color, false), null, false,
+              false);
 
           // add shapes dataset and renderer - no labels
           final ShapeType shapeType = getActivationEnergyShape(
               scan.getMsMsInfo().getActivationEnergy(), minEnergy, medEnergy, maxEnergy);
           spectraPlot.addDataSet(data, color, false,
-              new ArrowRenderer(shapeType, getShape(shapeType), color), null, false);
+              new ArrowRenderer(shapeType, getShape(shapeType), color), null, false, false);
 
           // combine all to one dataset for label
           combineDatasetsToOne(combinedData, data);
@@ -414,10 +416,17 @@ public class MSnTreeTab extends SimpleTab {
       // next level
       levelFromRoot++;
       levelPrecursors = currentRoot.getPrecursors(levelFromRoot);
+
     } while (!levelPrecursors.isEmpty());
 
     if (rootHasChanged) {
       chartGroup.applyAutoRange(true);
+    }
+
+    // update chart
+    for (var spectraPlot : spectraPlots) {
+      spectraPlot.setNotifyChange(true);
+      spectraPlot.fireChangeEvent();
     }
   }
 
@@ -429,7 +438,7 @@ public class MSnTreeTab extends SimpleTab {
 
     final Color labelColor = MZmineCore.getConfiguration().getDefaultChartTheme()
         .getMasterFontColor();
-    spectraPlot.addDataSet(data, labelColor, false, new LabelOnlyRenderer(), false);
+    spectraPlot.addDataSet(data, labelColor, false, new LabelOnlyRenderer(), false, false);
   }
 
   /**

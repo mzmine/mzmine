@@ -39,6 +39,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_imsexpander.ImsExpanderPa
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.DetectIsotopesParameter;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionModule;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetectionParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
@@ -434,6 +435,8 @@ public class BatchWizardController {
     param.getParameter(MassDetectionParameters.dataFiles)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
+    param.getParameter(MassDetectionParameters.scanTypes).setValue(
+        cbIonMobility.isSelected() ? SelectedScanTypes.MOBLITY_SCANS : SelectedScanTypes.SCANS);
     param.getParameter(MassDetectionParameters.massDetector).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));
@@ -480,9 +483,9 @@ public class BatchWizardController {
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance)
             .getValue());
     param.setParameter(ADAPChromatogramBuilderParameters.suffix, "chroms");
-    param.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2,
+    param.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue());
-    param.setParameter(ADAPChromatogramBuilderParameters.startIntensity,
+    param.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint,
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.minimumFeatureHeight)
             .getValue());
 

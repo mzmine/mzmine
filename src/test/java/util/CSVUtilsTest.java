@@ -16,25 +16,23 @@
  *
  */
 
-package io.github.mzmine.util;
+package util;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import io.github.mzmine.util.io.CSVUtils;
+import org.junit.jupiter.api.Test;
 
 /**
- * Enum of supported data file formats
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum RawDataFileType {
+public class CSVUtilsTest {
 
-  MZML, //
-  IMZML, //
-  MZML_IMS, //
-  MZXML, //
-  MZDATA, //
-  NETCDF, //
-  THERMO_RAW, //
-  WATERS_RAW, //
-  ZIP, //
-  GZIP, //
-  ICPMSMS_CSV, //
-  BRUKER_TDF, //
-  BRUKER_TSF, //
-  AIRD //
+  @Test
+  void testCSVEscape() {
+    assertEquals("test", CSVUtils.escape("test", ","));
+    assertEquals("\"test, with comma\"", CSVUtils.escape("test, with comma", ","));
+    assertEquals("\"\"\"test\"\" with quotes\"", CSVUtils.escape("\"test\" with quotes", ","));
+    assertEquals("\"test\twith tab\"", CSVUtils.escape("test\twith tab", "\t"));
+  }
 }

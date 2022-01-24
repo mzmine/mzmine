@@ -56,7 +56,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
   public RansacAlignerSetupDialog(boolean valueCheckRequired, RansacAlignerParameters parameters) {
     super(valueCheckRequired, parameters);
 
-    var featureLists = FXCollections.observableList(
+    var featureLists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
     FeatureList[] selectedPeakLists = MZmineCore.getDesktop().getSelectedPeakLists();

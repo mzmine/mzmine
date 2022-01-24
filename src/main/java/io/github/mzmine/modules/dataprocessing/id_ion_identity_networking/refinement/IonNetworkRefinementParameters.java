@@ -20,11 +20,13 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refin
 
 
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Refinement to MS annotation
@@ -74,4 +76,8 @@ public class IonNetworkRefinementParameters extends SimpleParameterSet {
             DELETE_WITHOUT_MONOMER, DELETE_ROWS_WITHOUT_ID});
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

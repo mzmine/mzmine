@@ -62,12 +62,12 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
       "This string is added to filename as suffix", "chromatograms");
 
   // Owen Edit
-  public static final DoubleParameter IntensityThresh2 = new DoubleParameter(
+  public static final DoubleParameter minGroupIntensity = new DoubleParameter(
       "Group intensity threshold",
       "This parameter is the intensity value for which intensities greater than this value can contribute to the minimumScanSpan count.",
       MZmineCore.getConfiguration().getIntensityFormat());
 
-  public static final DoubleParameter startIntensity = new DoubleParameter("Min highest intensity",
+  public static final DoubleParameter minHighestPoint = new DoubleParameter("Min highest intensity",
       "Points below this intensity will not be considered in starting a new chromatogram",
       MZmineCore.getConfiguration().getIntensityFormat());
   // End Owen Edit
@@ -78,9 +78,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
               + "feature table generation if MALDI point measurements."));
 
   public ADAPChromatogramBuilderParameters() {
-    super(
-        new Parameter[]{dataFiles, scanSelection, minimumScanSpan, IntensityThresh2, startIntensity,
-            mzTolerance, suffix, allowSingleScans});
+    super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, minGroupIntensity,
+        minHighestPoint, mzTolerance, suffix, allowSingleScans});
   }
 
   @Override
@@ -101,7 +100,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
   public String getRestrictedIonMobilitySupportMessage() {
     return "ADAP chromatogram builder will build two-dimensional chromatograms based on summed "
         + "frame data (if there is any). Thus, the mobility dimension is not taken into account. "
-        + "Do you wish to continue any way?";
+        + "The mobility dimension can be added by the IMS expander module after feature resolving. "
+        + "Do you wish to continue?";
   }
 
   @NotNull

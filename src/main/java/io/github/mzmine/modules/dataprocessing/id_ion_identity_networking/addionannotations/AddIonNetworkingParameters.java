@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addio
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementParameters;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
@@ -30,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParam
 import io.github.mzmine.parameters.parametertypes.submodules.SubModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class AddIonNetworkingParameters extends SimpleParameterSet {
 
@@ -124,4 +126,8 @@ public class AddIonNetworkingParameters extends SimpleParameterSet {
     return setup;
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

@@ -90,6 +90,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private final SpectraToolTipGenerator ttGen;
   private final PauseTransition listenerDelay;
   private final BooleanParameter pApplyFit;
+  private final String exactMassLabel = "Exact mass / Da";
+  private final String mzLabel = "m/z";
   IsotopePatternPreviewTask task;
   Color aboveMin, belowMin;
   private double minIntensity, mergeWidth;
@@ -97,8 +99,6 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private PolarityType pol;
   private String formula;
   private ExtendedIsotopePatternDataSet dataset;
-  private final String exactMassLabel = "Exact mass / Da";
-  private final String mzLabel = "m/z";
   private boolean applyFit;
 
   public IsotopePatternPreviewDialog(boolean valueCheckRequired, ParameterSet parameters) {
@@ -211,28 +211,27 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   protected void updateChart(SimpleIsotopePattern pattern, XYDataset fit) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
 
-    spectraPlot.getChart().setNotify(false);
+    spectraPlot.applyWithNotifyChanges(false, true, () -> {
 
-    final ValueAxis domainAxis = spectraPlot.getXYPlot().getRangeAxis();
-    if (pol == PolarityType.NEUTRAL && !exactMassLabel.equals(domainAxis.getLabel())) {
-      domainAxis.setLabel(exactMassLabel);
-    } else if (pol != PolarityType.NEUTRAL && !mzLabel.equals(domainAxis.getLabel())) {
-      domainAxis.setLabel(mzLabel);
-    }
+      final ValueAxis domainAxis = spectraPlot.getXYPlot().getRangeAxis();
+      if (pol == PolarityType.NEUTRAL && !exactMassLabel.equals(domainAxis.getLabel())) {
+        domainAxis.setLabel(exactMassLabel);
+      } else if (pol != PolarityType.NEUTRAL && !mzLabel.equals(domainAxis.getLabel())) {
+        domainAxis.setLabel(mzLabel);
+      }
 
-    spectraPlot.removeAllDataSets();
-    spectraPlot.addDataSet(dataset,
-        MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true);
-    if (fit != null) {
-      spectraPlot.addDataSet(fit,
-          MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false);
-      spectraPlot.getXYPlot()
-          .setRenderer(spectraPlot.getXYPlot().indexOf(fit), new ColoredXYLineRenderer());
-    }
-    formatChart();
-
-    spectraPlot.getChart().setNotify(true);
-    spectraPlot.getChart().fireChartChanged();
+      spectraPlot.removeAllDataSets();
+      spectraPlot.addDataSet(dataset,
+          MZmineCore.getConfiguration().getDefaultColorPalette().getMainColorAWT(), true, false);
+      if (fit != null) {
+        spectraPlot.addDataSet(fit,
+            MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColorAWT(), false,
+            false);
+        spectraPlot.getXYPlot()
+            .setRenderer(spectraPlot.getXYPlot().indexOf(fit), new ColoredXYLineRenderer());
+      }
+      formatChart();
+    });
   }
 
   /**
