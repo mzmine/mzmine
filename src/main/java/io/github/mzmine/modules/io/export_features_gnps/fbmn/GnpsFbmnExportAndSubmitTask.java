@@ -74,10 +74,14 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private final AtomicDouble progress = new AtomicDouble(0);
   private final FeatureMeasurementType featureMeasure;
   private final File baseFile;
+  private final ModularFeatureList[] featureLists;
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
+
+    featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
+        .getValue().getMatchingFeatureLists();
     featureMeasure = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY);
     baseFile = FileAndPathUtil.eraseFormat(
         parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILENAME));
@@ -216,13 +220,10 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     final String name = FilenameUtils.removeExtension(full.getName());
     full = new File(full.getParentFile(), name + "_quant_full.csv");
 
-    ModularFeatureList[] flist = parameters.getParameter(
-        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
-
     FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
         .getValue();
 
-    return new CSVExportModularTask(flist, full, ",", ";", filter, getModuleCallDate());
+    return new CSVExportModularTask(featureLists, full, ",", ";", filter, getModuleCallDate());
   }
 
 
@@ -252,10 +253,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
     FeatureListRowsFilter filter = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILTER);
 
-    ModularFeatureList[] flist = parameters.getParameter(
-        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
-
-    return new LegacyCSVExportTask(flist, full, ",", common, rawdata, false, ";", filter,
+    return new LegacyCSVExportTask(featureLists, full, ",", common, rawdata, false, ";", filter,
         getModuleCallDate());
   }
 
@@ -274,10 +272,8 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
           .getEmbeddedParameters()
           .getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
     }
-    ModularFeatureList[] flist = parameters.getParameter(
-        GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS).getValue().getMatchingFeatureLists();
 
-    return new ExportCorrAnnotationTask(flist, full, 0, filter, exAnn, false, false, false,
+    return new ExportCorrAnnotationTask(featureLists, full, 0, filter, exAnn, false, false, false,
         getModuleCallDate());
   }
 

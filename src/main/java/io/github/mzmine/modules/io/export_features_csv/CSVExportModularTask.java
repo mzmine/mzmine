@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.export_features_csv;
 
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -43,7 +44,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -139,6 +142,10 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       if (isCanceled()) {
         return;
       }
+      // check concurrent modification during export
+      final int numRows = featureList.getNumberOfRows();
+      final long numFeatures = featureList.streamFeatures().count();
+      final long numMS2 = featureList.stream().filter(row -> row.hasMs2Fragmentation()).count();
 
       // Filename
       File curFile = fileName;
@@ -167,6 +174,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         return;
       }
 
+      checkConcurrentModification(featureList, numRows, numFeatures, numMS2);
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
       if (!substitute) {
@@ -201,7 +209,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     writer.newLine();
 
     // write data
-    for (FeatureListRow row : flist.getRows()) {
+    final List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
+    for (FeatureListRow row : rows) {
       if (!filter.accept(row)) {
         processedRows++;
         continue;
@@ -349,5 +358,29 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
   private String csvEscape(String input) {
     return CSVUtils.escape(input, fieldSeparator);
+  }
+
+
+  private void checkConcurrentModification(FeatureList featureList, int numRows, long numFeatures,
+      long numMS2) {
+    final int numRowsEnd = featureList.getNumberOfRows();
+    final long numFeaturesEnd = featureList.streamFeatures().count();
+    final long numMS2End = featureList.stream().filter(row -> row.hasMs2Fragmentation()).count();
+
+    if (numRows != numRowsEnd) {
+      throw new ConcurrentModificationException(String.format(
+          "Detected modification to number of ROWS during featurelist (%s) CSV export old=%d new=%d",
+          featureList.getName(), numRows, numRowsEnd));
+    }
+    if (numFeatures != numFeaturesEnd) {
+      throw new ConcurrentModificationException(String.format(
+          "Detected modification to number of ROWS during featurelist (%s) CSV export old=%d new=%d",
+          featureList.getName(), numFeatures, numFeaturesEnd));
+    }
+    if (numMS2 != numMS2End) {
+      throw new ConcurrentModificationException(String.format(
+          "Detected modification to number of ROWS WITH MS2 during featurelist (%s) CSV export old=%d new=%d",
+          featureList.getName(), numMS2, numMS2End));
+    }
   }
 }

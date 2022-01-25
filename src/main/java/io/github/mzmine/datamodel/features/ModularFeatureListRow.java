@@ -273,6 +273,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     ModularFeature modularFeature = (ModularFeature) feature;
 
+//    logger.log(Level.FINEST, "ADDING FEATURE");
     ModularFeature oldFeature = features.put(raw, modularFeature);
     modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
