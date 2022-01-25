@@ -18,10 +18,10 @@
 
 package io.github.mzmine.datamodel.impl;
 
-import java.text.Format;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.main.MZmineCore;
+import java.text.Format;
+import java.util.Objects;
 
 /**
  * This class represents one data point of a spectrum (m/z and intensity pair). Data point is
@@ -59,18 +59,20 @@ public class SimpleDataPoint implements DataPoint {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof DataPoint)) {
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    DataPoint dp = (DataPoint) obj;
-    return (Double.compare(this.mz, dp.getMZ()) == 0
-        && Double.compare(this.intensity, dp.getIntensity()) == 0);
+    SimpleDataPoint that = (SimpleDataPoint) o;
+    return Double.compare(that.mz, mz) == 0 && Double.compare(that.intensity, intensity) == 0;
   }
 
   @Override
   public int hashCode() {
-    return (int) (this.mz + this.intensity);
+    return Objects.hash(mz, intensity);
   }
 
   @Override
