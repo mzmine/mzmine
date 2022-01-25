@@ -92,7 +92,7 @@ public class MobilityMzRegionExtractionSetupDialog extends ParameterSetupDialogW
     FlowPane fp = new FlowPane(new Label("Feature list "));
     fp.setHgap(5);
 
-    var featureLists = FXCollections.observableList(
+    var featureLists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
     comboBox = new ComboBox<>(featureLists);
     comboBox.valueProperty().addListener(((observable, oldValue, newValue) -> parametersChanged()));

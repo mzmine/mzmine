@@ -57,8 +57,8 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
   private final DoubleArrayList zValues;
   private final List<MobilityScan> mobilityScanAtValueIndex;
 
-  private double finishedPercentage;
   protected PaintScale paintScale;
+  private double finishedPercentage;
 
   public FrameHeatmapProvider(Frame frame) {
     this.frame = frame;
@@ -98,8 +98,8 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
 
   @Override
   public Comparable<?> getSeriesKey() {
-    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " "
-        + rtFormat.format(frame.getRetentionTime()) + " min";
+    return frame.getDataFile().getName() + " - Frame " + frame.getFrameId() + " " + rtFormat.format(
+        frame.getRetentionTime()) + " min";
   }
 
   @Override
@@ -123,8 +123,8 @@ public class FrameHeatmapProvider implements PlotXYZDataProvider {
     }
 
     final double[] quantiles = MathUtils.calcQuantile(zValues.toArray(), new double[]{0.50, 0.98});
-    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(
-        PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
+    paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette()
+        .toPaintScale(PaintScaleTransform.LINEAR, Range.closed(quantiles[0], quantiles[1]));
   }
 
   public MobilityScan getMobilityScanAtValueIndex(int index) {

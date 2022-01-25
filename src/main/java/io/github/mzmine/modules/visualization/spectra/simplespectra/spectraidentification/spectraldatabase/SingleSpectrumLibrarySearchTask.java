@@ -124,7 +124,7 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
             shortName + " " + "Score: " + MZmineCore.getConfiguration().getScoreFormat()
                 .format(match.getSimilarity().getScore()), dataset);
         spectraPlot.addDataSet(detectedCompoundsDataset,
-            new Color((int) (Math.random() * 0x1000000)), true);
+            new Color((int) (Math.random() * 0x1000000)), true, true);
 
       } catch (MissingMassListException e) {
         logger.log(Level.WARNING, "No mass list for the selected spectrum", e);

@@ -701,17 +701,35 @@ public class ScanUtils {
    * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
    * within given m/z range
    */
-  public static Scan[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
+  public static Stream<Scan> streamAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
       Range<Double> mzRange) {
     assert dataFile != null;
-    assert rtRange != null;
     assert mzRange != null;
 
-    return dataFile.getScanNumbers(2).stream().filter(
-            s -> rtRange.contains(s.getRetentionTime()) && (s.getMsMsInfo() != null
-                                                            && s.getMsMsInfo() instanceof DDAMsMsInfo dda
-                                                            && mzRange.contains(dda.getIsolationMz())))
-        .toArray(Scan[]::new);
+    return dataFile.getScanNumbers(2).stream().filter(s -> matchesMS2Scan(s, rtRange, mzRange));
+  }
+
+  /**
+   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
+   * within given m/z range
+   */
+  public static Scan[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Float> rtRange,
+      Range<Double> mzRange) {
+    return streamAllMS2FragmentScans(dataFile, rtRange, mzRange).toArray(Scan[]::new);
+  }
+
+  /**
+   * Checks if scan precursor mz and rt is in ranges
+   *
+   * @param s tested scan
+   * @return true if scan precursor mz is in range and rt
+   */
+  public static boolean matchesMS2Scan(Scan s, Range<Float> rtRange, Range<Double> mzRange) {
+    if (rtRange != null && !rtRange.contains(s.getRetentionTime())) {
+      return false;
+    }
+    final Double precursorMz = s.getPrecursorMz();
+    return precursorMz != null && mzRange.contains(precursorMz);
   }
 
   /**

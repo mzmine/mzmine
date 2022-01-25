@@ -83,7 +83,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -524,9 +524,9 @@ public class MZmineGUI extends Application implements Desktop {
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
 
       final Text text = new Text();
-      text.setWrappingWidth(300);
+      text.setWrappingWidth(400);
       text.setText(msg);
-      StackPane pane = new StackPane(text);
+      final FlowPane pane = new FlowPane(text);
       pane.setPadding(new Insets(5));
       dialog.getDialogPane().setContent(pane);
 
@@ -548,9 +548,15 @@ public class MZmineGUI extends Application implements Desktop {
   public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
 
     FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      Alert alert = new Alert(AlertType.CONFIRMATION, "", buttonTypes);
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      Text text = new Text(msg);
+      text.setWrappingWidth(400);
+      final FlowPane pane = new FlowPane(text);
+      pane.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(pane);
+      alert.setWidth(400);
       alert.showAndWait();
       return alert.getResult();
     });
@@ -659,7 +665,12 @@ public class MZmineGUI extends Application implements Desktop {
         }
       });
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
-      alert.getDialogPane().setContentText(message);
+
+      Text text = new Text(message);
+      text.setWrappingWidth(400);
+      final FlowPane pane = new FlowPane(text);
+      pane.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(pane);
       // Fool the dialog into thinking there is some expandable content
       // a Group won't take up any space if it has no children
       alert.getDialogPane().setExpandableContent(new Group());

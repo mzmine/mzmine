@@ -47,7 +47,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
@@ -61,7 +60,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.RangeType;
 import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
 
@@ -262,10 +260,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           return;
         }
 
-//        Window myWindow = myScene.getWindow();
-//        if (myWindow instanceof TICVisualizerWindow) {
-//          ((TICVisualizerWindow) myWindow).updateTitle();
-//        }
+        //        Window myWindow = myScene.getWindow();
+        //        if (myWindow instanceof TICVisualizerWindow) {
+        //          ((TICVisualizerWindow) myWindow).updateTitle();
+        //        }
 
         if (showSpectrumRequest) {
 
@@ -324,7 +322,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           getXYPlot().getRangeAxis().setAutoRange(true);
         }
       } else if (event.getY() > this.getRenderingInfo().getPlotInfo().getPlotArea().getMaxY() - 41
-          && event.getClickCount() == 2) {
+                 && event.getClickCount() == 2) {
         // Reset zoom on X-axis
         getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
         // restoreAutoDomainBounds();
@@ -355,29 +353,35 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       final XYDataset dataSet = plot.getDataset(i);
       final XYItemRenderer renderer = plot.getRenderer(i);
       if (dataSet instanceof TICDataSet) {
-        renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
+        renderer.setDefaultItemLabelsVisible(labelsVisible == 1, false);
       } else if (dataSet instanceof FeatureDataSet) {
-        renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
+        renderer.setDefaultItemLabelsVisible(labelsVisible == 2, false);
       } else {
-        renderer.setDefaultItemLabelsVisible(false);
+        renderer.setDefaultItemLabelsVisible(false, false);
       }
+    }
+    if (isNotifyChange()) {
+      fireChangeEvent();
     }
   }
 
   public void switchDataPointsVisible() {
-    Boolean dataPointsVisible = null;
-    final int count = plot.getDatasetCount();
-    for (int i = 0; i < count; i++) {
+    applyWithNotifyChanges(false, () -> {
 
-      if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
+      Boolean dataPointsVisible = null;
+      final int count = plot.getDatasetCount();
+      for (int i = 0; i < count; i++) {
 
-        final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
-        if (dataPointsVisible == null) {
-          dataPointsVisible = !renderer.getDefaultShapesVisible();
+        if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
+
+          final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+          if (dataPointsVisible == null) {
+            dataPointsVisible = !renderer.getDefaultShapesVisible();
+          }
+          renderer.setDefaultShapesVisible(dataPointsVisible);
         }
-        renderer.setDefaultShapesVisible(dataPointsVisible);
       }
-    }
+    });
   }
 
   public void switchBackground() {
@@ -391,9 +395,11 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
       bgColor = Color.lightGray;
       liColor = Color.white;
     }
-    getChart().getPlot().setBackgroundPaint(bgColor);
-    getChart().getXYPlot().setDomainGridlinePaint(liColor);
-    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+    applyWithNotifyChanges(false, () -> {
+      getChart().getPlot().setBackgroundPaint(bgColor);
+      getChart().getXYPlot().setDomainGridlinePaint(liColor);
+      getChart().getXYPlot().setRangeGridlinePaint(liColor);
+    });
   }
 
   public XYPlot getXYPlot() {
@@ -402,10 +408,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addDataSet(final XYDataset dataSet) {
     if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
-        != getPlotType())) {
+                                            != getPlotType())) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
-          + "'");
+                                         + "' does not have a compatible plotType. Expected '"
+                                         + this.getPlotType().toString() + "'");
     }
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
@@ -478,11 +484,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addTICDataSet(final TICDataSet dataSet, TICPlotRenderer renderer) {
     // Check if the dataSet to be added is compatible with the type of plot.
-    if (dataSet.getPlotType()
-        != getPlotType()) {
+    if (dataSet.getPlotType() != getPlotType()) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
-          + "'");
+                                         + "' does not have a compatible plotType. Expected '"
+                                         + this.getPlotType().toString() + "'");
     }
     return addDataSetAndRenderer(dataSet, renderer);
   }
@@ -522,10 +527,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   }
 
   public synchronized void addFeatureDataSets(Collection<FeatureDataSet> dataSets) {
+    final boolean oldNotify = plot.isNotify();
     plot.setNotify(false);
     dataSets.forEach(ds -> addFeatureDataSet(ds));
-    plot.setNotify(true);
-    chart.fireChartChanged();
+    plot.setNotify(oldNotify);
+    if (oldNotify) {
+      chart.fireChartChanged();
+    }
   }
 
 
@@ -695,16 +703,19 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private synchronized int addDataSetAndRenderer(final XYDataset dataSet,
       final XYItemRenderer renderer) {
-    if (dataSet instanceof TICDataSet) {
-      renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
-    } else if (dataSet instanceof FeatureDataSet) {
-      renderer.setDefaultItemLabelPaint(
-          ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
-    }
+    applyWithNotifyChanges(false, () -> {
+      if (dataSet instanceof TICDataSet) {
+        renderer.setDefaultItemLabelPaint(((TICDataSet) dataSet).getDataFile().getColorAWT());
+      } else if (dataSet instanceof FeatureDataSet) {
+        renderer.setDefaultItemLabelPaint(
+            ((FeatureDataSet) dataSet).getFeature().getRawDataFile().getColorAWT());
+      }
 
-    plot.setRenderer(nextDataSetNum, renderer);
-    plot.setDataset(nextDataSetNum, dataSet);
-    nextDataSetNum++;
+      plot.setRenderer(nextDataSetNum, renderer);
+      plot.setDataset(nextDataSetNum, dataSet);
+      nextDataSetNum++;
+    });
+
     return nextDataSetNum - 1;
   }
 
@@ -715,31 +726,33 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   private void addMatchLabelColorsListener() {
     matchLabelColors.addListener(((observable, oldValue, newValue) -> {
-      if (newValue == true) {
-        for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
-          XYDataset dataset = getXYPlot().getDataset();
-          if (dataset == null) {
-            continue;
+
+      applyWithNotifyChanges(false, () -> {
+        if (newValue) {
+          for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+            XYDataset dataset = getXYPlot().getDataset();
+            if (dataset == null) {
+              continue;
+            }
+            XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
+            if (dataset instanceof TICDataSet) {
+              renderer.setDefaultItemLabelPaint(((TICDataSet) dataset).getDataFile().getColorAWT());
+            } else if (dataset instanceof FeatureDataSet) {
+              renderer.setDefaultItemLabelPaint(
+                  ((FeatureDataSet) dataset).getFeature().getRawDataFile().getColorAWT());
+            }
           }
-          XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
-          if (dataset instanceof TICDataSet) {
-            renderer.setDefaultItemLabelPaint(
-                ((TICDataSet) dataset).getDataFile().getColorAWT());
-          } else if (dataset instanceof FeatureDataSet) {
-            renderer.setDefaultItemLabelPaint(
-                ((FeatureDataSet) dataset).getFeature().getRawDataFile().getColorAWT());
+        } else {
+          for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
+            XYDataset dataset = getXYPlot().getDataset();
+            if (dataset == null) {
+              continue;
+            }
+            XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
+            renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
           }
         }
-      } else {
-        for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
-          XYDataset dataset = getXYPlot().getDataset();
-          if (dataset == null) {
-            continue;
-          }
-          XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
-          renderer.setDefaultItemLabelPaint(theme.getItemLabelPaint());
-        }
-      }
+      });
     }));
   }
 

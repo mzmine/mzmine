@@ -64,7 +64,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
 
     spectrumPlot.removeAllDataSets();
-    spectrumPlot.addDataSet(spectraDataSet, previewScan.getDataFile().getColorAWT(), false);
+    spectrumPlot.addDataSet(spectraDataSet, previewScan.getDataFile().getColorAWT(), false, true);
 
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();
@@ -77,7 +77,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
 
     MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 
-    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false);
+    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false, true);
   }
 
 }

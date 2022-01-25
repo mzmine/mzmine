@@ -23,6 +23,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.SpectralLibrariesSelectionParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -30,6 +31,7 @@ import io.github.mzmine.parameters.parametertypes.IntegerComponent;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -39,6 +41,7 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import java.util.Collection;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import org.jetbrains.annotations.NotNull;
 
 public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
@@ -73,10 +76,15 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
 
-
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
       "For MS2 scans, remove precursor signal prior to matching (+- precursor m/z tolerance)",
       false);
+
+  public static final OptionalParameter<PercentParameter> ccsTolerance = new OptionalParameter<>(
+      new PercentParameter("CCS tolerance [%]",
+          "CCS tolerance for spectral library entries to be matched against a feature.\n"
+              + "If the row or the library entry does not have a CCS value, no spectrum will be matched.",
+          0.05), true);
 
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
@@ -110,7 +118,7 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public SpectralLibrarySearchParameters() {
     super(new Parameter[]{peakLists, libraries, msLevel, allMS2Spectra,
-        mzTolerancePrecursor, removePrecursor, noiseLevel, deisotoping, needsIsotopePattern,
+        mzTolerancePrecursor, removePrecursor, ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern,
         cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
   }
 
@@ -165,4 +173,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
     return dialog.getExitCode();
   }
 
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
+  }
 }

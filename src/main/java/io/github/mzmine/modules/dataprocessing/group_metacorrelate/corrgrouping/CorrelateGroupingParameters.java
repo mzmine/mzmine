@@ -25,6 +25,7 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.correlation.I
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
@@ -38,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 public class CorrelateGroupingParameters extends SimpleParameterSet {
 
@@ -167,5 +169,10 @@ public class CorrelateGroupingParameters extends SimpleParameterSet {
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
     dialog.showAndWait();
     return dialog.getExitCode();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }
