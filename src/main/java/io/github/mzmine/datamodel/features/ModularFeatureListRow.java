@@ -670,7 +670,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public List<Scan> getAllFragmentScans() {
     List<Scan> allMS2ScansList = new ArrayList<>();
-    for (Feature feature : getFeatures()) {
+    final ModularFeature[] features = getFeatures().toArray(ModularFeature[]::new);
+    for (Feature feature : features) {
       List<Scan> scans = feature.getAllMS2FragmentScans();
       if (scans != null) {
         allMS2ScansList.addAll(scans);
