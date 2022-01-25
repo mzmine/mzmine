@@ -152,14 +152,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     this.setEditable(true);// when character or numbers pressed it will start edit in editable
     // fields
 
-    // enable copy on selection
-    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
-        KeyCombination.CONTROL_ANY);
-
     this.setOnKeyPressed(event -> {
-      if (keyCodeCopy.match(event)) {
-        copySelectionToClipboard(this, true);
-      }
       if (event.getCode().isLetterKey() || event.getCode().isDigitKey()) {
         editFocusedCell();
       } else if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.TAB) {
@@ -341,51 +334,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     col.setText("");
 
     return headerLabel;
-  }
-
-  /**
-   * Copy all rows of selected cells
-   *
-   * @param table
-   * @param addHeader
-   */
-  @SuppressWarnings("rawtypes")
-  public void copySelectionToClipboard(final TreeTableView<ModularFeatureListRow> table,
-      boolean addHeader) {
-    // final Set<Integer> rows = new TreeSet<>();
-    // for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
-    // rows.add(tablePosition.getRow());
-    // }
-    // final StringBuilder strb = new StringBuilder();
-    // boolean firstRow = true;
-    // for (final Integer row : rows) {
-    // if (!firstRow) {
-    // strb.append('\n');
-    // } else if (addHeader) {
-    // for (final TreeTableColumn<FeatureListRow, ?> column : table.getColumns()) {
-    // strb.append(column.getText());
-    // }
-    // strb.append('\n');
-    // }
-    // boolean firstCol = true;
-    // for (final TreeTableColumn<FeatureListRow, ?> column : table.getColumns()) {
-    // if (!firstCol) {
-    // strb.append('\t');
-    // }
-    // firstCol = false;
-    // final Object cellData = column.getCellData(row);
-    // if (cellData == null)
-    // strb.append("");
-    // else if (cellData instanceof DataType<?>)
-    // strb.append(((DataType<?>) cellData).getFormattedString(cellData));
-    // else
-    // strb.append(cellData.toString());
-    // }
-    // firstRow = false;
-    // }
-    // final ClipboardContent clipboardContent = new ClipboardContent();
-    // clipboardContent.putString(strb.toString());
-    // Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 
   @NotNull
@@ -723,7 +671,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       final TreeTableColumn column = tablePosition.getTableColumn();
       if (column.getUserData() instanceof DataType data) {
         columns.add(column);
-        logger.finest(data.getHeaderString());
       }
     }
 
@@ -766,6 +713,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     final ClipboardContent clipboardContent = new ClipboardContent();
     clipboardContent.putString(strb.toString());
     Clipboard.getSystemClipboard().setContent(clipboardContent);
+    logger.info(() -> "Copied selection to clipboard.");
   }
 
   public List<TreeTableColumn<?, ?>> getVisibleColumsRecursive(
@@ -775,7 +723,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     for (TreeTableColumn<?, ?> col : cols) {
       if (col.getUserData() != null) {
         columns.add(col);
-        logger.finest("adding col " + ((DataType)col.getUserData()).getHeaderString() + " - " + newColumnMap.get(col).getRaw());
       }
       if(!col.getColumns().isEmpty()) {
         columns.addAll(getVisibleColumsRecursive(col.getColumns()));
