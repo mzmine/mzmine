@@ -40,6 +40,7 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.BufferedWriter;
@@ -53,6 +54,7 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -63,7 +65,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class GnpsFbmnMgfExportTask extends AbstractTask {
+public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItemsCounter {
 
   // Logger.
   private final Logger logger = Logger.getLogger(getClass().getName());
@@ -74,6 +76,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   private final String plNamePattern = "{}";
   private final MsMsSpectraMergeModule merger;
   private final MsMsSpectraMergeParameters mergeParameters;
+  private final boolean mergeMS2;
   private int currentIndex = 0;
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -83,7 +86,10 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   // correlation
   private NumberFormat corrForm = new DecimalFormat("0.0000");
 
-  private FeatureListRowsFilter filter;
+  private final FeatureListRowsFilter filter;
+
+  // track number of exported items
+  private final AtomicLong exportedRows = new AtomicLong(0);
 
   GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -92,12 +98,10 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-    if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
-      mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
-          .getEmbeddedParameters();
-    } else {
-      mergeParameters = null;
-    }
+    mergeMS2 = parameters.getValue(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER);
+    mergeParameters =
+        mergeMS2 ? parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
+            .getEmbeddedParameters() : null;
     merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
   }
 
@@ -106,7 +110,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     if (featureLists.length == 0) {
       return 1;
     } else {
-      return currentIndex / featureLists.length;
+      return currentIndex / (double) featureLists.length;
     }
   }
 
@@ -168,43 +172,45 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     }
   }
 
-  private int export(FeatureList featureList, BufferedWriter writer) throws IOException {
+  private long export(FeatureList featureList, BufferedWriter writer) throws IOException {
     final String newLine = System.lineSeparator();
 
+    int noMS2Counter = 0;
     // count exported
-    int count = 0;
     for (FeatureListRow row : featureList.getRows()) {
       // do not export if no MSMS
       if (!filter.accept(row)) {
         continue;
       }
 
+      // Get the MS/MS scan number
+      Scan msmsScan = row.getMostIntenseFragmentScan();
+      if (msmsScan == null) {
+        noMS2Counter++;
+        continue;
+      }
+
+      MassList massList = msmsScan.getMassList();
+
+      if (massList == null) {
+        setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
+        setStatus(TaskStatus.ERROR);
+        return exportedRows.get();
+      }
+
       String rowID = Integer.toString(row.getID());
       final Float averageRT = row.getAverageRT();
       double retTimeInSeconds = averageRT == null ? 0d : ((averageRT * 60 * 100.0) / 100.);
 
-      // Get the MS/MS scan number
-      Scan msmsScan = row.getMostIntenseFragmentScan();
-      if (msmsScan != null) {
-        // MS/MS scan must exist, because msmsScanNumber was > 0
+      writer.append("BEGIN IONS").append(newLine);
+      writer.append("FEATURE_ID=").append(rowID).write(newLine);
 
-        MassList massList = msmsScan.getMassList();
+      final Double mz = row.getAverageMZ();
+      if (mz != null) {
+        writer.append("PEPMASS=").append(mzForm.format(mz)).write(newLine);
+      }
 
-        if (massList == null) {
-          setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
-          setStatus(TaskStatus.ERROR);
-          return count;
-        }
-
-        writer.append("BEGIN IONS").append(newLine);
-        writer.append("FEATURE_ID=").append(rowID).write(newLine);
-
-        final Double mz = row.getAverageMZ();
-        if (mz != null) {
-          writer.append("PEPMASS=").append(mzForm.format(mz)).write(newLine);
-        }
-
-        writer.append("SCANS=").append(rowID).write(newLine);
+      writer.append("SCANS=").append(rowID).write(newLine);
         writer.append("RTINSECONDS=").append(rtsForm.format(retTimeInSeconds)).write(newLine);
 
         int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
@@ -242,20 +248,22 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
               .append(intensityForm.format(feature.getIntensity())).write(newLine);
         }
         //
-        writer.append("END IONS").append(newLine).write(newLine);
-        count++;
-      }
+      writer.append("END IONS").append(newLine).write(newLine);
+      exportedRows.incrementAndGet();
     }
 
-    if (count == 0) {
+    if (exportedRows.get() == 0) {
       logger.log(Level.WARNING, "No MS/MS scans exported.");
     } else {
       logger.info(
           MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
-              count, featureList.getName()));
+              exportedRows.get(), featureList.getName()));
+    }
+    if (noMS2Counter > 0) {
+      logger.warning(noMS2Counter + " features had no MS/MS scan after already filtering for MS2");
     }
 
-    return count;
+    return exportedRows.get();
   }
 
   @Override
@@ -263,4 +271,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     return "Exporting GNPS of feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
   }
 
+  @Override
+  public long getProcessedItems() {
+    return exportedRows.get();
+  }
 }

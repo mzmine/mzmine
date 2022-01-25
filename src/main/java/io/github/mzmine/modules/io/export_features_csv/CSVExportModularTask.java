@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
@@ -44,6 +45,7 @@ import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -51,7 +53,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CSVExportModularTask extends AbstractTask {
+public class CSVExportModularTask extends AbstractTask implements ProcessedItemsCounter {
 
   public static final String DATAFILE_PREFIX = "DATAFILE";
   private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
@@ -63,6 +65,9 @@ public class CSVExportModularTask extends AbstractTask {
   private final String headerSeparator = ":";
   private final FeatureListRowsFilter filter;
   private int processedRows = 0, totalRows = 0;
+
+  // track number of exported items
+  private final AtomicLong exportedRows = new AtomicLong(0);
 
   public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -94,6 +99,11 @@ public class CSVExportModularTask extends AbstractTask {
     this.fieldSeparator = fieldSeparator;
     this.idSeparator = idSeparator;
     this.filter = filter;
+  }
+
+  @Override
+  public long getProcessedItems() {
+    return exportedRows.get();
   }
 
   @Override
@@ -204,6 +214,7 @@ public class CSVExportModularTask extends AbstractTask {
       writer.append(joinRowData((ModularFeatureListRow) row, rawDataFiles, rowTypes, featureTypes));
       writer.newLine();
 
+      exportedRows.incrementAndGet();
       processedRows++;
     }
   }

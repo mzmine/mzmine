@@ -30,6 +30,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.RangeUtils;
@@ -46,13 +47,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class LegacyCSVExportTask extends AbstractTask {
+public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsCounter {
 
   private static final Logger logger = Logger.getLogger(LegacyCSVExportTask.class.getName());
   private final FeatureList[] featureLists;
@@ -65,6 +67,9 @@ public class LegacyCSVExportTask extends AbstractTask {
   private final FeatureListRowsFilter filter;
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
+
+  // track number of exported items
+  private final AtomicLong exportedRows = new AtomicLong(0);
 
   public LegacyCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -106,6 +111,11 @@ public class LegacyCSVExportTask extends AbstractTask {
     this.exportAllFeatureInfo = exportAllFeatureInfo;
     this.idSeparator = idSeparator;
     this.filter = filter;
+  }
+
+  @Override
+  public long getProcessedItems() {
+    return exportedRows.get();
   }
 
   private void refineCommonElements() {
@@ -440,6 +450,7 @@ public class LegacyCSVExportTask extends AbstractTask {
       // write data row to file
       writer.write(line.toString());
 
+      exportedRows.incrementAndGet();
       processedRows++;
     }
   }
