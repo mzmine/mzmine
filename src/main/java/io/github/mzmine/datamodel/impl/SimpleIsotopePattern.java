@@ -29,6 +29,7 @@ import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -328,6 +329,28 @@ public class SimpleIsotopePattern implements IsotopePattern {
     }
 
     writer.writeEndElement();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SimpleIsotopePattern that = (SimpleIsotopePattern) o;
+    return charge == that.charge && Arrays.equals(mzValues, that.mzValues) && Arrays.equals(
+        intensityValues, that.intensityValues) && status == that.status && Objects.equals(
+        description, that.description);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(charge, status, description);
+    result = 31 * result + Arrays.hashCode(mzValues);
+    result = 31 * result + Arrays.hashCode(intensityValues);
+    return result;
   }
 
   private class DataPointIterator implements Iterator<DataPoint>, DataPoint {

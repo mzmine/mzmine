@@ -21,12 +21,12 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -75,7 +75,7 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
             SimpleIsotopePattern.loadFromXML(reader));
       }
     }
-    return new MultiChargeStateIsotopePattern(patterns);
+    return patterns.isEmpty() ? null : new MultiChargeStateIsotopePattern(patterns);
   }
 
   /**
@@ -232,40 +232,20 @@ public class MultiChargeStateIsotopePattern implements IsotopePattern {
     writer.writeEndElement();
   }
 
-  private class DataPointIterator implements Iterator<DataPoint>, DataPoint {
-
-    private final MassSpectrum spectrum;
-    // We start at -1 so the first call to next() moves us to index 0
-    private int cursor = -1;
-
-    DataPointIterator(MassSpectrum spectrum) {
-      this.spectrum = spectrum;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-
-    @Override
-    public boolean hasNext() {
-      return (cursor + 1) < spectrum.getNumberOfDataPoints();
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
+    MultiChargeStateIsotopePattern that = (MultiChargeStateIsotopePattern) o;
+    return patterns.equals(that.patterns);
+  }
 
-    @Override
-    public DataPoint next() {
-      cursor++;
-      return this;
-    }
-
-    @Override
-    public void remove() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public double getMZ() {
-      return spectrum.getMzValue(cursor);
-    }
-
-    @Override
-    public double getIntensity() {
-      return spectrum.getIntensityValue(cursor);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(patterns);
   }
 }
