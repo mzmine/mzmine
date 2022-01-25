@@ -94,8 +94,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
    */
-  private final ObservableMap<DataType, Object> map =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
@@ -177,8 +176,8 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     // copy all but features and id
     if (row != null) {
-      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType)
-                               && !(e.getKey() instanceof IDType))
+      row.stream()
+          .filter(e -> !(e.getKey() instanceof FeaturesType) && !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     }
 
@@ -214,8 +213,7 @@ public class ModularFeatureListRow implements FeatureListRow {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = getFeatureList();
         flist.addRowType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException
-          | InvocationTargetException | IllegalAccessException e) {
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return false;
       }
@@ -267,7 +265,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -512,16 +510,16 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    ManualAnnotation manual = Objects
-        .requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
+    ManualAnnotation manual = Objects.requireNonNullElse(getManualAnnotation(),
+        new ManualAnnotation());
 
     List<FeatureIdentity> peakIdentities;
     // getPeakIdentities initializes the returned list as an immutable list if manual is null
     // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
     if (getManualAnnotation() == null) {
-        peakIdentities = new ArrayList<>();
+      peakIdentities = new ArrayList<>();
     } else {
-        peakIdentities = getPeakIdentities();
+      peakIdentities = getPeakIdentities();
     }
     peakIdentities.remove(identity);
     if (preferred) {
@@ -645,8 +643,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public Float getMaxDataPointIntensity() {
     Range<Float> intensityRange = get(IntensityRangeType.class);
-    return intensityRange != null ? intensityRange.upperEndpoint()
-        : null;
+    return intensityRange != null ? intensityRange.upperEndpoint() : null;
   }
 
   @Nullable
@@ -699,7 +696,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Nullable
   @Override
   public IsotopePattern getBestIsotopePattern() {
-    ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
+    ModularFeature[] features = getFilesFeatures().values().stream()
+        .filter(f -> f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN)
+        .toArray(ModularFeature[]::new);
     Arrays.sort(features, new FeatureSorter(SortingProperty.Height, SortingDirection.Descending));
 
     for (ModularFeature feature : features) {

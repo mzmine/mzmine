@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
+package io.github.mzmine.modules.dataprocessing.id_isotopecompounddb;
 
 import com.Ostermiller.util.CSVParser;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -34,41 +34,32 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Compound
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
-import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
-import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
-import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.*;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.PubChemIdType;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
-import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance.Unit;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MathUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 
-public class LocalCSVDatabaseSearchTask extends AbstractTask {
+public class IsotopeCompoundSearchDatabaseTask extends AbstractTask {
 
-  private static Logger logger = Logger.getLogger(LocalCSVDatabaseSearchTask.class.getName());
+  private static Logger logger = Logger.getLogger(IsotopeCompoundSearchDatabaseTask.class.getName());
 
   private final MobilityTolerance mobTolerance;
   private final Double ccsTolerance;
@@ -84,30 +75,29 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private String[][] databaseValues;
   private int finishedLines = 0;
   private FeatureList peakList;
-  private final RTTolerance isotopeRtTolerance = new RTTolerance(0.1f, Unit.MINUTES);
 
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  IsotopeCompoundSearchDatabaseTask(FeatureList peakList, ParameterSet parameters,
+                                    @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
 
-    dataBaseFile = parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile)
+    dataBaseFile = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.dataBaseFile)
         .getValue();
-    fieldSeparator = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator)
+    fieldSeparator = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.fieldSeparator)
         .getValue();
-    importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
-    mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
-    rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
-    mobTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mobTolerance)
+    importTypes = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.columns).getValue();
+    mzTolerance = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.mzTolerance).getValue();
+    rtTolerance = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.rtTolerance).getValue();
+    mobTolerance = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.mobTolerance)
         .getValue();
-    ccsTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.ccsTolerance)
+    ccsTolerance = parameters.getParameter(IsotopeCompoundSearchDatabaseParameters.ccsTolerance)
         .getValue();
 
-    Boolean calcMz = parameters.getValue(LocalCSVDatabaseSearchParameters.ionLibrary);
+    Boolean calcMz = parameters.getValue(IsotopeCompoundSearchDatabaseParameters.ionLibrary);
     ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
-        LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
+        IsotopeCompoundSearchDatabaseParameters.ionLibrary).getEmbeddedParameters() : null;
   }
 
   /**
@@ -130,7 +120,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   /**
-   * @see java.lang.Runnable#run()
+   * @see Runnable#run()
    */
   @Override
   public void run() {
@@ -162,8 +152,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       }
       dbFileReader.close();
 
-      refineAnnotations(peakList);
-
     } catch (Exception e) {
       logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);
@@ -174,18 +162,10 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     // Add task description to peakList
     peakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
-            LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
+            IsotopCompoundSearchDatabaseModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
-  }
-
-  private void refineAnnotations(FeatureList flist) {
-    try {
-      DatabaseIsotopeRefiner.refine(flist.getRows(), mzTolerance, isotopeRtTolerance);
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-    }
   }
 
   private void processOneLine(String values[], List<ImportType> linesWithIndices) {
