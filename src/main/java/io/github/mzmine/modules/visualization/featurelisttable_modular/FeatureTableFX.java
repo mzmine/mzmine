@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -76,6 +77,8 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -120,8 +123,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     parameters = MZmineCore.getConfiguration().getModuleParameters(FeatureTableFXModule.class);
     rowTypesParameter = parameters.getParameter(FeatureTableFXParameters.showRowTypeColumns);
-    featureTypesParameter = parameters
-        .getParameter(FeatureTableFXParameters.showFeatureTypeColumns);
+    featureTypesParameter = parameters.getParameter(
+        FeatureTableFXParameters.showFeatureTypeColumns);
 
     rowItems = FXCollections.observableArrayList();
     filteredRowItems = new FilteredList<>(rowItems);
@@ -135,6 +138,14 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     MenuItem showSmallItem = new MenuItem("Compact LC/GC-MS");
     showSmallItem.setOnAction(e -> showCompactChromatographyColumns());
     contextMenuHelper.getAdditionalMenuItems().add(showSmallItem);
+
+    final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
+        KeyCombination.CONTROL_ANY);
+    setOnKeyPressed(event -> {
+      if (keyCodeCopy.match(event)) {
+        copySelectionToClipboard(this);
+      }
+    });
   }
 
   private void setTableEditable(boolean state) {
@@ -280,12 +291,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     TreeTableColumn<ModularFeatureListRow, ?> buddyCol = null;
     DataType<?> buddyDataType = null;
     // Find column's buddy
-    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap
-        .entrySet()) {
+    for (Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> entry : newColumnMap.entrySet()) {
       if (Objects.equals(entry.getValue().getDataType().getClass(),
-          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects
-              .equals(entry.getValue().getType(), colType) && Objects
-              .equals(entry.getValue().getRaw(), dataFile)) {
+          ((ExpandableType) dataType).getBuddyTypeClass()) && Objects.equals(
+          entry.getValue().getType(), colType) && Objects.equals(entry.getValue().getRaw(),
+          dataFile)) {
         buddyCol = entry.getKey();
         buddyDataType = entry.getValue().getDataType();
       }
@@ -532,8 +542,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * type were selected. Does not contain null.
    */
   public Set<DataType<?>> getSelectedDataTypes(@NotNull ColumnType columnType) {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
-        .getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<DataType<?>> dataTypes = new HashSet<>();
@@ -551,8 +560,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * file were selected. Does not contain null.
    */
   public Set<RawDataFile> getSelectedRawDataFiles() {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
-        .getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<RawDataFile> rawDataFiles = new HashSet<>();
@@ -569,8 +577,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
    * @return A list of the selected features.
    */
   public List<ModularFeature> getSelectedFeatures() {
-    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel()
-        .getSelectedCells();
+    ObservableList<TreeTablePosition<ModularFeatureListRow, ?>> selectedCells = getSelectionModel().getSelectedCells();
 
     // HashSet so we don't have to bother with duplicates.
     Set<ModularFeature> features = new LinkedHashSet<>();
@@ -701,5 +708,67 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
   public Map<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> getNewColumnMap() {
     return newColumnMap;
+  }
+
+  /**
+   * https://stackoverflow.com/a/48126059
+   */
+  @SuppressWarnings("rawtypes")
+  public void copySelectionToClipboard(final TreeTableView<?> table) {
+    final Set<Integer> rows = new TreeSet<>();
+
+    Set<TreeTableColumn> columns = new HashSet<>();
+    for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
+      rows.add(tablePosition.getRow());
+      if (tablePosition.getTableColumn().getUserData() == null && tablePosition.getTableColumn()
+          .getParentColumn().getUserData() instanceof NumberRangeType<?>) {
+        columns.add((TreeTableColumn) tablePosition.getTableColumn().getParentColumn());
+      }
+      else {
+        columns.add(tablePosition.getTableColumn());
+      }
+    }
+
+    final StringBuilder strb = new StringBuilder();
+    boolean firstRow = true;
+    final List<TreeTableColumn<?, ?>> tableColumns = getColumsRecursive(table.getColumns());
+    for (final Integer row : rows) {
+      if (!firstRow) {
+        strb.append('\n');
+      }
+      firstRow = false;
+      boolean firstCol = true;
+      for (final TreeTableColumn<?, ?> column : tableColumns) {
+        if (!columns.contains(column)) {
+          continue;
+        }
+        if (!firstCol) {
+          strb.append('\t');
+        }
+        firstCol = false;
+        final Object cellData = column.getCellData(row);
+        strb.append(
+            cellData == null ? "" : ((DataType) column.getUserData()).getFormattedString(cellData));
+      }
+    }
+    final ClipboardContent clipboardContent = new ClipboardContent();
+    clipboardContent.putString(strb.toString());
+    Clipboard.getSystemClipboard().setContent(clipboardContent);
+  }
+
+  public List<TreeTableColumn<?, ?>> getColumsRecursive(
+      ObservableList<? extends TreeTableColumn<?, ?>> cols) {
+    List<TreeTableColumn<?, ?>> columns = new ArrayList<>();
+
+    for (TreeTableColumn<?, ?> col : cols) {
+      if (col.isVisible() && !col.getColumns().isEmpty()
+          && !(col.getUserData() instanceof NumberRangeType<?>)) {
+        columns.addAll(getColumsRecursive(col.getColumns()));
+      } else if (col.isVisible() && (col.getColumns().isEmpty()
+          || col.getUserData() instanceof NumberRangeType<?>) && col.getUserData() != null) {
+        columns.add(col);
+      }
+    }
+    return columns;
   }
 }
