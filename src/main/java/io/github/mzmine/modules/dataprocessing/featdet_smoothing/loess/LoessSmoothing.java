@@ -70,7 +70,7 @@ public class LoessSmoothing implements SmoothingAlgorithm {
       return null;
     }
 
-    final double rtBandwidth = (((double) this.rtWidth) / series.getNumberOfValues());
+    final double rtBandwidth = Math.min((((double) this.rtWidth) / series.getNumberOfValues()), 1);
     final LoessInterpolator interpolator = new LoessInterpolator(rtBandwidth, 0);
 
     double[] intensities;
@@ -104,8 +104,8 @@ public class LoessSmoothing implements SmoothingAlgorithm {
       return null;
     }
 
-    final double mobilityBandwidth = (((double) this.mobilityWidth) / mobilogram
-        .getNumberOfValues());
+    final double mobilityBandwidth = Math.min((((double) this.mobilityWidth) / mobilogram
+        .getNumberOfValues()), 1);
     final LoessInterpolator interpolator = new LoessInterpolator(mobilityBandwidth, 0);
 
     double[] intensities = new double[mobilogram.getNumberOfValues()];
