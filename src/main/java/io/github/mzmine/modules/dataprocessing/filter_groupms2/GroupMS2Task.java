@@ -42,7 +42,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.time.Instant;
@@ -164,11 +163,10 @@ public class GroupMS2Task extends AbstractTask {
         Range<Float> rtRange = f.getRawDataPointsRTRange();
 
         List<Scan> scans = raw.stream().filter(scan -> scan.getMSLevel() > 1)
-            .filter(scan -> filterScan(scan, frt, fmz, rtRange))
-            .sorted(FragmentScanSorter.DEFAULT_TIC).toList();
+            .filter(scan -> filterScan(scan, frt, fmz, rtRange)).toList();
 
-        // set list to feature
-        f.setAllMS2FragmentScans(scans);
+        // set list to feature and sort
+        f.setAllMS2FragmentScans(scans, true);
       }
     }
   }
@@ -249,12 +247,10 @@ public class GroupMS2Task extends AbstractTask {
         List<Scan> sameCEMerged = SpectraMerging.mergeMsMsSpectra(msmsSpectra,
             SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
             ((ModularFeatureList) list).getMemoryMapStorage());
-        sameCEMerged.sort(FragmentScanSorter.DEFAULT_TIC);
-        feature.setAllMS2FragmentScans(sameCEMerged);
+        feature.setAllMS2FragmentScans(sameCEMerged, true);
 
       } else {
-        msmsSpectra.sort(FragmentScanSorter.DEFAULT_TIC);
-        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) msmsSpectra);
+        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) msmsSpectra, true);
       }
     }
   }
