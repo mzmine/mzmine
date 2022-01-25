@@ -720,24 +720,36 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     Set<TreeTableColumn> columns = new HashSet<>();
     for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
       rows.add(tablePosition.getRow());
-      if (tablePosition.getTableColumn().getUserData() == null && tablePosition.getTableColumn()
-          .getParentColumn().getUserData() instanceof NumberRangeType<?>) {
-        columns.add((TreeTableColumn) tablePosition.getTableColumn().getParentColumn());
-      }
-      else {
-        columns.add(tablePosition.getTableColumn());
+      final TreeTableColumn column = tablePosition.getTableColumn();
+      if (column.getUserData() instanceof DataType data) {
+        columns.add(column);
+        logger.finest(data.getHeaderString());
       }
     }
 
     final StringBuilder strb = new StringBuilder();
     boolean firstRow = true;
-    final List<TreeTableColumn<?, ?>> tableColumns = getColumsRecursive(table.getColumns());
+    // use columns from table to maintain the visible order
+    final List<TreeTableColumn<?, ?>> tableColumns = getVisibleColumsRecursive(table.getColumns());
+
+    for (TreeTableColumn<?, ?> tableColumn : tableColumns) {
+      if (columns.contains(tableColumn)) {
+        if(newColumnMap.get(tableColumn).getRaw() != null) {
+          strb.append(newColumnMap.get(tableColumn).getRaw().getName()).append(":");
+        }
+        strb.append(((DataType)tableColumn.getUserData()).getHeaderString()).append('\t');
+      }
+    }
+
+    strb.append('\n');
+
     for (final Integer row : rows) {
       if (!firstRow) {
         strb.append('\n');
       }
       firstRow = false;
       boolean firstCol = true;
+      // use columns from table to maintain the visible order
       for (final TreeTableColumn<?, ?> column : tableColumns) {
         if (!columns.contains(column)) {
           continue;
@@ -756,17 +768,17 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     Clipboard.getSystemClipboard().setContent(clipboardContent);
   }
 
-  public List<TreeTableColumn<?, ?>> getColumsRecursive(
+  public List<TreeTableColumn<?, ?>> getVisibleColumsRecursive(
       ObservableList<? extends TreeTableColumn<?, ?>> cols) {
     List<TreeTableColumn<?, ?>> columns = new ArrayList<>();
 
     for (TreeTableColumn<?, ?> col : cols) {
-      if (col.isVisible() && !col.getColumns().isEmpty()
-          && !(col.getUserData() instanceof NumberRangeType<?>)) {
-        columns.addAll(getColumsRecursive(col.getColumns()));
-      } else if (col.isVisible() && (col.getColumns().isEmpty()
-          || col.getUserData() instanceof NumberRangeType<?>) && col.getUserData() != null) {
+      if (col.getUserData() != null) {
         columns.add(col);
+        logger.finest("adding col " + ((DataType)col.getUserData()).getHeaderString() + " - " + newColumnMap.get(col).getRaw());
+      }
+      if(!col.getColumns().isEmpty()) {
+        columns.addAll(getVisibleColumsRecursive(col.getColumns()));
       }
     }
     return columns;
