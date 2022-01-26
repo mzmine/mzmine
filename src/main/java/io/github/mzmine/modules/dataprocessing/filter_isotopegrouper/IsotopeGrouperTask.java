@@ -61,8 +61,8 @@ class IsotopeGrouperTask extends AbstractTask {
    * Since we don't know the formula, we can assume the distance to be ~1.0033 Da, with user-defined
    * tolerance.
    */
+  private static final Logger logger = Logger.getLogger(IsotopeGrouperTask.class.getName());
   private static final double isotopeDistance = 1.0033;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject project;
   private final ModularFeatureList featureList;
   // parameter values
@@ -235,8 +235,14 @@ class IsotopeGrouperTask extends AbstractTask {
       finalRows.add(mainRow);
       // set isotope pattern
       Feature feature = mainRow.getFeatures().get(0);
-      feature.setIsotopePattern(newPattern);
-      feature.setCharge(bestFitCharge);
+
+      // do not set isotope pattern if feature already has an isotope pattern
+      // this means the isotope finder (or another module already ran) keep the old pattern
+      // we trust the isotope finder more on detecting all isotope signals
+      if (feature.getIsotopePattern() == null) {
+        feature.setIsotopePattern(newPattern);
+        feature.setCharge(bestFitCharge);
+      }
 
       // Remove all peaks already assigned to isotope pattern
       // first is already removed
@@ -261,8 +267,8 @@ class IsotopeGrouperTask extends AbstractTask {
 
     // Add task description to peakList
     deisotopedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Isotopic peaks grouper", IsotopeGrouperModule.class,
-            parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(IsotopeGrouperModule.MODULE_NAME,
+            IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
     // replace rows in list
     deisotopedFeatureList.setRows(finalRows);
