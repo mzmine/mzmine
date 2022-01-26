@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.util.scans.FragmentScanSorter;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -203,7 +203,9 @@ public interface Feature {
   default void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers,
       boolean applyDefaultSorting) {
     if (applyDefaultSorting && allMS2FragmentScanNumbers != null) {
-      Collections.sort(allMS2FragmentScanNumbers, FragmentScanSorter.DEFAULT_TIC);
+      // in case list is immutable
+      allMS2FragmentScanNumbers = new ArrayList<>(allMS2FragmentScanNumbers);
+      allMS2FragmentScanNumbers.sort(FragmentScanSorter.DEFAULT_TIC);
     }
     setAllMS2FragmentScans(allMS2FragmentScanNumbers);
   }
