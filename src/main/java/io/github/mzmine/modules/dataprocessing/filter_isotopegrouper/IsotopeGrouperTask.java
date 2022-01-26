@@ -241,8 +241,6 @@ class IsotopeGrouperTask extends AbstractTask {
       // we trust the isotope finder more on detecting all isotope signals
       if (feature.getIsotopePattern() == null) {
         feature.setIsotopePattern(newPattern);
-      }
-      if (feature.getCharge() == null) {
         feature.setCharge(bestFitCharge);
       }
 
