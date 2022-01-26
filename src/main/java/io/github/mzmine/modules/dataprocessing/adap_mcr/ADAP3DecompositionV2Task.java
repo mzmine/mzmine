@@ -295,11 +295,10 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     }
 
     ModularFeature newFeature = new ModularFeature(newPeakList, file, peak.getMZ(),
-        (float) peak.getRetTime(),
-        (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.MANUAL,
-        representativeScan, representativeScan, new Scan[]{},
-        Range.closed((float) peak.getFirstRetTime(),
-            (float) peak.getLastRetTime()), Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
+        (float) peak.getRetTime(), (float) peak.getIntensity(), (float) area, scanNumbers,
+        dataPoints, FeatureStatus.MANUAL, representativeScan, List.of(),
+        Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
+        Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0f, (float) peak.getIntensity()));
     return newFeature;
   }
