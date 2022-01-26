@@ -180,6 +180,7 @@ public interface Feature {
    * Sorted list of all fragmentation scans of this feature. First is the representative ("best")
    * fragmentation spectrum.
    */
+  @NotNull
   List<Scan> getAllMS2FragmentScans();
 
   /**

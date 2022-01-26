@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -78,6 +79,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModularFeature implements Feature, ModularDataModel {
 
+  private static final Logger logger = Logger.getLogger(ModularFeature.class.getName());
   private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
@@ -166,7 +168,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
+    setAllMS2FragmentScans(allMS2FragmentScanNumbers);
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if (!Float.isNaN(fwhm)) {
@@ -359,6 +361,7 @@ public class ModularFeature implements Feature, ModularDataModel {
   }
 
   @Override
+  @NotNull
   public List<Scan> getAllMS2FragmentScans() {
     // return empty list instead
     return Objects.requireNonNullElse(get(FragmentScanNumbersType.class), List.of());
@@ -366,6 +369,7 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers) {
+    //    logger.finest("SET MS2 to feature");
     set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
   }
 
