@@ -60,6 +60,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new IntegerParameter("Minimum features in an isotope pattern",
           "Minimum number of features required in an isotope pattern"));
 
+  public static final OptionalModuleParameter<Isotope13CFilterParameters> ISOTOPE_FILTER_13C = new OptionalModuleParameter<>(
+      "Validate 13C isotope pattern",
+      "Searches for an +1 13C signal (considering possible charge states) \n"
+      + "within estimated range of carbon atoms. Optionally: Detect and filter rows \n"
+      + "that are 13C isotopes by searching for preceding -1 signal.",
+      new Isotope13CFilterParameters(), false);
+
   public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
       new MZRangeParameter());
 
@@ -104,8 +111,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
       true);
 
-  public static final BooleanParameter MS2_Filter = new BooleanParameter(
-      "Feature with MS2 scan",
+  public static final BooleanParameter MS2_Filter = new BooleanParameter("Feature with MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.");
   public static final BooleanParameter Reset_ID = new BooleanParameter(
       "Reset the feature number ID",
@@ -119,9 +125,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
-        MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
-        HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID, massDefect,
-        handleOriginal});
+        ISOTOPE_FILTER_13C, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
+        KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
+        REMOVE_ROW, MS2_Filter, Reset_ID, massDefect, handleOriginal});
   }
 
   @Override
