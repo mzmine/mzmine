@@ -377,28 +377,28 @@ public class RowsFilterTask extends AbstractTask {
         // Calculate average duration and isotope pattern count.
         int maxIsotopePatternSizeOnRow = 1;
         double avgDuration = 0.0;
-      boolean matches13Cisotopes = false;
+        boolean matches13Cisotopes = false;
         final Feature[] features = row.getFeatures().toArray(new Feature[0]);
         for (final Feature p : features) {
 
           final IsotopePattern pattern = p.getIsotopePattern();
-        if (pattern != null) {
-          // check isotope pattern - only one match for a feature needed
-          if (filter13CIsotopes && !matches13Cisotopes) {
-            matches13Cisotopes = isotope13CFilter.accept(pattern, p.getMZ());
-          }
+          if (pattern != null) {
+            // check isotope pattern - only one match for a feature needed
+            if (filter13CIsotopes && !matches13Cisotopes) {
+              matches13Cisotopes = isotope13CFilter.accept(pattern, p.getMZ());
+            }
 
-          if (maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
-            maxIsotopePatternSizeOnRow = pattern.getNumberOfDataPoints();
+            if (maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
+              maxIsotopePatternSizeOnRow = pattern.getNumberOfDataPoints();
+            }
           }
-        }
           avgDuration += RangeUtils.rangeLength(p.getRawDataPointsRTRange());
         }
 
-      // filter 13C istope pattern - needs to be true in one feature
-      if (filter13CIsotopes) {
-        filterRowCriteriaFailed = !matches13Cisotopes;
-      }
+        // filter 13C istope pattern - needs to be true in one feature
+        if (filter13CIsotopes) {
+          filterRowCriteriaFailed = !matches13Cisotopes;
+        }
         // Check isotope pattern count.
         if (filterByMinIsotopePatternSize) {
           if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
