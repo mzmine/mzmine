@@ -73,6 +73,7 @@ class IsotopeGrouperTask extends AbstractTask {
   private final MobilityTolerance mobilityTolerance;
   private final boolean monotonicShape;
   private final boolean chooseMostIntense;
+  private final boolean keepAllMS2;
   private final int maximumCharge;
   private final ParameterSet parameters;
   private final OriginalFeatureListOption handleOriginal;
@@ -96,6 +97,7 @@ class IsotopeGrouperTask extends AbstractTask {
     rtTolerance = parameters.getParameter(IsotopeGrouperParameters.rtTolerance).getValue();
     monotonicShape = parameters.getParameter(IsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameters.getParameter(IsotopeGrouperParameters.maximumCharge).getValue();
+    keepAllMS2 = parameters.getParameter(IsotopeGrouperParameters.keepAllMS2).getValue();
     chooseMostIntense = (Objects.equals(
         parameters.getParameter(IsotopeGrouperParameters.representativeIsotope).getValue(),
         IsotopeGrouperParameters.ChooseTopIntensity));
@@ -241,6 +243,17 @@ class IsotopeGrouperTask extends AbstractTask {
       bestFitRows.remove(0);
       rowsSortedByHeight.removeAll(bestFitRows);
       rowsSortedByMz.removeAll(bestFitRows);
+
+      // in case user wants to keep all features with MS2 - eventhough they were flagged as isotopes
+      // this can be useful for complex datasets
+      // in general, when an MS2 is triggered we might want to retain this feauture in any case
+      if (keepAllMS2) {
+        for (var isotopeWithMS2 : bestFitRows) {
+          if (isotopeWithMS2.hasMs2Fragmentation()) {
+            finalRows.add(isotopeWithMS2);
+          }
+        }
+      }
 
       // Update completion rate
       processedRows += bestFitRows.size();
