@@ -239,10 +239,10 @@ class IsotopeGrouperTask extends AbstractTask {
       // do not set isotope pattern if feature already has an isotope pattern
       // this means the isotope finder (or another module already ran) keep the old pattern
       // we trust the isotope finder more on detecting all isotope signals
-      if (feature.getIsotopePattern() != null) {
+      if (feature.getIsotopePattern() == null) {
         feature.setIsotopePattern(newPattern);
       }
-      if (feature.getCharge() != null) {
+      if (feature.getCharge() == null) {
         feature.setCharge(bestFitCharge);
       }
 
