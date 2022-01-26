@@ -37,6 +37,7 @@ import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
 import java.time.Instant;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,12 +140,9 @@ public class CsvImportTask extends AbstractTask {
           }
         }
 
-        Scan fragmentScan = null;
-        Scan[] allFragmentScans = new Scan[]{};
-
         Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt,
             feature_height, abundance, scanNumbers, finalDataPoint, status, representativeScan,
-            fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+            List.of(), finalRTRange, finalMZRange, finalIntensityRange);
         newRow.addFeature(rawDataFile, feature);
         newFeatureList.addRow(newRow);
       }

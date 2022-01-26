@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
-import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -111,21 +110,19 @@ public class ModularFeature implements Feature, ModularDataModel {
   @Deprecated
   public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
       float height, float area, Scan[] scanNumbers, DataPoint[] dataPointsPerScan,
-      FeatureStatus featureStatus, Scan representativeScan, Scan fragmentScanNumber,
-      Scan[] allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> intensityRange) {
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers,
+      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @NotNull Range<Float> intensityRange) {
     this(flist, dataFile, mz, rt, height, area, Arrays.asList(scanNumbers),
         DataPointUtils.getMZsAsDoubleArray(dataPointsPerScan),
         DataPointUtils.getIntenstiesAsDoubleArray(dataPointsPerScan), featureStatus,
-        representativeScan, fragmentScanNumber, allMS2FragmentScanNumbers, rtRange, mzRange,
-        intensityRange);
+        representativeScan, allMS2FragmentScanNumbers, rtRange, mzRange, intensityRange);
   }
 
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
-      FeatureStatus featureStatus, Scan representativeScan, Scan fragmentScanNumber,
-      Scan[] allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange,
-      @NotNull Range<Double> mzRange, @NotNull Range<Float> intensityRange) {
+  @Deprecated
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt, float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+      @NotNull Range<Float> intensityRange) {
     this(flist);
 
     assert dataFile != null;
@@ -147,7 +144,6 @@ public class ModularFeature implements Feature, ModularDataModel {
           "Cannot create a ModularFeature instance with no data points");
     }
 
-    setFragmentScan(fragmentScanNumber);
     setRepresentativeScan(representativeScan);
     // add values to feature
     //    set(ScanNumbersType.class, List.of(scanNumbers));
@@ -170,7 +166,7 @@ public class ModularFeature implements Feature, ModularDataModel {
     set(RTRangeType.class, rtRange);
     set(IntensityRangeType.class, intensityRange);
 
-    set(FragmentScanNumbersType.class, List.of(allMS2FragmentScanNumbers));
+    set(FragmentScanNumbersType.class, allMS2FragmentScanNumbers);
 
     float fwhm = QualityParameters.calculateFWHM(this);
     if (!Float.isNaN(fwhm)) {
@@ -223,8 +219,7 @@ public class ModularFeature implements Feature, ModularDataModel {
       set(HeightType.class, (f.getHeight()));
       set(AreaType.class, (f.getArea()));
       set(BestScanNumberType.class, (f.getRepresentativeScan()));
-      set(BestFragmentScanNumberType.class, (f.getMostIntenseFragmentScan()));
-      set(FragmentScanNumbersType.class, (f.getAllMS2FragmentScans()));
+      setAllMS2FragmentScans(f.getAllMS2FragmentScans());
 
       // datapoints of feature
       //      set(DataPointsType.class, f.getDataPoints());
@@ -355,12 +350,12 @@ public class ModularFeature implements Feature, ModularDataModel {
 
   @Override
   public Scan getMostIntenseFragmentScan() {
-    return get(BestFragmentScanNumberType.class);
-  }
-
-  @Override
-  public void setFragmentScan(Scan fragmentScan) {
-    set(BestFragmentScanNumberType.class, fragmentScan);
+    List<Scan> allMS2 = get(FragmentScanNumbersType.class);
+    if (allMS2 != null && !allMS2.isEmpty()) {
+      return allMS2.get(0);
+    } else {
+      return null;
+    }
   }
 
   @Override
