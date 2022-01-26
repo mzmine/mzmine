@@ -71,12 +71,17 @@ public class BatchWizardHPLCParameters extends SimpleParameterSet {
       + "Uncheck for varying salt content or variations in ionization conditions.\n"
       + "Used in feature grouping.", true);
 
+
+  public static final BooleanParameter filter13C = new BooleanParameter(
+      "Only keep features with 13C",
+      "Filters out all rows that have no feature with a 13C isotope pattern", true);
+
   public static final OriginalFeatureListHandlingParameter handleOriginalFeatureLists = new OriginalFeatureListHandlingParameter(
       false, OriginalFeatureListOption.REMOVE);
 
   public BatchWizardHPLCParameters() {
     super(new Parameter[]{stableIonizationAcrossSamples, cropRtRange, maximumIsomersInChromatogram,
         minNumberOfSamples, minNumberOfDataPoints, approximateChromatographicFWHM,
-        intraSampleRTTolerance, interSampleRTTolerance, handleOriginalFeatureLists});
+        intraSampleRTTolerance, interSampleRTTolerance, filter13C, handleOriginalFeatureLists});
   }
 }

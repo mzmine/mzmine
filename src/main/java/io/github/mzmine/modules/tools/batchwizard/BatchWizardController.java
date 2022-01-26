@@ -119,6 +119,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 public class BatchWizardController {
@@ -288,7 +289,10 @@ public class BatchWizardController {
     q.add(makeIsotopeFinderStep(msParameters));
     q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
-    q.add(makeRowFilterStep(msParameters, hplcParameters));
+    final var rowsFilter = makeRowFilterStep(msParameters, hplcParameters);
+    if (rowsFilter != null) {
+      q.add(rowsFilter);
+    }
     q.add(makeGapFillStep(msParameters, hplcParameters));
     if (!cbIonMobility.isSelected()) { // might filter IMS resolved isomers
       q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
@@ -302,16 +306,25 @@ public class BatchWizardController {
     return q;
   }
 
+  @Nullable
   private MZmineProcessingStep<MZmineProcessingModule> makeRowFilterStep(ParameterSet msParameters,
       ParameterSet hplcParameters) {
     final int minSamples = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
+    final boolean filter13C = hplcParameters.getValue(BatchWizardHPLCParameters.filter13C);
+
+    if (!filter13C && minSamples < 2) {
+      return null;
+    }
 
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(RowsFilterModule.class).cloneParameterSet();
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(RowsFilterParameters.SUFFIX,
-        "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
+    String suffix = (filter13C ? "13C" : "");
+    if (minSamples > 1) {
+      suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
+    }
+    param.setParameter(RowsFilterParameters.SUFFIX, suffix);
     param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minSamples > 1);
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
         .setValue((double) minSamples);
@@ -321,10 +334,9 @@ public class BatchWizardController {
 
     final Isotope13CFilterParameters filterIsoParam = param.getParameter(
         RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
-    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance,
-        msParameters.getValue(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance));
+    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance, msParameters.getValue(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance));
     filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
-    filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, false);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
     filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
 
@@ -344,8 +356,7 @@ public class BatchWizardController {
     param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
     param.setParameter(RowsFilterParameters.massDefect, false);
-    param.setParameter(RowsFilterParameters.handleOriginal,
-        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
+    param.setParameter(RowsFilterParameters.handleOriginal, hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
         param);
