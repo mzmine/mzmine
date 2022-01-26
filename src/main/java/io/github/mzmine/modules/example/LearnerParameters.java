@@ -20,8 +20,8 @@ package io.github.mzmine.modules.example;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -43,8 +43,8 @@ public class LearnerParameters extends SimpleParameterSet {
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original feature list",
-      "If checked, original feature list will be removed and only deisotoped version remains");
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      false);
 
   /**
    * Create a new parameterset
@@ -53,7 +53,8 @@ public class LearnerParameters extends SimpleParameterSet {
     /*
      * The order of the parameters is used to construct the parameter dialog automatically
      */
-    super(new Parameter[] {featureLists, suffix, mzTolerance, rtTolerance, maximumCharge, autoRemove});
+    super(new Parameter[]{featureLists, suffix, mzTolerance, rtTolerance, maximumCharge,
+        handleOriginal});
   }
 
 }

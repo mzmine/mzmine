@@ -18,7 +18,10 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
+import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,20 +29,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.chromatogramandspectra.ChromatogramAndSpectraVisualizer;
-import io.github.mzmine.project.impl.ImagingRawDataFileImpl;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import org.jetbrains.annotations.NotNull;
 
 /*
  * Raw data overview window controller class
@@ -147,7 +146,6 @@ public class RawDataOverviewWindowController {
 
       rawDataFileTab.selectedProperty().addListener((obs, o, n) -> {
         if (n == true) {
-          logger.fine("Populating table for raw data file " + raw.getName());
           con.populate(raw);
         }
       });

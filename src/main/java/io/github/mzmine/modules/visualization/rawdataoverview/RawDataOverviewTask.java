@@ -18,15 +18,13 @@
 
 package io.github.mzmine.modules.visualization.rawdataoverview;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
+import java.util.Arrays;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +34,6 @@ import org.jetbrains.annotations.NotNull;
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class RawDataOverviewTask extends AbstractTask {
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private RawDataFile rawDataFiles[];
 

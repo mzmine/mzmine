@@ -18,6 +18,7 @@
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -128,6 +129,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   public ColoredXYSmallBlockRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
+
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
     setDefaultItemLabelsVisible(false);
   }
 

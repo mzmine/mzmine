@@ -143,26 +143,6 @@ public class ConversionUtils {
    */
   public static Scan msdkScanToSimpleScan(RawDataFile rawDataFile, MzMLMsScan scan, double[] mzs,
       double[] intensities, MassSpectrumType spectrumType) {
-    double precursorMz = 0.0;
-    int precursorCharge = -1;
-    for (MzMLPrecursorElement precursorElement : scan.getPrecursorList().getPrecursorElements()) {
-      Optional<MzMLPrecursorSelectedIonList> selectedIonList = precursorElement.getSelectedIonList();
-      if (selectedIonList.isPresent()) {
-        if (selectedIonList.get().getSelectedIonList().size() > 1) {
-          logger.info("Selection of more than one ion in a single scan is not supported.");
-        }
-        for (MzMLCVParam param : selectedIonList.get().getSelectedIonList().get(0)
-            .getCVParamsList()) {
-          if (param.getAccession().equals(MzMLCV.cvPrecursorMz)) {
-            precursorMz = Double.parseDouble(param.getValue().get());
-          }
-          if (param.getAccession().equals(MzMLCV.cvChargeState)) {
-            precursorCharge = Integer.parseInt(param.getValue().get());
-          }
-        }
-      }
-    }
-
     DDAMsMsInfo info = null;
     if (scan.getPrecursorList() != null) {
       final var precursorElements = scan.getPrecursorList().getPrecursorElements();

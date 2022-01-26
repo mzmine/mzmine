@@ -18,11 +18,11 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.DrawingSupplier;
@@ -64,6 +64,8 @@ public class PeakRenderer extends XYBarRenderer {
     // We want to paint the peaks using simple color without any gradient
     // effects
     setBarPainter(new StandardXYBarPainter());
+
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
   }
 
   public void drawItem(Graphics2D g2, XYItemRendererState state, Rectangle2D dataArea,

@@ -62,6 +62,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ScanSelectPanel extends BorderPane {
 
+  private static final Logger logger = Logger.getLogger(ScanSelectPanel.class.getName());
   // icons
   static final Image iconTIC = FxIconUtil.loadImageFromResources("icons/btnTIC.png");
   static final Image iconTICFalse = FxIconUtil.loadImageFromResources("icons/btnTIC_grey.png");
@@ -78,7 +79,6 @@ public class ScanSelectPanel extends BorderPane {
   public final Color colorRemovedData;
   public final Color colorUsedData;
   private final Color errorColor = Color.web("#ffb3b3");
-  private Logger log = Logger.getLogger(this.getClass().getName());
   private ToggleButton btnToggleUse;
   private TextField txtAdduct;
   private ScanSortMode sort;
@@ -488,7 +488,7 @@ public class ScanSelectPanel extends BorderPane {
 //      revalidate();
 //      repaint();
     } catch (MissingMassListException e) {
-      log.log(Level.WARNING, e.getMessage(), e);
+      logger.log(Level.WARNING, e.getMessage(), e);
       // create error label
       lbMassListError.setVisible(true);
 //      revalidate();
@@ -547,12 +547,13 @@ public class ScanSelectPanel extends BorderPane {
 
       DataPointsDataSet data = new DataPointsDataSet("Data", getFilteredDataPoints());
       // green
-      spectrumPlot.addDataSet(data, FxColorUtil.fxColorToAWT(colorUsedData), false);
+      spectrumPlot.addDataSet(data, FxColorUtil.fxColorToAWT(colorUsedData), false, true);
       if (showRemovedData) {
         // orange
         DataPointsDataSet dataRemoved =
             new DataPointsDataSet("Removed", getFilteredDataPointsRemoved());
-        spectrumPlot.addDataSet(dataRemoved, FxColorUtil.fxColorToAWT(colorRemovedData), false);
+        spectrumPlot.addDataSet(dataRemoved, FxColorUtil.fxColorToAWT(colorRemovedData), false,
+            true);
       }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
       // spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));

@@ -19,21 +19,27 @@
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data.MzMLPrecursorElement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Multi stage fragmentation MSn
+ * Multi stage fragmentation MSn. The precursors that lead to this scan
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
@@ -41,6 +47,10 @@ public class MSnInfoImpl implements DDAMsMsInfo {
 
   public static final String XML_TYPE_NAME = "msn_multi_stage_info";
   private static final Logger logger = Logger.getLogger(MSnInfoImpl.class.getName());
+  /**
+   * All the precursor stages that lead to this scan. An MS4 scan will have these isolation steps:
+   * MS2 --> MS3 --> MS4 in this order.
+   */
   private final List<DDAMsMsInfo> precursors;
 
   public MSnInfoImpl(List<DDAMsMsInfo> precursors) {
@@ -48,9 +58,14 @@ public class MSnInfoImpl implements DDAMsMsInfo {
   }
 
   public static DDAMsMsInfo fromMzML(List<MzMLPrecursorElement> precursorElements, int msLevel) {
+    assert precursorElements.size() == msLevel - 1 : "MS level and precursor info does not match";
+
     List<DDAMsMsInfo> precursors = new ArrayList<>();
 
-    assert precursorElements.size() == msLevel : "MS level and precursor info does not match";
+    // we sort the precursor elements by the MS level defined as user parameter by msconvert
+    // if not specified we use the scan reference - earlier scan should also be lower in level
+    // if not specified we use the precursor mz
+    Collections.sort(precursorElements);
 
     int currentMsLevel = 2;
     for (var precursorElement : precursorElements) {
@@ -58,6 +73,45 @@ public class MSnInfoImpl implements DDAMsMsInfo {
       precursors.add(info);
       currentMsLevel++;
     }
+    return new MSnInfoImpl(precursors);
+  }
+
+  /**
+   * @param reader A reader at an {@link DDAMsMsInfoImpl} element.
+   * @return A loaded {@link DDAMsMsInfoImpl}.
+   */
+  public static MSnInfoImpl loadFromXML(XMLStreamReader reader, RawDataFile file) {
+    List<DDAMsMsInfo> precursors = new ArrayList<>(4);
+    int childrenOpen = 0;
+    try {
+      while (reader.hasNext()) {
+        int next = reader.next();
+        if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(MsMsInfo.XML_ELEMENT)) {
+          if (childrenOpen > 0) {
+            childrenOpen--;
+          } else {
+            break;
+          }
+        }
+        if (next != XMLEvent.START_ELEMENT) {
+          continue;
+        }
+
+        final MsMsInfo loaded = MsMsInfo.loadFromXML(reader, file);
+        if (loaded instanceof DDAMsMsInfo child) {
+          childrenOpen++;
+          precursors.add(child);
+        } else {
+          throw new IllegalStateException(
+              "MSn info was not loaded correctly. Child was " + (loaded == null ? null
+                  : loaded.getClass()));
+        }
+      }
+    } catch (XMLStreamException ex) {
+      logger.log(Level.WARNING, "Errow while loading MSn info. " + ex.getMessage(), ex);
+      return null;
+    }
+
     return new MSnInfoImpl(precursors);
   }
 
@@ -137,5 +191,22 @@ public class MSnInfoImpl implements DDAMsMsInfo {
 
   public double getMS2PrecursorMz() {
     return precursors.get(0).getIsolationMz();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MSnInfoImpl mSnInfo = (MSnInfoImpl) o;
+    return precursors.equals(mSnInfo.precursors);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(precursors);
   }
 }

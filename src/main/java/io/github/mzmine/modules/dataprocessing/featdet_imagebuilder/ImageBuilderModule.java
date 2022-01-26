@@ -27,10 +27,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
-import io.github.mzmine.modules.visualization.image.ImageVisualizerParameters;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -85,8 +82,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
   }
 
   private ParameterSet initParameters(ParameterSet parameters) {
-    ParameterSet newParameterSet = MZmineCore.getConfiguration().getModuleParameters(
-        ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
+    ParameterSet newParameterSet = MZmineCore.getConfiguration()
+        .getModuleParameters(ModularADAPChromatogramBuilderModule.class).cloneParameterSet();
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.scanSelection,
         parameters.getParameter(ImageBuilderParameters.scanSelection).getValue());
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minimumScanSpan,
@@ -95,8 +92,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
         parameters.getParameter(ImageBuilderParameters.mzTolerance).getValue());
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.suffix,
         parameters.getParameter(ImageBuilderParameters.suffix).getValue());
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.IntensityThresh2, 0.0);
-    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.startIntensity, 0.0);
+    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minGroupIntensity, 0.0);
+    newParameterSet.setParameter(ADAPChromatogramBuilderParameters.minHighestPoint, 0.0);
     newParameterSet.setParameter(ADAPChromatogramBuilderParameters.allowSingleScans,
         new HashMap<String, Boolean>());
     return newParameterSet;

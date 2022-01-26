@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
+import org.w3c.dom.Element;
 
 /**
  * Harmonizes the handling of original feature lists
@@ -30,7 +31,10 @@ import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingPar
 public class OriginalFeatureListHandlingParameter extends
     ComboParameter<OriginalFeatureListOption> {
 
-  public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace) {
+  final boolean includeProcessInPlace;
+
+  public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace,
+      OriginalFeatureListOption startValue) {
     super("Original feature list",
         "Defines the processing. Standard is to keep the original feature list and create a new "
         + "processed list. REMOVE saves memory. PROCESS IN PLACE is an advanced option to process "
@@ -38,7 +42,13 @@ public class OriginalFeatureListHandlingParameter extends
         + "side effects, apply with caution.",
         includeProcessInPlace ? OriginalFeatureListOption.values()
             : new OriginalFeatureListOption[]{OriginalFeatureListOption.KEEP,
-                OriginalFeatureListOption.REMOVE}, OriginalFeatureListOption.KEEP);
+                OriginalFeatureListOption.REMOVE}, startValue);
+    this.includeProcessInPlace = includeProcessInPlace;
+    this.value = startValue;
+  }
+
+  public OriginalFeatureListHandlingParameter(boolean includeProcessInPlace) {
+    this(includeProcessInPlace, OriginalFeatureListOption.KEEP);
   }
 
   public enum OriginalFeatureListOption {
@@ -70,5 +80,21 @@ public class OriginalFeatureListHandlingParameter extends
       }
     }
 
+  }
+
+  @Override
+  public void loadValueFromXML(Element xmlElement) {
+    super.loadValueFromXML(xmlElement);
+  }
+
+  @Override
+  public void saveValueToXML(Element xmlElement) {
+    super.saveValueToXML(xmlElement);
+  }
+
+  @Override
+  public ComboParameter<OriginalFeatureListOption> cloneParameter() {
+    var clone = new OriginalFeatureListHandlingParameter(includeProcessInPlace, value);
+    return clone;
   }
 }

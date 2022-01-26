@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Objects;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
@@ -66,7 +67,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset,
     this.scan = scan;
     this.label = label;
     this.normalize = normalize;
-    maxIntensity = scan.getBasePeakIntensity();
+    maxIntensity = Objects.requireNonNullElse(scan.getBasePeakIntensity(), 0d);
 
     /*
      * This optimalization is disabled, because it crashes on scans with no datapoints. Also, it

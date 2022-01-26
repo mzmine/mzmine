@@ -1,14 +1,19 @@
 /*
- * (C) Copyright 2015-2016 by MSDK Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This software is dual-licensed under either
+ * This file is part of MZmine.
  *
- * (a) the terms of the GNU Lesser General Public License version 2.1 as published by the Free
- * Software Foundation
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * or (per the licensee's choosing)
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * (b) the terms of the Eclipse Public License v1.0 as published by the Eclipse Foundation.
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.import_rawdata_mzml.msdk.data;
@@ -30,25 +35,49 @@ public abstract class MzMLTags {
   public static final String TAG_DATA_PROCESSING_LIST = "dataProcessingList";
   /** Constant <code>TAG_DATA_PROCESSING="dataProcessing"</code> */
   public static final String TAG_DATA_PROCESSING = "dataProcessing";
-  /** Constant <code>TAG_PROCESSING_METHOD="processingMethod"</code> */
+  /**
+   * Constant <code>TAG_PROCESSING_METHOD="processingMethod"</code>
+   */
   public static final String TAG_PROCESSING_METHOD = "processingMethod";
-  /** Constant <code>TAG_RUN="run"</code> */
+  /**
+   * Constant <code>TAG_RUN="run"</code>
+   */
   public static final String TAG_RUN = "run";
-  /** Constant <code>TAG_SPECTRUM_LIST="spectrumList"</code> */
+  /**
+   * Constant <code>TAG_SPECTRUM_LIST="spectrumList"</code>
+   */
   public static final String TAG_SPECTRUM_LIST = "spectrumList";
-  /** Constant <code>TAG_SPECTRUM="spectrum"</code> */
+  /**
+   * Constant <code>TAG_SPECTRUM="spectrum"</code>
+   */
   public static final String TAG_SPECTRUM = "spectrum";
-  /** Constant <code>TAG_CV_PARAM="cvParam"</code> */
+  /**
+   * Constant <code>TAG_CV_PARAM="cvParam"</code>
+   */
   public static final String TAG_CV_PARAM = "cvParam";
-  /** Constant <code>TAG_SCAN_LIST="scanList"</code> */
+  /**
+   * Constant <code>TAG_USER_PARAM="userParam"</code>
+   */
+  public static final String TAG_USER_PARAM = "userParam";
+  /**
+   * Constant <code>TAG_SCAN_LIST="scanList"</code>
+   */
   public static final String TAG_SCAN_LIST = "scanList";
-  /** Constant <code>TAG_SCAN="scan"</code> */
+  /**
+   * Constant <code>TAG_SCAN="scan"</code>
+   */
   public static final String TAG_SCAN = "scan";
-  /** Constant <code>TAG_SCAN_WINDOW_LIST="scanWindowList"</code> */
+  /**
+   * Constant <code>TAG_SCAN_WINDOW_LIST="scanWindowList"</code>
+   */
   public static final String TAG_SCAN_WINDOW_LIST = "scanWindowList";
-  /** Constant <code>TAG_SCAN_WINDOW="scanWindow"</code> */
+  /**
+   * Constant <code>TAG_SCAN_WINDOW="scanWindow"</code>
+   */
   public static final String TAG_SCAN_WINDOW = "scanWindow";
-  /** Constant <code>TAG_BINARY_DATA_ARRAY_LIST="binaryDataArrayList"</code> */
+  /**
+   * Constant <code>TAG_BINARY_DATA_ARRAY_LIST="binaryDataArrayList"</code>
+   */
   public static final String TAG_BINARY_DATA_ARRAY_LIST = "binaryDataArrayList";
   /** Constant <code>TAG_BINARY_DATA_ARRAY="binaryDataArray"</code> */
   public static final String TAG_BINARY_DATA_ARRAY = "binaryDataArray";
@@ -125,6 +154,7 @@ public abstract class MzMLTags {
   public static final String ATTR_ID_REF = "idRef";
   /** Constant <code>ATTR_SPECTRUM_REF="spectrumRef"</code> */
   public static final String ATTR_SPECTRUM_REF = "spectrumRef";
+
   /**
    * Constant
    * <code>ATTR_DEFAULT_INSTRUMENT_CONFIGURATION_REF="defaultInstrumentConfigurationRef"</code>

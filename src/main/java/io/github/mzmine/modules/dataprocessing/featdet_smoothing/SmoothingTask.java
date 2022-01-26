@@ -37,6 +37,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
@@ -65,7 +66,7 @@ public class SmoothingTask extends AbstractTask {
   private final int numFeatures;
   private final ZeroHandlingType zht;
   private final String suffix;
-  private final boolean removeOriginal;
+  private final OriginalFeatureListOption handleOriginal;
 
   public SmoothingTask(@NotNull MZmineProject project, @NotNull ModularFeatureList flist,
       @Nullable MemoryMapStorage storage, @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
@@ -79,7 +80,7 @@ public class SmoothingTask extends AbstractTask {
 
     suffix = parameters.getParameter(SmoothingParameters.suffix).getValue();
 
-    removeOriginal = parameters.getParameter(SmoothingParameters.removeOriginal).getValue();
+    handleOriginal = parameters.getParameter(SmoothingParameters.handleOriginal).getValue();
   }
 
   @Override
@@ -133,13 +134,11 @@ public class SmoothingTask extends AbstractTask {
       return;
     }
 
-    smoothedList.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters, getModuleCallDate()));
-    project.addFeatureList(smoothedList);
+    smoothedList.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(SmoothingModule.class, parameters, getModuleCallDate()));
 
-    if (removeOriginal) {
-      project.removeFeatureList(flist);
-    }
+    // add new / remove old
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, smoothedList, flist);
 
     setStatus(TaskStatus.FINISHED);
   }

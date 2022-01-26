@@ -18,12 +18,6 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -46,6 +40,12 @@ import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  *
@@ -315,7 +315,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     if (isDisplayResults() || getController().isLastTaskRunning()) {
       getTargetPlot().addDataSet(
           new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), getColor(),
-          false);
+          false, true);
     }
   }
 

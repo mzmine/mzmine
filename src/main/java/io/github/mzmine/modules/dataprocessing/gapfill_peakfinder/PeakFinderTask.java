@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -35,7 +36,6 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 
 class PeakFinderTask extends AbstractTask {
 
+  private final OriginalFeatureListOption handleOriginal;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
@@ -57,7 +58,7 @@ class PeakFinderTask extends AbstractTask {
   private ParameterSet parameters;
   private int totalScans;
   private AtomicInteger processedScans;
-  private boolean MASTERLIST = true, removeOriginal;
+  private boolean MASTERLIST = true;
   private int masterSample = 0;
   private boolean useParallelStream = false;
 
@@ -73,7 +74,7 @@ class PeakFinderTask extends AbstractTask {
     mzTolerance = parameters.getParameter(PeakFinderParameters.MZTolerance).getValue();
     rtTolerance = parameters.getParameter(PeakFinderParameters.RTTolerance).getValue();
     rtCorrection = parameters.getParameter(PeakFinderParameters.RTCorrection).getValue();
-    removeOriginal = parameters.getParameter(PeakFinderParameters.autoRemove).getValue();
+    handleOriginal = parameters.getParameter(PeakFinderParameters.handleOriginal).getValue();
     useParallelStream = parameters.getParameter(PeakFinderParameters.useParallel).getValue();
   }
 
@@ -117,7 +118,7 @@ class PeakFinderTask extends AbstractTask {
         }
         RawDataFile dataFile = processedPeakList.getRawDataFile(i);
 
-        List<Gap> gaps = new ArrayList<Gap>();
+        List<Gap> gaps = new ArrayList<>();
 
         // Fill each row of this raw data file column, create new empty
         // gaps
@@ -172,16 +173,12 @@ class PeakFinderTask extends AbstractTask {
       return;
 
     // Append processed feature list to the project
-    project.addFeatureList(processedPeakList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 
     // Add task description to peakList
     processedPeakList
         .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Gap filling ",
             PeakFinderModule.class, parameters, getModuleCallDate()));
-
-    // Remove the original peaklist if requested
-    if (removeOriginal)
-      project.removeFeatureList(peakList);
 
     logger.info("Finished gap-filling on " + peakList);
     setStatus(TaskStatus.FINISHED);
@@ -219,7 +216,7 @@ class PeakFinderTask extends AbstractTask {
           return;
         }
 
-        Vector<Gap> gaps = new Vector<Gap>();
+        Vector<Gap> gaps = new Vector<>();
 
         // Fill each row of this raw data file column, create new empty
         // gaps

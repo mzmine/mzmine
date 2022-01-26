@@ -121,7 +121,8 @@
         userData="io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportModule"/>
       <MenuItem onAction="#runModule" text="mzData"
         userData="io.github.mzmine.modules.io.import_rawdata_mzdata.MzDataImportModule"/>
-
+      <MenuItem onAction="#runModule" text="aird"
+        userData="io.github.mzmine.modules.io.import_rawdata_aird.AirdImportModule"/>
       <SeparatorMenuItem/>
 
       <MenuItem onAction="#runModule" text="Thermo RAW"
@@ -266,11 +267,11 @@
   <Menu text="Feature list methods">
     <Menu text="Import feature list">
       <MenuItem text="mzTab" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.mztabimport.MzTabImportModule"/>
+        userData="io.github.mzmine.modules.io.import_features_mztab.MzTabImportModule"/>
       <MenuItem text="mzTab-m" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.mztabmimport.MZTabmImportModule"/>
+        userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>
       <MenuItem text="csv" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.csvimport.CsvImportModule"/>
+        userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>
     </Menu>
 
     <Menu text="Export feature list">

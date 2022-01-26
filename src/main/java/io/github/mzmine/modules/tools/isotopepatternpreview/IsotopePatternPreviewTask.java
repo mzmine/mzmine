@@ -33,7 +33,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -42,42 +41,29 @@ import org.jfree.data.xy.XYDataset;
 
 public class IsotopePatternPreviewTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(IsotopePatternPreviewTask.class.getName());
   private static final double _2SQRT_2LN2 = 2 * Math.sqrt(2 * Math.log(2));
-
+  private final boolean applyFit;
   SimpleIsotopePattern pattern;
   IsotopePatternPreviewDialog dialog;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
   private String message;
-  private boolean parametersChanged;
   private double minIntensity, mergeWidth;
   private int charge;
   private PolarityType polarity;
   private String formula;
   private boolean displayResult;
 
-  public IsotopePatternPreviewTask() {
-    super(null, Instant.now()); // date irrelevant, not in batch mode
-    message = "Wating for parameters";
-    parametersChanged = false;
-    formula = "";
-    minIntensity = 0.d;
-    mergeWidth = 0.01d;
-    charge = 0;
-    pattern = null;
-  }
-
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth,
-      int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
+      int charge, PolarityType polarity, boolean applyFit, IsotopePatternPreviewDialog dialog) {
     super(null, Instant.now());
-    parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;
     this.charge = charge;
     this.formula = formula;
     this.polarity = polarity;
+    this.applyFit = applyFit;
     this.dialog = dialog;
     setStatus(TaskStatus.WAITING);
-    parametersChanged = true;
     pattern = null;
     displayResult = true;
     message = "Calculating isotope pattern " + formula + ".";
@@ -86,13 +72,11 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   public void initialise(String formula, double minIntensity, double mergeWidth, int charge,
       PolarityType polarity) {
     message = "Wating for parameters";
-    parametersChanged = false;
     this.minIntensity = minIntensity;
     this.mergeWidth = mergeWidth;
     this.charge = charge;
     this.formula = formula;
     this.polarity = polarity;
-    parametersChanged = true;
     pattern = null;
     displayResult = true;
   }
@@ -114,24 +98,26 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
     if (displayResult) {
       updateWindow();
-      startNextThread();
     }
     setStatus(TaskStatus.FINISHED);
   }
 
   public void updateWindow() {
-    final XYDataset fit = gaussianIsotopePatternFit(pattern, pattern.getBasePeakMz() / mergeWidth);
+    if (pattern == null) {
+      return;
+    }
+
+    final XYDataset fit =
+        applyFit ? gaussianIsotopePatternFit(pattern, pattern.getBasePeakMz() / mergeWidth) : null;
+    //
     Platform.runLater(() -> {
-      dialog.updateChart(pattern, fit);
-      dialog.updateTable(pattern);
+      if (displayResult) {
+        dialog.taskFinishedUpdate(this, pattern, fit);
+      }
     });
   }
 
-  public void startNextThread() {
-    Platform.runLater(() -> dialog.startNextThread());
-  }
-
-  public void setDisplayResult(boolean val) {
+  public synchronized void setDisplayResult(boolean val) {
     this.displayResult = val;
   }
 
@@ -147,9 +133,6 @@ public class IsotopePatternPreviewTask extends AbstractTask {
 
   /**
    * f(x) = a * e^( -(x-b)/(2(c^2)) )
-   *
-   * @param pattern
-   * @param resolution
    */
   public XYDataset gaussianIsotopePatternFit(@NotNull final IsotopePattern pattern,
       final double resolution) {
@@ -199,7 +182,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
       highest = Math.max(highest, intensities[i]);
     }
 
-    final Double basePeakIntensity = Objects.requireNonNullElse(pattern.getBasePeakIntensity(), 1d);
+    final double basePeakIntensity = Objects.requireNonNullElse(pattern.getBasePeakIntensity(), 1d);
     final DataPoint[] dataPoints = new DataPoint[mzs.length];
     for (int i = 0; i < dataPoints.length; i++) {
       intensities[i] = intensities[i] / highest * basePeakIntensity;

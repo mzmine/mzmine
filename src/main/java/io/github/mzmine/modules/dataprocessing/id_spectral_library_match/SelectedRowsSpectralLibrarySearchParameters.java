@@ -23,10 +23,9 @@ import io.github.mzmine.parameters.Parameter;
 public class SelectedRowsSpectralLibrarySearchParameters extends SpectralLibrarySearchParameters {
 
   public SelectedRowsSpectralLibrarySearchParameters() {
-    super(
-        new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
-            noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance,
-            rtTolerance, minMatch, similarityFunction});
+    super(new Parameter[]{libraries, msLevel, allMS2Spectra, mzTolerancePrecursor, removePrecursor,
+        ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
+        mzTolerance, rtTolerance, minMatch, similarityFunction});
   }
 
 }
