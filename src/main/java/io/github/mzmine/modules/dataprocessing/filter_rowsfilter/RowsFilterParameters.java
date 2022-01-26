@@ -113,6 +113,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final BooleanParameter MS2_Filter = new BooleanParameter("Feature with MS2 scan",
       "If checked, the rows that don't contain MS2 scan will be removed.");
+  public static final BooleanParameter KEEP_ALL_MS2 = new BooleanParameter(
+      "Never remove feature with MS2",
+      "If checked, all rows with MS2 are retained without applying any further filters on them.",
+      false);
+
   public static final BooleanParameter Reset_ID = new BooleanParameter(
       "Reset the feature number ID",
       "If checked, the row number of original feature list will be reset.");
@@ -125,9 +130,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public RowsFilterParameters() {
     super(new Parameter[]{FEATURE_LISTS, SUFFIX, MIN_FEATURE_COUNT, MIN_ISOTOPE_PATTERN_COUNT,
-        ISOTOPE_FILTER_13C, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE,
-        KENDRICK_MASS_DEFECT, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-        REMOVE_ROW, MS2_Filter, Reset_ID, massDefect, handleOriginal});
+        ISOTOPE_FILTER_13C, MZ_RANGE, RT_RANGE, FEATURE_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
+        HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID, massDefect,
+        massDefect, handleOriginal});
   }
 
   @Override
