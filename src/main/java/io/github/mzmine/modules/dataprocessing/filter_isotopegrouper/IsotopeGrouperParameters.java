@@ -61,7 +61,7 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
   public static final BooleanParameter keepAllMS2 = new BooleanParameter(
       "Never remove feature with MS2",
       "If checked, all rows with MS2 are retained without applying any further filters on them.",
-      false);
+      true);
 
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
