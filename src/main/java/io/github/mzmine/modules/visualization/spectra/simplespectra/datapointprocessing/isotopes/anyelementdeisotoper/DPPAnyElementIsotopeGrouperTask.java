@@ -238,8 +238,8 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     for (SimpleIsotopePattern p : isotopePatterns) {
       String[] composition = p.getIsotopeCompositions();
       composition[0] = "";
-      cleanedPatterns[i] = new SimpleIsotopePattern(ScanUtils.extractDataPoints(p), p.getStatus(),
-          p.getDescription(), composition);
+      cleanedPatterns[i] = new SimpleIsotopePattern(ScanUtils.extractDataPoints(p), p.getCharge(),
+          p.getStatus(), p.getDescription(), composition);
       i++;
     }
 

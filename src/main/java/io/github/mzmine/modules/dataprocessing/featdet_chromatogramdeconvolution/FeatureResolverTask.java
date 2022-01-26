@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.FeatureDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -378,7 +379,7 @@ public class FeatureResolverTask extends AbstractTask {
       processedRows++;
     }
     logger.info(c + "/" + resolvedFeatureList.getNumberOfRows()
-                + " have less than 4 scans (frames for IMS data)");
+        + " have less than 4 scans (frames for IMS data)");
     //    QualityParameters.calculateAndSetModularQualityParameters(resolvedFeatureList);
 
     resolvedFeatureList.addDescriptionOfAppliedTask(
@@ -472,11 +473,13 @@ public class FeatureResolverTask extends AbstractTask {
     // the new method is added later, since we don't know here which resolver module is used.
 
     // check the actual feature data. IMSRawDataFiles can also be built as classic lc-ms features
-    ModularFeature exampleFeature = originalFeatureList.getFeature(0,
-        originalFeatureList.getRawDataFile(0));
+    final Feature exampleFeature =
+        originalFeatureList.getNumberOfRows() > 0 ? originalFeatureList.getRow(0).getBestFeature()
+            : null;
 
     boolean isImagingFile = (originalFeatureList.getRawDataFile(0) instanceof ImagingRawDataFile);
-    if (exampleFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
+    if (exampleFeature != null
+        && exampleFeature.getFeatureData() instanceof IonMobilogramTimeSeries) {
       DataTypeUtils.addDefaultIonMobilityTypeColumns(resolvedFeatureList);
     }
     if (originalFeatureList.hasRowType(RTType.class) && !isImagingFile) {
