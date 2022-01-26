@@ -149,7 +149,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // start
     MZmineCore.getTaskController().addTasks(tasks.toArray(AbstractTask[]::new));
 
-    //    // wait till finish
+    // wait till finish
     while (!(isCanceled() || isFinished())) {
       try {
         Thread.sleep(100);

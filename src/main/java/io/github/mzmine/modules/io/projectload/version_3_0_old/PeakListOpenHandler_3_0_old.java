@@ -426,7 +426,7 @@ public class PeakListOpenHandler_3_0_old extends DefaultHandler implements PeakL
       peak.setCharge(currentPeakCharge);
 
       if (currentIsotopes.size() > 0) {
-        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null,
+        SimpleIsotopePattern newPattern = new SimpleIsotopePattern(null, null, -1,
             currentIsotopePatternStatus, currentIsotopePatternDescription);
         peak.setIsotopePattern(newPattern);
         currentIsotopes.clear();

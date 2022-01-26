@@ -254,13 +254,10 @@ public class ModularFeatureListRow implements FeatureListRow {
     return new ArrayList<>(features.values());
   }
 
-  /**
-   * @param raw
-   * @param feature
-   */
   @Override
-  public synchronized void addFeature(RawDataFile raw, Feature feature) {
-    if (!(feature instanceof ModularFeature)) {
+  public synchronized void addFeature(RawDataFile raw, Feature feature,
+      boolean updateByRowBindings) {
+    if (!(feature instanceof ModularFeature modularFeature)) {
       throw new IllegalArgumentException(
           "Cannot add non-modular feature to modular feature list row.");
     }
@@ -271,7 +268,6 @@ public class ModularFeatureListRow implements FeatureListRow {
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
     }
-    ModularFeature modularFeature = (ModularFeature) feature;
 
     ModularFeature oldFeature = features.put(raw, modularFeature);
     modularFeature.setFeatureList(flist);
@@ -279,7 +275,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     if (!Objects.equals(oldFeature, modularFeature)) {
       // reflect changes by updating all row bindings
-      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw);
+      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw, updateByRowBindings);
     }
   }
 
