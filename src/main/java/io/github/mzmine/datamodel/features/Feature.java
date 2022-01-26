@@ -27,6 +27,8 @@ import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.util.scans.FragmentScanSorter;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -182,12 +184,32 @@ public interface Feature {
   List<Scan> getAllMS2FragmentScans();
 
   /**
-   * Set all fragmentation scans. First element is "best" representative scan
+   * Set all fragmentation scans. First element is "best" representative scan. No sorting is
+   * applied.
    *
    * @param allMS2FragmentScanNumbers usually sorted by most intense scans first (represantative
    *                                  scan as first element)
    */
   void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers);
+
+
+  /**
+   * Set all fragmentation scans. First element is "best" representative scan. Option to apply the
+   * default sorting.
+   *
+   * @param allMS2FragmentScanNumbers usually sorted by most intense scans first (represantative
+   *                                  scan as first element)
+   * @param applyDefaultSorting       applies the default sorting to the list (in place)
+   */
+  default void setAllMS2FragmentScans(List<Scan> allMS2FragmentScanNumbers,
+      boolean applyDefaultSorting) {
+    if (applyDefaultSorting && allMS2FragmentScanNumbers != null) {
+      // in case list is immutable
+      allMS2FragmentScanNumbers = new ArrayList<>(allMS2FragmentScanNumbers);
+      allMS2FragmentScanNumbers.sort(FragmentScanSorter.DEFAULT_TIC);
+    }
+    setAllMS2FragmentScans(allMS2FragmentScanNumbers);
+  }
 
   /**
    * @return The mobility or null if no mobility was set. Note that mobility can have different
@@ -237,14 +259,6 @@ public interface Feature {
    * Sets the mobiltiy range
    */
   void setMobilityRange(Range<Float> range);
-
-  /**
-   * Set best fragment scan (pushes the provided scan at first index of the all fragment scans
-   * list)
-   *
-   * @param fragmentScan scan to be first index in list of all scans
-   */
-  void setFragmentScan(Scan fragmentScan);
 
   /**
    * Returns the isotope pattern of this feature or null if no pattern is attached

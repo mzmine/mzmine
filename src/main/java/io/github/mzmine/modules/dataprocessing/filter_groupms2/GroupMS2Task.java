@@ -167,7 +167,7 @@ public class GroupMS2Task extends AbstractTask {
             .filter(scan -> filterScan(scan, frt, fmz, rtRange))
             .sorted(FragmentScanSorter.DEFAULT_TIC).toList();
 
-        // set list to feature
+        // set list to feature and sort
         f.setAllMS2FragmentScans(scans);
       }
     }
@@ -249,12 +249,10 @@ public class GroupMS2Task extends AbstractTask {
         List<Scan> sameCEMerged = SpectraMerging.mergeMsMsSpectra(msmsSpectra,
             SpectraMerging.pasefMS2MergeTol, MergingType.SUMMED,
             ((ModularFeatureList) list).getMemoryMapStorage());
-        sameCEMerged.sort(FragmentScanSorter.DEFAULT_TIC);
-        feature.setAllMS2FragmentScans(sameCEMerged);
+        feature.setAllMS2FragmentScans(sameCEMerged, true);
 
       } else {
-        msmsSpectra.sort(FragmentScanSorter.DEFAULT_TIC);
-        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) msmsSpectra);
+        feature.setAllMS2FragmentScans((List<Scan>) (List<? extends Scan>) msmsSpectra, true);
       }
     }
   }

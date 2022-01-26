@@ -57,7 +57,6 @@ import io.github.mzmine.modules.tools.qualityparameters.QualityParameters;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.FeatureUtils;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -122,10 +121,9 @@ public class ModularFeature implements Feature, ModularDataModel {
         representativeScan, allMS2FragmentScanNumbers, rtRange, mzRange, intensityRange);
   }
 
-  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt,
-      float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
-      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers,
-      @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
+  @Deprecated
+  public ModularFeature(ModularFeatureList flist, RawDataFile dataFile, double mz, float rt, float height, float area, List<Scan> scans, double[] mzs, double[] intensities,
+      FeatureStatus featureStatus, Scan representativeScan, List<Scan> allMS2FragmentScanNumbers, @NotNull Range<Float> rtRange, @NotNull Range<Double> mzRange,
       @NotNull Range<Float> intensityRange) {
     this(flist);
 
@@ -360,19 +358,6 @@ public class ModularFeature implements Feature, ModularDataModel {
     } else {
       return null;
     }
-  }
-
-  @Override
-  public void setFragmentScan(Scan fragmentScan) {
-    if (fragmentScan == null) {
-      return;
-    }
-    //    logger.finest("SET SINGLE MS2");
-    // make sure its mutable
-    final List<Scan> allMS2 = new ArrayList<>(getAllMS2FragmentScans());
-    allMS2.remove(fragmentScan);
-    allMS2.add(0, fragmentScan);
-    setAllMS2FragmentScans(allMS2);
   }
 
   @Override
