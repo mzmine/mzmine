@@ -68,13 +68,36 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns feature for given raw data file
    */
-  @Nullable
-  Feature getFeature(RawDataFile rawData);
+  @Nullable Feature getFeature(RawDataFile rawData);
 
   /**
-   * Add a feature
+   * Add a feature and update all row bindings
    */
-  void addFeature(RawDataFile rawData, Feature feature);
+  default void addFeature(RawDataFile rawData, Feature feature) {
+    addFeature(rawData, feature, true);
+  }
+
+  /**
+   * add feature and choose to update values by row bindings.
+   *
+   * @param rawData             associated raw data file
+   * @param feature             added feature
+   * @param updateByRowBindings updates values by row bindings if true. In case multiple features
+   *                            are added, this option may be set to false. Remember to call {@link
+   *                            #applyRowBindings()}.
+   */
+  void addFeature(RawDataFile rawData, Feature feature, boolean updateByRowBindings);
+
+
+  /**
+   * apply row bindings of the feature list (if available) to this row
+   */
+  default void applyRowBindings() {
+    final FeatureList featureList = getFeatureList();
+    if (featureList != null) {
+      featureList.applyRowBindings(this);
+    }
+  }
 
   /**
    * Remove a feature
@@ -184,9 +207,7 @@ public interface FeatureListRow extends ModularDataModel {
   /**
    * Returns FeatureInformation
    *
-   * @return
    */
-
   FeatureInformation getFeatureInformation();
 
   /**
@@ -232,9 +253,9 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
-  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
-
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
+
+  void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
   void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
 

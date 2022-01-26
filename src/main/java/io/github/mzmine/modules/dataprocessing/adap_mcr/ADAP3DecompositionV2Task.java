@@ -203,7 +203,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       }
 
       refPeak.setIsotopePattern(
-          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]),
+          new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
       ModularFeatureListRow row = new ModularFeatureListRow((ModularFeatureList) resolvedPeakList,

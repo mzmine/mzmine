@@ -283,6 +283,13 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  public void applyRowBindings() {
+    for (var row : featureListRows) {
+      applyRowBindings(row);
+    }
+  }
+
+  @Override
   public void applyRowBindings(FeatureListRow row) {
     for (var listeners : featureTypeListeners.values()) {
       for (var listener : listeners) {

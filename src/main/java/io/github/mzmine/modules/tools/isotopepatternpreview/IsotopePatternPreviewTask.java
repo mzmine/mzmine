@@ -31,6 +31,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FormulaUtils;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
@@ -87,8 +88,9 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     assert mergeWidth > 0d;
 
     message = "Calculating isotope pattern " + formula + ".";
+    boolean keepComposition = FormulaUtils.getFormulaSize(formula) < 5E3;
     pattern = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
-        minIntensity, mergeWidth, charge, polarity, true);
+        minIntensity, mergeWidth, charge, polarity, keepComposition);
     if (pattern == null) {
       logger.warning("Isotope pattern could not be calculated.");
       setStatus(TaskStatus.FINISHED);
