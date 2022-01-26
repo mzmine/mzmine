@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.types.annotations.GNPSSpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -176,6 +177,8 @@ public class RowsFilterTask extends AbstractTask {
             getModuleCallDate()));
 
     // Get parameters.
+    final boolean keepAllWithMS2 = parameters.getValue(RowsFilterParameters.KEEP_ALL_MS2);
+
     final boolean onlyIdentified = parameters.getValue(RowsFilterParameters.HAS_IDENTITIES);
     final boolean filterByIdentityText = parameters.getValue(RowsFilterParameters.IDENTITY_TEXT);
     final boolean filterByCommentText = parameters.getValue(RowsFilterParameters.COMMENT_TEXT);
@@ -238,6 +241,12 @@ public class RowsFilterTask extends AbstractTask {
         parameters.getParameter(RowsFilterParameters.FWHM).getEmbeddedParameter().getValue())
         : null;
 
+    // isotope filter
+    final boolean filter13CIsotopes = parameters.getParameter(
+        RowsFilterParameters.ISOTOPE_FILTER_13C).getValue();
+    final Isotope13CFilter isotope13CFilter = parameters.getParameter(
+        RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters().createFilter();
+
     int rowsCount = 0;
     boolean removeRow;
 
@@ -265,217 +274,226 @@ public class RowsFilterTask extends AbstractTask {
       final FeatureListRow row = iterator.next();
       filterRowCriteriaFailed = false;
 
-      final int featureCount = getFeatureCount(row, groupingParameter);
+      final boolean hasMS2 = row.getAllFragmentScans().isEmpty();
 
-      // Check number of features.
-      if (filterByMinFeatureCount) {
-        if (featureCount < intMinCount) {
-          filterRowCriteriaFailed = true;
-        }
-      }
+      // if we keep all with MS2 -> jump to adding the feature in
+      if (!(keepAllWithMS2 && hasMS2)) {
+        final int featureCount = getFeatureCount(row, groupingParameter);
 
-      // Check identities.
-      List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
-      if (onlyIdentified) {
-        List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
-        List<GNPSLibraryMatch> gnps = row.get(GNPSSpectralLibraryMatchesType.class);
-
-        boolean noIdentity = (row.getPreferredFeatureIdentity() == null);
-        boolean noLipid = matchedLipids == null || matchedLipids.isEmpty();
-        boolean noGNPS = gnps == null || gnps.isEmpty();
-        boolean noMatch = matches == null || matches.isEmpty();
-
-        if (noIdentity && noLipid && noGNPS && noMatch) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Check average m/z.
-      if (filterByMzRange) {
-        if (!mzRange.contains(row.getAverageMZ())) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Check average RT.
-      if (filterByRtRange) {
-        if (!rtRange.contains(row.getAverageRT())) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Search feature identity text.
-      if (filterByIdentityText) {
-        boolean foundText = false;
-        if (row.getPeakIdentities() != null) {
-          for (var id : row.getPeakIdentities()) {
-            if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
-              foundText = true;
-              break;
-            }
-          }
-        }
-        if (matchedLipids != null && !foundText) {
-          for (var id : matchedLipids) {
-            if (id != null && id.getLipidAnnotation().getAnnotation().toLowerCase().trim()
-                .contains(searchText)) {
-              foundText = true;
-              break;
-            }
-          }
-        }
-        if (!foundText && row.getSpectralLibraryMatches() != null) {
-          for (var id : row.getSpectralLibraryMatches()) {
-            if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
-              foundText = true;
-              break;
-            }
-          }
-        }
-        if (!foundText && row.get(GNPSSpectralLibraryMatchesType.class) != null) {
-          for (var id : row.get(GNPSSpectralLibraryMatchesType.class)) {
-            if (id != null && id.getResultOr(ATT.COMPOUND_NAME, "").toLowerCase().trim()
-                .contains(searchText)) {
-              foundText = true;
-              break;
-            }
-          }
-        }
-
-        if (!foundText) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Search feature comment text.
-      if (filterByCommentText) {
-
-        if (row.getComment() == null) {
-          filterRowCriteriaFailed = true;
-        }
-        if (row.getComment() != null) {
-          final String rowText = row.getComment().toLowerCase().trim();
-          if (!rowText.contains(commentSearchText)) {
+        // Check number of features.
+        if (filterByMinFeatureCount) {
+          if (featureCount < intMinCount) {
             filterRowCriteriaFailed = true;
           }
         }
-      }
 
-      // Calculate average duration and isotope pattern count.
-      int maxIsotopePatternSizeOnRow = 1;
-      double avgDuration = 0.0;
-      final Feature[] features = row.getFeatures().toArray(new Feature[0]);
-      for (final Feature p : features) {
+        // Check identities.
+        List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
+        if (onlyIdentified) {
+          List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
+          List<GNPSLibraryMatch> gnps = row.get(GNPSSpectralLibraryMatchesType.class);
 
-        final IsotopePattern pattern = p.getIsotopePattern();
-        if (pattern != null && maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
+          boolean noIdentity = (row.getPreferredFeatureIdentity() == null);
+          boolean noLipid = matchedLipids == null || matchedLipids.isEmpty();
+          boolean noGNPS = gnps == null || gnps.isEmpty();
+          boolean noMatch = matches == null || matches.isEmpty();
 
-          maxIsotopePatternSizeOnRow = pattern.getNumberOfDataPoints();
-        }
-
-        avgDuration += RangeUtils.rangeLength(p.getRawDataPointsRTRange());
-      }
-
-      // Check isotope pattern count.
-      if (filterByMinIsotopePatternSize) {
-        if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Check average duration.
-      avgDuration /= featureCount;
-      if (filterByDuration) {
-        if (!durationRange.contains(avgDuration)) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Filter by FWHM range
-      if (filterByFWHM) {
-        // If any of the features fail the FWHM criteria,
-        Float FWHM_value = row.getBestFeature().getFWHM();
-        if (FWHM_value != null && !FWHMRange.contains(FWHM_value)) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Filter by charge range
-      if (filterByCharge) {
-        int charge = row.getBestFeature().getCharge();
-        if (charge == 0 || !chargeRange.contains(charge)) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Filter by KMD or RKM range
-      if (filterByKMD) {
-        // get m/z
-        Double valueMZ = row.getBestFeature().getMZ();
-
-        // calc exact mass of Kendrick mass base
-        double exactMassFormula = FormulaUtils.calculateExactMass(kendrickMassBase);
-
-        // calc exact mass of Kendrick mass factor
-        double kendrickMassFactor =
-            Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
-
-        double defectOrRemainder;
-
-        if (!useRemainderOfKendrickMass) {
-          // calc Kendrick mass defect
-          defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
-                              - kendrickCharge * (valueMZ * kendrickMassFactor);
-        } else {
-          // calc Kendrick mass remainder
-          defectOrRemainder = (kendrickCharge * (divisor - Math.round(
-              FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-                              / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
-              (kendrickCharge * (divisor - Math.round(
-                  FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
-              / FormulaUtils.calculateExactMass(kendrickMassBase));
-        }
-
-        // shift Kendrick mass defect or remainder of Kendrick mass
-        double kendrickMassDefectShifted =
-            defectOrRemainder + shift - Math.floor(defectOrRemainder + shift);
-
-        // check if shifted Kendrick mass defect or remainder of
-        // Kendrick mass is in range
-        if (!rangeKMD.contains(kendrickMassDefectShifted)) {
-          filterRowCriteriaFailed = true;
-        }
-      }
-
-      // Check ms2 filter .
-      if (filterByMS2) {
-        // iterates the features
-        int failCounts = 0;
-        for (int i = 0; i < featureCount; i++) {
-          if (row.getFeatures().get(i).getMostIntenseFragmentScan() == null) {
-            failCounts++;
-            // filterRowCriteriaFailed = true;
-            // break;
+          if (noIdentity && noLipid && noGNPS && noMatch) {
+            filterRowCriteriaFailed = true;
           }
         }
-        if (failCounts == featureCount) {
-          filterRowCriteriaFailed = true;
-        }
-      }
 
-      if (filterByMassDefect) {
-        if (!massDefectFilter.contains(row.getAverageMZ())) {
+        // Check average m/z.
+        if (filterByMzRange) {
+          if (!mzRange.contains(row.getAverageMZ())) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Check average RT.
+        if (filterByRtRange) {
+          if (!rtRange.contains(row.getAverageRT())) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Search feature identity text.
+        if (filterByIdentityText) {
+          boolean foundText = false;
+          if (row.getPeakIdentities() != null) {
+            for (var id : row.getPeakIdentities()) {
+              if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
+                foundText = true;
+                break;
+              }
+            }
+          }
+          if (matchedLipids != null && !foundText) {
+            for (var id : matchedLipids) {
+              if (id != null && id.getLipidAnnotation().getAnnotation().toLowerCase().trim()
+                  .contains(searchText)) {
+                foundText = true;
+                break;
+              }
+            }
+          }
+          if (!foundText && row.getSpectralLibraryMatches() != null) {
+            for (var id : row.getSpectralLibraryMatches()) {
+              if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
+                foundText = true;
+                break;
+              }
+            }
+          }
+          if (!foundText && row.get(GNPSSpectralLibraryMatchesType.class) != null) {
+            for (var id : row.get(GNPSSpectralLibraryMatchesType.class)) {
+              if (id != null && id.getResultOr(ATT.COMPOUND_NAME, "").toLowerCase().trim()
+                  .contains(searchText)) {
+                foundText = true;
+                break;
+              }
+            }
+          }
+
+          if (!foundText) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Search feature comment text.
+        if (filterByCommentText) {
+
+          if (row.getComment() == null) {
+            filterRowCriteriaFailed = true;
+          }
+          if (row.getComment() != null) {
+            final String rowText = row.getComment().toLowerCase().trim();
+            if (!rowText.contains(commentSearchText)) {
+              filterRowCriteriaFailed = true;
+            }
+          }
+        }
+
+        // Calculate average duration and isotope pattern count.
+        int maxIsotopePatternSizeOnRow = 1;
+        double avgDuration = 0.0;
+        boolean matches13Cisotopes = false;
+        final Feature[] features = row.getFeatures().toArray(new Feature[0]);
+        for (final Feature p : features) {
+
+          final IsotopePattern pattern = p.getIsotopePattern();
+          if (pattern != null) {
+            // check isotope pattern - only one match for a feature needed
+            if (filter13CIsotopes && !matches13Cisotopes) {
+              matches13Cisotopes = isotope13CFilter.accept(pattern, p.getMZ());
+            }
+
+            if (maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
+              maxIsotopePatternSizeOnRow = pattern.getNumberOfDataPoints();
+            }
+          }
+          avgDuration += RangeUtils.rangeLength(p.getRawDataPointsRTRange());
+        }
+
+        // filter 13C istope pattern - needs to be true in one feature
+        if (filter13CIsotopes) {
+          filterRowCriteriaFailed = !matches13Cisotopes;
+        }
+        // Check isotope pattern count.
+        if (filterByMinIsotopePatternSize) {
+          if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Check average duration.
+        avgDuration /= featureCount;
+        if (filterByDuration) {
+          if (!durationRange.contains(avgDuration)) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Filter by FWHM range
+        if (filterByFWHM) {
+          // If any of the features fail the FWHM criteria,
+          Float FWHM_value = row.getBestFeature().getFWHM();
+          if (FWHM_value != null && !FWHMRange.contains(FWHM_value)) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Filter by charge range
+        if (filterByCharge) {
+          int charge = row.getBestFeature().getCharge();
+          if (charge == 0 || !chargeRange.contains(charge)) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Filter by KMD or RKM range
+        if (filterByKMD) {
+          // get m/z
+          Double valueMZ = row.getBestFeature().getMZ();
+
+          // calc exact mass of Kendrick mass base
+          double exactMassFormula = FormulaUtils.calculateExactMass(kendrickMassBase);
+
+          // calc exact mass of Kendrick mass factor
+          double kendrickMassFactor =
+              Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
+
+          double defectOrRemainder;
+
+          if (!useRemainderOfKendrickMass) {
+            // calc Kendrick mass defect
+            defectOrRemainder = Math.ceil(kendrickCharge * (valueMZ * kendrickMassFactor)) //
+                                - kendrickCharge * (valueMZ * kendrickMassFactor);
+          } else {
+            // calc Kendrick mass remainder
+            defectOrRemainder = (kendrickCharge * (divisor - Math.round(
+                FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
+                                / FormulaUtils.calculateExactMass(kendrickMassBase) - Math.floor(
+                (kendrickCharge * (divisor - Math.round(
+                    FormulaUtils.calculateExactMass(kendrickMassBase))) * valueMZ)
+                / FormulaUtils.calculateExactMass(kendrickMassBase));
+          }
+
+          // shift Kendrick mass defect or remainder of Kendrick mass
+          double kendrickMassDefectShifted =
+              defectOrRemainder + shift - Math.floor(defectOrRemainder + shift);
+
+          // check if shifted Kendrick mass defect or remainder of
+          // Kendrick mass is in range
+          if (!rangeKMD.contains(kendrickMassDefectShifted)) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        if (filterByMassDefect) {
+          if (!massDefectFilter.contains(row.getAverageMZ())) {
+            filterRowCriteriaFailed = true;
+          }
+        }
+
+        // Check ms2 filter .
+        if (filterByMS2 && hasMS2) {
           filterRowCriteriaFailed = true;
         }
+
+        // end of all checks
       }
 
       // Only remove rows that match *all* of the criteria, so add
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
-      boolean keepRow = filterRowCriteriaFailed == removeRow;
+      boolean keepRow = (keepAllWithMS2 && hasMS2) || filterRowCriteriaFailed == removeRow;
       if (processInCurrentList) {
         if (keepRow) {
           rowsCount++;
+          if (renumber) {
+            row.set(IDType.class, rowsCount);
+          }
         } else {
           iterator.remove();
         }

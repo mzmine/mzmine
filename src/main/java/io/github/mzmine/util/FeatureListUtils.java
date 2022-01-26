@@ -41,31 +41,34 @@ public class FeatureListUtils {
   }
 
   /**
-   *
-   * @param rows The rows to search.
-   * @param rtRange The rt range.
-   * @param mzRange The m/z range.
+   * @param rows       The rows to search.
+   * @param rtRange    The rt range. if row's retention time is null or -1 this range will not
+   *                   filter (usually only for imaging datasets)
+   * @param mzRange    The m/z range.
    * @param sortedByMz If the list is sorted by m/z (ascending)
    * @param <T>
    * @return List of matching rows.
    */
   @NotNull
   public static <T extends FeatureListRow> List<T> getRows(@NotNull final List<T> rows,
-      @NotNull final Range<Float> rtRange, @NotNull final Range<Double> mzRange, boolean sortedByMz) {
+      @NotNull final Range<Float> rtRange, @NotNull final Range<Double> mzRange,
+      boolean sortedByMz) {
     final List<T> validRows = new ArrayList<>();
 
-    if(sortedByMz) {
+    if (sortedByMz) {
       final double lower = mzRange.lowerEndpoint();
       final double upper = mzRange.upperEndpoint();
 
       for (T row : rows) {
         final double mz = row.getAverageMZ();
-        if(mz < lower) {
+        if (mz < lower) {
           continue;
-        } else if(mz > upper) {
+        } else if (mz > upper) {
           break;
         }
-        if (rtRange.contains(row.getAverageRT())) {
+        // if retention time is not set or -1, then apply no retention time filter
+        final Float averageRT = row.getAverageRT();
+        if (averageRT == null || averageRT < 0 || rtRange.contains(averageRT)) {
           validRows.add(row);
         }
       }

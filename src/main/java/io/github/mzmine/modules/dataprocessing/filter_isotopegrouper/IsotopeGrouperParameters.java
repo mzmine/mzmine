@@ -49,13 +49,19 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace =
-      new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerace = new OptionalParameter<>(
+      new MobilityToleranceParameter("Mobility tolerance",
           "If enabled (and mobility dimension was recorded), "
-              + "isotopic peaks will only be grouped if they fit within the given tolerance."));
+          + "isotopic peaks will only be grouped if they fit within the given tolerance."));
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
       "If true, then monotonically decreasing height of isotope pattern is required");
+
+
+  public static final BooleanParameter keepAllMS2 = new BooleanParameter(
+      "Never remove feature with MS2",
+      "If checked, all rows with MS2 are retained without applying any further filters on them.",
+      false);
 
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns");
@@ -63,9 +69,9 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
   public static final ComboParameter<String> representativeIsotope = new ComboParameter<String>(
       "Representative isotope",
       "Which peak should represent the whole isotope pattern. For small molecular weight\n"
-          + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
-          + "should be representative. For high molecular weight peptides, the lowest m/z\n"
-          + "peptides, the lowest m/z isotope may be the representative.",
+      + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
+      + "should be representative. For high molecular weight peptides, the lowest m/z\n"
+      + "peptides, the lowest m/z isotope may be the representative.",
       representativeIsotopeValues);
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
@@ -73,7 +79,7 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
   public IsotopeGrouperParameters() {
     super(new Parameter[]{peakLists, suffix, mzTolerance, rtTolerance, mobilityTolerace,
-        monotonicShape, maximumCharge, representativeIsotope, handleOriginal});
+        monotonicShape, maximumCharge, representativeIsotope, keepAllMS2, handleOriginal});
   }
 
   @Override
