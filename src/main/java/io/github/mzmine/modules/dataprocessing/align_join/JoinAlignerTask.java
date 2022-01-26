@@ -232,7 +232,7 @@ public class JoinAlignerTask extends AbstractTask {
       }
       nextBaseRows.sort(rowsMzAscending);
 
-      // use the whole feature list to align on. the average row m/zs and rts change during alignment due to
+      // align all remaining feature lists onto the feature list with max(row number) = nextBaseRows
       if (!allRows.isEmpty()) {
         alignRowsOnBaseRows(allRows, nextBaseRows);
       }
