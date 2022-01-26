@@ -35,6 +35,7 @@ import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -232,7 +233,9 @@ public class JoinAligner2Task extends AbstractTask {
       nextBaseRows.sort(rowsMzAscending);
 
       // use the whole feature list to align on. the average row m/zs and rts change during alignment due to
-      alignRowsOnBaseRows(allRows, nextBaseRows);
+      if (!allRows.isEmpty()) {
+        alignRowsOnBaseRows(allRows, nextBaseRows);
+      }
 
       // add all new base rows
       for (var row : nextBaseRows) {
@@ -253,6 +256,11 @@ public class JoinAligner2Task extends AbstractTask {
     // Add new aligned feature list to the project {
     project.addFeatureList(alignedFeatureList);
 
+    if (parameters.getValue(JoinAlignerParameters.handleOriginal)
+        == OriginalFeatureListOption.REMOVE) {
+      project.removeFeatureLists(featureLists);
+    }
+
     logger.info("Finished join aligner");
 
     setStatus(TaskStatus.FINISHED);
@@ -267,9 +275,6 @@ public class JoinAligner2Task extends AbstractTask {
    */
   private void alignRowsOnBaseRows(List<List<FeatureListRow>> unalignedRows,
       List<FeatureListRow> baseRowsByMz) {
-    if (alignedFeatureList.getNumberOfRows() <= 0) {
-      return; // skip
-    }
 
     // key = a row to be aligned, value = all possible matches in the aligned fl and it's scores
     final ConcurrentLinkedDeque<RowVsRowScore> scoresList = new ConcurrentLinkedDeque<>();
