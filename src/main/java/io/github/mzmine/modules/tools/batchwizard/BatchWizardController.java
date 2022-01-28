@@ -433,7 +433,9 @@ public class BatchWizardController {
             BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
             : msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel)
                 .getValue());
-    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, msLevel <= 1);
+    // per default do not detect isotope signals below noise. this might introduce too many signals
+    // for the isotope finder later on and confuse users
+    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
     final DetectIsotopesParameter detectIsotopesParameter = detectorParam.getParameter(
         AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
     detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
