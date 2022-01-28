@@ -299,7 +299,7 @@ public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItem
           MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
               exportedRows.get(), featureList.getName()));
     }
-    if (noMS2Counter > 0) {
+    if (noMS2Counter > 0 && filter.requiresMS2()) {
       logger.warning(noMS2Counter + " features had no MS/MS scan after already filtering for MS2");
     }
 
