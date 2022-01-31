@@ -163,7 +163,7 @@ public class RawDataFileTypeDetector {
           } else {
             InputStreamReader reader2 = new InputStreamReader(new FileInputStream(fileName),
                 StandardCharsets.ISO_8859_1);
-            char buffer2[] = new char[4096];
+            char buffer2[] = new char[4096 * 3];
             String content = new String(buffer2);
             boolean containsScan = false, containsAccession = false;
             while (containsScan == false && containsAccession == false) {

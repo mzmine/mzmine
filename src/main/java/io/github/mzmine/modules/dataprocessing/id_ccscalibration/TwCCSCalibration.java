@@ -55,7 +55,9 @@ public class TwCCSCalibration implements CCSCalibration {
     final double correctedDriftTime = mobility - (edcDelayCoeff * Math.sqrt(mz) / 1000);
     final double omegaC = (coeff * Math.pow(correctedDriftTime + t0,
         exponent)); // waters slide does not mention t0, find out if we need it or not
-    return (float) (omegaC * charge / CCSCalibration.getReducedMass(mz, charge, CCSCalibrant.n2));
+    final double reducedMass = CCSCalibration.getReducedMass(mz, charge, CCSCalibrant.n2);
+    final double sqrt = Math.sqrt(reducedMass);
+    return (float) (omegaC * Math.abs(charge) / sqrt);
   }
 
   @Override

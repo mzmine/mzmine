@@ -54,7 +54,7 @@ public class CCSTest {
     CCSCalibrant mz622 = new CCSCalibrant(622d, 27.37f, 622.0290, 27.37f, 202.86f, 1);
     CCSCalibrant mz922 = new CCSCalibrant(922d, 33.08f, 922.0098, 33.08f, 243.91f, 1);
 //    CCSCalibrant mz1022 = new CCSCalibrant(1022d, 38.41f, 1022d, 38.41f, ???, 1);
-    CCSCalibrant mz1222 = new CCSCalibrant(1222d, 43.26f, 1221.9906, 43.26f, 283.11f, 1);
+    CCSCalibrant mz1222 = new CCSCalibrant(1222d, 38.41f, 1221.9906, 38.41f, 283.11f, 1);
     CCSCalibrant mz1522 = new CCSCalibrant(1522d, 43.26f, 1521.9715, 43.26f, 318.91f, 1);
 
     final SimpleRegression driftTimeMzRegression = CCSUtils.getDriftTimeMzRegression(
@@ -67,6 +67,7 @@ public class CCSTest {
 
     logger.info(dtimsSfCal.toString());
     logger.info(String.valueOf(dtimsSfCal.getCCS(1221.9901, 1, 38.41f)));
+    Assertions.assertTrue(Math.abs(283.11f - dtimsSfCal.getCCS(1221.9906, 1, 38.41f)) < 20f);
   }
 
   @Test
@@ -110,6 +111,13 @@ public class CCSTest {
     final File calFile = new File(str);
     CCSCalibration cal = WatersImsCalibrationReader.readCalibrationFile(calFile);
     Assertions.assertEquals(new TwCCSCalibration(208.037, 0.798364, 2, 1.3500), cal);
+
+    final CCSCalibration cal2 = new TwCCSCalibration(460.428, 0.522466, 0.935198,
+        (1.41 + 1.57) / 2d);
+
+    Assertions.assertTrue(Math.abs(cal2.getCCS(607.2707, 1, 7.128f) - 265.2) < 5f);
+    Assertions.assertTrue(Math.abs(cal2.getCCS(378.2056, 1, 3.432f) - 192.5) < 5f);
+    Assertions.assertTrue(Math.abs(cal2.getCCS(150.0576, 1, 0.924f) - 131.5) < 5f);
   }
 
   /*@Test

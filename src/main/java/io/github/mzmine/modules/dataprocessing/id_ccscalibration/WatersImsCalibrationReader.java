@@ -22,7 +22,12 @@ public class WatersImsCalibrationReader {
       "(\\*\\sCoefficient:\\s)(\\d+.\\d+)");
   private static final Pattern exponentPattern = Pattern.compile("(\\*\\sExponent:\\s)(\\d+.\\d+)");
   private static final Pattern t0Pattern = Pattern.compile("(\\*\\st0:\\s)(\\d+(.\\d+)?)");
-  private static final Pattern edcPattern = Pattern.compile("(EDC Delay Coefficient)(\\s+)(\\d+.\\d+)");
+  private static final Pattern edcPattern = Pattern.compile(
+      "(EDC Delay Coefficient)(\\s+)(\\d+.\\d+)");
+  private static final Pattern edcLowPattern = Pattern.compile(
+      "(Transfer.EDCCoefficientLow.Setting)(\\s+)(\\d+.\\d+)");
+  private static final Pattern edcHighPattern = Pattern.compile(
+      "(Transfer.EDCCoefficientHigh.Setting)(\\s+)(\\d+.\\d+)");
 
   public static CCSCalibration readCalibrationFile(@NotNull final File file)
       throws RuntimeException {
@@ -71,20 +76,30 @@ public class WatersImsCalibrationReader {
 
     final File externInf = new File(file.getParentFile(), "_extern.inf");
 
-    if(!file.exists() || !file.canRead()) {
+    if (!file.exists() || !file.canRead()) {
       throw new IllegalArgumentException("Cannot find or read extern.inf file.");
     }
 
     String strEdc = null;
+    String strEdcLow = null;
+    String strEdcHigh = null;
     try (FileReader reader = new FileReader(externInf)) {
       BufferedReader r = new BufferedReader(reader);
       String s;
 
-
-      while((s = r.readLine()) != null) {
+      while ((s = r.readLine()) != null) {
         final Matcher matcher = edcPattern.matcher(s);
-        if(matcher.matches()) {
+        if (matcher.matches()) {
           strEdc = matcher.group(3);
+        }
+
+        final Matcher matcherLow = edcLowPattern.matcher(s);
+        if (matcherLow.matches()) {
+          strEdcLow = matcherLow.group(3);
+        }
+        final Matcher matcherHigh = edcHighPattern.matcher(s);
+        if (matcherHigh.matches()) {
+          strEdcHigh = matcherHigh.group(3);
         }
       }
 
@@ -94,13 +109,16 @@ public class WatersImsCalibrationReader {
       throw new IllegalStateException("Error while reading extern.inf file.");
     }
 
-    if(strEdc == null) {
+    if (strEdc != null) {
+      final double edc = Double.parseDouble(strEdc);
+      return new TwCCSCalibration(coeff, exp, t0, edc);
+    } else if (strEdcLow != null && strEdcHigh != null) {
+      final double edcLow = Double.parseDouble(strEdcLow);
+      final double edcHigh = Double.parseDouble(strEdcHigh);
+      return new TwCCSCalibration(coeff, exp, t0, (edcLow + edcHigh) / 2d);
+    } else {
       throw new IllegalStateException("Did not find value EDC Delay Coefficient in extern.inf");
     }
-
-    final double edc = Double.parseDouble(strEdc);
-
-    return new TwCCSCalibration(coeff, exp, t0, edc);
   }
 
   /**

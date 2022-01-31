@@ -38,6 +38,6 @@ public interface CCSCalibration {
   }
 
   static double getReducedMass(final double mz, final int charge, final double gasWeight) {
-      return 1 / (double) charge * Math.sqrt(mz * charge / (mz * charge + gasWeight));
+      return mz * charge * gasWeight / (mz * charge + gasWeight);
   }
 }

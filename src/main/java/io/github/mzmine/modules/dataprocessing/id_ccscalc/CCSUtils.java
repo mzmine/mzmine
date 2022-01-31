@@ -64,12 +64,12 @@ public class CCSUtils {
   public static Float calcCCS(double mz, @NotNull Float mobility,
       @NotNull MobilityType mobilityType, int charge, @NotNull IMSRawDataFile file) {
     return switch (mobilityType) {
-      case DRIFT_TUBE -> file.getCCSCalibration() != null ? file.getCCSCalibration()
+      case DRIFT_TUBE, TRAVELING_WAVE -> file.getCCSCalibration() != null ? file.getCCSCalibration()
           .getCCS(mz, charge, mobility) : null;
       case TIMS -> file.getCCSCalibration() != null ? file.getCCSCalibration()
           .getCCS(mz, charge, mobility)
           : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
-      case NONE, TRAVELING_WAVE, FAIMS -> logUnsupportedMobilityUnit();
+      case NONE, FAIMS -> logUnsupportedMobilityUnit();
     };
   }
 
