@@ -242,6 +242,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
 //    int previousFunction = 1;
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      if(mzMLScan.getMobility() == null) {
+        continue;
+      }
       if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS
           && mobilities[0] - mobilities[1] < 0) {
         // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
@@ -325,10 +328,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
       throws IOException {
     final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
 
-    final boolean isTims =
-        ((MzMLMsScan) file.getScans().get(0)).getMobility().mobilityType() == MobilityType.TIMS;
+    boolean isTims = false;
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      final Matcher matcher = watersPattern.matcher(mzMLScan.getId());
+      if (matcher.matches() && !matcher.group(1).equals("1")) {
+        continue;
+      }
+      isTims = mzMLScan.getMobility().mobilityType() == MobilityType.TIMS;
+
       final double mobility = mzMLScan.getMobility().mobility();
       final Entry<Range<Double>, Integer> entry = mobilityCounts.getEntry(mobility);
       if (entry == null) {
