@@ -29,5 +29,5 @@ public interface ProcessedItemsCounter {
    *
    * @return
    */
-  long getProcessedItems();
+  int getProcessedItems();
 }
