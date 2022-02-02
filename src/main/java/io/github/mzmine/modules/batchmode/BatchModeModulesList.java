@@ -99,7 +99,6 @@ import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCom
 import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportModule;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularModule;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportModule;
-import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitLinearModule;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule;
 import io.github.mzmine.modules.io.export_features_metaboanalyst.MetaboAnalystExportModule;
@@ -254,20 +253,14 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
-      CorrelateGroupingModule.class,
-      MS2SimilarityModule.class,
-      AnnotateIsomersModule.class,
+      CorrelateGroupingModule.class, MS2SimilarityModule.class, AnnotateIsomersModule.class,
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
        */
-      IonNetworkingModule.class,
-      AddIonNetworkingModule.class,
-      IonNetworkRefinementModule.class,
-      IonNetworkMSMSCheckModule.class,
-      FormulaPredictionIonNetworkModule.class,
-      CreateAvgNetworkFormulasModule.class,
-      IonNetRelationsModule.class,
+      IonNetworkingModule.class, AddIonNetworkingModule.class, IonNetworkRefinementModule.class,
+      IonNetworkMSMSCheckModule.class, FormulaPredictionIonNetworkModule.class,
+      CreateAvgNetworkFormulasModule.class, IonNetRelationsModule.class,
       ClearIonIdentitiesModule.class,
 
       /*
@@ -292,7 +285,6 @@ public class BatchModeModulesList {
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
        */
       GnpsFbmnExportAndSubmitModule.class, //
-      GnpsFbmnExportAndSubmitLinearModule.class, //
       GnpsGcExportAndSubmitModule.class, //
       ExportCorrAnnotationModule.class, MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //

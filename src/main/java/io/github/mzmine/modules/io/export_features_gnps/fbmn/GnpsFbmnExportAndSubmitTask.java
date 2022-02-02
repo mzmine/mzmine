@@ -29,10 +29,7 @@
 
 package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
-import com.google.common.util.concurrent.AtomicDouble;
-import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.ExportCorrAnnotationTask;
 import io.github.mzmine.modules.io.export_features_csv.CSVExportModularTask;
 import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyCSVExportTask;
@@ -41,22 +38,16 @@ import io.github.mzmine.modules.io.export_features_csv_legacy.LegacyExportRowDat
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.Task;
-import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import java.awt.Desktop;
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,14 +58,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
 
-  // Logger.
   private static final Logger logger = Logger.getLogger(
       GnpsFbmnExportAndSubmitTask.class.getName());
   private final ParameterSet parameters;
-  private final AtomicDouble progress = new AtomicDouble(0);
   private final FeatureMeasurementType featureMeasure;
   private final File baseFile;
   private final ModularFeatureList[] featureLists;
+  private final int totalSteps = 4;
+  private int currentStep = 0;
+  private Task currentTask;
+  private String currentDescription = "Waiting";
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -89,24 +82,24 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   }
 
   @Override
-  public TaskPriority getTaskPriority() {
-    // to not block mzmine with single process (1 thread)
-    return TaskPriority.HIGH;
-  }
-
-  @Override
   public String getTaskDescription() {
-    return "Exporting files GNPS feature based molecular networking job";
+    return currentDescription == null ? "" : currentDescription;
   }
 
   @Override
   public double getFinishedPercentage() {
-    return progress.get();
+    if (currentTask != null) {
+      synchronized (currentTask) {
+        if (currentTask != null) {
+          return (currentTask.getFinishedPercentage() + currentStep) / (double) totalSteps;
+        }
+      }
+    }
+    return currentStep / (double) totalSteps;
   }
 
   @Override
   public void run() {
-    final AbstractTask thistask = this;
     setStatus(TaskStatus.PROCESSING);
 
     boolean openFolder = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER)
@@ -115,82 +108,111 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     final FeatureListRowsFilter filter = parameters.getValue(
         GnpsFbmnExportAndSubmitParameters.FILTER);
 
-    List<AbstractTask> list = new ArrayList<>(4);
-    GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
-    list.add(task);
+    this.addTaskStatusListener((task, newStatus, oldStatus) -> {
+      if (currentTask != null) {
+        synchronized (currentTask) {
+          if (TaskStatus.ERROR.equals(newStatus) || TaskStatus.CANCELED.equals(newStatus)) {
+            // cancel the subtask
+            if (currentTask != null) {
+              currentTask.cancel();
+            }
+          }
+        }
+      }
+    });
+
+    currentDescription = "Exporting GNPS mgf of MS2 spectra";
+    currentTask = new GnpsFbmnMgfExportTask(parameters, getModuleCallDate());
+    currentTask.run();
+    currentStep++;
+    int mgfCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+
+    if (checkTaskCanceledOrFailed()) {
+      return;
+    }
 
     // add old csv quant table for old FBMN support
-    list.add(addLegacyQuantTableTask(parameters));
+    currentDescription = "Exporting GNPS legacy csv format (simple csv)";
+    currentTask = addLegacyQuantTableTask(parameters);
+    currentTask.run();
+    currentStep++;
+    int csvLegacyCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+
+    if (checkTaskCanceledOrFailed()) {
+      return;
+    }
+
     // add new csv export for whole table
-    list.add(addFullQuantTableTask(parameters));
+    currentDescription = "Exporting MZmine csv format (complete feature table csv)";
+    currentTask = addFullQuantTableTask(parameters);
+    currentTask.run();
+    currentStep++;
+    int csvCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+
+    if (checkTaskCanceledOrFailed()) {
+      return;
+    }
 
     // add csv extra edges
-    list.add(addExtraEdgesTask(parameters));
+    currentDescription = "Exporting extra edges csv format (ion identity networking)";
+    currentTask = addExtraEdgesTask(parameters);
+    currentTask.run();
+    currentStep++;
 
-    // finish listener to submit
-    final File folder = baseFile.getParentFile();
-    new AllTasksFinishedListener(list, true,
-        // succeed
-        l -> {
-          // check if all tasks exported the same number of rows
-          final long[] exportedRowsPerTask = list.stream().mapToLong(
-                  t -> (t instanceof ProcessedItemsCounter counter) ? counter.getProcessedItems() : -1)
-              .filter(counter -> counter >= 0).toArray();
-          boolean validExport = Arrays.stream(exportedRowsPerTask).distinct().count() == 1;
-          if (!validExport && filter.equals(FeatureListRowsFilter.ONLY_WITH_MS2)) {
-            logger.log(Level.WARNING,
-                "GNPS export resulted in files with different length despite using the same filter: "
-                + Arrays.stream(exportedRowsPerTask).mapToObj(v -> String.valueOf(v))
-                    .collect(Collectors.joining(", ")));
-          }
-          try {
-            logger.info("succeed" + thistask.getStatus().toString());
-            if (submit) {
-              GnpsFbmnSubmitParameters param = parameters.getParameter(
-                  GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
-              submit(baseFile, param);
-            }
-
-            // open folder
-            try {
-              if (openFolder && Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(folder);
-              }
-            } catch (Exception ex) {
-              logger.log(Level.WARNING, "Cannot open folder " + ex.getMessage(), ex);
-            }
-          } finally {
-            // finish task
-            if (thistask.getStatus() == TaskStatus.PROCESSING) {
-              thistask.setStatus(TaskStatus.FINISHED);
-            }
-          }
-        }, lerror -> {
-      setErrorMessage("GNPS submit was not started due too errors while file export");
-      thistask.setStatus(TaskStatus.ERROR);
-      throw new MSDKRuntimeException(
-          "GNPS submit was not started due too errors while file export");
-    },
-        // cancel if one was cancelled
-        listCancelled -> cancel()) {
-      @Override
-      public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-        super.taskStatusChanged(task, newStatus, oldStatus);
-        // show progress
-        progress.getAndSet(getProgress());
-      }
-    };
-
-    MZmineCore.getTaskController().addTasks(list.toArray(AbstractTask[]::new));
-
-    // wait till finish
-    while (!(isCanceled() || isFinished())) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        logger.log(Level.SEVERE, "Error in GNPS export/submit task", e);
-      }
+    if (checkTaskCanceledOrFailed()) {
+      return;
     }
+    currentTask = null;
+
+    final File folder = baseFile.getParentFile();
+    // csv count is always the same
+    // MGF and csv only of MS2 is required for export
+    if (csvCount == csvLegacyCount && (!filter.requiresMS2() || csvCount == mgfCount)) {
+      logger.log(Level.INFO,
+          String.format("GNPS export succeeded. mgf MS2=%d;  csv rows=%d", mgfCount, csvCount));
+      currentDescription = "All GNPS exports successful";
+    } else {
+      final String error = String.format(
+          "GNPS export resulted in files with different length despite using the same filter. Try to use this module manually after running a batch. mgf MS2=%d;  csv rows=%d",
+          mgfCount, csvCount);
+      currentDescription = "Error during csv export";
+      logger.log(Level.WARNING, error);
+      setErrorMessage(error);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+    // submit HTTP request to GNPS FBMN quickstart
+    if (submit) {
+      currentDescription = "Submitting job to GNPS";
+      GnpsFbmnSubmitParameters param = parameters.getParameter(
+          GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
+      submit(baseFile, param);
+    }
+
+    // open folder
+    try {
+      if (openFolder && Desktop.isDesktopSupported()) {
+        Desktop.getDesktop().open(folder);
+      }
+    } catch (Exception ex) {
+      logger.log(Level.WARNING, "Cannot open folder " + ex.getMessage(), ex);
+    }
+
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Check if the current task finished successfully.
+   *
+   * @return true if task is cancelled or failed
+   */
+  private boolean checkTaskCanceledOrFailed() {
+    if (isCanceled() || !TaskStatus.FINISHED.equals(currentTask.getStatus())) {
+      setStatus(currentTask.getStatus());
+      setErrorMessage(currentTask.getErrorMessage());
+      return true;
+    }
+    return false;
   }
 
   /**

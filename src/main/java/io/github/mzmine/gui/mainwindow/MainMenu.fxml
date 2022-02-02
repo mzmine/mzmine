@@ -295,8 +295,6 @@
         userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
       <MenuItem text="GNPS - feature based molecular networking" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
-      <MenuItem text="GNPS - feature based molecular networking (Linear)" onAction="#runModule"
-        userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitLinearModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcExportAndSubmitModule"/>
