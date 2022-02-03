@@ -42,6 +42,7 @@ import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -298,6 +299,11 @@ public class SimpleCompoundDBAnnotation implements
     }
 
     return score / scorers;
+  }
+
+  @Override
+  public Map<DataType<?>, Object> getReadOnlyMap() {
+    return Collections.unmodifiableMap(data);
   }
 
   @Override

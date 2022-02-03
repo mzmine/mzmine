@@ -50,6 +50,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -307,6 +308,8 @@ public interface CompoundDBAnnotation extends Cloneable {
   default IsotopePattern getIsotopePattern() {
     return get(IsotopePatternType.class);
   }
+
+  public Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
 }
