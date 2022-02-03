@@ -223,7 +223,8 @@ public class SiriusExportTask extends AbstractTask {
   private int exportFeatureList(FeatureList featureList, BufferedWriter writer)
       throws IOException {
     int exported = 0;
-    for (FeatureListRow row : featureList.getRows()) {
+    final FeatureListRow[] rows = featureList.getRows().toArray(FeatureListRow[]::new);
+    for (FeatureListRow row : rows) {
       if (isCanceled()) {
         return exported;
       }

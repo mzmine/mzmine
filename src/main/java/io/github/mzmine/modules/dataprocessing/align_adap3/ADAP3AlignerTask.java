@@ -211,8 +211,9 @@ public class ADAP3AlignerTask extends AbstractTask {
         DataPoint[] spectrum = component.getSpectrum().entrySet().stream()
             .map(e -> new SimpleDataPoint(e.getKey(), e.getValue())).toArray(DataPoint[]::new);
 
-        feature.setIsotopePattern(new SimpleIsotopePattern(spectrum,
-            IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
+        feature.setIsotopePattern(
+            new SimpleIsotopePattern(spectrum, -1, IsotopePattern.IsotopePatternStatus.PREDICTED,
+                "Spectrum"));
 
         newRow.addFeature(file, feature);
       }

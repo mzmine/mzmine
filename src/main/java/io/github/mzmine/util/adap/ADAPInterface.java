@@ -117,7 +117,7 @@ public class ADAPInterface {
 
     return new ModularFeature(featureList, file, peak.getMZ(), (float) peak.getRetTime(),
         (float) peak.getIntensity(), (float) area, scanNumbers, dataPoints, FeatureStatus.ESTIMATED,
-        representativeScan, representativeScan, new Scan[]{},
+        representativeScan, List.of(),
         Range.closed((float) peak.getFirstRetTime(), (float) peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.f, (float) peak.getIntensity()));

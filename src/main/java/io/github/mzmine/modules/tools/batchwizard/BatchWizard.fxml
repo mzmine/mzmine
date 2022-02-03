@@ -76,7 +76,7 @@
                 onAction="#onSetLcDefaults" text="Set defaults"/>
             </FlowPane>
           </VBox>
-          <VBox fx:id="rightMenu" spacing="5.0" GridPane.rowIndex="2">
+          <VBox fx:id="rightMenu" spacing="5.0" GridPane.rowIndex="2" alignment="TOP_RIGHT">
             <padding>
               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
             </padding>
@@ -93,8 +93,8 @@
           </padding>
           <rowConstraints>
             <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
           </rowConstraints>
         </GridPane>
       </SplitPane>

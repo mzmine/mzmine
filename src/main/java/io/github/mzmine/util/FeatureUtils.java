@@ -399,8 +399,8 @@ public class FeatureUtils {
     targetRT = (float) (rtRange.upperEndpoint() + rtRange.lowerEndpoint()) / 2;
     targetHeight = targetArea = 0;
     Scan representativeScan = null;
-    Scan[] allMS2fragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
-    Scan fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
+    List<Scan> allMS2fragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(dataFile, rtRange,
+        mzRange).toList();
 
     // Get target data points, height, and estimated area over range.
     for (int i = 0; i < scanRange.length; i++) {
@@ -454,7 +454,7 @@ public class FeatureUtils {
       // Build new feature for target.
       ModularFeature newPeak = new ModularFeature(featureList, dataFile, targetMZ, targetRT,
           targetHeight, targetArea, scanRange, targetDP, FeatureStatus.DETECTED, representativeScan,
-          fragmentScan, allMS2fragmentScanNumbers, rtRange, mzRange, intensityRange);
+          allMS2fragmentScanNumbers, rtRange, mzRange, intensityRange);
 
       return newPeak;
     } else {

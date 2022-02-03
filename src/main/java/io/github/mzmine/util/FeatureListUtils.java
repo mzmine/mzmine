@@ -44,7 +44,8 @@ public class FeatureListUtils {
 
   /**
    * @param rows       The rows to search.
-   * @param rtRange    The rt range.
+   * @param rtRange    The rt range. if row's retention time is null or -1 this range will not
+   *                   filter (usually only for imaging datasets)
    * @param mzRange    The m/z range.
    * @param sortedByMz If the list is sorted by m/z (ascending)
    * @param <T>
@@ -67,7 +68,9 @@ public class FeatureListUtils {
         } else if (mz > upper) {
           break;
         }
-        if (rtRange.contains(row.getAverageRT())) {
+        // if retention time is not set or -1, then apply no retention time filter
+        final Float averageRT = row.getAverageRT();
+        if (averageRT == null || averageRT < 0 || rtRange.contains(averageRT)) {
           validRows.add(row);
         }
       }

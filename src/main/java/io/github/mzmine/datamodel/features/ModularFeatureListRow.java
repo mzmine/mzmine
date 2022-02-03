@@ -56,6 +56,7 @@ import io.github.mzmine.util.FeatureSorter;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.scans.FragmentScanSorter;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -94,8 +95,7 @@ public class ModularFeatureListRow implements FeatureListRow {
    * this final map is used in the FeaturesType - only ModularFeatureListRow is supposed to change
    * this map see {@link #addFeature}
    */
-  private final ObservableMap<DataType, Object> map =
-      FXCollections.observableMap(new HashMap<>());
+  private final ObservableMap<DataType, Object> map = FXCollections.observableMap(new HashMap<>());
   private final Map<RawDataFile, ModularFeature> features;
   // buffert col charts and nodes
   private final Map<String, Node> buffertColCharts = new HashMap<>();
@@ -177,8 +177,8 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     // copy all but features and id
     if (row != null) {
-      row.stream().filter(e -> !(e.getKey() instanceof FeaturesType)
-                               && !(e.getKey() instanceof IDType))
+      row.stream()
+          .filter(e -> !(e.getKey() instanceof FeaturesType) && !(e.getKey() instanceof IDType))
           .forEach(entry -> this.set(entry.getKey(), entry.getValue()));
     }
 
@@ -214,8 +214,7 @@ public class ModularFeatureListRow implements FeatureListRow {
         DataType newType = tclass.getConstructor().newInstance();
         ModularFeatureList flist = getFeatureList();
         flist.addRowType(newType);
-      } catch (NullPointerException | InstantiationException | NoSuchMethodException
-          | InvocationTargetException | IllegalAccessException e) {
+      } catch (NullPointerException | InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
         e.printStackTrace();
         return false;
       }
@@ -255,13 +254,10 @@ public class ModularFeatureListRow implements FeatureListRow {
     return new ArrayList<>(features.values());
   }
 
-  /**
-   * @param raw
-   * @param feature
-   */
   @Override
-  public synchronized void addFeature(RawDataFile raw, Feature feature) {
-    if (!(feature instanceof ModularFeature)) {
+  public synchronized void addFeature(RawDataFile raw, Feature feature,
+      boolean updateByRowBindings) {
+    if (!(feature instanceof ModularFeature modularFeature)) {
       throw new IllegalArgumentException(
           "Cannot add non-modular feature to modular feature list row.");
     }
@@ -272,15 +268,15 @@ public class ModularFeatureListRow implements FeatureListRow {
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
     }
-    ModularFeature modularFeature = (ModularFeature) feature;
 
+//    logger.log(Level.FINEST, "ADDING FEATURE");
     ModularFeature oldFeature = features.put(raw, modularFeature);
     modularFeature.setFeatureList(flist);
     modularFeature.setRow(this);
 
     if (!Objects.equals(oldFeature, modularFeature)) {
       // reflect changes by updating all row bindings
-      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw);
+      getFeatureList().fireFeatureChangedEvent(this, modularFeature, raw, updateByRowBindings);
     }
   }
 
@@ -514,16 +510,16 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public void addFeatureIdentity(FeatureIdentity identity, boolean preferred) {
-    ManualAnnotation manual = Objects
-        .requireNonNullElse(getManualAnnotation(), new ManualAnnotation());
+    ManualAnnotation manual = Objects.requireNonNullElse(getManualAnnotation(),
+        new ManualAnnotation());
 
     List<FeatureIdentity> peakIdentities;
     // getPeakIdentities initializes the returned list as an immutable list if manual is null
     // if we add a new identity for the first time here, this will lead to an UnsupportedOperationException
     if (getManualAnnotation() == null) {
-        peakIdentities = new ArrayList<>();
+      peakIdentities = new ArrayList<>();
     } else {
-        peakIdentities = getPeakIdentities();
+      peakIdentities = getPeakIdentities();
     }
     peakIdentities.remove(identity);
     if (preferred) {
@@ -547,18 +543,18 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
   }
 
-  @Override
-  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
-    synchronized (getMap()) {
-      set(CompoundDatabaseMatchesType.class, annotations);
-    }
-  }
-
   @NotNull
   @Override
   public List<CompoundDBAnnotation> getCompoundAnnotations() {
     var list = get(CompoundDatabaseMatchesType.class);
     return list != null ? list : List.of();
+  }
+
+  @Override
+  public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
+    synchronized (getMap()) {
+      set(CompoundDatabaseMatchesType.class, annotations);
+    }
   }
 
   @Override
@@ -647,8 +643,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public Float getMaxDataPointIntensity() {
     Range<Float> intensityRange = get(IntensityRangeType.class);
-    return intensityRange != null ? intensityRange.upperEndpoint()
-        : null;
+    return intensityRange != null ? intensityRange.upperEndpoint() : null;
   }
 
   @Nullable
@@ -662,33 +657,17 @@ public class ModularFeatureListRow implements FeatureListRow {
 
   @Override
   public Scan getMostIntenseFragmentScan() {
-    double bestTIC = 0.0;
-    Scan bestScan = null;
-    for (Feature feature : getFeatures()) {
-      RawDataFile rawData = feature.getRawDataFile();
-      if (rawData == null || feature.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
-        continue;
-      }
-
-      Scan theScan = feature.getMostIntenseFragmentScan();
-      double theTIC = 0.0;
-      if (theScan != null) {
-        theTIC = theScan.getTIC();
-      }
-
-      if (theTIC > bestTIC) {
-        bestTIC = theTIC;
-        bestScan = theScan;
-      }
-    }
-    return bestScan;
+    // best scan is always the first in the sorted stream
+    return streamFeatures().map(Feature::getMostIntenseFragmentScan).filter(Objects::nonNull)
+        .min(FragmentScanSorter.DEFAULT_TIC).orElse(null);
   }
 
   @NotNull
   @Override
   public List<Scan> getAllFragmentScans() {
     List<Scan> allMS2ScansList = new ArrayList<>();
-    for (Feature feature : getFeatures()) {
+    final ModularFeature[] features = getFeatures().toArray(ModularFeature[]::new);
+    for (Feature feature : features) {
       List<Scan> scans = feature.getAllMS2FragmentScans();
       if (scans != null) {
         allMS2ScansList.addAll(scans);

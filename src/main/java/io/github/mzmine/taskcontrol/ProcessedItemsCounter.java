@@ -16,35 +16,18 @@
  *
  */
 
-package io.github.mzmine.modules.io.export_features_gnps.fbmn;
-
-import io.github.mzmine.datamodel.features.FeatureListRow;
+package io.github.mzmine.taskcontrol;
 
 /**
- * Define which rows to export
- *
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public enum FeatureListRowsFilter {
-  ALL, ONLY_WITH_MS2, MS2_OR_ION_IDENTITY, MS2_AND_ION_IDENTITY;
-
-  @Override
-  public String toString() {
-    return super.toString().replaceAll("_", " ");
-  }
+public interface ProcessedItemsCounter {
 
   /**
-   * Filter a row
+   * Number of processed items. For an export module, this will be the actually exported number of
+   * items not the unfiltered total.
    *
-   * @return true if row conforms to the filter
+   * @return
    */
-  public boolean accept(FeatureListRow row) {
-    return switch (this) {
-      case ALL -> true;
-      case ONLY_WITH_MS2 -> row.hasMs2Fragmentation();
-      case MS2_OR_ION_IDENTITY -> row.hasMs2Fragmentation() || row.hasIonIdentity();
-      case MS2_AND_ION_IDENTITY -> row.hasMs2Fragmentation() && row.hasIonIdentity();
-    };
-  }
+  long getProcessedItems();
 }

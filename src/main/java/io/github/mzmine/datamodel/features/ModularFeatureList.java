@@ -283,6 +283,13 @@ public class ModularFeatureList implements FeatureList {
   }
 
   @Override
+  public void applyRowBindings() {
+    for (var row : featureListRows) {
+      applyRowBindings(row);
+    }
+  }
+
+  @Override
   public void applyRowBindings(FeatureListRow row) {
     for (var listeners : featureTypeListeners.values()) {
       for (var listener : listeners) {
@@ -462,7 +469,7 @@ public class ModularFeatureList implements FeatureList {
         throw (new IllegalArgumentException("Data file " + raw + " is not in this feature list"));
       }
     }
-
+//    logger.log(Level.FINEST, "SET ALL ROWS");
     featureListRows.clear();
     featureListRows.addAll(rows);
     applyRowBindings();
@@ -503,7 +510,7 @@ public class ModularFeatureList implements FeatureList {
             "Data file " + testFile + " is not in this feature list"));
       }
     }
-
+    //    logger.finest("ADD ROW");
     featureListRows.add(modularRow);
     applyRowBindings(modularRow);
 
@@ -553,6 +560,7 @@ public class ModularFeatureList implements FeatureList {
   public void removeRow(FeatureListRow row) {
     // remove buffered charts, otherwise the reference is kept alive. What references the row, though?
     ((ModularFeatureListRow) row).clearBufferedColCharts();
+    //    logger.finest("REMOVE ROW");
     featureListRows.remove(row);
   }
 

@@ -18,18 +18,6 @@
 
 package io.github.mzmine.modules.io.import_features_mztab;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.io.File;
-import java.io.OutputStream;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import com.google.common.collect.Range;
 import com.google.common.io.ByteStreams;
 import com.google.common.math.DoubleMath;
@@ -51,7 +39,18 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
+import java.io.File;
+import java.io.OutputStream;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import uk.ac.ebi.pride.jmztab.model.Assay;
@@ -433,8 +432,8 @@ class MzTabImportTask extends AbstractTask {
         }
 
         if (smallMolecule.getOptionColumnValue(dataFileAssay, "feature_height") != null) {
-          feature_height = (float) Double
-              .parseDouble(smallMolecule.getOptionColumnValue(dataFileAssay, "feature_height"));
+          feature_height = (float) Double.parseDouble(
+              smallMolecule.getOptionColumnValue(dataFileAssay, "feature_height"));
         } else {
           feature_height = 0f;
         }
@@ -443,8 +442,8 @@ class MzTabImportTask extends AbstractTask {
         DataPoint finalDataPoint[] = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         Scan representativeScan = null;
-        Scan fragmentScan = null;
-        Scan[] allFragmentScans = new Scan[] {};
+        // todo load MS2 scans
+        List<Scan> allFragmentScans = List.of();
         Range<Float> finalRTRange = Range.singleton(feature_rt);
         Range<Double> finalMZRange = Range.singleton(feature_mz);
         Range<Float> finalIntensityRange = Range.singleton(feature_height);
@@ -452,7 +451,7 @@ class MzTabImportTask extends AbstractTask {
 
         Feature peak = new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt,
             feature_height, abundance, scanNumbers, finalDataPoint, status, representativeScan,
-            fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+            allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
 
         if (abundance > 0) {
           newRow.addFeature(rawData, peak);

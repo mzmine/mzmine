@@ -31,9 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class IsotopeFinderModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Isotopic peaks finder";
-  private static final String MODULE_DESCRIPTION =
-      "Find isotope signals in the FWHM of all features in the list";
+  public static final String MODULE_NAME = "Isotopic peaks finder";
+  public static final String MODULE_DESCRIPTION = "Find isotope signals in the FWHM of all features in the list";
 
   @Override
   public @NotNull String getName() {
