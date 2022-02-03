@@ -253,20 +253,14 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
-      CorrelateGroupingModule.class,
-      MS2SimilarityModule.class,
-      AnnotateIsomersModule.class,
+      CorrelateGroupingModule.class, MS2SimilarityModule.class, AnnotateIsomersModule.class,
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
        */
-      IonNetworkingModule.class,
-      AddIonNetworkingModule.class,
-      IonNetworkRefinementModule.class,
-      IonNetworkMSMSCheckModule.class,
-      FormulaPredictionIonNetworkModule.class,
-      CreateAvgNetworkFormulasModule.class,
-      IonNetRelationsModule.class,
+      IonNetworkingModule.class, AddIonNetworkingModule.class, IonNetworkRefinementModule.class,
+      IonNetworkMSMSCheckModule.class, FormulaPredictionIonNetworkModule.class,
+      CreateAvgNetworkFormulasModule.class, IonNetRelationsModule.class,
       ClearIonIdentitiesModule.class,
 
       /*
@@ -292,8 +286,7 @@ public class BatchModeModulesList {
        */
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
-      ExportCorrAnnotationModule.class,
-      MetaboAnalystExportModule.class, //
+      ExportCorrAnnotationModule.class, MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //

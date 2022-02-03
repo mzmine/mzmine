@@ -48,7 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -70,7 +70,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private int processedRows = 0, totalRows = 0;
 
   // track number of exported items
-  private final AtomicLong exportedRows = new AtomicLong(0);
+  private final AtomicInteger exportedRows = new AtomicInteger(0);
 
   public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -105,7 +105,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   }
 
   @Override
-  public long getProcessedItems() {
+  public int getProcessedItems() {
     return exportedRows.get();
   }
 

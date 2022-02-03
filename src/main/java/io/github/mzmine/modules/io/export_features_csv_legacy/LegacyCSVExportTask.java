@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -68,7 +68,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private final String idSeparator;
   private final FeatureListRowsFilter filter;
   // track number of exported items
-  private final AtomicLong exportedRows = new AtomicLong(0);
+  private final AtomicInteger exportedRows = new AtomicInteger(0);
   private LegacyExportRowCommonElement[] commonElements;
   private int processedRows = 0, totalRows = 0;
 
@@ -115,7 +115,7 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   }
 
   @Override
-  public long getProcessedItems() {
+  public int getProcessedItems() {
     return exportedRows.get();
   }
 
