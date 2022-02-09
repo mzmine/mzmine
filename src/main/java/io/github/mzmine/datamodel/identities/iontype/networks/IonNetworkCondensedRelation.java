@@ -22,13 +22,12 @@ package io.github.mzmine.datamodel.identities.iontype.networks;
 import io.github.mzmine.datamodel.identities.iontype.CombinedIonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
-import java.text.MessageFormat;
 import java.util.List;
 
 /**
  * Relationship between two IonNetworks: 2a --> b - H2O (condensation reaction)
  */
-public class IonNetworkCondensedRelation implements IonNetworkRelation {
+public class IonNetworkCondensedRelation extends AbstractIonNetworkRelation {
 
   // the linked network
   private final IonNetwork monomer;
@@ -69,27 +68,21 @@ public class IonNetworkCondensedRelation implements IonNetworkRelation {
 
   @Override
   public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == monomer.getID()) {
-      return parseNameA();
-    } else if (ionNetwork.getID() == condensedMultimer.getID()) {
-      return parseNameB();
-    }
-    return "";
+    return String.format("2(%d)→2M(%d)+H₂O", monomer.getID(), condensedMultimer.getID());
   }
 
   private String parseNameA() {
-    return MessageFormat.format("M({0}_condensed)", condensedMultimer.getID());
+    return String.format("2(%d)→2M(%d)+H₂O", monomer.getID(), condensedMultimer.getID());
   }
 
   private String parseNameB() {
-    return MessageFormat.format("2Mcondensed({0}){1}", monomer.getID(),
-        multimerModification != null ? " " + multimerModification.parseName() : "");
+    return String.format("2M(%d)+H₂O→2(%d)", condensedMultimer.getID(), monomer.getID());
   }
 
   @Override
   public String getDescription() {
-    return "condensation (2X-->XX+H2O) " +
-           (multimerModification != null ? multimerModification.parseName() : "");
+    return "condensation (2X→XX+H₂O) " + (multimerModification != null
+        ? multimerModification.parseName() : "");
   }
 
   @Override

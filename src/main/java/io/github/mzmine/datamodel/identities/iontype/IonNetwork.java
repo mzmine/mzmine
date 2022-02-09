@@ -100,7 +100,7 @@ public class IonNetwork extends HashMap<FeatureListRow, IonIdentity>
   }
 
   public Map<IonNetwork, IonNetworkRelation> getRelations() {
-    return relations;
+    return Objects.requireNonNullElse(relations, Map.of());
   }
 
   /**

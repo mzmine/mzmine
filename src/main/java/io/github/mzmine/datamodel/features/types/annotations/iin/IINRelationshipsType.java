@@ -19,14 +19,25 @@
 package io.github.mzmine.datamodel.features.types.annotations.iin;
 
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
+import java.util.List;
+import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 
-public class IINRelationshipsType extends ListDataType<IonNetworkRelation> {
+public class IINRelationshipsType extends ListDataType<Entry<IonNetwork, IonNetworkRelation>> {
 
   @Override
   public @NotNull String getHeaderString() {
     return "Relationship";
+  }
+
+  @NotNull
+  @Override
+  public String getFormattedString(List<Entry<IonNetwork, IonNetworkRelation>> list) {
+    return list == null ? ""
+        : list.stream().findFirst().map(entry -> entry.getValue().getName(entry.getKey()))
+            .orElse("");
   }
 
   @NotNull

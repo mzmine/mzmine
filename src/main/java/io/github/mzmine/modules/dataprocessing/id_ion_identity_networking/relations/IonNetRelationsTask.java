@@ -33,7 +33,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -107,11 +106,10 @@ public class IonNetRelationsTask extends AbstractTask {
 
   public static IonModification checkForModifications(MZTolerance mzTol, IonModification[] mods,
       double neutralMassA, double neutralMassB) {
-    double diff = Math.abs(neutralMassB - neutralMassA);
-
+    // b > a
     for (IonModification mod : mods) {
       // e.g. -H2O ~ -18
-      if (mzTol.checkWithinTolerance(diff, mod.getAbsMass())) {
+      if (mzTol.checkWithinTolerance(neutralMassB, neutralMassA + mod.getAbsMass())) {
         return mod;
       }
     }
@@ -150,8 +148,14 @@ public class IonNetRelationsTask extends AbstractTask {
       b = tmp;
     }
 
+    // retention time of condensed should be higher
+    if (b.getAvgRT() < a.getAvgRT()) {
+      return false;
+    }
+
     IonModification[] mod = checkForCondensedModifications(mzTol, mods, a.getNeutralMass(),
         b.getNeutralMass());
+    // always at least water loss
     if (mod != null) {
       IonNetworkCondensedRelation rel = new IonNetworkCondensedRelation(a, b, mod);
       a.addRelation(b, rel);
@@ -170,18 +174,17 @@ public class IonNetRelationsTask extends AbstractTask {
       massB = tmp;
     }
 
-    IonModification water = IonModification.H2O;
     // condense a and subtract water
-    double diff = Math.abs(massB - (massA * 2 - water.getAbsMass()));
+    double calcMassB = massA * 2 - IonModification.H2O.getAbsMass();
     // check -H2O -> diff = 0
-    if (mzTol.checkWithinTolerance(diff, 0d)) {
-      return new IonModification[]{water};
+    if (mzTol.checkWithinTolerance(massB, calcMassB)) {
+      return new IonModification[]{IonModification.H2O};
     }
 
     for (IonModification mod : mods) {
-      // e.g. -H2O ~ -18
-      if (mzTol.checkWithinTolerance(diff, mod.getAbsMass())) {
-        return new IonModification[]{water, mod};
+      // e.g. +O ~ +16 or -O16
+      if (mzTol.checkWithinTolerance(massB, calcMassB + mod.getMass())) {
+        return new IonModification[]{IonModification.H2O, mod};
       }
     }
     return null;
@@ -233,6 +236,10 @@ public class IonNetRelationsTask extends AbstractTask {
       a = c;
       c = tmp;
     }
+    // retention time of condensed should be higher
+    if (c.getAvgRT() < a.getAvgRT() || c.getAvgRT() < b.getAvgRT()) {
+      return false;
+    }
 
     IonModification[] mod = checkForHeteroCondensed(mzTol, mods, a.getNeutralMass(),
         b.getNeutralMass(), c.getNeutralMass());
@@ -269,9 +276,9 @@ public class IonNetRelationsTask extends AbstractTask {
 
     IonModification water = IonModification.H2O;
     // condense a and subtract water
-    double diff = Math.abs(massC - (massA + massB - water.getAbsMass()));
-    // check -H2O -> diff = 0
-    if (mzTol.checkWithinTolerance(diff, 0d)) {
+    double calcMassC = massA + massB - water.getAbsMass();
+    // check -H2O -> calcMassC = 0
+    if (mzTol.checkWithinTolerance(massC, calcMassC)) {
       return new IonModification[]{water};
     }
 
@@ -297,10 +304,9 @@ public class IonNetRelationsTask extends AbstractTask {
           "Starting to search for relations (modifications) between ion identity networks ");
 
       // get all ion identity networks
-      IonNetwork[] nets = IonNetworkLogic.getAllNetworks(featureList, true);
-
       // filter out ? networks with unknown adducttypes
-      nets = Arrays.stream(nets).filter(net -> !net.isUndefined()).toArray(IonNetwork[]::new);
+      IonNetwork[] nets = IonNetworkLogic.streamNetworks(featureList, true)
+          .filter(net -> !net.isUndefined()).toArray(IonNetwork[]::new);
 
       if (nets.length == 0) {
         logger.warning("No ion identity networks found. Run ion networking");
@@ -314,8 +320,10 @@ public class IonNetRelationsTask extends AbstractTask {
       }
 
       // check for modifications
-      int counter = checkForModifications(mzTol, mods, nets);
-      logger.info("Found " + counter + " modifications");
+      if (mods != null && mods.length > 0) {
+        int counter = checkForModifications(mzTol, mods, nets);
+        logger.info("Found " + counter + " modifications");
+      }
 
       // check for condensed formulas
       // mass*2 - H2O and - modifications

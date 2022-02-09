@@ -81,10 +81,11 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
       })),
       // list of relationships has no order
       createEntry(IINRelationshipsType.class, (ion -> ion.getNetwork() != null ? new ArrayList<>(
-          ion.getNetwork().getRelations().values()) : null)),
+          ion.getNetwork().getRelations().entrySet()) : null)),
       createEntry(IINRelationshipsSummaryType.class,
           (ion -> ion.getNetwork() != null && ion.getNetwork().getRelations() != null
-              ? ion.getNetwork().getRelations().values().stream().map(Object::toString)
+              ? ion.getNetwork().getRelations().entrySet().stream()
+              .map(entry -> entry.getValue().getName(entry.getKey()))
               .collect(Collectors.joining(";")) : null)),
       //
       createEntry(ConsensusFormulaListType.class,
