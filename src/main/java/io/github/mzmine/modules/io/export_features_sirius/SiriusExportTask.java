@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
@@ -136,34 +135,6 @@ public class SiriusExportTask extends AbstractTask {
 
   }
 
-  /**
-   * Creates header for groupID, compoundGroupID compoundMass and ion annotation
-   *
-   * @param row
-   * @return
-   */
-  public static String createMSAnnotationFlags(FeatureListRow row, NumberFormat mzForm) {
-    // MS annotation and feature correlation group
-    // can be null (both)
-    // run MS annotations module or better metaCorrelate
-    RowGroup group = row.getGroup();
-    IonIdentity adduct = row.getBestIonIdentity();
-    IonNetwork net = adduct != null ? adduct.getNetwork() : null;
-
-    StringBuilder b = new StringBuilder();
-    if (group != null) {
-      b.append(CORR_GROUPID).append(group.getGroupID()).append("\n");
-    }
-    if (net != null) {
-      b.append(COMPOUND_ID).append(net.getID()).append("\n");
-      b.append(COMPOUND_MASS).append(mzForm.format(net.calcNeutralMass())).append("\n");
-    }
-    if (adduct != null) {
-      b.append(ION).append(adduct.getAdduct()).append("\n");
-    }
-    return b.toString();
-  }
-
   @Override
   public double getFinishedPercentage() {
     return (totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows);
@@ -171,7 +142,7 @@ public class SiriusExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(featureLists) + " to SIRIUS MGF file(s)";
   }
 
   @Override
@@ -272,7 +243,7 @@ public class SiriusExportTask extends AbstractTask {
       boolean fitAnnotation = !needAnnotation || adduct != null;
       boolean fitMol =
           !excludeMultimers || adduct == null || adduct.getIonType().getMolecules() <= 1;
-      if (fitAnnotation && fitCharge && fitMol && hasMsMsOrIsotopes(row)) {
+      if (fitAnnotation && fitCharge && fitMol && row.hasMs2Fragmentation()) {
         if (exportFeatureListRow(row, writer)) {
           exported++;
         }
@@ -306,6 +277,11 @@ public class SiriusExportTask extends AbstractTask {
     // run MS annotations module or better metaMSEcorrelate
     String msAnnotationsFlags = createMSAnnotationFlags(row, mzForm);
 
+    // export MS1 of best feature
+    if (!exportMS1Scan(row, writer, polarity, msAnnotationsFlags)) {
+      return false;
+    }
+
     if (mergeEnabled) {
       MergeMode mergeMode = mergeParameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE)
           .getValue();
@@ -315,19 +291,14 @@ public class SiriusExportTask extends AbstractTask {
         case SAME_SAMPLE, CONSECUTIVE_SCANS:
           for (Feature f : row.getFeatures()) {
             if (f.getFeatureStatus() == FeatureStatus.DETECTED) {
-              if (f.getMostIntenseFragmentScan() == null && excludeEmptyMSMS) {
+              final Scan bestMS2 = f.getMostIntenseFragmentScan();
+              if (bestMS2 == null) {
                 continue;
               }
-              if (f.getMostIntenseFragmentScan() != null
-                  && f.getMostIntenseFragmentScan().getMassList() == null && !excludeEmptyMSMS) {
-                setErrorMessage(
-                    "No mass list in fragment scans of raw data file " + f.getRawDataFile()
-                        .getName());
-                setStatus(TaskStatus.ERROR);
+              if (missingMassListError(bestMS2, bestMS2.getMassList())) {
                 return false;
               }
-              if (excludeEmptyMSMS
-                  && f.getMostIntenseFragmentScan().getMassList().getNumberOfDataPoints() <= 0) {
+              if (excludeEmptyMSMS && bestMS2.getMassList().getNumberOfDataPoints() <= 0) {
                 continue;
               }
 
@@ -361,31 +332,20 @@ public class SiriusExportTask extends AbstractTask {
       }
     } else {
       // No merging
-      Feature bestFeature = row.getBestFeature();
-      MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList();
-      if (ms1MassList == null) {
-        setErrorMessage("A mass list was missing for scan " + ScanUtils.scanToString(
-            bestFeature.getRepresentativeScan(), true)
-                        + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
-        setStatus(TaskStatus.ERROR);
-        return false;
-      }
-
-      // ms1 scan
-      writeHeader(writer, row, bestFeature.getRawDataFile(), polarity, MsType.MS,
-          bestFeature.getRepresentativeScan(), msAnnotationsFlags);
-      writeSpectrum(writer, ms1MassList.getDataPoints());
 
       // correlated ms1 features
       exportCorrelationSpectrum(row, writer, polarity, msAnnotationsFlags, row.getBestFeature());
 
+      // export all MS2 scans
       for (Feature f : row.getFeatures()) {
         for (Scan ms2scan : f.getAllMS2FragmentScans()) {
           writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, ms2scan,
               msAnnotationsFlags);
           MassList ms2MassList = ms2scan.getMassList();
-          if (ms2MassList == null || (excludeEmptyMSMS
-                                      && ms2MassList.getNumberOfDataPoints() <= 0)) {
+          if (missingMassListError(ms2scan, ms2MassList)) {
+            return false;
+          }
+          if (excludeEmptyMSMS && ms2MassList.getNumberOfDataPoints() <= 0) {
             continue;
           }
           writeSpectrum(writer, ms2MassList.getDataPoints());
@@ -397,10 +357,40 @@ public class SiriusExportTask extends AbstractTask {
     return true;
   }
 
+  /**
+   * @return true if export successful false if mass list was missing
+   */
+  private boolean exportMS1Scan(FeatureListRow row, BufferedWriter writer, char polarity,
+      String msAnnotationsFlags) throws IOException {
+    Feature bestFeature = row.getBestFeature();
+    final Scan representativeScan = bestFeature.getRepresentativeScan();
+    MassList ms1MassList = representativeScan.getMassList();
+    if (missingMassListError(representativeScan, ms1MassList)) {
+      return false;
+    }
+
+    // ms1 scan
+    writeHeader(writer, row, bestFeature.getRawDataFile(), polarity, MsType.MS, representativeScan,
+        msAnnotationsFlags);
+    writeSpectrum(writer, ms1MassList.getDataPoints());
+    return true;
+  }
+
+  private boolean missingMassListError(Scan scan, MassList ms1MassList) {
+    if (ms1MassList == null) {
+      setErrorMessage("A mass list was missing for scan " + ScanUtils.scanToString(scan, true)
+                      + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
+      setStatus(TaskStatus.ERROR);
+      return true;
+    }
+    return false;
+  }
+
+
   private void exportSpectrumIfNotEmpty(FeatureListRow row, BufferedWriter writer, char polarity,
       String msAnnotationsFlags, Feature f, MergedSpectrum spectrum) throws IOException {
     if (spectrum.data.length > 0) {
-      writeHeader(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum,
+      writeHeaderForMerged(writer, row, f.getRawDataFile(), polarity, MsType.MSMS, spectrum,
           msAnnotationsFlags);
       writeSpectrum(writer, spectrum.data);
     }
@@ -420,21 +410,36 @@ public class SiriusExportTask extends AbstractTask {
     }
   }
 
-  private boolean hasMsMsOrIsotopes(FeatureListRow row) {
-    // skip rows which have no isotope pattern and no MS/MS spectrum
-    for (Feature f : row.getFeatures()) {
-      if (f.getFeatureStatus() == FeatureStatus.DETECTED) {
-        // has isotope pattern or MS2
-        if ((f.getIsotopePattern() != null && f.getIsotopePattern().getNumberOfDataPoints() > 1)
-            || f.getMostIntenseFragmentScan() != null) {
-          return true;
-        }
-      }
+  /**
+   * Creates header for groupID, compoundGroupID compoundMass and ion annotation
+   *
+   * @param row
+   * @return
+   */
+  public String createMSAnnotationFlags(FeatureListRow row, NumberFormat mzForm) {
+    // MS annotation and feature correlation group
+    // can be null (both)
+    // run MS annotations module or better metaCorrelate
+    RowGroup group = row.getGroup();
+    IonIdentity adduct = row.getBestIonIdentity();
+    IonNetwork net = adduct != null ? adduct.getNetwork() : null;
+
+    StringBuilder b = new StringBuilder();
+    if (group != null) {
+      b.append(CORR_GROUPID).append(group.getGroupID()).append("\n");
     }
-    return false;
+    if (net != null) {
+      b.append(COMPOUND_ID).append(net.getID()).append("\n");
+      b.append(COMPOUND_MASS).append(mzForm.format(net.calcNeutralMass())).append("\n");
+    }
+    if (adduct != null) {
+      b.append(ION).append(adduct.getAdduct()).append("\n");
+    }
+    return b.toString();
   }
 
-  private void writeHeader(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
+
+  private void writeHeaderForMerged(BufferedWriter writer, FeatureListRow row, RawDataFile raw,
       char polarity, MsType msType, MergedSpectrum mergedSpectrum, String msAnnotationsFlags)
       throws IOException {
     writeHeader(writer, row, raw, polarity, msType, row.getID(),
@@ -497,7 +502,7 @@ public class SiriusExportTask extends AbstractTask {
         writer.newLine();
     }
     writer.write("FILENAME=");
-    if (sources != null) {
+    if (sources != null && !sources.isEmpty()) {
       final String[] uniqSources = new HashSet<>(sources).toArray(new String[0]);
       writer.write(escape(uniqSources[0], ";"));
       for (int i = 1; i < uniqSources.length; ++i) {
@@ -551,12 +556,12 @@ public class SiriusExportTask extends AbstractTask {
    * via IIN (+ their isotopes).
    */
   @Nullable
-  private List<DataPoint> generateCorrelationSpectrum(@NotNull ModularFeatureListRow row,
+  private List<DataPoint> generateCorrelationSpectrum(@NotNull FeatureListRow row,
       @Nullable RawDataFile file) {
     file = file != null ? file : row.getBestFeature().getRawDataFile();
     final List<DataPoint> dps = new ArrayList<>();
 
-    final ModularFeature feature = row.getFeature(file);
+    final Feature feature = row.getFeature(file);
     if (feature == null) {
       return null;
     }
@@ -621,11 +626,11 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   private void writeSpectrum(BufferedWriter writer, DataPoint[] spectrum) throws IOException {
-    for (int i = 0; i < spectrum.length; i++) {
-      writer.write(String.valueOf(spectrum[i].getMZ()));
+    for (DataPoint dataPoint : spectrum) {
+      writer.write(mzForm.format(dataPoint.getMZ()));
       writer.write(' ');
-      writer.write(intensityForm.format(spectrum[i].getIntensity()));
-      if (spectrum[i] instanceof AnnotatedDataPoint adp && adp.getAnnotation() != null
+      writer.write(intensityForm.format(dataPoint.getIntensity()));
+      if (dataPoint instanceof AnnotatedDataPoint adp && adp.getAnnotation() != null
           && !adp.getAnnotation().isEmpty()) {
         writer.write(' ');
         writer.write(adp.getAnnotation());

@@ -206,7 +206,6 @@ public interface FeatureListRow extends ModularDataModel {
 
   /**
    * Returns FeatureInformation
-   *
    */
   FeatureInformation getFeatureInformation();
 
@@ -439,4 +438,11 @@ public interface FeatureListRow extends ModularDataModel {
   void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
 
   @Nullable Range<Float> getMobilityRange();
+
+  /**
+   * Checks for an isotope pattern with >1 data points (main signal plus 1)
+   *
+   * @return true if isotope pattern available with at least two signals
+   */
+  boolean hasIsotopePattern();
 }

@@ -64,6 +64,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
       "m/z tolerance to exclude duplicates in correlated spectrum", 0.001, 5);
   public static final BooleanParameter RENUMBER_ID =
       new BooleanParameter("Renumber IDs", "Resets the IDs (uses the row ID otherwise)", false);
+
   public static final BooleanParameter NEED_ANNOTATION =
       new BooleanParameter("Only rows with annotation",
           "Only export rows with an annotation (run MS annotate or metaMSEcorrelate)", false);
