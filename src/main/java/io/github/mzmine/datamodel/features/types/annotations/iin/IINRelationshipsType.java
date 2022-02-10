@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.features.types.annotations.iin;
 
+import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 import io.github.mzmine.datamodel.identities.iontype.networks.IonNetworkRelation;
@@ -25,7 +26,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 
-public class IINRelationshipsType extends ListDataType<Entry<IonNetwork, IonNetworkRelation>> {
+public class IINRelationshipsType extends
+    ListDataType<Entry<IonNetwork, IonNetworkRelation>> implements EditableColumnType {
 
   @Override
   public @NotNull String getHeaderString() {
