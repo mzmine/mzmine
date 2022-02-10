@@ -54,15 +54,17 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -71,6 +73,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -97,17 +100,17 @@ public class SiriusExportTask extends AbstractTask {
   private final MZTolerance mzTol;
   private final boolean excludeEmptyMSMS;
   private final boolean excludeMultiCharge;
-  private final Boolean excludeMultimers;
-  private final Boolean needAnnotation;
+  private final boolean excludeMultimers;
+  private final boolean needAnnotation;
+  private final boolean renumberID;
   private final double minimumRelativeNumberOfScans;
+  // by robin
+  private final NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+  private final NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
   // rows
   protected long finishedRows, totalRows;
-  // by robin
-  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-  private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
   // next id for renumbering
   private long nextID = 1;
-  private final boolean renumberID;
 
   SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -118,8 +121,8 @@ public class SiriusExportTask extends AbstractTask {
     this.mergeParameters = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER)
         .getEmbeddedParameters();
 
-    minimumRelativeNumberOfScans = mergeEnabled ? mergeParameters
-        .getParameter(MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue() : 0d;
+    minimumRelativeNumberOfScans = mergeEnabled ? mergeParameters.getParameter(
+        MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue() : 0d;
 
     // new parameters related to ion identity networking and feature grouping
     mzTol = parameters.getParameter(SiriusExportParameters.MZ_TOL).getValue();
@@ -143,37 +146,21 @@ public class SiriusExportTask extends AbstractTask {
   public static String createMSAnnotationFlags(FeatureListRow row, NumberFormat mzForm) {
     // MS annotation and feature correlation group
     // can be null (both)
-    // run MS annotations module or better metaMSEcorrelate
+    // run MS annotations module or better metaCorrelate
     RowGroup group = row.getGroup();
     IonIdentity adduct = row.getBestIonIdentity();
     IonNetwork net = adduct != null ? adduct.getNetwork() : null;
 
-    // find ion species by annotation (can be null)
-    String corrGroupID = group != null ? "" + group.getGroupID() : "";
-
-    String ion = "";
-    String compoundGroupID = "";
-    String compoundMass = "";
-    if (adduct != null) {
-      ion = adduct.getAdduct();
+    StringBuilder b = new StringBuilder();
+    if (group != null) {
+      b.append(CORR_GROUPID).append(group.getGroupID()).append("\n");
     }
     if (net != null) {
-      compoundGroupID = net.getID() + "";
-      compoundMass = mzForm.format(net.calcNeutralMass());
+      b.append(COMPOUND_ID).append(net.getID()).append("\n");
+      b.append(COMPOUND_MASS).append(mzForm.format(net.calcNeutralMass())).append("\n");
     }
-
-    StringBuilder b = new StringBuilder();
-    if (!corrGroupID.isEmpty()) {
-      b.append(CORR_GROUPID + corrGroupID + "\n");
-    }
-    if (!compoundGroupID.isEmpty()) {
-      b.append(COMPOUND_ID + compoundGroupID + "\n");
-    }
-    if (!compoundMass.isEmpty()) {
-      b.append(COMPOUND_MASS + compoundMass + "\n");
-    }
-    if (!ion.isEmpty()) {
-      b.append(ION + ion + "\n");
+    if (adduct != null) {
+      b.append(ION).append(adduct.getAdduct()).append("\n");
     }
     return b.toString();
   }
@@ -200,28 +187,36 @@ public class SiriusExportTask extends AbstractTask {
       prefillStatistics(l.getRows().toArray(FeatureListRow[]::new));
     }
 
+    int totalExported = 0;
     // Process feature lists
     for (FeatureList featureList : featureLists) {
 
       // Filename
-      File curFile = fileName;
+      File tmpFile = fileName;
       if (substitute) {
         // Cleanup from illegal filename characters
         String cleanPlName = featureList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
         String newFilename = fileName.getPath()
             .replaceAll(Pattern.quote(plNamePattern), cleanPlName);
-        curFile = new File(newFilename);
-
+        tmpFile = new File(newFilename);
       }
-      curFile = FileAndPathUtil.getRealFilePath(curFile, ".mgf");
+      final File curFile = FileAndPathUtil.getRealFilePath(tmpFile, ".mgf");
 
       // Open file
-      try (final BufferedWriter bw = new BufferedWriter(new FileWriter(curFile))) {
-        exportFeatureList(featureList, bw);
+      try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
+          StandardCharsets.UTF_8)) {
+        logger.fine(() -> String.format("Exporting SIRIUS mgf for feature list: %s to file %s",
+            featureList.getName(), curFile.getAbsolutePath()));
+        totalExported += exportFeatureList(featureList, writer);
+
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Could not open file " + curFile + " for writing.");
+        logger.log(Level.WARNING, String.format(
+            "Error writing SIRIUS mgf format to file: %s for feature list: %s. Message: %s",
+            curFile.getAbsolutePath(), featureList.getName(), e.getMessage()), e);
+        return;
       }
 
       // If feature list substitution pattern wasn't found,
@@ -230,6 +225,8 @@ public class SiriusExportTask extends AbstractTask {
         break;
       }
     }
+    logger.info(String.format("SIRIUS: Exported %d features of %d total features", totalExported,
+        totalRows));
 
     if (!isCanceled()) {
       setStatus(TaskStatus.FINISHED);
@@ -376,9 +373,9 @@ public class SiriusExportTask extends AbstractTask {
       Feature bestFeature = row.getBestFeature();
       MassList ms1MassList = bestFeature.getRepresentativeScan().getMassList();
       if (ms1MassList == null) {
-        setErrorMessage("A mass list was missing for scan " + ScanUtils
-            .scanToString(bestFeature.getRepresentativeScan(), true)
-            + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
+        setErrorMessage("A mass list was missing for scan " + ScanUtils.scanToString(
+            bestFeature.getRepresentativeScan(), true)
+                        + ". Maybe rerun mass detection on MS2 and MS1 without scan filtering (e.g., by retention time range).");
         setStatus(TaskStatus.ERROR);
         return false;
       }
@@ -397,7 +394,7 @@ public class SiriusExportTask extends AbstractTask {
               msAnnotationsFlags);
           MassList ms2MassList = ms2scan.getMassList();
           if (ms2MassList == null || (excludeEmptyMSMS
-              && ms2MassList.getNumberOfDataPoints() <= 0)) {
+                                      && ms2MassList.getNumberOfDataPoints() <= 0)) {
             continue;
           }
           writeSpectrum(writer, ms2MassList.getDataPoints());
@@ -637,8 +634,8 @@ public class SiriusExportTask extends AbstractTask {
       writer.write(String.valueOf(spectrum[i].getMZ()));
       writer.write(' ');
       writer.write(intensityForm.format(spectrum[i].getIntensity()));
-      if (spectrum[i] instanceof AnnotatedDataPoint adp && adp.getAnnotation() != null && !adp
-          .getAnnotation().isEmpty()) {
+      if (spectrum[i] instanceof AnnotatedDataPoint adp && adp.getAnnotation() != null
+          && !adp.getAnnotation().isEmpty()) {
         writer.write(' ');
         writer.write(adp.getAnnotation());
       }
