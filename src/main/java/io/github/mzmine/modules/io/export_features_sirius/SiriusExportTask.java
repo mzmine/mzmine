@@ -69,7 +69,6 @@ import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -184,7 +183,6 @@ public class SiriusExportTask extends AbstractTask {
 
     for (FeatureList l : featureLists) {
       this.totalRows += l.getNumberOfRows();
-      prefillStatistics(l.getRows().toArray(FeatureListRow[]::new));
     }
 
     int totalExported = 0;
@@ -248,8 +246,6 @@ public class SiriusExportTask extends AbstractTask {
 
   public void runSingleRows(FeatureListRow[] rows) {
     setStatus(TaskStatus.PROCESSING);
-    // prefill statistics
-    prefillStatistics(rows);
     try (final BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
       for (FeatureListRow row : rows) {
         exportFeatureListRow(row, bw);
@@ -261,11 +257,6 @@ public class SiriusExportTask extends AbstractTask {
     if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
     }
-  }
-
-  private void prefillStatistics(FeatureListRow[] rows) {
-    ArrayList<FeatureListRow> copy = new ArrayList<>(Arrays.asList(rows));
-    Collections.shuffle(copy);
   }
 
   private int exportFeatureList(FeatureList featureList, BufferedWriter writer) throws IOException {
