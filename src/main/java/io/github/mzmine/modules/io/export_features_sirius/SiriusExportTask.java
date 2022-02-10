@@ -39,7 +39,6 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowGroup;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -536,7 +535,7 @@ public class SiriusExportTask extends AbstractTask {
 
   private void writeCorrelationSpectrum(BufferedWriter writer, FeatureListRow row, RawDataFile file)
       throws IOException {
-    List<DataPoint> dps = generateCorrelationSpectrum((ModularFeatureListRow) row, file);
+    List<DataPoint> dps = generateCorrelationSpectrum(row, file);
     if (dps != null) {
       writeSpectrum(writer, dps.toArray(DataPoint[]::new));
     } else {
@@ -632,7 +631,8 @@ public class SiriusExportTask extends AbstractTask {
       writer.write(intensityForm.format(dataPoint.getIntensity()));
       if (dataPoint instanceof AnnotatedDataPoint adp && adp.getAnnotation() != null
           && !adp.getAnnotation().isEmpty()) {
-        writer.write(' ');
+        // write the correlation between rows. for now 1 as it is not really used
+        writer.write(" 1 ");
         writer.write(adp.getAnnotation());
       }
       writer.newLine();
