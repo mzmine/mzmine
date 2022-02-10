@@ -87,7 +87,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
     final MergeMode mode = parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE)
         .getValue();
     final double npeaksFilter = parameters
-        .getParameter(MsMsSpectraMergeParameters.FEATURE_COUNT_PARAMETER).getValue();
+        .getParameter(MsMsSpectraMergeParameters.REL_SIGNAL_COUNT_PARAMETER).getValue();
     switch (mode) {
       case CONSECUTIVE_SCANS:
         // merge all consecutive MS/MS, remove peaks if they do not occur
