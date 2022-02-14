@@ -19,12 +19,14 @@
 package io.github.mzmine.modules.io.export_features_gnps.masst;
 
 /**
- * Available databases to search by masst
+ * Available databases to search by masst. Selection of the database in GNPS is with the enum value
+ * names - not toString.
  *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public enum MasstDatabase {
-  ALL("Non-redundant MS/MS"), GNPS("GNPS"), METABOLOMICS_WORKBENCH(
+  // value names equal the GNPS values
+  ALL("ALL (Non-redundant MS/MS)"), GNPS("GNPS"), METABOLOMICSWORKBENCH(
       "Metabolomics Workbench"), METABOLIGHTS("Metabolights");
 
   private final String title;
@@ -40,5 +42,9 @@ public enum MasstDatabase {
   @Override
   public String toString() {
     return getTitle();
+  }
+
+  public String getGnpsValue() {
+    return name();
   }
 }

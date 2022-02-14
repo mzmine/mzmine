@@ -16,18 +16,6 @@
  *
  */
 
-/*
- * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
- * Lab (University of California, San Diego).
- *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- *
- * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
- */
-
 package io.github.mzmine.modules.io.export_features_gnps.masst;
 
 import io.github.mzmine.main.MZmineCore;
@@ -43,6 +31,8 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.util.ExitCode;
 
 /**
+ * Submit MASST search on GNPS
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class GnpsMasstSubmitParameters extends SimpleParameterSet {
@@ -60,7 +50,7 @@ public class GnpsMasstSubmitParameters extends SimpleParameterSet {
       "Username to directly post job to.", "", false, true);
 
   public static final PasswordParameter password = new PasswordParameter(
-      "Password (optional; currently no encription)",
+      "Password (optional; currently not encrypted)",
       "The password is sent without encryption, until the server has has moved to its final destination.",
       "", false);
 
@@ -94,9 +84,9 @@ public class GnpsMasstSubmitParameters extends SimpleParameterSet {
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     String message = """
-        <html><strong>About the GNPS Export/Submit Module:</strong>
-        When using MASST please cite the paper: 
-        Wang, M., Jarmusch, A.K., Vargas, F. et al. Mass spectrometry searches using MASST. Nat Biotechnol 38, 23–26 (2020). <a href=\"https://doi.org/10.1038/s41587-019-0375-9\">https://doi.org/10.1038/s41587-019-0375-9</a>
+        <html><strong>About the Mass Spectrometry Search Tool (MASST) direct submission:</strong><br>
+        When using MASST please cite:<br>
+        Wang, M., Jarmusch, A.K., Vargas, F. et al. Mass spectrometry searches using MASST. Nat Biotechnol 38, 23–26 (2020). <a href="https://doi.org/10.1038/s41587-019-0375-9">https://doi.org/10.1038/s41587-019-0375-9</a>
         </html>""";
 
     ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, message);

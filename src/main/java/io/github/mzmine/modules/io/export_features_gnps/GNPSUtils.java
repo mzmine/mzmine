@@ -236,7 +236,7 @@ public class GNPSUtils {
       params.add(new BasicNameValuePair("login", "" + username));
       params.add(new BasicNameValuePair("password", "" + password));
       params.add(new BasicNameValuePair("description", description));
-      params.add(new BasicNameValuePair("database", "" + database));
+      params.add(new BasicNameValuePair("database", database.getGnpsValue()));
       params.add(new BasicNameValuePair("analogsearch", searchAnalogs ? "Yes" : "No"));
       httpPost.setEntity(new UrlEncodedFormEntity(params));
 
@@ -286,7 +286,7 @@ public class GNPSUtils {
         // <a href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=theTaskID">
         url = StringUtils.substringBetween(requestResult, "<a href=\"", "\">");
 
-        if (url != null || url.isBlank()) {
+        if (url == null || url.isBlank()) {
           logger.log(Level.SEVERE,
               "Error while submitting GNPS job, cannot read response URL as json or text", e);
         }
