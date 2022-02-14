@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Relationship between two IonNetworks
  */
-public class IonNetworkModificationRelation implements IonNetworkRelation {
+public class IonNetworkModificationRelation extends AbstractIonNetworkRelation {
 
   // the linked network
   private final IonNetwork a;
@@ -72,17 +72,11 @@ public class IonNetworkModificationRelation implements IonNetworkRelation {
 
   @Override
   public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == a.getID()) {
-      return parseNameA();
-    } else if (ionNetwork.getID() == b.getID()) {
-      return parseNameB();
-    }
-    return "";
+    return String.format("M%d+%s→M%d", a.getID(), modA.getName(), b.getID());
   }
 
   private String parseNameA() {
-    String name = "";
-      name += "M(" + b.getID() + ")";
+    String name = "M(" + b.getID() + ")";
     if (modA != null) {
       name += modA.parseName();
     }
@@ -90,8 +84,7 @@ public class IonNetworkModificationRelation implements IonNetworkRelation {
   }
 
   private String parseNameB() {
-    String name = "";
-      name += "M(" + a.getID() + ")";
+    String name = "M(" + a.getID() + ")";
     if (modB != null) {
       name += modB.parseName();
     }
