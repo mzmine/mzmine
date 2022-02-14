@@ -45,6 +45,7 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -75,6 +76,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -92,6 +94,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureTableContextMenu extends ContextMenu {
 
+  private static final Logger logger = Logger.getLogger(FeatureTableContextMenu.class.getName());
   final Menu showMenu;
   final Menu searchMenu;
   final Menu idsMenu;
@@ -225,6 +228,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     nistSearchItem.setOnAction(
         e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
 
+    // submit GNPS MASST search
+    final MenuItem masstSearch = new ConditionalMenuItem("Submit single MASST search (on GNPS)",
+        () -> selectedRows.size() == 1 && selectedRows.get(0).hasMs2Fragmentation());
+    masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
+
     // Comments from MZmine 2 source:
     // TODO: what is going on here?
     // TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1
@@ -241,7 +249,27 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     searchMenu.getItems()
         .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, siriusItem,
-            new SeparatorMenuItem(), formulaPredictionItem);
+            new SeparatorMenuItem(), formulaPredictionItem,
+            // external tools like GNPS MASST search
+            new SeparatorMenuItem(), masstSearch);
+  }
+
+  /**
+   * Mass spectrometry search tool job on GNPS
+   */
+  private void submitMasstGNPSSearch(List<ModularFeatureListRow> rows) {
+    // single
+    if (rows.size() == 1) {
+      final ModularFeatureListRow row = rows.get(0);
+      final Scan ms2 = row.getMostIntenseFragmentScan();
+      if (ms2 != null) {
+        if (ms2.getMassList() == null) {
+          logger.warning("Missing mass list. Run mass detection on MS2 scans to run MASST search");
+          return;
+        }
+        GnpsMasstSubmitModule.submitSingleMASSTJob(row.getAverageMZ(), ms2.getMassList());
+      }
+    }
   }
 
   private void initShowMenu() {
@@ -258,13 +286,13 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showIMSFeatureItem = new ConditionalMenuItem("Ion mobility trace",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
+              && selectedFeature.getRawDataFile() instanceof IMSRawDataFile);
     showIMSFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new IMSFeatureVisualizerTab(selectedFeature)));
 
     final MenuItem showImageFeatureItem = new ConditionalMenuItem("Image",
         () -> !selectedRows.isEmpty() && selectedFeature != null
-            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+              && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
     showImageFeatureItem.setOnAction(
         e -> MZmineCore.getDesktop().addTab(new ImageVisualizerTab(selectedFeature)));
 
@@ -291,7 +319,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showInIMSRawDataOverviewItem = new ConditionalMenuItem(
         "Show m/z ranges in IMS raw data overview",
         () -> selectedFeature != null && selectedFeature.getRawDataFile() instanceof IMSRawDataFile
-            && !selectedFeatures.isEmpty());
+              && !selectedFeatures.isEmpty());
     showInIMSRawDataOverviewItem.setOnAction(
         e -> IMSRawDataOverviewModule.openIMSVisualizerTabWithFeatures(
             getFeaturesFromSelectedRaw(selectedFeatures)));
@@ -326,13 +354,13 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     final MenuItem showBestMobilityScanItem = new ConditionalMenuItem("Best mobility scan",
         () -> selectedFeature != null && selectedFeature.getRepresentativeScan() instanceof Frame
-            && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+              && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     showBestMobilityScanItem.setOnAction(e -> SpectraVisualizerModule.addNewSpectrumTab(
         IonMobilityUtils.getBestMobilityScan(selectedFeature)));
 
     final MenuItem extractSumSpectrumFromMobScans = new ConditionalMenuItem(
         "Extract spectrum from mobility FWHM", () -> selectedFeature != null
-        && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
+                                                     && selectedFeature.getFeatureData() instanceof IonMobilogramTimeSeries);
     extractSumSpectrumFromMobScans.setOnAction(e -> {
       Range<Float> fwhm = IonMobilityUtils.getMobilityFWHM(
           ((IonMobilogramTimeSeries) selectedFeature.getFeatureData()).getSummedMobilogram());
@@ -349,7 +377,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showMSMSItem = new ConditionalMenuItem("Most intense MS/MS",
         () -> (selectedRow != null && getNumberOfFeaturesWithFragmentScans(selectedRow) >= 1) || (
             selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) || (
-            selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
+                  selectedRows.size() > 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1));
     showMSMSItem.setOnAction(e -> {
       if (selectedFeature != null && selectedFeature.getMostIntenseFragmentScan() != null) {
         SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getMostIntenseFragmentScan());

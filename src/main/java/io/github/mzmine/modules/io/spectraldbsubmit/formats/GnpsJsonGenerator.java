@@ -29,16 +29,15 @@
 
 package io.github.mzmine.modules.io.spectraldbsubmit.formats;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 
 /**
  * Json for GNPS library entry submission
@@ -118,11 +117,11 @@ public class GnpsJsonGenerator {
 
   /**
    * JSON of data points array
-   * 
+   *
    * @param dps
    * @return
    */
-  private static JsonArray genJSONData(DataPoint[] dps) {
+  public static JsonArray genJSONData(DataPoint[] dps) {
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
