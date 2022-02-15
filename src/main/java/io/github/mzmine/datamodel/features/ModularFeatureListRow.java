@@ -693,6 +693,22 @@ public class ModularFeatureListRow implements FeatureListRow {
     return null;
   }
 
+
+  @Override
+  public boolean hasIsotopePattern() {
+    ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
+
+    for (ModularFeature feature : features) {
+      IsotopePattern ip = feature.getIsotopePattern();
+      if (ip != null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+
   public List<ResultFormula> getFormulas() {
     return get(FormulaListType.class);
   }
