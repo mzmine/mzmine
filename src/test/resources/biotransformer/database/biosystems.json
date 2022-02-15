@@ -1,0 +1,31 @@
+// ********************************************************************************************************
+// Author: Djoumbou Feunang, Yannick
+// Cite: Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; 
+//  BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction 
+//  and Metabolite Identification; Journal of Cheminformatics; (2019) 11:2; DOI: 10.1186/s13321‐018‐0324‐5
+// ********************************************************************************************************
+
+{
+	"table" : "biosystems",
+
+	"description" : "this table provides the list of biosystems that are implemented in BioTransformer",
+
+	"biosystemsList" : {
+		"HUMAN" : {
+
+			"acceptedName" : "Human",
+			"description" : "The human (Homo Sapiens) organism."
+		},
+		"GUTMICRO" : {
+
+			"acceptedName" : "Gut microbial environment",
+			"description" : "The gut microbial environment. This consist mostly of anaerobic bacteria."
+		},
+		"ENVMICRO" : {
+
+			"acceptedName" : "Environmental microbial",
+			"description" : "The environmenta microbial environment. This consist of microbiota from the soil and aquatic environments."
+		}
+	}
+
+}

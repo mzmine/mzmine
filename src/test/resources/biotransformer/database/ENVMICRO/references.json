@@ -1,0 +1,36 @@
+// *************************************************************************************************************************
+// Author: Djoumbou Feunang, Yannick
+//
+// BioTransformer's environmental microbial degradation module uses data from the EAWAG's Biodegradation and 
+// Biocatalysis Database, which is licensed by [EnviPath](https://envipath.com/license/) under the [Creative 
+// Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/). 
+// Therefore users of the environmental microbial degradation module must cite the EnviPath paper below (See Cite section).
+// To use the environmental microbial module for commercial purposes, users must request an appropriate commercial license 
+// from [EnviPath](https://envipath.org/).
+// 
+// ### Cite:
+//
+//    1. Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; BioTransformer: 
+//          A Comprehensive Computational Tool for Small Molecule Metabolism Prediction and Metabolite Identification; 
+//          Journal of Cheminformatics; (2019) 11:2; DOI: 10.1186/s13321‐018‐0324‐5.
+//    2. J Wicker, T Lorsbach, M Gütlein, E Schmid, D Latino, S Kramer, K Fenner. enviPath–The environmental 
+//          contaminant biotransformation pathway resource. Nucleic Acids Research, 4;44(D1):D502-8; DOI:10.1093/nar/gkv1229
+// *************************************************************************************************************************
+
+{
+	"table" : "references",
+
+	"description" : "this table provides the list of sources and scientific resources",
+
+	"referenceList" : {
+		"SID00001"	: {
+			"title" : "enviPath–The environmental contaminant biotransformation pathway resource",
+			"authors" : "J Wicker, T Lorsbach, M Gütlein, E Schmid, D Latino, S Kramer, K Fenner",
+			"source" : "Nucleic Acids Res.; 4;44(D1):D502-8",
+			"doi" : "10.1093/nar/gkv1229",
+			"pmid" : "",
+			"pcmid" : "",
+			"year" : 2016
+		}
+	}
+}

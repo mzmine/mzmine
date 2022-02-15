@@ -1,0 +1,39 @@
+// ********************************************************************************************************
+// Author: Djoumbou Feunang, Yannick
+// Cite: Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; 
+//  BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction 
+//  and Metabolite Identification; Journal of Cheminformatics; (2019) 11:2; DOI: 10.1186/s13321‐018‐0324‐5
+// ********************************************************************************************************
+
+{
+	"table" : "sChemCategoryCellularLocation",
+
+	"description" : "this table provides a mapping of structure based chemical classes to their cellular locations. ",
+
+	"cellularLocations" : {
+		{
+			"FATTY_ACID" : {
+				"cellular_location" : {
+					"HUMAN" : []
+				}
+			},
+
+			"GLYCEROLIPID" : {
+				"cellular_location" : {
+					"HUMAN" : []
+				}
+			},
+
+			"BILE_ACID" : {
+				"cellular_location" : {
+					"HUMAN" : []
+				}
+			}
+
+		}
+
+
+
+
+	}
+}

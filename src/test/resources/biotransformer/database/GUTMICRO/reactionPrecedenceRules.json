@@ -1,0 +1,452 @@
+// **********************************************************************************************************
+// Author: Djoumbou Feunang, Yannick
+// Cite: 
+//  1) Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; 
+//  BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction 
+//  and Metabolite Identification; Journal of Cheminformatics; (2019) 11:2; DOI: 10.1186/s13321‐018‐0324‐5
+// **********************************************************************************************************
+
+
+{
+          "table" 		: "reactionPrecedenceRules",
+    "description" 		: "This table provides the list of precendence rules for metabolic reactions.",
+    "precedenceRules" 	: {
+      	"GUTMICRO"			: {
+	       	"relative"		: {
+	     	
+	      		"HYDROLYSIS_OF_TERMINAL_14_LINKED_ALPHA_D_GLUCOSE_PATTERN1"	:{
+	      			"reactions" 	: ["D_GLYCOSIDE_HYDROLYSIS", "GLYCOSIDE_HYDROLYSIS"],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},
+	      		
+	      		"AROMATIC_OH_GLUCURONIDATION"	:{
+	      			"reactions" 	: ["AROMATIC_OH_GLUCURONIDATION"],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},
+	      		
+	      		"B_TYPE_PROCYANIDIN_DIMER_DEGRADATION_PATTERN1"	:{
+	      			"reactions" 	: [
+	      				"_3P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE", "_4P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4"
+	      				, "CATECHOL_DEHYDROXYLATION_PATTERN2"     			
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		     		
+	      		"ANTHOCYANIDIN_C_RING_FISSION_PATTERN5"	:{
+	      			"reactions" 	: [
+	      				"KETO_ENOL_TAUTOMERIZATION_PATTERN1", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4"
+	      			],
+	 
+	      			"references"	: []     			
+	      		},  
+	      		    		
+	      		"FLAVAN_3_OL_C_RING_FISSION_PATTERN1"	:{
+	      			"reactions" 	: [
+	      				"_3P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE", "_4P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: [
+			      		 // Mosele, J.I. et al. (2015); Metabolic and Microbial Modulation of the Large Intestine 
+						 // Ecosystem by Non-Absorbed Diet Phenolic Compounds: A Review; Molecules 2015, 20, 
+						 // 17429-17468; doi:10.3390/molecules200917429
+	      			]     			
+	      		},
+	      		
+	      		"FLAVAN_3_OL_C_RING_FISSION_PATTERN2"	:{
+	      			"reactions" 	: [
+	      				"_3P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE", "_4P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: [
+			      		 // Mosele, J.I. et al. (2015); Metabolic and Microbial Modulation of the Large Intestine 
+						 // Ecosystem by Non-Absorbed Diet Phenolic Compounds: A Review; Molecules 2015, 20, 
+						 // 17429-17468; doi:10.3390/molecules200917429      			
+	      			]     			
+	      		}, 
+	      		    		
+	      		"_4_HYDROXY_5_PHENYLVALERIC_ACID_DEHYDROXIDATION"	:{
+	      			"reactions" 	: [
+	      				"BETA_OXIDATION_OF_CARBXOYLIC_ACID", "CATECHOL_DEHYDROXYLATION_PATTERN1"
+	      				, "CATECHOL_DEHYDROXYLATION_PATTERN2", "_3P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE"
+	      				, "_4P_DEHYDROXYLATION_OF_SUBSTITUTED_BENZENE"
+	      			],
+	      			"comments"	:[],
+	      			"references"	: []     			
+	      		},
+	      		
+	      		"BETA_OXIDATION_OF_CARBXOYLIC_ACID"	:{
+	      			"reactions" 	: ["ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},    		
+	       		
+	      		"KETO_ENOL_TAUTOMERIZATION_PATTERN1"	:{
+	      			"reactions" 	: [
+	      				"REDUCTION_OF_ALPHA_BETA_UNSATURATED_COMPOUNDS_PATTERN1"
+	      				, "REDUCTION_OF_ALPHA_BETA_UNSATURATED_COMPOUNDS_PATTERN2"
+	      				, "REDUCTION_OF_ALPHA_BETA_UNSATURATED_COMPOUNDS_PATTERN3"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},
+	      		
+	      		"CATECHOL_DEHYDROXYLATION_PATTERN2"	:{
+	      			"reactions" 	: ["CATECHOL_DEHYDROXYLATION_PATTERN1"],
+	      			"comments"		: [],
+	      			"references"	: [
+				 		// (R1) Monagas, M. et al. (2010); “Insights into the metabolism and microbial biotransformation of dietary flavan-3-ols and the bioactivity of their metabolites,” Food and Function, vol. 1, no. 3, pp. 233–253.
+				 		// Dehydroxylation of the catechol group after ring fission occurs preferably at the C4'-site (R1, Fig.3).
+	      			
+	      			
+	      			]     			
+	      		},
+	      		
+	      		"_7_O_DEMETHYLATION_OF_FLAVONE"	:{
+	      			"reactions" 	: [
+	      				"4P_O_DEMETHYLATION_OF_FLAVONE", "_3P_O_DEMETHYLATION_OF_FLAVONE"
+	      				, "_5_O_DEMETHYLATION_OF_FLAVONE", "_3_O_DEMETHYLATION_OF_FLAVONE"
+	      			],
+	      			"comments"		: [
+				 		// Chemical cleavage of the methyl aryl ether bond requires very rigorous reaction conditions. The time-course monitoring of PMF biotransformations elucidated bioconversion pathways, including the 
+				 		// identification of metabolic intermediates. As a robust flavonoid demethylase, regioselectivity of PMF demethylation generally followed the order C-7 > C-4′ ≈ C-3′ > C-5 > C-3 (R1).
+	
+				 		// The isolated MRGPMF1 was able to metabolize various PMFs to the corresponding demethylated flavonesFrom a kinetics study, the methoxy group on the flavone C-7 position was found to be 
+				 		// preferentially hydrolyzed (R2).
+				 		// In fact, P450-related metabolism of flavonoids especially demethylation is mainly focused on the subclass of PMFs. Cytochrome P450 (CYP) is the key enzyme system involved in the metabolism of PMFs 
+				 		// and is capable of catalyzing hydroxylation and demethylation reactions. The metabolic pathway of PMFs is con- sidered to be identical across the species. The 3  and 4  positions on the B ring of PMFs 
+				 		// are the primary site of biotransformation. The number and position of the hydroxyl and methoxy groups on the B ring of PMFs have a great influence on the metabolism of PMFs (R3).
+	
+				 		// Because the substrates are polymethoxyflavones or metabolites thereof, the following constraints must be met:
+				 		// there must me at least one methoxy group, and one hydroxyl group (obtained from a previous O-demethylation) or,
+				 		// two or more O-methyl groups.
+	      			],
+	      			"references"	: [
+	      				//Burapan, S. et al. (2017); Demethylation of Polymethoxyflavones by Human Gut Bacterium, Blautia sp. MRG-PMF1; J. Agric. Food Chem., 2017, 65 (8), pp 1620–1629; DOI: 10.1021/acs.jafc.7b00408
+				 		// Kim, M. et al. (2014); Metabolism of Kaempferia parviflora Polymethoxyflavones by an Intestinal Bacterium Bautia sp. MRG-PMF1; J. Agric. Food Chem. 2014, 62, 12377−12383; dx.doi.org/10.1021/jf504074n
+				 		// Yang, Y. and Ho, CT. (2009); from Yoshikawa T (ed): Food Factors for Health Promotion.; Forum Nutr. Basel, Karger, 2009, vol 61, pp 64–74     https://www.karger.com/Article/PDF/212739
+	      			]     			
+	      		},      		
+	      		
+	      		"_4P_O_DEMETHYLATION_OF_FLAVONE"	:{
+	      			"reactions" 	: [
+	      				"_5_O_DEMETHYLATION_OF_FLAVONE", "_3_O_DEMETHYLATION_OF_FLAVONE"
+	      			],
+	      			"comments"		: [
+				 		// Chemical cleavage of the methyl aryl ether bond requires very rigorous reaction conditions. The time-course monitoring of PMF biotransformations elucidated bioconversion pathways, including the 
+				 		// identification of metabolic intermediates. As a robust flavonoid demethylase, regioselectivity of PMF demethylation generally followed the order C-7 > C-4′ ≈ C-3′ > C-5 > C-3 (R1).
+	
+				 		// The isolated MRGPMF1 was able to metabolize various PMFs to the corresponding demethylated flavonesFrom a kinetics study, the methoxy group on the flavone C-7 position was found to be 
+				 		// preferentially hydrolyzed (R2).
+				 		// In fact, P450-related metabolism of flavonoids especially demethylation is mainly focused on the subclass of PMFs. Cytochrome P450 (CYP) is the key enzyme system involved in the metabolism of PMFs 
+				 		// and is capable of catalyzing hydroxylation and demethylation reactions. The metabolic pathway of PMFs is con- sidered to be identical across the species. The 3  and 4  positions on the B ring of PMFs 
+				 		// are the primary site of biotransformation. The number and position of the hydroxyl and methoxy groups on the B ring of PMFs have a great influence on the metabolism of PMFs (R3).
+	
+				 		// Because the substrates are polymethoxyflavones or metabolites thereof, the following constraints must be met:
+				 		// there must me at least one methoxy group, and one hydroxyl group (obtained from a previous O-demethylation) or,
+				 		// two or more O-methyl groups.
+	      			],
+	      			"references"	: [
+	      				//Burapan, S. et al. (2017); Demethylation of Polymethoxyflavones by Human Gut Bacterium, Blautia sp. MRG-PMF1; J. Agric. Food Chem., 2017, 65 (8), pp 1620–1629; DOI: 10.1021/acs.jafc.7b00408
+				 		// Kim, M. et al. (2014); Metabolism of Kaempferia parviflora Polymethoxyflavones by an Intestinal Bacterium Bautia sp. MRG-PMF1; J. Agric. Food Chem. 2014, 62, 12377−12383; dx.doi.org/10.1021/jf504074n
+				 		// Yang, Y. and Ho, CT. (2009); from Yoshikawa T (ed): Food Factors for Health Promotion.; Forum Nutr. Basel, Karger, 2009, vol 61, pp 64–74     https://www.karger.com/Article/PDF/212739
+	      			]     			
+	      		},  
+	       		
+	      		"_3P_O_DEMETHYLATION_OF_FLAVONE"	:{
+	      			"reactions" 	: [
+	      				"_5_O_DEMETHYLATION_OF_FLAVONE", "_3_O_DEMETHYLATION_OF_FLAVONE"
+	      			],
+	      			"comments"		: [
+				 		// Chemical cleavage of the methyl aryl ether bond requires very rigorous reaction conditions. The time-course monitoring of PMF biotransformations elucidated bioconversion pathways, including the 
+				 		// identification of metabolic intermediates. As a robust flavonoid demethylase, regioselectivity of PMF demethylation generally followed the order C-7 > C-4′ ≈ C-3′ > C-5 > C-3 (R1).
+	
+				 		// The isolated MRGPMF1 was able to metabolize various PMFs to the corresponding demethylated flavonesFrom a kinetics study, the methoxy group on the flavone C-7 position was found to be 
+				 		// preferentially hydrolyzed (R2).
+				 		// In fact, P450-related metabolism of flavonoids especially demethylation is mainly focused on the subclass of PMFs. Cytochrome P450 (CYP) is the key enzyme system involved in the metabolism of PMFs 
+				 		// and is capable of catalyzing hydroxylation and demethylation reactions. The metabolic pathway of PMFs is con- sidered to be identical across the species. The 3  and 4  positions on the B ring of PMFs 
+				 		// are the primary site of biotransformation. The number and position of the hydroxyl and methoxy groups on the B ring of PMFs have a great influence on the metabolism of PMFs (R3).
+	
+				 		// Because the substrates are polymethoxyflavones or metabolites thereof, the following constraints must be met:
+				 		// there must me at least one methoxy group, and one hydroxyl group (obtained from a previous O-demethylation) or,
+				 		// two or more O-methyl groups.
+	      			],
+	      			"references"	: [
+	      				//Burapan, S. et al. (2017); Demethylation of Polymethoxyflavones by Human Gut Bacterium, Blautia sp. MRG-PMF1; J. Agric. Food Chem., 2017, 65 (8), pp 1620–1629; DOI: 10.1021/acs.jafc.7b00408
+				 		// Kim, M. et al. (2014); Metabolism of Kaempferia parviflora Polymethoxyflavones by an Intestinal Bacterium Bautia sp. MRG-PMF1; J. Agric. Food Chem. 2014, 62, 12377−12383; dx.doi.org/10.1021/jf504074n
+				 		// Yang, Y. and Ho, CT. (2009); from Yoshikawa T (ed): Food Factors for Health Promotion.; Forum Nutr. Basel, Karger, 2009, vol 61, pp 64–74     https://www.karger.com/Article/PDF/212739
+	      			]     			
+	      		} , 
+	      		
+	      		"_5_O_DEMETHYLATION_OF_FLAVONE"	:{
+	      			"reactions" 	: ["_3_O_DEMETHYLATION_OF_FLAVONE"],
+	      			"comments"		: [
+				 		// Chemical cleavage of the methyl aryl ether bond requires very rigorous reaction conditions. The time-course monitoring of PMF biotransformations elucidated bioconversion pathways, including the 
+				 		// identification of metabolic intermediates. As a robust flavonoid demethylase, regioselectivity of PMF demethylation generally followed the order C-7 > C-4′ ≈ C-3′ > C-5 > C-3 (R1).
+	
+				 		// The isolated MRGPMF1 was able to metabolize various PMFs to the corresponding demethylated flavonesFrom a kinetics study, the methoxy group on the flavone C-7 position was found to be 
+				 		// preferentially hydrolyzed (R2).
+				 		// In fact, P450-related metabolism of flavonoids especially demethylation is mainly focused on the subclass of PMFs. Cytochrome P450 (CYP) is the key enzyme system involved in the metabolism of PMFs 
+				 		// and is capable of catalyzing hydroxylation and demethylation reactions. The metabolic pathway of PMFs is con- sidered to be identical across the species. The 3  and 4  positions on the B ring of PMFs 
+				 		// are the primary site of biotransformation. The number and position of the hydroxyl and methoxy groups on the B ring of PMFs have a great influence on the metabolism of PMFs (R3).
+	
+				 		// Because the substrates are polymethoxyflavones or metabolites thereof, the following constraints must be met:
+				 		// there must me at least one methoxy group, and one hydroxyl group (obtained from a previous O-demethylation) or,
+				 		// two or more O-methyl groups.
+	      			],
+	      			"references"	: [
+	      				//Burapan, S. et al. (2017); Demethylation of Polymethoxyflavones by Human Gut Bacterium, Blautia sp. MRG-PMF1; J. Agric. Food Chem., 2017, 65 (8), pp 1620–1629; DOI: 10.1021/acs.jafc.7b00408
+				 		// Kim, M. et al. (2014); Metabolism of Kaempferia parviflora Polymethoxyflavones by an Intestinal Bacterium Bautia sp. MRG-PMF1; J. Agric. Food Chem. 2014, 62, 12377−12383; dx.doi.org/10.1021/jf504074n
+				 		// Yang, Y. and Ho, CT. (2009); from Yoshikawa T (ed): Food Factors for Health Promotion.; Forum Nutr. Basel, Karger, 2009, vol 61, pp 64–74     https://www.karger.com/Article/PDF/212739
+	      			]     			
+	      		},      		     		
+	      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN1"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN2"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN3"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN4"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN5"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN6"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN7"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN8"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN9"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN10"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN11"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		}, 
+	      		      		       		
+	      		"HYDROLYSIS_OF_GLYCOSYLATED_CONDENSED_GALLOYL_GROUPS_PATTERN12"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},
+	      		      		       		
+	      		"LACTONIZATION_OF_HEXAHYDROXYDIPHENOLIC_ACID"	:{
+	      			"reactions" 	: [
+	      				"ALDEHYDE_OXIDATION", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4", "LACTONE_HYDROLYSIS_PATTERN1"
+	      				, "LACTONE_HYDROLYSIS_PATTERN2", "LACTONE_HYDROLYSIS_PATTERN3"
+	      				, "ALPHA_OXIDATION_OF_CARBXOYLIC_ACID"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},
+	      		      		       		
+	      		"HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1"	:{
+	      			"reactions" 	: [
+	      				"LACTONIZATION_OF_HEXAHYDROXYDIPHENOLIC_ACID", "BENZOIC_ACID_DECARBOXYLATION"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},      	
+	      		
+	      		"HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2"	:{
+	      			"reactions" 	: [
+	      				"LACTONIZATION_OF_HEXAHYDROXYDIPHENOLIC_ACID", "BENZOIC_ACID_DECARBOXYLATION"
+	      			],
+	      			"comments"		: [],
+	      			"references"	: []     			
+	      		},      	
+	      		
+	      		"GALLOYL_ESTER_HYDROLYSIS"	:{
+	      			"reactions" 	: [
+	      				"LACTONIZATION_OF_HEXAHYDROXYDIPHENOLIC_ACID", "BENZOIC_ACID_DECARBOXYLATION"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2"
+	      			],
+	      			"comments"		: [
+	      				"Deglycosylation must happen first."
+	      			],
+	      			"references"	: [
+	      				// Goel, G. et al. (2005); Interaction of gut microflora with tannins in feeds; Naturwissenschaften (2005) 92: 497–503; DOI 10.1007/s00114-005-0040-7
+	      			]     			
+	      		},       	
+	      		
+	      		"DEPSIDE_HYDROLYSIS"	:{
+	      			"reactions" 	: [
+	      				"LACTONIZATION_OF_HEXAHYDROXYDIPHENOLIC_ACID", "BENZOIC_ACID_DECARBOXYLATION"
+	      				, "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN1", "HYDROLYSIS_OF_CARBOXYLIC_ACID_ESTER_PATTERN2"
+	      			],
+	      			"comments"		: [
+	      				"Deglycosylation must happen first."
+	      			],
+	      			"references"	: [
+	      				// Goel, G. et al. (2005); Interaction of gut microflora with tannins in feeds; Naturwissenschaften (2005) 92: 497–503; DOI 10.1007/s00114-005-0040-7
+	      			]     			
+	      		},
+	      		      		
+	      		"DECARBOXYLATION_OF_FUSED_BENZENE"	:{
+	      			"reactions" 	: [
+	      				"DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN1", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN2"
+	      				, "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN3", "DEHYDROXYLATION_OF_DIBENZOPYRANONE_PATTERN4"
+	      			],
+	      			"comments"		: [
+	      				"This is especially for degradation products of ellagic acids, as the diphenic acids are usually decarboxylated to urolithins first, which are then dehydroxylated."
+	      			],
+	      			"references"	: []     			
+	      		}
+	      		      		
+	
+				 // 1) Mena, P. Bioactivation of High-Molecular-Weight Polyphenols by the Gut Microbiome; 
+				 // DIET-MICROBE INTERACTIONS IN THE GUT; Chapter 6; DOI: http://dx.doi.org/10.1016/B978-0-12-407825-3.00006-X
+				 // "human microbiota have a preference to dehydroxylate the 4'-OH position (para). This phenomenon might be 
+				 // postulated considering the trace amount of 4'-hydroxyphenylpropionic acid compared to its isomer 
+				 // 3'-hydroxyphenylpropionic. Moreover, the favorite dehydroxylation in the para-position by human colonic 
+				 // microbiota has been revealed previously for several flavonoids" (R1).
+	      		      		
+	      		//""	:{
+	      		//	"reactions" 	: [],
+	      		//	"comments"		: [],
+	      		//	"references"	: []     			
+	      		//}      		      		
+	      	},
+	      	       "strict"			: []
+       
+       }
+
+     }
+}
+   
+    

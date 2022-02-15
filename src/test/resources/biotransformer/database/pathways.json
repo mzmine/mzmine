@@ -1,0 +1,471 @@
+// ********************************************************************************************************
+// Author: Djoumbou Feunang, Yannick
+// Cite: Djoumbou Feunang Y, Fiamoncini J, de la Fuente AG, Manach C, Greiner R, and Wishart DS; 
+//  BioTransformer: A Comprehensive Computational Tool for Small Molecule Metabolism Prediction 
+//  and Metabolite Identification; Journal of Cheminformatics; (2019) 11:2; DOI: 10.1186/s13321‐018‐0324‐5
+// ********************************************************************************************************
+
+{
+	"table" : "Pathways",
+	"description" : "this table provides a list of pathways for certain biosystems (organisms).",
+
+	"metabolicPathways" : {
+		"FATTY_ACID_ELONGATION" : {
+			"HUMAN" : {
+
+				"enzymes": [
+				"EC_1_1_1_35", "EC_1_1_1_211", "EC_1_1_1_330",
+				"EC_1_3_1_38", "EC_1_3_1_93",
+				"EC_2_3_1_16", "EC_2_3_1_199",
+				"EC_3_1_2_2",
+				"EC_4_2_1_17", "EC_4_2_1_134"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"FATTY_ACID_DEGRADATION" : {
+			"HUMAN" : {
+
+				"enzymes": [
+				"EC_6_2_1_3","EC_1_3_3_6","EC_1_3_8_7","EC_1_3_8_8","EC_1_3_8_9","EC_4_2_1_17","EC_1_1_1_35",
+				"EC_1_1_1_211","EC_2_3_1_16"
+
+				// ADD EC_2_3_1_9
+
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+
+
+		"PRIMARY_BILE_ACID_BIOSYNTHESIS" : {
+			"HUMAN" : {
+
+				"enzymes": [
+
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"BILE_ACID_METABOLISM" : {
+			"HUMAN" : {
+
+				"enzymes": [
+					"EC_1_1_1_1",
+					// "EC_1_1_1_159"
+					"EC_2_3_1_65",
+					"EC_2_4_1_17",
+					"EC_2_4_1_173",
+					"EC_2_8_2_2",
+					"EC_6_2_1_7"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			},
+
+			"GUTMICRO" : {
+
+				"enzymes": [
+					"BACTERIAL_BILE_SALT_3_HYDROXYSTEROID_DEHYDROGENASE",
+					"BACTERIAL_BILE_SALT_7_HYDROXYSTEROID_DEHYDROGENASE",
+					"BACTERIAL_BILE_SALT_12_HYDROXYSTEROID_DEHYDROGENASE",
+					"EC_3_5_1_24", "DEHYDROXYLASE",
+					"EC_1_1_1_159"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+
+
+		"SECONDARY_BILE_ACID_BIOSYNTHESIS" : {
+			"HUMAN" : {
+
+				"enzymes": [
+
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"GLYCEROLIPID_METABOLISM" : {
+			"HUMAN" : {
+
+				"enzymes": [
+						"EC_2_3_1_15", "EC_2_3_1_20", "EC_2_3_1_22", "EC_2_3_1_51",
+						"EC_2_7_1_94", "EC_2_7_1_107",
+						"EC_3_1_1_X", "EC_3_1_1_3", "EC_3_1_1_23", "EC_3_1_1_26", "EC_3_1_1_34",
+						"EC_3_2_1_22"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"GLYCEROPHOSPHOLIPID_METABOLISM" : {
+			"HUMAN" : {
+
+				"enzymes": [
+					"EC_1_1_1_101", // ADDED BECAUSE OF EVIDENCE IN CYC (NOT KEGG)
+					"EC_2_1_1_71",
+					"EC_2_1_1_17",
+					"EC_2_3_1_15", "EC_2_3_1_23", "EC_2_3_1_51", "EC_2_3_1_42", "EC_2_3_1_43", "EC_2_7_1_107", "EC_2_7_7_41",
+					"EC_2_7_8_X", "EC_2_7_8_1", "EC_2_7_8_5","EC_2_7_8_11", "EC_2_7_8_29","EC_2_7_8_41",
+					"EC_3_1_1_4", "EC_3_1_1_5", "EC_3_1_1_32",
+					"EC_3_1_3_27",
+					"EC_3_1_4_4", "EC_3_1_4_11", "EC_3_1_3_4", "EC_3_1_3_81",
+					"EC_3_5_1_89",
+					"EC_4_1_1_65"
+
+					// Not in KEGG Pathway
+					// "EC_2_3_1_43"
+
+
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"ETHER_LIPID_METABOLISM" : {
+			"HUMAN" : {
+
+				"enzymes": [
+					"EC_1_1_1_101", // ADDED BECAUSE OF EVIDENCE IN CYC AND (ALSO KEGG - might not be in the pathway image but it is link to this pathway in KEGG - http://www.genome.jp/dbget-bin/get_linkdb?-t+pathway+ec:1.1.1.101)
+					"EC_2_3_1_23", "EC_2_3_1_67",
+					"EC_2_4_1_47",
+					"EC_2_5_1_26",
+					"EC_2_7_8_1", "EC_2_7_8_2",
+					"EC_2_8_2_11",
+					"EC_3_1_1_4", "EC_3_1_1_47",
+					"EC_3_1_3_4",
+					"EC_3_3_2_2"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+
+		"SPHINGOLIPID_METABOLISM" : {
+			"HUMAN" : {
+
+				"enzymes": [
+					"EC_1_14_18_5",
+					"EC_1_14_19_17",
+					"EC_2_3_1_24",
+					"EC_2_4_1_47", "EC_2_4_1_80", "EC_2_4_1_274",
+					"EC_2_7_1_138",
+					"EC_2_7_8_27",
+					"EC_2_8_2_11",
+					"EC_3_1_3_4",
+					"EC_3_1_4_12",
+					"EC_3_1_6_8",
+					"EC_3_2_1_18", "EC_3_2_1_23", "EC_3_2_1_45", "EC_3_2_1_46",
+					"EC_3_5_1_23",
+					"EC_2_4_1_228",
+					"EC_2_3_1_24"
+
+					// Glycosphingolipid biosynthesis - ADD these
+					// "EC_1_1_1_102",
+					// "EC_2_4_1_37", "EC_2_4_1_38", "EC_2_4_1_40", "EC_2_4_1_69",
+					// "EC_2_4_1_79",
+					// "EC_2_4_1_86",
+					// "EC_2_4_1_87",
+					// "EC_2_4_1_88",
+					// "EC_2_4_1_152",
+					// "EC_2_4_1_206",
+					// "EC_2_4_1_275",
+					// "EC_2_4_99_4", "EC_2_4_99_6", "EC_2_4_99_8"
+
+
+				],
+
+				"references" : [
+         					      {
+                "Title" : "Sphingolipid metabolism - Homo sapiens (human)",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : "http://www.kegg.jp/kegg-bin/show_pathway?org_name=hsa&mapno=00600&mapscale=&show_description=hide"
+              },
+
+					              {
+                "Title" : "The role of glycosphingolipid metabolism in the developing brain",
+                "PMID" : "",
+                "PCMID" : "PMC2674698",
+                "DOI" : "10.1194/jlr.R800028-JLR200",
+                "URL" : ""
+              },
+
+         					      {
+                "Title" : "Salvage pathways in glycosphingolipid metabolism",
+                "PMID" : "12770781",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : "10.1016/S0300-9084(03)00047-6"
+              },
+                       	{
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"BIOSYNTHESIS_OF_UNSATURATED_FATTY_ACIDS" : {
+			"HUMAN" : {
+
+				"enzymes": [
+					// 3
+
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"BIOSYNTHESIS_OF_AMINO_ACIDS" : {
+			"HUMAN" : {
+
+				"enzymes": [
+
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		"INOSITOL_PHOSPHATE_METABOLISM" : {
+			"HUMAN" : {
+
+				"enzymes": [
+					"EC_2_7_1_67", "EC_2_7_1_68", "EC_2_7_1_137", "EC_2_7_1_149", "EC_2_7_1_150", "EC_2_4_1_198",
+					"EC_2_7_1_153", "EC_2_7_1_154",
+					"EC_2_7_8_11",
+					"EC_3_1_3_36", "EC_3_1_3_64", "EC_3_1_3_66", "EC_3_1_3_67", "EC_3_1_3_86", "EC_3_1_3_95",
+					"EC_3_1_4_11", "EC_3_1_4_50",
+					"EC_3_5_1_89"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		},
+
+		// ADD CUSTOM PATHWAY:
+
+		"MICROBIAL_POLYPHENOL_METABOLISM" : {
+			"GUTMICRO" : {
+
+				"enzymes": [
+					"UNSPECIFIED_GUT_BACTERIAL_ENZYME",
+
+					"EC_3_1_1_1", "EC_3_1_1_2", "EC_3_1_1_20",
+					"EC_3_2_1_X", "EC_3_2_1_20", "EC_3_2_1_21",
+					// "EC_3_2_1_22",
+					// ** e.g. Lactobacillus acidophilus
+					"EC_3_2_1_23",
+					// "EC_3_2_1_24",
+					"EC_3_2_1_31", "EC_3_2_1_40", "EC_3_2_1_147", "EC_1_6_99_1",
+					"FLAVONOID_C_GLYCOSIDASE", "DECARBOXYLASE", "PHENOLIC_ACID_DECARBOXYLASE", "DEMETHYLASE", "DEHYDROXYLASE",
+					"BACTERIAL_LACTONASE", "HYDROXYCINNAMATE_DECARBOXYLASE", "VINYL_PHENOL_REDUCTASE",
+					"ABKAR1", "UNSPECIFIED_BACTERIAL_ISOFLAVONE_REDUCTASE", "UDP_GLUCURONOSYLTRANSFERASE",
+					"EC_2_1_1_6",
+					"SULFOTRANSFERASE",
+					"EC_1_1_1_159", "EC_2_3_1_18", "EC_3_1_6_1", "EC_1_1_1_345", "EC_3_7_1_4"
+				],
+
+				"references" : [
+
+					              {
+                "Title" : "",
+                "PMID" : "",
+                "PCMID" : "",
+                "DOI" : "",
+                "URL" : ""
+              }
+				]
+			}
+		}
+
+		// alpha and beta oxidation should probably be already incporporated into the fatty acyld degradation pathway
+
+		//PEROXISOMAL_BETA_OXIDATION
+		 	//Peroxisomal beta oxidation is mainly used as a chain shortening pathway, and very long fatty acids (e.g., C26 and C24) are exclusive to this mechanism. Theperoxisomal enzymes can shorten chains up to C8 or C6. Thereafter, they are handled by the
+			// mitochondrion. Due to the absence of dehydrogenation in the initial step, amount of energy
+            // produced is relatively lower. (SEEE DOWNLOADED ARTICLE http://pubs.rsc.org/en/Content/ArticleLanding/2012/MB/c2mb25075f#!divAbstract)
+
+
+
+
+		//FATTY_ACYL_HYDROXYLATION
+			// ALPHA_HYDROXYLATION
+			// BETA_HYDROXYLATION
+			// OMEGA_HYDROXYLATION
+				// Cytochrome P450 omega hydroxylase (CYP4) function in fatty acid metabolism and metabolic diseases (DOI: 10.1016/j.bcp.2008.03.004)
+
+		// FATTY_ACID_OXIDATION
+
+
+
+		// "DE_ESTERIFICATION_AND_DEGLYCOSYLATION_OF_NON_LIPIDS" : {
+		// 	"HUMAN" : {
+
+		// 		"enzymes": [
+		// 				"EC_3_2_1_X",
+		// 				"EC_3_2_1_31",
+		// 				"EC_3_2_1_50"
+
+		// 		],
+
+		// 		"references" : [
+
+		// 			              {
+  //               "Title" : "",
+  //               "PMID" : "",
+  //               "DOI" : "",
+  //               "URL" : ""
+  //             }
+		// 		]
+		// 	}
+		// }
+
+		// "" : {
+		// 	"HUMAN" : {
+
+		// 		"enzymes": [
+
+		// 		],
+
+		// 		"references" : [
+
+		// 			              {
+  	//               "Title" : "",
+  	//               "PMID" : "",
+  	//               "DOI" : "",
+  	//               "URL" : ""
+ 	 	//             }
+		// 		]
+		// 	}
+		// },
+	}
+}
