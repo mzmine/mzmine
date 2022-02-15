@@ -700,7 +700,7 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     for (ModularFeature feature : features) {
       IsotopePattern ip = feature.getIsotopePattern();
-      if (ip != null && ip.getNumberOfDataPoints() > 1) {
+      if (ip != null) {
         return true;
       }
     }
