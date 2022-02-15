@@ -49,6 +49,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.visualization.chromatogram.ChromatogramVisualizerModule;
+import io.github.mzmine.modules.visualization.compdb.CompoundDatabaseMatchTab;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.IsotopePatternExportModule;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.export.MSMSExportModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
@@ -382,6 +383,10 @@ public class FeatureTableContextMenu extends ContextMenu {
         e -> SpectraVisualizerModule.addNewSpectrumTab(selectedFeature.getRawDataFile(),
             selectedFeature.getRepresentativeScan(), selectedFeature.getIsotopePattern()));
 
+    final MenuItem showCompoundDBResults = new ConditionalMenuItem("Compound DB search results",
+        () -> selectedRow != null && !selectedRow.getCompoundAnnotations().isEmpty());
+    showCompoundDBResults.setOnAction(e -> CompoundDatabaseMatchTab.addNewTab(table));
+
     final MenuItem showSpectralDBResults = new ConditionalMenuItem("Spectral DB search results",
         () -> !selectedRows.isEmpty() && rowHasSpectralLibraryMatches(selectedRows));
     showSpectralDBResults.setOnAction(
@@ -408,8 +413,9 @@ public class FeatureTableContextMenu extends ContextMenu {
             showInIMSRawDataOverviewItem, showInMobilityMzVisualizerItem, new SeparatorMenuItem(),
             showSpectrumItem, showFeatureFWHMMs1Item, showBestMobilityScanItem,
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
-            new SeparatorMenuItem(), showIsotopePatternItem, showSpectralDBResults,
-            showMatchedLipidSignals, new SeparatorMenuItem(), showPeakRowSummaryItem);
+            new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
+            showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
+            showPeakRowSummaryItem);
   }
 
   private void onShown() {
