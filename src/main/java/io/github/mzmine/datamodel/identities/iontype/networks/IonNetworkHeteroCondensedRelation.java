@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
 /**
  * A relationship of two molecules a+b --> c - H2O represented by 3 IonNetworks
  */
-public class IonNetworkHeteroCondensedRelation implements IonNetworkRelation {
+public class IonNetworkHeteroCondensedRelation extends AbstractIonNetworkRelation {
 
   // the linked network
   private final IonNetwork a;
@@ -50,12 +50,7 @@ public class IonNetworkHeteroCondensedRelation implements IonNetworkRelation {
 
   @Override
   public String getName(IonNetwork ionNetwork) {
-    if (ionNetwork.getID() == a.getID() || ionNetwork.getID() == b.getID()) {
-      return "M(" + condensed.getID() + "_condensed)";
-    } else if (ionNetwork.getID() == condensed.getID()) {
-      return "2Mcondensed(" + a.getID() + "," + b.getID() + ")";
-    }
-    return "";
+    return String.format("%d+%d→AB(%d)+H₂O", a.getID(), b.getID(), condensed.getID());
   }
 
   @Override
@@ -65,6 +60,6 @@ public class IonNetworkHeteroCondensedRelation implements IonNetworkRelation {
 
   @Override
   public String getDescription() {
-    return "condensation (X+Y-->XY+H2O)";
+    return "condensation (X+Y→XY+H₂O)";
   }
 }

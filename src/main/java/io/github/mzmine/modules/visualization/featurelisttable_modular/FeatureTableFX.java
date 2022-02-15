@@ -34,16 +34,39 @@ import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentio
 import io.github.mzmine.datamodel.features.types.FeatureShapeType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
 import io.github.mzmine.datamodel.features.types.ImageType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.ConsensusFormulaListType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaMassType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.SimpleFormulaListType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.MsMsMultimerVerifiedType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.PartnerIdsType;
 import io.github.mzmine.datamodel.features.types.fx.ColumnID;
 import io.github.mzmine.datamodel.features.types.fx.ColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.ExpandableType;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
-import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.MatchingSignalsType;
+import io.github.mzmine.datamodel.features.types.numbers.MzAbsoluteDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.SizeType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.NumberRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CombinedScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CosineScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.MsMsScoreType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.datatype.DataTypeCheckListParameter;
@@ -67,6 +90,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -135,9 +160,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     // create custom button context menu to select columns
     FeatureTableColumnMenuHelper contextMenuHelper = new FeatureTableColumnMenuHelper(this);
     // Adding additional menu options
-    MenuItem showSmallItem = new MenuItem("Compact LC/GC-MS");
-    showSmallItem.setOnAction(e -> showCompactChromatographyColumns());
-    contextMenuHelper.getAdditionalMenuItems().add(showSmallItem);
+    addContextMenuItem(contextMenuHelper, "Compact LC/GC-MS",
+        e -> showCompactChromatographyColumns());
+    addContextMenuItem(contextMenuHelper, "Toggle Ion Identities", e -> toggleIonIdentities());
+    addContextMenuItem(contextMenuHelper, "Toggle Library Matches", e -> toggleLibraryMatches());
 
     final KeyCodeCombination keyCodeCopy = new KeyCodeCombination(KeyCode.C,
         KeyCombination.CONTROL_ANY);
@@ -146,6 +172,94 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         copySelectionToClipboard(this);
       }
     });
+  }
+
+  private void toggleIonIdentities() {
+    final var columnEntry = getColumnEntry(IonIdentityListType.class);
+    if (columnEntry == null) {
+      return;
+    }
+
+    final ColumnID mainColumn = columnEntry.getValue();
+    final boolean toggledState = !rowTypesParameter.isDataTypeVisible(mainColumn);
+    rowTypesParameter.setDataTypeVisible(mainColumn, toggledState);
+    final String parentHeader = mainColumn.getCombinedHeaderString();
+
+    // basic
+    setVisible(ColumnType.ROW_TYPE, parentHeader, IonNetworkIDType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, IonIdentityListType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, SizeType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, NeutralMassType.class, toggledState);
+
+    // always false
+    setVisible(ColumnType.ROW_TYPE, parentHeader, PartnerIdsType.class, false);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, MsMsMultimerVerifiedType.class, false);
+
+    // formula
+    final ModularFeatureList flist = getFeatureList();
+    boolean hasFormula =
+        flist != null && flist.stream().flatMap(row -> row.getIonIdentities().stream())
+            .anyMatch(ion -> ion.getMolFormulas().size() > 0);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, ConsensusFormulaListType.class,
+        toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, SimpleFormulaListType.class,
+        toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, FormulaMassType.class,
+        toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, RdbeType.class, toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, MZType.class, toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, MzPpmDifferenceType.class,
+        toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, MzAbsoluteDifferenceType.class,
+        toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, IsotopePatternScoreType.class,
+        toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, MsMsScoreType.class, toggledState && hasFormula);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, CombinedScoreType.class,
+        toggledState && hasFormula);
+    //    for(var subCol : columnEntry.getKey().getColumns()) {
+    //      final ColumnID columnID = newColumnMap.get(subCol);
+    //      rowTypesParameter.setDataTypeVisible(columnID, toggledState);
+    //    }
+    // keep states of all row types but check graphical columns
+    applyVisibilityParametersToAllColumns();
+  }
+
+  private void toggleLibraryMatches() {
+    final var columnEntry = getColumnEntry(SpectralLibraryMatchesType.class);
+    if (columnEntry == null) {
+      return;
+    }
+
+    final ColumnID mainColumn = columnEntry.getValue();
+    final boolean toggledState = !rowTypesParameter.isDataTypeVisible(mainColumn);
+    rowTypesParameter.setDataTypeVisible(mainColumn, toggledState);
+    final String parentHeader = mainColumn.getCombinedHeaderString();
+
+    // basic
+    setVisible(ColumnType.ROW_TYPE, parentHeader, SpectralLibraryMatchesType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, IonAdductType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, FormulaType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, SmilesStructureType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, InChIStructureType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, PrecursorMZType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, NeutralMassType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, CosineScoreType.class, toggledState);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, MatchingSignalsType.class, toggledState);
+
+    // always false
+    setVisible(ColumnType.ROW_TYPE, parentHeader, CompoundNameType.class, false);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, CCSType.class, false);
+    setVisible(ColumnType.ROW_TYPE, parentHeader, CCSRelativeErrorType.class, false);
+
+    applyVisibilityParametersToAllColumns();
+  }
+
+  private void addContextMenuItem(FeatureTableColumnMenuHelper contextMenuHelper, String title,
+      EventHandler<ActionEvent> action) {
+    MenuItem item = new MenuItem(title);
+    item.setOnAction(action);
+    contextMenuHelper.getAdditionalMenuItems().add(item);
   }
 
   private void setTableEditable(boolean state) {
@@ -257,6 +371,16 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
         }
       }
     }
+  }
+
+  private Entry<TreeTableColumn<ModularFeatureListRow, ?>, ColumnID> getColumnEntry(
+      Class<? extends DataType> dtClass) {
+    for (var col : newColumnMap.entrySet()) {
+      if (col.getValue().getDataType().getClass().equals(dtClass)) {
+        return col;
+      }
+    }
+    return null;
   }
 
   /**
@@ -373,10 +497,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       return;
     }
 
-    if (id.getType() == ColumnType.ROW_TYPE) {
-      column.setVisible(rowTypesParameter.isDataTypeVisible(id));
-    } else {
+    if (id.getType() == ColumnType.FEATURE_TYPE) {
       column.setVisible(featureTypesParameter.isDataTypeVisible(id));
+    } else {
+      column.setVisible(rowTypesParameter.isDataTypeVisible(id));
     }
   }
 
@@ -607,28 +731,27 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
   }
 
   private void showCompactChromatographyColumns() {
-    rowTypesParameter.setAll(false);
+    // disable all feature types but height
     featureTypesParameter.setAll(false);
+    setVisible(ColumnType.FEATURE_TYPE, HeightType.class, true);
 
-    // set row types
-    setVisible(ColumnType.ROW_TYPE, IDType.class, true);
-    setVisible(ColumnType.ROW_TYPE, RTType.class, true);
-    setVisible(ColumnType.ROW_TYPE, MZType.class, true);
-    setVisible(ColumnType.ROW_TYPE, HeightType.class, true);
-    setVisible(ColumnType.ROW_TYPE, AreaType.class, true);
+    // keep states of all row types but check graphical columns
     setVisible(ColumnType.ROW_TYPE, FeatureShapeType.class,
         getFeatureList().getNumberOfRawDataFiles() <= 10);
     setVisible(ColumnType.ROW_TYPE, FeaturesType.class, true);
-
-    // set feature types
-    setVisible(ColumnType.FEATURE_TYPE, HeightType.class, true);
 
     applyVisibilityParametersToAllColumns();
   }
 
   private void setVisible(ColumnType columnType, Class clazz, boolean visible) {
+    setVisible(columnType, "", clazz, visible);
+  }
+
+  private void setVisible(ColumnType columnType, String parentHeader, Class clazz,
+      boolean visible) {
     final DataType type = DataTypes.get(clazz);
-    final String key = type.getHeaderString();
+    String key = (parentHeader != null && parentHeader.isBlank() ? parentHeader + ":" : "")
+                 + type.getHeaderString();
     if (columnType == ColumnType.ROW_TYPE) {
       rowTypesParameter.setDataTypeVisible(key, visible);
     } else {
@@ -681,10 +804,10 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
 
     for (TreeTableColumn<?, ?> tableColumn : tableColumns) {
       if (columns.contains(tableColumn)) {
-        if(newColumnMap.get(tableColumn).getRaw() != null) {
+        if (newColumnMap.get(tableColumn).getRaw() != null) {
           strb.append(newColumnMap.get(tableColumn).getRaw().getName()).append(":");
         }
-        strb.append(((DataType)tableColumn.getUserData()).getHeaderString()).append('\t');
+        strb.append(((DataType) tableColumn.getUserData()).getHeaderString()).append('\t');
       }
     }
 
@@ -724,7 +847,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       if (col.getUserData() != null) {
         columns.add(col);
       }
-      if(!col.getColumns().isEmpty()) {
+      if (!col.getColumns().isEmpty()) {
         columns.addAll(getVisibleColumsRecursive(col.getColumns()));
       }
     }

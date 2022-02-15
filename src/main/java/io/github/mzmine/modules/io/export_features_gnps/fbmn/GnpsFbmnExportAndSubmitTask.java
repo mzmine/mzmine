@@ -67,7 +67,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private final int totalSteps = 4;
   private int currentStep = 0;
   private Task currentTask;
-  private String currentDescription = "Waiting";
+  private String currentDescription = "Export to GNPS FBMN and IIMN";
 
   GnpsFbmnExportAndSubmitTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
