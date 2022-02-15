@@ -32,7 +32,10 @@ public class PaintScale extends LookupPaintScale {
   private PaintScaleBoundStyle paintScaleBoundStyle;
 
   public PaintScale(Range<Double> scaleRange) {
-    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint(), new Color(0, 0, 0, 0f));
+    // we add a minimum value on top of the upper endpoint to avoid errors for empty datasets
+    // with lower==upper value
+    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint() + Double.MIN_VALUE,
+        new Color(0, 0, 0, 0f));
   }
 
   public PaintScale(PaintScaleColorStyle paintScaleColorStyle,
@@ -42,7 +45,9 @@ public class PaintScale extends LookupPaintScale {
 
   public PaintScale(PaintScaleColorStyle paintScaleColorStyle,
       PaintScaleBoundStyle paintScaleBoundStyle, Range<Double> scaleRange, Color color) {
-    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint(), color);
+    // we add a minimum value on top of the upper endpoint to avoid errors for empty datasets
+    // with lower==upper value
+    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint() + Double.MIN_VALUE, color);
     this.paintScaleColorStyle = paintScaleColorStyle;
     this.paintScaleBoundStyle = paintScaleBoundStyle;
   }
