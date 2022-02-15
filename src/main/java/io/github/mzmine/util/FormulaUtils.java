@@ -546,7 +546,7 @@ public class FormulaUtils {
 
         final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
             -charge);
-        if (!adjusted || formula.getCharge() != null) {
+        if (!adjusted || molecularFormula.getCharge() != 0) {
           logger.info(() -> "Cannot determine neutral formula by adjusting protons. " + string);
           return null;
         }

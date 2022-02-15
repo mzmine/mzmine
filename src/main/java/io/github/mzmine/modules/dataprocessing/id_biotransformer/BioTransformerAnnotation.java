@@ -52,6 +52,6 @@ public interface BioTransformerAnnotation extends CompoundDBAnnotation {
 
     return new BioTransformerAnnotationImpl(MolecularFormulaManipulator.getString(neutralFormula),
         mz, ionType, smiles, lineValues[INCHI_INDEX], lineValues[REACTION_INDEX],
-        lineValues[REACTION_INDEX], Float.valueOf(lineValues[ALOGP_INDEX]));
+        lineValues[ENZYME_INDEX], Float.valueOf(lineValues[ALOGP_INDEX]));
   }
 }

@@ -44,10 +44,10 @@ public class BioTransformerLibrary {
 
     final FileReader dbFileReader = new FileReader(file);
     final CSVParser parser = new CSVParser(dbFileReader, ',');
-    final int numLines = parser.getLastLineNumber();
 
-    final List<CompoundDBAnnotation> annotations = new ArrayList<>(numLines * ionTypes.length);
+    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
 
+    parser.getLine();
     String[] line = null;
     while ((line = parser.getLine()) != null && !canceled.get()) {
       for (final IonType ionType : ionTypes) {

@@ -31,8 +31,6 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -41,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -309,26 +306,9 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
   @Override
   public String toString() {
-
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    final NumberFormat scoreFormat = MZmineCore.getConfiguration().getScoreFormat();
-    final IonType adductType = getAdductType();
-
     final StringBuilder b = new StringBuilder();
-
-    if (getCompundName() != null) {
-      b.append(getCompundName()).append(",");
-    }
-    if (getAdductType() != null) {
-      b.append(" ").append(getAdductType().toString(false)).append(", ");
-    }
-    if (getPrecursorMZ() != null) {
-      b.append(mzFormat.format(getPrecursorMZ())).append(", ");
-    }
-    if (getScore() != null) {
-      b.append(scoreFormat.format(getScore()));
-    }
-    return b.toString();
+    data.forEach((k, v) -> b.append(k.getFormattedStringCheckType(v)).append(" "));
+    return b.toString().trim();
   }
 
   @Override

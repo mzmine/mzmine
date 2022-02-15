@@ -28,11 +28,11 @@ public class BioTransformerUtil {
 
     b.append(" -ismi \"").append(annotation.getSmiles()).append("\"");
 
+    b.append(" -ocsv ").append(outputFile.getAbsolutePath());
+
     final String cmdOptions = param.getValue(BioTransformerParameters.cmdOptions);
     b.append(" ").append(cmdOptions);
 
-    b.append(" -oscv ").append(outputFile.getAbsolutePath());
-
-    return b.toString();
+    return b.toString().trim();
   }
 }
