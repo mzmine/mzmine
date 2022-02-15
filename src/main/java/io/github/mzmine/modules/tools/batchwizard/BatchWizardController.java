@@ -740,7 +740,8 @@ public class BatchWizardController {
     final boolean useCorrGrouping = minDP > 3;
     RTTolerance rtTol = hplcParam.getValue(
         BatchWizardHPLCParameters.approximateChromatographicFWHM);
-    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 10f : 0.7f), rtTol.getUnit());
+    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
+        rtTol.getUnit());
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(CorrelateGroupingModule.class);
