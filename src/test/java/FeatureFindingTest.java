@@ -54,6 +54,7 @@ import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.modules.io.import_rawdata_all.AdvancedSpectraImportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
@@ -133,6 +134,7 @@ public class FeatureFindingTest {
 
     AllSpectralDataImportParameters paramDataImport = new AllSpectralDataImportParameters();
     paramDataImport.setParameter(AllSpectralDataImportParameters.fileNames, files);
+    paramDataImport.setParameter(SpectralLibraryImportParameters.dataBaseFiles, new File[0]);
     paramDataImport.setParameter(AllSpectralDataImportParameters.advancedImport, true);
     AdvancedSpectraImportParameters advancedImport = paramDataImport.getParameter(
         AllSpectralDataImportParameters.advancedImport).getEmbeddedParameters();

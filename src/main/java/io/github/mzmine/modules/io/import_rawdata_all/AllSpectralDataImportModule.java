@@ -121,9 +121,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
 
     // start importing spectral libraries first
     final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
-    for (File f : libraryFiles) {
-      Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
-      tasks.add(newTask);
+    if (libraryFiles != null) {
+      for (File f : libraryFiles) {
+        Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
+        tasks.add(newTask);
+      }
     }
 
     // Find common prefix in raw file names if in GUI mode
@@ -132,8 +134,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     // one storage for all files imported in the same task as they are typically analyzed together
     final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
-    final List<RawDataFileType> fileTypes = Arrays.stream(fileNames).<RawDataFileType>mapMulti(
-        (filename, consumer) -> consumer.accept(
+    final List<RawDataFileType> fileTypes = Arrays.stream(fileNames)
+        .<RawDataFileType>mapMulti((filename, consumer) -> consumer.accept(
             RawDataFileTypeDetector.detectDataFileType(filename))).toList();
     final long numTdf = fileTypes.stream().filter(type -> type.equals(RawDataFileType.BRUKER_TDF))
         .count();
