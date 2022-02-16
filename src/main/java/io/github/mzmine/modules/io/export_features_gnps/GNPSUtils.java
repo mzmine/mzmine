@@ -98,7 +98,6 @@ public class GNPSUtils {
               .getValue();
       File iinEdges = !exportIIN ? null
           : FileAndPathUtil.getRealFilePath(folder, name + "_edges_msannotation", "csv");
-      ;
 
       return submitFbmnJob(mgf, quan, meta, new File[]{iinEdges}, title, email, username, password,
           presets, openWebsite);
@@ -115,8 +114,7 @@ public class GNPSUtils {
       String password, String presets, boolean openWebsite) throws IOException {
     // NEEDED files
     if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
-      CloseableHttpClient httpclient = HttpClients.createDefault();
-      try {
+      try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
         MultipartEntity entity = new MultipartEntity();
 
         // ######################################################
@@ -151,8 +149,7 @@ public class GNPSUtils {
         httppost.setEntity(entity);
 
         logger.info("Submitting GNPS job " + httppost.getRequestLine());
-        CloseableHttpResponse response = httpclient.execute(httppost);
-        try {
+        try (CloseableHttpResponse response = httpclient.execute(httppost)) {
           logger.info("GNPS submit response status: " + response.getStatusLine());
           HttpEntity resEntity = response.getEntity();
           if (resEntity != null) {
@@ -165,18 +162,14 @@ public class GNPSUtils {
             }
             EntityUtils.consume(resEntity);
           }
-        } finally {
-          response.close();
         }
-      } finally {
-        httpclient.close();
       }
     }
     return "";
   }
 
 
-  public static String submitMASSTJob(DataPoint[] data, double precursorMZ, MasstDatabase database,
+  public static boolean submitMASSTJob(DataPoint[] data, double precursorMZ, MasstDatabase database,
       double minCosine, double parentMzTol, double fragmentMzTol, int minMatchedSignals,
       boolean searchAnalogs, boolean openWebsite) throws IOException {
     return submitMASSTJob("MZmine3 MASST submission", data, precursorMZ, database, minCosine,
@@ -200,10 +193,10 @@ public class GNPSUtils {
    * @param username          optional username
    * @param password          optional password
    * @param openWebsite       open the website if successfull
-   * @return the website for the GNPS job if successfull. Otherwise an empty string
+   * @return true if the request was successful
    * @throws IOException
    */
-  public static String submitMASSTJob(String description, DataPoint[] data, double precursorMZ,
+  public static boolean submitMASSTJob(String description, DataPoint[] data, double precursorMZ,
       MasstDatabase database, double minCosine, double parentMzTol, double fragmentMzTol,
       int minMatchedSignals, boolean searchAnalogs, String email, String username, String password,
       boolean openWebsite) throws IOException {
@@ -211,21 +204,24 @@ public class GNPSUtils {
       logger.warning(() -> String.format(
           "Cannot MASST search when spectrum contains less data points (%d) than minimum matched signals (%d).",
           data.length, minMatchedSignals));
-      return "";
+      return false;
     }
     if (precursorMZ <= 1) {
       logger.warning("Cannot MASST search with this precursor m/z=" + precursorMZ);
-      return "";
+      return false;
     }
 
     final String data_tab_sep = Arrays.stream(data).map(d -> d.getMZ() + "\t" + d.getIntensity())
         .collect(Collectors.joining("\n"));
 
-    CloseableHttpClient client = HttpClients.createDefault();
-    try {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpPost httpPost = new HttpPost(MASST_SUBMIT_URL);
 
       List<NameValuePair> params = new ArrayList<>();
+      if ("MZMINE_TEST_SUBMISSION_ADD_TEST_PART".equals(description)) {
+        // only do test submission
+        params.add(new BasicNameValuePair("test", ""));
+      }
       params.add(new BasicNameValuePair("peaks", data_tab_sep));
       params.add(new BasicNameValuePair("precursormz", "" + precursorMZ));
       params.add(new BasicNameValuePair("pmtolerance", "" + parentMzTol));
@@ -241,9 +237,8 @@ public class GNPSUtils {
       httpPost.setEntity(new UrlEncodedFormEntity(params));
 
       logger.info("Submitting GNPS job " + httpPost.getRequestLine());
-      CloseableHttpResponse response = client.execute(httpPost);
 
-      try {
+      try (CloseableHttpResponse response = client.execute(httpPost)) {
         logger.info("GNPS submit response status: " + response.getStatusLine());
         HttpEntity resEntity = response.getEntity();
         if (resEntity != null) {
@@ -257,16 +252,13 @@ public class GNPSUtils {
               openWebsite(requestResult);
             }
             EntityUtils.consume(resEntity);
+            return true;
           }
         }
-      } finally {
-        response.close();
       }
-    } finally {
-      client.close();
     }
 
-    return "";
+    return false;
   }
 
   /**

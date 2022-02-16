@@ -96,14 +96,14 @@ public class GnpsMasstSubmitTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      String url = GNPSUtils.submitMASSTJob(description, dataPoints, precursorMZ, database,
+      boolean success = GNPSUtils.submitMASSTJob(description, dataPoints, precursorMZ, database,
           minCosine, parentMzTol, fragmentMzTol, minMatchedSignals, searchAnalogs, email, username,
           password, openWebsite);
-      if (url == null || url.isEmpty()) {
-        logger.log(Level.WARNING, "GNPS submit failed (response url empty)");
+      if (!success) {
+        logger.log(Level.WARNING, "GNPS MASST submit failed");
       }
     } catch (Exception e) {
-      logger.log(Level.WARNING, "GNPS submit failed", e);
+      logger.log(Level.WARNING, "GNPS MASST submit failed", e);
     }
 
     setStatus(TaskStatus.FINISHED);

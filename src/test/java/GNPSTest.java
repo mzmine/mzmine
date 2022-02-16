@@ -57,8 +57,9 @@ public class GNPSTest {
         .map(dp -> new SimpleDataPoint(Double.parseDouble(dp[0]), Double.parseDouble(dp[1])))
         .toArray(DataPoint[]::new);
 
-    String result = GNPSUtils.submitMASSTJob("MZmine3 quickstart", dps, 1044.66, MasstDatabase.ALL,
-        0.7, 1d, 0.5, 6, false, "", "", "", true);
-    Assert.assertFalse(result.isBlank());
+    // the description will limit the submission to a test
+    boolean success = GNPSUtils.submitMASSTJob("MZMINE_TEST_SUBMISSION_ADD_TEST_PART", dps, 1044.66,
+        MasstDatabase.ALL, 0.7, 1d, 0.5, 6, false, "", "", "", false);
+    Assert.assertTrue(success);
   }
 }
