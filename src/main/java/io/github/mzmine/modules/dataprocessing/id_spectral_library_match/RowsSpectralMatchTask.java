@@ -107,7 +107,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.scan = scan;
     this.rows = null;
-    this.libraries = parameters.getValue(SingleSpectrumLibrarySearchParameters.libraries);
+    this.libraries = parameters.getValue(SingleSpectrumLibrarySearchParameters.libraries)
+        .getMatchingLibraries();
     this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
         .collect(Collectors.joining(", "));
     this.description = String.format("Spectral library matching for Scan %s in %d libraries: %s",
@@ -156,7 +157,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.rows = rows;
     this.scan = null;
-    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries);
+    this.libraries = parameters.getValue(SpectralLibrarySearchParameters.libraries)
+        .getMatchingLibraries();
     this.librariesJoined = libraries.stream().map(SpectralLibrary::getName)
         .collect(Collectors.joining(", "));
     this.description = String.format("Spectral library matching for %d rows in %d libraries: %s",
