@@ -459,8 +459,7 @@ public class BatchWizardController {
     param.getParameter(MassDetectionParameters.dataFiles)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
-    param.getParameter(MassDetectionParameters.scanTypes).setValue(
-        cbIonMobility.isSelected() ? SelectedScanTypes.MOBLITY_SCANS : SelectedScanTypes.SCANS);
+    param.getParameter(MassDetectionParameters.scanTypes).setValue(SelectedScanTypes.SCANS);
     param.getParameter(MassDetectionParameters.massDetector).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));
