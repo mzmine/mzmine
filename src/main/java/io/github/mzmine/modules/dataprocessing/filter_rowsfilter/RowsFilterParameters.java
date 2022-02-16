@@ -44,9 +44,6 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final String defaultGrouping = "No parameters defined";
 
-  public static final String[] removeRowChoices = {"Keep rows that match all criteria",
-      "Remove rows that match all criteria"};
-
   public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Name suffix",
@@ -103,9 +100,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
       new StringParameter("Text in comment",
           "Only rows that contain this text in their comment field will be retained."));
 
-  public static final ComboParameter<String> REMOVE_ROW = new ComboParameter<String>(
+  public static final ComboParameter<RowsFilterChoices> REMOVE_ROW = new ComboParameter<>(
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
-      removeRowChoices, removeRowChoices[0]);
+      RowsFilterChoices.values(), RowsFilterChoices.KEEP_MATCHING);
 
 
   public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
