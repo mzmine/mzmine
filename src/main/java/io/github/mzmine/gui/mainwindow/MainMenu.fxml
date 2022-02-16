@@ -544,8 +544,10 @@
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
-    <MenuItem text="Processing wizard"
-      onAction="#showWizardTab"
+  </Menu>
+
+  <Menu text="Processing wizard">
+    <MenuItem text="LC-MS / LC-IMS-MS workflow" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
@@ -553,7 +555,6 @@
       </accelerator>
     </MenuItem>
   </Menu>
-
 
   <!-- WINDOWS -->
   <WindowsMenu/>
