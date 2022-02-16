@@ -41,6 +41,8 @@ import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportTask;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -117,6 +119,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
+    // start importing spectral libraries first
+    final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
+    for (File f : libraryFiles) {
+      Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
+      tasks.add(newTask);
+    }
+
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
@@ -132,11 +141,13 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         .count();
     if (numTdf > 0) {
       TDFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numTdf));
+                                               .getParameter(MZminePreferences.numOfThreads)
+                                               .getValue() / numTdf));
     }
     if (numTsf > 0) {
       TSFUtils.setDefaultNumThreads((int) (MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads).getValue() / numTsf));
+                                               .getParameter(MZminePreferences.numOfThreads)
+                                               .getValue() / numTsf));
     }
 
     for (int i = 0; i < fileNames.length; i++) {
@@ -267,7 +278,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
-        + " and file " + file.getAbsolutePath());
+                   + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
         createTask(fileType, project, file, newMZmineFile, module, parameters, moduleCallDate),

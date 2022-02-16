@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -136,11 +137,6 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
     }
 
     File[] thatValue = thatParam.getValue();
-    if(thatValue.length != value.length) {
-      return false;
-    }
-
-    boolean b = List.of(value).containsAll(List.of(thatValue));
-    return b;
+    return Arrays.equals(value, thatValue);
   }
 }
