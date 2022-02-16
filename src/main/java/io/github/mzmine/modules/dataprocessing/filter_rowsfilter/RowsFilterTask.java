@@ -195,7 +195,7 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByCharge = parameters.getValue(RowsFilterParameters.CHARGE);
     final boolean filterByKMD = parameters.getValue(RowsFilterParameters.KENDRICK_MASS_DEFECT);
     final boolean filterByMS2 = parameters.getValue(RowsFilterParameters.MS2_Filter);
-    final String removeRowString = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
+    final RowsFilterChoices filterOption = parameters.getValue(RowsFilterParameters.REMOVE_ROW);
     Double minCount = parameters.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT)
         .getEmbeddedParameter().getValue();
     final boolean renumber = parameters.getValue(RowsFilterParameters.Reset_ID);
@@ -248,9 +248,9 @@ public class RowsFilterTask extends AbstractTask {
         RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters().createFilter();
 
     int rowsCount = 0;
-    boolean removeRow;
-
-    removeRow = !removeRowString.equals(RowsFilterParameters.removeRowChoices[0]);
+    // if keep is selected we remove rows on failed criteria
+    // otherwise we remove those that match all criteria
+    boolean removeFailed = RowsFilterChoices.KEEP_MATCHING == filterOption;
 
     // Keep rows that don't match any criteria. Keep by default.
     boolean filterRowCriteriaFailed;
@@ -274,7 +274,7 @@ public class RowsFilterTask extends AbstractTask {
       final FeatureListRow row = iterator.next();
       filterRowCriteriaFailed = false;
 
-      final boolean hasMS2 = row.getAllFragmentScans().isEmpty();
+      final boolean hasMS2 = row.hasMs2Fragmentation();
 
       // if we keep all with MS2 -> jump to adding the feature in
       if (!(keepAllWithMS2 && hasMS2)) {
@@ -477,7 +477,7 @@ public class RowsFilterTask extends AbstractTask {
         }
 
         // Check ms2 filter .
-        if (filterByMS2 && hasMS2) {
+        if (filterByMS2 && !hasMS2) {
           filterRowCriteriaFailed = true;
         }
 
@@ -487,7 +487,7 @@ public class RowsFilterTask extends AbstractTask {
       // Only remove rows that match *all* of the criteria, so add
       // rows that fail any of the criteria.
       // Only add the row if none of the criteria have failed.
-      boolean keepRow = (keepAllWithMS2 && hasMS2) || filterRowCriteriaFailed == removeRow;
+      boolean keepRow = (keepAllWithMS2 && hasMS2) || filterRowCriteriaFailed != removeFailed;
       if (processInCurrentList) {
         if (keepRow) {
           rowsCount++;
