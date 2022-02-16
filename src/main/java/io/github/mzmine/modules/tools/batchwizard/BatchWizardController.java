@@ -561,9 +561,13 @@ public class BatchWizardController {
     groupParam.setParameter(GroupMS2SubParameters.mzTol,
         msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
     groupParam.setParameter(GroupMS2SubParameters.combineTimsMsMs, false);
-    groupParam.setParameter(GroupMS2SubParameters.limitRTByFeature, minDP > 4);
+    boolean limitByRTEdges = minDP >= 4;
+    groupParam.setParameter(GroupMS2SubParameters.limitRTByFeature, limitByRTEdges);
     groupParam.setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, true);
-    groupParam.setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(fwhm * 3, Unit.MINUTES));
+    // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early
+    // change rt tol depending on number of datapoints
+    groupParam.setParameter(GroupMS2SubParameters.rtTol,
+        new RTTolerance(limitByRTEdges ? fwhm * 3 : fwhm, Unit.MINUTES));
     groupParam.setParameter(GroupMS2SubParameters.outputNoiseLevel, hasIMS);
     groupParam.getParameter(GroupMS2SubParameters.outputNoiseLevel).getEmbeddedParameter().setValue(
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
@@ -736,7 +740,8 @@ public class BatchWizardController {
     final boolean useCorrGrouping = minDP > 3;
     RTTolerance rtTol = hplcParam.getValue(
         BatchWizardHPLCParameters.approximateChromatographicFWHM);
-    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 10f : 0.7f), rtTol.getUnit());
+    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
+        rtTol.getUnit());
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(CorrelateGroupingModule.class);
