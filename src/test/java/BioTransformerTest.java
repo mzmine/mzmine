@@ -3,6 +3,7 @@ import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBA
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerAnnotationImpl;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerLibrary;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
@@ -23,7 +24,6 @@ public class BioTransformerTest {
 
   @Test
   void testCmdGeneration() {
-
     final File outputFile = new File("valsartan-transformation.csv");
     final File path = new File("BioTransformer3.0.jar");
     String expected = "java -jar " + path.getAbsolutePath() + " -k pred -b env -s 1 "
@@ -58,9 +58,11 @@ public class BioTransformerTest {
       logger.info(annotation.toString());
     }
 
+    final CompoundDBAnnotation expected = new BioTransformerAnnotationImpl("C23H29N5O",
+        392.244486548d, new IonType(IonModification.H),
+        "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C", "QMAQKWMYJDPUDV-UHFFFAOYSA-N",
+        "EAWAG_RULE_BT0051_PATTERN3", "BTM00001", 2.3947f);
     Assertions.assertEquals(9, compoundDBAnnotations.size());
-    Assertions.assertEquals(
-        "EAWAG_RULE_BT0051_PATTERN3 C23H29N5O 392.2445 [M+H]+ CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C 2,39 QMAQKWMYJDPUDV-UHFFFAOYSA-N BTM00001",
-        compoundDBAnnotations.get(0).toString());
+    Assertions.assertEquals(expected, compoundDBAnnotations.get(0));
   }
 }

@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -139,6 +140,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
               value.getClass(), actualKey.getClass()));
     }
     return (T) data.put(actualKey, value);
+  }
+
+  @Override
+  public Set<DataType<?>> getTypes() {
+    return data.keySet();
   }
 
   /**
@@ -320,7 +326,7 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       return false;
     }
     SimpleCompoundDBAnnotation that = (SimpleCompoundDBAnnotation) o;
-    return data.equals(that.data);
+    return Objects.equals(data, that.data);
   }
 
   @Override
