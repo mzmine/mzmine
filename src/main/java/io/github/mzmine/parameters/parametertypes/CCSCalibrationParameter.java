@@ -21,13 +21,14 @@ package io.github.mzmine.parameters.parametertypes;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.parameters.UserParameter;
 import java.util.Collection;
+import javafx.scene.layout.BorderPane;
 import org.w3c.dom.Element;
 
 /**
  * Parameter to store a calibration, does not have a visible component.
  */
 public class CCSCalibrationParameter implements
-    UserParameter<CCSCalibration, CCSCalibrationComponent> {
+    UserParameter<CCSCalibration, BorderPane> {
 
   private final String name;
   private final String description;
@@ -77,23 +78,23 @@ public class CCSCalibrationParameter implements
   }
 
   @Override
-  public CCSCalibrationComponent createEditingComponent() {
-    return null;
+  public BorderPane createEditingComponent() {
+    return new BorderPane();
   }
 
   @Override
-  public void setValueFromComponent(CCSCalibrationComponent ccsCalibrationComponent) {
+  public void setValueFromComponent(BorderPane ccsCalibrationComponent) {
     // no component
   }
 
   @Override
-  public void setValueToComponent(CCSCalibrationComponent ccsCalibrationComponent,
+  public void setValueToComponent(BorderPane ccsCalibrationComponent,
       CCSCalibration newValue) {
 // no component
   }
 
   @Override
-  public UserParameter<CCSCalibration, CCSCalibrationComponent> cloneParameter() {
+  public UserParameter<CCSCalibration, BorderPane> cloneParameter() {
     final CCSCalibrationParameter param = new CCSCalibrationParameter(name, description);
     param.setValue(value);
     return param;
