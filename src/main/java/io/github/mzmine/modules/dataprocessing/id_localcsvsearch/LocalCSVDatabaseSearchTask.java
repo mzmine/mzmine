@@ -244,7 +244,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
               ? values[type.getColumnIndex()] : null);
     }
 
-//    lineID = entry.get();
     final String lineName = entry.get(compoundNameType);
     final String lineFormula = entry.get(formulaType);
     final String lineAdduct = entry.get(adductType);

@@ -32,10 +32,10 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class CompoundDatabaseMatchPane extends BorderPane {
 
-  public static final int structureWidth = (int) (
-      Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3);
-  public static final int structureHeight = (int) (
-      Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 6);
+  public static final int structureWidth = (int) Math.min((
+      Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3), 500);
+  public static final int structureHeight = (int) Math.min((
+      Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 6), 250);
 
   private static final Logger logger = Logger.getLogger(CompoundDatabaseMatchPane.class.getName());
 

@@ -1,17 +1,13 @@
 package io.github.mzmine.datamodel.features.types.numbers;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.FloatType;
-import io.github.mzmine.main.MZmineCore;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.features.types.numbers.abstr.PercentType;
+import io.github.mzmine.gui.preferences.UnitFormat;
 import org.jetbrains.annotations.NotNull;
 
-public class RtRelativeErrorType extends FloatType {
-
-  private static final NumberFormat format = MZmineCore.getConfiguration().getRTFormat();
+public class RtRelativeErrorType extends PercentType {
 
   protected RtRelativeErrorType() {
-    super(new DecimalFormat("0.00"));
+    super();
   }
 
   @Override
@@ -21,11 +17,6 @@ public class RtRelativeErrorType extends FloatType {
 
   @Override
   public @NotNull String getHeaderString() {
-    return "Rt error / %";
-  }
-
-  @Override
-  public NumberFormat getFormatter() {
-    return format;
+    return UnitFormat.DIVIDE.format("Rt error", "%");
   }
 }
