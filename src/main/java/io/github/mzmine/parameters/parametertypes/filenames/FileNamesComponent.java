@@ -51,8 +51,6 @@ public class FileNamesComponent extends GridPane {
 
     this.filters = ImmutableList.copyOf(filters);
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-
     txtFilename = new TextArea();
     txtFilename.setPrefColumnCount(65);
     txtFilename.setPrefRowCount(6);
@@ -148,8 +146,8 @@ public class FileNamesComponent extends GridPane {
         }
 
         // list all files in sub directories
-        List<File[]> filesInDir = FileAndPathUtil
-            .findFilesInDir(dir, filter, useSubFolders.isSelected());
+        List<File[]> filesInDir = FileAndPathUtil.findFilesInDir(dir, filter,
+            useSubFolders.isSelected());
         // all files in dir or sub dirs
         setValue(filesInDir.stream().flatMap(Arrays::stream).toArray(File[]::new));
       });
