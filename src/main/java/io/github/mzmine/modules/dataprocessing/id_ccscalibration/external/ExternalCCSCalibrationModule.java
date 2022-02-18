@@ -36,6 +36,10 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Reads an externally generated CCS calibration (Agilent OverrideImsCal.xml or Waters
+ * mob_cal.csv) and sets it to a raw data file.
+ */
 public class ExternalCCSCalibrationModule implements MZmineProcessingModule, CCSCalculator {
 
   private static final Logger logger = Logger.getLogger(

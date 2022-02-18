@@ -90,9 +90,9 @@ public class ReferenceCCSCalibrationTask extends AbstractTask {
           processed++;
           progress = processed / (double) files.length;
         }
-        // for reproducibility, this might take a bit longer.
-        SetCCSCalibrationModule.setCalibrationToFiles(files, calibration);
       }
+      // for reproducibility, this might take a bit longer.
+      SetCCSCalibrationModule.setCalibrationToFiles(files, calibration);
     }
     setStatus(TaskStatus.FINISHED);
   }

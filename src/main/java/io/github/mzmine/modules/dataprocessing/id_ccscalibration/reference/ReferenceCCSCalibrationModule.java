@@ -46,9 +46,18 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Calculates a {@link CCSCalibration} based on a given list of reference compounds. The compounds
+ * have to be detected as features in a feature list. The extracted calibration can be set for a
+ * number of raw data files.
+ * <p></p>
+ * Currently implemented for linear relationships of mobility and m/z (TIMS and DTIMS).
+ * @author https://github.com/SteffenHeu
+ */
 public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CCSCalculator {
 
-  private static final Logger logger = Logger.getLogger(ReferenceCCSCalibrationModule.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      ReferenceCCSCalibrationModule.class.getName());
 
   @Override
   public @NotNull String getName() {
@@ -90,7 +99,8 @@ public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CC
         ccsCalculatorParameters.getValue(ReferenceCCSCalibrationParameters.rtRange));
     final MobilityTolerance mobTol = ccsCalculatorParameters.getValue(
         ReferenceCCSCalibrationParameters.mobTolerance);
-    final Double minHeight = ccsCalculatorParameters.getValue(ReferenceCCSCalibrationParameters.minHeight);
+    final Double minHeight = ccsCalculatorParameters.getValue(
+        ReferenceCCSCalibrationParameters.minHeight);
 
     final List<CCSCalibrant> detectedCalibrants = CCSUtils.findCalibrants(flist, calibrants, mzTol,
         rtRange, mobTol, minHeight);
