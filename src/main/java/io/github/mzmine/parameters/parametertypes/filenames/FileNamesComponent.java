@@ -24,20 +24,21 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class FileNamesComponent extends FlowPane {
+public class FileNamesComponent extends GridPane {
 
   public static final Font smallFont = new Font("SansSerif", 10);
 
@@ -53,7 +54,7 @@ public class FileNamesComponent extends FlowPane {
     // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
     txtFilename = new TextArea();
-    txtFilename.setPrefColumnCount(40);
+    txtFilename.setPrefColumnCount(65);
     txtFilename.setPrefRowCount(6);
     txtFilename.setFont(smallFont);
     initDragDropped();
@@ -89,13 +90,36 @@ public class FileNamesComponent extends FlowPane {
     Button btnClear = new Button("Clear");
     btnClear.setOnAction(e -> txtFilename.setText(""));
 
-    VBox vbox = new VBox(btnFileBrowser, btnClear, useSubFolders);
+    GridPane buttonGrid = new GridPane();
+    ColumnConstraints b1 = new ColumnConstraints();
+    b1.setFillWidth(true);
+    ColumnConstraints b2 = new ColumnConstraints();
+    b2.setFillWidth(true);
+    this.getColumnConstraints().addAll(b1, b2);
+
+    buttonGrid.setHgap(1);
+    buttonGrid.setVgap(3);
+    buttonGrid.setPadding(new Insets(0, 0, 0, 5));
+
+    buttonGrid.add(btnFileBrowser, 0, 0);
+    buttonGrid.add(btnClear, 1, 0);
+    buttonGrid.add(useSubFolders, 0, 1, 2, 1);
 
     List<Button> directoryButtons = createFromDirectoryBtns(filters);
-    vbox.getChildren().addAll(directoryButtons);
+    int startRow = 2;
+    buttonGrid.add(directoryButtons.remove(0), 0, startRow, 2, 1);
+    for (int i = 0; i < directoryButtons.size(); i++) {
+      buttonGrid.add(directoryButtons.get(i), i % 2, startRow + 1 + i / 2);
+    }
 
-    HBox hbox = new HBox(txtFilename, vbox);
-    getChildren().addAll(hbox);
+    // main gridpane
+    ColumnConstraints col = new ColumnConstraints();
+    col.setFillWidth(true);
+    col.setHgrow(Priority.ALWAYS);
+    ColumnConstraints col2 = new ColumnConstraints();
+    this.getColumnConstraints().addAll(col, col2);
+    this.add(txtFilename, 0, 0);
+    this.add(buttonGrid, 1, 0);
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
@@ -108,6 +132,7 @@ public class FileNamesComponent extends FlowPane {
           : "All " + filter.getExtensions().get(0);
 
       Button btnFromDirectory = new Button(name);
+      btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
       btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
       btns.add(btnFromDirectory);
       btnFromDirectory.setOnAction(e -> {
