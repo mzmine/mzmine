@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
 
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import java.util.Objects;
 import org.w3c.dom.Element;
 

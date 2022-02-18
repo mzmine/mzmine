@@ -22,17 +22,14 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.AgilentImsCalibrationReader;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.WatersImsCalibrationReader;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,9 +38,6 @@ import org.jetbrains.annotations.Nullable;
  * mob_cal.csv) and sets it to a raw data file.
  */
 public class ExternalCCSCalibrationModule implements MZmineProcessingModule, CCSCalculator {
-
-  private static final Logger logger = Logger.getLogger(
-      ExternalCCSCalibrationModule.class.getName());
 
   @Override
   public @NotNull String getName() {

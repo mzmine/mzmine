@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
 
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import java.util.Objects;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.w3c.dom.Element;
@@ -94,10 +95,9 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof DriftTubeCCSCalibration)) {
+    if (!(o instanceof DriftTubeCCSCalibration that)) {
       return false;
     }
-    DriftTubeCCSCalibration that = (DriftTubeCCSCalibration) o;
     return Double.compare(that.beta, beta) == 0 && Double.compare(that.tfix, tfix) == 0
         && Double.compare(that.rsquare, rsquare) == 0 && n == that.n;
   }

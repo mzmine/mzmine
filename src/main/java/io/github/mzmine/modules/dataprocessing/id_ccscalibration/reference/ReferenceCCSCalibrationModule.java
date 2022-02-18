@@ -26,7 +26,6 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalculator;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrant;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
 import io.github.mzmine.parameters.ParameterSet;
@@ -87,6 +86,10 @@ public class ReferenceCCSCalibrationModule implements MZmineProcessingModule, CC
     final List<CCSCalibrant> calibrants;
     try {
       calibrants = CCSUtils.getCalibrantsFromCSV(calibrantFile);
+      logger.warning(() -> "No calibrants found in " + calibrantFile.getAbsolutePath());
+      if(calibrants == null) {
+        return null;
+      }
     } catch (IOException e) {
       logger.log(Level.WARNING,
           "Cannot parse calibrants from calibrant file " + calibrantFile.getAbsolutePath());

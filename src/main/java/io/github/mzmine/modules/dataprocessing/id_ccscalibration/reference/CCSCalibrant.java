@@ -16,7 +16,7 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
+package io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference;
 
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import java.util.Objects;
@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 public final class CCSCalibrant {
 
   public static final double n2 = 28.006148008;
-  private Double foundMz = null;
-  private Float foundMobility = null;
+  private Double foundMz;
+  private Float foundMobility;
   private final double libraryMass;
   private final float libraryMobility;
   private final float libraryCCS;

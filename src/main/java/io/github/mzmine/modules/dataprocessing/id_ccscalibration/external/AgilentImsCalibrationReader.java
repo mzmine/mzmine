@@ -16,8 +16,10 @@
  *  USA
  */
 
-package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
+package io.github.mzmine.modules.dataprocessing.id_ccscalibration.external;
 
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -44,6 +46,8 @@ public class AgilentImsCalibrationReader {
   private static final String AGILENT_ACQDATA = "AcqData";
   private static final String AGILENT_CALIBRATION_FILE = "OverrideImsCal.xml";
 
+  private AgilentImsCalibrationReader() {}
+
   public static CCSCalibration readCalibrationFile(@NotNull final File file)
       throws RuntimeException {
     final File calFile = findCalibrationFilePath(file);
@@ -54,8 +58,8 @@ public class AgilentImsCalibrationReader {
 
     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 
-    DocumentBuilder dBuilder = null;
-    Document calibration = null;
+    DocumentBuilder dBuilder;
+    Document calibration;
     try {
       dBuilder = dbFactory.newDocumentBuilder();
       calibration = dBuilder.parse(calFile);

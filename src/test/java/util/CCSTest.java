@@ -19,12 +19,12 @@
 package util;
 
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.AgilentImsCalibrationReader;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrant;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.TwCCSCalibration;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.WatersImsCalibrationReader;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.AgilentImsCalibrationReader;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.WatersImsCalibrationReader;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import java.io.File;
 import java.util.List;
@@ -59,6 +59,9 @@ public class CCSTest {
 
     final SimpleRegression driftTimeMzRegression = CCSUtils.getDriftTimeMzRegression(
         List.of(mz622, mz922, mz1222, mz1522));
+
+    assert driftTimeMzRegression != null;
+
     logger.info("Slope: " + driftTimeMzRegression.getSlope() + "\tIntercept: "
         + driftTimeMzRegression.getIntercept() + "\tR²: " + driftTimeMzRegression.getRSquare()
         + "\tPoints: " + driftTimeMzRegression.getN());

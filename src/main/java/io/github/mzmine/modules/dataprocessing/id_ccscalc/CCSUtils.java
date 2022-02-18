@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibrant;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -58,8 +58,10 @@ public class CCSUtils {
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
   private static final TDFUtils tdfUtils = new TDFUtils();
 
+  private CCSUtils() {}
+
   /**
-   * @return
+   * @return The calculated CCS value or null if no calibration information is available.
    */
   public static Float calcCCS(double mz, @NotNull Float mobility,
       @NotNull MobilityType mobilityType, int charge, @NotNull IMSRawDataFile file) {
@@ -76,14 +78,10 @@ public class CCSUtils {
   /**
    * Uses Bruker's library to calculate the ccs for a given tims mobility.
    *
-   * @param mobility
-   * @param charge
-   * @param mz
-   * @return
    * @author https://github.com/SteffenHeu
    */
   public static Float calcCCSFromTimsMobility(double mobility, int charge, double mz) {
-    return tdfUtils.calculateCCS(mobility, (long) charge, mz).floatValue();
+    return tdfUtils.calculateCCS(mobility, charge, mz).floatValue();
   }
 
   public static Float logUnsupportedMobilityUnit() {
@@ -93,7 +91,7 @@ public class CCSUtils {
 
   /**
    * @param file A file containing colums titled "mz", "mobility", "ccs", "charge" for given library
-   *             compounds.
+   *             compounds. Delimiter must be ";"
    * @return A list of {@link CCSCalibrant}s or null.
    * @throws IOException
    */
