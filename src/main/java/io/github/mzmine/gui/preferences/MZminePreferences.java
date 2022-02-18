@@ -76,6 +76,10 @@ public class MZminePreferences extends SimpleParameterSet {
       "Format used for scores, e.g., Pearson correlation, cosine similarity etc.", false,
       new DecimalFormat("0.000"));
 
+  public static final NumberFormatParameter percentFormat = new NumberFormatParameter("Percent format",
+      "Format used for percentages, e.g., relative errors (except ppm) etc.", false,
+      new DecimalFormat("0.0 %"));
+
   public static final ComboParameter<UnitFormat> unitFormat = new ComboParameter<>("Unit format",
       "The default unit format to format e.g. axis labels in MZmine.",
       FXCollections.observableArrayList(UnitFormat.values()), UnitFormat.DIVIDE);
@@ -153,7 +157,7 @@ public class MZminePreferences extends SimpleParameterSet {
         numOfThreads, memoryOption, tempDirectory, proxySettings, rExecPath, sendStatistics,
         // visuals
         // number formats
-        mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat,
+        mzFormat, rtFormat, mobilityFormat, ccsFormat, intensityFormat, ppmFormat, scoreFormat, percentFormat,
         // how to format unit strings
         unitFormat,
         // other preferences

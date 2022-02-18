@@ -205,6 +205,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   }
 
   @Override
+  public NumberFormat getPercentFormat() {
+    return preferences.getParameter(MZminePreferences.percentFormat).getValue();
+  }
+
+  @Override
   public UnitFormat getUnitFormat() {
     return preferences.getParameter(MZminePreferences.unitFormat).getValue();
   }

@@ -34,12 +34,14 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Compound
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -47,6 +49,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -61,6 +64,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -194,10 +198,22 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           clone.put(CompoundAnnotationScoreType.class,
               clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
           clone.put(MzPpmDifferenceType.class,
-              (float) MathUtils.getPpmDiff(clone.getPrecursorMZ(), peakRow.getAverageMZ()));
+              (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
+                  peakRow.getAverageMZ()));
+          if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
+            clone.put(CCSRelativeErrorType.class,
+                PercentTolerance.getPercentError(annotation.get(CCSType.class),
+                    peakRow.getAverageCCS()));
+          }
+          if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
+            clone.put(RtRelativeErrorType.class,
+                PercentTolerance.getPercentError(annotation.get(RTType.class),
+                    peakRow.getAverageRT()));
+          }
+
           peakRow.addCompoundAnnotation(clone);
           peakRow.getCompoundAnnotations()
-              .sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
+              .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
         }
       }
     }
@@ -209,7 +225,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     var formulaType = DataTypes.get(FormulaType.class);
     var compoundNameType = DataTypes.get(CompoundNameType.class);
     var commentType = DataTypes.get(CommentType.class);
-    var precursorMz = DataTypes.get(MZType.class);
+    var precursorMz = DataTypes.get(PrecursorMZType.class);
     var rtType = DataTypes.get(RTType.class);
     var mobType = DataTypes.get(MobilityType.class);
     var ccsType = DataTypes.get(CCSType.class);
@@ -223,10 +239,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (int i = 0; i < linesWithIndices.size(); i++) {
       var type = linesWithIndices.get(i);
-      entry.put(type.getDataType(), values[type.getColumnIndex()]);
+      if (values[type.getColumnIndex()] != null && !values[type.getColumnIndex()].isEmpty()) {
+        entry.put(type.getDataType(), values[type.getColumnIndex()]);
+      }
     }
 
-//    lineID = entry.get();
     final String lineName = entry.get(compoundNameType);
     final String lineFormula = entry.get(formulaType);
     final String lineAdduct = entry.get(adductType);
@@ -255,13 +272,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     doIfNotNull(IonType.parseFromString(lineAdduct),
         () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
-    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(), new DatabaseMatchInfo(
-        OnlineDatabases.PubChem, pubchemId)));
+    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
+        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;
   }
 
   private List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine) {
-
     List<ImportType> lines = new ArrayList<>();
     for (ImportType importType : importTypes) {
       if (importType.isSelected()) {
