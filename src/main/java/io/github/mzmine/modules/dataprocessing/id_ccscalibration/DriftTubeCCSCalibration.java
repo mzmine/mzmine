@@ -51,7 +51,7 @@ public class DriftTubeCCSCalibration implements CCSCalibration {
   }
 
   private double getN2Gamma(double mz, int charge) {
-    return 1 / (double) charge * Math.sqrt(mz * charge / (mz * charge + CCSCalibrant.n2));
+    return 1 / (double) charge * Math.sqrt(mz * charge / (mz * charge + CCSCalibrant.N2_MASS));
   }
 
   @Override

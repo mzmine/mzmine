@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CCSCalibrant {
 
-  public static final double n2 = 28.006148008;
+  public static final double N2_MASS = 28.006148008;
   private Double foundMz;
   private Float foundMobility;
   private final double libraryMass;
@@ -56,7 +56,7 @@ public final class CCSCalibrant {
 
   public double getN2Gamma() {
     return 1 / (double) libraryCharge() * Math.sqrt(
-        libraryMass * Math.abs(libraryCharge) / (libraryMass * libraryCharge + n2));
+        libraryMass * Math.abs(libraryCharge) / (libraryMass * libraryCharge + N2_MASS));
   }
 
   public Double foundMz() {
