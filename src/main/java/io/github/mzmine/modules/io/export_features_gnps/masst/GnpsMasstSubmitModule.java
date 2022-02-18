@@ -15,20 +15,6 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-/*
- * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
- * Lab (University of California, San Diego).
- *
- * 2018-Nov: Changes by Robin Schmid - Direct submit
- *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- *
- * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
- */
-
 package io.github.mzmine.modules.io.export_features_gnps.masst;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -36,7 +22,7 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
-import io.github.mzmine.modules.MZmineProcessingModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -47,12 +33,11 @@ import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Exports all files needed for GNPS feature based molecular networking (quant table (csv export)),
- * MS2 mgf, additional edges (ion identity networks)
+ * Directly submits a new MASST job from MZmine
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class GnpsMasstSubmitModule implements MZmineProcessingModule {
+public class GnpsMasstSubmitModule implements MZmineRunnableModule {
 
   private static final Logger logger = Logger.getLogger(GnpsMasstSubmitModule.class.getName());
 
