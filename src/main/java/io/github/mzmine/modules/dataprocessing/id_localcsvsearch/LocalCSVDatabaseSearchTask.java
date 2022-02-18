@@ -239,9 +239,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (int i = 0; i < linesWithIndices.size(); i++) {
       var type = linesWithIndices.get(i);
-      entry.put(type.getDataType(),
-          values[type.getColumnIndex()] != null && !values[type.getColumnIndex()].isEmpty()
-              ? values[type.getColumnIndex()] : null);
+      if (values[type.getColumnIndex()] != null && !values[type.getColumnIndex()].isEmpty()) {
+        entry.put(type.getDataType(), values[type.getColumnIndex()]);
+      }
     }
 
     final String lineName = entry.get(compoundNameType);
