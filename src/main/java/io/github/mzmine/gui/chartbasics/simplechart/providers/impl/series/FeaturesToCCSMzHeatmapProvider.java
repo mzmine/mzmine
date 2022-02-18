@@ -139,8 +139,10 @@ public class FeaturesToCCSMzHeatmapProvider implements PlotXYZDataProvider {
 
 //      if (mobRange != null && mt != null && mt != io.github.mzmine.datamodel.MobilityType.NONE
 //          && charge != 0) {
-      Float ccsLower = CCSUtils.calcCCS(mz, mobRange.lowerEndpoint(), mt, charge);
-      Float ccsUpper = CCSUtils.calcCCS(mz, mobRange.upperEndpoint(), mt, charge);
+      Float ccsLower = CCSUtils.calcCCS(mz, mobRange.lowerEndpoint(), mt, charge,
+          (IMSRawDataFile) features.get(i).getRawDataFile());
+      Float ccsUpper = CCSUtils.calcCCS(mz, mobRange.upperEndpoint(), mt, charge,
+          (IMSRawDataFile) features.get(i).getRawDataFile());
       boxHeight += Math.abs(ccsUpper - ccsLower);
 //      }
 

@@ -16,25 +16,15 @@
  *  USA
  */
 
-package tdfimportest;
+package io.github.mzmine.modules.dataprocessing.id_ccscalibration;
 
-import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
-import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
-import java.util.logging.Logger;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class CCSTest {
+public interface CCSCalculator {
 
-  private static Logger logger = Logger.getLogger(CCSTest.class.getName());
-
-  @Disabled("Needs test file?")
-  @Test
-  void testTims() {
-    final TDFUtils tdfUtils = new TDFUtils();
-    logger.info("CCS: " + tdfUtils.calculateCCS(1 / 1.376e-4, 1L, 322) + "");
-    logger.info("CCS: " + CCSUtils.calcCCSFromTimsMobility(0.882, 2, 601.97) + "");
-
-  }
-
+  CCSCalibration getCalibration(@Nullable final ModularFeatureList flist,
+      @NotNull final ParameterSet ccsCalculatorParameters);
 }
