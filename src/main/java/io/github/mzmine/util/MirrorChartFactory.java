@@ -41,6 +41,7 @@ import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
@@ -326,6 +327,10 @@ public class MirrorChartFactory {
     queryPlot.setRangeMinorGridlinesVisible(false);
     libraryPlot.setRangeGridlinesVisible(false);
     libraryPlot.setRangeMinorGridlinesVisible(false);
+
+    final DecimalFormat intensityFormat = new DecimalFormat("0.0");
+    ((NumberAxis) queryPlot.getRangeAxis()).setNumberFormatOverride(intensityFormat);
+    ((NumberAxis) libraryPlot.getRangeAxis()).setNumberFormatOverride(intensityFormat);
 
     if (precursorMZA > 0 && precursorMZB > 0) {
       queryPlot.addDomainMarker(createPrecursorMarker(precursorMZA, Color.GRAY, 0.5f));
