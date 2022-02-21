@@ -19,7 +19,7 @@
 package io.github.mzmine.util.spectraldb.entry;
 
 public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED;
+  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED, UNALIGNED;
 
   /**
    * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
@@ -29,6 +29,7 @@ public enum DataPointsTag {
   public String toRemainderString() {
     return switch (this) {
       case ORIGINAL -> "filtered";
+      case UNALIGNED -> "unaligned";
       case FILTERED -> "unaligned";
       case ALIGNED -> "aligned";
       case ALIGNED_MODIFIED -> "modified";

@@ -176,7 +176,7 @@ public class MirrorChartFactory {
     }
 
     // add legend
-    LegendTitle legend = createLibraryMatchingLegend(domainPlot);
+    LegendTitle legend = createLibraryMatchingLegend(tags, colors, domainPlot);
     mirrorSpecrumPlot.getChart().addLegend(legend);
     mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
 
@@ -216,7 +216,7 @@ public class MirrorChartFactory {
   public static EChartViewer createMirrorPlotFromAligned(MZTolerance mzTol, boolean modified,
       DataPoint[][] aligned, double precursorMZA, double precursorMZB) {
 
-    final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
+    final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.UNALIGNED,
         DataPointsTag.ALIGNED_MODIFIED, DataPointsTag.ALIGNED};
 
     // get highest data intensity to calc relative intensity
@@ -261,10 +261,8 @@ public class MirrorChartFactory {
     // masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
-      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true,
-          "Top " + tag.toRemainderString());
-      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true,
-          "Bottom " + tag.toRemainderString());
+      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
+      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true, tag.toRemainderString());
 
       if (i == 0) {
         // unmatched
@@ -310,7 +308,7 @@ public class MirrorChartFactory {
     }
 
     // add legend
-    LegendTitle legend = createLibraryMatchingLegend(domainPlot);
+    LegendTitle legend = createLibraryMatchingLegend(tags, colors, domainPlot);
     mirrorSpecrumPlot.getChart().addLegend(legend);
     mirrorSpecrumPlot.setUserData(LIBRARY_MATCH_USER_DATA);
 
@@ -339,7 +337,7 @@ public class MirrorChartFactory {
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(mirrorSpecrumPlot.getChart());
-
+    mirrorSpecrumPlot.getChart().getLegend().setVisible(true);
     return mirrorSpecrumPlot;
   }
 
@@ -358,15 +356,8 @@ public class MirrorChartFactory {
    * @param mirrorSpectrumPlot
    * @return
    */
-  public static LegendTitle createLibraryMatchingLegend(CombinedDomainXYPlot mirrorSpectrumPlot) {
-    // get colors for vision
-    SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    // colors for the different DataPointsTags:
-    final Color[] colors = new Color[]{Color.black, // black = filtered
-        palette.getNegativeColorAWT(), // unaligned
-        palette.getPositiveColorAWT() // aligned
-    };
-
+  public static LegendTitle createLibraryMatchingLegend(DataPointsTag[] tags, Color[] colors,
+      CombinedDomainXYPlot mirrorSpectrumPlot) {
     LegendItem item;
     LegendItemCollection collection = new LegendItemCollection();
 
