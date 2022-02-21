@@ -470,7 +470,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -1564,6 +1564,19 @@ public class ScanUtils {
           new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
       return Arrays.copyOf(scan, n);
     }
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(DataPoint[] dps, double precursorMZ) {
+    return Arrays.stream(dps)
+        .map(d -> new SimpleDataPoint(precursorMZ - d.getMZ(), d.getIntensity()))
+        .toArray(DataPoint[]::new);
   }
 
   /**

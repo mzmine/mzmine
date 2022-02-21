@@ -20,12 +20,26 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MirrorChartFactory;
+import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.Arrays;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -37,31 +51,136 @@ public class MirrorScanWindowFX extends Stage {
 
   // for SpectralDBIdentity
 
-  public static final DataPointsTag[] tags =
-      new DataPointsTag[]{DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
+  public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
+      DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
 
-  private BorderPane contentPane;
+  private final BorderPane contentPane;
+  private final BorderPane pnMirror;
+  private final BorderPane neutralLossMirror;
+  private final GridPane center;
+  private final Label lbMirrorStats;
+  private final Label lbNeutralLossStats;
+  private final Label lbMirrorModifiedStats;
   private EChartViewer mirrorSpecrumPlot;
+  private EChartViewer neutralLossMirrorSpecrumPlot;
 
   /**
    * Create the frame.
    */
   public MirrorScanWindowFX() {
+
     contentPane = new BorderPane();
     contentPane.setStyle("-fx-border-width: 5;");
     contentPane.setPrefSize(800, 800);
 
+    center = new GridPane();
+    final ColumnConstraints col = new ColumnConstraints();
+    col.setHgrow(Priority.ALWAYS);
+    col.setFillWidth(true);
+    center.getColumnConstraints().add(col);
+
+    final RowConstraints row1 = new RowConstraints();
+    row1.setVgrow(Priority.ALWAYS);
+    row1.setFillHeight(true);
+    final RowConstraints row2 = new RowConstraints();
+    row2.setVgrow(Priority.ALWAYS);
+    row2.setFillHeight(true);
+    center.getRowConstraints().addAll(row1, row2);
+
+    pnMirror = new BorderPane();
+    neutralLossMirror = new BorderPane();
+    center.add(pnMirror, 0, 0);
+    center.add(neutralLossMirror, 0, 1);
+
+    // labels
+    lbMirrorStats = new Label("");
+    lbMirrorModifiedStats = new Label("");
+    pnMirror.setTop(new VBox(lbMirrorStats, lbMirrorModifiedStats));
+
+    lbNeutralLossStats = new Label("");
+    neutralLossMirror.setTop(lbNeutralLossStats);
+
+    contentPane.setCenter(center);
+
     this.setScene(new Scene(contentPane));
   }
 
-  public void setScans(String labelA, double precursorMZA, double rtA, DataPoint[] dpsA,
-      String labelB, double precursorMZB, double rtB, DataPoint[] dpsB) {
-    contentPane.getChildren().removeAll();
-    mirrorSpecrumPlot = MirrorChartFactory
-        .createMirrorChartViewer(labelA, precursorMZA, rtA, dpsA,
-            labelB, precursorMZB, rtB, dpsB, false, true);
-    contentPane.setCenter(mirrorSpecrumPlot);
+  public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
+      DataPoint[] dpsB) {
+    pnMirror.getChildren().removeAll();
+    neutralLossMirror.getChildren().removeAll();
+
+    final ParameterSet params = MZmineCore.getConfiguration()
+        .getModuleParameters(MirrorScanModule.class);
+    final MZTolerance mzTol = params.getValue(MirrorScanParameters.mzTol);
+
+    mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, true, dpsA,
+        precursorMZA, dpsB, precursorMZB);
+    pnMirror.setCenter(mirrorSpecrumPlot);
+
+    if (precursorMZA > 0 && precursorMZB > 0) {
+      neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
+          ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
+          ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
+      neutralLossMirror.setCenter(neutralLossMirrorSpecrumPlot);
+
+      //
+      calcSpectralSimilarity(dpsA, precursorMZA, dpsB, precursorMZB);
+    }
   }
+
+  private void calcSpectralSimilarity(DataPoint[] dpsA, double precursorMZA, DataPoint[] dpsB,
+      double precursorMZB) {
+    final ParameterSet params = MZmineCore.getConfiguration()
+        .getModuleParameters(MirrorScanModule.class);
+    final MZTolerance mzTol = params.getValue(MirrorScanParameters.mzTol);
+
+    // needs to be sorted
+    Arrays.sort(dpsA, DataPointSorter.DEFAULT_INTENSITY);
+    Arrays.sort(dpsB, DataPointSorter.DEFAULT_INTENSITY);
+    SpectralSimilarity cosine = MS2SimilarityTask.createMS2Sim(mzTol, dpsA, dpsB, 2);
+
+    if (cosine != null) {
+      lbMirrorStats.setText(String.format(
+          "  cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
+          cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
+          cosine.overlap() / (double) cosine.sizeB()));
+    } else {
+      lbMirrorStats.setText("");
+    }
+
+    //modified cosine
+    cosine = MS2SimilarityTask.createMS2SimModificationAware(mzTol, dpsA, dpsB, 2,
+        MS2SimilarityTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
+    if (cosine != null) {
+      lbMirrorModifiedStats.setText(String.format(
+          "modified=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
+          cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
+          cosine.overlap() / (double) cosine.sizeB()));
+    } else {
+      lbMirrorModifiedStats.setText("");
+    }
+
+    // neutral loss
+    final DataPoint[] nlA = ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA);
+    final DataPoint[] nlB = ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB);
+    Arrays.sort(nlA, DataPointSorter.DEFAULT_INTENSITY);
+    Arrays.sort(nlB, DataPointSorter.DEFAULT_INTENSITY);
+
+    cosine = MS2SimilarityTask.createMS2Sim(mzTol, nlA, nlB, 2);
+    if (cosine != null) {
+      lbNeutralLossStats.setText(String.format(
+          "cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
+          cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
+          cosine.overlap() / (double) cosine.sizeB()));
+    } else {
+      lbNeutralLossStats.setText("");
+    }
+  }
+
 
   /**
    * Set scan and mirror scan and create chart
@@ -70,18 +189,12 @@ public class MirrorScanWindowFX extends Stage {
    * @param mirror
    */
   public void setScans(Scan scan, Scan mirror) {
-    contentPane.getChildren().removeAll();
-    mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartViewer(scan, mirror,
-        scan.getScanDefinition(), mirror.getScanDefinition(), false, true);
-    contentPane.setCenter(mirrorSpecrumPlot);
-
+    setScans(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan.getMassList()),
+        mirror.getPrecursorMz(), ScanUtils.extractDataPoints(mirror.getMassList()));
   }
 
   public void setScans(Scan scan, Scan mirror, String labelA, String labelB) {
-    contentPane.getChildren().removeAll();
-    mirrorSpecrumPlot =
-        MirrorChartFactory.createMirrorChartViewer(scan, mirror, labelA, labelB, false, true);
-    contentPane.setCenter(mirrorSpecrumPlot);
+    setScans(scan, mirror);
   }
 
   /**
@@ -90,8 +203,10 @@ public class MirrorScanWindowFX extends Stage {
    * @param db
    */
   public void setScans(SpectralDBFeatureIdentity db) {
+    pnMirror.getChildren().clear();
+    neutralLossMirror.getChildren().removeAll();
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
-    contentPane.setCenter(mirrorSpecrumPlot);
+    pnMirror.setCenter(mirrorSpecrumPlot);
   }
 
   private boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {

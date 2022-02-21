@@ -16,23 +16,25 @@
  *
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
-public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+
+public class MirrorScanParameters extends SimpleParameterSet {
+
+  public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
+      "Tolerance to match signals in both scans", 0.0025, 15);
 
   /**
-   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   *
-   * @return
+   * Windows size and position
    */
-  public String toRemainderString() {
-    return switch (this) {
-      case ORIGINAL -> "filtered";
-      case FILTERED -> "unaligned";
-      case ALIGNED -> "aligned";
-      case ALIGNED_MODIFIED -> "modified";
-      case MERGED -> "merged";
-    };
+  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+
+  public MirrorScanParameters() {
+    super(new Parameter[]{mzTol, windowSettings});
   }
+
 }

@@ -16,23 +16,24 @@
  *
  */
 
-package io.github.mzmine.util.spectraldb.entry;
+package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
-public enum DataPointsTag {
-  ORIGINAL, FILTERED, ALIGNED, MERGED, ALIGNED_MODIFIED;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
+import org.jetbrains.annotations.NotNull;
 
-  /**
-   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
-   *
-   * @return
-   */
-  public String toRemainderString() {
-    return switch (this) {
-      case ORIGINAL -> "filtered";
-      case FILTERED -> "unaligned";
-      case ALIGNED -> "aligned";
-      case ALIGNED_MODIFIED -> "modified";
-      case MERGED -> "merged";
-    };
+public class MirrorScanModule implements MZmineModule {
+
+  private static final String MODULE_NAME = "Spectral mirror chart";
+
+  @Override
+  public @NotNull String getName() {
+    return MODULE_NAME;
   }
+
+  @Override
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return MirrorScanParameters.class;
+  }
+
 }
