@@ -39,6 +39,7 @@ import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -55,6 +56,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.ui.RectangleEdge;
@@ -73,7 +75,8 @@ public class MirrorChartFactory {
    * @param db
    * @return
    */
-  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBFeatureIdentity db) {
+  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(
+      SpectralDBFeatureIdentity db) {
 
     Scan scan = db.getQueryScan();
     if (scan == null) {
@@ -81,8 +84,10 @@ public class MirrorChartFactory {
     }
 
     // get highest data intensity to calc relative intensity
-    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL)).mapToDouble(DataPoint::getIntensity).max().orElse(0d);
-    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL)).mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
 
     if (mostIntenseDB == 0d) {
       logger.warning(
@@ -114,7 +119,8 @@ public class MirrorChartFactory {
 
     // create without data
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + scan.getScanDefinition(),
-        precursorMZA, rtA, null, "Library: " + db.getName(), precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
+        precursorMZA, rtA, null, "Library: " + db.getName(),
+        precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
     // mirrorSpecrumPlot.setMaximumDrawWidth(4200); // TODO?
     // mirrorSpecrumPlot.setMaximumDrawHeight(2500);
 
@@ -129,7 +135,8 @@ public class MirrorChartFactory {
 
     // add datasets and renderer
     // set up renderer
-    CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart().getXYPlot();
+    CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart()
+        .getXYPlot();
     NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
     axis.setLabel("m/z");
     XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
@@ -139,7 +146,8 @@ public class MirrorChartFactory {
     // masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
-      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true, "Query " + tag.toRemainderString());
+      PseudoSpectrumDataSet qdata = new PseudoSpectrumDataSet(true,
+          "Query " + tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
         if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0) {
@@ -147,7 +155,8 @@ public class MirrorChartFactory {
         }
       }
 
-      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true, "Library " + tag.toRemainderString());
+      PseudoSpectrumDataSet ldata = new PseudoSpectrumDataSet(true,
+          "Library " + tag.toRemainderString());
       for (DataPoint dp : library[i]) {
         if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0) {
           ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100d, null);
@@ -318,10 +327,24 @@ public class MirrorChartFactory {
     libraryPlot.setRangeGridlinesVisible(false);
     libraryPlot.setRangeMinorGridlinesVisible(false);
 
+    if (precursorMZA > 0 && precursorMZB > 0) {
+      queryPlot.addDomainMarker(createPrecursorMarker(precursorMZA, Color.GRAY, 0.5f));
+      libraryPlot.addDomainMarker(createPrecursorMarker(precursorMZB, Color.GRAY, 0.5f));
+    }
+
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(mirrorSpecrumPlot.getChart());
 
     return mirrorSpecrumPlot;
+  }
+
+  private static ValueMarker createPrecursorMarker(double precursorMz, Color color, float alpha) {
+    final ValueMarker marker = new ValueMarker(precursorMz);
+    marker.setStroke(
+        new BasicStroke(2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{7}, 0f));
+    marker.setPaint(color);
+    marker.setAlpha(alpha);
+    return marker;
   }
 
   /**

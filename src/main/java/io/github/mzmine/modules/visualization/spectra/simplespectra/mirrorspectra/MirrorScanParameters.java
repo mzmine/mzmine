@@ -26,7 +26,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 public class MirrorScanParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
-      "Tolerance to match signals in both scans", 0.0025, 15);
+      "Tolerance to match signals in both scans", 0.0025, 20);
 
   /**
    * Windows size and position

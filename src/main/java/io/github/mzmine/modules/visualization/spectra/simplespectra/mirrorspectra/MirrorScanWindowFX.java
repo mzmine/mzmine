@@ -110,9 +110,7 @@ public class MirrorScanWindowFX extends Stage {
     pnMirror.getChildren().removeAll();
     neutralLossMirror.getChildren().removeAll();
 
-    final ParameterSet params = MZmineCore.getConfiguration()
-        .getModuleParameters(MirrorScanModule.class);
-    final MZTolerance mzTol = params.getValue(MirrorScanParameters.mzTol);
+    final MZTolerance mzTol = getMzTolerance();
 
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, true, dpsA,
         precursorMZA, dpsB, precursorMZB);
@@ -129,11 +127,15 @@ public class MirrorScanWindowFX extends Stage {
     }
   }
 
-  private void calcSpectralSimilarity(DataPoint[] dpsA, double precursorMZA, DataPoint[] dpsB,
-      double precursorMZB) {
+  private MZTolerance getMzTolerance() {
     final ParameterSet params = MZmineCore.getConfiguration()
         .getModuleParameters(MirrorScanModule.class);
-    final MZTolerance mzTol = params.getValue(MirrorScanParameters.mzTol);
+    return params.getValue(MirrorScanParameters.mzTol);
+  }
+
+  private void calcSpectralSimilarity(DataPoint[] dpsA, double precursorMZA, DataPoint[] dpsB,
+      double precursorMZB) {
+    final MZTolerance mzTol = getMzTolerance();
 
     // needs to be sorted
     Arrays.sort(dpsA, DataPointSorter.DEFAULT_INTENSITY);
