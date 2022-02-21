@@ -40,6 +40,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 /**
@@ -95,10 +97,14 @@ public class MirrorScanWindowFX extends Stage {
     // labels
     lbMirrorStats = new Label("");
     lbMirrorModifiedStats = new Label("");
-    pnMirror.setTop(new VBox(lbMirrorStats, lbMirrorModifiedStats));
+    Label titleMirror = new Label("MS/MS mirror (modified cosine)");
+    titleMirror.setFont(Font.font(null, FontWeight.BOLD, 12));
+    pnMirror.setTop(new VBox(titleMirror, lbMirrorStats, lbMirrorModifiedStats));
 
+    Label titleNL = new Label("Neutral loss mirror");
+    titleNL.setFont(Font.font(null, FontWeight.BOLD, 12));
     lbNeutralLossStats = new Label("");
-    neutralLossMirror.setTop(lbNeutralLossStats);
+    neutralLossMirror.setTop(new VBox(titleNL, lbNeutralLossStats));
 
     contentPane.setCenter(center);
 
