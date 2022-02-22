@@ -83,6 +83,8 @@ ext {
 }
 
 dependencies {
+    // MZmine version parsing
+    implementation 'com.vdurmont:semver4j:3.1.0'
 //    implementation "org.graphstream:gs-core:2.0"
     // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
     implementation "com.github.robinschmid:gs-core:45504f632f"
