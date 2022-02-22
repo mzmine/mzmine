@@ -16,7 +16,11 @@
  *
  */
 
-import java.lang.Runtime.Version;
+import com.vdurmont.semver4j.Semver;
+import com.vdurmont.semver4j.Semver.SemverType;
+import io.github.mzmine.main.MZmineCore;
+import java.io.IOException;
+import java.util.Properties;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -26,11 +30,19 @@ import org.junit.jupiter.api.Test;
 public class VersionTest {
 
   @Test
-  public void testVersion() {
-    final Version v1 = Version.parse("3.0b1");
-    final Version v2 = Version.parse("3.0b2");
-    Assertions.assertTrue(v1.compareTo(v2) < 0);
-    final Version v11 = Version.parse("3.0b11");
-    Assertions.assertTrue(v11.compareTo(v2) > 0);
+  public void testVersion() throws IOException {
+    final Semver snapshot = new Semver("3.0.0-SNAPSHOT", SemverType.LOOSE);
+    final Semver beta1 = new Semver("3.0.1-beta");
+    final Semver beta2 = new Semver("3.0.2-beta");
+    final Semver beta11 = new Semver("3.0.11-beta");
+    Assertions.assertTrue(beta1.isLowerThan(beta2));
+    Assertions.assertTrue(beta2.isLowerThan(beta11));
+    Assertions.assertTrue(snapshot.isLowerThan(beta2));
+
+    ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
+    Properties properties = new Properties();
+    properties.load(myClassLoader.getResourceAsStream("mzmineversion.properties"));
+    final Semver semver2 = new Semver(properties.getProperty("version.semver"), SemverType.LOOSE);
+    System.out.println(semver2.toString());
   }
 }
