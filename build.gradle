@@ -29,6 +29,10 @@ plugins {
 }
 
 // save version to main resources
+// version bump by .\gradlew incrementPatch ... incrementMinor
+// gradle -Dversion.prerelease=beta incrementPatch
+// version with -beta is currently not supported by jpackage (maybe windows --app-version)
+// java.lang.IllegalArgumentException: "Version [3.0.0-beta] contains invalid component [0-beta]"
 semver {
     properties = "src/main/resources/mzmineversion.properties"
 }
