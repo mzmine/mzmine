@@ -284,6 +284,7 @@ runtime {
                "jdk.unsupported",
                "jdk.unsupported.desktop"]
     jpackage {
+        appVersion = String.valueOf(semver.version).split("_")[0]
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
