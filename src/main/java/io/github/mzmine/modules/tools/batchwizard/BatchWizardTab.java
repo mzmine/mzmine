@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
 import org.jetbrains.annotations.NotNull;
 
 public class BatchWizardTab extends MZmineTab {
@@ -37,7 +38,7 @@ public class BatchWizardTab extends MZmineTab {
 
     try {
       ScrollPane mainPane = loader.load();
-      setContent(mainPane);
+      setContent(new BorderPane(mainPane));
     } catch (IOException e) {
       e.printStackTrace();
     }
