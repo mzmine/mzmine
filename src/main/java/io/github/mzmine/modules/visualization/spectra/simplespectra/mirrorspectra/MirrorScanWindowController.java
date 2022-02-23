@@ -77,23 +77,34 @@ public class MirrorScanWindowController {
 
   @FXML
   private TableColumn<TableData, Double> colMzTop;
-
   @FXML
   private TableColumn<TableData, Double> colIntensityTop;
-
   @FXML
   private TableColumn<TableData, Double> colMzBottom;
-
   @FXML
   private TableColumn<TableData, Double> colIntensityBottom;
-
   @FXML
   private TableColumn<TableData, SignalAlignmentAnnotation> colMatch;
   @FXML
   private TableColumn<TableData, Color> colMatchColor;
-
   @FXML
   private TableColumn<TableData, Double> colContribution;
+
+  // neutral loss columns
+  @FXML
+  private TableColumn<TableData, Double> colMzTop1;
+  @FXML
+  private TableColumn<TableData, Double> colIntensityTop1;
+  @FXML
+  private TableColumn<TableData, Double> colMzBottom1;
+  @FXML
+  private TableColumn<TableData, Double> colIntensityBottom1;
+  @FXML
+  private TableColumn<TableData, SignalAlignmentAnnotation> colMatch1;
+  @FXML
+  private TableColumn<TableData, Color> colMatchColor1;
+  @FXML
+  private TableColumn<TableData, Double> colContribution1;
 
   // data
   private EChartViewer mirrorSpecrumPlot;
@@ -122,6 +133,26 @@ public class MirrorScanWindowController {
     colIntensityBottom.setCellFactory(col -> new FormattedTableCell<>(config.getIntensityFormat()));
     colContribution.setCellFactory(col -> new FormattedTableCell<>(config.getScoreFormat()));
 
+    // neutral loss columns
+    colMzTop1.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue().mzA()));
+    colIntensityTop1.setCellValueFactory(
+        row -> new SimpleObjectProperty<>(row.getValue().intensityA()));
+    colMzBottom1.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue().mzB()));
+    colIntensityBottom1.setCellValueFactory(
+        row -> new SimpleObjectProperty<>(row.getValue().intensityB()));
+    colMatch1.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue().match()));
+    colMatchColor1.setCellValueFactory(
+        row -> new SimpleObjectProperty<>(getColor(row.getValue().match())));
+    colContribution1.setCellValueFactory(
+        row -> new SimpleDoubleProperty(row.getValue().contribution()).asObject());
+
+    colMatchColor1.setCellFactory(ColorPickerTableCell::new);
+    colMzTop1.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
+    colMzBottom1.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
+    colIntensityTop1.setCellFactory(col -> new FormattedTableCell<>(config.getIntensityFormat()));
+    colIntensityBottom1.setCellFactory(
+        col -> new FormattedTableCell<>(config.getIntensityFormat()));
+    colContribution1.setCellFactory(col -> new FormattedTableCell<>(config.getScoreFormat()));
   }
 
   private Color getColor(SignalAlignmentAnnotation match) {
@@ -227,6 +258,28 @@ public class MirrorScanWindowController {
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
           cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
           cosine.overlap() / (double) cosine.sizeB()));
+
+      // get contributions of all data points
+      final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
+          mzTol, nlA, nlB, -1, -1);
+
+      if (contributions != null) {
+        List<TableData> data = new ArrayList<>(contributions.size());
+        for (int i = 0; i < contributions.size(); i++) {
+          final DataPoint[] pair = contributions.pairs().get(i);
+          Double mza = pair[0] != null ? pair[0].getMZ() : null;
+          Double intensitya = pair[0] != null ? pair[0].getIntensity() : null;
+          Double mzb = pair[1] != null ? pair[1].getMZ() : null;
+          Double intensityb = pair[1] != null ? pair[1].getIntensity() : null;
+
+          data.add(new TableData(mza, intensitya, mzb, intensityb, contributions.match()[i],
+              contributions.contributions()[i]));
+        }
+
+        tableNLMIrror.getItems().addAll(data);
+        colContribution1.setSortType(SortType.DESCENDING);
+      }
+
     } else {
       lbNeutralLossStats.setText("");
     }
