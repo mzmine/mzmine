@@ -41,7 +41,6 @@ semver {
 group = "io.github.mzmine"
 description = "MZmine"
 
-// JDK 14+ is needed for jpackage
 sourceCompatibility = "17"
 targetCompatibility = "17"
 defaultTasks "test", "jpackage"
@@ -284,7 +283,6 @@ runtime {
                "jdk.unsupported",
                "jdk.unsupported.desktop"]
     jpackage {
-        appVersion = String.valueOf(semver.version).split("_")[0]
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
@@ -330,6 +328,18 @@ runtime {
     }
 }
 
+//task setAppVersion() {
+//    doFirst {
+//        println project.version
+//        project.logger.debug("SEMVER Version is ${semver.version}")
+//        project.logger.debug("PROJECT Version is ${project.version}")
+//        appVersion = String.valueOf(semver.version).split("_")[0]
+//    }
+//}
+//
+//jpackage.dependsOn setAppVersion
+
+
 /*
  * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar.
  * The .java files are only for people who want to check the source codes.
@@ -351,3 +361,4 @@ task copyTestResources(type: Copy) {
     into "${buildDir}/classes/test"
 }
 processTestResources.dependsOn copyTestResources
+
