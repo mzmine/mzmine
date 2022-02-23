@@ -63,3 +63,17 @@ jobs:
         prerelease: true
         title: "MZmine 3.0.0-beta"
         files: build/jpackage/*.dmg
+        
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      #if: startsWith(github.ref, 'refs/tags/')
+      with:
+        tag_name: ${{ needs.create_release.outputs.tag-name }}
+        append_body: true
+        prerelease: true
+        files: |
+          build/jpackage/*.dmg
+          build/jpackage/*.msi
+          build/jpackage/*.deb
+          build/jpackage/*.rpm
+          build/jpackage/MZmine_windows_portable.zip
