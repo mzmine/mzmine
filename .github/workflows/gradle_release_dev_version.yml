@@ -77,6 +77,12 @@ jobs:
           build/jpackage/*.deb
           build/jpackage/*.rpm
 
+    - name: Zip portable windows
+      if: matrix.os == 'windows-latest'
+      uses: papeloto/action-zip@v1
+      with:
+        files: build/jpackage/MZmine/
+        dest: build/jpackage/MZmine_windows_portable.zip
 
     - name: Update Automatic Release Window
       if: matrix.os == 'windows-latest'
@@ -88,7 +94,7 @@ jobs:
         title: "Windows Development Build"
         files: |
           build/jpackage/*.msi
-          build/jpackage/MZmine/
+          build/jpackage/MZmine_windows_portable.zip
 
 
     - name: Update Automatic Release MacOS
