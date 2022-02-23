@@ -1,4 +1,4 @@
-name: Release latest DEV version
+name: Publish MZmine release
 
 on: workflow_dispatch
     
