@@ -328,18 +328,6 @@ runtime {
     }
 }
 
-//task setAppVersion() {
-//    doFirst {
-//        println project.version
-//        project.logger.debug("SEMVER Version is ${semver.version}")
-//        project.logger.debug("PROJECT Version is ${project.version}")
-//        appVersion = String.valueOf(semver.version).split("_")[0]
-//    }
-//}
-//
-//jpackage.dependsOn setAppVersion
-
-
 /*
  * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar.
  * The .java files are only for people who want to check the source codes.
