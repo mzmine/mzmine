@@ -46,6 +46,7 @@ public class NewVersionCheck implements Runnable {
 
     // Check for updated version
     Semver currentVersion = MZmineCore.getMZmineVersion();
+
     Semver newestVersion = null;
 
     if (checkType.equals(CheckType.MENU)) {

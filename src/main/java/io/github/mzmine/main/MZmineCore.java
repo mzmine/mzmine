@@ -337,7 +337,10 @@ public final class MZmineCore {
       if ((versionString == null) || (versionString.startsWith("$"))) {
         return new Semver("3-SNAPSHOT", SemverType.LOOSE);
       }
-      return new Semver(versionString, SemverType.LOOSE);
+      Semver version = new Semver(versionString, SemverType.LOOSE);
+      // for now add beta here - jpackage does not work with -beta at version
+      version = version.withSuffix("beta");
+      return version;
     } catch (Exception e) {
       e.printStackTrace();
       return new Semver("3-SNAPSHOT", SemverType.LOOSE);
