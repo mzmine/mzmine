@@ -17,7 +17,6 @@ jobs:
       matrix:
         include:
         - os: macos-latest
-        - os: macos-11
         - os: ubuntu-latest
         - os: windows-latest
         
@@ -61,15 +60,15 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/*.deb
+        path: build/jpackage/
         retention-days: 7  # store for 7 days
         
     - name: Upload builds macos
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-11'
+      if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v2
       with:
         name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/*.dmg
+        path: build/jpackage/
         retention-days: 7  # store for 7 days
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
