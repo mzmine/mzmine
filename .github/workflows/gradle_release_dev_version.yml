@@ -95,4 +95,6 @@ jobs:
         automatic_release_tag: "MacOS-latest"
         prerelease: true
         title: "MacOS Development Build"
-        files: build/jpackage/*.dmg
+        files: |
+          build/jpackage/*.dmg
+          build/jpackage/*.rpm
