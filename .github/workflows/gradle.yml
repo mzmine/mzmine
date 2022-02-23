@@ -49,26 +49,26 @@ jobs:
       
     - name: Upload builds
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2.3.1
       with:
-        name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/
+        name: MZmine_windows_installer
+        path: build/jpackage/*.msi
         retention-days: 7  # store for 7 days
         
     - name: Upload builds ubuntu
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2.3.1
       with:
-        name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/
+        name: MZmine_linux_deb_package
+        path: build/jpackage/*.deb
         retention-days: 7  # store for 7 days
         
     - name: Upload builds macos
       if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2.3.1
       with:
-        name: MZmine_package_${{matrix.os}}
-        path: build/jpackage/
+        name: MZmine_macos_dmg_installer
+        path: build/jpackage/*.dmg
         retention-days: 7  # store for 7 days
 
 # clean cache important but DOES NOT WORK on windows - -f not allowed 
