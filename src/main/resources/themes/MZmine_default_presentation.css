@@ -91,6 +91,11 @@
   -fx-background-radius: 5em;
 }
 
+.scroll-pane {
+ -fx-fit-to-height: true;
+ -fx-fit-to-width: true;
+}
+
 .table-column {
     -fx-alignment: CENTER-LEFT;
 }

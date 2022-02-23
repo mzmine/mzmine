@@ -34,7 +34,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<ScrollPane fitToHeight="true" fitToWidth="true" xmlns="http://javafx.com/javafx/11.0.2"
+<ScrollPane xmlns="http://javafx.com/javafx/11.0.2"
   xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
   <BorderPane>
