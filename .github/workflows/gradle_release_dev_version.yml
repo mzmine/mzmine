@@ -36,7 +36,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v2
       with:
-        name: MZmine_windows_msi_installer
+        name: MZmine_windows_portable
         path: build/jpackage/MZmine/
         retention-days: 7  # store for 7 days
         
@@ -73,7 +73,9 @@ jobs:
         automatic_release_tag: "Ubuntu-latest"
         prerelease: true
         title: "Ubuntu Development Build"
-        files: build/jpackage/*.deb
+        files: |
+          build/jpackage/*.deb
+          build/jpackage/*.rpm
 
 
     - name: Update Automatic Release Window
@@ -95,6 +97,4 @@ jobs:
         automatic_release_tag: "MacOS-latest"
         prerelease: true
         title: "MacOS Development Build"
-        files: |
-          build/jpackage/*.dmg
-          build/jpackage/*.rpm
+        files: build/jpackage/*.dmg
