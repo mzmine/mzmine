@@ -27,6 +27,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.awt.Color;
 import java.io.IOException;
@@ -296,5 +297,15 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
 
   public RawDataFile getOriginalFile() {
     return originalFile;
+  }
+
+  @Override
+  public @Nullable CCSCalibration getCCSCalibration() {
+    return null;
+  }
+
+  @Override
+  public void setCCSCalibration(@Nullable CCSCalibration calibration) {
+
   }
 }

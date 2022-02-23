@@ -337,7 +337,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
                    == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
-            MobilityType.TIMS, ddaInfo.getPrecursorCharge());
+            MobilityType.TIMS, ddaInfo.getPrecursorCharge(), (IMSRawDataFile) mobScan.getDataFile());
       }
     } else if (scan instanceof MergedMsMsSpectrum merged
                && merged.getMsMsInfo() instanceof DDAMsMsInfo ddaInfo) {
@@ -350,7 +350,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
               ||*/ ((IMSRawDataFile) mobScan.getDataFile()).getMobilityType()
                    == MobilityType.TIMS)) {
         precursorCCS = CCSUtils.calcCCS(ddaInfo.getIsolationMz(), (float) mobScan.getMobility(),
-            MobilityType.TIMS, ddaInfo.getPrecursorCharge());
+            MobilityType.TIMS, ddaInfo.getPrecursorCharge(), (IMSRawDataFile) mobScan.getDataFile());
       }
     }
     return precursorCCS;

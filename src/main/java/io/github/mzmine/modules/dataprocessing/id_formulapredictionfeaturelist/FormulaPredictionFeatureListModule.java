@@ -40,7 +40,7 @@ public class FormulaPredictionFeatureListModule implements MZmineProcessingModul
   }
 
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.ANNOTATION;
   }
 
   @Override

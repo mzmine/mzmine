@@ -1,0 +1,284 @@
+Parameters for E:\projects AG Kammerer\Simon\Simon.PRO\ACQUDB\20180808_NuclIMS.EXP
+Created by 4.1 SCN916
+ 
+Lock Spray Configuration:
+Reference Scan Frequency(sec)			30.000
+Reference Cone Voltage(V)			40.000
+Reference Trap Collision Energy			4.000
+Reference DRE Setting				99.900
+ 
+Temperature Correction:
+Temperature Correction				Disabled
+ 
+Instrument Configuration:
+Lteff						1800.0
+Veff						7195.30
+Resolution					20000
+Min Points in Peak				2
+Acquisition Device				WatersADC
+Acquisition Algorithm				ADC Mode
+ADC Trigger Threshold (V)			0.90
+ADC Input Offset (V)				-1.59
+Average Single Ion Intensity			33
+ADC Amplitude Threshold				3
+ADC Centroid Threshold				-1
+ADC Ion Area Threshold				4
+ADC Ion Area Offset				10
+ADC Pushes Per IMS Increment			1
+EDC Delay Coefficient				1.3500
+EDC Delay Offset				0.4000
+ 
+Experimental Instrument Parameters
+Instrument Parameter Filename			E:\projects AG Kammerer\Simon\Simon.PRO\ACQUDB\Nucleoside_IMS_opti.IPR (MODIFIED)
+Polarity					ES+
+Capillary (kV)					2.5000
+Source Temperature (캜)				110
+Sampling Cone					20.0000
+Source Offset					20.0000
+Source Gas Flow (mL/min)			0.00
+Desolvation Temperature (캜)			600
+Cone Gas Flow (L/Hr)				40.0
+Desolvation Gas Flow (L/Hr)			1200.0
+Nebuliser Gas Flow (Bar)			6.0
+LM Resolution					10.0
+HM Resolution					15.0
+Aperture 1					0.0
+Pre-filter					2.0
+Ion Energy					1.0
+Manual Trap Collision Energy			TRUE
+Trap Collision Energy				4.0
+Manual Transfer Collision Energy		TRUE
+Transfer Collision Energy			2.0
+Manual Gas Control				TRUE
+Trap Gas Flow (mL/min)				0.40
+HeliumCellGasFlow				180.00
+IMS Gas Flow (mL/min)				70.00
+Detector					2925
+DetectorCache					0
+Sample Infusion Flow Rate (킠/min)		5
+Sample Flow State				LC
+Sample Fill Volume (킠)				250
+Sample Reservoir				A
+LockSpray Infusion Flow Rate (킠/min)		5
+LockSpray Flow State				Infusion
+LockSpray Reservoir				B
+LockSpray Capillary (kV)			1.5
+Use Manual LockSpray Collision Energy		FALSE
+Collision Energy				4.0
+Acceleration1					70.0
+Acceleration2					200.0
+Aperture2					70.0
+Transport1					70.0
+Transport2					70.0
+Steering					0.00
+Tube Lens					70
+Pusher						1900.0
+Pusher Offset					-0.40
+Puller						1370.0
+Pusher Cycle Time (탎)				Automatic
+Pusher Width (탎)				Automatic
+Collector					50
+Collector Pulse					10.0
+Stopper						10
+Stopper Pulse					20.0
+Entrance					62
+Static Offset					180
+Puller Offset					0.00
+Reflectron Grid (kV)				1.470
+Flight Tube (kV)				10.00
+Reflectron (kV)					3.780
+Use Manual Trap DC				TRUE
+Trap DC Entrance				3.0
+Trap DC Bias					45.0
+Trap DC						0.0
+Trap DC Exit					3.0
+Use Manual IMS DC				TRUE
+IMS DC Entrance					35.0
+Helium Cell DC					35.0
+Helium Exit					-5.0
+IMSBias						3.0
+IMS DC Exit					0.0
+USe Manual Transfer DC				TRUE
+Transfer DC Entrance				4.0
+Transfer DC Exit				15.0
+Trap Manual Control				OFF
+Trap Wave Velocity (m/s)			300
+Trap Wave Height (V)				6.0
+IMS Manual Control				ON
+IMS Wave Velocity (m/s)				650
+IMS Wave Height (V)				30.0
+Transfer Manual Control				ON
+Transfer Wave Velocity (m/s)			315
+Transfer Wave Height (V)			4.0
+Step Wave 1 In Manual Control			OFF
+Enable Reverse Operation			OFF
+Step Wave 1 In Velocity (m/s)			300.0
+Step Wave 1 In Height				10.0
+Step Wave 1 Out Manual Control			OFF
+Step Wave 1 Out Velocity (m/s)			300.0
+Step Wave 1 Out Height				0.0
+Step Wave 2 Manual Control			OFF
+Step Wave 2 Velocity (m/s)			300.0
+Step Wave 2 Height				0.0
+Use Manual Step Wave DC				ON
+Step Wave TransferOffset			10.0
+Step Wave DiffAperture1				3.0
+Step Wave DiffAperture2				0.0
+Use Automatic RF Settings			FALSE
+StepWave1RFOffset				80.0
+StepWave2RFOffset				350.0
+Target Enhancement Enabled			FALSE
+Target Enhancement Mode				EDC
+Target Enhancement Mass				556.0
+Target Enhancement Trap Height (V)		12.0
+Target Enhancement Extract Height (V)		8.0
+Mobility Trapping Manual Release Enabled	FALSE
+Mobility Trapping Release Time (탎)		500
+Mobility Trap Height (V)			20.0
+Mobility Extract Height (V)			0.0
+Trag Gate LUT table enabled			FALSE
+TriWave Trap Gate LookUp Table			
+Using Drift Time Trimming			FALSE
+Drift Time Bins					0
+Using Mobility Delay after Trap Release		FALSE
+IMS Wave Delay (탎)				1000
+Variable Wave Height Enabled			FALSE
+Wave Height Ramp Type				Linear
+Wave Height Start (V)				17.0
+Wave Height End (V)				35.0
+Wave Height Using Full IMS			TRUE
+Wave Height Ramp (%)				50.0
+Wave Height Look Up Table			
+Variable Wave Velocity Enabled			FALSE
+Wave Velocity Ramp Type				Linear
+Wave Velocity Start (m/s)			1000.0
+Wave Velocity End (m/s)				400.0
+Wave Velocity Using Full IMS			TRUE
+Wave Velocity Ramp (%)				50.0
+Wave Velocity Look Up Table			
+Backing						3.03e0
+Source						7.43e-3
+Sample Plate					1.00e-6
+Trap						1.58e-2
+Helium Cell					3.07e0
+IMS						2.66e0
+Transfer					1.78e-2
+TOF						4.19e-7
+IMSRFOffset					300
+IMSMobilityRFOffset				150
+TrapRFOffset					300
+Use Automatic RF Settings			FALSE
+AutoStepWave1RFOffset				300
+AutoStepWave2RFOffset				350
+TransferRFOffset				350
+MS Profile Type					Auto P
+MSProfileMass1					100
+MSProfileDwellTime1				20
+MSProfileRampTime1				20
+MSProfileMass2					300
+MSProfileDwellTime2				20
+MSProfileRampTime2				40
+MSProfileMass3					500
+PusherInterval					39.000000
+PusherOffset					0.250000
+LockMassValidSigma				5
+ 
+Acquisition mass range
+Start mass					50.000
+End mass					600.000
+Calibration mass range
+Start mass					90.996
+End mass					1178.607
+ 
+Experiment Reference Compound Name: LeuEnk_SP_Res_pos
+ 
+Function Parameters - Function 1 - MOBILITY MS FUNCTION
+Scan Time (sec)					0.500
+Interscan Time (sec)				0.014
+Start Mass					50.0
+End Mass					600.0
+Start Time (mins)				0.00
+End Time (mins)					12.00
+Data Format					Continuum
+Analyser					Resolution Mode
+ADC Sample Frequency (GHz)			3.0
+ADC Pusher Frequency (탎)			39.0
+ADC Pusher Width (탎)				1.00
+Use Tune Page Cone Voltage			YES
+Using Auto Trap Collision Energy (eV)		4.000000
+Using Auto Transfer Collision Energy (eV)	2.000000
+Sensitivity					Normal
+Dynamic Range					Normal
+Save Collapsed Retention Time Data		Yes
+Use Rule File Filtering				No
+FragmentationMode				CID
+Calibration					Dynamic 2
+ 
+Function Parameters - Function 2 - MOBILITY MS FUNCTION
+Scan Time (sec)					0.500
+Interscan Time (sec)				0.014
+Start Mass					50.0
+End Mass					600.0
+Start Time (mins)				0.00
+End Time (mins)					12.00
+Data Format					Continuum
+Analyser					Resolution Mode
+ADC Sample Frequency (GHz)			3.0
+ADC Pusher Frequency (탎)			39.0
+ADC Pusher Width (탎)				1.00
+Use Tune Page Cone Voltage			YES
+Using Auto Trap Collision Energy (eV)		4.000000
+Use Auto Transfer Collision Energy		NO
+Transfer Collision Energy Ramp Start (eV)	20.0
+Transfer Collision Energy Ramp End (eV)		50.0
+Sensitivity					Normal
+Dynamic Range					Normal
+Save Collapsed Retention Time Data		Yes
+Use Rule File Filtering				No
+FragmentationMode				CID
+Calibration					Dynamic 2
+ 
+Function Parameters - Function 3 - REFERENCE
+Scan Time (sec)					0.000
+Interscan Time (sec)				0.100
+Start Mass					50.0
+End Mass					600.0
+Start Time (mins)				0.00
+End Time (mins)					12.00
+Data Format					Continuum
+Analyser					Resolution Mode
+ADC Sample Frequency (GHz)			3.0
+ADC Pusher Frequency (탎)			39.0
+ADC Pusher Width (탎)				1.00
+Use Tune Page Cone Voltage			YES
+Using Auto Trap Collision Energy (eV)		4.000000
+Using Auto Transfer Collision Energy (eV)	2.000000
+Sensitivity					Normal
+Dynamic Range					Normal
+Save Collapsed Retention Time Data		Yes
+Use Rule File Filtering				No
+FragmentationMode				CID
+[LOCK SPRAY]
+LockSprayType:					Do not apply correction
+LockSpray Reference Compound Name:		LeuEnk_SP_Res_pos
+Scan Time (sec)					0.00
+Interval					30
+EDC Mass					0.0000
+Mass Window +/-					0.5
+Scans to Average				3.0
+Reference Cone Voltage				40.0
+Trap Collision Energy (eV)			4.0
+LocksprayDRESetting				99.9000
+[METHOD EVENTS:]
+Timed Events Enabled:				YES
+API Probe Delay Temp:				20.0
+Num of Timed Events:				4.0
+Event	Time	Name	Action				System
+1	-60.00	Flow State	LC				Sample
+2	-60.00	Reservoir	B				LockSpray
+3	-60.00	Refill	Auto-Refill			LockSpray
+4	-60.00	Infusion	Start				LockSpray
+
+
+Calibration					Dynamic 2
+ 

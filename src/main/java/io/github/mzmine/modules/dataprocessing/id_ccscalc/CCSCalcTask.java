@@ -18,6 +18,7 @@
 package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 
 import com.google.common.collect.RangeMap;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -30,7 +31,6 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
-import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +46,6 @@ public class CCSCalcTask extends AbstractTask {
   private final boolean assumeChargeState;
   private final RangeMap<Double, Integer> rangeChargeMap;
   private final ModularFeatureList[] featureLists;
-  private final boolean createNewFeatureList;
   private final MZmineProject project;
   private final ParameterSet parameters;
   private double percentage;
@@ -63,8 +62,6 @@ public class CCSCalcTask extends AbstractTask {
         .getEmbeddedParameter().getValue();
     this.featureLists = parameters.getParameter(CCSCalcParameters.featureLists).getValue()
         .getMatchingFeatureLists();
-    this.createNewFeatureList = parameters.getParameter(CCSCalcParameters.createNewFeatureList)
-        .getValue();
     this.project = project;
     this.parameters = parameters;
 
@@ -89,30 +86,31 @@ public class CCSCalcTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    ModularFeatureList workingFeatureList = null;
     for (ModularFeatureList featureList : featureLists) {
-      if (createNewFeatureList) {
-        workingFeatureList = featureList
-            .createCopy(featureList.getName() + " CCS", getMemoryMapStorage(), false);
-      } else {
-        workingFeatureList = featureList;
-      }
+      for (RawDataFile file : featureList.getRawDataFiles()) {
+        if (!(file instanceof IMSRawDataFile imsFile)) {
+          continue;
+        }
+        if (!(imsFile.getCCSCalibration() != null
+            || imsFile.getMobilityType() == MobilityType.TIMS)) {
+          logger.info(() -> "Raw data file " + imsFile.getName()
+              + " does not have a CCS calibration and is not a TIMS file. CCS values cannot be determined.");
+          continue;
+        }
 
-      for (FeatureListRow row : workingFeatureList.getRows()) {
-        List<RawDataFile> rawDataFiles = row.getRawDataFiles();
-        for (RawDataFile file : rawDataFiles) {
-
-          ModularFeature feature = (ModularFeature) row.getFeature(file);
+        for (FeatureListRow row : featureList.getRows()) {
+          ModularFeature feature = (ModularFeature) row.getFeature(imsFile);
           if (feature == null) {
             continue;
           }
 
           Float mobility = feature.getMobility();
           MobilityType mobilityType = feature.getMobilityUnit();
-          double mz = feature.getMZ();
           if (mobility == null || mobilityType == null) {
             continue;
           }
+
+          double mz = feature.getMZ();
 
           int charge = feature.getCharge();
           if (charge == 0 && !assumeChargeState) {
@@ -125,7 +123,7 @@ public class CCSCalcTask extends AbstractTask {
             charge = fallbackCharge;
           }
 
-          Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, charge);
+          Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, charge, imsFile);
           if (ccs != null) {
             feature.setCCS(ccs);
             annotatedFeatures++;
@@ -139,12 +137,8 @@ public class CCSCalcTask extends AbstractTask {
         percentage = totalRows / (double) processedRows;
       }
 
-      workingFeatureList.getAppliedMethods()
-          .add(new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters,
-              getModuleCallDate()));
-      if (workingFeatureList != featureList) {
-        project.addFeatureList(workingFeatureList);
-      }
+      featureList.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(CCSCalcModule.class, parameters, getModuleCallDate()));
     }
 
     logger.info("Annotated " + annotatedFeatures + " features with CCS values.");
