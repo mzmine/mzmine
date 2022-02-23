@@ -1,5 +1,6 @@
 name: Release latest DEV version
 
+on: workflow_dispatch
     
 jobs:
   gradle:
