@@ -144,3 +144,7 @@
 .set-color-menu-item:hover, .set-color-menu-item:pressed, .set-color-menu-item {
   -fx-background-color: inherit;
 }
+
+.web-view {
+  -fx-font-smoothing-type: gray;
+}
