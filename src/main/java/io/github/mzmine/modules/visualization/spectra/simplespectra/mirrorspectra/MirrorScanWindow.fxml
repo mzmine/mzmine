@@ -58,7 +58,7 @@
                   </BorderPane>
                   <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <center>
-                        <ScrollPane>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
                            <BorderPane>
                               <center>
                                  <TableView BorderPane.alignment="CENTER" fx:id="tableMirror">
@@ -115,7 +115,7 @@
                   </BorderPane>
                   <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                      <center>
-                        <ScrollPane>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
                            <BorderPane>
                               <center>
                                  <TableView BorderPane.alignment="CENTER" fx:id="tableNLMIrror">
