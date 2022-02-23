@@ -24,12 +24,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -38,7 +40,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class FileNamesComponent extends GridPane {
+public class FileNamesComponent extends BorderPane {
 
   public static final Font smallFont = new Font("SansSerif", 10);
 
@@ -58,6 +60,7 @@ public class FileNamesComponent extends GridPane {
     initDragDropped();
 
     Button btnFileBrowser = new Button("Select files");
+    btnFileBrowser.setMaxWidth(Double.MAX_VALUE);
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
@@ -86,14 +89,15 @@ public class FileNamesComponent extends GridPane {
     useSubFolders.setSelected(false);
 
     Button btnClear = new Button("Clear");
+    btnClear.setMaxWidth(Double.MAX_VALUE);
     btnClear.setOnAction(e -> txtFilename.setText(""));
 
     GridPane buttonGrid = new GridPane();
-    ColumnConstraints b1 = new ColumnConstraints();
-    b1.setFillWidth(true);
-    ColumnConstraints b2 = new ColumnConstraints();
-    b2.setFillWidth(true);
-    this.getColumnConstraints().addAll(b1, b2);
+    ColumnConstraints b1 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
+    ColumnConstraints b2 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
+    buttonGrid.getColumnConstraints().addAll(b1, b2);
 
     buttonGrid.setHgap(1);
     buttonGrid.setVgap(3);
@@ -108,16 +112,13 @@ public class FileNamesComponent extends GridPane {
     buttonGrid.add(directoryButtons.remove(0), 0, startRow, 2, 1);
     for (int i = 0; i < directoryButtons.size(); i++) {
       buttonGrid.add(directoryButtons.get(i), i % 2, startRow + 1 + i / 2);
+      directoryButtons.get(i).getParent().layout();
     }
+    buttonGrid.layout();
 
     // main gridpane
-    ColumnConstraints col = new ColumnConstraints();
-    col.setFillWidth(true);
-    col.setHgrow(Priority.ALWAYS);
-    ColumnConstraints col2 = new ColumnConstraints();
-    this.getColumnConstraints().addAll(col, col2);
-    this.add(txtFilename, 0, 0);
-    this.add(buttonGrid, 1, 0);
+    this.setCenter(txtFilename);
+    this.setRight(buttonGrid);
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
@@ -130,6 +131,8 @@ public class FileNamesComponent extends GridPane {
           : "All " + filter.getExtensions().get(0);
 
       Button btnFromDirectory = new Button(name);
+      btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
+      btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
       btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
       btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
       btns.add(btnFromDirectory);
