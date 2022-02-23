@@ -29,11 +29,11 @@ import javafx.scene.paint.Color;
  * @param <T>
  * @author akshaj This class represents the color picker in the table of Fx3DVisualizer.
  */
-public class ColorTableCell<T> extends TableCell<T, Color> {
+public class ColorPickerTableCell<T> extends TableCell<T, Color> {
 
   private final ColorPicker colorPicker;
 
-  public ColorTableCell(TableColumn<T, Color> column) {
+  public ColorPickerTableCell(TableColumn<T, Color> column) {
     colorPicker = new ColorPicker();
     colorPicker.editableProperty().bind(column.editableProperty());
     colorPicker.disableProperty().bind(column.editableProperty().not());

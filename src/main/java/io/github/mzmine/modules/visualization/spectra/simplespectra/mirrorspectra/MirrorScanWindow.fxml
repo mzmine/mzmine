@@ -56,37 +56,45 @@
                         </VBox>
                      </top>
                   </BorderPane>
-                  <ScrollPane>
-                     <content>
-                        <BorderPane>
-                           <bottom>
-                              <TableView BorderPane.alignment="CENTER" fx:id="tableMirror">
-                                 <columns>
-                                    <TableColumn editable="false" prefWidth="75.0" text="top">
+                  <BorderPane>
+                     <center>
+                        <ScrollPane>
+                           <content>
+                              <BorderPane>
+                                 <center>
+                                    <TableView BorderPane.alignment="CENTER" fx:id="tableMirror">
                                        <columns>
-                                          <TableColumn prefWidth="75.0" text="mz" fx:id="colMzTop"/>
+                                          <TableColumn editable="false" prefWidth="75.0" text="top">
+                                             <columns>
+                                                <TableColumn prefWidth="75.0" text="mz"
+                                                  fx:id="colMzTop"/>
+                                                <TableColumn editable="false" prefWidth="75.0"
+                                                  text="intensity" fx:id="colIntensityTop"/>
+                                             </columns>
+                                          </TableColumn>
                                           <TableColumn editable="false" prefWidth="75.0"
-                                            text="intensity" fx:id="colIntensityTop"/>
-                                       </columns>
-                                    </TableColumn>
-                                    <TableColumn editable="false" prefWidth="75.0" text="bottom">
-                                       <columns>
-                                          <TableColumn editable="false" prefWidth="75.0" text="mz"
-                                            fx:id="colMzBottom"/>
+                                            text="bottom">
+                                             <columns>
+                                                <TableColumn editable="false" prefWidth="75.0"
+                                                  text="mz" fx:id="colMzBottom"/>
+                                                <TableColumn editable="false" prefWidth="75.0"
+                                                  text="intensity" fx:id="colIntensityBottom"/>
+                                             </columns>
+                                          </TableColumn>
+                                          <TableColumn editable="false" prefWidth="25" text="c"
+                                            fx:id="colMatchColor"/>
                                           <TableColumn editable="false" prefWidth="75.0"
-                                            text="intensity" fx:id="colIntensityBottom"/>
+                                            text="match" fx:id="colMatch"/>
+                                          <TableColumn editable="false" prefWidth="75.0"
+                                            text="contribution" fx:id="colContribution"/>
                                        </columns>
-                                    </TableColumn>
-                                    <TableColumn editable="false" prefWidth="75.0" text="match"
-                                      fx:id="colMatch"/>
-                                    <TableColumn editable="false" prefWidth="75.0"
-                                      text="contribution" fx:id="colContribution"/>
-                                 </columns>
-                              </TableView>
-                           </bottom>
-                        </BorderPane>
-                     </content>
-                  </ScrollPane>
+                                    </TableView>
+                                 </center>
+                              </BorderPane>
+                           </content>
+                        </ScrollPane>
+                     </center>
+                  </BorderPane>
                </items>
             </SplitPane>
             <SplitPane GridPane.rowIndex="1" dividerPositions="0.7">

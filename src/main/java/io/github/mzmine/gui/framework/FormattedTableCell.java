@@ -16,14 +16,25 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
+package io.github.mzmine.gui.framework;
 
-import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.SignalAlignmentAnnotation;
+import java.text.NumberFormat;
+import javafx.scene.control.TableCell;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
  */
-record TableData(Double mzA, Double intensityA, Double mzB, Double intensityB,
-                 SignalAlignmentAnnotation match, Double contribution) {
+public class FormattedTableCell<S, T> extends TableCell<S, T> {
 
+  private final NumberFormat format;
+
+  public FormattedTableCell(NumberFormat format) {
+    this.format = format;
+  }
+
+  @Override
+  protected void updateItem(T item, boolean empty) {
+    super.updateItem(item, empty);
+    this.setText(empty || item == null ? null : format.format(item));
+  }
 }

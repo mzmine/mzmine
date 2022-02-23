@@ -22,13 +22,17 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
+import io.github.mzmine.gui.framework.FormattedTableCell;
+import io.github.mzmine.main.MZmineConfiguration;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.CosinePairContributions;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.SignalAlignmentAnnotation;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MirrorChartFactory;
+import io.github.mzmine.util.components.ColorPickerTableCell;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
@@ -37,12 +41,13 @@ import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -83,7 +88,9 @@ public class MirrorScanWindowController {
   private TableColumn<TableData, Double> colIntensityBottom;
 
   @FXML
-  private TableColumn<TableData, String> colMatch;
+  private TableColumn<TableData, SignalAlignmentAnnotation> colMatch;
+  @FXML
+  private TableColumn<TableData, Color> colMatchColor;
 
   @FXML
   private TableColumn<TableData, Double> colContribution;
@@ -94,17 +101,36 @@ public class MirrorScanWindowController {
 
   @FXML
   public void initialize() {
+    final MZmineConfiguration config = MZmineCore.getConfiguration();
 
-    colMzTop.setCellValueFactory(row -> new SimpleObjectProperty(row.getValue().mzA()));
+    colMzTop.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue().mzA()));
     colIntensityTop.setCellValueFactory(
-        row -> new SimpleObjectProperty(row.getValue().intensityA()));
-    colMzBottom.setCellValueFactory(row -> new SimpleObjectProperty(row.getValue().mzB()));
+        row -> new SimpleObjectProperty<>(row.getValue().intensityA()));
+    colMzBottom.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue().mzB()));
     colIntensityBottom.setCellValueFactory(
-        row -> new SimpleObjectProperty(row.getValue().intensityB()));
-    colMatch.setCellValueFactory(row -> new SimpleStringProperty(row.getValue().match()));
+        row -> new SimpleObjectProperty<>(row.getValue().intensityB()));
+    colMatch.setCellValueFactory(row -> new SimpleObjectProperty<>(row.getValue().match()));
+    colMatchColor.setCellValueFactory(
+        row -> new SimpleObjectProperty<>(getColor(row.getValue().match())));
     colContribution.setCellValueFactory(
         row -> new SimpleDoubleProperty(row.getValue().contribution()).asObject());
 
+    colMatchColor.setCellFactory(ColorPickerTableCell::new);
+    colMzTop.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
+    colMzBottom.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
+    colIntensityTop.setCellFactory(col -> new FormattedTableCell<>(config.getIntensityFormat()));
+    colIntensityBottom.setCellFactory(col -> new FormattedTableCell<>(config.getIntensityFormat()));
+    colContribution.setCellFactory(col -> new FormattedTableCell<>(config.getScoreFormat()));
+
+  }
+
+  private Color getColor(SignalAlignmentAnnotation match) {
+    return switch (match) {
+      case MATCH -> MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor();
+      case MODIFIED -> MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
+      case NONE, FILTERED -> MZmineCore.getConfiguration().getDefaultColorPalette()
+          .getNeutralColor();
+    };
   }
 
   public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
@@ -177,12 +203,12 @@ public class MirrorScanWindowController {
           Double mzb = pair[1] != null ? pair[1].getMZ() : null;
           Double intensityb = pair[1] != null ? pair[1].getIntensity() : null;
 
-          data.add(
-              new TableData(mza, intensitya, mzb, intensityb, contributions.match()[i].toString(),
-                  contributions.contributions()[i]));
+          data.add(new TableData(mza, intensitya, mzb, intensityb, contributions.match()[i],
+              contributions.contributions()[i]));
         }
 
         tableMirror.getItems().addAll(data);
+        colContribution.setSortType(SortType.DESCENDING);
       }
     } else {
       lbMirrorModifiedStats.setText("");
