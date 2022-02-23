@@ -143,3 +143,7 @@
   -fx-font-weight: bold;
   -fx-text-fill: white;
 }
+
+.web-view {
+  -fx-font-smoothing-type: LCD;
+}
