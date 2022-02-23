@@ -22,13 +22,25 @@ plugins {
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.10"
     id "org.beryx.runtime" version "1.12.7"
+
+    // versioning now in version.properties file
+    // https://github.com/ethauvin/semver-gradle
+    id "net.thauvin.erik.gradle.semver" version "1.0.4"
 }
 
+// save version to main resources
+// version bump by .\gradlew incrementPatch ... incrementMinor
+// gradle -Dversion.prerelease=beta incrementPatch
+// version with -beta is currently not supported by jpackage (maybe windows --app-version)
+// java.lang.IllegalArgumentException: "Version [3.0.0-beta] contains invalid component [0-beta]"
+semver {
+    properties = "src/main/resources/mzmineversion.properties"
+}
+
+// version is now in version.properties
 group = "io.github.mzmine"
-version = "3.0"
 description = "MZmine"
 
-// JDK 14+ is needed for jpackage
 sourceCompatibility = "17"
 targetCompatibility = "17"
 defaultTasks "test", "jpackage"
@@ -83,6 +95,8 @@ ext {
 }
 
 dependencies {
+    // MZmine version parsing
+    implementation 'com.vdurmont:semver4j:3.1.0'
 //    implementation "org.graphstream:gs-core:2.0"
     // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
     implementation "com.github.robinschmid:gs-core:45504f632f"
@@ -273,13 +287,16 @@ runtime {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico", "--add-launcher", "MZmine_console=gradle/win_console_launcher.properties"]
+            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico",
+                            "--add-launcher", "MZmine_console=gradle/win_console_launcher.properties"
+            ]
             installerOptions = ["--win-menu",
                                 "--win-menu-group", "MZmine",
                                 "--win-shortcut",
                                 "--win-dir-chooser",
                                 "--win-upgrade-uuid", "$win_uuid",
-                                "--license-file", "LICENSE.txt"]
+                                "--license-file", "LICENSE.txt"
+            ]
         }
         if (OperatingSystem.current().isMacOsX()) {
             installerType = "dmg"
@@ -288,8 +305,9 @@ runtime {
             installerOptions = ["--license-file", "LICENSE.txt"]
         }
         if (OperatingSystem.current().isLinux()) {
+            // leave installer type empty to generate all that match
             // for rpm, rpmbuild and rpm tools need to be installed, installerType needs to be set to "rpm"
-            installerType = "deb"
+            // installerType = "deb"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
@@ -320,15 +338,6 @@ jar {
     sourceSets.main.resources.srcDirs += ["src/main/java"]
 }
 
-/*
- * Add MZmine version number to mzmineversion.properties
- */
-processResources {
-    filesMatching("mzmineversion.properties") {
-        expand(project.properties)
-    }
-}
-
 test {
     useJUnitPlatform()
     testLogging {
@@ -341,3 +350,4 @@ task copyTestResources(type: Copy) {
     into "${buildDir}/classes/test"
 }
 processTestResources.dependsOn copyTestResources
+

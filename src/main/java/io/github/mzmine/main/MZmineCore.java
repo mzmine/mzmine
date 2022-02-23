@@ -18,6 +18,8 @@
 
 package io.github.mzmine.main;
 
+import com.vdurmont.semver4j.Semver;
+import com.vdurmont.semver4j.Semver.SemverType;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -46,7 +48,6 @@ import io.github.mzmine.util.javafx.FxThreadUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.Runtime.Version;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -323,23 +324,26 @@ public final class MZmineCore {
   }
 
   @NotNull
-  public static Version getMZmineVersion() {
+  public static Semver getMZmineVersion() {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
       InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
       if (inStream == null) {
-        return Version.parse("3-SNAPSHOT");
+        return new Semver("3-SNAPSHOT", SemverType.LOOSE);
       }
       Properties properties = new Properties();
       properties.load(inStream);
-      String versionString = properties.getProperty("mzmine.version");
+      String versionString = properties.getProperty("version.semver");
       if ((versionString == null) || (versionString.startsWith("$"))) {
-        return Version.parse("3-SNAPSHOT");
+        return new Semver("3-SNAPSHOT", SemverType.LOOSE);
       }
-      return Version.parse(versionString);
+      Semver version = new Semver(versionString, SemverType.LOOSE);
+      // for now add beta here - jpackage does not work with -beta at version
+      version = version.withSuffix("beta");
+      return version;
     } catch (Exception e) {
       e.printStackTrace();
-      return Version.parse("3-SNAPSHOT");
+      return new Semver("3-SNAPSHOT", SemverType.LOOSE);
     }
   }
 
