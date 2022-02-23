@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2006-2021 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="650.0" prefWidth="800.0"
+  xmlns="http://javafx.com/javafx/15.0.1"
+  fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
+   <center>
+      <GridPane BorderPane.alignment="CENTER">
+         <children>
+            <SplitPane dividerPositions="0.7">
+               <items>
+                  <BorderPane fx:id="pnMirror">
+                     <top>
+                        <VBox BorderPane.alignment="CENTER">
+                           <children>
+                              <Label text="MS/MS mirror (modified cosine)">
+                                 <font>
+                                    <Font name="System Bold" size="12.0"/>
+                                 </font>
+                              </Label>
+                              <Label text="scores" fx:id="lbMirrorStats"/>
+                              <Label text="scores" fx:id="lbMirrorModifiedStats"/>
+                           </children>
+                           <padding>
+                              <Insets left="5.0"/>
+                           </padding>
+                        </VBox>
+                     </top>
+                  </BorderPane>
+                  <ScrollPane>
+                     <content>
+                        <BorderPane>
+                           <bottom>
+                              <TableView BorderPane.alignment="CENTER" fx:id="tableMirror">
+                                 <columns>
+                                    <TableColumn editable="false" prefWidth="75.0" text="top">
+                                       <columns>
+                                          <TableColumn prefWidth="75.0" text="mz" fx:id="colMzTop"/>
+                                          <TableColumn editable="false" prefWidth="75.0"
+                                            text="intensity" fx:id="colIntensityTop"/>
+                                       </columns>
+                                    </TableColumn>
+                                    <TableColumn editable="false" prefWidth="75.0" text="bottom">
+                                       <columns>
+                                          <TableColumn editable="false" prefWidth="75.0" text="mz"
+                                            fx:id="colMzBottom"/>
+                                          <TableColumn editable="false" prefWidth="75.0"
+                                            text="intensity" fx:id="colIntensityBottom"/>
+                                       </columns>
+                                    </TableColumn>
+                                    <TableColumn editable="false" prefWidth="75.0" text="match"
+                                      fx:id="colMatch"/>
+                                    <TableColumn editable="false" prefWidth="75.0"
+                                      text="contribution" fx:id="colContribution"/>
+                                 </columns>
+                              </TableView>
+                           </bottom>
+                        </BorderPane>
+                     </content>
+                  </ScrollPane>
+               </items>
+            </SplitPane>
+            <SplitPane GridPane.rowIndex="1" dividerPositions="0.7">
+               <items>
+                  <BorderPane fx:id="pnNLMirror">
+                     <top>
+                        <VBox BorderPane.alignment="CENTER">
+                           <children>
+                              <Label text="Neutral loss mirror">
+                                 <font>
+                                    <Font name="System Bold" size="12.0"/>
+                                 </font>
+                              </Label>
+                              <Label text="scores" fx:id="lbNeutralLossStats"/>
+                           </children>
+                           <padding>
+                              <Insets left="5.0"/>
+                           </padding>
+                        </VBox>
+                     </top>
+                  </BorderPane>
+                  <ScrollPane>
+                     <content>
+                        <BorderPane>
+                           <bottom>
+                              <TableView BorderPane.alignment="CENTER" fx:id="tableNLMIrror">
+                                 <columns>
+                                    <TableColumn editable="false" prefWidth="75.0" text="top">
+                                       <columns>
+                                          <TableColumn prefWidth="75.0" text="mz"/>
+                                          <TableColumn editable="false" prefWidth="75.0"
+                                            text="intensity"/>
+                                       </columns>
+                                    </TableColumn>
+                                    <TableColumn editable="false" prefWidth="75.0" text="bottom">
+                                       <columns>
+                                          <TableColumn editable="false" prefWidth="75.0" text="mz"/>
+                                          <TableColumn editable="false" prefWidth="75.0"
+                                            text="intensity"/>
+                                       </columns>
+                                    </TableColumn>
+                                    <TableColumn editable="false" prefWidth="75.0" text="match"/>
+                                    <TableColumn editable="false" prefWidth="75.0"
+                                      text="contribution"/>
+                                 </columns>
+                              </TableView>
+                           </bottom>
+                        </BorderPane>
+                     </content>
+                  </ScrollPane>
+               </items>
+            </SplitPane>
+         </children>
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES"/>
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+         </rowConstraints>
+      </GridPane>
+   </center>
+</BorderPane>

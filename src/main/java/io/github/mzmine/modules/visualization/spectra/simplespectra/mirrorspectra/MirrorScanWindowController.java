@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.correlation.SpectralSimilarity;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.CosinePairContributions;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -31,94 +32,85 @@ import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.util.ArrayList;
 import java.util.Arrays;
-import javafx.scene.Scene;
+import java.util.List;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
 
 /**
- * Creates a window with a mirror chart to compare to scans
- *
- * @author Robin Schmid & Steffen Heuckeroth
+ * @author Robin Schmid (https://github.com/robinschmid)
  */
-public class MirrorScanWindowFX extends Stage {
 
-  // for SpectralDBIdentity
+public class MirrorScanWindowController {
 
   public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
       DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
 
-  private final BorderPane contentPane;
-  private final BorderPane pnMirror;
-  private final BorderPane neutralLossMirror;
-  private final GridPane center;
-  private final Label lbMirrorStats;
-  private final Label lbNeutralLossStats;
-  private final Label lbMirrorModifiedStats;
+  // components
+  @FXML
+  private BorderPane pnMirror;
+  @FXML
+  private TableView<TableData> tableMirror;
+  @FXML
+  private BorderPane pnNLMirror;
+  @FXML
+  private TableView<TableData> tableNLMIrror;
+  @FXML
+  private Label lbMirrorStats;
+  @FXML
+  private Label lbNeutralLossStats;
+  @FXML
+  private Label lbMirrorModifiedStats;
+
+
+  @FXML
+  private TableColumn<TableData, Double> colMzTop;
+
+  @FXML
+  private TableColumn<TableData, Double> colIntensityTop;
+
+  @FXML
+  private TableColumn<TableData, Double> colMzBottom;
+
+  @FXML
+  private TableColumn<TableData, Double> colIntensityBottom;
+
+  @FXML
+  private TableColumn<TableData, String> colMatch;
+
+  @FXML
+  private TableColumn<TableData, Double> colContribution;
+
+  // data
   private EChartViewer mirrorSpecrumPlot;
   private EChartViewer neutralLossMirrorSpecrumPlot;
 
-  /**
-   * Create the frame.
-   */
-  public MirrorScanWindowFX() {
+  @FXML
+  public void initialize() {
 
-    contentPane = new BorderPane();
-    contentPane.setStyle("-fx-border-width: 5;");
-    contentPane.setPrefSize(800, 800);
+    colMzTop.setCellValueFactory(row -> new SimpleObjectProperty(row.getValue().mzA()));
+    colIntensityTop.setCellValueFactory(
+        row -> new SimpleObjectProperty(row.getValue().intensityA()));
+    colMzBottom.setCellValueFactory(row -> new SimpleObjectProperty(row.getValue().mzB()));
+    colIntensityBottom.setCellValueFactory(
+        row -> new SimpleObjectProperty(row.getValue().intensityB()));
+    colMatch.setCellValueFactory(row -> new SimpleStringProperty(row.getValue().match()));
+    colContribution.setCellValueFactory(
+        row -> new SimpleDoubleProperty(row.getValue().contribution()).asObject());
 
-    center = new GridPane();
-    final ColumnConstraints col = new ColumnConstraints();
-    col.setHgrow(Priority.ALWAYS);
-    col.setFillWidth(true);
-    center.getColumnConstraints().add(col);
-
-    final RowConstraints row1 = new RowConstraints();
-    row1.setVgrow(Priority.ALWAYS);
-    row1.setFillHeight(true);
-    final RowConstraints row2 = new RowConstraints();
-    row2.setVgrow(Priority.ALWAYS);
-    row2.setFillHeight(true);
-    center.getRowConstraints().addAll(row1, row2);
-
-    pnMirror = new BorderPane();
-    neutralLossMirror = new BorderPane();
-
-    SplitPane splitMirror = new SplitPane(pnMirror);
-
-    center.add(pnMirror, 0, 0);
-    center.add(neutralLossMirror, 0, 1);
-
-    // labels
-    lbMirrorStats = new Label("");
-    lbMirrorModifiedStats = new Label("");
-    Label titleMirror = new Label("MS/MS mirror (modified cosine)");
-    titleMirror.setFont(Font.font(null, FontWeight.BOLD, 12));
-    pnMirror.setTop(new VBox(titleMirror, lbMirrorStats, lbMirrorModifiedStats));
-
-    Label titleNL = new Label("Neutral loss mirror");
-    titleNL.setFont(Font.font(null, FontWeight.BOLD, 12));
-    lbNeutralLossStats = new Label("");
-    neutralLossMirror.setTop(new VBox(titleNL, lbNeutralLossStats));
-
-    contentPane.setCenter(center);
-
-    this.setScene(new Scene(contentPane));
   }
 
   public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
       DataPoint[] dpsB) {
     pnMirror.getChildren().removeAll();
-    neutralLossMirror.getChildren().removeAll();
+    pnNLMirror.getChildren().removeAll();
 
     final MZTolerance mzTol = getMzTolerance();
 
@@ -130,7 +122,7 @@ public class MirrorScanWindowFX extends Stage {
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
           ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
           ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);
-      neutralLossMirror.setCenter(neutralLossMirrorSpecrumPlot);
+      pnNLMirror.setCenter(neutralLossMirrorSpecrumPlot);
 
       //
       calcSpectralSimilarity(dpsA, precursorMZA, dpsB, precursorMZB);
@@ -171,6 +163,27 @@ public class MirrorScanWindowFX extends Stage {
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
           cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
           cosine.overlap() / (double) cosine.sizeB()));
+
+      // get contributions of all data points
+      final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
+          mzTol, dpsA, dpsB, precursorMZA, precursorMZB);
+
+      if (contributions != null) {
+        List<TableData> data = new ArrayList<>(contributions.size());
+        for (int i = 0; i < contributions.size(); i++) {
+          final DataPoint[] pair = contributions.pairs().get(i);
+          Double mza = pair[0] != null ? pair[0].getMZ() : null;
+          Double intensitya = pair[0] != null ? pair[0].getIntensity() : null;
+          Double mzb = pair[1] != null ? pair[1].getMZ() : null;
+          Double intensityb = pair[1] != null ? pair[1].getIntensity() : null;
+
+          data.add(
+              new TableData(mza, intensitya, mzb, intensityb, contributions.match()[i].toString(),
+                  contributions.contributions()[i]));
+        }
+
+        tableMirror.getItems().addAll(data);
+      }
     } else {
       lbMirrorModifiedStats.setText("");
     }
@@ -191,6 +204,7 @@ public class MirrorScanWindowFX extends Stage {
     } else {
       lbNeutralLossStats.setText("");
     }
+
   }
 
 
@@ -216,29 +230,9 @@ public class MirrorScanWindowFX extends Stage {
    */
   public void setScans(SpectralDBFeatureIdentity db) {
     pnMirror.getChildren().clear();
-    neutralLossMirror.getChildren().removeAll();
+    pnNLMirror.getChildren().removeAll();
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
     pnMirror.setCenter(mirrorSpecrumPlot);
-  }
-
-  private boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {
-    for (int i = current + 1; i < query.length; i++) {
-      for (DataPoint b : query[i]) {
-        if (Double.compare(dp.getMZ(), b.getMZ()) == 0
-            && Double.compare(dp.getIntensity(), b.getIntensity()) == 0) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  public EChartViewer getMirrorSpecrumPlot() {
-    return mirrorSpecrumPlot;
-  }
-
-  public void setMirrorSpecrumPlot(EChartViewer mirrorSpecrumPlot) {
-    this.mirrorSpecrumPlot = mirrorSpecrumPlot;
   }
 
 }

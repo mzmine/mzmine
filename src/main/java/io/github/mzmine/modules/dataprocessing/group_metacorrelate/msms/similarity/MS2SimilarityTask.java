@@ -170,13 +170,8 @@ public class MS2SimilarityTask extends AbstractTask {
       Function<List<DataPoint[]>, Integer> overlapFunction, double precursorMzA,
       double precursorMzB) {
     // align
-    final List<DataPoint[]> aligned;
-    if (precursorMzA > 0 && precursorMzB > 0) {
-      aligned = ScanAlignment.alignOfSortedModAware(mzTol, sortedB, sortedA, precursorMzB,
-          precursorMzA);
-    } else {
-      aligned = ScanAlignment.alignOfSorted(mzTol, sortedB, sortedA);
-    }
+    final List<DataPoint[]> aligned = alignDataPoints(precursorMzA, precursorMzB, mzTol, sortedB,
+        sortedA);
     // keep unaligned
     // aligned = ScanAlignment.removeUnaligned(aligned);
     // overlapping mass diff
@@ -216,6 +211,63 @@ public class MS2SimilarityTask extends AbstractTask {
           explainedIntensityA / totalIntensityA, explainedIntensityB / totalIntensityB);
     }
     return null;
+  }
+
+  /**
+   * Make sure to use arrays sorted by intensity
+   *
+   * @param mzTol        the tolerance to match signals
+   * @param sortedA      sorted array of data points (by intensity)
+   * @param sortedB      sorted array of data points (by intensity)
+   * @param precursorMzA precursor mz of array sortedA, only used if useModAwareCosine is active
+   * @param precursorMzB precursor mz of array sortedB, only used if useModAwareCosine is active
+   * @return the spectral similarity if number of overlapping signals >= minimum, else null
+   */
+  public static CosinePairContributions calculateModifiedCosineSimilarityContributions(
+      MZTolerance mzTol, DataPoint[] sortedA, DataPoint[] sortedB, double precursorMzA,
+      double precursorMzB) {
+    // align
+    final List<DataPoint[]> aligned = alignDataPoints(precursorMzA, precursorMzB, mzTol, sortedB,
+        sortedA);
+    if (aligned.size() >= 2) {
+      // cosine
+      double[][] diffArray = ScanAlignment.toIntensityArray(aligned);
+
+      final double cosineDivisor = Similarity.cosineDivisor(diffArray);
+      double[] contributions = new double[diffArray.length];
+      SignalAlignmentAnnotation[] annotations = new SignalAlignmentAnnotation[diffArray.length];
+      for (int i = 0; i < diffArray.length; i++) {
+        final double[] pair = diffArray[i];
+        contributions[i] = Similarity.cosineSignalContribution(pair, cosineDivisor);
+
+        final DataPoint[] dps = aligned.get(i);
+        if (dps[0] != null && dps[1] != null) {
+          if (mzTol.checkWithinTolerance(dps[0].getMZ(), dps[1].getMZ())) {
+            annotations[i] = SignalAlignmentAnnotation.MATCH;
+          } else {
+            annotations[i] = SignalAlignmentAnnotation.MODIFIED;
+          }
+        } else {
+          annotations[i] = SignalAlignmentAnnotation.NONE;
+        }
+      }
+
+      return new CosinePairContributions(aligned, contributions, annotations);
+    }
+    return null;
+  }
+
+  @NotNull
+  private static List<DataPoint[]> alignDataPoints(double precursorMzA, double precursorMzB,
+      MZTolerance mzTol, DataPoint[] sortedB, DataPoint[] sortedA) {
+    final List<DataPoint[]> aligned;
+    if (precursorMzA > 0 && precursorMzB > 0) {
+      aligned = ScanAlignment.alignOfSortedModAware(mzTol, sortedB, sortedA, precursorMzB,
+          precursorMzA);
+    } else {
+      aligned = ScanAlignment.alignOfSorted(mzTol, sortedB, sortedA);
+    }
+    return aligned;
   }
 
   /**
