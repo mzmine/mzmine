@@ -27,7 +27,6 @@ jobs:
     - name: Execute Gradle build
       run: ./gradlew --stacktrace --info
       
-      
     - name: Upload windows builds
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v2
@@ -78,8 +77,6 @@ jobs:
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v2 # download all artifacts
-        with:
-          path: build/
         
       - name: Update Automatic Release Ubuntu
         uses: marvinpinto/action-automatic-releases@latest
@@ -88,7 +85,7 @@ jobs:
           automatic_release_tag: "Ubuntu-latest"
           prerelease: true
           title: "Ubuntu Development Build"
-          files: build/*linux*
+          files: /*linux*
 
       - name: Update Automatic Release Window
         uses: marvinpinto/action-automatic-releases@latest
@@ -98,7 +95,7 @@ jobs:
           automatic_release_tag: "Windows-latest"
           prerelease: true
           title: "Windows Development Build"
-          files: build/*windows*
+          files: /*windows*
 
 
       - name: Update Automatic Release MacOS
@@ -108,7 +105,7 @@ jobs:
           automatic_release_tag: "MacOS-latest"
           prerelease: true
           title: "MacOS Development Build"
-          files: build/*macos*
+          files: /*macos*
         
         
   # bump up patch if dev release finished
