@@ -94,7 +94,9 @@ jobs:
           automatic_release_tag: "Ubuntu-latest"
           prerelease: true
           title: "Ubuntu Development Build"
-          files: build/*.deb
+          files: |
+            build/MZmine_linux_deb_package/*.deb
+            build/MZmine_linux_rpm_package/*.rpm
 
       - name: Update Automatic Release Window
         uses: marvinpinto/action-automatic-releases@latest
@@ -104,8 +106,8 @@ jobs:
           prerelease: true
           title: "Windows Development Build"
           files: |
-            build/*windows*
-            build/*.msi
+            build/*windows*/*.zip
+            build/*/*.msi
 
 
       - name: Update Automatic Release MacOS
@@ -115,7 +117,7 @@ jobs:
           automatic_release_tag: "MacOS-latest"
           prerelease: true
           title: "MacOS Development Build"
-          files: build/*.dmg
+          files: build/*/*.dmg
         
         
   # bump up patch if dev release finished
