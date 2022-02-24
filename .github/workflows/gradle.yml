@@ -121,7 +121,20 @@ jobs:
         
         
   # bump up patch if dev release finished
-  
+  increment_patch:
+    name: Increment patch version
+    needs: release_dev
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+    - name: Execute Gradle to increment version
+      run: ./gradlew incrementPatch
+    - name: Commit updated patch version
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Increment patch version
       
   # release dev version
   release_stable:
@@ -134,12 +147,27 @@ jobs:
         uses: actions/download-artifact@v2 # download all artifacts
         with:
           path: build/
-        
       - name: Create stable release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           prerelease: true
           title: "Release build"
-          files: build/*
+          files: build/*/*
 
+
+  # bump up patch if dev release finished
+  increment_minor_version:
+    name: Increment minor version after release
+    needs: release_stable
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+    - name: Execute Gradle to increment version
+      run: ./gradlew incrementMinor
+    - name: Commit updated version
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Increment minor version
