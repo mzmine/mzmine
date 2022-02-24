@@ -38,7 +38,7 @@ jobs:
         uses: papeloto/action-zip@v1
         with:
           files: build/jpackage/*.app
-          dest: build/jpackage/MZmine_MacOS_portable.zip
+          dest: build/jpackage/MZmine_macOS_portable.zip
       - name: Zip portable windows
         if: matrix.os == 'ubuntu-latest'
         uses: papeloto/action-zip@v1
@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_macos_portable
-          path: build/jpackage/MZmine_MacOS_portable.zip
+          path: build/jpackage/MZmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
 
     
@@ -124,6 +124,7 @@ jobs:
   increment_patch:
     name: Increment patch version
     needs: release_dev
+    if: !startsWith(github.ref, 'refs/tags/') # only increment if not a tag push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -135,6 +136,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Increment patch version
+          branch: master
 
   # release dev version
   release_stable:
@@ -171,3 +173,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Increment minor version
+          branch: master
