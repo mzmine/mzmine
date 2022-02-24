@@ -32,19 +32,19 @@ jobs:
         uses: papeloto/action-zip@v1
         with:
           files: build/jpackage/MZmine/
-          dest: build/jpackage/MZmine_windows_portable.zip
+          dest: build/jpackage/MZmine_Windows_portable.zip
       - name: Zip portable windows
         if: matrix.os == 'macos-latest'
         uses: papeloto/action-zip@v1
         with:
-          files: build/jpackage/MZmine.*
-          dest: build/jpackage/MZmine_macos_portable.zip
+          files: build/jpackage/*.app
+          dest: build/jpackage/MZmine_MacOS_portable.zip
       - name: Zip portable windows
         if: matrix.os == 'ubuntu-latest'
         uses: papeloto/action-zip@v1
         with:
           files: build/jpackage/MZmine/
-          dest: build/jpackage/MZmine_linux_portable.zip
+          dest: build/jpackage/MZmine_Linux_portable.zip
 
       # UPLOAD ALL FILES
       - name: Upload windows builds
@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_windows_portable
-          path: build/jpackage/MZmine_windows_portable.zip
+          path: build/jpackage/MZmine_Windows_portable.zip
           retention-days: 7  # store for 7 days
 
       - name: Upload builds ubuntu deb
@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_linux_portable
-          path: build/jpackage/MZmine_linux_portable.zip
+          path: build/jpackage/MZmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
       - name: Upload builds macos
@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: MZmine_macos_portable
-          path: build/jpackage/MZmine_macos_portable.zip
+          path: build/jpackage/MZmine_MacOS_portable.zip
           retention-days: 7  # store for 7 days
 
     
@@ -116,15 +116,9 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           prerelease: true
-          title: "Latest development build"
+          title: "Latest Development Build"
           automatic_release_tag: "Development-release"
           files: build/*/*
-
-  #          build/*windows*/*.zip
-  #          build/*/*.msi
-  #          build/MZmine_linux_deb_package/*.deb
-  #          build/MZmine_linux_rpm_package/*.rpm
-  #          build/*/*.dmg
 
   # bump up patch if dev release finished
   increment_patch:

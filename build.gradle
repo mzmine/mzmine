@@ -286,7 +286,7 @@ runtime {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
-            installerName = "MZmine_Windows"
+            installerName = "MZmine_Windows_installer"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico",
                             "--add-launcher", "MZmine_console=gradle/win_console_launcher.properties"
@@ -304,7 +304,7 @@ runtime {
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
             installerOptions = ["--license-file", "LICENSE.txt"]
-            installerName = "MZmine_MacOS"
+            installerName = "MZmine_MacOS_installer"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match
@@ -317,7 +317,7 @@ runtime {
                                 "--license-file", "LICENSE.txt",
                                 "--linux-deb-maintainer", "plusik@gmail.com"]
 
-            installerName = "MZmine_Linux"
+            installerName = "MZmine_Linux_installer"
         }
         imageName = "MZmine"
         jvmArgs = ["-showversion",
