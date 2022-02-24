@@ -3,11 +3,13 @@ name: Test Build
 on:
   push:
     branches: [ master ]
+    tags: [ 'v[0-9]+.*' ]
   pull_request:
     branches: [ master ]
     
 jobs:
-  gradle:
+  gradle_build:
+    name: test and build
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -65,3 +67,70 @@ jobs:
         name: MZmine_macos_dmg_installer
         path: build/jpackage/*.dmg
         retention-days: 7  # store for 7 days
+
+    
+  # release dev version
+  release_dev:
+    name: Release dev version
+    needs: gradle_build
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2 # download all artifacts
+        with:
+          path: build/
+        
+      - name: Update Automatic Release Ubuntu
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: "Ubuntu-latest"
+          prerelease: true
+          title: "Ubuntu Development Build"
+          files: build/*linux*
+
+      - name: Update Automatic Release Window
+        uses: marvinpinto/action-automatic-releases@latest
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: "Windows-latest"
+          prerelease: true
+          title: "Windows Development Build"
+          files: build/*windows*
+
+
+      - name: Update Automatic Release MacOS
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: "MacOS-latest"
+          prerelease: true
+          title: "MacOS Development Build"
+          files: build/*macos*
+        
+        
+  # bump up patch if dev release finished
+  
+      
+  # release dev version
+  release_stable:
+    name: Release new MZmine version
+    needs: release_dev
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2 # download all artifacts
+        with:
+          path: build/
+        
+      - name: Create stable release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          prerelease: true
+          title: "Release build"
+          files: build/*
+
