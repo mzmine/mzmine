@@ -452,6 +452,12 @@
           userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
       </Menu>
 
+      <Menu text="EC-MS workflow">
+        <MenuItem text="Calculate potentials"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.CalcEcmsPotentialModule"/>
+      </Menu>
+
       <SeparatorMenuItem/>
       <MenuItem text="Clear feature list annotations"
         onAction="#runModule"
