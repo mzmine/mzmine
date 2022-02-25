@@ -37,7 +37,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         uses: papeloto/action-zip@v1
         with:
-          files: build/jpackage/*.app
+          files: build/jpackage/*.App
           dest: build/jpackage/MZmine_macOS_portable.zip
       - name: Zip portable windows
         if: matrix.os == 'ubuntu-latest'
