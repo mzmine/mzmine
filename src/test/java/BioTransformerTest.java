@@ -4,7 +4,6 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerAnnotationImpl;
-import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerLibrary;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
 import io.github.mzmine.parameters.ParameterSet;
@@ -50,13 +49,9 @@ public class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation.csv");
     final File file = new File(resource.getFile());
-    final BioTransformerLibrary lib = new BioTransformerLibrary(file,
-        new IonType(IonModification.H));
-    final List<CompoundDBAnnotation> compoundDBAnnotations = lib.parseLibrary(
-        new AtomicBoolean(false), new AtomicInteger(0));
-    for (CompoundDBAnnotation annotation : compoundDBAnnotations) {
-      logger.info(annotation.toString());
-    }
+    final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(file,
+        new IonType[]{new IonType(IonModification.H)}, new AtomicBoolean(false),
+        new AtomicInteger(0));
 
     final CompoundDBAnnotation expected = new BioTransformerAnnotationImpl("C23H29N5O",
         392.244486548d, new IonType(IonModification.H),

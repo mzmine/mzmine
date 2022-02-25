@@ -41,6 +41,7 @@ import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerAnnotationImpl;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -132,8 +133,8 @@ public interface CompoundDBAnnotation extends Cloneable {
     return switch (reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
       case SimpleCompoundDBAnnotation.XML_TYPE_NAME -> SimpleCompoundDBAnnotation.loadFromXML(
           reader, flist, row);
-//      case BioTransformerAnnotationImpl.XML_TYPE_NAME -> BioTransformerAnnotationImpl.loadFromXML(
-//          reader, flist, row);
+      case BioTransformerAnnotationImpl.XML_TYPE_NAME -> BioTransformerAnnotationImpl.loadFromXML(
+          reader, flist, row);
       default -> null;
     };
   }
