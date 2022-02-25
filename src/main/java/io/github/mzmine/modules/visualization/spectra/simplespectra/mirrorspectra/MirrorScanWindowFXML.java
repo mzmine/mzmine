@@ -29,7 +29,6 @@ import javafx.stage.Stage;
  */
 public class MirrorScanWindowFXML extends Stage {
 
-
   private MirrorScanWindowController controller;
 
   public MirrorScanWindowFXML() {

@@ -216,10 +216,10 @@ public class MirrorScanWindowController {
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(
-          "  cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
-          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
-          cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
-          cosine.overlap() / (double) cosine.sizeB()));
+          "   cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
+          cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
+          cosine.overlap() / (double) cosine.sizeA()));
     } else {
       lbMirrorStats.setText("");
     }
@@ -230,9 +230,9 @@ public class MirrorScanWindowController {
     if (cosine != null) {
       lbMirrorModifiedStats.setText(String.format(
           "modified=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
-          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
-          cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
-          cosine.overlap() / (double) cosine.sizeB()));
+          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
+          cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
+          cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
       final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
@@ -247,7 +247,7 @@ public class MirrorScanWindowController {
           Double mzb = pair[1] != null ? pair[1].getMZ() : null;
           Double intensityb = pair[1] != null ? pair[1].getIntensity() : null;
 
-          data.add(new TableData(mza, intensitya, mzb, intensityb, contributions.match()[i],
+          data.add(new TableData(mzb, intensityb, mza, intensitya, contributions.match()[i],
               contributions.contributions()[i]));
         }
 
@@ -268,9 +268,9 @@ public class MirrorScanWindowController {
     if (cosine != null) {
       lbNeutralLossStats.setText(String.format(
           "cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
-          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityA(),
-          cosine.explainedIntensityB(), cosine.overlap() / (double) cosine.sizeA(),
-          cosine.overlap() / (double) cosine.sizeB()));
+          cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
+          cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
+          cosine.overlap() / (double) cosine.sizeA()));
 
       // get contributions of all data points
       final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
@@ -343,6 +343,7 @@ public class MirrorScanWindowController {
   }
 
   public void openUSIExample1(ActionEvent event) {
+    
   }
 
   public void openUSIExample2(ActionEvent event) {

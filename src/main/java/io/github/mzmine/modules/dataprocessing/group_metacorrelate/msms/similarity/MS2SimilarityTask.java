@@ -43,6 +43,7 @@ import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.maths.similarity.Similarity;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanMZDiffConverter;
+import io.github.mzmine.util.scans.similarity.Weights;
 import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -179,7 +180,8 @@ public class MS2SimilarityTask extends AbstractTask {
 
     if (overlap >= minMatch) {
       // cosine
-      double[][] diffArray = ScanAlignment.toIntensityArray(aligned);
+      double[][] diffArray = ScanAlignment.toIntensityMatrixWeighted(aligned,
+          Weights.MASSBANK.getIntensity(), Weights.MASSBANK.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
 
       int sizeA = 0;
