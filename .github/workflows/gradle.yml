@@ -124,7 +124,7 @@ jobs:
   increment_patch:
     name: Increment patch version
     needs: release_dev
-    if: !startsWith(github.ref, 'refs/tags/') # only increment if not a tag push
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }} # only increment if not a tag push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
