@@ -28,6 +28,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.CosinePairContributions;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityTask;
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.SignalAlignmentAnnotation;
+import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
@@ -35,17 +36,23 @@ import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.components.ColorPickerTableCell;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 
@@ -57,6 +64,12 @@ public class MirrorScanWindowController {
 
   public static final DataPointsTag[] tags = new DataPointsTag[]{DataPointsTag.ORIGINAL,
       DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
+  private static final Logger logger = Logger.getLogger(MirrorScanWindowController.class.getName());
+  // USI / spec number / gnps library id
+  @FXML
+  public TextField txtTop;
+  @FXML
+  public TextField txtBottom;
 
   // components
   @FXML
@@ -314,4 +327,24 @@ public class MirrorScanWindowController {
     pnMirror.setCenter(mirrorSpecrumPlot);
   }
 
+  public void openGnpsLibExample(ActionEvent event) {
+    String id1 = "CCMSLIB00000579250";
+    String id2 = "CCMSLIB00000579252";
+
+    try {
+      final SpectralDBEntry top = GNPSUtils.accessLibrarySpectrum(id1);
+      final SpectralDBEntry bottom = GNPSUtils.accessLibrarySpectrum(id2);
+
+      setScans(top.getPrecursorMZ(), top.getDataPoints(), bottom.getPrecursorMZ(),
+          bottom.getDataPoints());
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Could not access GNPS library spectrum." + e.getMessage(), e);
+    }
+  }
+
+  public void openUSIExample1(ActionEvent event) {
+  }
+
+  public void openUSIExample2(ActionEvent event) {
+  }
 }

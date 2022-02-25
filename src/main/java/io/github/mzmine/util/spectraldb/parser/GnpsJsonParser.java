@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.spectraldb.parser;
@@ -142,6 +143,26 @@ public class GnpsJsonParser extends SpectralDBTextParser {
     return new SpectralDBEntry(map, dps);
   }
 
+  public static DataPoint[] getDataPointsFromJsonArray(JsonArray data) {
+    if (data == null) {
+      return null;
+    }
+
+    DataPoint[] dps = new DataPoint[data.size()];
+    try {
+      for (int i = 0; i < data.size(); i++) {
+        final JsonArray dataPoint = data.getJsonArray(i);
+        double mz = dataPoint.getJsonNumber(0).doubleValue();
+        double intensity = dataPoint.getJsonNumber(1).doubleValue();
+        dps[i] = new SimpleDataPoint(mz, intensity);
+      }
+      return dps;
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "Cannot convert DP values to doubles", e);
+      return null;
+    }
+  }
+
   /**
    * Data points or null
    *
@@ -150,21 +171,6 @@ public class GnpsJsonParser extends SpectralDBTextParser {
    */
   public DataPoint[] getDataPoints(JsonObject main) {
     JsonArray data = main.getJsonArray("peaks");
-    if (data == null) {
-      return null;
-    }
-
-    DataPoint[] dps = new DataPoint[data.size()];
-    try {
-      for (int i = 0; i < data.size(); i++) {
-        double mz = data.getJsonArray(i).getJsonNumber(0).doubleValue();
-        double intensity = data.getJsonArray(i).getJsonNumber(1).doubleValue();
-        dps[i] = new SimpleDataPoint(mz, intensity);
-      }
-      return dps;
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Cannot convert DP values to doubles", e);
-      return null;
-    }
+    return getDataPointsFromJsonArray(data);
   }
 }

@@ -19,20 +19,28 @@
   -->
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="650.0" prefWidth="800.0"
   xmlns="http://javafx.com/javafx/15.0.1"
   fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
+   <bottom>
+      <HBox BorderPane.alignment="CENTER" prefHeight="100.0" prefWidth="200.0"/>
+   </bottom>
    <center>
       <GridPane BorderPane.alignment="CENTER">
          <children>
@@ -132,15 +140,14 @@
                                           <columns>
                                              <TableColumn editable="false" prefWidth="75.0"
                                                text="mz" fx:id="colMzBottom1"/>
-                                             <TableColumn editable="false"
-                                               prefWidth="70.0" text="intensity"
-                                               fx:id="colIntensityBottom1"/>
+                                             <TableColumn editable="false" prefWidth="70.0"
+                                               text="intensity" fx:id="colIntensityBottom1"/>
                                           </columns>
                                        </TableColumn>
-                                       <TableColumn editable="false" prefWidth="25"
-                                         text="c" fx:id="colMatchColor1"/>
-                                       <TableColumn editable="false" prefWidth="75.0"
-                                         text="match" fx:id="colMatch1"/>
+                                       <TableColumn editable="false" prefWidth="25" text="c"
+                                         fx:id="colMatchColor1"/>
+                                       <TableColumn editable="false" prefWidth="75.0" text="match"
+                                         fx:id="colMatch1"/>
                                        <TableColumn editable="false" prefWidth="100.0"
                                          text="contribution" fx:id="colContribution1"/>
                                     </columns>
@@ -162,4 +169,50 @@
          </rowConstraints>
       </GridPane>
    </center>
+   <top>
+      <Accordion BorderPane.alignment="CENTER">
+         <panes>
+            <TitledPane animated="false" graphicTextGap="0.0" text="Spectra selection">
+               <content>
+                  <GridPane hgap="4.0" vgap="3.0">
+                     <children>
+                        <HBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="5.0">
+                           <children>
+                              <Button mnemonicParsing="false" onAction="#openGnpsLibExample"
+                                text="GNPS library"/>
+                              <Button mnemonicParsing="false" onAction="#openUSIExample1"
+                                text="USI1"/>
+                              <Button mnemonicParsing="false" onAction="#openUSIExample2"
+                                text="USI2"/>
+                           </children>
+                        </HBox>
+                        <Label GridPane.halignment="RIGHT" GridPane.rowIndex="1" text="top"/>
+                        <Label GridPane.halignment="RIGHT" GridPane.rowIndex="2" text="bottom"/>
+                        <Label GridPane.columnIndex="1"
+                          text="Spectrum number | GNPS library ID | USI">
+                           <font>
+                              <Font name="System Bold" size="12.0"/>
+                           </font>
+                        </Label>
+                        <Label GridPane.rowIndex="3" text="examples"/>
+                        <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="txtTop"/>
+                        <TextField GridPane.columnIndex="1" GridPane.rowIndex="2"
+                          fx:id="txtBottom"/>
+                     </children>
+                     <columnConstraints>
+                        <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="0.0"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                        <RowConstraints vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                        <RowConstraints vgrow="SOMETIMES"/>
+                     </rowConstraints>
+                  </GridPane>
+               </content>
+            </TitledPane>
+         </panes>
+      </Accordion>
+   </top>
 </BorderPane>

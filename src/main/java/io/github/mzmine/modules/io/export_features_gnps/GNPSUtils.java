@@ -18,18 +18,27 @@
 
 package io.github.mzmine.modules.io.export_features_gnps;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParameters;
+import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
+import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -37,11 +46,10 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
-import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParameters;
-import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
-import io.github.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Class to submit GNPS feature based molecular networking jobs directly
@@ -50,13 +58,52 @@ import io.github.mzmine.util.files.FileAndPathUtil;
  */
 public class GNPSUtils {
 
+  public static final String FBMN_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
+  public static final String GC_SUBMIT_SITE = "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+  public static final String ACCESS_LIBRARY_SPECTRUM = "https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=";
   // Logger.
   private static final Logger logger = Logger.getLogger(GNPSUtils.class.getName());
 
-  public static final String FBMN_SUBMIT_SITE =
-      "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
-  public static final String GC_SUBMIT_SITE =
-      "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+  public static SpectralDBEntry accessLibrarySpectrum(String libraryID) throws IOException {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpGet httpGet = new HttpGet(ACCESS_LIBRARY_SPECTRUM + libraryID);
+      logger.info("Retrieving library spectrum " + httpGet.getRequestLine());
+
+      try (CloseableHttpResponse response = client.execute(httpGet)) {
+        logger.info("GNPS library response: " + response.getStatusLine());
+        HttpEntity resEntity = response.getEntity();
+        if (resEntity != null) {
+          final String requestResult = EntityUtils.toString(resEntity);
+          logger.info("GNPS library response: " + requestResult);
+
+          // all 200s are success
+          if (response.getStatusLine().getStatusCode() / 200 == 1) {
+            // open job website
+            EntityUtils.consume(resEntity);
+            // create object from json
+            try (JsonReader reader = Json.createReader(new StringReader(requestResult))) {
+              JsonObject json = reader.readObject();
+              final JsonObject info = json.getJsonObject("spectruminfo");
+              final String spectrumString = info.getJsonString("peaks_json").getString();
+              try (JsonReader specReader = Json.createReader(new StringReader(spectrumString))) {
+                final DataPoint[] spectrum = GnpsJsonParser.getDataPointsFromJsonArray(
+                    specReader.readArray());
+
+                // precursor mz
+                final JsonObject annotations = json.getJsonArray("annotations").getJsonObject(0);
+                final double precursorMz = Double.parseDouble(
+                    annotations.getJsonString("Precursor_MZ").getString());
+                return new SpectralDBEntry(precursorMz, spectrum);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
 
   /**
    * Submit feature-based molecular networking (FBMN) job to GNPS
@@ -70,7 +117,8 @@ public class GNPSUtils {
     boolean useMeta = param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getValue();
     boolean openWebsite = param.getParameter(GnpsFbmnSubmitParameters.OPEN_WEBSITE).getValue();
     String presets = param.getParameter(GnpsFbmnSubmitParameters.PRESETS).getValue().toString();
-    boolean exportIIN = param.getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS).getValue();
+    boolean exportIIN = param.getParameter(GnpsFbmnSubmitParameters.EXPORT_ION_IDENTITY_NETWORKS)
+        .getValue();
     String title = param.getParameter(GnpsFbmnSubmitParameters.JOB_TITLE).getValue();
     String email = param.getParameter(GnpsFbmnSubmitParameters.EMAIL).getValue();
     String username = param.getParameter(GnpsFbmnSubmitParameters.USER).getValue();
@@ -88,12 +136,12 @@ public class GNPSUtils {
           : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
               .getValue();
       File iinEdges = !exportIIN ? null
-          : FileAndPathUtil.getRealFilePath(folder, name + "_edges_msannotation", "csv");;
+          : FileAndPathUtil.getRealFilePath(folder, name + "_edges_msannotation", "csv");
+      ;
 
-      return submitFbmnJob(mgf, quan, meta, new File[]{iinEdges}, title, email, username, password, presets,
-          openWebsite);
-    }
-    else {
+      return submitFbmnJob(mgf, quan, meta, new File[]{iinEdges}, title, email, username, password,
+          presets, openWebsite);
+    } else {
       return "";
     }
   }
@@ -102,9 +150,8 @@ public class GNPSUtils {
    * Submit feature-based molecular networking (FBMN) job to GNPS
    */
   public static String submitFbmnJob(@NotNull File mgf, @NotNull File quan, @Nullable File meta,
-      @Nullable File[] additionalEdges,
-      String title, String email, String username, String password, String presets,
-      boolean openWebsite) throws IOException {
+      @Nullable File[] additionalEdges, String title, String email, String username,
+      String password, String presets, boolean openWebsite) throws IOException {
     // NEEDED files
     if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
       CloseableHttpClient httpclient = HttpClients.createDefault();
