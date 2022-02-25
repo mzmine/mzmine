@@ -64,6 +64,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
@@ -189,17 +190,28 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (CompoundDBAnnotation annotation : annotations) {
       for (FeatureListRow peakRow : peakList.getRows()) {
-        if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
-          final CompoundDBAnnotation clone = annotation.clone();
-          clone.put(CompoundAnnotationScoreType.class,
-              clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
-          clone.put(MzPpmDifferenceType.class,
-              (float) MathUtils.getPpmDiff(clone.getPrecursorMZ(), peakRow.getAverageMZ()));
-          peakRow.addCompoundAnnotation(clone);
-          peakRow.getCompoundAnnotations()
-              .sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
-        }
+        checkMatchAnnotateRow(annotation, peakRow);
       }
+    }
+  }
+
+  private void checkMatchAnnotateRow(CompoundDBAnnotation annotation, FeatureListRow peakRow) {
+    checkMatchAnnotateRow(annotation, peakRow, mzTolerance, rtTolerance, mobTolerance,
+        ccsTolerance);
+  }
+
+  public static void checkMatchAnnotateRow(CompoundDBAnnotation annotation, FeatureListRow peakRow,
+      @Nullable final MZTolerance mzTolerance, @Nullable final RTTolerance rtTolerance,
+      @Nullable final MobilityTolerance mobTolerance, @Nullable final Double ccsTolerance) {
+    if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
+      final CompoundDBAnnotation clone = annotation.clone();
+      clone.put(CompoundAnnotationScoreType.class,
+          clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
+      clone.put(MzPpmDifferenceType.class,
+          (float) MathUtils.getPpmDiff(clone.getPrecursorMZ(), peakRow.getAverageMZ()));
+      peakRow.addCompoundAnnotation(clone);
+      peakRow.getCompoundAnnotations()
+          .sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
     }
   }
 
@@ -255,8 +267,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     doIfNotNull(IonType.parseFromString(lineAdduct),
         () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
-    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(), new DatabaseMatchInfo(
-        OnlineDatabases.PubChem, pubchemId)));
+    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
+        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;
   }
 
