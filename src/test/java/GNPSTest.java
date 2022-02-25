@@ -21,6 +21,7 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.IOException;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,7 @@ public class GNPSTest {
   private static final Logger logger = Logger.getLogger(GNPSTest.class.getName());
 
   @Test
+  @Disabled
   void testLibraryAccess() throws IOException {
     String libraryID = "https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737";
     SpectralDBEntry spec = GNPSUtils.accessLibrarySpectrum("CCMSLIB00005463737");

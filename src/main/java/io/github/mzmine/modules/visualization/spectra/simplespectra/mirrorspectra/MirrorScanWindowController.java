@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
@@ -55,6 +56,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -166,6 +168,16 @@ public class MirrorScanWindowController {
     colIntensityBottom1.setCellFactory(
         col -> new FormattedTableCell<>(config.getIntensityFormat()));
     colContribution1.setCellFactory(col -> new FormattedTableCell<>(config.getScoreFormat()));
+
+    //
+    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+    pause.setOnFinished(event -> loadSpectra());
+    txtTop.textProperty().addListener((observable, oldValue, newValue) -> {
+      pause.playFromStart();
+    });
+    txtBottom.textProperty().addListener((observable, oldValue, newValue) -> {
+      pause.playFromStart();
+    });
   }
 
   private Color getColor(SignalAlignmentAnnotation match) {
@@ -250,8 +262,7 @@ public class MirrorScanWindowController {
           data.add(new TableData(mzb, intensityb, mza, intensitya, contributions.match()[i],
               contributions.contributions()[i]));
         }
-
-        tableMirror.getItems().addAll(data);
+        tableMirror.getItems().setAll(data);
         colContribution.setSortType(SortType.DESCENDING);
       }
     } else {
@@ -327,10 +338,20 @@ public class MirrorScanWindowController {
     pnMirror.setCenter(mirrorSpecrumPlot);
   }
 
-  public void openGnpsLibExample(ActionEvent event) {
-    String id1 = "CCMSLIB00000579250";
-    String id2 = "CCMSLIB00000579252";
 
+  private void loadSpectra() {
+    final String top = txtTop.getText();
+    final String bottom = txtBottom.getText();
+    loadGnpsLibrary(top, bottom);
+  }
+
+
+  public void openGnpsLibExample(ActionEvent event) {
+    txtTop.setText("CCMSLIB00000579250");
+    txtBottom.setText("CCMSLIB00000579252");
+  }
+
+  private void loadGnpsLibrary(String id1, String id2) {
     try {
       final SpectralDBEntry top = GNPSUtils.accessLibrarySpectrum(id1);
       final SpectralDBEntry bottom = GNPSUtils.accessLibrarySpectrum(id2);
@@ -343,9 +364,16 @@ public class MirrorScanWindowController {
   }
 
   public void openUSIExample1(ActionEvent event) {
-    
+    // Phenylalanine conjugated deoxycholic acid
+    // Tyrosine conjugated deoxycholic acid putative [M-H2O+H]+
+    txtTop.setText("CCMSLIB00005716807");
+    txtBottom.setText("CCMSLIB00005467948");
   }
 
   public void openUSIExample2(ActionEvent event) {
+    // Phenylalanine conjugated deoxycholic acid
+    // Tyrosine conjugated deoxycholic acid putative
+    txtTop.setText("CCMSLIB00005716807");
+    txtBottom.setText("CCMSLIB00005467946");
   }
 }

@@ -205,9 +205,9 @@ public class MirrorChartFactory {
     List<DataPoint[]> aligned;
 
     if (modified) {
-      aligned = ScanAlignment.alignOfSortedModAware(mzTol, dpa, dpb, precursorMZA, precursorMZB);
+      aligned = ScanAlignment.alignModAware(mzTol, dpa, dpb, precursorMZA, precursorMZB);
     } else {
-      aligned = ScanAlignment.alignOfSorted(mzTol, dpa, dpb);
+      aligned = ScanAlignment.align(mzTol, dpa, dpb);
     }
     return createMirrorPlotFromAligned(mzTol, modified, aligned.toArray(DataPoint[][]::new),
         precursorMZA, precursorMZB);
