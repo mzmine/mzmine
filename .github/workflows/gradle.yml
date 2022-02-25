@@ -33,11 +33,11 @@ jobs:
         with:
           files: build/jpackage/MZmine/
           dest: build/jpackage/MZmine_Windows_portable.zip
-      - name: Zip portable windows
+      - name: Zip portable macos
         if: matrix.os == 'macos-latest'
         uses: papeloto/action-zip@v1
         with:
-          files: build/jpackage/
+          files: build/jpackage/MZmine.app/
           dest: build/jpackage/MZmine_macOS_portable.zip
       - name: Zip portable windows
         if: matrix.os == 'ubuntu-latest'
