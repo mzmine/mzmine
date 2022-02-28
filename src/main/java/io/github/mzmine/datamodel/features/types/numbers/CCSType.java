@@ -44,7 +44,7 @@ public class CCSType extends FloatType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "collisional_cross_section";
+    return "ccs";
   }
 
   @NotNull

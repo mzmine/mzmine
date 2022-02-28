@@ -33,7 +33,7 @@ public class FeatureGroupType extends DataType<RowGroup> {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "feature_row_group";
+    return "feature_group";
   }
 
   @Override
