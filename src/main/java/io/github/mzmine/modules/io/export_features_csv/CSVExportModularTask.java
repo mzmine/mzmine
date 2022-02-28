@@ -35,6 +35,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
 import java.io.BufferedWriter;
@@ -192,7 +193,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   @SuppressWarnings("rawtypes")
   private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
       throws IOException {
-    final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept).toList();
+    final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept)
+        .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
     List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
