@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -329,9 +328,10 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     if (data == null) {
       return "";
     }
-    Object value = Objects.requireNonNullElse(
-        data == null ? null : data.get((DataType) subColFactory),
-        ((DataType) subColFactory).getDefaultValue());
+    Object value = data == null ? null : data.get((DataType) subColFactory);
+    if (value == null) {
+      value = ((DataType) subColFactory).getDefaultValue();
+    }
     return csvEscape(subColFactory.getFormattedSubColValue(col, value));
   }
 
@@ -339,8 +339,10 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     if (data == null) {
       return "";
     }
-    Object value = Objects.requireNonNullElse(data == null ? null : data.get(type),
-        type.getDefaultValue());
+    Object value = data == null ? null : data.get(type);
+    if (value == null) {
+      value = type.getDefaultValue();
+    }
     try {
       return csvEscape(type.getFormattedString(value));
     } catch (Exception e) {
