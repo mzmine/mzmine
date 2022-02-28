@@ -94,9 +94,11 @@ jobs:
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
 
-      - name: Remove dmg File
+      - name: Remove dmg File and Make .app executable
         if: matrix.os == 'macos-latest'
-        run: find ./build/jpackage/ -name '*.dmg' -delete
+        run: |
+          find ./build/jpackage/ -name '*.dmg' -delete
+          chmod a+x build/jpackage/MZmine.app/Contents/MacOS/MZmine
       - name: Zip portable macos
         if: matrix.os == 'macos-latest'
         uses: papeloto/action-zip@v1
