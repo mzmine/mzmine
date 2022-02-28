@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CSVExportModularTask extends AbstractTask implements ProcessedItemsCounter {
 
-  public static final String DATAFILE_PREFIX = "DATAFILE";
+  public static final String DATAFILE_PREFIX = "datafile";
   private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   private final ModularFeatureList[] featureLists;
   // parameter values
