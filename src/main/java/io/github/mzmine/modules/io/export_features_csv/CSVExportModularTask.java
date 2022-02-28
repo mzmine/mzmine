@@ -67,6 +67,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String idSeparator;
   private final String headerSeparator = ":";
   private final FeatureListRowsFilter filter;
+  private final boolean removeEmptyCols;
   private int processedRows = 0, totalRows = 0;
 
   // track number of exported items
@@ -80,6 +81,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
     this.filter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
+    removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
   }
 
   /**
@@ -91,7 +93,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
       String fieldSeparator, String idSeparator, FeatureListRowsFilter filter,
-      @NotNull Instant moduleCallDate) {
+      boolean removeEmptyCols, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat.format(
@@ -102,6 +104,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.fieldSeparator = fieldSeparator;
     this.idSeparator = idSeparator;
     this.filter = filter;
+    this.removeEmptyCols = removeEmptyCols;
   }
 
   @Override
@@ -331,8 +334,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private String getJoinedHeader(List<DataType> types, String prefix) {
     StringBuilder b = new StringBuilder();
     for (DataType t : types) {
-      String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator)
-                      + t.getHeaderString();
+      String header =
+          (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator) + t.getUniqueID();
       if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
@@ -340,7 +343,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
           if (subType != null && !filterType(subType)) {
             continue;
           }
-          String field = subCols.getHeader(i);
+          String field = subCols.getUniqueID(i);
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }

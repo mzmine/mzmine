@@ -244,8 +244,8 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     FeatureListRowsFilter filter =
         parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
 
-    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";",
-        filter, getModuleCallDate());
+    CSVExportModularTask quanExportModular = new CSVExportModularTask(flist, full, ",", ";", filter,
+        true, getModuleCallDate());
 
     if (tasks != null) {
       tasks.add(quanExportModular);
