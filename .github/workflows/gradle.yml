@@ -33,7 +33,7 @@ jobs:
         with:
           files: build/jpackage/MZmine/
           dest: build/jpackage/MZmine_Windows_portable.zip
-      - name: Zip portable windows
+      - name: Zip portable linux
         if: matrix.os == 'ubuntu-latest'
         uses: papeloto/action-zip@v1
         with:
@@ -94,11 +94,13 @@ jobs:
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
 
-      - name: Remove File
-        if: matrix.os == 'macos-latest'
-        uses: JesseTG/rm@v1.0.2
-        with:
-          path: build/jpackage/*.dmg
+      #      - name: Remove File
+      #        if: matrix.os == 'macos-latest'
+      #        uses: JesseTG/rm@v1.0.2
+      #        with:
+      #          path: build/jpackage/*.dmg
+      - name: Remove dmg File
+        run: find ./build/jpackage/ -name '*.dmg' -delete
       - name: Zip portable macos
         if: matrix.os == 'macos-latest'
         uses: papeloto/action-zip@v1
