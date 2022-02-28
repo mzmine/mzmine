@@ -325,9 +325,6 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
   private <T extends DataType & SubColumnsFactory> String getFormattedValue(
       @Nullable ModularDataModel data, SubColumnsFactory subColFactory, int col) {
-    if (data == null) {
-      return "";
-    }
     Object value = data == null ? null : data.get((DataType) subColFactory);
     if (value == null) {
       value = ((DataType) subColFactory).getDefaultValue();
@@ -336,9 +333,6 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   }
 
   private String getFormattedValue(@Nullable ModularDataModel data, DataType type) {
-    if (data == null) {
-      return "";
-    }
     Object value = data == null ? null : data.get(type);
     if (value == null) {
       value = type.getDefaultValue();
