@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -388,93 +387,6 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
       }
     }
     return false;
-  }
-
-  private String joinRowData(ModularFeatureListRow row, List<RawDataFile> raws,
-      List<DataType> rowTypes, List<DataType> featureTypes) {
-    StringBuilder b = new StringBuilder();
-    joinData(b, row, rowTypes);
-
-    // add feature types
-    for (RawDataFile raw : raws) {
-      ModularFeature feature = row.getFeature(raw);
-      if (feature != null) {
-        joinData(b, feature, featureTypes);
-      } else {
-        // no feature for this sample - add empty cells
-        joinEmptyCells(b, featureTypes);
-      }
-    }
-    return b.toString();
-  }
-
-  /**
-   * Fills in empty cells for all data types and their sub types
-   *
-   * @param b         the string builder
-   * @param dataTypes the list of types (with sub types) that are empty
-   */
-  private void joinEmptyCells(StringBuilder b, List<DataType> dataTypes) {
-    for (DataType t : dataTypes) {
-      if (t instanceof SubColumnsFactory subCols) {
-        int numberOfSub = subCols.getNumberOfSubColumns();
-        for (int i = 0; i < numberOfSub; i++) {
-          DataType sub = subCols.getType(i);
-          if (sub != null && !filterType(sub)) {
-            continue;
-          }
-          b.append(fieldSeparator);
-        }
-      } else {
-        b.append(fieldSeparator);
-      }
-    }
-  }
-
-  /**
-   * @param b
-   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature} might be null if not set
-   * @param types
-   * @return
-   */
-  private void joinData(StringBuilder b, @Nullable ModularDataModel data, List<DataType> types) {
-    for (DataType type : types) {
-      if (type instanceof SubColumnsFactory subCols) {
-        Object value = data == null ? null : data.get(type);
-        if (value == null) {
-          value = type.getDefaultValue();
-        }
-        int numberOfSub = subCols.getNumberOfSubColumns();
-        for (int i = 0; i < numberOfSub; i++) {
-          DataType<?> subType = subCols.getType(i);
-          if (subType != null && !filterType(subType)) {
-            continue;
-          }
-          String field = subCols.getFormattedSubColValue(i, value);
-          if (b.length() != 0) {
-            b.append(fieldSeparator);
-          }
-          b.append(csvEscape(field));
-        }
-      } else {
-        Object value = data == null ? null : data.get(type);
-        if (value == null) {
-          value = type.getDefaultValue();
-        }
-        if (b.length() != 0) {
-          b.append(fieldSeparator);
-        }
-        String str;
-        try {
-          str = type.getFormattedString(value);
-        } catch (Exception e) {
-          logger.log(Level.FINEST,
-              "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
-          str = "";
-        }
-        b.append(csvEscape(str));
-      }
-    }
   }
 
 
