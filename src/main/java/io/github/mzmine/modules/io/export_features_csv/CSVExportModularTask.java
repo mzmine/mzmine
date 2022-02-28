@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,12 +67,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String fieldSeparator;
   private final String idSeparator;
   private final String headerSeparator = ":";
-  private final FeatureListRowsFilter filter;
+  private final FeatureListRowsFilter rowFilter;
   private final boolean removeEmptyCols;
-  private int processedRows = 0, totalRows = 0;
-
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
+  private int processedTypes = 0, totalTypes = 0;
 
   public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -80,7 +80,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
     fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
-    this.filter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
+    this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
     removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
   }
 
@@ -89,10 +89,10 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    * @param fileName       export file name
    * @param fieldSeparator separation of columns
    * @param idSeparator    identity field separation
-   * @param filter         Row filter
+   * @param rowFilter      Row filter
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
-      String fieldSeparator, String idSeparator, FeatureListRowsFilter filter,
+      String fieldSeparator, String idSeparator, FeatureListRowsFilter rowFilter,
       boolean removeEmptyCols, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
@@ -103,7 +103,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.fileName = fileName;
     this.fieldSeparator = fieldSeparator;
     this.idSeparator = idSeparator;
-    this.filter = filter;
+    this.rowFilter = rowFilter;
     this.removeEmptyCols = removeEmptyCols;
   }
 
@@ -114,16 +114,16 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0) {
+    if (totalTypes == 0) {
       return 0;
     }
-    return (double) processedRows / (double) totalRows;
+    return (double) processedTypes / (double) totalTypes;
   }
 
   @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(featureLists)
-           + " to CSV file(s) (new format)";
+        + " to CSV file(s) (new format)";
   }
 
   @Override
@@ -136,7 +136,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
     // Total number of rows
     for (ModularFeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows();
+      totalTypes += featureList.getNumberOfRows();
     }
 
     // Process feature lists
@@ -193,12 +193,15 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   @SuppressWarnings("rawtypes")
   private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
       throws IOException {
+    final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
     List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
+        .filter(type -> !removeEmptyCols || rowsContainData(type, rows, -1))
         .collect(Collectors.toList());
 
     List<DataType> featureTypes = flist.getFeatureTypes().values().stream().filter(this::filterType)
+        .filter(type -> !removeEmptyCols || featuresContainData(type, rows, -1))
         .collect(Collectors.toList());
 
     // Write feature row headers
@@ -212,28 +215,181 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     writer.newLine();
 
     // write data
-    final List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
-    for (FeatureListRow row : rows) {
-      if (!filter.accept(row)) {
-        processedRows++;
-        continue;
+    totalTypes = rowTypes.size() + featureTypes.size() * rawDataFiles.size();
+
+    List<String[]> formattedCols = new ArrayList<>(totalTypes);
+
+    // list string values for each type and sub type
+    for (DataType rowType : rowTypes) {
+      if (isCanceled()) {
+        return;
       }
 
+      addFormattedRowColumnsRecursively(formattedCols, rows, rowType);
+
+      processedTypes++;
+    }
+
+    // add feature types for each raw data file
+    for (RawDataFile raw : rawDataFiles) {
+      for (DataType featureType : featureTypes) {
+        if (isCanceled()) {
+          return;
+        }
+
+        addFormattedFeatureColumnsRecursively(formattedCols, rows, raw, featureType);
+        processedTypes++;
+      }
+    }
+
+    for (int i = 0; i < rows.size(); i++) {
       // Cancel?
       if (isCanceled()) {
         return;
       }
-      writer.append(joinRowData((ModularFeatureListRow) row, rawDataFiles, rowTypes, featureTypes));
+
+      final int row = i;
+      writer.append(
+          formattedCols.stream().map(col -> col[row]).collect(Collectors.joining(fieldSeparator)));
       writer.newLine();
 
       exportedRows.incrementAndGet();
-      processedRows++;
+      processedTypes++;
     }
   }
 
+  /**
+   * Adds columns of formatted values for each column / sub column. missing values are replaced by
+   * empty strings or default values
+   *
+   * @param formattedCols the target list
+   * @param rows          the data
+   * @param rowType       the feautre data type to be added (and its sub columns)
+   */
+  private void addFormattedRowColumnsRecursively(List<String[]> formattedCols,
+      List<FeatureListRow> rows, DataType rowType) {
+    if (rowType instanceof SubColumnsFactory subFactory) {
+      int subCols = subFactory.getNumberOfSubColumns();
+      for (int s = 0; s < subCols; s++) {
+        // filter sub column - maybe excluded, no text, empty
+        DataType<?> subType = subFactory.getType(s);
+        if (!filterType(subType) || (removeEmptyCols && !rowsContainData(rowType, rows, s))) {
+          continue;
+        }
+        // collect column data
+        final int subIndex = s;
+        String[] column = rows.stream().map(row -> getFormattedValue(row, subFactory, subIndex))
+            .toArray(String[]::new);
+        formattedCols.add(column);
+      }
+    } else {
+      String[] column = rows.stream().map(row -> getFormattedValue(row, rowType))
+          .toArray(String[]::new);
+      formattedCols.add(column);
+    }
+  }
+
+  /**
+   * Adds columns of formatted values for each column / sub column. missing values are replaced by
+   * empty strings or default values
+   *
+   * @param formattedCols the target list
+   * @param rows          the data
+   * @param raw           defines the feature
+   * @param featureType   the feautre data type to be added (and its sub columns)
+   */
+  private void addFormattedFeatureColumnsRecursively(List<String[]> formattedCols,
+      List<FeatureListRow> rows, RawDataFile raw, DataType featureType) {
+    if (featureType instanceof SubColumnsFactory subFactory) {
+      int subCols = subFactory.getNumberOfSubColumns();
+      for (int s = 0; s < subCols; s++) {
+        // filter sub column - maybe excluded, no text, empty
+        DataType<?> subType = subFactory.getType(s);
+        if (!filterType(subType) || (removeEmptyCols && !featuresContainData(featureType, rows,
+            s))) {
+          continue;
+        }
+        // collect column data
+        final int subIndex = s;
+        String[] column = rows.stream().map(row -> (ModularFeature) row.getFeature(raw))
+            .map(feature -> getFormattedValue(feature, subFactory, subIndex))
+            .toArray(String[]::new);
+        formattedCols.add(column);
+      }
+    } else {
+      String[] column = rows.stream().map(row -> (ModularFeature) row.getFeature(raw))
+          .map(feature -> getFormattedValue(feature, featureType)).toArray(String[]::new);
+      formattedCols.add(column);
+    }
+  }
+
+
+  private <T extends DataType & SubColumnsFactory> String getFormattedValue(
+      @Nullable ModularDataModel data, SubColumnsFactory subColFactory, int col) {
+    if (data == null) {
+      return "";
+    }
+    Object value = Objects.requireNonNullElse(
+        data == null ? null : data.get((DataType) subColFactory),
+        ((DataType) subColFactory).getDefaultValue());
+    return csvEscape(subColFactory.getFormattedSubColValue(col, value));
+  }
+
+  private String getFormattedValue(@Nullable ModularDataModel data, DataType type) {
+    if (data == null) {
+      return "";
+    }
+    Object value = Objects.requireNonNullElse(data == null ? null : data.get(type),
+        type.getDefaultValue());
+    try {
+      return csvEscape(type.getFormattedString(value));
+    } catch (Exception e) {
+      logger.log(Level.FINEST,
+          "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
+      return "";
+    }
+  }
+
+  /**
+   * @return true if type should be exported
+   */
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
-             || type instanceof LinkedGraphicalType);
+        || type instanceof LinkedGraphicalType);
+  }
+
+  /**
+   * @return true if any row contains data for type
+   */
+  private boolean rowsContainData(DataType type, List<FeatureListRow> rows, int sub) {
+    for (FeatureListRow row : rows) {
+      final Object mainVal = row.get(type);
+      if (mainVal != null) {
+        if (sub == -1 || type instanceof SubColumnsFactory subFactory
+            && subFactory.getSubColValue(sub, mainVal) != null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @return true if any feature contains data
+   */
+  private boolean featuresContainData(DataType type, List<FeatureListRow> rows, int sub) {
+    for (FeatureListRow row : rows) {
+      for (ModularFeature feature : row.getFeatures()) {
+        final Object mainVal = feature.get(type);
+        if (mainVal != null) {
+          if (sub == -1 || type instanceof SubColumnsFactory subFactory
+              && subFactory.getSubColValue(sub, mainVal) != null) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private String joinRowData(ModularFeatureListRow row, List<RawDataFile> raws,
