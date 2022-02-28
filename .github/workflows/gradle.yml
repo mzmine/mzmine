@@ -6,13 +6,13 @@ on:
     tags: [ 'v[0-9]+.*' ]
   pull_request:
     branches: [ master ]
-    
+
 jobs:
   gradle_build:
     name: test and build
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -33,12 +33,6 @@ jobs:
         with:
           files: build/jpackage/MZmine/
           dest: build/jpackage/MZmine_Windows_portable.zip
-      - name: Zip portable macos
-        if: matrix.os == 'macos-latest'
-        uses: papeloto/action-zip@v1
-        with:
-          files: build/jpackage/MZmine.app
-          dest: build/jpackage/MZmine_macOS_portable.zip
       - name: Zip portable windows
         if: matrix.os == 'ubuntu-latest'
         uses: papeloto/action-zip@v1
@@ -84,6 +78,14 @@ jobs:
           path: build/jpackage/MZmine_Linux_portable.zip
           retention-days: 7  # store for 7 days
 
+
+
+      # for macOS:
+      # 1. upload the dmg installer
+      # 2. remove the dmg isntaller from path
+      # 3. zip and upload the jpackage directory
+      # This is needed because zipping of the /jpackage/MZmine.app portable version zips the content
+      # of the folder not the folder itself
       - name: Upload builds macos
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
@@ -91,6 +93,18 @@ jobs:
           name: MZmine_macos_dmg_installer
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
+
+      - name: Remove File
+        if: matrix.os == 'macos-latest'
+        uses: JesseTG/rm@v1.0.2
+        with:
+          path: build/jpackage/*.dmg
+      - name: Zip portable macos
+        if: matrix.os == 'macos-latest'
+        uses: papeloto/action-zip@v1
+        with:
+          files: build/jpackage/
+          dest: build/jpackage/MZmine_macOS_portable.zip
       - name: Upload macos portable builds
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
@@ -99,7 +113,7 @@ jobs:
           path: build/jpackage/MZmine_macOS_portable.zip
           retention-days: 7  # store for 7 days
 
-    
+
   # release dev version
   release_dev:
     name: Release dev version
