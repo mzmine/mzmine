@@ -94,12 +94,8 @@ jobs:
           path: build/jpackage/*.dmg
           retention-days: 7  # store for 7 days
 
-      #      - name: Remove File
-      #        if: matrix.os == 'macos-latest'
-      #        uses: JesseTG/rm@v1.0.2
-      #        with:
-      #          path: build/jpackage/*.dmg
       - name: Remove dmg File
+        if: matrix.os == 'macos-latest'
         run: find ./build/jpackage/ -name '*.dmg' -delete
       - name: Zip portable macos
         if: matrix.os == 'macos-latest'
