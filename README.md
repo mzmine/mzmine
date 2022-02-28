@@ -30,8 +30,8 @@ options include portable versions and installers for the Window, macOS, and Linu
 ### Running on macOS
 
 Currently, MZmine 3 lacks a signature for macOS. While we are working on this, user can allow MZmine
-in the macOS Gatekeeper protection by running the following command in the terminal from the
-unzipped folder containing the .app.
+in the macOS Gatekeeper protection by running the following command in the terminal from the folder
+containing the .app.
 
 ```
 sudo xattr -cr MZmine.app
@@ -66,6 +66,9 @@ https://github.com/mzmine/mzmine3/issues
 ### Code style
 
 Since this is a collaborative project, please adhere to the following code formatting conventions:
+
 * We use the Google Java Style Guide (https://github.com/google/styleguide)
-* Please write JavaDoc comments as full sentences, starting with a capital letter and ending with a period. Brevity is preferred (e.g., "Calculates standard deviation" is preferred over "This method calculates and returns a standard deviation of given set of numbers").
+* Please write JavaDoc comments as full sentences, starting with a capital letter and ending with a
+  period. Brevity is preferred (e.g., "Calculates standard deviation" is preferred over "This method
+  calculates and returns a standard deviation of given set of numbers").
 
