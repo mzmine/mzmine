@@ -781,7 +781,6 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
         setCursorPosition(pos);
       }
     }));
-
   }
 
   /**

@@ -677,20 +677,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       }
     }));
 
-//    getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
-//      @Override
-//      public void chartMouseClicked(ChartMouseEventFX event) {
-//        SpectrumCursorPosition pos = updateCursorPosition();
-//        if (pos != null) {
-//          setCursorPosition(pos);
-//        }
-//      }
-//
-//      @Override
-//      public void chartMouseMoved(ChartMouseEventFX event) {
-//        // currently not in use
-//      }
-//    });
   }
 
   private SpectrumCursorPosition updateCursorPosition() {
