@@ -30,7 +30,7 @@ public class AreaRangeType extends IntensityRangeType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "intensity_range";
+    return "area_range";
   }
 
   @Override
