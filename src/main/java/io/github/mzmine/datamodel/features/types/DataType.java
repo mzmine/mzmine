@@ -282,7 +282,7 @@ public abstract class DataType<T> {
 
   @Nullable
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
+      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
     return null;
   }
 
