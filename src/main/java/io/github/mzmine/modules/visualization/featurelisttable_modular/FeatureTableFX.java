@@ -86,6 +86,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -392,6 +393,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
     newColumnMap.put(column, new ColumnID(dataType, type, file, -1));
 
     // add all sub columns to the list (not for range types - no need to only show one)
+    // the main data type is set to subcolumns as data type.
     if (dataType instanceof SubColumnsFactory && !column.getColumns().isEmpty()
         && !(dataType instanceof NumberRangeType)) {
       int i = 0;
@@ -570,8 +572,11 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
           return;
         }
         Object userData = tableColumn.getUserData();
+        final ObservableValue<?> observableValue = tableColumn.getCellObservableValue(
+            focusedCell.getTreeItem());
+        final Object cellValue = observableValue.getValue();
 
-        if (userData instanceof DataType<?>) {
+        if (userData instanceof DataType<?> dataType) {
           List<RawDataFile> files = new ArrayList<>();
           ColumnID id = newColumnMap.get(tableColumn);
           if (id == null) {
@@ -586,8 +591,14 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
             }
           }
 
-          ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
-          Runnable runnable = ((DataType<?>) userData).getDoubleClickAction(row, files);
+          // if the data type is equal to the super type, it's not a subcolumn. If it's not equal,
+          // it's a subcolumn.
+          final DataType<?> superDataType =
+              id.getDataType().equals(dataType) ? null : id.getDataType();
+
+          final ModularFeatureListRow row = getSelectionModel().getSelectedItem().getValue();
+          final Runnable runnable = (dataType.getDoubleClickAction(row, files, superDataType,
+              cellValue));
           if (runnable != null) {
             MZmineCore.getTaskController().addTask(
                 new FeatureTableDoubleClickTask(runnable, getFeatureList(),
@@ -751,7 +762,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> impleme
       boolean visible) {
     final DataType type = DataTypes.get(clazz);
     String key = (parentHeader != null && parentHeader.isBlank() ? parentHeader + ":" : "")
-                 + type.getHeaderString();
+        + type.getHeaderString();
     if (columnType == ColumnType.ROW_TYPE) {
       rowTypesParameter.setDataTypeVisible(key, visible);
     } else {
