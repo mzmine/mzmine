@@ -361,12 +361,19 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    */
   private boolean modelContainData(ModularDataModel data, DataType type, int sub) {
     final Object mainVal = data.get(type);
-    if (mainVal != null) {
-      return sub == -1 || (type instanceof SubColumnsFactory subFactory
-          && subFactory.getSubColValue(sub, mainVal) != null);
+    if (sub == -1) {
+      return containsData(mainVal);
     }
-    return false;
+    if (type instanceof SubColumnsFactory subFactory) {
+      return containsData(subFactory.getSubColValue(sub, mainVal));
+    }
+    throw new IllegalStateException("Reached invalid case when checking for data");
   }
+
+  private boolean containsData(Object val) {
+    return val != null && !(val instanceof String sval && sval.isBlank());
+  }
+
 
   /**
    * Join headers by field separator and sub data types by headerSeparator (Standard is colon :)
