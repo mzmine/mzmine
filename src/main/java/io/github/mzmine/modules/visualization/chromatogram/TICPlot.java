@@ -22,6 +22,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.chartthemes.LabelColorMatch;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.GestureButton;
+import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
@@ -41,15 +46,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.MouseButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
-import org.jfree.chart.fx.interaction.ChartMouseEventFX;
-import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
@@ -772,22 +774,13 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
    * Listens to clicks in the chromatogram plot and updates the selected raw data file accordingly.
    */
   private void initializeChromatogramMouseListener() {
-    getCanvas().addChartMouseListener(new ChartMouseListenerFX() {
-      @Override
-      public void chartMouseClicked(ChartMouseEventFX event) {
-        if (event.getTrigger().getButton() == MouseButton.PRIMARY) {
-          ChromatogramCursorPosition pos = getCurrentCursorPosition();
-          if (pos != null) {
-            setCursorPosition(pos);
-          }
-        }
+    getMouseAdapter().addGestureHandler(new ChartGestureHandler(
+        new ChartGesture(Entity.ALL_PLOT_AND_DATA, Event.CLICK, GestureButton.BUTTON1), e -> {
+      ChromatogramCursorPosition pos = getCurrentCursorPosition();
+      if (pos != null) {
+        setCursorPosition(pos);
       }
-
-      @Override
-      public void chartMouseMoved(ChartMouseEventFX event) {
-        // currently not in use
-      }
-    });
+    }));
   }
 
   /**

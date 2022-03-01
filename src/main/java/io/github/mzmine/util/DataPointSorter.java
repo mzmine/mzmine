@@ -31,8 +31,8 @@ public class DataPointSorter implements Comparator<DataPoint> {
   public static final DataPointSorter DEFAULT_INTENSITY = new DataPointSorter(
       SortingProperty.Intensity, SortingDirection.Descending);
 
-  private SortingProperty property;
-  private SortingDirection direction;
+  private final SortingProperty property;
+  private final SortingDirection direction;
 
   public DataPointSorter(SortingProperty property, SortingDirection direction) {
     this.property = property;
@@ -40,7 +40,6 @@ public class DataPointSorter implements Comparator<DataPoint> {
   }
 
   public int compare(DataPoint dp1, DataPoint dp2) {
-
     int result;
 
     switch (property) {

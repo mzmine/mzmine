@@ -219,6 +219,16 @@ public interface TDFLibrary extends Library {
    */
   double tims_oneoverk0_to_ccs_for_mz(double ook0, long charge, double mz);
 
+  /**
+   * Converts the CCS (in Angstrom^2) to 1/K0 using the Mason-Shamp equation
+   *
+   * @param ccs    the ccs value in Angstrom^2
+   * @param charge the charge
+   * @param mz     the mz of the ion
+   * @return the 1/K0 value in Vs/cm2
+   **/
+  double tims_ccs_to_oneoverk0_for_mz(double ccs, long charge, double mz);
+
 
   /**
    * Read peak-picked spectra for a tims frame.
@@ -259,7 +269,6 @@ public interface TDFLibrary extends Library {
       ProfileCallback callback, Pointer userData);
 
   /**
-   *
    * @param numThreads The number of threads used to read one file. >= 1.
    */
   void tims_set_num_threads(int numThreads);

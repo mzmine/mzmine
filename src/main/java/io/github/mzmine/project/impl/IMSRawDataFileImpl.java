@@ -24,6 +24,7 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,6 +63,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
 
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
+  protected CCSCalibration ccsCalibration = null;
 
   public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
       MemoryMapStorage storage) throws IOException {
@@ -319,4 +321,13 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     }
   }
 
+  @Override
+  public @Nullable CCSCalibration getCCSCalibration() {
+    return ccsCalibration;
+  }
+
+  @Override
+  public void setCCSCalibration(@Nullable CCSCalibration calibration) {
+    ccsCalibration = calibration;
+  }
 }

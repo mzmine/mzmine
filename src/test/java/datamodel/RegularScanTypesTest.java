@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.MsMsInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
-import io.github.mzmine.datamodel.features.types.numbers.BestFragmentScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
@@ -80,7 +79,6 @@ public class RegularScanTypesTest {
   ModularFeatureListRow row;
   ModularFeature feature;
   List<Scan> scans;
-  private SimpleScan ms3Scan;
 
   @BeforeAll
   void initialise() {
@@ -116,7 +114,7 @@ public class RegularScanTypesTest {
     }
 
     // add ms3 scan
-    ms3Scan = new SimpleScan(file, file.getNumOfScans(), 3, 1000,
+    SimpleScan ms3Scan = new SimpleScan(file, file.getNumOfScans(), 3, 1000,
         new MSnInfoImpl(List.of((DDAMsMsInfo) scans.get(scans.size() - 1).getMsMsInfo())),
         new double[]{700, 800, 900, 1000, 1100}, new double[]{1700, 1800, 1900, 11000, 11100},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "", Range.closed(0d, 1d));
@@ -167,29 +165,6 @@ public class RegularScanTypesTest {
   void bestScanNumberTypeTest() {
     BestScanNumberType type = new BestScanNumberType();
     Scan value = file.getScan(3);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
-
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
-  }
-
-
-  @Test
-  void msnInfoSaveLoadTest() {
-    BestFragmentScanNumberType type = new BestFragmentScanNumberType();
-    DataTypeTestUtils.testSaveLoad(type, ms3Scan, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, ms3Scan, flist, row, feature, file);
-
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, null, null);
-    DataTypeTestUtils.testSaveLoad(type, null, flist, row, feature, file);
-  }
-
-
-  @Test
-  void bestFragmentScanNumberTypeTest() {
-    BestFragmentScanNumberType type = new BestFragmentScanNumberType();
-    Scan value = file.getScan(7);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, feature, file);
 

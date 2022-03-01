@@ -44,6 +44,9 @@ import javax.xml.stream.XMLStreamReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Utility functions used during project load/save.
+ */
 public class ParsingUtils {
 
   private static final Logger logger = Logger.getLogger(ParsingUtils.class.getName());

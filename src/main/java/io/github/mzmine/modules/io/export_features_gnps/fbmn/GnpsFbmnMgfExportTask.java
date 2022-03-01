@@ -32,7 +32,6 @@ package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
@@ -41,17 +40,24 @@ import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import io.github.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -61,9 +67,9 @@ import org.jetbrains.annotations.NotNull;
  * Exports all files needed for GNPS
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
-public class GnpsFbmnMgfExportTask extends AbstractTask {
+public class GnpsFbmnMgfExportTask extends AbstractTask implements ProcessedItemsCounter {
+
   // Logger.
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -71,9 +77,13 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   private final FeatureList[] featureLists;
   private final File fileName;
   private final String plNamePattern = "{}";
-  private int currentIndex = 0;
+  private final MsMsSpectraMergeModule merger;
   private final MsMsSpectraMergeParameters mergeParameters;
-
+  private final boolean mergeMS2;
+  private final FeatureListRowsFilter filter;
+  // track number of exported items
+  private final AtomicInteger exportedRows = new AtomicInteger(0);
+  private int currentIndex = 0;
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
@@ -82,8 +92,6 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
   // correlation
   private NumberFormat corrForm = new DecimalFormat("0.0000");
 
-  private FeatureListRowsFilter filter;
-
   GnpsFbmnMgfExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
@@ -91,20 +99,20 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
     this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
-    if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
-      mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
-          .getEmbeddedParameters();
-    } else {
-      mergeParameters = null;
-    }
+    mergeMS2 = parameters.getValue(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER);
+    mergeParameters =
+        mergeMS2 ? parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
+            .getEmbeddedParameters() : null;
+    merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
   }
 
   @Override
   public double getFinishedPercentage() {
-    if (featureLists.length == 0)
+    if (featureLists.length == 0) {
       return 1;
-    else
-      return currentIndex / featureLists.length;
+    } else {
+      return currentIndex / (double) featureLists.length;
+    }
   }
 
   @Override
@@ -116,6 +124,16 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
 
     // Process feature lists
     for (FeatureList featureList : featureLists) {
+      List<FeatureListRow> rows = new ArrayList<>(featureList.getRows());
+      final int numRows = rows.size();
+      final long numFeatures = rows.stream().count();
+      final long numMS2 = rows.stream().filter(FeatureListRow::hasMs2Fragmentation).count();
+      final long numFiltered = rows.stream().filter(filter::accept).count();
+      // Cancel?
+      if (isCanceled()) {
+        return;
+      }
+
       currentIndex++;
 
       // Filename
@@ -137,135 +155,155 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
       }
 
       // Open file
-      FileWriter writer;
-      try {
-        writer = new FileWriter(curFile);
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not open file " + curFile + " for writing.");
-        return;
-      }
+      try (BufferedWriter writer = Files.newBufferedWriter(curFile.toPath(),
+          StandardCharsets.UTF_8)) {
 
-      try {
-        export(featureList, writer, curFile);
+        export(featureList, rows, writer);
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Error while writing into file " + curFile + ": " + e.getMessage());
+        setErrorMessage("Error during mgf export to " + curFile);
+        logger.log(Level.WARNING, "Error during mgf export: " + e.getMessage(), e);
         return;
       }
 
-      // Cancel?
-      if (isCanceled()) {
-        return;
-      }
-
-      // Close file
-      try {
-        writer.close();
-      } catch (Exception e) {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not close file " + curFile);
-        return;
-      }
+      // check that nothing has changed during processing
+      checkConcurrentModification(featureList, rows, numRows, numFeatures, numMS2, numFiltered);
 
       // If feature list substitution pattern wasn't found,
       // treat one feature list only
-      if (!substitute)
+      if (!substitute) {
         break;
+      }
     }
 
-    if (getStatus() == TaskStatus.PROCESSING)
+    if (getStatus() == TaskStatus.PROCESSING) {
       setStatus(TaskStatus.FINISHED);
+    }
   }
 
-  private int export(FeatureList featureList, FileWriter writer, File curFile) throws IOException {
+  private void checkConcurrentModification(FeatureList featureList, List<FeatureListRow> rows,
+      int numRows, long numFeatures, long numMS2, long numFiltered) {
+    final int numRowsEnd = rows.size();
+    final long numFeaturesEnd = rows.stream().count();
+    final long numMS2End = rows.stream().filter(FeatureListRow::hasMs2Fragmentation).count();
+    final long numFilteredEnd = rows.stream().filter(filter::accept).count();
+
+    logger.finer(String.format(
+        "flist=%s    MS2=%d    newMS2=%d    features=%d    newF=%d   filtered=%d   fitleredEnd=%d",
+        featureList.getName(), numMS2, numMS2End, numFeatures, numFeaturesEnd, numFiltered,
+        numFilteredEnd));
+
+    if (numRows != numRowsEnd) {
+      throw new ConcurrentModificationException(String.format(
+          "Detected modification to number of ROWS during featurelist (%s) mgf export old=%d new=%d",
+          featureList.getName(), numRows, numRowsEnd));
+    }
+    if (numFeatures != numFeaturesEnd) {
+      throw new ConcurrentModificationException(String.format(
+          "Detected modification to number of ROWS during featurelist (%s) mgf export old=%d new=%d",
+          featureList.getName(), numFeatures, numFeaturesEnd));
+    }
+    if (numMS2 != numMS2End) {
+      throw new ConcurrentModificationException(String.format(
+          "Detected modification to number of ROWS WITH MS2 during featurelist (%s) mgf export old=%d new=%d",
+          featureList.getName(), numMS2, numMS2End));
+    }
+  }
+
+  private long export(FeatureList featureList, List<FeatureListRow> rows, BufferedWriter writer)
+      throws IOException {
     final String newLine = System.lineSeparator();
 
+    int noMS2Counter = 0;
     // count exported
-    int count = 0;
-    for (FeatureListRow row : featureList.getRows()) {
+    for (FeatureListRow row : rows) {
       // do not export if no MSMS
-      if (!filter.filter(row)) {
+      if (!filter.accept(row)) {
         continue;
+      }
+
+      // Get the MS/MS scan number
+      Scan msmsScan = row.getMostIntenseFragmentScan();
+      if (msmsScan == null) {
+        noMS2Counter++;
+        // with IIMN, filter also accepts feature without MS2
+        continue;
+      }
+
+      MassList massList = msmsScan.getMassList();
+
+      if (massList == null) {
+        setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
+        setStatus(TaskStatus.ERROR);
+        throw new IllegalArgumentException(
+            "MS2 scan has no mass list. Run Mass detection on all scans");
       }
 
       String rowID = Integer.toString(row.getID());
-      double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
+      final Float averageRT = row.getAverageRT();
+      double retTimeInSeconds = averageRT == null ? 0d : ((averageRT * 60 * 100.0) / 100.);
 
-      // Get the MS/MS scan number
-      Feature bestFeature = row.getBestFeature();
-      if (bestFeature == null) {
-        continue;
+      writer.append("BEGIN IONS").append(newLine);
+      writer.append("FEATURE_ID=").append(rowID).write(newLine);
+
+      final Double mz = row.getAverageMZ();
+      if (mz != null) {
+        writer.append("PEPMASS=").append(mzForm.format(mz)).write(newLine);
       }
-      Scan msmsScan = row.getMostIntenseFragmentScan();
-      if (msmsScan != null) {
-        // MS/MS scan must exist, because msmsScanNumber was > 0
 
-        MassList massList = msmsScan.getMassList();
+      writer.append("SCANS=").append(rowID).write(newLine);
+      writer.append("RTINSECONDS=").append(rtsForm.format(retTimeInSeconds)).write(newLine);
 
-        if (massList == null) {
-          setErrorMessage("MS2 scan has no mass list. Run Mass detection on all scans");
-          setStatus(TaskStatus.ERROR);
-          return count;
-        }
+      int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 1);
+      String msmsPolarity = msmsScan.getPolarity().asSingleChar();
+      if (!(msmsPolarity.equals("+") || msmsPolarity.equals("-"))) {
+        msmsPolarity = "";
+      }
 
-        writer.write("BEGIN IONS" + newLine);
+      writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+      writer.append("MSLEVEL=2").write(newLine);
 
-        if (rowID != null)
-          writer.write("FEATURE_ID=" + rowID + newLine);
-
-        String mass = mzForm.format(row.getAverageMZ());
-        if (mass != null)
-          writer.write("PEPMASS=" + mass + newLine);
-
-        if (rowID != null) {
-          writer.write("SCANS=" + rowID + newLine);
-          writer.write("RTINSECONDS=" + rtsForm.format(retTimeInSeconds) + newLine);
-        }
-
-        int msmsCharge = Objects.requireNonNullElse(msmsScan.getPrecursorCharge(), 0);
-        String msmsPolarity = msmsScan.getPolarity().asSingleChar();
-        if (msmsPolarity.equals("0"))
-          msmsPolarity = "";
-        if (msmsCharge == 0) {
-          msmsCharge = 1;
-          msmsPolarity = "";
-        }
-        writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
-
-        writer.write("MSLEVEL=2" + newLine);
-
-        DataPoint[] dataPoints = massList.getDataPoints();
-        if (mergeParameters != null) {
-          MsMsSpectraMergeModule merger =
-              MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
-          MergedSpectrum spectrum =
-              merger.getBestMergedSpectrum(mergeParameters, row);
+      DataPoint[] dataPoints = null;
+      // merge MS/MS spectra
+      if (mergeMS2) {
+        try {
+          MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row);
           if (spectrum != null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");
             writer.write(spectrum.getMergeStatsDescription());
             writer.write(newLine);
           }
+        } catch (Exception ex) {
+          logger.log(Level.WARNING, "Error during MS2 merge in mgf export: " + ex.getMessage(), ex);
         }
-        for (DataPoint feature : dataPoints) {
-          writer.write(mzForm.format(feature.getMZ()) + " " + intensityForm.format(feature.getIntensity())
-              + newLine);
-        }
-        writer.write("END IONS" + newLine);
-        writer.write(newLine);
-        count++;
       }
+      // nothing after merging or no merging active
+      if (dataPoints == null) {
+        dataPoints = massList.getDataPoints();
+      }
+
+      for (DataPoint feature : dataPoints) {
+        writer.append(mzForm.format(feature.getMZ())).append(" ")
+            .append(intensityForm.format(feature.getIntensity())).write(newLine);
+      }
+      //
+      writer.append("END IONS").append(newLine).write(newLine);
+      exportedRows.incrementAndGet();
     }
 
-    if (count == 0)
+    if (exportedRows.get() == 0) {
       logger.log(Level.WARNING, "No MS/MS scans exported.");
-    else
+    } else {
       logger.info(
           MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
-              count, featureList.getName()));
+              exportedRows.get(), featureList.getName()));
+    }
+    if (noMS2Counter > 0 && filter.requiresMS2()) {
+      logger.warning(noMS2Counter + " features had no MS/MS scan after already filtering for MS2");
+    }
 
-    return count;
+    return exportedRows.get();
   }
 
   @Override
@@ -273,4 +311,8 @@ public class GnpsFbmnMgfExportTask extends AbstractTask {
     return "Exporting GNPS of feature list(s) " + Arrays.toString(featureLists) + " to MGF file(s)";
   }
 
+  @Override
+  public int getProcessedItems() {
+    return exportedRows.get();
+  }
 }

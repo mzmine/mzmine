@@ -59,6 +59,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -80,6 +82,9 @@ public class MSDKmzMLImportTask extends AbstractTask {
   private final Class<? extends MZmineModule> module;
   private MZmineProcessingStep<MassDetector> ms1Detector = null;
   private MZmineProcessingStep<MassDetector> ms2Detector = null;
+
+  public static final Pattern watersPattern = Pattern.compile(
+      "function=([1-9]+) process=[\\d]+ scan=[\\d]+");
 
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
@@ -234,15 +239,22 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final double mobilities[] = mobilitiesMap.keySet().stream().mapToDouble(RangeUtils::rangeCenter)
         .toArray();
 
+//    int previousFunction = 1;
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
-      if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS && mobilities[0] - mobilities[1] < 0) {
+      if(mzMLScan.getMobility() == null) {
+        continue;
+      }
+      if (mzMLScan.getMobility().mobilityType() == MobilityType.TIMS
+          && mobilities[0] - mobilities[1] < 0) {
         // for tims, mobilities must be sorted in descending order, so if [0]-[1] < 0, we must reverse
         ArrayUtils.reverse(mobilities);
       }
+      final Matcher watersMatcher = watersPattern.matcher(mzMLScan.getId());
       if (buildingFrame == null
           || Float.compare((scan.getRetentionTime() / 60f), buildingFrame.getRetentionTime())
-          != 0) {
+          != 0 /*|| (watersMatcher.matches() && Integer.parseInt(watersMatcher.group(1)) != previousFunction)*/) {
+//        previousFunction = watersMatcher.matches() ? Integer.parseInt(watersMatcher.group(1)) : 1;
 
         if (buildingFrame != null) { // finish the frame
           final SimpleFrame finishedFrame = buildingFrame;
@@ -316,10 +328,15 @@ public class MSDKmzMLImportTask extends AbstractTask {
       throws IOException {
     final RangeMap<Double, Integer> mobilityCounts = TreeRangeMap.create();
 
-    final boolean isTims =
-        ((MzMLMsScan) file.getScans().get(0)).getMobility().mobilityType() == MobilityType.TIMS;
+    boolean isTims = false;
     for (MsScan scan : file.getScans()) {
       MzMLMsScan mzMLScan = (MzMLMsScan) scan;
+      final Matcher matcher = watersPattern.matcher(mzMLScan.getId());
+      if (matcher.matches() && !matcher.group(1).equals("1")) {
+        continue;
+      }
+      isTims = mzMLScan.getMobility().mobilityType() == MobilityType.TIMS;
+
       final double mobility = mzMLScan.getMobility().mobility();
       final Entry<Range<Double>, Integer> entry = mobilityCounts.getEntry(mobility);
       if (entry == null) {
@@ -343,8 +360,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final double tenthDiff = medianDiff / 10;
     RangeMap<Double, Integer> realMobilities = TreeRangeMap.create();
     for (int i = 0; i < mobilityValues.length; i++) {
-      realMobilities.put(
-          Range.closed(mobilityValues[i] - tenthDiff, mobilityValues[i] + tenthDiff),
+      realMobilities.put(Range.closed(mobilityValues[i] - tenthDiff, mobilityValues[i] + tenthDiff),
           isTims ? mobilityValues.length - 1 - i : i); // reverse scan number order for tims
     }
 

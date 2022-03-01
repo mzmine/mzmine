@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -55,7 +54,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
   private final ConcurrentHashMap<FeatureListRow, IonIdentity> partner = new ConcurrentHashMap<>();
   // possible formulas for this neutral mass
   @NotNull
-  private final ObservableList<ResultFormula> molFormulas;
+  private final List<ResultFormula> molFormulas;
   private final IonType ionType;
   // identifier like [M+H]+
   private final String adduct;
@@ -88,8 +87,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param row2 identified by this row
    */
   public static IonIdentity[] addAdductIdentityToRow(MZTolerance mzTolerance, FeatureListRow row1,
-      IonType row1ID,
-      FeatureListRow row2, IonType row2ID) {
+      IonType row1ID, FeatureListRow row2, IonType row2ID) {
     // already added?
     IonIdentity a = getAdductEqualIdentity(row1, row1ID);
     IonIdentity b = getAdductEqualIdentity(row2, row2ID);
@@ -294,9 +292,9 @@ public class IonIdentity implements Comparable<IonIdentity> {
       return 0;
     }
 
-    return (int) msmsIdent.stream().filter(id -> id instanceof MSMSIonRelationIdentity
-                                                 && ((MSMSIonRelationIdentity) id).getRelation()
-                                                     .equals(Relation.NEUTRAL_LOSS)).count();
+    return (int) msmsIdent.stream().filter(
+        id -> id instanceof MSMSIonRelationIdentity && ((MSMSIonRelationIdentity) id).getRelation()
+            .equals(Relation.NEUTRAL_LOSS)).count();
   }
 
   public IonNetwork getNetwork() {
@@ -348,7 +346,7 @@ public class IonIdentity implements Comparable<IonIdentity> {
 
   @NotNull
   public List<ResultFormula> getMolFormulas() {
-    return molFormulas;
+    return molFormulas == null ? List.of() : molFormulas;
   }
 
   public void clearMolFormulas() {
@@ -371,8 +369,8 @@ public class IonIdentity implements Comparable<IonIdentity> {
    * @param molFormulas
    */
   public synchronized void addMolFormulas(ResultFormula... molFormulas) {
-    this.molFormulas.removeAll(molFormulas);
-    this.molFormulas.addAll(molFormulas);
+    this.molFormulas.removeAll(List.of(molFormulas));
+    this.molFormulas.addAll(List.of(molFormulas));
   }
 
   public synchronized void addMolFormula(ResultFormula formula) {

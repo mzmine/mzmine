@@ -56,4 +56,13 @@ public enum PolarityType {
     return UNKNOWN;
   }
 
+  public static PolarityType fromInt(int i) {
+    if(i == 0) {
+      return UNKNOWN;
+    } else if(i < 0) {
+      return NEGATIVE;
+    } else {
+      return POSITIVE;
+    }
+  }
 }

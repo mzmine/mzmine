@@ -18,12 +18,6 @@
 
 package io.github.mzmine.modules.io.import_features_mztabm;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.io.File;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import com.google.common.collect.Range;
 import de.isas.mztab2.io.MzTabFileParser;
 import de.isas.mztab2.model.Assay;
@@ -31,11 +25,9 @@ import de.isas.mztab2.model.MsRun;
 import de.isas.mztab2.model.MzTab;
 import de.isas.mztab2.model.MzTabAccess;
 import de.isas.mztab2.model.OptColumnMapping;
-import de.isas.mztab2.model.Parameter;
 import de.isas.mztab2.model.SmallMoleculeEvidence;
 import de.isas.mztab2.model.SmallMoleculeFeature;
 import de.isas.mztab2.model.SmallMoleculeSummary;
-import de.isas.mztab2.model.SpectraRef;
 import de.isas.mztab2.model.StudyVariable;
 import de.isas.mztab2.model.ValidationMessage;
 import io.github.mzmine.datamodel.DataPoint;
@@ -57,13 +49,15 @@ import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
-import java.util.regex.Pattern;
+import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import uk.ac.ebi.pride.jmztab2.model.MZTabConstants;
-import uk.ac.ebi.pride.jmztab2.utils.errors.LogicalErrorType;
-import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabError;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorList;
 import uk.ac.ebi.pride.jmztab2.utils.errors.MZTabErrorType;
 
@@ -417,8 +411,7 @@ public class MzTabmImportTask extends AbstractTask {
         DataPoint finalDataPoint[] = new DataPoint[1];
         finalDataPoint[0] = new SimpleDataPoint(feature_mz, feature_height);
         Scan representativeScan = null;
-        Scan fragmentScan = null;
-        Scan[] allFragmentScans = {};
+        List<Scan> allFragmentScans = List.of();
 
         Range<Float> finalRTRange = Range.singleton(feature_rt);
         Range<Double> finalMZRange = Range.singleton(feature_mz);
@@ -428,10 +421,9 @@ public class MzTabmImportTask extends AbstractTask {
           status = FeatureStatus.UNKNOWN;
         }
 
-        Feature feature = 
-            new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt, feature_height,
-                (float) abundance, scans, finalDataPoint, status, representativeScan,
-                fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+        Feature feature = new ModularFeature(newFeatureList, rawData, feature_mz, feature_rt,
+            feature_height, (float) abundance, scans, finalDataPoint, status, representativeScan,
+            allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
 
         feature.setCharge(charge);
         newRow.addFeature(rawData, feature);

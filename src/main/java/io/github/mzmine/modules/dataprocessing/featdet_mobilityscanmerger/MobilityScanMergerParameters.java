@@ -59,7 +59,7 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    MobilityScanMergerSetupDialog dialog = new MobilityScanMergerSetupDialog(this);
+    MobilityScanMergerSetupDialog dialog = new MobilityScanMergerSetupDialog(valueCheckRequired,this);
     dialog.showAndWait();
     ExitCode code = dialog.getExitCode();
     return code;

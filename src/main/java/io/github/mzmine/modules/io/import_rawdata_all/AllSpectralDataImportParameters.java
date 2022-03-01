@@ -18,6 +18,7 @@
 
 package io.github.mzmine.modules.io.import_rawdata_all;
 
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
@@ -57,7 +58,10 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       new AdvancedSpectraImportParameters(), true);
 
   public AllSpectralDataImportParameters() {
-    super(new Parameter[]{fileNames, advancedImport});
+    super(new Parameter[]{fileNames, //
+        advancedImport, // directly process masslists
+        // allow import of spectral libraries
+        SpectralLibraryImportParameters.dataBaseFiles});
   }
 
 }

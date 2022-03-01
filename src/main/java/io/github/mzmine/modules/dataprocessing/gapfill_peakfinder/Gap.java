@@ -146,7 +146,7 @@ public class Gap {
         rawDataFile, series, FeatureStatus.ESTIMATED);
 
     // Fill the gap
-    peakListRow.addFeature(rawDataFile, newPeak);
+    peakListRow.addFeature(rawDataFile, newPeak, false);
     return true;
   }
 
@@ -189,7 +189,7 @@ public class Gap {
 
         if ((currentPeakDataPoints.get(i).getIntensity() >= currentPeakDataPoints.get(i + 1)
             .getIntensity()) && (currentPeakDataPoints.get(i).getIntensity()
-                                 >= currentPeakDataPoints.get(i - 1).getIntensity())) {
+            >= currentPeakDataPoints.get(i - 1).getIntensity())) {
 
           if (currentPeakDataPoints.get(i).getIntensity() > currentMaxHeight) {
 
@@ -243,7 +243,6 @@ public class Gap {
     // 3) Check if this is the best candidate for a peak
     if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
       bestPeakDataPoints = currentPeakDataPoints.subList(startInd, toIndex);
-      bestPeakHeight = currentMaxHeight;
     }
 
   }

@@ -26,7 +26,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class SpectralLibraryImportParameters extends SimpleParameterSet {
 
-  private static final List<ExtensionFilter> extensions = List.of( //
+  public static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("All library files", "*.json", "*.mgf", "*.msp", "*.jdx"), //
       new ExtensionFilter("json files from MoNA or GNPS", "*.json"), //
       new ExtensionFilter("mgf files", "*.mgf"), //

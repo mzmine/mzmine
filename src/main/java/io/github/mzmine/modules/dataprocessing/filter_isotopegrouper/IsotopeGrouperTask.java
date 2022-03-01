@@ -61,8 +61,8 @@ class IsotopeGrouperTask extends AbstractTask {
    * Since we don't know the formula, we can assume the distance to be ~1.0033 Da, with user-defined
    * tolerance.
    */
+  private static final Logger logger = Logger.getLogger(IsotopeGrouperTask.class.getName());
   private static final double isotopeDistance = 1.0033;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final MZmineProject project;
   private final ModularFeatureList featureList;
   // parameter values
@@ -73,6 +73,7 @@ class IsotopeGrouperTask extends AbstractTask {
   private final MobilityTolerance mobilityTolerance;
   private final boolean monotonicShape;
   private final boolean chooseMostIntense;
+  private final boolean keepAllMS2;
   private final int maximumCharge;
   private final ParameterSet parameters;
   private final OriginalFeatureListOption handleOriginal;
@@ -96,6 +97,7 @@ class IsotopeGrouperTask extends AbstractTask {
     rtTolerance = parameters.getParameter(IsotopeGrouperParameters.rtTolerance).getValue();
     monotonicShape = parameters.getParameter(IsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameters.getParameter(IsotopeGrouperParameters.maximumCharge).getValue();
+    keepAllMS2 = parameters.getParameter(IsotopeGrouperParameters.keepAllMS2).getValue();
     chooseMostIntense = (Objects.equals(
         parameters.getParameter(IsotopeGrouperParameters.representativeIsotope).getValue(),
         IsotopeGrouperParameters.ChooseTopIntensity));
@@ -217,7 +219,7 @@ class IsotopeGrouperTask extends AbstractTask {
           .map(r -> new SimpleDataPoint(r.getAverageMZ(), r.getAverageHeight()))
           .sorted(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending))
           .toArray(DataPoint[]::new);
-      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes,
+      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(isotopes, bestFitCharge,
           IsotopePatternStatus.DETECTED, mostIntenseRow.toString());
 
       // Depending on user's choice, we leave either the most intense, or
@@ -233,8 +235,14 @@ class IsotopeGrouperTask extends AbstractTask {
       finalRows.add(mainRow);
       // set isotope pattern
       Feature feature = mainRow.getFeatures().get(0);
-      feature.setIsotopePattern(newPattern);
-      feature.setCharge(bestFitCharge);
+
+      // do not set isotope pattern if feature already has an isotope pattern
+      // this means the isotope finder (or another module already ran) keep the old pattern
+      // we trust the isotope finder more on detecting all isotope signals
+      if (feature.getIsotopePattern() == null) {
+        feature.setIsotopePattern(newPattern);
+        feature.setCharge(bestFitCharge);
+      }
 
       // Remove all peaks already assigned to isotope pattern
       // first is already removed
@@ -242,14 +250,25 @@ class IsotopeGrouperTask extends AbstractTask {
       rowsSortedByHeight.removeAll(bestFitRows);
       rowsSortedByMz.removeAll(bestFitRows);
 
+      // in case user wants to keep all features with MS2 - eventhough they were flagged as isotopes
+      // this can be useful for complex datasets
+      // in general, when an MS2 is triggered we might want to retain this feauture in any case
+      if (keepAllMS2) {
+        for (var isotopeWithMS2 : bestFitRows) {
+          if (isotopeWithMS2.hasMs2Fragmentation()) {
+            finalRows.add(isotopeWithMS2);
+          }
+        }
+      }
+
       // Update completion rate
       processedRows += bestFitRows.size();
     }
 
     // Add task description to peakList
     deisotopedFeatureList.addDescriptionOfAppliedTask(
-        new SimpleFeatureListAppliedMethod("Isotopic peaks grouper", IsotopeGrouperModule.class,
-            parameters, getModuleCallDate()));
+        new SimpleFeatureListAppliedMethod(IsotopeGrouperModule.MODULE_NAME,
+            IsotopeGrouperModule.class, parameters, getModuleCallDate()));
 
     // replace rows in list
     deisotopedFeatureList.setRows(finalRows);

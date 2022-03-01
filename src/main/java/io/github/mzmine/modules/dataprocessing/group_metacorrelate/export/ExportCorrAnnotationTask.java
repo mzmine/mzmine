@@ -134,7 +134,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       AtomicInteger added = new AtomicInteger(0);
       // for all rows
       for (FeatureListRow r : rows) {
-        if (!filter.filter(r)) {
+        if (!filter.accept(r)) {
           continue;
         }
 
@@ -153,15 +153,15 @@ public class ExportCorrAnnotationTask extends AbstractTask {
             links.entrySet().stream().filter(Objects::nonNull)
                 .filter(e -> e.getKey().getID() > rowID).forEach(e -> {
               FeatureListRow link = e.getKey();
-              if (filter.filter(link)) {
-                IonIdentity id = e.getValue();
-                double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
-                // the data
-                exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
-                    corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
-                    id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
-                added.incrementAndGet();
-              }
+                  if (filter.accept(link)) {
+                    IonIdentity id = e.getValue();
+                    double dmz = Math.abs(r.getAverageMZ() - link.getAverageMZ());
+                    // the data
+                    exportEdge(ann, "MS1 annotation", rowID, e.getKey().getID(),
+                        corrForm.format((id.getScore() + adduct.getScore()) / 2d), //
+                        id.getAdduct() + " " + adduct.getAdduct() + " dm/z=" + mzForm.format(dmz));
+                    added.incrementAndGet();
+                  }
             });
           });
         }
@@ -253,11 +253,11 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     double sumIntensity = 0;
     for (Map.Entry<FeatureListRow, IonIdentity> entryA : netA.entrySet()) {
       FeatureListRow rowA = entryA.getKey();
-      if (filter.filter(rowA)) {
+      if (filter.accept(rowA)) {
         IonIdentity iinA = entryA.getValue();
         for (Map.Entry<FeatureListRow, IonIdentity> entryB : netB.entrySet()) {
           FeatureListRow rowB = entryB.getKey();
-          if (filter.filter(rowB)) {
+          if (filter.accept(rowB)) {
             IonIdentity iinB = entryB.getValue();
             if (iinA.getAdduct().equals(iinB.getAdduct())) {
               // find pair with the highest sum intensity (that match the row filter)
@@ -443,7 +443,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     StringBuilder ann = createHeader();
     for (RowsRelationship rel : relationships) {
       // only export if both rows match
-      if (filter.filter(rel.getRowA()) && filter.filter(rel.getRowB())) {
+      if (filter.accept(rel.getRowA()) && filter.accept(rel.getRowB())) {
         exportEdge(ann, rel.getType().toString(), rel.getRowA().getID(), rel.getRowB().getID(),
             rel.getScoreFormatted(), rel.getAnnotation());
       }
@@ -481,7 +481,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
     int lastID = 0;
     for (FeatureList pkl : featureLists) {
       for (FeatureListRow r : pkl.getRows()) {
-        if (!filter.filter(r)) {
+        if (!filter.accept(r)) {
           continue;
         }
         renumbered.put(getRowMapKey(r), lastID);
@@ -503,7 +503,7 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
         // for all rows
         for (FeatureListRow r : rows) {
-          if (!filter.filter(r)) {
+          if (!filter.accept(r)) {
             continue;
           }
 

@@ -87,6 +87,12 @@
   -fx-background-radius: 5em;
 }
 
+.scroll-pane {
+ -fx-fit-to-height: true;
+ -fx-fit-to-width: true;
+}
+
+
 .table-column {
     -fx-alignment: CENTER-LEFT;
 }
@@ -137,4 +143,8 @@
 
 .set-color-menu-item:hover, .set-color-menu-item:pressed, .set-color-menu-item {
   -fx-background-color: inherit;
+}
+
+.web-view {
+  -fx-font-smoothing-type: LCD;
 }

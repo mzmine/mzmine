@@ -33,13 +33,15 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
-import io.github.mzmine.datamodel.features.types.numbers.MZType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -47,6 +49,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -208,8 +211,20 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       final CompoundDBAnnotation clone = annotation.clone();
       clone.put(CompoundAnnotationScoreType.class, Objects.requireNonNullElse(
           clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance), 0f));
-      clone.put(MzPpmDifferenceType.class,
-          (float) MathUtils.getPpmDiff(clone.getPrecursorMZ(), peakRow.getAverageMZ()));
+          clone.put(MzPpmDifferenceType.class,
+              (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
+                  peakRow.getAverageMZ()));
+          if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
+            clone.put(CCSRelativeErrorType.class,
+                PercentTolerance.getPercentError(annotation.get(CCSType.class),
+                    peakRow.getAverageCCS()));
+          }
+          if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
+            clone.put(RtRelativeErrorType.class,
+                PercentTolerance.getPercentError(annotation.get(RTType.class),
+                    peakRow.getAverageRT()));
+          }
+
       peakRow.addCompoundAnnotation(clone);
       final List<CompoundDBAnnotation> sorted = peakRow.getCompoundAnnotations()
           .stream().filter(Objects::nonNull)
@@ -224,7 +239,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     var formulaType = DataTypes.get(FormulaType.class);
     var compoundNameType = DataTypes.get(CompoundNameType.class);
     var commentType = DataTypes.get(CommentType.class);
-    var precursorMz = DataTypes.get(MZType.class);
+    var precursorMz = DataTypes.get(PrecursorMZType.class);
     var rtType = DataTypes.get(RTType.class);
     var mobType = DataTypes.get(MobilityType.class);
     var ccsType = DataTypes.get(CCSType.class);
@@ -238,10 +253,11 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
     for (int i = 0; i < linesWithIndices.size(); i++) {
       var type = linesWithIndices.get(i);
-      entry.put(type.getDataType(), values[type.getColumnIndex()]);
+      if (values[type.getColumnIndex()] != null && !values[type.getColumnIndex()].isEmpty()) {
+        entry.put(type.getDataType(), values[type.getColumnIndex()]);
+      }
     }
 
-//    lineID = entry.get();
     final String lineName = entry.get(compoundNameType);
     final String lineFormula = entry.get(formulaType);
     final String lineAdduct = entry.get(adductType);
@@ -276,7 +292,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine) {
-
     List<ImportType> lines = new ArrayList<>();
     for (ImportType importType : importTypes) {
       if (importType.isSelected()) {

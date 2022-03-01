@@ -39,6 +39,8 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,14 +59,14 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
  * carry a flexible amount of data while providing a set of minimum defined entries.
  */
-public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
+public class SimpleCompoundDBAnnotation implements
+    CompoundDBAnnotation {
 
-  private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
-
-  protected final Map<DataType<?>, Object> data = new HashMap<>();
+  private final Map<DataType<?>, Object> data = new HashMap<>();
 
   public static final String XML_TYPE_NAME = "simplecompounddbannotation";
 
+  private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -301,6 +303,11 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
     }
 
     return score / scorers;
+  }
+
+  @Override
+  public Map<DataType<?>, Object> getReadOnlyMap() {
+    return Collections.unmodifiableMap(data);
   }
 
   @Override
