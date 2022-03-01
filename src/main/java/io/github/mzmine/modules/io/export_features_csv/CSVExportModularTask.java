@@ -271,8 +271,6 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    */
   private void addFormattedColumnsRecursively(List<String[]> formattedCols,
       List<FeatureListRow> rows, @Nullable RawDataFile raw, DataType type) {
-    final Stream<? extends ModularDataModel> dataStream = getDataStream(rows, raw, false);
-
     if (type instanceof SubColumnsFactory subFactory) {
       int subCols = subFactory.getNumberOfSubColumns();
       for (int s = 0; s < subCols; s++) {
@@ -284,12 +282,12 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
         }
         // collect column data
         final int subIndex = s;
-        String[] column = dataStream.map(data -> getFormattedValue(data, subFactory, subIndex))
-            .toArray(String[]::new);
+        String[] column = getDataStream(rows, raw, false).map(
+            data -> getFormattedValue(data, subFactory, subIndex)).toArray(String[]::new);
         formattedCols.add(column);
       }
     } else {
-      String[] column = dataStream.map(data -> getFormattedValue(data, type))
+      String[] column = getDataStream(rows, raw, false).map(data -> getFormattedValue(data, type))
           .toArray(String[]::new);
       formattedCols.add(column);
     }
