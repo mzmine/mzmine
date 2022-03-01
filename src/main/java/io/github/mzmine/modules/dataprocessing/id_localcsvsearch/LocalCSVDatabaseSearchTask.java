@@ -30,7 +30,6 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.CommentType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
@@ -40,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -61,6 +61,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -205,13 +206,15 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
       @Nullable final MobilityTolerance mobTolerance, @Nullable final Double ccsTolerance) {
     if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
       final CompoundDBAnnotation clone = annotation.clone();
-      clone.put(CompoundAnnotationScoreType.class,
-          clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
+      clone.put(CompoundAnnotationScoreType.class, Objects.requireNonNullElse(
+          clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance), 0f));
       clone.put(MzPpmDifferenceType.class,
           (float) MathUtils.getPpmDiff(clone.getPrecursorMZ(), peakRow.getAverageMZ()));
       peakRow.addCompoundAnnotation(clone);
-      peakRow.getCompoundAnnotations()
-          .sort(Comparator.comparingDouble(CompoundDBAnnotation::getScore));
+      final List<CompoundDBAnnotation> sorted = peakRow.getCompoundAnnotations()
+          .stream().filter(Objects::nonNull)
+          .sorted(Comparator.comparingDouble(CompoundDBAnnotation::getScore)).toList();
+      peakRow.setCompoundAnnotations(sorted);
     }
   }
 

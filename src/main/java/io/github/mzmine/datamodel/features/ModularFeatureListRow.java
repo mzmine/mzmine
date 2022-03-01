@@ -541,6 +541,8 @@ public class ModularFeatureListRow implements FeatureListRow {
       List<CompoundDBAnnotation> matches = get(CompoundDatabaseMatchesType.class);
       if (matches == null) {
         matches = new ArrayList<>();
+      } else {
+        matches = new ArrayList<>(matches);
       }
       matches.add(id);
       set(CompoundDatabaseMatchesType.class, matches);
