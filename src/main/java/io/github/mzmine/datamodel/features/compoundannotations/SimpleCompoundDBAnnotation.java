@@ -39,7 +39,6 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +61,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 public class SimpleCompoundDBAnnotation implements
     CompoundDBAnnotation {
 
-  private final Map<DataType<?>, Object> data = new HashMap<>();
+  protected final Map<DataType<?>, Object> data = new HashMap<>();
 
   public static final String XML_TYPE_NAME = "simplecompounddbannotation";
 

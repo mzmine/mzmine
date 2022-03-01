@@ -37,6 +37,17 @@ public class BioTransformerParameters extends SimpleParameterSet {
     super(new Parameter[]{flists, bioPath, transformationType, steps, mzTol/*, cmdOptions*/});
   }
 
+  public BioTransformerParameters(boolean singleRow) {
+    super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol}
+        : new Parameter[]{flists, bioPath, transformationType, steps, mzTol});
+
+    /*final ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(BioTransformerModule.class);
+    for (Parameter<?> parameter : moduleParameters.getParameters()) {
+      this.setParameter(parameter, parameter.getValue());
+    }*/
+  }
+
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
     assert Platform.isFxApplicationThread();

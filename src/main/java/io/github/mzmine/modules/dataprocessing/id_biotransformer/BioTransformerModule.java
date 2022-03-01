@@ -1,11 +1,14 @@
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.Instant;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +40,19 @@ public class BioTransformerModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
+  public static void runSingleRowPredection(ModularFeatureListRow row, String smiles) {
+    final ParameterSet param = new BioTransformerParameters(true);
+    final File path = param.getValue(BioTransformerParameters.bioPath);
+
+    final ExitCode exitCode = param.showSetupDialog(true);
+    if (exitCode == ExitCode.OK) {
+      MZmineCore.getTaskController()
+          .addTask(new SingleRowPredictionTask(row, smiles, param, Instant.now()));
+    }
+  }
+
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.ANNOTATION;
   }
 }

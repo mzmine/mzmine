@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
@@ -78,37 +79,22 @@ public class BioTransformerTask extends AbstractTask {
 
     for (ModularFeatureList flist : flists) {
       for (FeatureListRow row : flist.getRows()) {
-        if(isCanceled()) {
+        if (isCanceled()) {
           return;
         }
 
         final String bestSmiles = getBestSmiles(row);
         if (bestSmiles == null) {
+          processing++;
           continue;
         }
         description =
             "Biotransformer task " + processing + "/" + numEducts + " SMILES: " + bestSmiles;
 
-        final Integer id = row.getID();
-        String filename = id + "_transformation";
-        final File file;
-        try {
-          file = File.createTempFile("mzmine_bio_" + filename, ".csv");
-          file.deleteOnExit();
-        } catch (IOException e) {
-          continue;
-        }
-        final List<String> cmd = BioTransformerUtil.buildCommandLineArguments(bestSmiles,
-            parameters, file);
+        final List<BioTransformerAnnotation> bioTransformerAnnotations = singleRowPrediction(row,
+            bestSmiles, bioPath, parameters);
 
-        BioTransformerUtil.runCommandAndWait(bioPath.getParentFile(), cmd);
-        final List<BioTransformerAnnotation> bioTransformerAnnotations;
-        try {
-          bioTransformerAnnotations = BioTransformerUtil.parseLibrary(file,
-              new IonType[]{new IonType(IonModification.H)}, new AtomicBoolean(),
-              new AtomicInteger());
-        } catch (IOException e) {
-          logger.log(Level.WARNING, e.getMessage(), e);
+        if (bioTransformerAnnotations.isEmpty()) {
           processing++;
           continue;
         }
@@ -118,8 +104,44 @@ public class BioTransformerTask extends AbstractTask {
               r -> LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance,
                   null, null, null));
         }
+
+        processing++;
       }
+
+      flist.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(BioTransformerModule.class, parameters,
+              getModuleCallDate()));
     }
+  }
+
+  @NotNull
+  public static List<BioTransformerAnnotation> singleRowPrediction(FeatureListRow row,
+      String bestSmiles, File bioTransformerPath, ParameterSet parameters) {
+    final Integer id = row.getID();
+    String filename = id + "_transformation";
+    final File file;
+    try {
+      // will be cleaned by temp file cleanup (windows)
+      file = File.createTempFile("mzmine_bio_" + filename, ".csv");
+      file.deleteOnExit();
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Error creating temp file for bio transformer. " + e.getMessage(),
+          e);
+      return List.of();
+    }
+    final List<String> cmd = BioTransformerUtil.buildCommandLineArguments(bestSmiles, parameters,
+        file);
+
+    BioTransformerUtil.runCommandAndWait(bioTransformerPath.getParentFile(), cmd);
+    final List<BioTransformerAnnotation> bioTransformerAnnotations;
+    try {
+      bioTransformerAnnotations = BioTransformerUtil.parseLibrary(file,
+          new IonType[]{new IonType(IonModification.H)}, new AtomicBoolean(), new AtomicInteger());
+    } catch (IOException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+      return List.of();
+    }
+    return bioTransformerAnnotations;
   }
 
   /**
