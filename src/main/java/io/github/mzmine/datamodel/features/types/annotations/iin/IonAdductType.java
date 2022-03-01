@@ -27,8 +27,10 @@ import javafx.util.converter.DefaultStringConverter;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The ion adduct is used in different {@link AnnotationType}s to represent the ion species.
+ * The ion adduct is used in different {@link AnnotationType}s to represent the ion species. Is
+ * going to be replaced by the {@link IonTypeType}
  */
+@Deprecated
 public class IonAdductType extends StringType
     implements EditableColumnType, StringParser<String>, AnnotationType {
 
