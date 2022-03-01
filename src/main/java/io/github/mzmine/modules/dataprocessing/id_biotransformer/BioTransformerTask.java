@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
@@ -19,10 +20,13 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +87,8 @@ public class BioTransformerTask extends AbstractTask {
           return;
         }
 
-        final String bestSmiles = getBestSmiles(row);
+        StringProperty prefix = new SimpleStringProperty();
+        final String bestSmiles = getBestSmiles(row, prefix);
         if (bestSmiles == null) {
           processing++;
           continue;
@@ -92,7 +97,7 @@ public class BioTransformerTask extends AbstractTask {
             "Biotransformer task " + processing + "/" + numEducts + " SMILES: " + bestSmiles;
 
         final List<BioTransformerAnnotation> bioTransformerAnnotations = singleRowPrediction(row,
-            bestSmiles, bioPath, parameters);
+            bestSmiles, prefix.getValue(), bioPath, parameters);
 
         if (bioTransformerAnnotations.isEmpty()) {
           processing++;
@@ -115,8 +120,9 @@ public class BioTransformerTask extends AbstractTask {
   }
 
   @NotNull
-  public static List<BioTransformerAnnotation> singleRowPrediction(FeatureListRow row,
-      String bestSmiles, File bioTransformerPath, ParameterSet parameters) {
+  public static List<BioTransformerAnnotation> singleRowPrediction(@NotNull FeatureListRow row,
+      @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
+      @NotNull ParameterSet parameters) {
     final Integer id = row.getID();
     String filename = id + "_transformation";
     final File file;
@@ -141,32 +147,42 @@ public class BioTransformerTask extends AbstractTask {
       logger.log(Level.WARNING, e.getMessage(), e);
       return List.of();
     }
+    bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
+        Objects.requireNonNullElse(prefix, "") + "_transformation"));
     return bioTransformerAnnotations;
   }
 
   /**
-   * @param row The row.
+   * @param row          The row.
+   * @param compoundName out - Will be set to the name of the compound if a smiles is found
    * @return The smiles of the first spectral library match or compound db match. (may be null)
    */
   @Nullable
-  private String getBestSmiles(FeatureListRow row) {
+  private String getBestSmiles(@NotNull FeatureListRow row, @Nullable StringProperty compoundName) {
     final List<SpectralDBFeatureIdentity> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty()) {
       final String smiles = spectralLibraryMatches.get(0).getEntry()
           .getOrElse(DBEntryField.SMILES, null);
-      return smiles;
+      if (smiles != null) {
+        if (compoundName != null) {
+          compoundName.set(spectralLibraryMatches.get(0).getName());
+        }
+        return smiles;
+      }
     }
 
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (!compoundAnnotations.isEmpty()) {
-      final String smiles = compoundAnnotations.get(0).getSmiles();
-      return smiles;
+      if (compoundName != null) {
+        compoundName.set(compoundAnnotations.get(0).getCompundName());
+      }
+      return compoundAnnotations.get(0).getSmiles();
     }
 
     return null;
   }
 
   private int getNumEducts(ModularFeatureList featureList) {
-    return (int) featureList.stream().filter(row -> getBestSmiles(row) != null).count();
+    return (int) featureList.stream().filter(row -> getBestSmiles(row, null) != null).count();
   }
 }

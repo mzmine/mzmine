@@ -19,6 +19,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
   private final ModularFeatureListRow row;
   private final String smiles;
+  private final String prefix;
   private final ParameterSet parameters;
   private final File bioPath;
   private final String transformationType;
@@ -26,11 +27,12 @@ public class SingleRowPredictionTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private String description;
 
-  public SingleRowPredictionTask(ModularFeatureListRow row, String smiles, @NotNull ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+  public SingleRowPredictionTask(ModularFeatureListRow row, String smiles, String prefix,
+      @NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.row = row;
     this.smiles = smiles;
+    this.prefix = prefix;
     this.parameters = parameters;
     bioPath = parameters.getValue(BioTransformerParameters.bioPath);
 //    final String cmdOptions = parameters.getValue(BioTransformerParameters.cmdOptions);
@@ -67,8 +69,8 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     description = "Biotransformer task - SMILES: " + smiles;
 
-    final List<BioTransformerAnnotation> bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(row,
-        smiles, bioPath, parameters);
+    final List<BioTransformerAnnotation> bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
+        row, smiles, prefix, bioPath, parameters);
 
     if (bioTransformerAnnotations.isEmpty()) {
       setStatus(TaskStatus.FINISHED);

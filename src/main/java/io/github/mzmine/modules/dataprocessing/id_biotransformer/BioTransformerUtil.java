@@ -96,26 +96,6 @@ public class BioTransformerUtil {
 
   public static boolean runCommandAndWait(File dir, List<String> cmd) {
     try {
-
-      /*final File batchfile = new File(dir, "batchfile.bat");
-      StringBuilder sb = new StringBuilder();
-      try (BufferedWriter w = new BufferedWriter(new FileWriter(batchfile))) {
-        for (String s : cmd) {
-          w.write(s);
-          w.write(" ");
-          sb.append(s).append(" ");
-        }
-        w.newLine();
-        w.write("exit");
-        w.flush();
-      }
-
-      logger.info(sb.toString());
-
-      final Process process = Runtime.getRuntime()
-          .exec("cmd /c start " + batchfile.getName(), null, dir);
-      batchfile.deleteOnExit();*/
-
       ProcessBuilder b = new ProcessBuilder();
       b.directory(dir);
       b.command(cmd);

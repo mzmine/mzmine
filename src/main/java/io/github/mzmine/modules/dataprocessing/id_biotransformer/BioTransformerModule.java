@@ -40,14 +40,23 @@ public class BioTransformerModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-  public static void runSingleRowPredection(ModularFeatureListRow row, String smiles) {
+  /**
+   * Runs a prediction for a single smiles code and annotates all rows with matching mz in the
+   * feature list.
+   *
+   * @param row    The row.
+   * @param smiles The smiles code.
+   * @param prefix A prefix as metabolite name.
+   */
+  public static void runSingleRowPredection(ModularFeatureListRow row, String smiles,
+      String prefix) {
     final ParameterSet param = new BioTransformerParameters(true);
     final File path = param.getValue(BioTransformerParameters.bioPath);
 
     final ExitCode exitCode = param.showSetupDialog(true);
     if (exitCode == ExitCode.OK) {
       MZmineCore.getTaskController()
-          .addTask(new SingleRowPredictionTask(row, smiles, param, Instant.now()));
+          .addTask(new SingleRowPredictionTask(row, smiles, prefix, param, Instant.now()));
     }
   }
 

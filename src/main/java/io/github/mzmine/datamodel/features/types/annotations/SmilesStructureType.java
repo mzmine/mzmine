@@ -62,8 +62,17 @@ public class SmilesStructureType extends StringType implements EditableColumnTyp
   @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
+    String compoundName = "";
+    if(superType instanceof CompoundDatabaseMatchesType) {
+      compoundName = row.getCompoundAnnotations().get(0).getCompundName();
+    } else if(superType instanceof SpectralLibraryMatchesType) {
+      compoundName = row.getSpectralLibraryMatches().get(0).getName();
+    }
+
     if (value instanceof String smiles) {
-      return () -> MZmineCore.runLater(() -> BioTransformerModule.runSingleRowPredection(row, smiles));
+      final String finalCompoundName = compoundName;
+      return () -> MZmineCore.runLater(() -> BioTransformerModule.runSingleRowPredection(row, smiles,
+          finalCompoundName));
     }
     return null;
   }
