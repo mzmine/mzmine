@@ -53,7 +53,7 @@ public class IonAdductType extends StringType
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "adduct";
+    return "ion_adduct";
   }
 
 }
