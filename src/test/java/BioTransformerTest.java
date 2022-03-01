@@ -26,9 +26,9 @@ public class BioTransformerTest {
     final File outputFile = new File("valsartan-transformation.csv");
     final File path = new File("BioTransformer3.0.jar");
     List<String> expected = new ArrayList<>(
-        List.of("java", "-jar " + path.getName(), "-k pred", "-b env", "-s 1",
-            "-ismi \"CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)C(C(C)C)C(=O)O\"",
-            "-ocsv " + outputFile.getAbsolutePath()));
+        List.of("java", "-jar", path.getName(), "-k", "pred", "-b", "env", "-s", "1",
+            "-ismi", "\"CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)C(C(C)C)C(=O)O\"",
+            "-ocsv", "\"" + outputFile.getAbsolutePath() + "\""));
 
     ParameterSet params = new BioTransformerParameters().cloneParameterSet();
 
