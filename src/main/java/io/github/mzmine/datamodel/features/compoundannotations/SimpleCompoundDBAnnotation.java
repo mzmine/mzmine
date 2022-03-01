@@ -319,7 +319,8 @@ public class SimpleCompoundDBAnnotation implements
   @Override
   public String toString() {
     final StringBuilder b = new StringBuilder();
-    data.forEach((k, v) -> b.append(k.getFormattedStringCheckType(v)).append(" "));
+    b.append(getCompundName());
+//    data.forEach((k, v) -> b.append(k.getFormattedStringCheckType(v)).append(" "));
     return b.toString().trim();
   }
 
