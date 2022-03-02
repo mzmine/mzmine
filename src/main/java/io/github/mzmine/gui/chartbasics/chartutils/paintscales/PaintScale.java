@@ -48,7 +48,8 @@ public class PaintScale extends LookupPaintScale {
       PaintScaleBoundStyle paintScaleBoundStyle, Range<Double> scaleRange, Color color) {
     // we add a minimum value on top of the upper endpoint to avoid errors for empty datasets
     // with lower==upper value
-    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint() + 0.1d, color);
+    super(scaleRange.lowerEndpoint(),
+        getValidUpperBound(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint()), color);
     this.paintScaleColorStyle = paintScaleColorStyle;
     this.paintScaleBoundStyle = paintScaleBoundStyle;
   }
