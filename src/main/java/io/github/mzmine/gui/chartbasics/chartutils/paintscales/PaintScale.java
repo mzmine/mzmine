@@ -34,7 +34,8 @@ public class PaintScale extends LookupPaintScale {
   public PaintScale(Range<Double> scaleRange) {
     // we add a minimum value on top of the upper endpoint to avoid errors for empty datasets
     // with lower==upper value
-    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint() + Double.MIN_VALUE,
+    super(scaleRange.lowerEndpoint(),
+        getValidUpperBound(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint()),
         new Color(0, 0, 0, 0f));
   }
 
@@ -47,7 +48,7 @@ public class PaintScale extends LookupPaintScale {
       PaintScaleBoundStyle paintScaleBoundStyle, Range<Double> scaleRange, Color color) {
     // we add a minimum value on top of the upper endpoint to avoid errors for empty datasets
     // with lower==upper value
-    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint() + Double.MIN_VALUE, color);
+    super(scaleRange.lowerEndpoint(), scaleRange.upperEndpoint() + 0.1d, color);
     this.paintScaleColorStyle = paintScaleColorStyle;
     this.paintScaleBoundStyle = paintScaleBoundStyle;
   }
@@ -85,5 +86,15 @@ public class PaintScale extends LookupPaintScale {
     }
 
     return super.getPaint(value);
+  }
+
+  private static double getValidUpperBound(double lower, double upper) {
+    final double diff = upper - lower;
+    if (Double.compare(diff, 0d) != 0) {
+      return upper;
+    }
+    final double valid = upper + 0.1;
+    assert Double.compare(lower, valid) < 0;
+    return valid;
   }
 }
