@@ -91,11 +91,9 @@ public class PaintScale extends LookupPaintScale {
 
   private static double getValidUpperBound(double lower, double upper) {
     final double diff = upper - lower;
-    if (Double.compare(diff, 0d) != 0) {
+    if (Double.compare(diff, 0d) > 0) {
       return upper;
     }
-    final double valid = upper + 0.1;
-    assert Double.compare(lower, valid) < 0;
-    return valid;
+    return lower + 0.1d;
   }
 }
