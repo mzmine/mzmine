@@ -25,6 +25,8 @@ import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries
 import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.impl.masslist.StoredMobilityScanMassList;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetectorParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.nio.DoubleBuffer;
@@ -106,6 +108,18 @@ public class MobilityScanStorage {
    */
   public void generateAndAddMobilityScanMassLists(@Nullable MemoryMapStorage storage,
       @NotNull MassDetector massDetector, @NotNull ParameterSet massDetectorParameters) {
+
+    if (massDetector instanceof CentroidMassDetector &&
+        Double.compare(massDetectorParameters.getValue(CentroidMassDetectorParameters.noiseLevel),
+            0d) == 0) {
+      // no need to run mass detection in this case.
+      massListBasePeakIndices = rawBasePeakIndices;
+      massListMaxNumPoints = rawMaxNumPoints;
+      massListMzValues = rawMzValues;
+      massListIntensityValues = rawIntensityValues;
+      massListStorageOffsets = rawStorageOffsets;
+      return;
+    }
 
     // mobility scan -> [0][] = mzs, [1][] = intensities
     final List<double[][]> data = new ArrayList<>();
