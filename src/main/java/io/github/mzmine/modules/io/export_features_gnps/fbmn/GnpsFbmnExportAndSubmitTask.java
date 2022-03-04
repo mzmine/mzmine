@@ -270,6 +270,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
         LegacyExportRowCommonElement.ROW_RT,
+        // ion mobility columns
+        LegacyExportRowCommonElement.ROW_ION_MOBILITY,
+        LegacyExportRowCommonElement.ROW_ION_MOBILITY_UNIT, LegacyExportRowCommonElement.ROW_CCS,
         // extra for ion identity networking
         LegacyExportRowCommonElement.ROW_CORR_GROUP_ID,
         LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,

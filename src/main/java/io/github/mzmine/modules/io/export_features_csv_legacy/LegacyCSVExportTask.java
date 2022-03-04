@@ -124,6 +124,15 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
   private void refineCommonElements() {
     List<LegacyExportRowCommonElement> list = Lists.newArrayList(commonElements);
 
+    boolean hasIonMobility = Arrays.stream(featureLists)
+        .anyMatch(flist -> flist.hasRowType(MobilityType.class));
+
+    if (!hasIonMobility) {
+      list.remove(LegacyExportRowCommonElement.ROW_ION_MOBILITY);
+      list.remove(LegacyExportRowCommonElement.ROW_ION_MOBILITY_UNIT);
+      list.remove(LegacyExportRowCommonElement.ROW_CCS);
+    }
+
     if (list.contains(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION) && list.contains(
         LegacyExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT)) {
       list.remove(LegacyExportRowCommonElement.ROW_BEST_ANNOTATION);
