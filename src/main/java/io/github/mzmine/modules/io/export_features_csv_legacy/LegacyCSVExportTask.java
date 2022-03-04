@@ -21,10 +21,12 @@ package io.github.mzmine.modules.io.export_features_csv_legacy;
 import com.google.common.collect.Lists;
 import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.MobilityUnitType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.export_features_gnps.fbmn.FeatureListRowsFilter;
@@ -341,7 +343,10 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
             case FEATURE_NAME -> line.append(FeatureUtils.featureToString(feature))
                 .append(fieldSeparator);
             case FEATURE_MZ -> line.append(feature.getMZ()).append(fieldSeparator);
-            case FEATURE_RT -> line.append(feature.getRT()).append(fieldSeparator);
+            case FEATURE_RT -> append(line, feature.getRT());
+            case FEATURE_ION_MOBILITY -> append(line, feature.getMobility());
+            case FEATURE_ION_MOBILITY_UNIT -> append(line, feature.getMobilityUnit());
+            case FEATURE_CCS -> append(line, feature.getCCS());
             case FEATURE_RT_START -> line.append(feature.getRawDataPointsRTRange().lowerEndpoint())
                 .append(fieldSeparator);
             case FEATURE_RT_END -> line.append(feature.getRawDataPointsRTRange().upperEndpoint())
@@ -373,6 +378,14 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
     }
   }
 
+  private void append(StringBuilder line, Object val) {
+    append(line, val, "");
+  }
+
+  private void append(StringBuilder line, Object val, String defaultVal) {
+    line.append(val == null ? defaultVal : val).append(fieldSeparator);
+  }
+
   private void addCommonElementsToLine(NumberFormat mzForm, StringBuilder line, int length,
       FeatureListRow featureListRow) {
     for (int i = 0; i < length; i++) {
@@ -384,7 +397,20 @@ public class LegacyCSVExportTask extends AbstractTask implements ProcessedItemsC
           line.append(featureListRow.getAverageMZ()).append(fieldSeparator);
           break;
         case ROW_RT:
-          line.append(featureListRow.getAverageRT()).append(fieldSeparator);
+          final Float rt = featureListRow.getAverageRT();
+          line.append(rt == null ? "" : rt).append(fieldSeparator);
+          break;
+        case ROW_ION_MOBILITY:
+          final Float mobility = featureListRow.getAverageMobility();
+          line.append(mobility == null ? "" : mobility).append(fieldSeparator);
+          break;
+        case ROW_ION_MOBILITY_UNIT:
+          final MobilityType unit = featureListRow.get(MobilityUnitType.class);
+          line.append(unit == null ? "" : unit).append(fieldSeparator);
+          break;
+        case ROW_CCS:
+          final Float ccs = featureListRow.getAverageCCS();
+          line.append(ccs == null ? "" : ccs).append(fieldSeparator);
           break;
         case ROW_IDENTITY:
           // Identity elements
