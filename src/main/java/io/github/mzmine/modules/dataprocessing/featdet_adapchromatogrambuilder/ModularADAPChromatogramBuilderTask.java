@@ -42,6 +42,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
@@ -74,7 +75,6 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
   private final double minHighestPoint;
   private final ParameterSet parameters;
   private double progress = 0.0;
-  private int newFeatureID = 1;
   private ModularFeatureList newFeatureList;
 
   /**
@@ -251,6 +251,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     // ensure that the default columns are available
     DataTypeUtils.addDefaultChromatographicTypeColumns(newFeatureList);
 
+    int newFeatureID = 1;
     // add chromatograms that match criteria
     for (ADAPChromatogram chromatogram : finalRangeMap.values()) {
       if (isCanceled()) {
@@ -277,6 +278,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         newFeatureID++;
       }
     }
+
+    // sort and reset IDs here to ahve the same sorting for every feature list
+    FeatureListUtils.sortAndResetIDs(newFeatureList);
 
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
 
