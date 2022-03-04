@@ -76,10 +76,14 @@ public class TDFImportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
 
   private final MZmineProject project;
-  @Nullable private final MassDetector ms1Detector;
-  @Nullable private final MassDetector ms2Detector;
-  @Nullable private final ParameterSet ms1DetectorParam;
-  @Nullable private final ParameterSet ms2DetectorParam;
+  @Nullable
+  private final MassDetector ms1Detector;
+  @Nullable
+  private final MassDetector ms2Detector;
+  @Nullable
+  private final ParameterSet ms1DetectorParam;
+  @Nullable
+  private final ParameterSet ms2DetectorParam;
 
   private final boolean denoising = false;
   private static final double NOISE_THRESHOLD = 9E0;
@@ -277,15 +281,22 @@ public class TDFImportTask extends AbstractTask {
     loadedFrames = 0;
     // collect average spectra for each frame
     Set<SimpleFrame> frames = new LinkedHashSet<>();
+
+   final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+
     try {
       for (int i = 0; i < numFrames; i++) {
         int frameId = frameTable.getFrameIdColumn().get(i).intValue();
         setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        SimpleFrame frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId,
-            metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector,
-            ms1DetectorParam, ms2Detector, ms2DetectorParam);
+        SimpleFrame frame = // profile frame import disabled
+            !importProfile ? tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile,
+                frameId, metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable,
+                ms1Detector, ms1DetectorParam, ms2Detector, ms2DetectorParam)
+                : tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
+                    frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector,
+                    ms1DetectorParam, ms2Detector, ms2DetectorParam);
 
         if (frame.getMSLevel() == 1 && ms1Detector != null && ms1DetectorParam != null) {
           frame.addMassList(new ScanPointerMassList(frame));
