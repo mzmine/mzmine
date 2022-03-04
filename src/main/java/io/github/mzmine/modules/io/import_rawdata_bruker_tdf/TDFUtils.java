@@ -493,8 +493,7 @@ public class TDFUtils {
   }
 
   /**
-   * @return
-   * @deprecated not ready yet, yields to wrong m/z values. How does bruker distribute them?
+   * @return A pseudo profile spectrum
    */
   public SimpleFrame extractProfileScanForFrame(IMSRawDataFile newFile, final long frameId,
       @NotNull final TDFMetaDataTable metaDataTable, @NotNull final TDFFrameTable frameTable,
