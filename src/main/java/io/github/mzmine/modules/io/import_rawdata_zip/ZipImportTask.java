@@ -47,8 +47,6 @@ public class ZipImportTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  public static final String UNZIP_DIR = "mzmine_unzip";
-
   private final File fileToOpen;
   private final @NotNull MZmineProject project;
   private final RawDataFileType fileType;
