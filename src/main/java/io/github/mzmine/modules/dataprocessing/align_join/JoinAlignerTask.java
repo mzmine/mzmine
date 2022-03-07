@@ -245,7 +245,7 @@ public class JoinAlignerTask extends AbstractTask {
     }
 
     // sort by RT and reset IDs
-    FeatureListUtils.sortAndResetIDs(alignedFeatureList);
+    FeatureListUtils.sortByDefaultRT(alignedFeatureList, true);
 
     // update row bindings
     alignedFeatureList.parallelStream().filter(row -> row.getNumberOfFeatures() > 1)

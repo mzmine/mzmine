@@ -180,14 +180,28 @@ public class FeatureListUtils {
   }
 
   /**
-   * Sort feature list by retention time and reset IDs starting with 1
+   * Sort feature list by retention time (default)
    *
    * @param featureList target list
    */
-  public static void sortAndResetIDs(FeatureList featureList) {
-    // sort rows by rt and reset IDs
-    int newRowID = 1;
+  public static void sortByDefaultRT(FeatureList featureList) {
+    // sort rows by rt
     featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
+  }
+
+  /**
+   * Sort feature list by retention time and reset IDs starting with 1
+   *
+   * @param featureList target list
+   * @param renumberIDs renumber rows
+   */
+  public static void sortByDefaultRT(FeatureList featureList, boolean renumberIDs) {
+    sortByDefaultRT(featureList);
+    if (!renumberIDs) {
+      return;
+    }
+    // reset IDs
+    int newRowID = 1;
     for (var row : featureList.getRows()) {
       row.set(IDType.class, newRowID);
       newRowID++;

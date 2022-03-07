@@ -280,7 +280,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     }
 
     // sort and reset IDs here to ahve the same sorting for every feature list
-    FeatureListUtils.sortAndResetIDs(newFeatureList);
+    FeatureListUtils.sortByDefaultRT(newFeatureList, true);
 
     newFeatureList.setSelectedScans(dataFile, Arrays.asList(scans));
 
