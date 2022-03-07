@@ -290,7 +290,7 @@ public class TDFImportTask extends AbstractTask {
         setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        SimpleFrame frame = // profile frame import disabled
+        SimpleFrame frame =
             !importProfile ? tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile,
                 frameId, metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable,
                 ms1Detector, ms1DetectorParam, ms2Detector, ms2DetectorParam)
