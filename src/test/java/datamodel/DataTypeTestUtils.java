@@ -58,12 +58,7 @@ public class DataTypeTestUtils {
   public static <T> void simpleDataTypeSaveLoadTest(DataType<T> type, T value) {
 
     RawDataFile file = null;
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     // test load/save for row

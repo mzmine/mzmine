@@ -50,13 +50,12 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jfree.data.xy.XYSeries;
 
 /**
@@ -168,8 +167,11 @@ public class MassCalibrationTask extends AbstractTask {
     if (afterHook != null && isCanceled() == false) {
       afterHook.run();
     }
-    dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(MassCalibrationModule.class,
-        parameters, getModuleCallDate()));
+    if(!previewRun) {
+      dataFile.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(MassCalibrationModule.class, parameters,
+              getModuleCallDate()));
+    }
   }
 
   /**

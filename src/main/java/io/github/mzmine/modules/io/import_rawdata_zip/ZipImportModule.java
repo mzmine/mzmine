@@ -18,28 +18,19 @@
 
 package io.github.mzmine.modules.io.import_rawdata_zip;
 
-import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
-import io.github.mzmine.modules.io.deprecated_jmzml.MzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RawDataFileType;
-import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -77,18 +68,14 @@ public class ZipImportModule implements MZmineProcessingModule {
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
+    // one storage per module call
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
     File fileNames[] = parameters.getParameter(ZipImportParameters.fileNames).getValue();
 
     if (Arrays.asList(fileNames).contains(null)) {
       logger.warning("List of filenames contains null");
       return ExitCode.ERROR;
     }
-
-    // Find common prefix in raw file names if in GUI mode
-    String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
-
-    // one storage for all files imported in the same task as they are typically analyzed together
-    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
 
     for (int i = 0; i < fileNames.length; i++) {
       if (fileNames[i] == null) {
@@ -101,34 +88,9 @@ public class ZipImportModule implements MZmineProcessingModule {
         return ExitCode.ERROR;
       }
 
-      // Set the new name by removing the common prefix
-      String newName;
-      if (!Strings.isNullOrEmpty(commonPrefix)) {
-        final String regex = "^" + Pattern.quote(commonPrefix);
-        newName = fileNames[i].getName().replaceFirst(regex, "");
-      } else {
-        newName = fileNames[i].getName();
-      }
-
-      try {
-        RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
-        logger.finest("File " + fileNames[i] + " type detected as " + fileType);
-        RawDataFile newMZmineFile;
-        if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore.createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
-        } else {
-          newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
-        }
-        Task newTask = new MzMLImportTask(project, fileNames[i], newMZmineFile, moduleCallDate);
-        tasks.add(newTask);
-
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
-
+      Task newTask = new ZipImportTask(project, fileNames[i], ZipImportModule.class,
+          parameters, moduleCallDate, storage);
+      tasks.add(newTask);
     }
 
     return ExitCode.OK;
