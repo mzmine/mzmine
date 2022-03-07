@@ -66,7 +66,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   protected CCSCalibration ccsCalibration = null;
 
   public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
-      MemoryMapStorage storage) throws IOException {
+      MemoryMapStorage storage) {
     super(dataFileName, absolutePath, storage);
 
     frameNumbersCache = new Hashtable<>();
@@ -80,7 +80,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }
 
   public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
-      MemoryMapStorage storage, Color color) throws IOException {
+      MemoryMapStorage storage, Color color) {
     super(dataFileName, absolutePath, storage, color);
 
     frameNumbersCache = new Hashtable<>();

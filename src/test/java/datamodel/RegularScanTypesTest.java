@@ -82,12 +82,7 @@ public class RegularScanTypesTest {
 
   @BeforeAll
   void initialise() {
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     flist = new ModularFeatureList("flist", null, file);

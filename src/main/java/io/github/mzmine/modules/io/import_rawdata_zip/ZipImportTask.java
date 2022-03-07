@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.io.import_rawdata_zip;
 
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
@@ -28,8 +27,7 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.MemoryMapStorage;
-import io.github.mzmine.util.RawDataFileType;
-import io.github.mzmine.util.StreamCopy;
+import io.github.mzmine.util.RawDataFileTypeDetector;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,8 +38,8 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ZipImportTask extends AbstractTask {
 
@@ -49,21 +47,17 @@ public class ZipImportTask extends AbstractTask {
 
   private final File fileToOpen;
   private final @NotNull MZmineProject project;
-  private final RawDataFileType fileType;
   private final ParameterSet parameters;
   private final Class<? extends MZmineModule> module;
 
-  private File tmpDir, tmpFile;
-  private StreamCopy copy = null;
   private Task decompressedOpeningTask = null;
 
-  public ZipImportTask(@NotNull MZmineProject project, File fileToOpen, RawDataFileType fileType,
+  public ZipImportTask(@NotNull MZmineProject project, File fileToOpen,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
-    super(null, moduleCallDate); // storage in raw data file
+      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
+    super(storage, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
-    this.fileType = fileType;
     this.parameters = parameters;
     this.module = module;
   }
@@ -80,46 +74,30 @@ public class ZipImportTask extends AbstractTask {
 
     try {
 
-      // Name of the uncompressed file
-      String newName = fileToOpen.getName();
-      if (newName.toLowerCase().endsWith(".zip") || newName.toLowerCase().endsWith(".gz")) {
-        newName = FilenameUtils.removeExtension(newName);
-      }
-
       // Create decompressing stream
       FileInputStream fis = new FileInputStream(fileToOpen);
       InputStream is;
-      long decompressedSize = 0;
+
+      var fileType = RawDataFileTypeDetector.detectDataFileType(fileToOpen);
       switch (fileType) {
-        case ZIP:
+        case MZML_ZIP -> {
           ZipInputStream zis = new ZipInputStream(fis);
-          ZipEntry entry = zis.getNextEntry();
-          newName = entry.getName();
-          decompressedSize = entry.getSize();
-          if (decompressedSize < 0) {
-            decompressedSize = 0;
-          }
+          final ZipEntry nextEntry = zis.getNextEntry();
           is = zis;
-          break;
-        case GZIP:
+        }
+        case MZML_GZIP -> {
           is = new GZIPInputStream(fis);
-          // Ballpark a decompressedFile size so the GUI can show progress
-          decompressedSize = (long) (fileToOpen.length() * 1.5);
-          if (decompressedSize < 0) {
-            decompressedSize = 0;
-          }
-          break;
-        default:
+        }
+        default -> {
           setErrorMessage("Cannot decompress file type: " + fileType);
           setStatus(TaskStatus.ERROR);
           return;
+        }
       }
 
       BufferedInputStream bis = new BufferedInputStream(is);
       final MSDKmzMLImportTask msdKmzMLImportTask = new MSDKmzMLImportTask(project, fileToOpen, bis,
-          MZmineCore.createNewFile(fileToOpen.getName(), fileToOpen.getAbsolutePath(),
-              MemoryMapStorage.forRawDataFile()), null, ZipImportModule.class, parameters,
-          getModuleCallDate());
+          null, ZipImportModule.class, parameters, getModuleCallDate(), getMemoryMapStorage());
 
       if (isCanceled()) {
         return;
@@ -129,6 +107,8 @@ public class ZipImportTask extends AbstractTask {
 
       // Run the underlying task
       decompressedOpeningTask.run();
+      bis.close();
+      is.close();
 
       if (isCanceled()) {
         return;
@@ -153,7 +133,7 @@ public class ZipImportTask extends AbstractTask {
     if (decompressedOpeningTask != null) {
       return decompressedOpeningTask.getTaskDescription();
     } else {
-      return "Decompressing file " + fileToOpen;
+      return "Importing file " + fileToOpen;
     }
   }
 
@@ -162,7 +142,7 @@ public class ZipImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if(decompressedOpeningTask == null) {
+    if (decompressedOpeningTask == null) {
       return 0d;
     }
     return decompressedOpeningTask.getFinishedPercentage();
@@ -173,15 +153,6 @@ public class ZipImportTask extends AbstractTask {
     super.cancel();
     if (decompressedOpeningTask != null) {
       decompressedOpeningTask.cancel();
-    }
-    if (copy != null) {
-      copy.cancel();
-    }
-    if ((tmpFile != null) && (tmpFile.exists())) {
-      tmpFile.delete();
-    }
-    if ((tmpDir != null) && (tmpDir.exists())) {
-      tmpDir.delete();
     }
   }
 

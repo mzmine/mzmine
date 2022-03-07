@@ -141,11 +141,11 @@ public class RawDataFileTypeDetector {
         }
 
         if (fileHeader.startsWith(GZIP_HEADER)) {
-          return RawDataFileType.GZIP;
+          return RawDataFileType.MZML_GZIP;
         }
 
         if (fileHeader.startsWith(ZIP_HEADER)) {
-          return RawDataFileType.ZIP;
+          return RawDataFileType.MZML_ZIP;
         }
 
         /*

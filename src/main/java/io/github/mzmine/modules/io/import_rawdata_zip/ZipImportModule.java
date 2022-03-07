@@ -26,6 +26,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileUtils;
@@ -72,6 +73,7 @@ public class ZipImportModule implements MZmineProcessingModule {
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
+    final MemoryMapStorage storage = MemoryMapStorage.forRawDataFile();
     File fileNames[] = parameters.getParameter(ZipImportParameters.fileNames).getValue();
 
     if (Arrays.asList(fileNames).contains(null)) {
@@ -104,8 +106,8 @@ public class ZipImportModule implements MZmineProcessingModule {
 
       RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
       logger.finest("File " + fileNames[i] + " type detected as " + fileType);
-      Task newTask = new ZipImportTask(project, fileNames[i], fileType, ZipImportModule.class,
-          parameters, moduleCallDate);
+      Task newTask = new ZipImportTask(project, fileNames[i], ZipImportModule.class,
+          parameters, moduleCallDate, storage);
       tasks.add(newTask);
     }
 
