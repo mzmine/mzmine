@@ -19,8 +19,6 @@
 package io.github.mzmine.modules.io.import_rawdata_bruker_tdf.datamodel.callbacks;
 
 import com.sun.jna.Pointer;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 
 public class ProfileData implements ProfileCallback {
 
@@ -37,16 +35,7 @@ public class ProfileData implements ProfileCallback {
     this.userData = userData;
   }
 
-  public DataPoint[] toDataPoints(double lowMass, double highMass) {
-    assert highMass > lowMass;
-    double range = highMass - lowMass;
-    double step = range/num_points;
-
-    DataPoint[] dps = new DataPoint[(int) num_points];
-
-    for(int i = 0; i < num_points; i++) {
-      dps[i] = new SimpleDataPoint(lowMass + step * i, intensities[i]);
-    }
-    return dps;
+  public int[] getIntensities() {
+    return intensities;
   }
 }
