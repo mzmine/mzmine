@@ -39,9 +39,9 @@ public class AllSpectralDataImportParameters extends SimpleParameterSet {
       new ExtensionFilter("Waters RAW folders", "*.raw", "*.RAW"), //
       new ExtensionFilter("mzData MS data", "*.mzData", "*.mzdata"),
       new ExtensionFilter("aird MS data", "*.aird", "*.Aird", "*.AIRD"), //
+      new ExtensionFilter("zip", "*.zip", "*.gz"), //
       new ExtensionFilter("All files", "*.*") //
   );
-
 
   public static final List<ExtensionFilter> extensionsFolders = List.of( //
       new ExtensionFilter("Bruker tdf files", "*.d"), //

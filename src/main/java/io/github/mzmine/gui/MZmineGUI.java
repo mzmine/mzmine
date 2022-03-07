@@ -292,7 +292,7 @@ public class MZmineGUI extends Application implements Desktop {
       hasFileDropped = true;
 
       final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
-          "mzdata", "imzml", "tdf", "d", "tsf");
+          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
       final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
 
       final List<File> rawDataFiles = new ArrayList<>();
