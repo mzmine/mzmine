@@ -122,5 +122,7 @@ public interface IMSRawDataFile extends RawDataFile {
 
   void setCCSCalibration(@Nullable CCSCalibration calibration);
 
+  int addMobilityValues(double[] mobilities);
+
   DoubleImmutableList getSegmentMobilities(int segment);
 }

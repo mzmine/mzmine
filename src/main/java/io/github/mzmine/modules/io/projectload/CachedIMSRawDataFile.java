@@ -314,4 +314,9 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   public DoubleImmutableList getSegmentMobilities(int segment) {
     return originalFile.getSegmentMobilities(segment);
   }
+
+  @Override
+  public int addMobilityValues(double[] mobilities) {
+    return originalFile.addMobilityValues(mobilities);
+  }
 }
