@@ -35,9 +35,9 @@ public class RawDataFilesSelection implements Cloneable {
 
   private RawDataFilesSelectionType selectionType;
   private String namePattern;
-  private RawDataFile batchLastFiles[];
-  private RawDataFilePlaceholder specificFiles[];
-  private RawDataFilePlaceholder evaluatedSelection[] = null;
+  private RawDataFile[] batchLastFiles;
+  private RawDataFilePlaceholder[] specificFiles;
+  private RawDataFilePlaceholder[] evaluatedSelection = null;
 
   public RawDataFilesSelection() {
     this(RawDataFilesSelectionType.GUI_SELECTED_FILES);
@@ -74,21 +74,16 @@ public class RawDataFilesSelection implements Cloneable {
 
     final RawDataFile[] matchingFiles;
     switch (selectionType) {
-      case GUI_SELECTED_FILES -> {
-        matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
-      }
-      case ALL_FILES -> {
-        matchingFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      }
-      case SPECIFIC_FILES -> {
-        matchingFiles = getSpecificFiles();
-      }
+      case GUI_SELECTED_FILES -> matchingFiles = MZmineCore.getDesktop().getSelectedDataFiles();
+      case ALL_FILES -> matchingFiles = MZmineCore.getProjectManager().getCurrentProject()
+          .getDataFiles();
+      case SPECIFIC_FILES -> matchingFiles = getSpecificFiles();
       case NAME_PATTERN -> {
         if (Strings.isNullOrEmpty(namePattern)) {
           return new RawDataFile[0];
         }
-        ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
-        RawDataFile allDataFiles[] = MZmineCore.getProjectManager().getCurrentProject()
+        ArrayList<RawDataFile> matchingDataFiles = new ArrayList<>();
+        RawDataFile[] allDataFiles = MZmineCore.getProjectManager().getCurrentProject()
             .getDataFiles();
 
         fileCheck:
@@ -108,13 +103,8 @@ public class RawDataFilesSelection implements Cloneable {
         }
         matchingFiles = matchingDataFiles.toArray(new RawDataFile[0]);
       }
-      case BATCH_LAST_FILES -> {
-        if (batchLastFiles == null) {
-          matchingFiles = new RawDataFile[0];
-        } else {
-          matchingFiles = batchLastFiles;
-        }
-      }
+      case BATCH_LAST_FILES -> matchingFiles = Objects.requireNonNullElseGet(batchLastFiles,
+          () -> new RawDataFile[0]);
       default -> throw new IllegalStateException("Unexpected value: " + selectionType);
     }
 
@@ -223,7 +213,7 @@ public class RawDataFilesSelection implements Cloneable {
   public String toString() {
     if (evaluatedSelection != null) {
       StringBuilder str = new StringBuilder();
-      RawDataFile files[] = getEvaluationResult();
+      RawDataFile[] files = getEvaluationResult();
       for (int i = 0; i < files.length; i++) {
         if (i > 0) {
           str.append("\n");
