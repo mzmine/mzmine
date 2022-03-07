@@ -51,6 +51,7 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.SpectraMerging;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -71,6 +72,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(MSDKmzMLImportTask.class.getName());
   private final File file;
+  private final InputStream fis;
   // advanced processing will apply mass detection directly to the scans
   private final boolean applyMassDetection;
   private MzMLFileImportMethod msdkTask = null;
@@ -89,15 +91,16 @@ public class MSDKmzMLImportTask extends AbstractTask {
   public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
-    this(project, fileToOpen, newMZmineFile, null, module, parameters, moduleCallDate);
+    this(project, fileToOpen, null, newMZmineFile, null, module, parameters, moduleCallDate);
   }
 
-  public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
+  public MSDKmzMLImportTask(MZmineProject project, File fileToOpen, InputStream fisToOpen, RawDataFile newMZmineFile,
       AdvancedSpectraImportParameters advancedParam,
       @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
     super(newMZmineFile.getMemoryMapStorage(), moduleCallDate); // storage in raw data file
     this.file = fileToOpen;
+    this.fis = fisToOpen;
     this.project = project;
     this.newMZmineFile = newMZmineFile;
     description = "Importing raw data file: " + fileToOpen.getName();
@@ -129,7 +132,11 @@ public class MSDKmzMLImportTask extends AbstractTask {
 
     try {
 
-      msdkTask = new MzMLFileImportMethod(file);
+      if(fis != null) {
+        msdkTask = new MzMLFileImportMethod(fis);
+      } else {
+        msdkTask = new MzMLFileImportMethod(file);
+      }
       msdkTask.execute();
       io.github.msdk.datamodel.RawDataFile file = msdkTask.getResult();
 
@@ -146,7 +153,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
       } else {
         buildLCMSFile(file);
       }
-
 
     } catch (Throwable e) {
       e.printStackTrace();
@@ -218,7 +224,7 @@ public class MSDKmzMLImportTask extends AbstractTask {
       newMZmineFile.addScan(newScan);
       parsedScans++;
       description =
-          "Importing " + file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
+          "Importing " + this.file.getName() + ", parsed " + parsedScans + "/" + totalScans + " scans";
     }
   }
 
@@ -384,5 +390,4 @@ public class MSDKmzMLImportTask extends AbstractTask {
     final double parsingProgress = totalScans == 0 ? 0.0 : (double) parsedScans / totalScans;
     return (msdkProgress * 0.25) + (parsingProgress * 0.75);
   }
-
 }

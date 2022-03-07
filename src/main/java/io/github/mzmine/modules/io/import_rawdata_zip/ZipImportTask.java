@@ -19,24 +19,22 @@
 package io.github.mzmine.modules.io.import_rawdata_zip;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.io.import_rawdata_mzml.MSDKmzMLImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileType;
-import io.github.mzmine.util.RawDataFileTypeDetector;
-import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.StreamCopy;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -62,7 +60,8 @@ public class ZipImportTask extends AbstractTask {
   private Task decompressedOpeningTask = null;
 
   public ZipImportTask(@NotNull MZmineProject project, File fileToOpen, RawDataFileType fileType,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.fileToOpen = fileToOpen;
@@ -118,57 +117,24 @@ public class ZipImportTask extends AbstractTask {
           return;
       }
 
-      tmpDir = Files.createTempDirectory(UNZIP_DIR).toFile();
-      tmpFile = new File(tmpDir, newName);
-      logger.finest("Decompressing to file " + tmpFile);
-      tmpDir.deleteOnExit();
-      tmpFile.deleteOnExit();
-      FileOutputStream ous = new FileOutputStream(tmpFile);
-
-      // Decompress the contents
-      copy = new StreamCopy();
-      copy.copy(is, ous, decompressedSize);
-
-      // Close the streams
-      is.close();
-      ous.close();
+      BufferedInputStream bis = new BufferedInputStream(is);
+      final MSDKmzMLImportTask msdKmzMLImportTask = new MSDKmzMLImportTask(project, fileToOpen, bis,
+          MZmineCore.createNewFile(fileToOpen.getName(), fileToOpen.getAbsolutePath(),
+              MemoryMapStorage.forRawDataFile()), null, ZipImportModule.class, parameters,
+          getModuleCallDate());
 
       if (isCanceled()) {
         return;
       }
 
-      // Find the type of the decompressed file
-      RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(tmpFile);
-      logger.finest("File " + tmpFile + " type detected as " + fileType);
-
-      if (fileType == null) {
-        setErrorMessage("Could not determine the file type of file " + newName);
-        setStatus(TaskStatus.ERROR);
-        return;
-      }
-
-      List<Task> newTasks = new ArrayList<>();
-      RawDataFileUtils.createRawDataImportTasks(project, newTasks, module, parameters,
-          getModuleCallDate(), tmpFile);
-      // Run the import module on the decompressed file
-      if (newTasks.size() != 1) {
-        setErrorMessage("File type " + fileType + " of file " + newName + " is not supported.");
-        setStatus(TaskStatus.ERROR);
-        return;
-      }
-      decompressedOpeningTask = newTasks.get(0);
+      decompressedOpeningTask = msdKmzMLImportTask;
 
       // Run the underlying task
       decompressedOpeningTask.run();
 
-      // Delete the temporary folder
-      tmpFile.delete();
-      tmpDir.delete();
-
       if (isCanceled()) {
         return;
       }
-
     } catch (Throwable e) {
       e.printStackTrace();
       logger.log(Level.SEVERE, "Could not open file " + fileToOpen, e);
@@ -198,20 +164,10 @@ public class ZipImportTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (decompressedOpeningTask != null) {
-      return (decompressedOpeningTask.getFinishedPercentage() / 2.0) + 0.5; // Reports 50% to 100%
+    if(decompressedOpeningTask == null) {
+      return 0d;
     }
-    if (copy != null) {
-      // Reports up to 50%. In case of .gz files, the uncompressed size
-      // was only estimated, so we make sure the progress bar doesn't go
-      // over 100%
-      double copyProgress = copy.getProgress() / 2.0;
-      if (copyProgress > 0.5) {
-        copyProgress = 0.5;
-      }
-      return copyProgress;
-    }
-    return 0.0;
+    return decompressedOpeningTask.getFinishedPercentage();
   }
 
   @Override

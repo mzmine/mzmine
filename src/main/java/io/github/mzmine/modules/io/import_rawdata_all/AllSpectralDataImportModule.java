@@ -258,7 +258,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       @NotNull Instant moduleCallDate) {
     return switch (fileType) {
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam, module,
+      case MZML -> new MSDKmzMLImportTask(project, file, null, newMZmineFile, advancedParam, module,
           parameters, moduleCallDate);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam, module,
           parameters, moduleCallDate);
