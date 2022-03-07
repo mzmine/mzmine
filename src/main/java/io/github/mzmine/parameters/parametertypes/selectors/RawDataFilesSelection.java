@@ -57,11 +57,15 @@ public class RawDataFilesSelection implements Cloneable {
   public RawDataFile[] getMatchingRawDataFiles() {
 
     if (evaluatedSelection != null) {
-      /*var value = Arrays.stream(evaluatedSelection)
-          .map(placeholder -> placeholder.getMatchingFile()).filter(Objects::nonNull)
+      var value = Arrays.stream(evaluatedSelection).map(RawDataFilePlaceholder::getMatchingFile)
           .toArray(RawDataFile[]::new);
-      return value;*/
-      throw new IllegalStateException("Raw data file selection has already been evaluated.");
+      for (var raw : value) {
+        if (raw == null) {
+          throw new IllegalStateException(
+              "Data file selection points to a missing file (maybe it was removed after first evaluation).");
+        }
+      }
+      return value;
     }
 
     final RawDataFile[] matchingFiles;
