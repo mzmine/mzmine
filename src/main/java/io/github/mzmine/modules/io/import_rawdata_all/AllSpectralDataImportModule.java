@@ -220,7 +220,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
    */
   private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
       @Nullable RawDataFile newMZmineFile, Class<? extends MZmineModule> module,
-      ParameterSet parameters, @NotNull Instant moduleCallDate, MemoryMapStorage storage) {
+      ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile, module,
@@ -274,7 +275,7 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case AIRD -> new AirdImportTask(project, file, newMZmineFile, module, parameters,
           moduleCallDate);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
           fileType, project, file, newMZmineFile, advancedParam, module, parameters, moduleCallDate,
           storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
