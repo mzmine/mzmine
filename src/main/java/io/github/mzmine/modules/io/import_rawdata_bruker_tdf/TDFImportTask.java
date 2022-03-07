@@ -290,13 +290,16 @@ public class TDFImportTask extends AbstractTask {
         setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        SimpleFrame frame =
-            !importProfile ? tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile,
-                frameId, metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable,
-                ms1Detector, ms1DetectorParam, ms2Detector, ms2DetectorParam)
-                : tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
-                    frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector,
-                    ms1DetectorParam, ms2Detector, ms2DetectorParam);
+        final SimpleFrame frame;
+        if (!importProfile) {
+          frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
+              frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
+              ms2Detector, ms2DetectorParam);
+        } else {
+          frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
+              frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
+              ms2Detector, ms2DetectorParam);
+        }
 
         if (frame.getMSLevel() == 1 && ms1Detector != null && ms1DetectorParam != null) {
           frame.addMassList(new ScanPointerMassList(frame));
@@ -445,10 +448,6 @@ public class TDFImportTask extends AbstractTask {
 
       frame.setMobilityScans(spectra, detector != null);
 
-      /*if (detector != null && param != null) {
-        frame.getMobilityScans().forEach(m -> m.addMassList(new ScanPointerMassList(m)));
-      }*/
-
       if (isCanceled()) {
         return;
       }
@@ -456,30 +455,6 @@ public class TDFImportTask extends AbstractTask {
     }
 
   }
-
-  /*private void appendScansFromMaldiTimsSegment(@NotNull final IMSRawDataFile rawDataFile,
-      final long handle, final long firstFrameId, final long lastFrameId,
-      @NotNull final TDFFrameTable tdfFrameTable, @NotNull final TDFMetaDataTable tdfMetaDataTable,
-      @NotNull final TDFMaldiFrameInfoTable tdfMaldiTable) {
-
-    final long numFrames = tdfFrameTable.lastFrameId();
-
-    for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
-      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
-      setFinishedPercentage(0.9 * frameId / numFrames);
-      final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(handle, frameId, tdfFrameTable,
-          tdfMetaDataTable, tdfMaldiTable);
-
-      try {
-        for (Scan scan : scans) {
-          rawDataFile.addScan(scan);
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-        TDFUtils.close(handle);
-      }
-    }
-  }*/
 
   private File[] getDataFilesFromDir(File dir) {
 
