@@ -51,7 +51,6 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected final double[] intensities;
 
   // current data
-  protected final double[] mobilities;
   protected Frame currentFrame;
   protected MobilityScan currentMobilityScan;
   protected MassSpectrum currentSpectrum;
@@ -88,10 +87,6 @@ public class MobilityScanDataAccess implements MobilityScan {
     final int length = getMaxNumberOfDataPoints(eligibleFrames);
     mzs = new double[length];
     intensities = new double[length];
-
-    final int maxNumMobilityScans = eligibleFrames.stream()
-        .mapToInt(Frame::getNumberOfMobilityScans).max().orElse(0);
-    mobilities = new double[maxNumMobilityScans];
   }
 
   /**
@@ -115,7 +110,7 @@ public class MobilityScanDataAccess implements MobilityScan {
 
   @Override
   public double getMobility() {
-    return mobilities[currentMobilityScanIndex];
+    return currentMobilityScan.getMobility();
   }
 
   @Override
@@ -209,7 +204,6 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentFrameIndex++;
     currentFrame = eligibleFrames.get(currentFrameIndex);
     currentNumberOfMobilityScans = currentFrame.getNumberOfMobilityScans();
-    System.arraycopy(currentFrame.getMobilities(), 0, mobilities, 0, currentNumberOfMobilityScans);
     currentMobilityScanIndex = -1;
     currentMobilityScan = null;
     currentSpectrum = null;

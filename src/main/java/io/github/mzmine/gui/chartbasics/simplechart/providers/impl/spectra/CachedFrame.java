@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointUtils;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -130,9 +131,8 @@ public class CachedFrame implements Frame {
     return originalFrame.getMobilityForMobilityScanNumber(mobilityScanIndex);
   }
 
-  @Nullable
   @Override
-  public double[] getMobilities() {
+  public @Nullable DoubleImmutableList getMobilities() {
     return originalFrame.getMobilities();
   }
 

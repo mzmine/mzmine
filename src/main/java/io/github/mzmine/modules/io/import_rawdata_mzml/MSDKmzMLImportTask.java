@@ -141,7 +141,6 @@ public class MSDKmzMLImportTask extends AbstractTask {
       totalScans = file.getScans().size();
 
       if (newMZmineFile instanceof IMSRawDataFileImpl) {
-        ((IMSRawDataFileImpl) newMZmineFile).addSegment(Range.closed(1, file.getScans().size()));
         buildIonMobilityFile(file);
       } else {
         buildLCMSFile(file);

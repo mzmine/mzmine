@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -127,10 +128,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans,
       boolean useAsMassList) {
-    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().length)) {
+    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().size())) {
       throw new IllegalArgumentException(String.format(
           "Number of mobility values (%d) does not match number of mobility scans (%d).",
-          getMobilities().length, originalMobilityScans.size()));
+          getMobilities().size(), originalMobilityScans.size()));
     }
     mobilityScanStorage = new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this,
         originalMobilityScans, useAsMassList);
@@ -139,11 +140,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
     return ((IMSRawDataFileImpl) (getDataFile())).getSegmentMobilities(
-        mobilitySegment)[mobilityScanIndex];
+        mobilitySegment).getDouble(mobilityScanIndex);
   }
 
   @Override
-  public double[] getMobilities() {
+  public @Nullable DoubleImmutableList getMobilities() {
     if (mobilitySegment == -1) {
       return null;
     }

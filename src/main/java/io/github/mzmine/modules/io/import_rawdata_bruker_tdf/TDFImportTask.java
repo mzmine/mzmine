@@ -489,7 +489,6 @@ public class TDFImportTask extends AbstractTask {
   }
 
   private void identifySegments(IMSRawDataFileImpl rawDataFile) {
-    rawDataFile.addSegment(Range.closed(1, frameTable.lastFrameId()));
   }
 
   private void constructMsMsInfo(IMSRawDataFile file, FramePrecursorTable precursorTable) {

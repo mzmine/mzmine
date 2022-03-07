@@ -129,8 +129,6 @@ public class IonMobilityUtils {
 
     final double[] intensities = new double[frame.getNumberOfMobilityScans()];
     final double[] mzs = new double[frame.getNumberOfMobilityScans()];
-    final double[] mobilities = new double[frame.getNumberOfMobilityScans()];
-    System.arraycopy(frame.getMobilities(), 0, mobilities, 0, mobilities.length);
 
     final List<MobilityScan> mobilityScans = frame.getMobilityScans();
 
