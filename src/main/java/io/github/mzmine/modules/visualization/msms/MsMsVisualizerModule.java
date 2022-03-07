@@ -54,6 +54,7 @@ public class MsMsVisualizerModule implements MZmineRunnableModule {
     assert MZmineCore.getDesktop() != null;
 
     MsMsVisualizerTab newTab = new MsMsVisualizerTab(parameters);
+    MZmineCore.getDesktop().addTab(newTab);
 
     return ExitCode.OK;
   }
