@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.util.TextUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,8 +132,9 @@ public class RawDataFilesSelection implements Cloneable {
 
   public void resetSelection() {
     if (evaluatedSelection != null) {
-      logger.finest(() -> "Resetting file selection. Previously evaluated files: " + Arrays
-          .toString(evaluatedSelection));
+      logger.finest(
+          () -> "Resetting file selection. Previously evaluated files: " + Arrays.toString(
+              evaluatedSelection));
     }
     evaluatedSelection = null;
   }
@@ -151,15 +153,26 @@ public class RawDataFilesSelection implements Cloneable {
       for (RawDataFile file : MZmineCore.getProjectManager().getCurrentProject()
           .getCurrentRawDataFiles()) {
         if (file.getName().equals(specificFile.getName()) && (file.getAbsolutePath() == null
-                                                              || specificFile.getAbsolutePath()
-                                                                 == null || file.getAbsolutePath()
-                                                                  .equals(
-                                                                      specificFile.getAbsolutePath()))) {
+            || specificFile.getAbsolutePath() == null || compareAbsPath(file.getAbsolutePath(),
+            specificFile.getAbsolutePath()))) {
           c.accept(file);
           break;
         }
       }
     }).toArray(RawDataFile[]::new);
+  }
+
+  public static boolean compareAbsPath(String path1, String path2) {
+    if (path1.equals(path2)) {
+      return true;
+    }
+    // workaround for zip import task
+    final String replaced1 = path1.replaceAll(ZipImportTask.UNZIP_DIR + "[\\d]+", "");
+    final String replaced2 = path2.replaceAll(ZipImportTask.UNZIP_DIR + "[\\d]+", "");
+    if (replaced1.equals(replaced2)) {
+      return true;
+    }
+    return false;
   }
 
   public void setSpecificFiles(RawDataFile[] specificFiles) {
@@ -237,8 +250,8 @@ public class RawDataFilesSelection implements Cloneable {
     }
     RawDataFilesSelection that = (RawDataFilesSelection) o;
 
-    if (getSelectionType() != that.getSelectionType() || !Objects
-        .equals(getNamePattern(), that.getNamePattern())) {
+    if (getSelectionType() != that.getSelectionType() || !Objects.equals(getNamePattern(),
+        that.getNamePattern())) {
       return false;
     }
 

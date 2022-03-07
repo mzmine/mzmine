@@ -49,6 +49,8 @@ public class ZipImportTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  public static final String UNZIP_DIR = "mzmine_unzip";
+
   private final File fileToOpen;
   private final @NotNull MZmineProject project;
   private final RawDataFileType fileType;
@@ -116,7 +118,7 @@ public class ZipImportTask extends AbstractTask {
           return;
       }
 
-      tmpDir = Files.createTempDirectory("mzmine").toFile();
+      tmpDir = Files.createTempDirectory(UNZIP_DIR).toFile();
       tmpFile = new File(tmpDir, newName);
       logger.finest("Decompressing to file " + tmpFile);
       tmpDir.deleteOnExit();

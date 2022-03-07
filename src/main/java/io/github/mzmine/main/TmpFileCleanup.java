@@ -19,6 +19,7 @@
 package io.github.mzmine.main;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.FeatureListLoadTask;
 import io.github.mzmine.modules.io.projectload.version_3_0.RawDataFileOpenHandler_3_0;
 import io.github.mzmine.project.ProjectManager;
@@ -42,6 +43,12 @@ public class TmpFileCleanup implements Runnable {
 
   private static Unsafe theUnsafe;
   private Logger logger = Logger.getLogger(this.getClass().getName());
+  public static final String PATTERN_TEMP_RAW_FILES_FOLDER =
+      "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*";
+  public static final String PATTERN_TEMP_FLISTS_FOLDER =
+      "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*";
+  public static final String PATTERN_TEMP_UNZIP_FOLDER = "(.)*" + ZipImportTask.UNZIP_DIR + "(.)*";
+
 
   @Override
   public void run() {
@@ -55,9 +62,9 @@ public class TmpFileCleanup implements Runnable {
       File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-          if (name.matches("mzmine.*\\.tmp") || name.matches(
-              "(.)*" + RawDataFileOpenHandler_3_0.TEMP_RAW_DATA_FOLDER + "(.)*") || name.matches(
-              "(.)*" + FeatureListLoadTask.TEMP_FLIST_DATA_FOLDER + "(.)*")) {
+          if (name.matches("mzmine.*\\.tmp") || name.matches(PATTERN_TEMP_RAW_FILES_FOLDER)
+              || name.matches(PATTERN_TEMP_FLISTS_FOLDER) || name.matches(
+              PATTERN_TEMP_UNZIP_FOLDER)) {
             return true;
           }
           return false;
