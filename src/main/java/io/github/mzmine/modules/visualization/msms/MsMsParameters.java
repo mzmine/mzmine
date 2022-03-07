@@ -20,11 +20,11 @@ package io.github.mzmine.modules.visualization.msms;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
 import io.github.mzmine.parameters.parametertypes.ComboFieldValue;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.ListDoubleParameter;
-import io.github.mzmine.parameters.parametertypes.ComboFieldParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
@@ -37,7 +37,7 @@ public class MsMsParameters extends SimpleParameterSet {
 
   // Basic parameters
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
   public static final RTRangeParameter rtRange = new RTRangeParameter();
 
