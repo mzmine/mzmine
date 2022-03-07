@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 public class RawDataFilesSelection implements Cloneable {
 
-  private static Logger logger = Logger.getLogger(RawDataFilesSelection.class.getName());
+  private static final Logger logger = Logger.getLogger(RawDataFilesSelection.class.getName());
 
   private RawDataFilesSelectionType selectionType;
   private String namePattern;
@@ -65,6 +65,10 @@ public class RawDataFilesSelection implements Cloneable {
               "Data file selection points to a missing file (maybe it was removed after first evaluation).");
         }
       }
+      // Raw data file selection are only evaluated once - to keep the parameter value the same
+      // even if raw data files are removed or renamed
+      logger.fine(
+          "Using the already evaluated list of raw data files. This might be expected at this point depending on the module.");
       return value;
     }
 
@@ -141,7 +145,7 @@ public class RawDataFilesSelection implements Cloneable {
     evaluatedSelection = null;
   }
 
-  public RawDataFile[] getSpecificFiles() {
+  RawDataFile[] getSpecificFiles() {
     MZmineProject currentProject = MZmineCore.getProjectManager().getCurrentProject();
     if (currentProject == null) {
       return new RawDataFile[0];
