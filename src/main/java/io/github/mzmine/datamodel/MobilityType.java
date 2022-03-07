@@ -30,7 +30,14 @@ import io.github.mzmine.main.MZmineCore;
  */
 public enum MobilityType {
 
+  /**
+   * Undefined
+   */
   NONE("none", "none", "none"), //
+  /**
+   * Mixed types in row bindings - aligned samples from different instruments
+   */
+  MIXED("none", "none", "mixed"), //
   TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
   DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
   TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
