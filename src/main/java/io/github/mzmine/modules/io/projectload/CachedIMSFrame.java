@@ -12,7 +12,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.MobilityScanStorage;
 import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
-import java.nio.DoubleBuffer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -93,7 +92,7 @@ public class CachedIMSFrame implements Frame {
   }
 
   @Override
-  public @Nullable DoubleBuffer getMobilities() {
+  public @Nullable double[] getMobilities() {
     return originalFrame.getMobilities();
   }
 

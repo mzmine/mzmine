@@ -209,7 +209,7 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentFrameIndex++;
     currentFrame = eligibleFrames.get(currentFrameIndex);
     currentNumberOfMobilityScans = currentFrame.getNumberOfMobilityScans();
-    currentFrame.getMobilities().get(0, mobilities, 0, currentNumberOfMobilityScans);
+    System.arraycopy(currentFrame.getMobilities(), 0, mobilities, 0, currentNumberOfMobilityScans);
     currentMobilityScanIndex = -1;
     currentMobilityScan = null;
     currentSpectrum = null;

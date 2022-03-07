@@ -28,6 +28,7 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -53,6 +54,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private final Hashtable<Integer, List<Scan>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
   private final Hashtable<Integer, List<Frame>> frameMsLevelCache;
+  private final List<double[]> mobilitySegments = new ArrayList<>();
 
   /**
    * Mobility <-> sub spectrum number is the same for a segment but might change between segments!
@@ -329,5 +331,21 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   @Override
   public void setCCSCalibration(@Nullable CCSCalibration calibration) {
     ccsCalibration = calibration;
+  }
+
+  public int addMobilityValues(double[] mobilities) {
+    for (int i = 0; i < mobilitySegments.size(); i++) {
+      double[] mobilitySegment = mobilitySegments.get(i);
+      if (Arrays.equals(mobilities, mobilitySegment)) {
+        return i;
+      }
+    }
+    mobilitySegments.add(mobilities);
+    return mobilitySegments.size() - 1;
+  }
+
+  public double[] getSegmentMobilities(int segment) {
+    assert segment < mobilitySegments.size();
+    return mobilitySegments.get(segment);
   }
 }

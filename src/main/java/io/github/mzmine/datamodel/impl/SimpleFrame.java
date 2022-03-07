@@ -26,10 +26,8 @@ import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
 import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -52,7 +50,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   private Set<PasefMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
-  private DoubleBuffer mobilityBuffer;
+  private int mobilitySegment = -1;
   private MobilityScanStorage mobilityScanStorage;
 
   public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
@@ -129,10 +127,10 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans,
       boolean useAsMassList) {
-    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().capacity())) {
+    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().length)) {
       throw new IllegalArgumentException(String.format(
           "Number of mobility values (%d) does not match number of mobility scans (%d).",
-          getMobilities().capacity(), originalMobilityScans.size()));
+          getMobilities().length, originalMobilityScans.size()));
     }
     mobilityScanStorage = new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this,
         originalMobilityScans, useAsMassList);
@@ -140,12 +138,16 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return mobilityBuffer.get(mobilityScanIndex);
+    return ((IMSRawDataFileImpl) (getDataFile())).getSegmentMobilities(
+        mobilitySegment)[mobilityScanIndex];
   }
 
   @Override
-  public DoubleBuffer getMobilities() {
-    return mobilityBuffer;
+  public double[] getMobilities() {
+    if (mobilitySegment == -1) {
+      return null;
+    }
+    return ((IMSRawDataFileImpl) (getDataFile())).getSegmentMobilities(mobilitySegment);
   }
 
   @NotNull
@@ -172,17 +174,11 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return ImmutableList.copyOf(result);
   }
 
-  public DoubleBuffer setMobilities(double[] mobilities) {
-    if (mobilityScanStorage != null && (getNumberOfMobilityScans() != mobilities.length)) {
-      throw new IllegalArgumentException(String.format(
-          "Number of mobility values (%d) does not match number of mobility scans (%d).",
-          mobilities.length, getNumberOfMobilityScans()));
-    }
-    mobilityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(),
-        mobilities);
+  public int setMobilities(double[] mobilities) {
+    mobilitySegment = ((IMSRawDataFileImpl) getDataFile()).addMobilityValues(mobilities);
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
-    return mobilityBuffer;
+    return mobilitySegment;
   }
 
   public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {
