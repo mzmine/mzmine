@@ -303,6 +303,7 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     return mobilitySegments.size() - 1;
   }
 
+  @Override
   public DoubleImmutableList getSegmentMobilities(int segment) {
     assert segment < mobilitySegments.size();
     return mobilitySegments.get(segment);

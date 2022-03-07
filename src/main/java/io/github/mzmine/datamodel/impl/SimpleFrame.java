@@ -21,6 +21,7 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
@@ -139,7 +140,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return ((IMSRawDataFileImpl) (getDataFile())).getSegmentMobilities(
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(
         mobilitySegment).getDouble(mobilityScanIndex);
   }
 
@@ -148,7 +149,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
     if (mobilitySegment == -1) {
       return null;
     }
-    return ((IMSRawDataFileImpl) (getDataFile())).getSegmentMobilities(mobilitySegment);
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(mobilitySegment);
   }
 
   @NotNull
