@@ -249,8 +249,9 @@ public class FeatureFindingTest {
     for (FeatureList flist : project.getCurrentFeatureLists()) {
       assertEquals(1, flist.getNumberOfRawDataFiles());
       assertEquals(2, flist.getAppliedMethods().size());
+
       // check default sorting of rows
-      // assertTrue(MZmineTestUtil.isSorted(flist));
+      assertTrue(MZmineTestUtil.isSorted(flist));
 
       if (equalsFeatureListName(flist, sample1, chromSuffix)) {
         assertEquals(974, flist.getNumberOfRows());
@@ -261,15 +262,15 @@ public class FeatureFindingTest {
         FeatureListRow row = flist.getRow(100);
         assertEquals(flist, row.getFeatureList());
         assertEquals(101, row.getID());
-        assertTrue(row.getAverageMZ() > 259.1327);
-        assertTrue(row.getAverageRT() > 7.36);
-        assertTrue(row.getAverageRT() < 7.38);
-        assertTrue(row.getAverageHeight() > 636049);
-        assertTrue(row.getAverageArea() > 646473);
+        assertTrue(row.getAverageMZ() > 430.2075);
+        assertTrue(row.getAverageRT() > 7.26);
+        assertTrue(row.getAverageRT() < 7.27);
+        assertTrue(row.getAverageHeight() > 586139);
+        assertTrue(row.getAverageArea() > 160966);
 
         IonTimeSeries<? extends Scan> data = row.getFeatures().get(0).getFeatureData();
-        assertEquals(87, data.getNumberOfValues());
-        assertEquals(87, data.getSpectra().size());
+        assertEquals(44, data.getNumberOfValues());
+        assertEquals(44, data.getSpectra().size());
 
         filesTested++;
       } else if (equalsFeatureListName(flist, sample2, chromSuffix)) {
@@ -446,6 +447,10 @@ public class FeatureFindingTest {
     assertNotNull(processed1);
     assertNotNull(processed2);
 
+    // check default sorting of rows
+    assertTrue(MZmineTestUtil.isSorted(processed1));
+    assertTrue(MZmineTestUtil.isSorted(processed2));
+
     // methods +1
     assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
     assertEquals(lastFlistB.getAppliedMethods().size() + 1, processed2.getAppliedMethods().size());
@@ -504,6 +509,10 @@ public class FeatureFindingTest {
 
     assertNotNull(processed1);
     assertNotNull(processed2);
+
+    // check default sorting of rows
+    assertTrue(MZmineTestUtil.isSorted(processed1));
+    assertTrue(MZmineTestUtil.isSorted(processed2));
 
     // methods +1
     assertEquals(lastFlistA.getAppliedMethods().size() + 1, processed1.getAppliedMethods().size());
@@ -577,6 +586,9 @@ public class FeatureFindingTest {
     this.lastFlistA = processed1;
 
     assertNotNull(processed1);
+
+    // check default sorting of rows
+    assertTrue(MZmineTestUtil.isSorted(processed1));
 
     // 2 raw
     assertEquals(2, processed1.getRawDataFiles().size());
