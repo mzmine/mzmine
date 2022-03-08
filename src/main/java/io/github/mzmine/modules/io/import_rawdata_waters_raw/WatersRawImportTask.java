@@ -19,6 +19,7 @@
 package io.github.mzmine.modules.io.import_rawdata_waters_raw;
 
 import com.google.common.collect.Range;
+import com.sun.jna.Native;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -28,6 +29,7 @@ import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -42,7 +44,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
-import java.util.Date;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,9 +108,19 @@ public class WatersRawImportTask extends AbstractTask {
 
     // Check the OS we are running
     String osName = System.getProperty("os.name").toUpperCase();
-    String rawDumpPath =
-        System.getProperty("user.dir") + File.separator + "lib" + File.separator + "vendor_lib"
-            + File.separator + "waters" + File.separator + "WatersRawDump.exe";
+    String rawDumpPath = "";
+
+    try {
+      rawDumpPath = Native.extractFromResourcePath("/vendorlib/waters/WatersRawDump.exe",
+          MZmineCore.class.getClassLoader()).getPath();
+    } catch (IOException e) {
+      final String msg = "Error while reading waters raw library. " + e.getMessage();
+      logger.log(Level.WARNING, msg, e);
+      setErrorMessage(msg);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+
     String cmdLine[];
 
     if (osName.toUpperCase().contains("WINDOWS")) {
@@ -194,7 +206,7 @@ public class WatersRawImportTask extends AbstractTask {
       }
 
       if (line.startsWith("ERROR: ")) {
-        throw (new IOException(line.substring("ERROR: ".length())));
+        throw (new IOException(file.getAbsolutePath() + line.substring("ERROR: ".length())));
       }
 
       if (line.startsWith("NUMBER OF SCANS: ")) {
