@@ -274,8 +274,6 @@ public class TDFImportTask extends AbstractTask {
     loadedFrames = 0;
     final int numFrames = frameTable.getFrameIdColumn().size();
 
-    identifySegments((IMSRawDataFileImpl) newMZmineFile);
-
     logger.finest("Starting frame import.");
 
     loadedFrames = 0;
@@ -486,10 +484,6 @@ public class TDFImportTask extends AbstractTask {
         .findAny().orElse(null);
 
     return new File[]{tdf, tdf_bin};
-  }
-
-  private void identifySegments(IMSRawDataFileImpl rawDataFile) {
-    rawDataFile.addSegment(Range.closed(1, frameTable.lastFrameId()));
   }
 
   private void constructMsMsInfo(IMSRawDataFile file, FramePrecursorTable precursorTable) {
