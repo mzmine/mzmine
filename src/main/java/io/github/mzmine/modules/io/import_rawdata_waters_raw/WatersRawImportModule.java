@@ -82,6 +82,11 @@ public class WatersRawImportModule implements MZmineProcessingModule {
         .filter(f -> f.isDirectory() && f.getName().toLowerCase().endsWith(".raw"))
         .toArray(File[]::new);
 
+    if (fileNames.length <= 0) {
+      logger.warning("Select .raw folder or parent folder for waters import");
+      return ExitCode.ERROR;
+    }
+
     if (Arrays.asList(fileNames).contains(null)) {
       logger.warning("List of filenames contains null");
       return ExitCode.ERROR;
