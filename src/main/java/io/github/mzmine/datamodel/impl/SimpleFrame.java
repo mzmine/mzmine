@@ -177,7 +177,7 @@ public class SimpleFrame extends SimpleScan implements Frame {
   }
 
   public int setMobilities(double[] mobilities) {
-    mobilitySegment = ((IMSRawDataFileImpl) getDataFile()).addMobilityValues(mobilities);
+    mobilitySegment = ((IMSRawDataFile) getDataFile()).addMobilityValues(mobilities);
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
     return mobilitySegment;

@@ -286,21 +286,26 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   public int addMobilityValues(double[] mobilities) {
     for (int i = 0; i < mobilitySegments.size(); i++) {
       var mobilitySegment = mobilitySegments.get(i);
-      if(mobilitySegment.size() != mobilities.length) {
+      if (mobilitySegment.size() != mobilities.length) {
         continue;
       }
       boolean equals = true;
-      for(int j = 0; j < mobilitySegment.size(); j++) {
-        if(Double.compare(mobilitySegment.getDouble(j), mobilities[j]) != 0) {
+      for (int j = 0; j < mobilitySegment.size(); j++) {
+        if (Double.compare(mobilitySegment.getDouble(j), mobilities[j]) != 0) {
           equals = false;
           break;
         }
       }
-      if(equals) {
+      if (equals) {
         return i;
       }
     }
     mobilitySegments.add(new DoubleImmutableList(mobilities));
+    if (mobilitySegments.size() > 10) {
+      logger.finest(
+          () -> "Registered " + mobilitySegments.size() + " mobility segments in file " + getName()
+              + ".");
+    }
     return mobilitySegments.size() - 1;
   }
 
