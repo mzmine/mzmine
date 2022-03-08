@@ -27,7 +27,7 @@ import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.ModifiableSpectra;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.util.IonMobilityUtils;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -59,7 +59,7 @@ public interface SmoothingAlgorithm extends MZmineModule {
    */
   public default IonTimeSeries<? extends Scan> smoothFeature(
       @Nullable final MemoryMapStorage storage, @NotNull final IonTimeSeries<?> dataAccess,
-      @NotNull final ModularFeature feature, ZeroHandlingType zht) {
+      @NotNull final Feature feature, ZeroHandlingType zht) {
 
     double[] smoothedIntensities = this.smoothRt(dataAccess);
 

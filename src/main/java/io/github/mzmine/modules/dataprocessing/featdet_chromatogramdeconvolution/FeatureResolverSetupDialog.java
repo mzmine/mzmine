@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -46,6 +47,7 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.R.RSessionWrapperException;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.maths.CenterMeasure;
 import io.github.mzmine.util.maths.Weighting;
@@ -78,8 +80,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected final NumberFormat intensityFormat;
   protected final NumberFormat mobilityFormat;
   protected ComboBox<FeatureList> flistBox;
-  protected ComboBox<ModularFeature> fBox;
-  protected ComboBox<ModularFeature> fBoxBadFeature;
+  protected SortableFeatureComboBox fBox;
+  protected SortableFeatureComboBox fBoxBadFeature;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess mobilogramBinning;
   protected Resolver resolver;
@@ -105,28 +107,28 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
-    fBox = new ComboBox<>();
+    fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(FXCollections.observableArrayList(
+            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
-            fBoxBadFeature.setItems(FXCollections.observableArrayList(
+            fBoxBadFeature.getFeatureBox().setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
-            fBox.setValue(findGoodEIC(
+            fBox.getFeatureBox().setValue(findGoodEIC(
                 (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) newValue.getRows()));
-            fBoxBadFeature.setValue(findBadFeature(
+            fBoxBadFeature.getFeatureBox().setValue(findBadFeature(
                 (List<ModularFeatureListRow>) (List<? extends FeatureListRow>) newValue.getRows()));
           } else {
-            fBox.setItems(FXCollections.emptyObservableList());
-            fBoxBadFeature.setItems(FXCollections.emptyObservableList());
+            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
+            fBoxBadFeature.getFeatureBox().setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.setConverter(new StringConverter<>() {
+    fBox.getFeatureBox().setConverter(new StringConverter<>() {
       @Override
-      public String toString(ModularFeature object) {
+      public String toString(Feature object) {
         if (object == null) {
           return null;
         }
@@ -134,17 +136,17 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       }
 
       @Override
-      public ModularFeature fromString(String string) {
+      public Feature fromString(String string) {
         return null;
       }
     });
-    fBox.getSelectionModel().selectedItemProperty().addListener(
+    fBox.getFeatureBox().getSelectionModel().selectedItemProperty().addListener(
         ((observable, oldValue, newValue) -> onSelectedFeatureChanged(previewChart, newValue)));
 
-    fBoxBadFeature = new ComboBox<>();
-    fBoxBadFeature.setConverter(new StringConverter<>() {
+    fBoxBadFeature = new SortableFeatureComboBox();
+    fBoxBadFeature.getFeatureBox().setConverter(new StringConverter<>() {
       @Override
-      public String toString(ModularFeature object) {
+      public String toString(Feature object) {
         if (object == null) {
           return null;
         }
@@ -153,11 +155,11 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       }
 
       @Override
-      public ModularFeature fromString(String string) {
+      public Feature fromString(String string) {
         return null;
       }
     });
-    fBoxBadFeature.getSelectionModel().selectedItemProperty().addListener(
+    fBoxBadFeature.getFeatureBox().getSelectionModel().selectedItemProperty().addListener(
         ((observable, oldValue, newValue) -> onSelectedFeatureChanged(previewChartBadFeature,
             newValue)));
 
@@ -192,7 +194,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   }
 
   protected void onSelectedFeatureChanged(SimpleXYChart<IonTimeSeriesToXYProvider> chart,
-      ModularFeature newValue) {
+      Feature newValue) {
     if (newValue == null) {
       return;
     }
@@ -214,7 +216,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
         chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
       });
     } else if (dimension == ResolvingDimension.MOBILITY
-               && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
+        && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
       IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
       MZmineCore.runLater(() -> {
         chart.addDataset(new ColoredXYDataset(
@@ -250,9 +252,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
           for (IonTimeSeries<? extends Scan> series : resolved) {
             ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
                 rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
-                + rtFormat.format(
+                    + rtFormat.format(
                     series.getSpectra().get(series.getNumberOfValues() - 1).getRetentionTime())
-                + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
+                    + " min", new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))));
             MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
           }
         } else {
@@ -265,7 +267,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                 new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
                 mobilityFormat.format(mobilogram.getMobility(0)) + " - " + mobilityFormat.format(
                     mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
-                + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
+                    + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()));
             MZmineCore.runLater(() -> chart.addDataset(ds, shapeRenderer));
           }
         }
@@ -284,9 +286,9 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   }
 
   @Deprecated
-  protected ResolvedPeak[] resolveFeature(ModularFeature feature) {
+  protected ResolvedPeak[] resolveFeature(Feature feature) {
     FeatureResolver resolver = ((GeneralResolverParameters) parameterSet).getResolver();
-    if (fBox.getValue() == null) {
+    if (fBox.getFeatureBox().getValue() == null) {
       return null;
     }
     CenterFunction cf = new CenterFunction(CenterMeasure.MEDIAN, Weighting.logger10, 0, 4);
@@ -329,8 +331,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
 
     List<String> errors = new ArrayList<>();
     if (parameterSet.checkParameterValues(errors)) {
-      onSelectedFeatureChanged(previewChart, fBox.getValue());
-      onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getValue());
+      onSelectedFeatureChanged(previewChart, fBox.getFeatureBox().getValue());
+      onSelectedFeatureChanged(previewChartBadFeature, fBoxBadFeature.getFeatureBox().getValue());
     }
   }
 
