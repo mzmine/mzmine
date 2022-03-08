@@ -229,113 +229,119 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
       @Override
       public void run() {
         setStatus(TaskStatus.PROCESSING);
-        chart.applyWithNotifyChanges(false, true, () -> {
-          logger.finest("Updating feature resolving preview");
-          chart.removeAllDatasets();
-          if (isCanceled()) {
-            return;
-          }
-
-          ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
-          try {
-            // not all resolvers are capable of resolving rt and mobility dimension. In that case, the
-            // parameter has not been added to the parameter set.
-            dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
-          } catch (IllegalArgumentException e) {
-            // this one can go silent
-          }
-          // add preview depending on which dimension is selected.
-          if (dimension == ResolvingDimension.RETENTION_TIME) {
-            chart.addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(newValue),
-                RunOption.THIS_THREAD));
-            chart.setDomainAxisLabel(uf.format("Retention time", "min"));
-            chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
-          } else if (dimension == ResolvingDimension.MOBILITY
-              && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
-            IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
-            chart.addDataset(new ColoredXYDataset(
-                new SummedMobilogramXYProvider(data.getSummedMobilogram(),
-                    new SimpleObjectProperty<>(newValue.getRawDataFile().getColor()), ""),
-                RunOption.THIS_THREAD));
-            IMSRawDataFile file = (IMSRawDataFile) newValue.getRawDataFile();
-            chart.setDomainAxisLabel(
-                uf.format(file.getMobilityType().getAxisLabel(), file.getMobilityType().getUnit()));
-            chart.setDomainAxisNumberFormatOverride(
-                MZmineCore.getConfiguration().getMobilityFormat());
-          } else {
-            MZmineCore.getDesktop().displayErrorMessage(
-                "Cannot resolve for mobility in a dataset that has no mobility dimension.");
-            return;
-          }
-          if (isCanceled()) {
-            return;
-          }
-
-          int resolvedFeatureCounter = 0;
-          SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-
-          if (resolver == null) {
-            resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
-                (ModularFeatureList) flistBox.getValue());
-          }
-          if (resolver != null) {
-
-            if (newValue.getFeatureList() instanceof ModularFeatureList) {
-              if (dimension == ResolvingDimension.RETENTION_TIME) {
-                // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
-                final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
-                    IonTimeSeriesUtils.remapRtAxis(newValue.getFeatureData(),
-                        flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
-
-                for (IonTimeSeries<? extends Scan> series : resolved) {
-                  if (isCanceled()) {
-                    return;
-                  }
-                  ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
-                      rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
-                          + rtFormat.format(series.getSpectra().get(series.getNumberOfValues() - 1)
-                          .getRetentionTime()) + " min",
-                      new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))),
-                      RunOption.THIS_THREAD);
-                  chart.addDataset(ds, new ColoredXYShapeRenderer());
-                }
-              } else {
-                // for mobility dimension we don't need to remap RT
-                final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
-                    newValue.getFeatureData(), null);
-                for (IonTimeSeries<? extends Scan> series : resolved) {
-                  if (isCanceled()) {
-                    return;
-                  }
-                  final SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
-                  ColoredXYDataset ds = new ColoredXYDataset(
-                      new SummedMobilogramXYProvider(mobilogram,
-                          new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
-                          mobilityFormat.format(mobilogram.getMobility(0)) + " - "
-                              + mobilityFormat.format(
-                              mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
-                              + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()),
-                      RunOption.THIS_THREAD);
-                  chart.addDataset(ds, new ColoredXYShapeRenderer());
-                }
-              }
-            }
-          } else {
-            ResolvedPeak[] resolved = resolveFeature(newValue);
-            if (resolved.length == 0) {
+        try {
+          chart.applyWithNotifyChanges(false, true, () -> {
+            logger.finest("Updating feature resolving preview");
+            chart.removeAllDatasets();
+            if (isCanceled()) {
               return;
             }
-            for (ResolvedPeak rp : resolved) {
-              if (isCanceled()) {
+
+            ResolvingDimension dimension = ResolvingDimension.RETENTION_TIME;
+            try {
+              // not all resolvers are capable of resolving rt and mobility dimension. In that case, the
+              // parameter has not been added to the parameter set.
+              dimension = parameterSet.getParameter(GeneralResolverParameters.dimension).getValue();
+            } catch (IllegalArgumentException e) {
+              // this one can go silent
+            }
+            // add preview depending on which dimension is selected.
+            if (dimension == ResolvingDimension.RETENTION_TIME) {
+              chart.addDataset(new ColoredXYDataset(new IonTimeSeriesToXYProvider(newValue),
+                  RunOption.THIS_THREAD));
+              chart.setDomainAxisLabel(uf.format("Retention time", "min"));
+              chart.setDomainAxisNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
+            } else if (dimension == ResolvingDimension.MOBILITY
+                && newValue.getFeatureData() instanceof IonMobilogramTimeSeries) {
+              IonMobilogramTimeSeries data = (IonMobilogramTimeSeries) newValue.getFeatureData();
+              chart.addDataset(new ColoredXYDataset(
+                  new SummedMobilogramXYProvider(data.getSummedMobilogram(),
+                      new SimpleObjectProperty<>(newValue.getRawDataFile().getColor()), ""),
+                  RunOption.THIS_THREAD));
+              IMSRawDataFile file = (IMSRawDataFile) newValue.getRawDataFile();
+              chart.setDomainAxisLabel(uf.format(file.getMobilityType().getAxisLabel(),
+                  file.getMobilityType().getUnit()));
+              chart.setDomainAxisNumberFormatOverride(
+                  MZmineCore.getConfiguration().getMobilityFormat());
+            } else {
+              MZmineCore.getDesktop().displayErrorMessage(
+                  "Cannot resolve for mobility in a dataset that has no mobility dimension.");
+              return;
+            }
+            if (isCanceled()) {
+              return;
+            }
+
+            int resolvedFeatureCounter = 0;
+            SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
+
+            if (resolver == null) {
+              resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
+                  (ModularFeatureList) flistBox.getValue());
+            }
+            if (resolver != null) {
+
+              if (newValue.getFeatureList() instanceof ModularFeatureList) {
+                if (dimension == ResolvingDimension.RETENTION_TIME) {
+                  // we can't use FeatureDataAccess to select a specific feature, so we need to remap manually.
+                  final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
+                      IonTimeSeriesUtils.remapRtAxis(newValue.getFeatureData(),
+                          flistBox.getValue().getSeletedScans(newValue.getRawDataFile())), null);
+
+                  for (IonTimeSeries<? extends Scan> series : resolved) {
+                    if (isCanceled()) {
+                      return;
+                    }
+                    ColoredXYDataset ds = new ColoredXYDataset(new IonTimeSeriesToXYProvider(series,
+                        rtFormat.format(series.getSpectra().get(0).getRetentionTime()) + " - "
+                            + rtFormat.format(
+                            series.getSpectra().get(series.getNumberOfValues() - 1)
+                                .getRetentionTime()) + " min",
+                        new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))),
+                        RunOption.THIS_THREAD);
+                    chart.addDataset(ds, new ColoredXYShapeRenderer());
+                  }
+                } else {
+                  // for mobility dimension we don't need to remap RT
+                  final List<IonTimeSeries<? extends Scan>> resolved = resolver.resolve(
+                      newValue.getFeatureData(), null);
+                  for (IonTimeSeries<? extends Scan> series : resolved) {
+                    if (isCanceled()) {
+                      return;
+                    }
+                    final SummedIntensityMobilitySeries mobilogram = ((IonMobilogramTimeSeries) series).getSummedMobilogram();
+                    ColoredXYDataset ds = new ColoredXYDataset(
+                        new SummedMobilogramXYProvider(mobilogram,
+                            new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++)),
+                            mobilityFormat.format(mobilogram.getMobility(0)) + " - "
+                                + mobilityFormat.format(
+                                mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
+                                + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()),
+                        RunOption.THIS_THREAD);
+                    chart.addDataset(ds, new ColoredXYShapeRenderer());
+                  }
+                }
+              }
+            } else {
+              ResolvedPeak[] resolved = resolveFeature(newValue);
+              if (resolved.length == 0) {
                 return;
               }
-              ColoredXYDataset ds = new ColoredXYDataset(rp, RunOption.THIS_THREAD);
-              ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-              chart.addDataset(ds, new ColoredXYShapeRenderer());
+              for (ResolvedPeak rp : resolved) {
+                if (isCanceled()) {
+                  return;
+                }
+                ColoredXYDataset ds = new ColoredXYDataset(rp, RunOption.THIS_THREAD);
+                ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
+                chart.addDataset(ds, new ColoredXYShapeRenderer());
+              }
             }
-          }
-        });
-
+          });
+        } catch (Exception ex) {
+          logger.log(Level.FINER,
+              "Error during resolver preview update. This is no issue if the old task was stopped and a new was started.",
+              ex);
+        }
         setStatus(TaskStatus.FINISHED);
       }
     };
