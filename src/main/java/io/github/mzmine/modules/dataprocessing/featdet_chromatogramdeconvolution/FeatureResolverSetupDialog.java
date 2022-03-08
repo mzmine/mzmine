@@ -90,7 +90,6 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
   protected ComboBox<FeatureList> flistBox;
   protected ComboBox<ModularFeature> fBox;
   protected ComboBox<ModularFeature> fBoxBadFeature;
-  protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess mobilogramBinning;
   protected Resolver resolver;
   private final Map<SimpleXYChart<IonTimeSeriesToXYProvider>, AbstractTask> updateTasksMap = new HashMap<>();
@@ -301,7 +300,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                           .getRetentionTime()) + " min",
                       new SimpleObjectProperty<>(palette.get(resolvedFeatureCounter++))),
                       RunOption.THIS_THREAD);
-                  chart.addDataset(ds, shapeRenderer);
+                  chart.addDataset(ds, new ColoredXYShapeRenderer());
                 }
               } else {
                 // for mobility dimension we don't need to remap RT
@@ -320,7 +319,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
                               mobilogram.getMobility(mobilogram.getNumberOfValues() - 1)) + " "
                               + ((Frame) series.getSpectrum(0)).getMobilityType().getUnit()),
                       RunOption.THIS_THREAD);
-                  chart.addDataset(ds, shapeRenderer);
+                  chart.addDataset(ds, new ColoredXYShapeRenderer());
                 }
               }
             }
@@ -335,7 +334,7 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
               }
               ColoredXYDataset ds = new ColoredXYDataset(rp, RunOption.THIS_THREAD);
               ds.setColor(FxColorUtil.fxColorToAWT(palette.get(resolvedFeatureCounter++)));
-              chart.addDataset(ds, shapeRenderer);
+              chart.addDataset(ds, new ColoredXYShapeRenderer());
             }
           }
         });

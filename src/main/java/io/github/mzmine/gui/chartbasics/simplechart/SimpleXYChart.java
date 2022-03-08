@@ -202,10 +202,10 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     setNotifyChange(false);
     // jfreechart renderers dont check if the value actually changed and notify either way
     if (renderer.getDefaultItemLabelsVisible() != isItemLabelsVisible()) {
-      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible());
+      renderer.setDefaultItemLabelsVisible(isItemLabelsVisible(), false);
     }
     if (renderer.getDefaultSeriesVisibleInLegend() != isLegendItemsVisible()) {
-      renderer.setDefaultItemLabelsVisible(isLegendItemsVisible());
+      renderer.setDefaultSeriesVisibleInLegend(isLegendItemsVisible(), false);
     }
     plot.setDataset(nextDataSetNum, dataset);
     plot.setRenderer(nextDataSetNum, renderer);
