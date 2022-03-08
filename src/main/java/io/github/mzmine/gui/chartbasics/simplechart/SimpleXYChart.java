@@ -263,7 +263,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     if (notify && ds != null) {
       notifyDatasetChangeListeners(new DatasetChangeEvent(this, ds));
     }
-    setNotifyChange(oldNotify);
+    setNotifyChange(notify);
     if (isNotifyChange()) {
       fireChangeEvent();
     }
@@ -287,6 +287,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
    * @param datasets
    */
   public void addDatasets(Collection<? extends ColoredXYDataset> datasets) {
+    logger.finest("Add datasets");
     applyWithNotifyChanges(false, () -> {
       for (ColoredXYDataset dataset : datasets) {
         this.addDataset(dataset);
