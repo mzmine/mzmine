@@ -104,7 +104,7 @@ public class MobilityUnitType extends DataType<MobilityType> {
         if (tmpUnit != null) {
           if (unit == null) {
             unit = tmpUnit;
-          } else {
+          } else if (unit != tmpUnit) {
             return MobilityType.MIXED;
           }
         }
