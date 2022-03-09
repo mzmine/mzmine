@@ -18,24 +18,27 @@
 
 package io.github.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import io.github.mzmine.parameters.UserParameter;
+import java.util.Collection;
+import java.util.Objects;
 import javafx.scene.control.TextField;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
 
 public class StringParameter implements UserParameter<String, TextField> {
 
-  protected String name, description, value;
+  protected final boolean sensitive;
+  protected String name, description;
+  protected @NotNull String value;
   protected int inputsize = 20;
   protected boolean valueRequired = true;
-  protected final boolean sensitive;
 
   public StringParameter(String name, String description) {
-    this(name, description, null);
+    this(name, description, "");
   }
 
   public StringParameter(String name, String description, boolean isSensitive) {
-    this(name, description, null, true, isSensitive);
+    this(name, description, "", true, isSensitive);
   }
 
   public StringParameter(String name, String description, int inputsize) {
@@ -45,16 +48,16 @@ public class StringParameter implements UserParameter<String, TextField> {
     this.sensitive = false;
   }
 
-  public StringParameter(String name, String description, String defaultValue) {
+  public StringParameter(String name, String description, @NotNull String defaultValue) {
     this(name, description, defaultValue, true, false);
   }
 
-  public StringParameter(String name, String description, String defaultValue,
+  public StringParameter(String name, String description, @NotNull String defaultValue,
       boolean valueRequired) {
     this(name, description, defaultValue, valueRequired, false);
   }
 
-  public StringParameter(String name, String description, String defaultValue,
+  public StringParameter(String name, String description, @NotNull String defaultValue,
       boolean valueRequired, boolean isSensitive) {
     this.name = name;
     this.description = description;
@@ -89,6 +92,7 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public void setValue(String value) {
+    assert value != null;
     this.value = value;
   }
 
@@ -116,21 +120,20 @@ public class StringParameter implements UserParameter<String, TextField> {
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    value = xmlElement.getTextContent();
+    value = Objects.requireNonNullElse(xmlElement.getTextContent(), "");
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
     xmlElement.setTextContent(value);
   }
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if (!valueRequired)
+    if (!valueRequired) {
       return true;
-    if ((value == null) || (value.trim().length() == 0)) {
+    }
+    if (value.trim().length() == 0) {
       errorMessages.add(name + " is not set properly");
       return false;
     }

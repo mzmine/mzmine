@@ -25,7 +25,7 @@ public class FormulaParameter extends StringParameter {
   private static final String formulaPattern = "^([A-Z][a-z]?[0-9]*)+$";
 
   public FormulaParameter() {
-    super("Formula", "The chemical formula in its neutral form, e.g. C6H12O6", null);
+    super("Formula", "The chemical formula in its neutral form, e.g. C6H12O6", "");
   }
 
   @Override
@@ -33,12 +33,8 @@ public class FormulaParameter extends StringParameter {
     boolean superCheck = super.checkValue(errorMessages);
 
     String value = getValue();
-    if (value == null) {
-      return superCheck;
-    }
-    value = value.trim();
 
-    if ((value != null) && (!value.matches(formulaPattern))) {
+    if (!value.trim().matches(formulaPattern)) {
       errorMessages.add("\"" + value + "\" is not a valid chemical formula");
       return false;
     }

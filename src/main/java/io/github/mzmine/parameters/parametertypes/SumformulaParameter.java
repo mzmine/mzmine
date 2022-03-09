@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This file is part of MZmine 2.
+ * This file is part of MZmine.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes;
@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes;
 
 import io.github.msdk.MSDKRuntimeException;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -37,18 +38,18 @@ public class SumformulaParameter extends StringParameter {
   private final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
   public SumformulaParameter(String name, String description) {
-    this(name, description, null);
+    this(name, description, "");
   }
 
   public SumformulaParameter(String name, String description, int inputsize) {
     super(name, description, inputsize);
   }
 
-  public SumformulaParameter(String name, String description, String defaultValue) {
+  public SumformulaParameter(String name, String description, @NotNull String defaultValue) {
     super(name, description, defaultValue);
   }
 
-  public SumformulaParameter(String name, String description, String defaultValue,
+  public SumformulaParameter(String name, String description, @NotNull String defaultValue,
       boolean valueRequired) {
     super(name, description, defaultValue, valueRequired);
   }
@@ -59,7 +60,7 @@ public class SumformulaParameter extends StringParameter {
   }
 
   public String getNameWithoutCharge() {
-    if (value == null || value.isEmpty()) {
+    if (value.isBlank()) {
       return "";
     }
 
@@ -81,7 +82,7 @@ public class SumformulaParameter extends StringParameter {
 
 
   public int getCharge() {
-    if (value == null || value.isEmpty()) {
+    if (value.isBlank()) {
       return 0;
     }
     // cutoff first -
@@ -110,13 +111,14 @@ public class SumformulaParameter extends StringParameter {
    *
    */
   public double getMonoisotopicMass() {
-    if (value != null && !value.isEmpty()) {
-        double mz = MolecularFormulaManipulator.getMass(getFormula(), MolecularFormulaManipulator.MonoIsotopic);
-        mz -= getCharge() * ELECTRON_MASS;
-        if (value.startsWith("-")) {
-          mz = -mz;
-        }
-        return mz;
+    if (!value.isBlank()) {
+      double mz = MolecularFormulaManipulator.getMass(getFormula(),
+          MolecularFormulaManipulator.MonoIsotopic);
+      mz -= getCharge() * ELECTRON_MASS;
+      if (value.startsWith("-")) {
+        mz = -mz;
+      }
+      return mz;
     } else if (valueRequired) {
       throw new IllegalArgumentException("Could not set up formula. Invalid input.");
     }
@@ -124,7 +126,7 @@ public class SumformulaParameter extends StringParameter {
   }
 
   public IMolecularFormula getFormula() {
-    if (value != null && !value.isEmpty()) {
+    if (!value.isEmpty()) {
       try {
         String formString = this.value;
         // cutoff first - (negative mz)
@@ -160,7 +162,7 @@ public class SumformulaParameter extends StringParameter {
     if (!valueRequired) {
       return true;
     }
-    if ((value == null) || (value.trim().isEmpty())) {
+    if (value.isBlank()) {
       if (errorMessages != null) {
         errorMessages.add(name + " is not set properly");
       }
