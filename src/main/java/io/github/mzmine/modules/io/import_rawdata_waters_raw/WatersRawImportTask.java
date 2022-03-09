@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.io.import_rawdata_waters_raw;
 
 import com.google.common.collect.Range;
-import com.sun.jna.Native;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
@@ -29,7 +28,6 @@ import io.github.mzmine.datamodel.impl.DDAMsMsInfoImpl;
 import io.github.mzmine.datamodel.impl.SimpleScan;
 import io.github.mzmine.datamodel.msms.ActivationMethod;
 import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -111,9 +109,8 @@ public class WatersRawImportTask extends AbstractTask {
     String rawDumpPath = "";
 
     try {
-      rawDumpPath = Native.extractFromResourcePath("/vendorlib/waters/WatersRawDump.exe",
-          MZmineCore.class.getClassLoader()).getPath();
-    } catch (IOException e) {
+      rawDumpPath = getClass().getResource("/vendorlib/waters/WatersRawDump.exe").getFile();
+    } catch (Exception e) {
       final String msg = "Error while reading waters raw library. " + e.getMessage();
       logger.log(Level.WARNING, msg, e);
       setErrorMessage(msg);
