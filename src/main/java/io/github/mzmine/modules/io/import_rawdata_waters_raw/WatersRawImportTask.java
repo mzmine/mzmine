@@ -34,6 +34,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.TextUtils;
+import io.github.mzmine.util.ZipUtils;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -41,11 +42,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipInputStream;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -54,18 +58,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WatersRawImportTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  public static final Logger logger = Logger.getLogger(WatersRawImportTask.class.getName());
+  private final ParameterSet parameters;
+  private final Class<? extends MZmineModule> module;
   private File file;
   private MZmineProject project;
   private RawDataFile newMZmineFile;
-  private final ParameterSet parameters;
-  private final Class<? extends MZmineModule> module;
-
   private Process dumper = null;
-
   private int totalScans = 0, parsedScans = 0;
-
   /*
    * These variables are used during parsing of the RAW dump.
    */
@@ -78,13 +78,58 @@ public class WatersRawImportTask extends AbstractTask {
   private double precursorMZ = 0;
 
   public WatersRawImportTask(MZmineProject project, File fileToOpen, RawDataFile newMZmineFile,
-      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters, @NotNull Instant moduleCallDate) {
+      @NotNull final Class<? extends MZmineModule> module, @NotNull final ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // storage in raw data file
     this.project = project;
     this.file = fileToOpen;
     this.newMZmineFile = newMZmineFile;
     this.parameters = parameters;
     this.module = module;
+  }
+
+  public static File unzipWatersParser() throws IOException {
+    final String tmpPath = System.getProperty("java.io.tmpdir");
+    File watersRawFileParserFolder = new File(tmpPath, "mzmine_waters_raw_parser");
+    final File watersRawFileParserExe = new File(watersRawFileParserFolder, "WatersRawDump.exe");
+
+    // Check if it has already been unzipped
+    if (watersRawFileParserFolder.exists() && watersRawFileParserFolder.isDirectory()
+        && watersRawFileParserFolder.canRead() && watersRawFileParserExe.exists()
+        && watersRawFileParserExe.isFile() && watersRawFileParserExe.canExecute()) {
+      logger.finest("Waters RawFileParser found in folder " + watersRawFileParserFolder);
+      return watersRawFileParserFolder;
+    }
+    synchronized (WatersRawImportTask.class) {
+      // double checked
+      if (watersRawFileParserFolder.exists() && watersRawFileParserFolder.isDirectory()
+          && watersRawFileParserFolder.canRead() && watersRawFileParserExe.exists()
+          && watersRawFileParserExe.isFile() && watersRawFileParserExe.canExecute()) {
+        logger.finest("Waters RawFileParser found in folder " + watersRawFileParserFolder);
+        return watersRawFileParserFolder;
+      }
+
+      // In case the folder already exists, unzip to a different folder
+      if (watersRawFileParserFolder.exists()) {
+        logger.finest("Folder " + watersRawFileParserFolder + " exists, creating a new one");
+        watersRawFileParserFolder = Files.createTempDirectory("mzmine_waters_raw_parser").toFile();
+      }
+
+      logger.finest("Unpacking Waters RawFileParser to folder " + watersRawFileParserFolder);
+      InputStream zipStream = WatersRawImportTask.class.getResourceAsStream(
+          "/vendorlib/waters/waters.zip");
+      if (zipStream == null) {
+        throw new IOException("Failed to open the resource /vendorlib/waters/waters.zip");
+      }
+      ZipInputStream zipInputStream = new ZipInputStream(zipStream);
+      ZipUtils.unzipStream(zipInputStream, watersRawFileParserFolder);
+      zipInputStream.close();
+
+      // Delete the temporary folder on application exit
+      FileUtils.forceDeleteOnExit(watersRawFileParserFolder);
+
+      return watersRawFileParserFolder;
+    }
   }
 
   /**
@@ -95,9 +140,6 @@ public class WatersRawImportTask extends AbstractTask {
     return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
   }
 
-  /**
-   * @see java.lang.Runnable#run()
-   */
   @Override
   public void run() {
 
@@ -109,8 +151,9 @@ public class WatersRawImportTask extends AbstractTask {
     String rawDumpPath = "";
 
     try {
-      rawDumpPath = getClass().getResource("/vendorlib/waters/WatersRawDump.exe").getFile();
-    } catch (Exception e) {
+      final File folder = unzipWatersParser();
+      rawDumpPath = new File(folder, "WatersRawDump.exe").getPath();
+    } catch (IOException e) {
       final String msg = "Error while reading waters raw library. " + e.getMessage();
       logger.log(Level.WARNING, msg, e);
       setErrorMessage(msg);
@@ -121,9 +164,9 @@ public class WatersRawImportTask extends AbstractTask {
     String cmdLine[];
 
     if (osName.toUpperCase().contains("WINDOWS")) {
-      cmdLine = new String[]{rawDumpPath, file.getPath()};
+      cmdLine = new String[]{rawDumpPath, this.file.getPath()};
     } else {
-      cmdLine = new String[]{"wine", rawDumpPath, file.getPath()};
+      cmdLine = new String[]{"wine", rawDumpPath, this.file.getPath()};
     }
 
     try {
@@ -156,7 +199,8 @@ public class WatersRawImportTask extends AbstractTask {
                 + totalScans + ")"));
       }
 
-      newMZmineFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
+      newMZmineFile.getAppliedMethods()
+          .add(new SimpleFeatureListAppliedMethod(module, parameters, getModuleCallDate()));
       project.addFile(newMZmineFile);
 
     } catch (Throwable e) {
@@ -175,7 +219,7 @@ public class WatersRawImportTask extends AbstractTask {
       return;
     }
 
-    logger.info("Finished parsing " + file + ", parsed " + parsedScans + " scans");
+    logger.info("Finished parsing " + this.file + ", parsed " + parsedScans + " scans");
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -289,8 +333,8 @@ public class WatersRawImportTask extends AbstractTask {
         // VALUES
         if (numOfDataPoints != Integer.parseInt(m.group(1))) {
           throw new IOException(
-              "Scan " + scanNumber + " contained " + numOfDataPoints + " mass values, but " + m
-                  .group(1) + " intensity values");
+              "Scan " + scanNumber + " contained " + numOfDataPoints + " mass values, but "
+                  + m.group(1) + " intensity values");
         }
         final int byteSize = Integer.parseInt(m.group(2));
 
@@ -330,9 +374,8 @@ public class WatersRawImportTask extends AbstractTask {
             msLevel != 1 && precursorMZ != 0d ? new DDAMsMsInfoImpl(precursorMZ, precursorCharge,
                 null, null, null, msLevel, ActivationMethod.UNKNOWN, null) : null;
 
-        SimpleScan newScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime,
-            info, mzValues, intensityValues, spectrumType, polarity, scanId,
-            mzRange);
+        SimpleScan newScan = new SimpleScan(newMZmineFile, scanNumber, msLevel, retentionTime, info,
+            mzValues, intensityValues, spectrumType, polarity, scanId, mzRange);
         newMZmineFile.addScan(newScan);
 
         parsedScans++;
@@ -363,5 +406,4 @@ public class WatersRawImportTask extends AbstractTask {
       dumper.destroy();
     }
   }
-
 }
