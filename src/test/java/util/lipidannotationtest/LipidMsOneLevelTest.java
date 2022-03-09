@@ -16,7 +16,7 @@
  * USA
  */
 
-package lipidannotationtest;
+package util.lipidannotationtest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.text.DecimalFormat;

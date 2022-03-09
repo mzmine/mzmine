@@ -157,27 +157,25 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      double lower = Double.parseDouble(matcher.group(1));
-      double upper = Double.parseDouble(matcher.group(3));
-      return Range.closed(lower, upper);
+    if (str.isEmpty()) {
+      return null;
     }
-    return null;
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    if(vals.length != 2) {
+      throw new IllegalStateException("Error while parsing double range from string " + str);
+    }
+    return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      float lower = Float.parseFloat(matcher.group(1));
-      float upper = Float.parseFloat(matcher.group(3));
-      return Range.closed(lower, upper);
+    if (str.isEmpty()) {
+      return null;
     }
-    return null;
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    if(vals.length != 2) {
+      throw new IllegalStateException("Error while parsing float range from string " + str);
+    }
+    return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
   }
 
   public static Range<Integer> parseIntegerRange(String str) {
@@ -332,7 +330,7 @@ public class ParsingUtils {
       throws XMLStreamException {
     while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
         .equals(startElement))) {
-      if(reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
+      if (reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
         return false;
       }
       reader.next();
