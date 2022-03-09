@@ -157,22 +157,26 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
+    if (str.isEmpty()) {
+      return null;
+    }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
-    assert vals.length == 2;
     try {
       return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
-    } catch (NumberFormatException e) {
+    } catch (IndexOutOfBoundsException | NumberFormatException e) {
       logger.log(Level.WARNING, "Error parsing double range from string " + str, e);
       return null;
     }
   }
 
   public static Range<Float> stringToFloatRange(String str) {
+    if (str.isEmpty()) {
+      return null;
+    }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
-    assert vals.length == 2;
     try {
       return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
-    } catch (NumberFormatException e) {
+    } catch (IndexOutOfBoundsException | NumberFormatException e) {
       logger.log(Level.WARNING, "Error parsing float range from string " + str, e);
       return null;
     }
@@ -330,7 +334,7 @@ public class ParsingUtils {
       throws XMLStreamException {
     while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName()
         .equals(startElement))) {
-      if(reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
+      if (reader.isEndElement() && reader.getLocalName().equals(breakpointEndElement)) {
         return false;
       }
       reader.next();

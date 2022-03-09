@@ -35,5 +35,8 @@ public class ParsingUtilTest {
 
     Assertions.assertEquals(range1, ParsingUtils.stringToFloatRange(string1));
     Assertions.assertEquals(range2, ParsingUtils.stringToFloatRange(string2));
+
+    Assertions.assertEquals(null,
+        ParsingUtils.stringToDoubleRange(":"));
   }
 }
