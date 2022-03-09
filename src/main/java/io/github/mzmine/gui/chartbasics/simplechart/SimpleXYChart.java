@@ -287,7 +287,6 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
    * @param datasets
    */
   public void addDatasets(Collection<? extends ColoredXYDataset> datasets) {
-    logger.finest("Add datasets");
     applyWithNotifyChanges(false, () -> {
       for (ColoredXYDataset dataset : datasets) {
         this.addDataset(dataset);
