@@ -92,7 +92,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public String getToolTipText(int itemIndex) {
-    MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex);
+    MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex / binWidth);
     if (scan == null || scan.getBasePeakMz() == null || scan.getBasePeakIntensity() == null) {
       return null;
     }
@@ -131,7 +131,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
     mobilites = new double[numScans / binWidth];
     intensities = new double[numScans / binWidth];
     for (int i = 0; i < numScans; i++) {
-      final int index = Math.min(i / binWidth, numScans / binWidth - 1);
+      final int index = i / binWidth;
       mobilites[index] += scans.get(i).getMobility() / binWidth;
       intensities[index] += scans.get(i).getTIC();
       finishedPercentage = (double) i / numScans;

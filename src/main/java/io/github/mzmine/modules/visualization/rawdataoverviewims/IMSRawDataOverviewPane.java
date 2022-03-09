@@ -335,7 +335,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mobilogramChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getValueIndex() != -1) {
         selectedMobilityScan.set(
-            cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex()));
+            cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex() * binWidth));
       }
     }));
     singleSpectrumChart.cursorPositionProperty().addListener(
