@@ -267,6 +267,7 @@ public class SimpleXYChart<T extends PlotXYDataProvider> extends EChartViewer im
     if (isNotifyChange()) {
       fireChangeEvent();
     }
+    setNotifyChange(oldNotify);
     return ds;
   }
 
