@@ -558,6 +558,10 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       return;
     }
     getChart().setNotify(notifyChange);
+//    final Plot plot = getChart().getPlot();
+//    if(plot!=null) {
+//      plot.setNotify(notifyChange);
+//    }
   }
 
   /**
