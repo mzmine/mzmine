@@ -161,12 +161,10 @@ public class ParsingUtils {
       return null;
     }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
-    try {
-      return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
-    } catch (IndexOutOfBoundsException | NumberFormatException e) {
-      logger.log(Level.WARNING, "Error parsing double range from string " + str, e);
-      return null;
+    if(vals.length != 2) {
+      throw new IllegalStateException("Error while parsing double range from string " + str);
     }
+    return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
   }
 
   public static Range<Float> stringToFloatRange(String str) {
@@ -174,12 +172,10 @@ public class ParsingUtils {
       return null;
     }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
-    try {
-      return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
-    } catch (IndexOutOfBoundsException | NumberFormatException e) {
-      logger.log(Level.WARNING, "Error parsing float range from string " + str, e);
-      return null;
+    if(vals.length != 2) {
+      throw new IllegalStateException("Error while parsing float range from string " + str);
     }
+    return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
   }
 
   public static Range<Integer> parseIntegerRange(String str) {
