@@ -37,9 +37,11 @@ import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -66,10 +68,13 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
   private ModularFeatureList newPeakList;
   private final Decomposition decomposition;
 
+  private final RawDataFile dataFile;
+  private final String suffix;
+
   // User parameters
   private final ParameterSet parameters;
 
-  ADAP3DecompositionV2Task(final MZmineProject project, final ChromatogramPeakPair lists,
+  ADAP3DecompositionV2Task(final MZmineProject project, final ChromatogramPeakPair lists, RawDataFile dataFile,
       final ParameterSet parameterSet, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
     super(storage, moduleCallDate);
     // Initialize.
@@ -78,6 +83,8 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     originalLists = lists;
     newPeakList = null;
     decomposition = new Decomposition();
+    this.dataFile = dataFile;
+    this.suffix = parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue();
   }
 
   @Override
@@ -107,6 +114,10 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
       } else {
 
         try {
+
+          newPeakList = new ModularFeatureList(dataFile + " " + suffix, getMemoryMapStorage(),
+                  dataFile);
+          DataTypeUtils.addDefaultChromatographicTypeColumns(newPeakList);
 
           newPeakList = decomposePeaks(originalLists);
 
@@ -206,7 +217,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
           new SimpleIsotopePattern(dataPoints.toArray(new DataPoint[dataPoints.size()]), -1,
               IsotopePattern.IsotopePatternStatus.PREDICTED, "Spectrum"));
 
-      ModularFeatureListRow row = new ModularFeatureListRow((ModularFeatureList) resolvedPeakList,
+      ModularFeatureListRow row = new ModularFeatureListRow(newPeakList,  // (ModularFeatureList) resolvedPeakList
           ++rowID);
 
       row.addFeature(dataFile, refPeak);
