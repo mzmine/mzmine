@@ -157,27 +157,25 @@ public class ParsingUtils {
   }
 
   public static Range<Double> stringToDoubleRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      double lower = Double.parseDouble(matcher.group(1));
-      double upper = Double.parseDouble(matcher.group(3));
-      return Range.closed(lower, upper);
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    assert vals.length == 2;
+    try {
+      return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
+    } catch (NumberFormatException e) {
+      logger.log(Level.WARNING, "Error parsing double range from string " + str, e);
+      return null;
     }
-    return null;
   }
 
   public static Range<Float> stringToFloatRange(String str) {
-    Pattern regex = Pattern.compile(
-        "\\[([+-]?([0-9]*[.])?[0-9]+)" + SEPARATOR + "([+-]?([0-9]*[.])?[0-9]+)\\]");
-    Matcher matcher = regex.matcher(str);
-    if (matcher.matches()) {
-      float lower = Float.parseFloat(matcher.group(1));
-      float upper = Float.parseFloat(matcher.group(3));
-      return Range.closed(lower, upper);
+    String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
+    assert vals.length == 2;
+    try {
+      return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
+    } catch (NumberFormatException e) {
+      logger.log(Level.WARNING, "Error parsing float range from string " + str, e);
+      return null;
     }
-    return null;
   }
 
   public static Range<Integer> parseIntegerRange(String str) {

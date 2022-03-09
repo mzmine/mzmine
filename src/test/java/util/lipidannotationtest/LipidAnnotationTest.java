@@ -16,7 +16,7 @@
  * USA
  */
 
-package lipidannotationtest;
+package util.lipidannotationtest;
 
 import java.util.HashSet;
 import java.util.Set;
