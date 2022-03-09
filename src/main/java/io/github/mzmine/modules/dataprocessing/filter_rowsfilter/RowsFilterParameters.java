@@ -94,11 +94,12 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<StringParameter> IDENTITY_TEXT = new OptionalParameter<>(
       new StringParameter("Text in identity",
-          "Only rows that contain this text in their feature identity field will be retained."));
+          "Only rows that contain this text in their feature identity field will be retained.",
+          ""));
 
   public static final OptionalParameter<StringParameter> COMMENT_TEXT = new OptionalParameter<>(
       new StringParameter("Text in comment",
-          "Only rows that contain this text in their comment field will be retained."));
+          "Only rows that contain this text in their comment field will be retained.", ""));
 
   public static final ComboParameter<RowsFilterChoices> REMOVE_ROW = new ComboParameter<>(
       "Keep or remove rows", "If selected, rows will be removed based on criteria instead of kept",
