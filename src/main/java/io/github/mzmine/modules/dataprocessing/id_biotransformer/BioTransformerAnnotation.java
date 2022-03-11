@@ -50,8 +50,11 @@ public interface BioTransformerAnnotation extends CompoundDBAnnotation {
     final double mz = ionType.getMZ(MolecularFormulaManipulator.getMass(neutralFormula,
         MolecularFormulaManipulator.MonoIsotopic));
 
+    final String strLogP = lineValues[ALOGP_INDEX];
+    final Float alogP = strLogP != null && !strLogP.isEmpty() ? Float.valueOf(strLogP) : null;
+
     return new BioTransformerAnnotationImpl(MolecularFormulaManipulator.getString(neutralFormula),
         mz, ionType, smiles, lineValues[INCHI_INDEX], lineValues[REACTION_INDEX],
-        lineValues[ENZYME_INDEX], Float.valueOf(lineValues[ALOGP_INDEX]));
+        lineValues[ENZYME_INDEX], alogP);
   }
 }
