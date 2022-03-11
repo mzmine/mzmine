@@ -62,6 +62,8 @@ public interface FeatureList {
 
   void addRowBinding(@NotNull List<RowBinding> bindings);
 
+  void removeRowAndFeatureType(@NotNull DataType... types);
+
   void addFeatureTypeListener(DataType featureType, DataTypeValueChangeListener listener);
 
   void addRowTypeListener(DataType rowType, DataTypeValueChangeListener listener);

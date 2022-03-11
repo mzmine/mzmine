@@ -26,7 +26,6 @@ import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ADAPChromatogramBuilderParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
-import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -73,8 +72,8 @@ public class ImageBuilderModule implements MZmineProcessingModule {
       if (!(file instanceof ImagingRawDataFile)) {
         continue;
       }
-      Task task = new ModularADAPChromatogramBuilderTask(project, file, parametersFromImageBuilder,
-          storage, moduleCallDate);
+      Task task = new ImageBuilderTask(project, file, parametersFromImageBuilder, storage,
+          moduleCallDate);
       tasks.add(task);
     }
 

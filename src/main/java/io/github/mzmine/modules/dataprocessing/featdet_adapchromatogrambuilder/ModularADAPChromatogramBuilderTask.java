@@ -64,7 +64,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       ModularADAPChromatogramBuilderTask.class.getName());
 
   private final MZmineProject project;
-  private final RawDataFile dataFile;
+  protected final RawDataFile dataFile;
   private final ScanSelection scanSelection;
   // User parameters
   private final String suffix;
@@ -289,13 +289,19 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     newFeatureList.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(ModularADAPChromatogramBuilderModule.class, parameters,
             getModuleCallDate()));
-    project.addFeatureList(newFeatureList);
+
+    // add to project an enable ImageBuilder to change the feature list be
+    addToProject(newFeatureList);
 
     progress = 1.0;
 
     setStatus(TaskStatus.FINISHED);
 
     logger.info(() -> "Finished chromatogram builder on " + dataFile);
+  }
+
+  protected void addToProject(ModularFeatureList newFeatureList) {
+    project.addFeatureList(newFeatureList);
   }
 
   /**

@@ -70,8 +70,8 @@ repositories {
     maven { url = "https://www.xypron.de/repository/" }
     // For cpdetector
     maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
-    // For jimzml
-    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
+    // For jimzml use fixed commit via jitpack
+//    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
 
 ext {
@@ -186,7 +186,8 @@ dependencies {
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
-    implementation "com.alanmrace:jimzmlparser:1.0.5"
+    implementation "com.github.AlanRace:jimzMLParser:efd9bafca2"
+//    implementation "com.alanmrace:jimzmlparser:1.0.5"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
     implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"

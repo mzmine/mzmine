@@ -20,7 +20,9 @@ package io.github.mzmine.datamodel.featuredata;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.ImagingRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -254,29 +256,37 @@ public class FeatureDataUtils {
   public static void recalculateIonSeriesDependingTypes(@NotNull final ModularFeature feature,
       @NotNull final CenterFunction mzCenterFunction, boolean calcQuality) {
     final IonTimeSeries<? extends Scan> featureData = feature.getFeatureData();
-    if (featureData == null) {
+    final RawDataFile raw = feature.getRawDataFile();
+    if (featureData == null || raw == null) {
       return;
     }
+
     final Range<Float> intensityRange = FeatureDataUtils.getIntensityRange(featureData);
     final Range<Double> mzRange = FeatureDataUtils.getMzRange(featureData);
-    final Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
     final Scan mostIntenseSpectrum = FeatureDataUtils.getMostIntenseScan(featureData);
     final float area = FeatureDataUtils.calculateArea(featureData);
 
     feature.set(AreaType.class, area);
     feature.set(MZRangeType.class, mzRange);
-    feature.set(RTRangeType.class, rtRange);
     feature.set(IntensityRangeType.class, intensityRange);
     feature.setRepresentativeScan(mostIntenseSpectrum);
     feature.setHeight(intensityRange != null ? intensityRange.upperEndpoint() : 0f);
-    feature.setRT(mostIntenseSpectrum != null ? mostIntenseSpectrum.getRetentionTime() : Float.NaN);
     feature.setMZ(calculateMz(featureData, mzCenterFunction));
+
+    // retention time not for imaging datasets
+    if (!(raw instanceof ImagingRawDataFile)) {
+      final Range<Float> rtRange = FeatureDataUtils.getRtRange(featureData);
+      feature.set(RTRangeType.class, rtRange);
+      if (mostIntenseSpectrum != null) {
+        feature.setRT(mostIntenseSpectrum.getRetentionTime());
+      }
+    }
 
     if (featureData instanceof IonMobilogramTimeSeries imts) {
       final SummedIntensityMobilitySeries summedMobilogram = imts.getSummedMobilogram();
       feature.setMobilityRange(getMobilityRange(summedMobilogram));
       feature.setMobility(calculateMobility(summedMobilogram));
-      feature.setMobilityUnit(((IMSRawDataFile) feature.getRawDataFile()).getMobilityType());
+      feature.setMobilityUnit(((IMSRawDataFile) raw).getMobilityType());
     }
 
     if (calcQuality) {

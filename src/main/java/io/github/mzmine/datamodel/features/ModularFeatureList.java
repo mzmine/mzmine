@@ -213,6 +213,22 @@ public class ModularFeatureList implements FeatureList {
     }
   }
 
+
+  /**
+   * Remove all row and feature types and their bindings
+   *
+   * @param types
+   */
+  @Override
+  public void removeRowAndFeatureType(@NotNull DataType... types) {
+    for (DataType type : types) {
+      rowTypes.remove(type);
+      rowTypeListeners.remove(type);
+      featureTypes.remove(type);
+      featureTypeListeners.remove(type);
+    }
+  }
+
   /**
    * Add a listener for a feature DataType
    *
@@ -331,8 +347,6 @@ public class ModularFeatureList implements FeatureList {
   public void addRowType(Collection<DataType> types) {
     for (DataType<?> type : types) {
       if (!rowTypes.containsKey(type.getClass())) {
-        // add row type - all rows will automatically generate a default property for this type in
-        // their data map
         rowTypes.put(type.getClass(), type);
       }
     }
