@@ -20,7 +20,11 @@ package io.github.mzmine.modules.dataprocessing.featdet_imagebuilder;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.FeatureShapeType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
 import io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.MemoryMapStorage;
@@ -45,7 +49,10 @@ public class ImageBuilderTask extends ModularADAPChromatogramBuilderTask {
 
   @Override
   protected void addToProject(ModularFeatureList newFeatureList) {
-    newFeatureList.remove
+    newFeatureList.removeRowAndFeatureType(DataTypes.get(RTType.class));
+    for (FeatureListRow row : newFeatureList.getRows()) {
+      row.set(FeatureShapeType.class, false);
+    }
 
     super.addToProject(newFeatureList);
   }
