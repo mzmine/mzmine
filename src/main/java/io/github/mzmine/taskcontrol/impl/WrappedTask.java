@@ -18,8 +18,11 @@
 
 package io.github.mzmine.taskcontrol.impl;
 
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -28,7 +31,7 @@ import javafx.beans.property.StringProperty;
  */
 public class WrappedTask {
 
-  private StringProperty name = new SimpleStringProperty("Gagaga");
+  private StringProperty name = new SimpleStringProperty("");
 
   public final String getName() {
     return name.get();
@@ -43,36 +46,36 @@ public class WrappedTask {
   }
 
   private Task task;
-  private TaskPriority priority;
+  private Property<TaskPriority> priority;
   private WorkerThread assignedTo;
 
   public WrappedTask(Task task, TaskPriority priority) {
     this.task = task;
-    this.priority = priority;
+    this.priority = new SimpleObjectProperty<>(priority);
   }
 
   /**
    * @return Returns the priority.
    */
   TaskPriority getPriority() {
-    return priority;
+    return priority.getValue();
   }
 
   /**
    * @param priority The priority to set.
    */
   void setPriority(TaskPriority priority) {
-    this.priority = priority;
+    MZmineCore.runLater(() -> this.priority.setValue(priority));
     if (assignedTo != null) {
       switch (priority) {
-        case HIGH:
-          assignedTo.setPriority(Thread.MAX_PRIORITY);
-          break;
-        case NORMAL:
-          assignedTo.setPriority(Thread.NORM_PRIORITY);
-          break;
+        case HIGH -> assignedTo.setPriority(Thread.MAX_PRIORITY);
+        case NORMAL -> assignedTo.setPriority(Thread.NORM_PRIORITY);
       }
     }
+  }
+
+  public Property<TaskPriority> priorityProperty() {
+    return priority;
   }
 
   /**

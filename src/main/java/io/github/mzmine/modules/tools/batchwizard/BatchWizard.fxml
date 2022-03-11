@@ -36,7 +36,8 @@
 <?import javafx.scene.layout.VBox?>
 <ScrollPane xmlns="http://javafx.com/javafx/11.0.2"
   xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController">
+  fx:controller="io.github.mzmine.modules.tools.batchwizard.BatchWizardController"
+  fitToHeight="true" fitToWidth="true">
   <BorderPane>
     <center>
       <SplitPane dividerPositions="0.5" BorderPane.alignment="CENTER">

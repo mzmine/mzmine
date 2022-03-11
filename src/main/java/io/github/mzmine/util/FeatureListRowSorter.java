@@ -25,10 +25,13 @@ import java.util.Comparator;
 
 /**
  * Compare feature list rows either by ID, average m/z or median area of peaks
- * 
  */
 public class FeatureListRowSorter implements Comparator<FeatureListRow> {
-  public static final FeatureListRowSorter DEFAULT = new FeatureListRowSorter(SortingProperty.RT, SortingDirection.Ascending);
+
+  public static final FeatureListRowSorter DEFAULT_RT = new FeatureListRowSorter(SortingProperty.RT,
+      SortingDirection.Ascending);
+  public static final FeatureListRowSorter DEFAULT_ID = new FeatureListRowSorter(SortingProperty.ID,
+      SortingDirection.Ascending);
 
   private SortingProperty property;
   private SortingDirection direction;

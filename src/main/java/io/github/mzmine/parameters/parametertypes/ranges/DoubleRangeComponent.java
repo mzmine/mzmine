@@ -31,13 +31,13 @@ import javafx.util.converter.NumberStringConverter;
 
 public class DoubleRangeComponent extends HBox {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final TextField minTxtField, maxTxtField;
-  private final Label minusLabel;
+  protected final TextField minTxtField, maxTxtField;
+  protected final Label minusLabel;
 
-  private NumberFormat format;
-  private NumberStringConverter formatConverter;
+  protected NumberFormat format;
+  protected NumberStringConverter formatConverter;
 
   public DoubleRangeComponent(NumberFormat format) {
 

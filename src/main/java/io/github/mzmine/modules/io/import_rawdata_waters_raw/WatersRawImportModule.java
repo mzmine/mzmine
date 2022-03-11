@@ -29,11 +29,13 @@ import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RawDataFileUtils;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -44,8 +46,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WatersRawImportModule implements MZmineProcessingModule {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  private static final Logger logger = Logger.getLogger(WatersRawImportModule.class.getName());
   private static final String MODULE_NAME = "Waters RAW file import";
   private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
 
@@ -74,7 +76,16 @@ public class WatersRawImportModule implements MZmineProcessingModule {
   public ExitCode runModule(final @NotNull MZmineProject project, @NotNull ParameterSet parameters,
       @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
-    File fileNames[] = parameters.getParameter(WatersRawImportParameters.fileNames).getValue();
+    File dir = parameters.getParameter(WatersRawImportParameters.fileNames).getValue()[0];
+    File fileNames[] = Arrays.stream(FileAndPathUtil.getSubDirectories(dir))
+        .filter(Objects::nonNull)
+        .filter(f -> f.isDirectory() && f.getName().toLowerCase().endsWith(".raw"))
+        .toArray(File[]::new);
+
+    if (fileNames.length <= 0) {
+      logger.warning("Select .raw folder or parent folder for waters import");
+      return ExitCode.ERROR;
+    }
 
     if (Arrays.asList(fileNames).contains(null)) {
       logger.warning("List of filenames contains null");
@@ -105,7 +116,8 @@ public class WatersRawImportModule implements MZmineProcessingModule {
       }
 
       try {
-        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
+        RawDataFile newMZmineFile = MZmineCore.createNewFile(newName,
+            fileNames[i].getAbsolutePath(), storage);
         Task newTask = new WatersRawImportTask(project, fileNames[i], newMZmineFile,
             WatersRawImportModule.class, parameters, moduleCallDate);
         tasks.add(newTask);

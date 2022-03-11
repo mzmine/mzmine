@@ -129,14 +129,10 @@ public class IonMobilityUtils {
 
     final double[] intensities = new double[frame.getNumberOfMobilityScans()];
     final double[] mzs = new double[frame.getNumberOfMobilityScans()];
-    final double[] mobilities = new double[frame.getNumberOfMobilityScans()];
-    frame.getMobilities().get(0, mobilities, 0, mobilities.length);
 
     final List<MobilityScan> mobilityScans = frame.getMobilityScans();
 
-    // todo replace with method introduced in PR mzmine3#238
-    final int maxNumDataPoints = mobilityScans.stream()
-        .mapToInt(MobilityScan::getNumberOfDataPoints).max().orElse(0);
+    final int maxNumDataPoints = frame.getMaxMobilityScanRawDataPoints();
 
     final double[] intensitiesBuffer = new double[maxNumDataPoints];
     final double[] mzsBuffer = new double[maxNumDataPoints];
@@ -147,16 +143,16 @@ public class IonMobilityUtils {
       scan.getIntensityValues(intensitiesBuffer);
 
       if (type == MobilogramType.BASE_PEAK) {
-        DataPoint bp = ScanUtils
-            .findBasePeak(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
+        DataPoint bp = ScanUtils.findBasePeak(mzsBuffer, intensitiesBuffer, mzRange,
+            scan.getNumberOfDataPoints());
         if (bp != null) {
           mzs[i] = bp.getMZ();
           intensities[i] = bp.getIntensity();
         }
       } else if (type == MobilogramType.TIC) {
         mzs[i] = rangeCenter;
-        intensities[i] = ScanUtils
-            .calculateTIC(mzsBuffer, intensitiesBuffer, mzRange, scan.getNumberOfDataPoints());
+        intensities[i] = ScanUtils.calculateTIC(mzsBuffer, intensitiesBuffer, mzRange,
+            scan.getNumberOfDataPoints());
       }
     }
 
@@ -231,16 +227,14 @@ public class IonMobilityUtils {
       }
     }
 
-    final double startMobility = MathUtils
-        .twoPointGetXForY(series.getMobility(before), series.getIntensity(before),
-            series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
-            series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)),
-            halfIntensity);
+    final double startMobility = MathUtils.twoPointGetXForY(series.getMobility(before),
+        series.getIntensity(before),
+        series.getMobility(Math.min(before + 1, series.getNumberOfValues() - 1)),
+        series.getIntensity(Math.min(before + 1, series.getNumberOfValues() - 1)), halfIntensity);
 
-    final double endMobility = MathUtils
-        .twoPointGetXForY(series.getMobility(Math.max(after - 1, 0)),
-            series.getIntensity(Math.max(after - 1, 0)), series.getMobility(after),
-            series.getIntensity(after), halfIntensity);
+    final double endMobility = MathUtils.twoPointGetXForY(
+        series.getMobility(Math.max(after - 1, 0)), series.getIntensity(Math.max(after - 1, 0)),
+        series.getMobility(after), series.getIntensity(after), halfIntensity);
 
 //    logger.finest(() -> "Determined FWHM from " + startMobility + " to " + endMobility);
     return Range.closed((float) startMobility, (float) endMobility);

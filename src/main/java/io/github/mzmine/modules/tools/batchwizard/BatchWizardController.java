@@ -78,6 +78,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultLcParameters;
 import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultMsParameters;
@@ -429,6 +430,8 @@ public class BatchWizardController {
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
     param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(files.getValue());
+    // for now import no libraries
+    param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(new File[0]);
 
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param);

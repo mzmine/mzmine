@@ -30,12 +30,12 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A button with a pupup menu of files. Used as last files chooser
- * 
- * @author Robin Schmid
  *
+ * @author Robin Schmid
  */
 public class LastFilesButton extends Button implements LastFilesComponent {
 
@@ -81,6 +81,10 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     });
   }
 
+  public List<File> getLastFiles() {
+    return lastFiles;
+  }
+
   @Override
   public void setLastFiles(List<File> lastFiles) {
     this.lastFiles = lastFiles;
@@ -104,6 +108,11 @@ public class LastFilesButton extends Button implements LastFilesComponent {
       });
       menu.getItems().add(item);
     });
+  }
+
+  @Nullable
+  public File getLastFile() {
+    return lastFiles != null && lastFiles.size() > 0 ? lastFiles.get(0) : null;
   }
 
   private String fileToString(File f) {

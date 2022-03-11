@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.data_access.BinningMobilogramDataAccess;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.SummedMobilogramXYProvider;
@@ -33,6 +33,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -54,7 +55,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   private final NumberFormat intensityFormat;
   private final NumberFormat mobilityFormat;
   protected ComboBox<FeatureList> flistBox;
-  protected ComboBox<ModularFeature> fBox;
+  protected SortableFeatureComboBox fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected BinningMobilogramDataAccess summedMobilogramAccess;
 
@@ -77,21 +78,21 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
-    fBox = new ComboBox<>();
+    fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(FXCollections.observableArrayList(
+            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
-            fBox.setItems(FXCollections.emptyObservableList());
+            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.setConverter(new StringConverter<>() {
+    fBox.getFeatureBox().setConverter(new StringConverter<>() {
       @Override
-      public String toString(ModularFeature object) {
+      public String toString(Feature object) {
         if (object == null) {
           return null;
         }
@@ -99,12 +100,12 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
       }
 
       @Override
-      public ModularFeature fromString(String string) {
+      public Feature fromString(String string) {
         return null;
       }
     });
 
-    fBox.getSelectionModel().selectedItemProperty()
+    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
 
     GridPane pnControls = new GridPane();
@@ -123,7 +124,7 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
         MZmineCore.getConfiguration().getDefaultChartTheme().getItemLabelPaint());
   }
 
-  private void onSelectedFeatureChanged(final ModularFeature f) {
+  private void onSelectedFeatureChanged(final Feature f) {
     previewChart.removeAllDatasets();
 
     if (f == null || !(f.getRawDataFile() instanceof IMSRawDataFile)
@@ -181,6 +182,6 @@ public class MobilogramBinningSetupDialog extends ParameterSetupDialogWithPrevie
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
-    onSelectedFeatureChanged(fBox.getValue());
+    onSelectedFeatureChanged(fBox.getFeatureBox().getValue());
   }
 }

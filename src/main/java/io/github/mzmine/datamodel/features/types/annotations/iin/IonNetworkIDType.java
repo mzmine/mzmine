@@ -46,7 +46,7 @@ public class IonNetworkIDType extends IntegerType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "ion_network_id";
+    return "iin_id";
   }
 
   @NotNull

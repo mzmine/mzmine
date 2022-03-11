@@ -153,8 +153,8 @@ public class MinimumSearchFeatureResolver extends AbstractResolver {
         if (x[currentRegionEnd] - x[currentRegionStart] >= searchXWidth) {
 
           // Set the RT range to check
-          final Range<Double> checkRange = Range
-              .closed(x[currentRegionEnd] - searchXWidth, x[currentRegionEnd] + searchXWidth);
+          final Range<Double> checkRange = Range.closed(x[currentRegionEnd] - searchXWidth,
+              x[currentRegionEnd] + searchXWidth);
 
           // Search if there is lower data point on the left from
           // current peak i.

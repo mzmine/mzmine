@@ -16,21 +16,20 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.compounddb;
+package io.github.mzmine.modules.io.export_features_csv;
 
-import io.github.mzmine.datamodel.features.types.abstr.UrlType;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import org.jetbrains.annotations.NotNull;
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum TableFormat {
+  /**
+   * The standard table format that mzmine uses for display with columns for each type
+   */
+  WIDE,
+  /**
+   * AN export format where each type is a new row in the table: Columns are:
+   * feature_id,sample,type,value
+   */
+  LONG;
 
-public class Structure3dUrlType extends UrlType implements NullColumnType {
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "structure_3d_url";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Structure3dUrl";
-  }
 }

@@ -16,21 +16,22 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.compounddb;
+package io.github.mzmine.modules.io.export_features_gnps.fbmn;
 
-import io.github.mzmine.datamodel.features.types.abstr.UrlType;
-import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
-import org.jetbrains.annotations.NotNull;
-
-public class Structure3dUrlType extends UrlType implements NullColumnType {
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "structure_3d_url";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Structure3dUrl";
-  }
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum FeatureTableExportType {
+  /**
+   * all types in MZmine 3 format
+   */
+  COMPREHENSIVE,
+  /**
+   * SIMPLE, MZmine 2 csv type export
+   */
+  SIMPLE,
+  /**
+   * Export both
+   */
+  ALL;
 }
