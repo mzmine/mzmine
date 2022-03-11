@@ -16,7 +16,7 @@
  * USA
  */
 
-package lipidannotationtest;
+package util.lipidannotationtest;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.ILipidAnnotation;

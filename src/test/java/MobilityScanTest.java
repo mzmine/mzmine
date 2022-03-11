@@ -126,12 +126,7 @@ public class MobilityScanTest {
   private IMSRawDataFile createRawDataFile() {
     logger.info("Creating raw data file.");
     IMSRawDataFile rawDataFile = null;
-    try {
-      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assert.fail();
-    }
+    rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
     return rawDataFile;
   }
 

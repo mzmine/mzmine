@@ -345,6 +345,13 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
   }
 
   /**
+   * The mouse adapter to handle various gestures
+   */
+  public ChartGestureMouseAdapterFX getMouseAdapter() {
+    return mouseAdapter;
+  }
+
+  /**
    * Adds the GraphicsExportDialog menu and the data export menu
    */
   protected void addExportMenu(boolean graphics, boolean data) {
@@ -551,6 +558,10 @@ public class EChartViewer extends ChartViewer implements DatasetChangeListener {
       return;
     }
     getChart().setNotify(notifyChange);
+//    final Plot plot = getChart().getPlot();
+//    if(plot!=null) {
+//      plot.setNotify(notifyChange);
+//    }
   }
 
   /**

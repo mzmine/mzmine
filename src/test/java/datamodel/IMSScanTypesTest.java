@@ -102,12 +102,7 @@ public class IMSScanTypesTest {
   void initialise() {
     MZmineCore.main(new String[]{"-r", "-m", "all"});
 
-    try {
-      file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     flist = new ModularFeatureList("flist", null, file);

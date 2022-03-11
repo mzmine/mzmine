@@ -219,10 +219,23 @@ public class ManualAnnotationType extends DataType<ManualAnnotation> implements 
   }
 
   @Override
+  public @Nullable String getUniqueID(int subcolumn) {
+    List<DataType> list = getSubDataTypes();
+    if (subcolumn >= 0 && subcolumn < list.size()) {
+      return list.get(subcolumn).getUniqueID();
+    } else {
+      throw new IndexOutOfBoundsException(
+          "Sub column index " + subcolumn + " is out of range " + list.size());
+    }
+  }
+
+
+  @Override
   public @NotNull DataType<?> getType(int index) {
     if (index < 0 || index >= getSubDataTypes().size()) {
-      throw new IndexOutOfBoundsException(String
-          .format("Sub column index %d is out of bounds %d", index, getSubDataTypes().size()));
+      throw new IndexOutOfBoundsException(
+          String.format("Sub column index %d is out of bounds %d", index,
+              getSubDataTypes().size()));
     }
     return getSubDataTypes().get(index);
   }

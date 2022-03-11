@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.List;
@@ -307,5 +308,15 @@ public class CachedIMSRawDataFile implements IMSRawDataFile {
   @Override
   public void setCCSCalibration(@Nullable CCSCalibration calibration) {
 
+  }
+
+  @Override
+  public DoubleImmutableList getSegmentMobilities(int segment) {
+    return originalFile.getSegmentMobilities(segment);
+  }
+
+  @Override
+  public int addMobilityValues(double[] mobilities) {
+    return originalFile.addMobilityValues(mobilities);
   }
 }

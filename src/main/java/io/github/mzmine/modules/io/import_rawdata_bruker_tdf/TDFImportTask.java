@@ -76,10 +76,14 @@ public class TDFImportTask extends AbstractTask {
   private static final Logger logger = Logger.getLogger(TDFImportTask.class.getName());
 
   private final MZmineProject project;
-  @Nullable private final MassDetector ms1Detector;
-  @Nullable private final MassDetector ms2Detector;
-  @Nullable private final ParameterSet ms1DetectorParam;
-  @Nullable private final ParameterSet ms2DetectorParam;
+  @Nullable
+  private final MassDetector ms1Detector;
+  @Nullable
+  private final MassDetector ms2Detector;
+  @Nullable
+  private final ParameterSet ms1DetectorParam;
+  @Nullable
+  private final ParameterSet ms2DetectorParam;
 
   private final boolean denoising = false;
   private static final double NOISE_THRESHOLD = 9E0;
@@ -270,22 +274,30 @@ public class TDFImportTask extends AbstractTask {
     loadedFrames = 0;
     final int numFrames = frameTable.getFrameIdColumn().size();
 
-    identifySegments((IMSRawDataFileImpl) newMZmineFile);
-
     logger.finest("Starting frame import.");
 
     loadedFrames = 0;
     // collect average spectra for each frame
     Set<SimpleFrame> frames = new LinkedHashSet<>();
+
+   final boolean importProfile = MZmineCore.getInstance().isTdfPseudoProfile();
+
     try {
       for (int i = 0; i < numFrames; i++) {
         int frameId = frameTable.getFrameIdColumn().get(i).intValue();
         setFinishedPercentage(0.1 * (loadedFrames) / numFrames);
         setDescription(
             "Importing " + rawDataFileName + ": Averaging Frame " + frameId + "/" + numFrames);
-        SimpleFrame frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId,
-            metaDataTable, frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector,
-            ms1DetectorParam, ms2Detector, ms2DetectorParam);
+        final SimpleFrame frame;
+        if (!importProfile) {
+          frame = tdfUtils.extractCentroidScanForTimsFrame(newMZmineFile, frameId, metaDataTable,
+              frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
+              ms2Detector, ms2DetectorParam);
+        } else {
+          frame = tdfUtils.extractProfileScanForFrame(newMZmineFile, frameId, metaDataTable,
+              frameTable, framePrecursorTable, maldiFrameInfoTable, ms1Detector, ms1DetectorParam,
+              ms2Detector, ms2DetectorParam);
+        }
 
         if (frame.getMSLevel() == 1 && ms1Detector != null && ms1DetectorParam != null) {
           frame.addMassList(new ScanPointerMassList(frame));
@@ -434,10 +446,6 @@ public class TDFImportTask extends AbstractTask {
 
       frame.setMobilityScans(spectra, detector != null);
 
-      /*if (detector != null && param != null) {
-        frame.getMobilityScans().forEach(m -> m.addMassList(new ScanPointerMassList(m)));
-      }*/
-
       if (isCanceled()) {
         return;
       }
@@ -445,30 +453,6 @@ public class TDFImportTask extends AbstractTask {
     }
 
   }
-
-  /*private void appendScansFromMaldiTimsSegment(@NotNull final IMSRawDataFile rawDataFile,
-      final long handle, final long firstFrameId, final long lastFrameId,
-      @NotNull final TDFFrameTable tdfFrameTable, @NotNull final TDFMetaDataTable tdfMetaDataTable,
-      @NotNull final TDFMaldiFrameInfoTable tdfMaldiTable) {
-
-    final long numFrames = tdfFrameTable.lastFrameId();
-
-    for (long frameId = firstFrameId; frameId <= lastFrameId; frameId++) {
-      setDescription("Importing " + rawDataFileName + ": Frame " + frameId + "/" + numFrames);
-      setFinishedPercentage(0.9 * frameId / numFrames);
-      final List<Scan> scans = TDFUtils.loadScansForMaldiTimsFrame(handle, frameId, tdfFrameTable,
-          tdfMetaDataTable, tdfMaldiTable);
-
-      try {
-        for (Scan scan : scans) {
-          rawDataFile.addScan(scan);
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-        TDFUtils.close(handle);
-      }
-    }
-  }*/
 
   private File[] getDataFilesFromDir(File dir) {
 
@@ -500,10 +484,6 @@ public class TDFImportTask extends AbstractTask {
         .findAny().orElse(null);
 
     return new File[]{tdf, tdf_bin};
-  }
-
-  private void identifySegments(IMSRawDataFileImpl rawDataFile) {
-    rawDataFile.addSegment(Range.closed(1, frameTable.lastFrameId()));
   }
 
   private void constructMsMsInfo(IMSRawDataFile file, FramePrecursorTable precursorTable) {

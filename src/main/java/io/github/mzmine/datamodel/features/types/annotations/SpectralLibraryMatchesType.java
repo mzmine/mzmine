@@ -93,7 +93,7 @@ public class SpectralLibraryMatchesType extends
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "spectral_lib_matches";
+    return "spectral_db_matches";
   }
 
   @NotNull

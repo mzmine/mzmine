@@ -20,10 +20,12 @@ package io.github.mzmine.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import net.csibio.aird.util.AirdScanUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Detector of raw data file format
@@ -139,11 +141,11 @@ public class RawDataFileTypeDetector {
         }
 
         if (fileHeader.startsWith(GZIP_HEADER)) {
-          return RawDataFileType.GZIP;
+          return RawDataFileType.MZML_GZIP;
         }
 
         if (fileHeader.startsWith(ZIP_HEADER)) {
-          return RawDataFileType.ZIP;
+          return RawDataFileType.MZML_ZIP;
         }
 
         /*
@@ -158,29 +160,7 @@ public class RawDataFileTypeDetector {
         }
 
         if (fileHeader.contains(MZML_HEADER)) {
-          if (fileName.getName().toLowerCase().endsWith("imzml")) {
-            return RawDataFileType.IMZML;
-          } else {
-            InputStreamReader reader2 = new InputStreamReader(new FileInputStream(fileName),
-                StandardCharsets.ISO_8859_1);
-            char buffer2[] = new char[4096 * 3];
-            String content = new String(buffer2);
-            boolean containsScan = false, containsAccession = false;
-            while (containsScan == false && containsAccession == false) {
-              reader2.read(buffer2);
-              content = new String(buffer2);
-              content.replaceAll("[^\\x00-\\x7F]", "");
-              containsScan = content.contains("/scan");
-              containsAccession = (content.contains("1002476") || content.contains("1002815"));
-            }
-            reader2.close();
-            if (content.contains("1002476") || content.contains("1002815")) { // accession for
-              // mobility
-              return RawDataFileType.MZML_IMS;
-            } else {
-              return RawDataFileType.MZML;
-            }
-          }
+          return getMzmlType(fileName);
         }
 
         if (fileHeader.contains(MZDATA_HEADER)) {
@@ -198,6 +178,33 @@ public class RawDataFileTypeDetector {
 
     return null;
 
+  }
+
+  @NotNull
+  public static RawDataFileType getMzmlType(File fileName) throws IOException {
+    if (fileName.getName().toLowerCase().endsWith("imzml")) {
+      return RawDataFileType.IMZML;
+    } else {
+      InputStreamReader reader2 = new InputStreamReader(new FileInputStream(fileName),
+          StandardCharsets.ISO_8859_1);
+      char buffer2[] = new char[4096 * 3];
+      String content = new String(buffer2);
+      boolean containsScan = false, containsAccession = false;
+      while (containsScan == false && containsAccession == false) {
+        reader2.read(buffer2);
+        content = new String(buffer2);
+        content.replaceAll("[^\\x00-\\x7F]", "");
+        containsScan = content.contains("/scan");
+        containsAccession = (content.contains("1002476") || content.contains("1002815"));
+      }
+      reader2.close();
+      if (content.contains("1002476") || content.contains("1002815")) { // accession for
+        // mobility
+        return RawDataFileType.MZML_IMS;
+      } else {
+        return RawDataFileType.MZML;
+      }
+    }
   }
 
 }

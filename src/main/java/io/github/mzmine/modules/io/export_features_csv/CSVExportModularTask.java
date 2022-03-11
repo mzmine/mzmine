@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.LinkedGraphicalType;
 import io.github.mzmine.datamodel.features.types.modifiers.NoTextColumn;
@@ -35,6 +34,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.ProcessedItemsCounter;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.CSVUtils;
 import java.io.BufferedWriter;
@@ -53,12 +53,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CSVExportModularTask extends AbstractTask implements ProcessedItemsCounter {
 
-  public static final String DATAFILE_PREFIX = "DATAFILE";
+  public static final String DATAFILE_PREFIX = "datafile";
   private static final Logger logger = Logger.getLogger(CSVExportModularTask.class.getName());
   private final ModularFeatureList[] featureLists;
   // parameter values
@@ -66,11 +67,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   private final String fieldSeparator;
   private final String idSeparator;
   private final String headerSeparator = ":";
-  private final FeatureListRowsFilter filter;
-  private int processedRows = 0, totalRows = 0;
-
+  private final FeatureListRowsFilter rowFilter;
+  private final boolean removeEmptyCols;
   // track number of exported items
   private final AtomicInteger exportedRows = new AtomicInteger(0);
+  private int processedTypes = 0, totalTypes = 0;
 
   public CSVExportModularTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -79,7 +80,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     fileName = parameters.getParameter(CSVExportModularParameters.filename).getValue();
     fieldSeparator = parameters.getParameter(CSVExportModularParameters.fieldSeparator).getValue();
     idSeparator = parameters.getParameter(CSVExportModularParameters.idSeparator).getValue();
-    this.filter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
+    this.rowFilter = parameters.getParameter(CSVExportModularParameters.filter).getValue();
+    removeEmptyCols = parameters.getValue(CSVExportModularParameters.omitEmptyColumns);
   }
 
   /**
@@ -87,11 +89,11 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    * @param fileName       export file name
    * @param fieldSeparator separation of columns
    * @param idSeparator    identity field separation
-   * @param filter         Row filter
+   * @param rowFilter      Row filter
    */
   public CSVExportModularTask(ModularFeatureList[] featureLists, File fileName,
-      String fieldSeparator, String idSeparator, FeatureListRowsFilter filter,
-      @NotNull Instant moduleCallDate) {
+      String fieldSeparator, String idSeparator, FeatureListRowsFilter rowFilter,
+      boolean removeEmptyCols, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     if (fieldSeparator.equals(idSeparator)) {
       throw new IllegalArgumentException(MessageFormat.format(
@@ -101,7 +103,8 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
     this.fileName = fileName;
     this.fieldSeparator = fieldSeparator;
     this.idSeparator = idSeparator;
-    this.filter = filter;
+    this.rowFilter = rowFilter;
+    this.removeEmptyCols = removeEmptyCols;
   }
 
   @Override
@@ -111,16 +114,16 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0) {
+    if (totalTypes == 0) {
       return 0;
     }
-    return (double) processedRows / (double) totalRows;
+    return (double) processedTypes / (double) totalTypes;
   }
 
   @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(featureLists)
-           + " to CSV file(s) (new format)";
+        + " to CSV file(s) (new format)";
   }
 
   @Override
@@ -133,7 +136,7 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
 
     // Total number of rows
     for (ModularFeatureList featureList : featureLists) {
-      totalRows += featureList.getNumberOfRows();
+      totalTypes += featureList.getNumberOfRows();
     }
 
     // Process feature lists
@@ -190,134 +193,185 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
   @SuppressWarnings("rawtypes")
   private void exportFeatureList(ModularFeatureList flist, BufferedWriter writer)
       throws IOException {
+    final List<FeatureListRow> rows = flist.getRows().stream().filter(rowFilter::accept)
+        .sorted(FeatureListRowSorter.DEFAULT_ID).toList();
     List<RawDataFile> rawDataFiles = flist.getRawDataFiles();
 
     List<DataType> rowTypes = flist.getRowTypes().values().stream().filter(this::filterType)
+        .filter(type -> !removeEmptyCols || typeContainData(type, rows, false, -1))
         .collect(Collectors.toList());
 
     List<DataType> featureTypes = flist.getFeatureTypes().values().stream().filter(this::filterType)
+        .filter(type -> !removeEmptyCols || typeContainData(type, rows, true, -1))
         .collect(Collectors.toList());
 
     // Write feature row headers
-    StringBuilder header = new StringBuilder(getJoinedHeader(rowTypes, ""));
+    StringBuilder header = new StringBuilder(getJoinedHeader(rowTypes, "", rows, false));
     for (RawDataFile raw : rawDataFiles) {
-      header.append((header.length() == 0) ? "" : fieldSeparator)
-          .append(getJoinedHeader(featureTypes, DATAFILE_PREFIX + headerSeparator + raw.getName()));
+      header.append((header.length() == 0) ? "" : fieldSeparator).append(
+          getJoinedHeader(featureTypes, DATAFILE_PREFIX + headerSeparator + raw.getName(), rows,
+              true));
     }
 
     writer.append(header.toString());
     writer.newLine();
 
     // write data
-    final List<FeatureListRow> rows = new ArrayList<>(flist.getRows());
-    for (FeatureListRow row : rows) {
-      if (!filter.accept(row)) {
-        processedRows++;
-        continue;
+    totalTypes = rowTypes.size() + featureTypes.size() * rawDataFiles.size();
+
+    List<String[]> formattedCols = new ArrayList<>(totalTypes);
+
+    // list string values for each type and sub type
+    for (DataType rowType : rowTypes) {
+      if (isCanceled()) {
+        return;
       }
 
+      addFormattedColumnsRecursively(formattedCols, rows, null, rowType);
+
+      processedTypes++;
+    }
+
+    // add feature types for each raw data file
+    for (RawDataFile raw : rawDataFiles) {
+      for (DataType featureType : featureTypes) {
+        if (isCanceled()) {
+          return;
+        }
+
+        addFormattedColumnsRecursively(formattedCols, rows, raw, featureType);
+        processedTypes++;
+      }
+    }
+
+    for (int i = 0; i < rows.size(); i++) {
       // Cancel?
       if (isCanceled()) {
         return;
       }
-      writer.append(joinRowData((ModularFeatureListRow) row, rawDataFiles, rowTypes, featureTypes));
+
+      final int row = i;
+      writer.append(
+          formattedCols.stream().map(col -> col[row]).collect(Collectors.joining(fieldSeparator)));
       writer.newLine();
 
       exportedRows.incrementAndGet();
-      processedRows++;
+      processedTypes++;
     }
   }
 
+  /**
+   * Adds columns of formatted values for each column / sub column. missing values are replaced by
+   * empty strings or default values
+   *
+   * @param formattedCols the target list
+   * @param rows          the data
+   * @param raw           defines the feature
+   * @param type          the feature data type to be added (and its sub columns)
+   */
+  private void addFormattedColumnsRecursively(List<String[]> formattedCols,
+      List<FeatureListRow> rows, @Nullable RawDataFile raw, DataType type) {
+    if (type instanceof SubColumnsFactory subFactory) {
+      int subCols = subFactory.getNumberOfSubColumns();
+      for (int s = 0; s < subCols; s++) {
+        // filter sub column - maybe excluded, no text, empty
+        DataType<?> subType = subFactory.getType(s);
+        if (!filterType(subType) || (removeEmptyCols && !typeContainData(type, rows, raw != null,
+            s))) {
+          continue;
+        }
+        // collect column data
+        final int subIndex = s;
+        String[] column = getDataStream(rows, raw, false).map(
+            data -> getFormattedValue(data, subFactory, subIndex)).toArray(String[]::new);
+        formattedCols.add(column);
+      }
+    } else {
+      String[] column = getDataStream(rows, raw, false).map(data -> getFormattedValue(data, type))
+          .toArray(String[]::new);
+      formattedCols.add(column);
+    }
+  }
+
+  /**
+   * Data stream for rows or all features
+   *
+   * @param rows        the data source
+   * @param raw         defines to get a feature type column
+   * @param allRawFiles or all columns of this type for each raw file
+   * @return stream of data column
+   */
+  private Stream<? extends ModularDataModel> getDataStream(List<FeatureListRow> rows,
+      RawDataFile raw, boolean allRawFiles) {
+    if (allRawFiles) {
+      return rows.stream().flatMap(row -> row.getFeatures().stream());
+    } else if (raw == null) {
+      return rows.stream();
+    } else {
+      return rows.stream().map(row -> (ModularFeature) row.getFeature(raw));
+    }
+  }
+
+
+  private String getFormattedValue(@Nullable ModularDataModel data, SubColumnsFactory subColFactory,
+      int col) {
+    Object value = data == null ? null : data.get((DataType) subColFactory);
+    if (value == null) {
+      value = ((DataType) subColFactory).getDefaultValue();
+    }
+    return csvEscape(subColFactory.getFormattedSubColValue(col, value));
+  }
+
+  private String getFormattedValue(@Nullable ModularDataModel data, DataType type) {
+    Object value = data == null ? null : data.get(type);
+    if (value == null) {
+      value = type.getDefaultValue();
+    }
+    try {
+      return csvEscape(type.getFormattedString(value));
+    } catch (Exception e) {
+      logger.log(Level.FINEST,
+          "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
+      return "";
+    }
+  }
+
+  /**
+   * @return true if type should be exported
+   */
   public boolean filterType(DataType type) {
     return !(type instanceof NoTextColumn || type instanceof NullColumnType
-             || type instanceof LinkedGraphicalType);
-  }
-
-  private String joinRowData(ModularFeatureListRow row, List<RawDataFile> raws,
-      List<DataType> rowTypes, List<DataType> featureTypes) {
-    StringBuilder b = new StringBuilder();
-    joinData(b, row, rowTypes);
-
-    // add feature types
-    for (RawDataFile raw : raws) {
-      ModularFeature feature = row.getFeature(raw);
-      if (feature != null) {
-        joinData(b, feature, featureTypes);
-      } else {
-        // no feature for this sample - add empty cells
-        joinEmptyCells(b, featureTypes);
-      }
-    }
-    return b.toString();
+        || type instanceof LinkedGraphicalType);
   }
 
   /**
-   * Fills in empty cells for all data types and their sub types
-   *
-   * @param b         the string builder
-   * @param dataTypes the list of types (with sub types) that are empty
+   * @param sub         sub column index
+   * @param rows        data source
+   * @param featureType defines if row or feature type (true)
+   * @return true if any row or feature contains data
    */
-  private void joinEmptyCells(StringBuilder b, List<DataType> dataTypes) {
-    for (DataType t : dataTypes) {
-      if (t instanceof SubColumnsFactory subCols) {
-        int numberOfSub = subCols.getNumberOfSubColumns();
-        for (int i = 0; i < numberOfSub; i++) {
-          DataType sub = subCols.getType(i);
-          if (sub != null && !filterType(sub)) {
-            continue;
-          }
-          b.append(fieldSeparator);
-        }
-      } else {
-        b.append(fieldSeparator);
-      }
-    }
+  private boolean typeContainData(DataType type, List<FeatureListRow> rows, boolean featureType,
+      int sub) {
+    final Stream<? extends ModularDataModel> dataStream = getDataStream(rows, null, featureType);
+    return dataStream.anyMatch(data -> modelContainData(data, type, sub));
   }
 
   /**
-   * @param b
-   * @param data  {@link ModularFeatureListRow}, {@link ModularFeature} might be null if not set
-   * @param types
-   * @return
+   * @return true if any row contains data for type
    */
-  private void joinData(StringBuilder b, @Nullable ModularDataModel data, List<DataType> types) {
-    for (DataType type : types) {
-      if (type instanceof SubColumnsFactory subCols) {
-        Object value = data == null ? null : data.get(type);
-        if (value == null) {
-          value = type.getDefaultValue();
-        }
-        int numberOfSub = subCols.getNumberOfSubColumns();
-        for (int i = 0; i < numberOfSub; i++) {
-          DataType<?> subType = subCols.getType(i);
-          if (subType != null && !filterType(subType)) {
-            continue;
-          }
-          String field = subCols.getFormattedSubColValue(i, value);
-          if (b.length() != 0) {
-            b.append(fieldSeparator);
-          }
-          b.append(csvEscape(field));
-        }
-      } else {
-        Object value = data == null ? null : data.get(type);
-        if (value == null) {
-          value = type.getDefaultValue();
-        }
-        if (b.length() != 0) {
-          b.append(fieldSeparator);
-        }
-        String str;
-        try {
-          str = type.getFormattedString(value);
-        } catch (Exception e) {
-          logger.log(Level.FINEST,
-              "Cannot format value of type " + type.getClass().getName() + " value: " + value, e);
-          str = "";
-        }
-        b.append(csvEscape(str));
-      }
+  private boolean modelContainData(ModularDataModel data, DataType type, int sub) {
+    final Object mainVal = data.get(type);
+    if (sub == -1) {
+      return containsData(mainVal);
     }
+    if (type instanceof SubColumnsFactory subFactory) {
+      return containsData(subFactory.getSubColValue(sub, mainVal));
+    }
+    throw new IllegalStateException("Reached invalid case when checking for data");
+  }
+
+  private boolean containsData(Object val) {
+    return val != null && !(val instanceof String sval && sval.isBlank());
   }
 
 
@@ -328,19 +382,21 @@ public class CSVExportModularTask extends AbstractTask implements ProcessedItems
    * @param prefix
    * @return
    */
-  private String getJoinedHeader(List<DataType> types, String prefix) {
+  private String getJoinedHeader(List<DataType> types, String prefix, List<FeatureListRow> rows,
+      boolean isFeatureType) {
     StringBuilder b = new StringBuilder();
     for (DataType t : types) {
-      String header = (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator)
-                      + t.getHeaderString();
+      String header =
+          (prefix == null || prefix.isEmpty() ? "" : prefix + headerSeparator) + t.getUniqueID();
       if (t instanceof SubColumnsFactory subCols) {
         int numberOfSub = subCols.getNumberOfSubColumns();
         for (int i = 0; i < numberOfSub; i++) {
           DataType subType = subCols.getType(i);
-          if (subType != null && !filterType(subType)) {
+          if (!filterType(subType) || (removeEmptyCols && !typeContainData(t, rows, isFeatureType,
+              i))) {
             continue;
           }
-          String field = subCols.getHeader(i);
+          String field = subCols.getUniqueID(i);
           if (b.length() != 0) {
             b.append(fieldSeparator);
           }

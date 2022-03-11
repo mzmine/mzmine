@@ -43,6 +43,7 @@ import io.github.mzmine.taskcontrol.AllTasksFinishedListener;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -202,6 +203,9 @@ public class ImsExpanderTask extends AbstractTask {
         return;
       }
     }
+
+    // explicitly don't renumber, IDs are kept from the old flist.
+    FeatureListUtils.sortByDefaultRT(newFlist, false);
 
     newFlist.getAppliedMethods().add(
         new SimpleFeatureListAppliedMethod(ImsExpanderModule.class, parameters,

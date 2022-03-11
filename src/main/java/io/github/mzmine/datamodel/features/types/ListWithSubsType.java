@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -97,10 +98,24 @@ public abstract class ListWithSubsType<T> extends ListDataType<T> implements
   }
 
   @Override
+  @Nullable
+  public String getUniqueID(int subcolumn) {
+    // do not change unique ID
+    List<DataType> list = getSubDataTypes();
+    if (subcolumn >= 0 && subcolumn < list.size()) {
+      return list.get(subcolumn).getUniqueID();
+    } else {
+      throw new IndexOutOfBoundsException(
+          "Sub column index " + subcolumn + " is out of range " + list.size());
+    }
+  }
+
+  @Override
   public @NotNull DataType<?> getType(int index) {
     if (index < 0 || index >= getSubDataTypes().size()) {
-      throw new IndexOutOfBoundsException(String
-          .format("Sub column index %d is out of bounds %d", index, getSubDataTypes().size()));
+      throw new IndexOutOfBoundsException(
+          String.format("Sub column index %d is out of bounds %d", index,
+              getSubDataTypes().size()));
     }
     return getSubDataTypes().get(index);
   }
