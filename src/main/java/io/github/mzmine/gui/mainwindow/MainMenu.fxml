@@ -550,6 +550,8 @@
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
+    <MenuItem onAction="#runModule" text="Analyse libraries to csv"
+      userData="io.github.mzmine.modules.io.export_library_analysis_csv.LibraryAnalysisCSVExportModule"/>
   </Menu>
 
   <Menu text="Processing wizard">

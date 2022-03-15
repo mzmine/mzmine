@@ -1574,8 +1574,29 @@ public class ScanUtils {
    * @return neutral loss array
    */
   public static DataPoint[] getNeutralLossSpectrum(DataPoint[] dps, double precursorMZ) {
-    return Arrays.stream(dps)
-        .map(d -> new SimpleDataPoint(precursorMZ - d.getMZ(), d.getIntensity()))
+    return getNeutralLossSpectrum(Arrays.stream(dps), precursorMZ);
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(List<DataPoint> dps, double precursorMZ) {
+    return getNeutralLossSpectrum(dps.stream(), precursorMZ);
+  }
+
+  /**
+   * Calculates an array of neutral losses relative to the precursor mz
+   *
+   * @param dps         data points to be inverted
+   * @param precursorMZ
+   * @return neutral loss array
+   */
+  public static DataPoint[] getNeutralLossSpectrum(Stream<DataPoint> dps, double precursorMZ) {
+    return dps.map(d -> new SimpleDataPoint(precursorMZ - d.getMZ(), d.getIntensity()))
         .toArray(DataPoint[]::new);
   }
 

@@ -45,7 +45,7 @@ public abstract class Similarity {
   // Measures
   public static final Similarity COSINE = new Similarity() {
     public double calc(double[][] data) {
-      return dot(data) / (Math.sqrt(norm(data, 0)) * Math.sqrt(norm(data, 1)));
+      return dot(data) / cosineDivisor(data);
     }
   };
 
