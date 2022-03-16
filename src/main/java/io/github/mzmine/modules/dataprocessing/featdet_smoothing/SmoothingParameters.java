@@ -53,7 +53,7 @@ public class SmoothingParameters extends SimpleParameterSet {
       new OriginalFeatureListHandlingParameter(false);
 
   public static final StringParameter suffix = new StringParameter("Suffix",
-      "The suffix to be added to processed feature lists.", " sm");
+      "The suffix to be added to processed feature lists.", "sm");
 
   public SmoothingParameters() {
     super(new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix});
