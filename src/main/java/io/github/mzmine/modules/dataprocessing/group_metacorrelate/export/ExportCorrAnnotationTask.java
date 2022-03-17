@@ -56,6 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import org.apache.commons.lang3.StringUtils;
@@ -171,8 +172,23 @@ public class ExportCorrAnnotationTask extends AbstractTask {
 
       // export ann edges
       // Filename
+
       if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_msannotation");
+        String CString="{}";
+        boolean check=filename.getPath().contains(CString);
+        if(check)
+        {
+          File curFile = filename;
+          for (FeatureList featureListN : featureLists)
+          {
+            String newFilename = filename.getPath().replaceAll(Pattern.quote(CString),featureListN.getName());
+            curFile = new File(newFilename);
+            writeToFile(ann.toString(),curFile, "_edges_msannotation");
+          }
+        }
+        else {
+          writeToFile(ann.toString(), filename, "_edges_msannotation");
+        }
         return true;
       } else {
         return false;
@@ -228,7 +244,21 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       // export ann edges
       // Filename
       if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_iin_relations");
+        String CString="{}";
+        boolean check=filename.getPath().contains(CString);
+        if(check)
+        {
+          File curFile = filename;
+          for (FeatureList featureList : featureLists)
+          {
+            String newFilename = filename.getPath().replaceAll(Pattern.quote(CString),featureList.getName());
+            curFile = new File(newFilename);
+            writeToFile(ann.toString(),curFile, "_edges_iin_relations");
+          }
+        }
+        else {
+          writeToFile(ann.toString(), filename, "_edges_iin_relations");
+        }
         return true;
       } else {
         return false;
@@ -548,7 +578,21 @@ public class ExportCorrAnnotationTask extends AbstractTask {
       // export ann edges
       // Filename
       if (added.get() > 0) {
-        writeToFile(ann.toString(), filename, "_edges_msannotation");
+        String CString="{}";
+        boolean check=filename.getPath().contains(CString);
+        if(check)
+        {
+          File curFile = filename;
+          for (FeatureList featureList : featureLists)
+          {
+            String newFilename = filename.getPath().replaceAll(Pattern.quote(CString),featureList.getName());
+            curFile = new File(newFilename);
+            writeToFile(ann.toString(),curFile, "_edges_msannotation");
+          }
+        }
+        else {
+          writeToFile(ann.toString(), filename, "_edges_msannotation");
+        }
         return true;
       } else {
         return false;
