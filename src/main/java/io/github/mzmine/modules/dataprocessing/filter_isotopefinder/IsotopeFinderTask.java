@@ -140,6 +140,7 @@ class IsotopeFinderTask extends AbstractTask {
     }
     boolean ValidMobility = false;
     if (imsFile != null) {
+      //Checked over here if imsFile is null or not
       ValidMobility = CCSUtils.MobilityCheckForCCS(imsFile);
     }
 
