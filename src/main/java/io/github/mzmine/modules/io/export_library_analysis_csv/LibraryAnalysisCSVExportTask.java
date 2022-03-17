@@ -62,7 +62,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
    * Nodes file
    */
   private static final String[] NODES = {"ID", "name", "mz", "mass", "adduct", "formula",
-      "ion_mode", "instrument", "instrument_type", "signals", "smiles", "inchi", "inchi_key"};
+      "ion_mode", "instrument", "instrument_type", "smiles", "inchi", "inchi_key", "signals"};
 
   /**
    * Edges file with correlations
@@ -308,16 +308,16 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
         append(line, ea.getOrElse(DBEntryField.NAME, ""));
         append(line, ea.getField(DBEntryField.MZ).map(Object::toString).orElse(""));
         append(line, ea.getField(DBEntryField.EXACT_MASS).map(Object::toString).orElse(""));
-        append(line, ea.getOrElse(DBEntryField.NAME, ""));
         append(line, ea.getOrElse(DBEntryField.ION_TYPE, ""));
         append(line, ea.getOrElse(DBEntryField.FORMULA, ""));
         append(line, ea.getOrElse(DBEntryField.ION_MODE, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT, ""));
         append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
-        line.append(spec.dps().length).append(fieldSeparator);
         append(line, ea.getOrElse(DBEntryField.SMILES, ""));
         append(line, ea.getOrElse(DBEntryField.INCHI, ""));
         append(line, ea.getOrElse(DBEntryField.INCHIKEY, ""));
+        // last without separator
+        line.append(spec.dps().length);
         writer.append(line.toString()).append("\n");
       }
     }
@@ -422,7 +422,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
     StringBuilder line = new StringBuilder();
     line.append(matched).append(fieldSeparator);
-    line.append(matchedRel).append(fieldSeparator);
+    line.append(format.format(matchedRel)).append(fieldSeparator);
     line.append(format.format(explainedIntensity)).append(fieldSeparator);
     line.append(format.format(explainedIntensityA)).append(fieldSeparator);
     line.append(format.format(explainedIntensityB)).append(fieldSeparator);
