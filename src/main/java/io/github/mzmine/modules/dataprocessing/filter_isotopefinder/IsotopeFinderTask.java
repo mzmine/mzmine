@@ -18,12 +18,8 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.*;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;
@@ -35,6 +31,7 @@ import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
+import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -66,6 +63,10 @@ class IsotopeFinderTask extends AbstractTask {
   private final String isotopes;
   private final ScanRange scanRange;
   private int processedRows, totalRows;
+  private Float mobility;
+  private MobilityType mobilityType;
+  private int chargeCCS;
+  private IMSRawDataFile File;
 
   IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -130,6 +131,19 @@ class IsotopeFinderTask extends AbstractTask {
     totalRows = featureList.getNumberOfRows();
     processedRows = 0;
     RawDataFile raw = featureList.getRawDataFile(0);
+    if (raw instanceof IMSRawDataFile imsFile) {
+      //Accurate determination of CCS values requires a valid CCS calibration and molecule charge states to be detected.
+      if (imsFile.getCCSCalibration() != null || imsFile.getMobilityType() == MobilityType.TIMS) {
+        logger.info(() -> "Raw data file " + imsFile.getName()
+                + " does have a CCS calibration and is a TIMS file. CCS values can be determined.");
+        this.File=imsFile;
+      }
+      else
+      {
+        setErrorMessage("A valid CCS Calibration is Required ");
+        setStatus(TaskStatus.ERROR);
+      }
+    }
 
     // Loop through all rows
     ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
@@ -147,6 +161,14 @@ class IsotopeFinderTask extends AbstractTask {
       // start at max intensity signal
       Feature feature = row.getFeature(raw);
       double mz = feature.getMZ();
+      this.chargeCCS = feature.getCharge();
+      this.mobility=feature.getMobility();
+      if (this.mobility == null)
+      {
+        continue;
+      }
+      this.mobilityType = feature.getMobilityUnit();
+      //ended
       Scan maxScan = feature.getRepresentativeScan();
       int scanIndex = scans.indexOf(maxScan);
       scans.jumpToIndex(scanIndex);
@@ -195,8 +217,17 @@ class IsotopeFinderTask extends AbstractTask {
 
       if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
         // add isotope pattern and charge
+        if(this.chargeCCS==0)
+        {
+          this.chargeCCS=bestCharge;
+        }
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
+        Float ccs = CCSUtils.calcCCS(mz, mobility, Objects.requireNonNull(mobilityType), chargeCCS,File);
+        if (ccs != null)
+        {
+          feature.setCCS(ccs);
+        }
         detected++;
       } else {
         // find pattern in FWHM
