@@ -204,13 +204,12 @@ class IsotopeFinderTask extends AbstractTask {
         // no pattern found
         continue;
       }
-
       if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
         // add isotope pattern and charge
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
         Float mobility = feature.getMobility();
-        if (ValidMobility && mobility != null && bestCharge>0) {
+        if (ValidMobility && mobility != null && bestCharge > 0) {
           MobilityType mobilityType = feature.getMobilityUnit();
           Float ccs = CCSUtils.calcCCS(mz, mobility, Objects.requireNonNull(mobilityType),
               bestCharge, imsFile);
