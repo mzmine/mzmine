@@ -19,11 +19,13 @@
 package io.github.mzmine.modules.io.export_library_analysis_csv;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.files.FileAndPathUtil;
@@ -50,17 +52,26 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
-  private static final String[] LIB = {"IDa", "IDb", "name_a", "name_b", "adduct_a", "adduct_b",
-      "instrument_a", "instrument_b", "signals_a", "signals_b", "SMILES_a", "SMILES_b", "inchi_a",
-      "inchi_b", "inchi_key_a", "inchi_key_b", "inchi_key_equals"};
+  /**
+   * Nodes file
+   */
+  private static final String[] NODES = {"ID", "name", "mz", "mass", "adduct", "formula",
+      "ion_mode", "instrument", "instrument_type", "signals", "smiles", "inchi", "inchi_key"};
+
+  /**
+   * Edges file with correlations
+   */
+  private static final String[] LIB = {"IDa", "IDb"};
   private static final String[] SIM_TYPES = {"cos", "modcos", "nl"};
   private static final String[] VALUES = {"matched_n", "matched_rel", "matched_intensity",
       "matched_intensity_a", "matched_intensity_b", "score", "max_contribution",
-      "signal_contributions", "signals_contr_gr_0_05", "signals_contr_gr_0_2"};
+      "signal_contributions", "signals_contr_gr_0_05"};
   private static final String EMPTY_VALUES = ",,,,,,,,";
 
   private static final DecimalFormat format = new DecimalFormat("0.000");
@@ -71,14 +82,14 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
   private final Integer minMatchedSignals;
   private final Boolean deisotope;
   private final MassListDeisotoperParameters deisotoperParameters;
-  // parameter values
-  private File fileName;
   private final AtomicLong processedTypes = new AtomicLong(0);
-  private long totalTypes = 0;
   private final List<SpectralLibrary> libraries;
   private final Weights weights;
   private final boolean applyRemovePrecursorRange;
   private final MZTolerance removePrecursorRange;
+  // parameter values
+  private File fileName;
+  private long totalTypes = 0;
 
   public LibraryAnalysisCSVExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
@@ -199,20 +210,36 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     }
     totalTypes = pairs.size();
 
+    // minus this task
+    int threads = MZmineCore.getConfiguration().getNumOfThreads() - 1;
+    int size = (int) Math.ceil(totalTypes / (double) threads);
+    final List<List<FilteredSpec[]>> parts = ListUtils.partition(pairs, size);
+
+    List<AbstractTask> tasks = new ArrayList<>(threads);
     ConcurrentLinkedDeque<String> outputList = new ConcurrentLinkedDeque<>();
-    // process all in parallel and map to string lines
-    pairs.stream().parallel().forEach(pair -> {
-      if (!isCanceled()) {
-        String line = matchToCsvString(pair[0], pair[1]);
-        if (line != null) {
-          outputList.add(line);
-        }
-        processedTypes.incrementAndGet();
-      }
-    });
+    for (List<FilteredSpec[]> sub : parts) {
+      LibraryAnalysisSubTask task = new LibraryAnalysisSubTask(getModuleCallDate(), this, sub,
+          outputList);
+      MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH);
+      tasks.add(task);
+    }
 
+    // write node table
+    try {
+      writeNodeTable(fileName, spectra);
+    } catch (IOException e) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Could not open file " + fileName + " for writing nodes file.");
+      logger.log(Level.WARNING, String.format(
+          "Error writing spectral similarity CSV format to file: %s for libraries: %s. Message: %s",
+          fileName.getAbsolutePath(),
+          libraries.stream().map(SpectralLibrary::getName).collect(Collectors.joining(",")),
+          e.getMessage()), e);
+      return;
+    }
+
+    // edges file
     fileName = FileAndPathUtil.getRealFilePath(fileName, "csv");
-
     // Open file
     try (BufferedWriter writer = Files.newBufferedWriter(fileName.toPath(),
         StandardCharsets.UTF_8)) {
@@ -228,11 +255,23 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
       writer.append("\n");
 
-      // data
-      for (String s : outputList) {
-        writer.append(s).append("\n");
+      // the sub tasks are populating the outputList
+      // track finished tasks
+      String line;
+      while (tasks.size() > 0 || outputList.size() > 0) {
+        Thread.sleep(20);
+        // write data
+        while (outputList.size() > 0) {
+          line = outputList.remove();
+          if (line != null) {
+            writer.append(line).append("\n");
+          }
+          processedTypes.incrementAndGet();
+        }
+
+        // remove all finished tasks to track progress
+        tasks.removeIf(t -> t.isCanceled() || t.isFinished());
       }
-//      writer.append(output);
 
     } catch (IOException e) {
       setStatus(TaskStatus.ERROR);
@@ -243,6 +282,8 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
           libraries.stream().map(SpectralLibrary::getName).collect(Collectors.joining(",")),
           e.getMessage()), e);
       return;
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
 
     if (getStatus() == TaskStatus.PROCESSING) {
@@ -250,17 +291,45 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     }
   }
 
-  private String matchToCsvString(FilteredSpec a, FilteredSpec b) {
-//    private static final String[] LIB = {"IDa", "IDb", "signals_a", "signals_b", "SMILES_a",
-//        "SMILES_b", "inchi_a", "inchi_b", "inchi_key_a", "inchi_key_b", "inchi_key_equals"};
-    // String[] SIM = {"cos", "modcos", "nl"};
+  private void writeNodeTable(File fileName, List<FilteredSpec> spectra) throws IOException {
+    final String name = FilenameUtils.removeExtension(fileName.getName());
+    File full = new File(fileName.getParentFile(), name + "_nodes.csv");
+
+    // Open file
+    try (BufferedWriter writer = Files.newBufferedWriter(full.toPath(), StandardCharsets.UTF_8)) {
+      // header
+      String header = Arrays.stream(NODES).collect(Collectors.joining(fieldSeparator));
+      writer.append(header).append("\n");
+      // data
+      for (var spec : spectra) {
+        StringBuilder line = new StringBuilder();
+        final SpectralDBEntry ea = spec.entry();
+        append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
+        append(line, ea.getOrElse(DBEntryField.NAME, ""));
+        append(line, ea.getField(DBEntryField.MZ).map(Object::toString).orElse(""));
+        append(line, ea.getField(DBEntryField.EXACT_MASS).map(Object::toString).orElse(""));
+        append(line, ea.getOrElse(DBEntryField.NAME, ""));
+        append(line, ea.getOrElse(DBEntryField.ION_TYPE, ""));
+        append(line, ea.getOrElse(DBEntryField.FORMULA, ""));
+        append(line, ea.getOrElse(DBEntryField.ION_MODE, ""));
+        append(line, ea.getOrElse(DBEntryField.INSTRUMENT, ""));
+        append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
+        line.append(spec.dps().length).append(fieldSeparator);
+        append(line, ea.getOrElse(DBEntryField.SMILES, ""));
+        append(line, ea.getOrElse(DBEntryField.INCHI, ""));
+        append(line, ea.getOrElse(DBEntryField.INCHIKEY, ""));
+        writer.append(line.toString()).append("\n");
+      }
+    }
+  }
+
+  public String matchToCsvString(FilteredSpec a, FilteredSpec b) {
     String cos = getSimilarity(a.dps(), b.dps(), a.precursorMZ(), b.precursorMZ(), false);
     String modcos = getSimilarity(a.dps(), b.dps(), a.precursorMZ(), b.precursorMZ(), true);
     String nl = getSimilarity(a.neutralLosses(), b.neutralLosses(), a.precursorMZ(),
         b.precursorMZ(), false);
 
     if (cos == null && modcos == null && nl == null) {
-      processedTypes.incrementAndGet();
       return null;
     }
 
@@ -278,26 +347,9 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     // add library specifics
     final SpectralDBEntry ea = a.entry();
     final SpectralDBEntry eb = b.entry();
-    final String inchiA = ea.getOrElse(DBEntryField.INCHIKEY, "").trim();
-    final String inchiB = eb.getOrElse(DBEntryField.INCHIKEY, "").trim();
 
-    append(line, ea.getOrElse(DBEntryField.ENTRY_ID, "NO_ID"));
-    append(line, eb.getOrElse(DBEntryField.ENTRY_ID, "NO_ID"));
-    append(line, ea.getOrElse(DBEntryField.NAME, ""));
-    append(line, eb.getOrElse(DBEntryField.NAME, ""));
-    append(line, ea.getOrElse(DBEntryField.ION_TYPE, ""));
-    append(line, eb.getOrElse(DBEntryField.ION_TYPE, ""));
-    append(line, ea.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
-    append(line, eb.getOrElse(DBEntryField.INSTRUMENT_TYPE, ""));
-    line.append(a.dps().length).append(fieldSeparator);
-    line.append(b.dps().length).append(fieldSeparator);
-    append(line, ea.getOrElse(DBEntryField.SMILES, ""));
-    append(line, eb.getOrElse(DBEntryField.SMILES, ""));
-    append(line, ea.getOrElse(DBEntryField.INCHI, ""));
-    append(line, eb.getOrElse(DBEntryField.INCHI, ""));
-    append(line, inchiA);
-    append(line, inchiB);
-    line.append(inchiA.length() > 0 && inchiA.equals(inchiB)).append(fieldSeparator);
+    append(line, ea.getOrElse(DBEntryField.ENTRY_ID, ""));
+    append(line, eb.getOrElse(DBEntryField.ENTRY_ID, ""));
 
     // add similarities
     line.append(cos).append(fieldSeparator);
@@ -332,7 +384,6 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     final double cosineDivisor = Similarity.cosineDivisor(diffArray);
 
     int signalsGr0_05 = 0;
-    int signalsGr0_2 = 0;
     double maxContribution = 0;
     double totalIntensityA = 0;
     double totalIntensityB = 0;
@@ -355,12 +406,9 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
       if (contributions[i] >= 0.05) {
         signalsGr0_05++;
       }
-      if (contributions[i] >= 0.2) {
-        signalsGr0_2++;
-      }
 
       if (contributions[i] > maxContribution) {
-        maxContribution = maxContribution;
+        maxContribution = contributions[i];
       }
     }
     explainedIntensityA /= totalIntensityA;
@@ -369,7 +417,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
 
     // sort by contribution
     final String contributionString = Arrays.stream(contributions).filter(d -> d >= 0.001).boxed()
-        .sorted((a, b) -> Double.compare(b, a)).map(format::format)
+        .sorted((a, b) -> Double.compare(b, a)).map(format::format).limit(4)
         .collect(Collectors.joining(";"));
 
     StringBuilder line = new StringBuilder();
@@ -381,8 +429,7 @@ public class LibraryAnalysisCSVExportTask extends AbstractTask {
     line.append(format.format(cosine)).append(fieldSeparator);
     line.append(format.format(maxContribution)).append(fieldSeparator);
     line.append(contributionString).append(fieldSeparator);
-    line.append(format.format(signalsGr0_05)).append(fieldSeparator);
-    line.append(format.format(signalsGr0_2));
+    line.append(format.format(signalsGr0_05));
     return line.toString();
   }
 
