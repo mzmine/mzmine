@@ -79,6 +79,9 @@ public class IMSTraceVisualizerPane extends BorderPane {
   private int ticDatasetIndex = 0;
   private int ticFeatureDatasetIndex = 0;
 
+  private double traceChartMinHeight = 200;
+  private double traceChartMinWidth = 200;
+
 
   public IMSTraceVisualizerPane() {
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -193,8 +196,8 @@ public class IMSTraceVisualizerPane extends BorderPane {
     traceChart.setShowCrosshair(false);
     traceChart.getXYPlot().setBackgroundPaint(Color.BLACK);
     traceChart.setDefaultPaintscaleLocation(RectangleEdge.BOTTOM);
-    traceChart.setMinHeight(500);
-    traceChart.setMinWidth(500);
+    traceChart.setMinHeight(traceChartMinHeight);
+    traceChart.setMinWidth(traceChartMinWidth);
     traceLegendCanvas.setHeight(HEATMAP_LEGEND_HEIGHT);
     traceLegendCanvas.setWidth(500);
     traceChart.setLegendCanvas(traceLegendCanvas);
