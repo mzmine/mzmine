@@ -131,18 +131,6 @@ class IsotopeFinderTask extends AbstractTask {
     processedRows = 0;
     RawDataFile raw = featureList.getRawDataFile(0);
     IMSRawDataFile imsFile = null;
-    //Accurate determination of CCS values requires a valid CCS calibration and molecule charge states to be detected.
-    if (raw instanceof IMSRawDataFile File) {
-      if (File.getCCSCalibration() != null) {
-        logger.info(() -> "Raw data file " + File.getName() + " does have a CCS calibration.");
-        imsFile = File;
-      }
-    }
-    boolean ValidMobility = false;
-    if (imsFile != null) {
-      //Checked over here if imsFile is null or not
-      ValidMobility = CCSUtils.MobilityCheckForCCS(imsFile);
-    }
 
     // Loop through all rows
     ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
@@ -156,9 +144,21 @@ class IsotopeFinderTask extends AbstractTask {
       if (isCanceled()) {
         return;
       }
-
       // start at max intensity signal
       Feature feature = row.getFeature(raw);
+      RawDataFile data = feature.getRawDataFile();
+      //Accurate determination of CCS values requires a valid CCS calibration and molecule charge states to be detected.
+        if (data instanceof IMSRawDataFile File) {
+          if (File.getCCSCalibration() != null) {
+            logger.info(() -> "Raw data file " + File.getName() + " does have a CCS calibration.");
+            imsFile = File;
+          }
+        }
+      boolean validMobility = false;
+      if (imsFile != null) {
+        //Checked over here if imsFile is null or not
+        validMobility = CCSUtils.hasValidMobilityType(imsFile);
+      }
       double mz = feature.getMZ();
       //ended
       Scan maxScan = feature.getRepresentativeScan();
@@ -193,7 +193,6 @@ class IsotopeFinderTask extends AbstractTask {
           } else {
             throw new IllegalStateException("Isotope pattern type is not handled.");
           }
-
           if (candidates.size() > maxFoundIsotopes) {
             maxFoundIsotopes = candidates.size();
             // charge is zero indexed but always starts at 1 -> max charge
@@ -209,8 +208,9 @@ class IsotopeFinderTask extends AbstractTask {
         // add isotope pattern and charge
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
+        //feature.(isotopeElements);
         Float mobility = feature.getMobility();
-        if (ValidMobility && mobility != null && bestCharge > 0) {
+        if (validMobility && mobility != null && bestCharge > 0) {
           MobilityType mobilityType = feature.getMobilityUnit();
           Float ccs = CCSUtils.calcCCS(mz, mobility, Objects.requireNonNull(mobilityType),
               bestCharge, imsFile);

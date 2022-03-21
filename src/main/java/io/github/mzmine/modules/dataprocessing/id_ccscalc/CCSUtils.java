@@ -76,7 +76,7 @@ public class CCSUtils {
     };
   }
 
-  public static boolean MobilityCheckForCCS(@NotNull IMSRawDataFile file) {
+  public static boolean hasValidMobilityType(@NotNull IMSRawDataFile file) {
     //Valid Mobility Check for CCS calculation in the function
     if (file.getMobilityType() == MobilityType.TIMS
         || file.getMobilityType() == MobilityType.DRIFT_TUBE
