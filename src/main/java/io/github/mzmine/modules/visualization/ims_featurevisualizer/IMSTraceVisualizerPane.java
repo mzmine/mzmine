@@ -56,7 +56,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
   private static Logger logger = Logger.getLogger(IMSTraceVisualizerPane.class.getName());
 
   private static final int HEATMAP_LEGEND_HEIGHT = 50;
-  private static final double MIN_MOBILOGRAM_WIDTH = 250;
+  private static final double MIN_MOBILOGRAM_WIDTH = 200;
 
   private final SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> traceChart;
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
