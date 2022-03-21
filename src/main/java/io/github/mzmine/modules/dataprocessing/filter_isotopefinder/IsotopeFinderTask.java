@@ -130,7 +130,6 @@ class IsotopeFinderTask extends AbstractTask {
     totalRows = featureList.getNumberOfRows();
     processedRows = 0;
     RawDataFile raw = featureList.getRawDataFile(0);
-    IMSRawDataFile imsFile = null;
 
     // Loop through all rows
     ScanDataAccess scans = EfficientDataAccess.of(raw, ScanDataType.CENTROID,
@@ -147,6 +146,7 @@ class IsotopeFinderTask extends AbstractTask {
       // start at max intensity signal
       Feature feature = row.getFeature(raw);
       RawDataFile data = feature.getRawDataFile();
+      IMSRawDataFile imsFile = null;
       //Accurate determination of CCS values requires a valid CCS calibration and molecule charge states to be detected.
         if (data instanceof IMSRawDataFile File) {
           if (File.getCCSCalibration() != null) {
