@@ -25,13 +25,19 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.ImportType;
 import io.github.mzmine.parameters.parametertypes.ImportTypeParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
@@ -41,6 +47,7 @@ import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
@@ -71,6 +78,9 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       "Use adducts",
       "If enabled, m/z values for multiple adducts will be calculated and matched against the feature list.",
       (IonLibraryParameterSet) new IonLibraryParameterSet().cloneParameterSet());
+  public static final OptionalModuleParameter<IsotopePatternMatcherParameterSet> isotopePatternMatcher = new OptionalModuleParameter<>(
+      "Use isotope matcher", "",
+      (IsotopePatternMatcherParameterSet) new IsotopePatternMatcherParameterSet().cloneParameterSet());
   private static final List<ImportType> importTypes = List.of(
       new ImportType(true, "neutral mass", new NeutralMassType()),
       new ImportType(true, "mz", new PrecursorMZType()), //
@@ -82,13 +92,14 @@ public class LocalCSVDatabaseSearchParameters extends SimpleParameterSet {
       new ImportType(true, "comment", new CommentType()),
       new ImportType(false, "adduct", new IonAdductType()),
       new ImportType(false, "PubChemCID", new PubChemIdType()));
+
   public static final ImportTypeParameter columns = new ImportTypeParameter("Columns",
       "Select the columns you want to import from the library file.", importTypes);
 
   public LocalCSVDatabaseSearchParameters() {
     super(
         new Parameter[]{peakLists, dataBaseFile, fieldSeparator, columns, mzTolerance, rtTolerance,
-            mobTolerance, ccsTolerance, ionLibrary});
+            mobTolerance, ccsTolerance, isotopePatternMatcher, ionLibrary});
   }
 
   @Override

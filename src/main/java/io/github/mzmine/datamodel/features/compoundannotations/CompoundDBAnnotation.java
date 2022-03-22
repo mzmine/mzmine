@@ -74,6 +74,9 @@ public interface CompoundDBAnnotation extends Cloneable {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     for (IonType adduct : library.getAllAdducts()) {
       try {
+        if (adduct.getName().contains("?")) {
+          continue;
+        }
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
         logger.log(Level.WARNING, e.getMessage(), e);

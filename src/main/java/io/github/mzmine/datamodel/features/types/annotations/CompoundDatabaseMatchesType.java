@@ -34,6 +34,7 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
-      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new DatabaseMatchInfoType());
+      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new DatabaseMatchInfoType(), new IsotopePatternScoreType());
   private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries(
       //
       createEntry(CompoundDatabaseMatchesType.class, match -> match.getCompundName()), //
@@ -70,7 +71,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       createEntry(NeutralMassType.class, match -> match.get(new NeutralMassType())), //
       createEntry(RTType.class, match -> match.get(new RTType())), //
       createEntry(CCSType.class, CompoundDBAnnotation::getCCS),
-      createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)));
+      createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)), //
+      createEntry(IsotopePatternScoreType.class, match -> match.get(IsotopePatternScoreType.class)));
 
   @Override
   public @NotNull String getUniqueID() {

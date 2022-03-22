@@ -9,15 +9,19 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.IsotopePatternType;
+import io.github.mzmine.datamodel.features.types.numbers.IntensityRangeType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.IsotopePatternScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.util.FormulaUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.naming.Name;
 import org.graphstream.algorithm.generator.PointsOfInterestGenerator.Parameter;
@@ -31,7 +35,8 @@ public class DatabaseIsotopeRefiner {
   private static final Logger logger = Logger.getLogger(DatabaseIsotopeRefiner.class.getName());
 
   public static void refine(List<FeatureListRow> rows, MZTolerance mzTolerance,
-      RTTolerance rtTolerance) throws CloneNotSupportedException {
+      RTTolerance rtTolerance, double minIntensity, double minIsotopeScore)
+      throws CloneNotSupportedException {
     List<FeatureListRow> rowsFoundIsotope = new ArrayList<>();
     for (FeatureListRow row : rows) {
       List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
@@ -51,18 +56,19 @@ public class DatabaseIsotopeRefiner {
         assert molecularFormula != null;
         IMolecularFormula ionFormula = adductType.addToFormula(molecularFormula);
         IsotopePattern isotopePattern = IsotopePatternCalculator.calculateIsotopePattern(ionFormula,
-            0.01, mzTolerance.getMzToleranceForMass(row.getAverageMZ()), adductType.getCharge(),
-            adductType.getPolarity(), false);
+            minIntensity, mzTolerance.getMzToleranceForMass(row.getAverageMZ()),
+            adductType.getCharge(), adductType.getPolarity(), false);
         isotopePattern = IsotopePatternCalculator.removeDataPointsBelowIntensity(isotopePattern,
-            0.1);
+            minIntensity);
 
         //searching for isotopes in FeatureList, if an isotope is found,
         // FeatureListRow of isotope is deleted
-        IsotopePatternMatcher isotopePatternMatcher = new IsotopePatternMatcher(isotopePattern);
+        IsotopePatternMatcher isotopePatternMatcher = new IsotopePatternMatcher(isotopePattern,
+            minIntensity);
         for (FeatureListRow rowB : rows) {
           boolean foundIsotope = isotopePatternMatcher.offerDataPoint(rowB.getBestFeature().getMZ(),
-              rowB.getBestFeature().getHeight(), rowB.getBestFeature().getRT(), row.getBestFeature().getRT(), mzTolerance,
-              rtTolerance);
+              rowB.getBestFeature().getHeight(), rowB.getBestFeature().getRT(),
+              row.getBestFeature().getRT(), mzTolerance, rtTolerance);
           if (foundIsotope) {
             rowsFoundIsotope.add(rowB);
             logger.info(
@@ -70,15 +76,21 @@ public class DatabaseIsotopeRefiner {
           }
         }
         if (isotopePatternMatcher.matches()) {
-          row.set(IsotopePatternType.class, isotopePatternMatcher.measuredIsotopePattern());
-          Feature bestFeature = row.getBestFeature();
-          ((ModularFeature) bestFeature).set(IsotopePatternType.class,
-              isotopePatternMatcher.measuredIsotopePattern());
-          logger.info("Full isotope pattern found for m/z " + row.getAverageMZ());
-
-          //Parameter isotopePatternOutput = new Parameter();
-          //String isotopePatternOutput = isotopePatternMatcher.Output;
-          // annotation.put(isotopePatterOutput<isotopePatternMatcher.Output>, isotopePatternMatcher.Output);
+          if (IsotopePatternScoreCalculator.checkMatch(isotopePattern,
+              Objects.requireNonNull(isotopePatternMatcher.measuredIsotopePattern(mzTolerance)), mzTolerance,
+              1000.0, minIsotopeScore)) {
+            float isotopePatternScore = IsotopePatternScoreCalculator.getSimilarityScore(
+                isotopePattern,
+                Objects.requireNonNull(isotopePatternMatcher.measuredIsotopePattern(mzTolerance)), mzTolerance,
+                1000.0);
+            row.set(IsotopePatternType.class, isotopePatternMatcher.measuredIsotopePattern(mzTolerance));
+            row.set(IsotopePatternScoreType.class, isotopePatternScore);
+            Feature bestFeature = row.getBestFeature();
+            ((ModularFeature) bestFeature).set(IsotopePatternType.class,
+                isotopePatternMatcher.measuredIsotopePattern(mzTolerance));
+            ((ModularFeature) bestFeature).set(IsotopePatternScoreType.class, isotopePatternScore);
+            logger.info("Full isotope pattern found for m/z " + row.getAverageMZ());
+          }
         }
 
       }

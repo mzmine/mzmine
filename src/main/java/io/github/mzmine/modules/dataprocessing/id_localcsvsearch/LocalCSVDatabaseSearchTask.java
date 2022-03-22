@@ -76,6 +76,12 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private final String fieldSeparator;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
+  private final IsotopePatternMatcherParameterSet isotopePatternMatcherParameterSet;
+  private final MZTolerance isotopeMzTolerance;
+  private final RTTolerance isotopeRtTolerance;
+  private final double minIntensity;
+  private final double minIsotopeScore;
+  private final boolean scanBased;
   private final ParameterSet parameters;
   private final List<ImportType> importTypes;
   private final IonLibraryParameterSet ionLibraryParameterSet;
@@ -84,7 +90,6 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   private String[][] databaseValues;
   private int finishedLines = 0;
   private FeatureList peakList;
-  private final RTTolerance isotopeRtTolerance = new RTTolerance(0.1f, Unit.MINUTES);
 
   LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -100,6 +105,20 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
     mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
+    Boolean isotopePatternMatcher = parameters.getValue(LocalCSVDatabaseSearchParameters.isotopePatternMatcher);
+    isotopePatternMatcherParameterSet = isotopePatternMatcher != null && isotopePatternMatcher ? parameters.getParameter(
+        LocalCSVDatabaseSearchParameters.isotopePatternMatcher).getEmbeddedParameters() : null;
+    assert isotopePatternMatcherParameterSet != null;
+    isotopeMzTolerance = isotopePatternMatcherParameterSet.getParameter(
+        IsotopePatternMatcherParameterSet.isotopeMzTolerance).getValue();
+    isotopeRtTolerance = isotopePatternMatcherParameterSet.getParameter(
+        IsotopePatternMatcherParameterSet.isotopeRtTolerance).getValue();
+    minIntensity = isotopePatternMatcherParameterSet.getParameter(
+        IsotopePatternMatcherParameterSet.minIntensity).getValue();
+    minIsotopeScore = isotopePatternMatcherParameterSet.getParameter(
+        IsotopePatternMatcherParameterSet.minIsotopeScore).getValue();
+    scanBased = isotopePatternMatcherParameterSet.getParameter(
+        IsotopePatternMatcherParameterSet.scanBased).getValue();
     mobTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mobTolerance)
         .getValue();
     ccsTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.ccsTolerance)
@@ -181,11 +200,21 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
   }
 
   private void refineAnnotations(FeatureList flist) {
-    try {
-      DatabaseIsotopeRefiner.refine(flist.getRows(), mzTolerance, isotopeRtTolerance);
-    } catch (CloneNotSupportedException e) {
-      logger.log(Level.WARNING, e.getMessage(), e);
-    }
+    if (scanBased) {
+      try {
+        DatabaseIsotopeRefinerScanBased.refine(flist.getRows(), isotopeMzTolerance, isotopeRtTolerance,
+            minIntensity, minIsotopeScore);
+      } catch (CloneNotSupportedException e) {
+        logger.log(Level.WARNING, e.getMessage(), e);
+      }}
+    else {
+        try {
+          DatabaseIsotopeRefiner.refine(flist.getRows(), isotopeMzTolerance, isotopeRtTolerance,
+              minIntensity, minIsotopeScore);
+        } catch (CloneNotSupportedException e) {
+          logger.log(Level.WARNING, e.getMessage(), e);
+        }
+      }
   }
 
   private void processOneLine(String values[], List<ImportType> linesWithIndices) {
@@ -267,8 +296,8 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
     doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
     doIfNotNull(IonType.parseFromString(lineAdduct),
         () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
-    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(), new DatabaseMatchInfo(
-        OnlineDatabases.PubChem, pubchemId)));
+    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
+        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
     return a;
   }
 

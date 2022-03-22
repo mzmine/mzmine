@@ -1,41 +1,50 @@
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
-import de.unijena.bioinf.ChemistryBase.chem.Ionization;
-import de.unijena.bioinf.ChemistryBase.chem.MolecularFormula;
-import de.unijena.bioinf.ChemistryBase.ms.utils.SimpleSpectrum;
-import de.unijena.bioinf.IsotopePatternAnalysis.generation.IsotopePatternGenerator;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternTableData;
-import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreCalculator;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import java.util.Arrays;
-import java.util.List;
+import java.util.OptionalDouble;
 import org.jetbrains.annotations.Nullable;
 import smile.math.DoubleArrayList;
-import thredds.catalog2.builder.DatasetBuilder;
 
 public class IsotopePatternMatcher {
 
-  final double minIntensity = 0.1;
   IsotopePattern predictedIsotopePattern;
+  IsotopePattern foundPredictedIsotopePattern;
+  DoubleArrayList allMeasuredMZValues;
+  DoubleArrayList allMeasuredIntensities;
+  DoubleArrayList mustBeDetectedMzs;
+  DoubleArrayList mustBeDetectedIntensities;
   double[] measuredMZValues;
   double[] measuredIntensities;
   double[] measuredRTs;
   boolean[] mustBeDetectedMZValues;
-  String Output;
+  double[] predictedIntensities;
+  double[] predictedMzs;
+  double[] actualMZValues;
+  double[] actualIntensities;
+  float newScore;
+  float actualScore;
+  DoubleArrayList mzs;
+  DoubleArrayList predictedIntensitiesOfFoundMzs;
 
 
-  IsotopePatternMatcher(IsotopePattern isotopePattern) {
+  IsotopePatternMatcher(IsotopePattern isotopePattern, double minIntensity) {
     predictedIsotopePattern = isotopePattern;
     measuredMZValues = new double[isotopePattern.getNumberOfDataPoints()];
     measuredIntensities = new double[isotopePattern.getNumberOfDataPoints()];
     mustBeDetectedMZValues = new boolean[isotopePattern.getNumberOfDataPoints()];
     measuredRTs = new double[isotopePattern.getNumberOfDataPoints()];
+    predictedIntensities = new double[isotopePattern.getNumberOfDataPoints()];
+    predictedMzs = new double[isotopePattern.getNumberOfDataPoints()];
+    mustBeDetectedIntensities = new DoubleArrayList();
+    mustBeDetectedMzs = new DoubleArrayList();
+    allMeasuredIntensities = new DoubleArrayList();
+    allMeasuredMZValues = new DoubleArrayList();
     // Definition of mustBeDetected, if intensity is higher than minIntensity then mustBeDetected
     // is true
     for (int i = 0; i < isotopePattern.getNumberOfDataPoints(); i++) {
@@ -54,10 +63,15 @@ public class IsotopePatternMatcher {
     for (int i = 0; i < predictedIsotopePattern.getNumberOfDataPoints(); i++) {
       if (mzTolerance.checkWithinTolerance(measuredMz, predictedIsotopePattern.getMzValue(i))) {
         if (rtTolerance.checkWithinTolerance(actualRt, predictedRt)) {
+          allMeasuredMZValues.add(measuredMz);
+          allMeasuredIntensities.add(measuredIntensity);
           measuredMZValues[i] = measuredMz;
           measuredIntensities[i] = measuredIntensity;
           measuredRTs[i] = actualRt;
+          predictedIntensities[i] = (predictedIsotopePattern.getIntensityValue(i));
+          predictedMzs[i]= (predictedIsotopePattern.getMzValue(i));
           return true;
+
         }
       }
     }
@@ -68,7 +82,6 @@ public class IsotopePatternMatcher {
   public boolean matches() {
     // Überprüfe ob alle Werte von mustBeDetected in measuredMZValues vorkommen und ob RTs
     // übereinstimmen, dann return true oder false
-    int numberOfMatches = 0;
     for (int i = 0; i < mustBeDetectedMZValues.length; i++) {
       if (mustBeDetectedMZValues[i]) {
         if (measuredIntensities[i] == 0d) {
@@ -83,31 +96,98 @@ public class IsotopePatternMatcher {
    * @return The detected isotope pattern, if all necessary peaks were detected. Otherwise null.
    */
   @Nullable
-  public IsotopePattern measuredIsotopePattern() {
+  public IsotopePattern measuredIsotopePattern(MZTolerance mzTolerance) {
     if (!matches()) {
       return null;
-
     }
-    DoubleArrayList mzs = new DoubleArrayList();
-    DoubleArrayList intensities = new DoubleArrayList();
-    for (int i = 0; i < measuredMZValues.length; i++) {
-      if (measuredIntensities[i] != 0 && measuredMZValues[i] != 0) {
-        mzs.add(measuredMZValues[i]);
-        intensities.add(measuredIntensities[i]);
+    //IsotopePattern actualIsotopePattern = new SimpleIsotopePattern(measuredMZValues,
+    //    measuredIntensities, IsotopePatternStatus.DETECTED,
+    //    predictedIsotopePattern.getDescription());
+    //actualScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
+    //    actualIsotopePattern, mzTolerance, 300.0);
+    this.actualMZValues = measuredMZValues;
+    this.actualIntensities = measuredIntensities;
+    for (int i = 0; i < predictedIsotopePattern.getNumberOfDataPoints(); i++) {
+      for (int j = 0; j < allMeasuredMZValues.size(); j++) {
+        if (mzTolerance.checkWithinTolerance(allMeasuredMZValues.get(j),
+            predictedIsotopePattern.getMzValue(i))) {
+          IsotopePattern actualIsotopePattern = new SimpleIsotopePattern(measuredMZValues,
+              measuredIntensities, IsotopePatternStatus.DETECTED,
+              predictedIsotopePattern.getDescription());
+          actualScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
+              actualIsotopePattern, mzTolerance, 300.0);
+          actualMZValues[i] = allMeasuredMZValues.get(j);
+          actualIntensities[i] = allMeasuredIntensities.get(j);
+          IsotopePattern newIsotopePattern = new SimpleIsotopePattern(actualMZValues,
+              actualIntensities, IsotopePatternStatus.DETECTED,
+              predictedIsotopePattern.getDescription());
+          newScore = IsotopePatternScoreCalculator.getSimilarityScore(predictedIsotopePattern,
+              newIsotopePattern, mzTolerance, 300.0);
+          if (newScore > actualScore) {
+            this.actualScore = newScore;
+            this.measuredIntensities[i] = actualIntensities[i];
+            this.measuredMZValues[i] = actualMZValues[i];
+          }
+        }
       }
     }
 
-    return new SimpleIsotopePattern(mzs.toArray(), intensities.toArray(),
-        IsotopePatternStatus.DETECTED, predictedIsotopePattern.getDescription());
+    DoubleArrayList mzs = new DoubleArrayList();
+    DoubleArrayList intensities = new DoubleArrayList();
+    for (int i = 0; i < measuredMZValues.length; i++) {
+      if (mustBeDetectedMZValues[i]) {
+        if (measuredIntensities[i] != 0 && measuredMZValues[i] != 0) {
+          mzs.add(measuredMZValues[i]);
+          intensities.add(measuredIntensities[i]);
+        }
+      }
+    }
+
+      return new SimpleIsotopePattern(mzs.toArray(), intensities.toArray(),
+          IsotopePatternStatus.DETECTED, predictedIsotopePattern.getDescription());
   }
 
-  //new isotopePattern = measuredIsotopePattern
-  //List<double> measuredMZValuesList = Arrays.asList(measuredMZValues);
-  //DatasetBuilder measuredIsotopePattern = new Dataset (measuredMZValues, measuredIntensities);
-  //MassSpectrum measuredIsotopeMassSpectrum = new MassSpectrum (measuredMZValuesList, measuredIntensities);
-  //IsotopePattern measuredIsotopePatter = new IsotopePattern (measuredIsotopeMassSpectrum);
+  public float score (MZTolerance mzTolerance){
+      if (measuredIsotopePattern(mzTolerance) == null) {
+        return 0.0f;
+      }
+      DoubleArrayList mzsScore = new DoubleArrayList();
+      DoubleArrayList predictedIntensitiesOfFoundMzs = new DoubleArrayList();
+      for (int i = 0; i < measuredMZValues.length; i++) {
+        if (mustBeDetectedMZValues[i]) {
+          if (measuredIntensities[i] != 0 && measuredMZValues[i] != 0) {
+            mzsScore.add(predictedMzs[i]);
+            predictedIntensitiesOfFoundMzs.add(predictedIntensities[i]);
+          }
+        }
+      }
+      foundPredictedIsotopePattern = new SimpleIsotopePattern(mzsScore.toArray(),
+          predictedIntensitiesOfFoundMzs.toArray(), IsotopePatternStatus.PREDICTED,
+          predictedIsotopePattern.getDescription());
+      final float isotopePatternScore = IsotopePatternScoreCalculator.getSimilarityScore(
+          foundPredictedIsotopePattern, measuredIsotopePattern(mzTolerance), mzTolerance, 100.0);
+      return isotopePatternScore;
+  }
 
+  public IsotopePattern getFoundPredictedIsotopePattern () {
+      DoubleArrayList foundMzs = new DoubleArrayList();
+      DoubleArrayList predictedIntensitiesOfFoundMzs = new DoubleArrayList();
+      for (int i = 0; i < measuredMZValues.length; i++) {
+        if (measuredIntensities[i] != 0 && measuredMZValues[i] != 0) {
+          foundMzs.add(predictedMzs[i]);
+          predictedIntensitiesOfFoundMzs.add(predictedIntensities[i]);
+        }
+      }
+      return new SimpleIsotopePattern(foundMzs.toArray(), predictedIntensitiesOfFoundMzs.toArray(),
+          IsotopePatternStatus.PREDICTED, predictedIsotopePattern.getDescription());
+      //new isotopePattern = measuredIsotopePattern
+      //List<double> measuredMZValuesList = Arrays.asList(measuredMZValues);
+      //DatasetBuilder measuredIsotopePattern = new Dataset (measuredMZValues, measuredIntensities);
+      //MassSpectrum measuredIsotopeMassSpectrum = new MassSpectrum (measuredMZValuesList, measuredIntensities);
+      //IsotopePattern measuredIsotopePatter = new IsotopePattern (measuredIsotopeMassSpectrum);
 
+  }
 }
+
 
 
