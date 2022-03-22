@@ -20,7 +20,6 @@ package io.github.mzmine.modules.io.import_rawdata_mzml;
 
 import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
@@ -32,11 +31,9 @@ import io.github.mzmine.util.RawDataFileType;
 import io.github.mzmine.util.RawDataFileTypeDetector;
 import io.github.mzmine.util.RawDataFileUtils;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -106,28 +103,12 @@ public class MSDKmzMLImportModule implements MZmineProcessingModule {
         newName = fileNames[i].getName();
       }
 
-      try {
-        RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
-        logger.finest("File " + fileNames[i] + " type detected as " + fileType);
+      RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(fileNames[i]);
+      logger.finest("File " + fileNames[i] + " type detected as " + fileType);
 
-        RawDataFile newMZmineFile;
-        if (fileType == RawDataFileType.MZML_IMS) {
-          newMZmineFile = MZmineCore
-              .createNewIMSFile(newName, fileNames[i].getAbsolutePath(), storage);
-        } else {
-          newMZmineFile = MZmineCore
-              .createNewFile(newName, fileNames[i].getAbsolutePath(), storage);
-        }
-        Task newTask = new MSDKmzMLImportTask(project, fileNames[i], newMZmineFile,
-            MSDKmzMLImportModule.class, parameters, moduleCallDate);
-        tasks.add(newTask);
-
-      } catch (IOException e) {
-        e.printStackTrace();
-        MZmineCore.getDesktop().displayErrorMessage("Could not create a new temporary file " + e);
-        logger.log(Level.SEVERE, "Could not create a new temporary file ", e);
-        return ExitCode.ERROR;
-      }
+      Task newTask = new MSDKmzMLImportTask(project, fileNames[i],
+          MSDKmzMLImportModule.class, parameters, moduleCallDate, storage);
+      tasks.add(newTask);
 
     }
 

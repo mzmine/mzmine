@@ -54,12 +54,7 @@ public class FeatureDataTypeTest {
   @Test
   void testSimpleIonTimeSeries() {
     RawDataFile file = null;
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);
@@ -107,12 +102,7 @@ public class FeatureDataTypeTest {
   @Test
   void testIonMobilogramTimeSeries() {
     IMSRawDataFile file = null;
-    try {
-      file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new IMSRawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     final ModularFeatureList flist = new ModularFeatureList("flist", null, file);

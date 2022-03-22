@@ -41,6 +41,9 @@ import io.github.mzmine.modules.io.import_rawdata_mzxml.MzXMLImportTask;
 import io.github.mzmine.modules.io.import_rawdata_netcdf.NetCDFImportTask;
 import io.github.mzmine.modules.io.import_rawdata_thermo_raw.ThermoRawImportTask;
 import io.github.mzmine.modules.io.import_rawdata_waters_raw.WatersRawImportTask;
+import io.github.mzmine.modules.io.import_rawdata_zip.ZipImportTask;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.Task;
@@ -61,6 +64,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Raw data import module
@@ -117,6 +121,15 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       return ExitCode.ERROR;
     }
 
+    // start importing spectral libraries first
+    final File[] libraryFiles = parameters.getValue(SpectralLibraryImportParameters.dataBaseFiles);
+    if (libraryFiles != null) {
+      for (File f : libraryFiles) {
+        Task newTask = new SpectralLibraryImportTask(project, f, moduleCallDate);
+        tasks.add(newTask);
+      }
+    }
+
     // Find common prefix in raw file names if in GUI mode
     String commonPrefix = RawDataFileUtils.askToRemoveCommonPrefix(fileNames);
 
@@ -167,8 +180,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
         final AbstractTask newTask =
             useAdvancedOptions && advancedParam != null ? createAdvancedTask(fileType, project,
                 fileName, newMZmineFile, advancedParam, AllSpectralDataImportModule.class,
-                parameters, moduleCallDate) : createTask(fileType, project, fileName, newMZmineFile,
-                AllSpectralDataImportModule.class, parameters, moduleCallDate);
+                parameters, moduleCallDate, storage)
+                : createTask(fileType, project, fileName, newMZmineFile,
+                    AllSpectralDataImportModule.class, parameters, moduleCallDate, storage);
 
         // add task to list
         if (newTask != null) {
@@ -198,9 +212,16 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
+  /**
+   * @param newMZmineFile null for mzml files, can be ims or non ims. must be determined in import
+   *                      task.
+   * @param storage
+   * @return
+   */
   private AbstractTask createTask(RawDataFileType fileType, MZmineProject project, File file,
-      RawDataFile newMZmineFile, Class<? extends MZmineModule> module, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      @Nullable RawDataFile newMZmineFile, Class<? extends MZmineModule> module,
+      ParameterSet parameters, @NotNull Instant moduleCallDate,
+      @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // imaging
       case IMZML -> new ImzMLImportTask(project, file, (ImagingRawDataFile) newMZmineFile, module,
@@ -209,13 +230,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case BRUKER_TSF -> new TSFImportTask(project, file, MemoryMapStorage.forRawDataFile(), module,
           parameters, moduleCallDate);
       // IMS
-      case MZML_IMS -> new MSDKmzMLImportTask(project, file, (IMSRawDataFile) newMZmineFile, module,
-          parameters, moduleCallDate);
       case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile, module,
           parameters, moduleCallDate);
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, module, parameters,
-          moduleCallDate);
+      case MZML, MZML_IMS -> new MSDKmzMLImportTask(project, file, module, parameters,
+          moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, module, parameters,
           moduleCallDate);
       case MZDATA -> new MzDataImportTask(project, file, newMZmineFile, module, parameters,
@@ -228,6 +247,8 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
           moduleCallDate);
       case ICPMSMS_CSV -> new IcpMsCVSImportTask(project, file, newMZmineFile, module, parameters,
           moduleCallDate);
+      case MZML_GZIP, MZML_ZIP -> new ZipImportTask(project, file, module, parameters,
+          moduleCallDate, storage);
       default -> throw new IllegalStateException("Unexpected value: " + fileType);
     };
   }
@@ -242,11 +263,11 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private AbstractTask createAdvancedTask(RawDataFileType fileType, MZmineProject project,
       File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
       Class<? extends MZmineModule> module, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     return switch (fileType) {
       // MS
-      case MZML -> new MSDKmzMLImportTask(project, file, newMZmineFile, advancedParam, module,
-          parameters, moduleCallDate);
+      case MZML -> new MSDKmzMLImportTask(project, file, null, advancedParam, module, parameters,
+          moduleCallDate, storage);
       case MZXML -> new MzXMLImportTask(project, file, newMZmineFile, advancedParam, module,
           parameters, moduleCallDate);
       case BRUKER_TDF -> new TDFImportTask(project, file, (IMSRawDataFile) newMZmineFile,
@@ -254,9 +275,9 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
       case AIRD -> new AirdImportTask(project, file, newMZmineFile, module, parameters,
           moduleCallDate);
       // all unsupported tasks are wrapped to apply import and mass detection separately
-      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
-          fileType, project, file, newMZmineFile, advancedParam, module, parameters,
-          moduleCallDate);
+      case MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, MZML_ZIP, MZML_GZIP, ICPMSMS_CSV, IMZML, MZML_IMS -> createWrappedAdvancedTask(
+          fileType, project, file, newMZmineFile, advancedParam, module, parameters, moduleCallDate,
+          storage);
       default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }
@@ -264,25 +285,25 @@ public class AllSpectralDataImportModule implements MZmineProcessingModule {
   private AbstractTask createWrappedAdvancedTask(RawDataFileType fileType, MZmineProject project,
       File file, RawDataFile newMZmineFile, @NotNull AdvancedSpectraImportParameters advancedParam,
       Class<? extends MZmineModule> module, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      @NotNull Instant moduleCallDate, @Nullable final MemoryMapStorage storage) {
     // log
     logger.warning("Advanced processing is not available for MS data type: " + fileType.toString()
         + " and file " + file.getAbsolutePath());
     // create wrapped task to apply import and mass detection
     return new MsDataImportAndMassDetectWrapperTask(getMassListStorage(), newMZmineFile,
-        createTask(fileType, project, file, newMZmineFile, module, parameters, moduleCallDate),
-        advancedParam, moduleCallDate);
+        createTask(fileType, project, file, newMZmineFile, module, parameters, moduleCallDate,
+            storage), advancedParam, moduleCallDate);
   }
 
   private RawDataFile createDataFile(RawDataFileType fileType, String absPath, String newName,
       MemoryMapStorage storage) throws IOException {
     return switch (fileType) {
-      case MZML, MZXML, MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, GZIP, ICPMSMS_CSV, AIRD -> MZmineCore.createNewFile(
+      case MZXML, MZDATA, THERMO_RAW, WATERS_RAW, NETCDF, ICPMSMS_CSV, AIRD -> MZmineCore.createNewFile(
           newName, absPath, storage);
+      case MZML, MZML_IMS, MZML_ZIP, MZML_GZIP -> null; // created in Mzml import task
       case IMZML -> MZmineCore.createNewImagingFile(newName, absPath, storage);
-      case BRUKER_TDF, MZML_IMS -> MZmineCore.createNewIMSFile(newName, absPath, storage);
+      case BRUKER_TDF -> MZmineCore.createNewIMSFile(newName, absPath, storage);
       case BRUKER_TSF -> null; // TSF can be anything: Single shot maldi, imaging, or LC-MS (non ims)
-      default -> throw new IllegalStateException("Unexpected data type: " + fileType);
     };
   }
 

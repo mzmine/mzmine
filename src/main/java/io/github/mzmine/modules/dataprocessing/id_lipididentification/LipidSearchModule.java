@@ -68,7 +68,7 @@ public class LipidSearchModule implements MZmineProcessingModule {
 
   @Override
   public @NotNull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.ANNOTATION;
   }
 
   @Override

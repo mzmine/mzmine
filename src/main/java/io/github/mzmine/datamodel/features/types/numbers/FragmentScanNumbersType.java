@@ -41,7 +41,7 @@ public class FragmentScanNumbersType extends ScanNumbersType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "fragment_scan_number_list";
+    return "fragment_scans";
   }
 
   @Override

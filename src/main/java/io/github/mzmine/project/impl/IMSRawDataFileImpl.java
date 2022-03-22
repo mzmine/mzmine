@@ -21,17 +21,16 @@ package io.github.mzmine.project.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
-import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.util.MemoryMapStorage;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -52,39 +51,31 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   private final Hashtable<Integer, List<Scan>> frameNumbersCache;
   private final Hashtable<Integer, Range<Double>> dataMobilityRangeCache;
   private final Hashtable<Integer, List<Frame>> frameMsLevelCache;
-
-  /**
-   * Mobility <-> sub spectrum number is the same for a segment but might change between segments!
-   * Key = Range of Frame numbers in a segment (inclusive) Value = Mapping of sub spectrum number ->
-   * mobility
-   */
-  private final Map<Range<Integer>, Map<Integer, Double>> segmentMobilityRange;
+  private final List<DoubleImmutableList> mobilitySegments = new ArrayList<>();
 
   protected Range<Double> mobilityRange;
   protected MobilityType mobilityType;
+  protected CCSCalibration ccsCalibration = null;
 
   public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
-      MemoryMapStorage storage) throws IOException {
+      MemoryMapStorage storage) {
     super(dataFileName, absolutePath, storage);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
-    segmentMobilityRange = new HashMap<>();
 
     mobilityRange = null;
     mobilityType = MobilityType.NONE;
-
   }
 
   public IMSRawDataFileImpl(String dataFileName, @Nullable final String absolutePath,
-      MemoryMapStorage storage, Color color) throws IOException {
+      MemoryMapStorage storage, Color color) {
     super(dataFileName, absolutePath, storage, color);
 
     frameNumbersCache = new Hashtable<>();
     dataMobilityRangeCache = new Hashtable<>();
     frameMsLevelCache = new Hashtable<>();
-    segmentMobilityRange = new HashMap<>();
 
     mobilityRange = null;
     mobilityType = MobilityType.NONE;
@@ -269,44 +260,6 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
   }
 
   /**
-   * @param frameRange The range (in frame ids) for an acquisition segment.
-   */
-  public void addSegment(Range<Integer> frameRange) {
-    segmentMobilityRange.put(frameRange, null);
-  }
-
-  /**
-   * @param frameNumber The frame number
-   * @param mobilitySpectrumNumber The mobility spectrum number with regard to the frame.
-   * @return The mobility for the respective scan or {@link MobilityScan#DEFAULT_MOBILITY}.
-   */
-  /*@Override
-  public double getMobilityForMobilitySpectrum(int frameNumber, int mobilitySpectrumNumber) {
-    Map<Integer, Double> mobilities = getMobilitiesForFrame(frameNumber);
-    if (mobilities != null) {
-      return mobilities.getOrDefault(mobilitySpectrumNumber, MobilityScan.DEFAULT_MOBILITY);
-    }
-    return MobilityScan.DEFAULT_MOBILITY;
-  }*/
-
-  /**
-   * @param frameId The frame number.
-   * @return Map of mobility scan number <-> mobility or null for invalid frame numbers.
-   */
-  @Nullable
-  /*@Override
-  public Map<Integer, Double> getMobilitiesForFrame(int frameNumber) {
-    Optional<Entry<Range<Integer>, Map<Integer, Double>>> entry = segmentMobilityRange.entrySet()
-        .stream().filter(e -> e.getKey().contains(frameNumber)).findFirst();
-    return entry.map(Entry::getValue).orElse(null);
-  }*/
-
-  private Range<Integer> getSegmentKeyForFrame(int frameId) {
-    return segmentMobilityRange.keySet().stream()
-        .filter(segmentRange -> segmentRange.contains(frameId)).findFirst().get();
-  }
-
-  /**
    * Method to check if the proposed number of datapoints exceeds the current max number of
    * datapoints. Used in case the data points of a frame are altered. E.g. when a MZML IMS file is
    * imported. At that point, no summed frame is available and will have to be created later on.
@@ -319,4 +272,46 @@ public class IMSRawDataFileImpl extends RawDataFileImpl implements IMSRawDataFil
     }
   }
 
+  @Override
+  public @Nullable CCSCalibration getCCSCalibration() {
+    return ccsCalibration;
+  }
+
+  @Override
+  public void setCCSCalibration(@Nullable CCSCalibration calibration) {
+    ccsCalibration = calibration;
+  }
+
+  @Override
+  public int addMobilityValues(double[] mobilities) {
+    for (int i = 0; i < mobilitySegments.size(); i++) {
+      var mobilitySegment = mobilitySegments.get(i);
+      if (mobilitySegment.size() != mobilities.length) {
+        continue;
+      }
+      boolean equals = true;
+      for (int j = 0; j < mobilitySegment.size(); j++) {
+        if (Double.compare(mobilitySegment.getDouble(j), mobilities[j]) != 0) {
+          equals = false;
+          break;
+        }
+      }
+      if (equals) {
+        return i;
+      }
+    }
+    mobilitySegments.add(new DoubleImmutableList(mobilities));
+    if (mobilitySegments.size() > 10) {
+      logger.finest(
+          () -> "Registered " + mobilitySegments.size() + " mobility segments in file " + getName()
+              + ".");
+    }
+    return mobilitySegments.size() - 1;
+  }
+
+  @Override
+  public DoubleImmutableList getSegmentMobilities(int segment) {
+    assert segment < mobilitySegments.size();
+    return mobilitySegments.get(segment);
+  }
 }

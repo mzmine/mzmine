@@ -194,7 +194,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     cachedFrame = new CachedFrame(selectedFrame.get(), frameNoiseLevel,
         mobilityScanNoiseLevel);//selectedFrame.get();//
     heatmapChart.setDataset(new FrameHeatmapProvider(cachedFrame));
-    mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame));
+    mobilogramChart.addDataset(new FrameSummedMobilogramProvider(cachedFrame, binWidth));
     summedSpectrumChart.addDataset(new FrameSummedSpectrumProvider(cachedFrame));
     if (selectedMobilityScan.get() != null) {
       singleSpectrumChart.addDataset(new SingleMobilityScanProvider(
@@ -335,7 +335,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
     mobilogramChart.cursorPositionProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue.getValueIndex() != -1) {
         selectedMobilityScan.set(
-            cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex()));
+            cachedFrame.getSortedMobilityScans().get(newValue.getValueIndex() * binWidth));
       }
     }));
     singleSpectrumChart.cursorPositionProperty().addListener(
@@ -378,6 +378,7 @@ public class IMSRawDataOverviewPane extends BorderPane {
       if (selectedMobilogramDatasetIndex != -1) {
         mobilogramChart.removeDataSet(selectedMobilogramDatasetIndex, false);
       }
+      controlsPanel.setRangeToMobilogramRangeComp(newValue);
       Thread mobilogramCalc = new Thread(
           new BuildSelectedRanges(selectedMz.get(), Set.of(cachedFrame), rawDataFile, scanSelection,
               this, rtWidth, selectedBinningMobilogramDataAccess));

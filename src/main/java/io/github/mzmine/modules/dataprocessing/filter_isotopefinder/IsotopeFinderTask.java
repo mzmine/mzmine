@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
@@ -39,11 +40,9 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.IsotopesUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -155,34 +154,48 @@ class IsotopeFinderTask extends AbstractTask {
       // find candidate isotope pattern in max scan
       // for each charge state to determine best charge
       // merge afterward to get one isotope patten with all possible isotopes
-      List<DataPoint> combinedChargesIsotopes = new ArrayList<>();
       int maxFoundIsotopes = 0;
       int bestCharge = 0;
+      IsotopePattern pattern = null;
 
       for (int i = 0; i < isotopeMaxCharge; i++) {
+        // charge is zero indexed but always starts at 1 -> max charge
+        final int charge = i + 1;
         final DoubleArrayList currentChargeDiffs = isoMzDiffsForCharge[i];
         final double currentMaxDiff = maxIsoMzDiff[i];
         List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
             currentMaxDiff, isoMzTolerance, scans, new SimpleDataPoint(mz, feature.getHeight()));
 
-        combinedChargesIsotopes.addAll(candidates);
-        if (candidates.size() > maxFoundIsotopes) {
-          maxFoundIsotopes = candidates.size();
-          bestCharge = i + 1;
+        if (!candidates.isEmpty()) {
+          IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
+              charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
+          if (pattern == null) {
+            pattern = newPattern;
+          } else if (pattern instanceof SimpleIsotopePattern) {
+            // combine 2 isotope pattern
+            pattern = new MultiChargeStateIsotopePattern(pattern, newPattern);
+          } else if (pattern instanceof MultiChargeStateIsotopePattern multi) {
+            // add next patterns
+            multi.addPattern(newPattern);
+          } else {
+            throw new IllegalStateException("Isotope pattern type is not handled.");
+          }
+
+          if (candidates.size() > maxFoundIsotopes) {
+            maxFoundIsotopes = candidates.size();
+            // charge is zero indexed but always starts at 1 -> max charge
+            bestCharge = charge;
+          }
         }
       }
-      if (combinedChargesIsotopes.size() <= 1) {
+      if (pattern == null) {
         // no pattern found
         continue;
       }
 
       if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
         // add isotope pattern and charge
-        combinedChargesIsotopes.sort(DataPointSorter.DEFAULT_MZ_ASCENDING);
-        IsotopePattern isotopePattern = new SimpleIsotopePattern(
-            combinedChargesIsotopes.toArray(new DataPoint[0]), IsotopePatternStatus.DETECTED,
-            "Isotope finder");
-        feature.setIsotopePattern(isotopePattern);
+        feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
         detected++;
       } else {

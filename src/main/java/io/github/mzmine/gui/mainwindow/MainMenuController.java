@@ -50,7 +50,7 @@ import javafx.scene.control.MenuItem;
  */
 public class MainMenuController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainMenuController.class.getName());
 
   @FXML
   private Menu recentProjectsMenu;

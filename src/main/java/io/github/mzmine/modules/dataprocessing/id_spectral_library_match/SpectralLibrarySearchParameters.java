@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataprocessing.id_spectral_library_match;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.SpectralLibrariesSelectionParameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
@@ -33,6 +32,7 @@ import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.selectors.SpectralLibrarySelectionParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -47,12 +47,12 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final SpectralLibrariesSelectionParameter libraries =
-      new SpectralLibrariesSelectionParameter(1);
 
-  public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
-      new OptionalModuleParameter<>("13C deisotoping",
-          "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
+  public static final SpectralLibrarySelectionParameter libraries = new SpectralLibrarySelectionParameter();
+
+  public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping = new OptionalModuleParameter<>(
+      "13C deisotoping", "Removes 13C isotope signals from mass lists",
+      new MassListDeisotoperParameters(), true);
 
   public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
       "Crop spectra to m/z overlap",
@@ -67,14 +67,14 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       "Check all scans (only for MS2)",
       "Check all (or only most intense) MS2 scan. This option does not apply to MS1 scans.", false);
 
-  public static final OptionalParameter<IntegerParameter> needsIsotopePattern =
-      new OptionalParameter<>(new IntegerParameter("Min matched isotope signals",
+  public static final OptionalParameter<IntegerParameter> needsIsotopePattern = new OptionalParameter<>(
+      new IntegerParameter("Min matched isotope signals",
           "Useful for scans and libraries with isotope pattern. Minimum matched signals of 13C isotopes, distance of H and 2H or Cl isotopes. Can not be applied with deisotoping",
           3, 0, 1000), false);
 
-  public static final MZToleranceParameter mzTolerancePrecursor =
-      new MZToleranceParameter("Precursor m/z tolerance",
-          "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
+  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries", 0.001,
+      5);
 
   public static final BooleanParameter removePrecursor = new BooleanParameter("Remove precursor",
       "For MS2 scans, remove precursor signal prior to matching (+- precursor m/z tolerance)",
@@ -83,11 +83,11 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   public static final OptionalParameter<PercentParameter> ccsTolerance = new OptionalParameter<>(
       new PercentParameter("CCS tolerance [%]",
           "CCS tolerance for spectral library entries to be matched against a feature.\n"
-              + "If the row or the library entry does not have a CCS value, no spectrum will be matched.",
+          + "If the row or the library entry does not have a CCS value, no spectrum will be matched.",
           0.05), true);
 
-  public static final OptionalParameter<RTToleranceParameter> rtTolerance =
-      new OptionalParameter<>(new RTToleranceParameter());
+  public static final OptionalParameter<RTToleranceParameter> rtTolerance = new OptionalParameter<>(
+      new RTToleranceParameter());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
       "Spectral m/z tolerance",
@@ -102,10 +102,9 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
       "Minimum number of matched signals in masslist and spectral library entry (within mz tolerance)",
       4);
 
-  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
-      new ModuleComboParameter<>("Similarity",
-          "Algorithm to calculate similarity and filter matches",
-          SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
+  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction = new ModuleComboParameter<>(
+      "Similarity", "Algorithm to calculate similarity and filter matches",
+      SpectralSimilarityFunction.FUNCTIONS, SpectralSimilarityFunction.weightedCosine);
 
   /**
    * for SelectedRowsParameters
@@ -117,8 +116,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
   }
 
   public SpectralLibrarySearchParameters() {
-    super(new Parameter[]{peakLists, libraries, msLevel, allMS2Spectra,
-        mzTolerancePrecursor, removePrecursor, ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern,
+    super(new Parameter[]{peakLists, libraries, msLevel, allMS2Spectra, mzTolerancePrecursor,
+        removePrecursor, ccsTolerance, noiseLevel, deisotoping, needsIsotopePattern,
         cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
   }
 
@@ -130,8 +129,8 @@ public class SpectralLibrarySearchParameters extends SimpleParameterSet {
     boolean isotope =
         !getParameter(deisotoping).getValue() || !getParameter(needsIsotopePattern).getValue();
     if (!isotope) {
-      errorMessages
-          .add("Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
+      errorMessages.add(
+          "Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
       return false;
     }
     return check;

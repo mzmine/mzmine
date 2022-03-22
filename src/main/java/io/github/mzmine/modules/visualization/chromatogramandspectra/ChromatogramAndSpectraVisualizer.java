@@ -415,8 +415,6 @@ public class ChromatogramAndSpectraVisualizer extends SplitPane {
   private void onChromatogramSelectionChanged(
       ObservableValue<? extends ChromatogramCursorPosition> obs, ChromatogramCursorPosition old,
       ChromatogramCursorPosition pos) {
-    RawDataFile file = pos.getDataFile();
-
     updateChromatogramDomainMarker(pos);
     // update feature data sets
     Scan scan = pos.getScan();

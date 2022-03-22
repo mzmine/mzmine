@@ -24,20 +24,23 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class FileNamesComponent extends FlowPane {
+public class FileNamesComponent extends BorderPane {
 
   public static final Font smallFont = new Font("SansSerif", 10);
 
@@ -50,15 +53,14 @@ public class FileNamesComponent extends FlowPane {
 
     this.filters = ImmutableList.copyOf(filters);
 
-    // setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-
     txtFilename = new TextArea();
-    txtFilename.setPrefColumnCount(40);
+    txtFilename.setPrefColumnCount(65);
     txtFilename.setPrefRowCount(6);
     txtFilename.setFont(smallFont);
     initDragDropped();
 
     Button btnFileBrowser = new Button("Select files");
+    btnFileBrowser.setMaxWidth(Double.MAX_VALUE);
     btnFileBrowser.setOnAction(e -> {
       // Create chooser.
       FileChooser fileChooser = new FileChooser();
@@ -87,15 +89,36 @@ public class FileNamesComponent extends FlowPane {
     useSubFolders.setSelected(false);
 
     Button btnClear = new Button("Clear");
+    btnClear.setMaxWidth(Double.MAX_VALUE);
     btnClear.setOnAction(e -> txtFilename.setText(""));
 
-    VBox vbox = new VBox(btnFileBrowser, btnClear, useSubFolders);
+    GridPane buttonGrid = new GridPane();
+    ColumnConstraints b1 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
+    ColumnConstraints b2 = new ColumnConstraints(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE,
+        USE_COMPUTED_SIZE, Priority.ALWAYS, HPos.CENTER, true);
+    buttonGrid.getColumnConstraints().addAll(b1, b2);
+
+    buttonGrid.setHgap(1);
+    buttonGrid.setVgap(3);
+    buttonGrid.setPadding(new Insets(0, 0, 0, 5));
+
+    buttonGrid.add(btnFileBrowser, 0, 0);
+    buttonGrid.add(btnClear, 1, 0);
+    buttonGrid.add(useSubFolders, 0, 1, 2, 1);
 
     List<Button> directoryButtons = createFromDirectoryBtns(filters);
-    vbox.getChildren().addAll(directoryButtons);
+    int startRow = 2;
+    buttonGrid.add(directoryButtons.remove(0), 0, startRow, 2, 1);
+    for (int i = 0; i < directoryButtons.size(); i++) {
+      buttonGrid.add(directoryButtons.get(i), i % 2, startRow + 1 + i / 2);
+      directoryButtons.get(i).getParent().layout();
+    }
+    buttonGrid.layout();
 
-    HBox hbox = new HBox(txtFilename, vbox);
-    getChildren().addAll(hbox);
+    // main gridpane
+    this.setCenter(txtFilename);
+    this.setRight(buttonGrid);
   }
 
   private List<Button> createFromDirectoryBtns(List<ExtensionFilter> filters) {
@@ -108,6 +131,9 @@ public class FileNamesComponent extends FlowPane {
           : "All " + filter.getExtensions().get(0);
 
       Button btnFromDirectory = new Button(name);
+      btnFromDirectory.setMinWidth(USE_COMPUTED_SIZE);
+      btnFromDirectory.setPrefWidth(USE_COMPUTED_SIZE);
+      btnFromDirectory.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
       btnFromDirectory.setTooltip(new Tooltip("All files in folder (sub folders)"));
       btns.add(btnFromDirectory);
       btnFromDirectory.setOnAction(e -> {
@@ -123,8 +149,8 @@ public class FileNamesComponent extends FlowPane {
         }
 
         // list all files in sub directories
-        List<File[]> filesInDir = FileAndPathUtil
-            .findFilesInDir(dir, filter, useSubFolders.isSelected());
+        List<File[]> filesInDir = FileAndPathUtil.findFilesInDir(dir, filter,
+            useSubFolders.isSelected());
         // all files in dir or sub dirs
         setValue(filesInDir.stream().flatMap(Arrays::stream).toArray(File[]::new));
       });

@@ -55,8 +55,10 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
 
   public BuildMultipleMobilogramRanges(@NotNull List<Range<Double>> mzRanges,
       @NotNull Set<Frame> frames, @NotNull IMSRawDataFile file,
-      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning, @NotNull Date moduleCallDate) {
-    super(null, Instant.now()); // no new data stored -> null, date is irrelevant (not used in batch mode)
+      @NotNull IMSRawDataOverviewPane pane, @NotNull BinningMobilogramDataAccess binning,
+      @NotNull Date moduleCallDate) {
+    super(null,
+        Instant.now()); // no new data stored -> null, date is irrelevant (not used in batch mode)
     this.binning = binning;
     finishedPercentage = 0d;
     this.mzRanges = mzRanges;
@@ -79,18 +81,18 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
     for (Range<Double> mzRange : mzRanges) {
       List<IonMobilitySeries> mobilograms = new ArrayList<>();
       for (Frame frame : frames) {
-        final IonMobilitySeries mobilogram = IonMobilityUtils
-            .buildMobilogramForMzRange(frame, mzRange, MobilogramType.TIC, null);
+        final IonMobilitySeries mobilogram = IonMobilityUtils.buildMobilogramForMzRange(frame,
+            mzRange, MobilogramType.TIC, null);
         mobilograms.add(mobilogram);
       }
 
       final String seriesKey =
-          "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat
-              .format(mzRange.upperEndpoint());
+          "m/z " + mzFormat.format(mzRange.lowerEndpoint()) + " - " + mzFormat.format(
+              mzRange.upperEndpoint());
       if (!mobilograms.isEmpty()) {
         binning.setMobilogram(mobilograms);
         final SummedIntensityMobilitySeries summed = binning.toSummedMobilogram(null);
-        if(summed.getNumberOfDataPoints() > 0) {
+        if (summed.getNumberOfDataPoints() > 0) {
           SummedMobilogramXYProvider provider = new SummedMobilogramXYProvider(summed,
               new SimpleObjectProperty<>(colors.get(mzRanges.indexOf(mzRange))), seriesKey, true);
           ColoredXYDataset dataset = new ColoredXYDataset(provider, RunOption.THIS_THREAD);
@@ -100,8 +102,7 @@ public class BuildMultipleMobilogramRanges extends AbstractTask {
       finishedPercentage = mzRanges.indexOf(mzRange) / (double) mzRanges.size();
     }
     setStatus(TaskStatus.FINISHED);
-    Platform
-        .runLater(() -> pane.addMobilogramRangesToChart(mobilogramDataSets));
+    Platform.runLater(() -> pane.addMobilogramRangesToChart(mobilogramDataSets));
   }
 
   @Override

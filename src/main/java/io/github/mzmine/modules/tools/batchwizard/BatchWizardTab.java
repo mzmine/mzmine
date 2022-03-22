@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.Node;
 import org.jetbrains.annotations.NotNull;
 
 public class BatchWizardTab extends MZmineTab {
@@ -36,7 +36,7 @@ public class BatchWizardTab extends MZmineTab {
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("BatchWizard.fxml"));
 
     try {
-      ScrollPane mainPane = loader.load();
+      Node mainPane = loader.load();
       setContent(mainPane);
     } catch (IOException e) {
       e.printStackTrace();

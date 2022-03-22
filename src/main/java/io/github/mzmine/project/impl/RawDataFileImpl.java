@@ -89,13 +89,13 @@ public class RawDataFileImpl implements RawDataFile {
       .observableArrayList();
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
-      @Nullable final MemoryMapStorage storage) throws IOException {
+      @Nullable final MemoryMapStorage storage) {
     this(dataFileName, absolutePath, storage,
         MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
   }
 
   public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
-      @Nullable final MemoryMapStorage storage, @NotNull Color color) throws IOException {
+      @Nullable final MemoryMapStorage storage, @NotNull Color color) {
     setName(dataFileName);
     this.storageMemoryMap = storage;
     this.absolutePath = absolutePath;

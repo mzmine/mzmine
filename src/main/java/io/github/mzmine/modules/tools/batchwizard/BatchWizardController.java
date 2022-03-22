@@ -42,6 +42,8 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.MassDetecti
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.SelectedScanTypes;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerModule;
+import io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger.MobilityScanMergerParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingModule;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingParameters;
 import io.github.mzmine.modules.dataprocessing.featdet_smoothing.savitzkygolay.SavitzkyGolayParameters;
@@ -55,6 +57,8 @@ import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinde
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.Isotope13CFilterParameters;
+import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterChoices;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_rowsfilter.RowsFilterParameters;
 import io.github.mzmine.modules.dataprocessing.gapfill_peakfinder.multithreaded.MultiThreadPeakFinderModule;
@@ -74,6 +78,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
 import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultLcParameters;
 import io.github.mzmine.modules.tools.batchwizard.defaults.DefaultMsParameters;
@@ -100,9 +105,12 @@ import io.github.mzmine.util.FeatureMeasurementType;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.maths.Weighting;
 import io.github.mzmine.util.maths.similarity.SimilarityMeasure;
+import io.github.mzmine.util.scans.SpectraMerging.MergingType;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -118,6 +126,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.Element;
 
 public class BatchWizardController {
@@ -270,6 +279,11 @@ public class BatchWizardController {
     q.add(makeMassDetectionStep(msParameters, 1));
     q.add(makeMassDetectionStep(msParameters, 2));
 
+    if (cbIonMobility.isSelected() && Arrays.stream(filesComponent.getValue())
+        .anyMatch(file -> file.getName().toLowerCase().endsWith(".mzml"))) {
+      q.add(makeMobilityScanMergerStep(msParameters));
+    }
+
     q.add(makeAdapStep(msParameters, hplcParameters));
 
     q.add(makeSmoothingStep(hplcParameters, true, false));
@@ -287,7 +301,10 @@ public class BatchWizardController {
     q.add(makeIsotopeFinderStep(msParameters));
     q.add(makeAlignmentStep(msParameters, hplcParameters, cbIonMobility.isSelected(),
         cbMobilityType.getValue()));
-    q.add(makeRowFilterStep(msParameters, hplcParameters));
+    final var rowsFilter = makeRowFilterStep(msParameters, hplcParameters);
+    if (rowsFilter != null) {
+      q.add(rowsFilter);
+    }
     q.add(makeGapFillStep(msParameters, hplcParameters));
     if (!cbIonMobility.isSelected()) { // might filter IMS resolved isomers
       q.add(makeDuplicateRowFilterStep(msParameters, hplcParameters));
@@ -301,22 +318,41 @@ public class BatchWizardController {
     return q;
   }
 
+  @Nullable
   private MZmineProcessingStep<MZmineProcessingModule> makeRowFilterStep(ParameterSet msParameters,
       ParameterSet hplcParameters) {
     final int minSamples = hplcParameters.getValue(BatchWizardHPLCParameters.minNumberOfSamples);
+    final boolean filter13C = hplcParameters.getValue(BatchWizardHPLCParameters.filter13C);
+
+    if (!filter13C && minSamples < 2) {
+      return null;
+    }
 
     final ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(RowsFilterModule.class).cloneParameterSet();
     param.setParameter(RowsFilterParameters.FEATURE_LISTS,
         new FeatureListsSelection(FeatureListsSelectionType.BATCH_LAST_FEATURELISTS));
-    param.setParameter(RowsFilterParameters.SUFFIX,
-        "2iso" + (minSamples > 1 ? " " + minSamples + "peak" : ""));
+    String suffix = (filter13C ? "13C" : "");
+    if (minSamples > 1) {
+      suffix = suffix + (suffix.isEmpty() ? "" : " ") + "peak";
+    }
+    param.setParameter(RowsFilterParameters.SUFFIX, suffix);
     param.setParameter(RowsFilterParameters.MIN_FEATURE_COUNT, minSamples > 1);
     param.getParameter(RowsFilterParameters.MIN_FEATURE_COUNT).getEmbeddedParameter()
         .setValue((double) minSamples);
-    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, true);
-    param.getParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getEmbeddedParameter()
-        .setValue(2);
+    // use the new isotope filter instead of two isotope peaks
+    param.setParameter(RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT, false);
+    param.setParameter(RowsFilterParameters.ISOTOPE_FILTER_13C, true);
+
+    final Isotope13CFilterParameters filterIsoParam = param.getParameter(
+        RowsFilterParameters.ISOTOPE_FILTER_13C).getEmbeddedParameters();
+    filterIsoParam.setParameter(Isotope13CFilterParameters.mzTolerance, msParameters.getValue(BatchWizardMassSpectrometerParameters.featureToFeatureMzTolerance));
+    filterIsoParam.setParameter(Isotope13CFilterParameters.maxCharge, 2);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.applyMinCEstimation, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.removeIfMainIs13CIsotope, true);
+    filterIsoParam.setParameter(Isotope13CFilterParameters.elements, List.of(new Element("O")));
+
+    //
     param.setParameter(RowsFilterParameters.MZ_RANGE, false);
     param.setParameter(RowsFilterParameters.RT_RANGE, false);
     param.setParameter(RowsFilterParameters.FEATURE_DURATION, false);
@@ -327,12 +363,12 @@ public class BatchWizardController {
     param.setParameter(RowsFilterParameters.HAS_IDENTITIES, false);
     param.setParameter(RowsFilterParameters.IDENTITY_TEXT, false);
     param.setParameter(RowsFilterParameters.COMMENT_TEXT, false);
-    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterParameters.removeRowChoices[0]);
+    param.setParameter(RowsFilterParameters.REMOVE_ROW, RowsFilterChoices.KEEP_MATCHING);
     param.setParameter(RowsFilterParameters.MS2_Filter, false);
+    param.setParameter(RowsFilterParameters.KEEP_ALL_MS2, true);
     param.setParameter(RowsFilterParameters.Reset_ID, false);
     param.setParameter(RowsFilterParameters.massDefect, false);
-    param.setParameter(RowsFilterParameters.handleOriginal,
-        hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
+    param.setParameter(RowsFilterParameters.handleOriginal, hplcParameters.getValue(BatchWizardHPLCParameters.handleOriginalFeatureLists));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(RowsFilterModule.class),
         param);
@@ -394,6 +430,8 @@ public class BatchWizardController {
         .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
     param.getParameter(AllSpectralDataImportParameters.advancedImport).setValue(false);
     param.getParameter(AllSpectralDataImportParameters.fileNames).setValue(files.getValue());
+    // for now import no libraries
+    param.getParameter(SpectralLibraryImportParameters.dataBaseFiles).setValue(new File[0]);
 
     return new MZmineProcessingStepImpl<>(
         MZmineCore.getModuleInstance(AllSpectralDataImportModule.class), param);
@@ -409,7 +447,9 @@ public class BatchWizardController {
             BatchWizardMassSpectrometerParameters.ms1NoiseLevel).getValue()
             : msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel)
                 .getValue());
-    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, msLevel <= 1);
+    // per default do not detect isotope signals below noise. this might introduce too many signals
+    // for the isotope finder later on and confuse users
+    detectorParam.setParameter(AutoMassDetectorParameters.detectIsotopes, false);
     final DetectIsotopesParameter detectIsotopesParameter = detectorParam.getParameter(
         AutoMassDetectorParameters.detectIsotopes).getEmbeddedParameters();
     detectIsotopesParameter.setParameter(DetectIsotopesParameter.elements,
@@ -425,14 +465,35 @@ public class BatchWizardController {
     param.getParameter(MassDetectionParameters.dataFiles)
         .setValue(new RawDataFilesSelection(RawDataFilesSelectionType.BATCH_LAST_FILES));
     param.getParameter(MassDetectionParameters.scanSelection).setValue(new ScanSelection(msLevel));
-    param.getParameter(MassDetectionParameters.scanTypes).setValue(
-        cbIonMobility.isSelected() ? SelectedScanTypes.MOBLITY_SCANS : SelectedScanTypes.SCANS);
+    param.getParameter(MassDetectionParameters.scanTypes).setValue(SelectedScanTypes.SCANS);
     param.getParameter(MassDetectionParameters.massDetector).setValue(
         new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(AutoMassDetector.class),
             detectorParam));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(MassDetectionModule.class),
         param);
+  }
+
+  private MZmineProcessingStep<MZmineProcessingModule> makeMobilityScanMergerStep(
+      @NotNull final ParameterSet msParameters) {
+
+    final ParameterSet param = MZmineCore.getConfiguration()
+        .getModuleParameters(MobilityScanMergerModule.class).cloneParameterSet();
+
+    param.setParameter(MobilityScanMergerParameters.mzTolerance,
+        msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
+    param.setParameter(MobilityScanMergerParameters.scanSelection, new ScanSelection());
+    param.setParameter(MobilityScanMergerParameters.noiseLevel,
+        0d); // the noise level of the mass detector already did all the filtering we want (at least in the wizard)
+    param.setParameter(MobilityScanMergerParameters.mergingType, MergingType.SUMMED);
+    param.setParameter(MobilityScanMergerParameters.weightingType, Weighting.LINEAR);
+
+    final RawDataFilesSelection rawDataFilesSelection = new RawDataFilesSelection(
+        RawDataFilesSelectionType.BATCH_LAST_FILES);
+    param.setParameter(MobilityScanMergerParameters.rawDataFiles, rawDataFilesSelection);
+
+    return new MZmineProcessingStepImpl<>(
+        MZmineCore.getModuleInstance(MobilityScanMergerModule.class), param);
   }
 
   private MZmineProcessingStep<MZmineProcessingModule> makeAdapStep(
@@ -535,13 +596,17 @@ public class BatchWizardController {
     groupParam.setParameter(GroupMS2SubParameters.mzTol,
         msParameters.getValue(BatchWizardMassSpectrometerParameters.scanToScanMzTolerance));
     groupParam.setParameter(GroupMS2SubParameters.combineTimsMsMs, false);
-    groupParam.setParameter(GroupMS2SubParameters.limitRTByFeature, minDP > 4);
+    boolean limitByRTEdges = minDP >= 4;
+    groupParam.setParameter(GroupMS2SubParameters.limitRTByFeature, limitByRTEdges);
     groupParam.setParameter(GroupMS2SubParameters.lockMS2ToFeatureMobilityRange, true);
-    groupParam.setParameter(GroupMS2SubParameters.rtTol, new RTTolerance(fwhm * 3, Unit.MINUTES));
+    // rt tolerance is +- while FWHM is the width. still the MS2 might be triggered very early
+    // change rt tol depending on number of datapoints
+    groupParam.setParameter(GroupMS2SubParameters.rtTol,
+        new RTTolerance(limitByRTEdges ? fwhm * 3 : fwhm, Unit.MINUTES));
     groupParam.setParameter(GroupMS2SubParameters.outputNoiseLevel, hasIMS);
     groupParam.getParameter(GroupMS2SubParameters.outputNoiseLevel).getEmbeddedParameter().setValue(
         msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
-            * 2);
+        * 2);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.RETENTION_TIME);
@@ -599,7 +664,7 @@ public class BatchWizardController {
         .getEmbeddedParameters().getParameter(GroupMS2SubParameters.outputNoiseLevel)
         .getEmbeddedParameter().setValue(
             msParameters.getParameter(BatchWizardMassSpectrometerParameters.ms2NoiseLevel).getValue()
-                * 2);
+            * 2);
 
     param.setParameter(MinimumSearchFeatureResolverParameters.dimension,
         ResolvingDimension.MOBILITY);
@@ -637,6 +702,7 @@ public class BatchWizardController {
         mobilityType == MobilityType.TIMS ? new MobilityTolerance(0.008f)
             : new MobilityTolerance(1f));
     param.setParameter(IsotopeGrouperParameters.monotonicShape, true);
+    param.setParameter(IsotopeGrouperParameters.keepAllMS2, true);
     param.setParameter(IsotopeGrouperParameters.maximumCharge, 2);
     param.setParameter(IsotopeGrouperParameters.representativeIsotope,
         IsotopeGrouperParameters.ChooseTopIntensity);
@@ -660,7 +726,7 @@ public class BatchWizardController {
     param.setParameter(IsotopeFinderParameters.scanRange, ScanRange.SINGLE_MOST_INTENSE);
     param.setParameter(IsotopeFinderParameters.elements,
         List.of(new Element("H"), new Element("C"), new Element("N"), new Element("O"),
-            new Element("S"), new Element("Cl"), new Element("Br")));
+            new Element("S")));
 
     return new MZmineProcessingStepImpl<>(MZmineCore.getModuleInstance(IsotopeFinderModule.class),
         param);
@@ -709,7 +775,8 @@ public class BatchWizardController {
     final boolean useCorrGrouping = minDP > 3;
     RTTolerance rtTol = hplcParam.getValue(
         BatchWizardHPLCParameters.approximateChromatographicFWHM);
-    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 10f : 0.7f), rtTol.getUnit());
+    rtTol = new RTTolerance(rtTol.getTolerance() * (useCorrGrouping ? 1.1f : 0.7f),
+        rtTol.getUnit());
 
     ParameterSet param = MZmineCore.getConfiguration()
         .getModuleParameters(CorrelateGroupingModule.class);

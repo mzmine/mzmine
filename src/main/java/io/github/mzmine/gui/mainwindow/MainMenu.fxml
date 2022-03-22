@@ -293,8 +293,7 @@
         userData="io.github.mzmine.modules.io.export_features_msp.AdapMspExportModule"/>
       <MenuItem text="MGF file (ADAP)" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_mgf.AdapMgfExportModule"/>
-      <MenuItem text="GNPS - feature based molecular networking"
-        onAction="#runModule"
+      <MenuItem text="GNPS - feature based molecular networking" onAction="#runModule"
         userData="io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnExportAndSubmitModule"/>
       <MenuItem text="GNPS-GC-MS (with ADAP)"
         onAction="#runModule"
@@ -309,14 +308,20 @@
       <MenuItem onAction="#runModule" text="Assign MS2 to features"
         userData="io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module"/>
       <MenuItem onAction="#runModule"
+        text="Internal reference CCS calibration"
+        userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule"/>
+      <MenuItem onAction="#runModule"
+        text="External CCS calibration"
+        userData="io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule"/>
+      <MenuItem onAction="#runModule"
         text="Calculate CCS values"
         userData="io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule"/>
     </Menu>
 
     <Menu text="Isotopes">
-      <MenuItem onAction="#runModule" text="Isotope grouper (filter)"
+      <MenuItem onAction="#runModule" text="13C isotope filter (formerly: isotope grouper)"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopegrouper.IsotopeGrouperModule"/>
-      <MenuItem onAction="#runModule" text="Isotope finder"
+      <MenuItem onAction="#runModule" text="Isotope pattern finder"
         userData="io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderModule"/>
       <MenuItem text="Isotope peak scanner" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner.IsotopePeakScannerModule"/>
@@ -333,6 +338,8 @@
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.addionannotations.AddIonNetworkingModule"/>
       <MenuItem text="Refine ion identities" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.refinement.IonNetworkRefinementModule"/>
+      <MenuItem text="Relations between compounds (IINs)" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.relations.IonNetRelationsModule"/>
       <MenuItem text="Formula prediction on ion identities" onAction="#runModule"
         userData="io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.formula.prediction.FormulaPredictionIonNetworkModule"/>
       <MenuItem text="Average formulas" onAction="#runModule"
@@ -502,7 +509,7 @@
 
     <SeparatorMenuItem/>
 
-    <MenuItem onAction="#runModule" text="MS/MS plot"
+    <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
     <MenuItem onAction="#runModule" text="Feature networking"
       userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>
@@ -543,8 +550,10 @@
     <MenuItem text="Calculate quality parameters"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.qualityparameters.QualityParametersModule"/>
-    <MenuItem text="Processing wizard"
-      onAction="#showWizardTab"
+  </Menu>
+
+  <Menu text="Processing wizard">
+    <MenuItem text="LC-MS / LC-IMS-MS workflow" onAction="#showWizardTab"
       userData="io.github.mzmine.modules.tools.batchwizard.BatchWizardModule">
       <accelerator>
         <KeyCodeCombination alt="UP" code="W"
@@ -552,7 +561,6 @@
       </accelerator>
     </MenuItem>
   </Menu>
-
 
   <!-- WINDOWS -->
   <WindowsMenu/>

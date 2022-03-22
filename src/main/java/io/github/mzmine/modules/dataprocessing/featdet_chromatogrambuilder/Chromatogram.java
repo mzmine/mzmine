@@ -254,8 +254,8 @@ public class Chromatogram{
     }
 
     // Update fragment scan
-    fragmentScan =
-        ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
+    fragmentScan = ScanUtils.streamAllMS2FragmentScans(dataFile, dataFile.getDataRTRange(1),
+        rawDataPointsMZRange).findFirst().orElse(null);
 
     if (fragmentScan != null) {
       int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);

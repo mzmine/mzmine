@@ -16,30 +16,6 @@
  *
  */
 
-/*
- * Copyright 2006-2015 The MZmine 2 Development Team
- *
- * This file is part of MZmine 2.
- *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
- */
-
 package io.github.mzmine.parameters.parametertypes.ionidentity;
 
 
@@ -47,7 +23,9 @@ import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.AddIonModificationAction;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.actions.CombineESIAdductsAction;
 import io.github.mzmine.parameters.parametertypes.MultiChoiceComponent;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javafx.scene.layout.HBox;
 
 /**
@@ -107,18 +85,22 @@ public class IonModificationComponent extends HBox {
    * @return the selected choices.
    */
   public IonModification[][] getValue() {
-    IonModification[] ad = adducts.getValue().toArray(IonModification[]::new);
-    IonModification[] md = mods.getValue().toArray(IonModification[]::new);
+    IonModification[] ad = adducts.getValue().stream().filter(Objects::nonNull)
+        .toArray(IonModification[]::new);
+    IonModification[] md = mods.getValue().stream().filter(Objects::nonNull)
+        .toArray(IonModification[]::new);
     IonModification[][] all = {ad, md};
     return all;
   }
 
   public void setValue(final IonModification[][] values) {
-    if (values != null) {
-      if (values[0] != null)
-        adducts.setValue(List.of(values[0]));
-      if (values[1] != null)
-        mods.setValue(List.of(values[1]));
+    if (values != null && values.length == 2) {
+      if (values[0] != null) {
+        adducts.setValue(Arrays.stream(values[0]).filter(Objects::nonNull).toList());
+      }
+      if (values[1] != null) {
+        mods.setValue(Arrays.stream(values[1]).filter(Objects::nonNull).toList());
+      }
     }
   }
 

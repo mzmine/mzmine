@@ -73,6 +73,8 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.Export
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
@@ -253,20 +255,14 @@ public class BatchModeModulesList {
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#FEATURE_GROUPING}
        */
-      CorrelateGroupingModule.class,
-      MS2SimilarityModule.class,
-      AnnotateIsomersModule.class,
+      CorrelateGroupingModule.class, MS2SimilarityModule.class, AnnotateIsomersModule.class,
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory#ION_IDENTITY_NETWORKS}
        */
-      IonNetworkingModule.class,
-      AddIonNetworkingModule.class,
-      IonNetworkRefinementModule.class,
-      IonNetworkMSMSCheckModule.class,
-      FormulaPredictionIonNetworkModule.class,
-      CreateAvgNetworkFormulasModule.class,
-      IonNetRelationsModule.class,
+      IonNetworkingModule.class, AddIonNetworkingModule.class, IonNetworkRefinementModule.class,
+      IonNetworkMSMSCheckModule.class, FormulaPredictionIonNetworkModule.class,
+      CreateAvgNetworkFormulasModule.class, IonNetRelationsModule.class,
       ClearIonIdentitiesModule.class,
 
       /*
@@ -274,6 +270,8 @@ public class BatchModeModulesList {
        */
       CameraSearchModule.class, //
       CCSCalcModule.class, //
+      ExternalCCSCalibrationModule.class, //
+      ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //
@@ -292,8 +290,7 @@ public class BatchModeModulesList {
        */
       GnpsFbmnExportAndSubmitModule.class, //
       GnpsGcExportAndSubmitModule.class, //
-      ExportCorrAnnotationModule.class,
-      MetaboAnalystExportModule.class, //
+      ExportCorrAnnotationModule.class, MetaboAnalystExportModule.class, //
       AdapMgfExportModule.class, //
       GNPSResultsImportModule.class, //
       AdapMspExportModule.class, //

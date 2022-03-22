@@ -251,7 +251,7 @@ public class ResultWindowController {
     }
 
     Feature peak = featureListRow.getBestFeature();
-    final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensity();
+    final IsotopePattern detectedPattern = peak.getIsotopePattern().getRelativeIntensityCopy();
 
     final UnitFormat uf = MZmineCore.getConfiguration().getUnitFormat();
     EChartViewer mirrorChart = MirrorChartFactory

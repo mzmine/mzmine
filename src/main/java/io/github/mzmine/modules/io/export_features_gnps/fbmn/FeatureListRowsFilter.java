@@ -24,7 +24,6 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
  * Define which rows to export
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public enum FeatureListRowsFilter {
   ALL, ONLY_WITH_MS2, MS2_OR_ION_IDENTITY, MS2_AND_ION_IDENTITY;
@@ -39,12 +38,22 @@ public enum FeatureListRowsFilter {
    *
    * @return true if row conforms to the filter
    */
-  public boolean filter(FeatureListRow row) {
+  public boolean accept(FeatureListRow row) {
     return switch (this) {
       case ALL -> true;
       case ONLY_WITH_MS2 -> row.hasMs2Fragmentation();
       case MS2_OR_ION_IDENTITY -> row.hasMs2Fragmentation() || row.hasIonIdentity();
       case MS2_AND_ION_IDENTITY -> row.hasMs2Fragmentation() && row.hasIonIdentity();
+    };
+  }
+
+  /**
+   * @return all rows accepted by this filter require MS2
+   */
+  public boolean requiresMS2() {
+    return switch (this) {
+      case ALL, MS2_OR_ION_IDENTITY -> false;
+      case ONLY_WITH_MS2, MS2_AND_ION_IDENTITY -> true;
     };
   }
 }

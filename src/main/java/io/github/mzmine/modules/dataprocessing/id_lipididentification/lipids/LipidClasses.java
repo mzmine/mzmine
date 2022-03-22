@@ -504,7 +504,7 @@ public enum LipidClasses implements ILipidClass {
               LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H5O"), //
           new LipidFragmentationRule(PolarityType.POSITIVE, IonizationType.AMMONIUM,
               LipidFragmentationRuleType.TWO_ACYLCHAINS_PLUS_FORMULA_FRAGMENT,
-              LipidAnnotationLevel.MOLECULAR_SPECIES_LEVEL, "C3H5"), //
+              LipidAnnotationLevel.SPECIES_LEVEL, "C3H5"), //
 
 
           new LipidFragmentationRule(PolarityType.NEGATIVE, IonizationType.NEGATIVE_HYDROGEN,

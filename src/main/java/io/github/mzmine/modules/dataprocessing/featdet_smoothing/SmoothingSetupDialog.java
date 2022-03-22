@@ -22,8 +22,8 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series.IonTimeSeriesToXYProvider;
@@ -35,6 +35,7 @@ import io.github.mzmine.modules.dataprocessing.featdet_smoothing.SmoothingTask.S
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithPreview;
 import io.github.mzmine.util.FeatureUtils;
+import io.github.mzmine.util.javafx.SortableFeatureComboBox;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import javafx.beans.property.SimpleObjectProperty;
@@ -55,7 +56,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   private final SimpleXYChart<IonTimeSeriesToXYProvider> previewChart;
   private final ColoredXYShapeRenderer smoothedRenderer;
   protected ComboBox<FeatureList> flistBox;
-  protected ComboBox<ModularFeature> fBox;
+  protected SortableFeatureComboBox fBox;
   protected ColoredXYShapeRenderer shapeRenderer = new ColoredXYShapeRenderer();
   protected SmoothingDimension previewDimension;
 
@@ -79,21 +80,21 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
     ObservableList<FeatureList> flists = FXCollections.observableArrayList(
         MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists());
 
-    fBox = new ComboBox<>();
+    fBox = new SortableFeatureComboBox();
     flistBox = new ComboBox<>(flists);
     flistBox.getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> {
           if (newValue != null) {
-            fBox.setItems(FXCollections.observableArrayList(
+            fBox.getFeatureBox().setItems(FXCollections.observableArrayList(
                 newValue.getFeatures(newValue.getRawDataFile(0))));
           } else {
-            fBox.setItems(FXCollections.emptyObservableList());
+            fBox.getFeatureBox().setItems(FXCollections.emptyObservableList());
           }
         }));
 
-    fBox.setConverter(new StringConverter<>() {
+    fBox.getFeatureBox().setConverter(new StringConverter<>() {
       @Override
-      public String toString(ModularFeature object) {
+      public String toString(Feature object) {
         if (object == null) {
           return null;
         }
@@ -101,12 +102,12 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
       }
 
       @Override
-      public ModularFeature fromString(String string) {
+      public Feature fromString(String string) {
         return null;
       }
     });
 
-    fBox.getSelectionModel().selectedItemProperty()
+    fBox.getFeatureBox().getSelectionModel().selectedItemProperty()
         .addListener(((observable, oldValue, newValue) -> onSelectedFeatureChanged(newValue)));
 
     ComboBox<SmoothingDimension> previewDimensionBox = new ComboBox<>(
@@ -136,7 +137,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
 
   }
 
-  private void onSelectedFeatureChanged(final ModularFeature f) {
+  private void onSelectedFeatureChanged(final Feature f) {
     previewChart.removeAllDatasets();
     if (f == null) {
       return;
@@ -183,7 +184,7 @@ public class SmoothingSetupDialog extends ParameterSetupDialogWithPreview {
   protected void parametersChanged() {
     super.parametersChanged();
     updateParameterSetFromComponents();
-    onSelectedFeatureChanged(fBox.getValue());
+    onSelectedFeatureChanged(fBox.getFeatureBox().getValue());
   }
 
   @Nullable
