@@ -193,28 +193,19 @@ class IsotopeFinderTask extends AbstractTask {
         // add isotope pattern and charge
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
-        //CCS Calc
+        //CCS Calculation
         RawDataFile data = feature.getRawDataFile();
-        IMSRawDataFile imsFile = null;
-        //Accurate determination of CCS values requires a valid CCS calibration and molecule charge states to be detected.
-        if (data instanceof IMSRawDataFile File) {
-          if (File.getCCSCalibration() != null) {
-            logger.info(() -> "Raw data file " + File.getName() + " does have a CCS calibration.");
-            imsFile = File;
-          }
-        }
-        boolean validMobility = false;
-        if (imsFile != null) {
-          //Checked over here if imsFile is null or not
-          validMobility = CCSUtils.hasValidMobilityType(imsFile);
-        }
         Float mobility = feature.getMobility();
-        if (validMobility && mobility != null && bestCharge > 0) {
-          MobilityType mobilityType = feature.getMobilityUnit();
-          Float ccs = CCSUtils.calcCCS(mz, mobility, Objects.requireNonNull(mobilityType),
-              bestCharge, imsFile);
-          if (ccs != null) {
-            feature.setCCS(ccs);
+        if (data instanceof IMSRawDataFile imsfile) {
+          if (imsfile.getCCSCalibration() != null) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0) {
+              MobilityType mobilityType = feature.getMobilityUnit();
+              Float ccs = CCSUtils.calcCCS(mz, mobility, Objects.requireNonNull(mobilityType),
+                  bestCharge, imsfile);
+              if (ccs != null) {
+                feature.setCCS(ccs);
+              }
+            }
           }
         }
         detected++;
