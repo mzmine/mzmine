@@ -39,6 +39,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -125,7 +126,11 @@ public class FeatureListSummaryController {
     Object value = parameter.getValue();
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
-    sb.append(value.toString());
+    if(value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
     if (parameter instanceof EmbeddedParameterSet embedded) {
       ParameterSet parameterSet = embedded.getEmbeddedParameters();
       for (Parameter<?> parameter1 : parameterSet.getParameters()) {
