@@ -56,7 +56,8 @@ public class IMSTraceVisualizerPane extends BorderPane {
   private static Logger logger = Logger.getLogger(IMSTraceVisualizerPane.class.getName());
 
   private static final int HEATMAP_LEGEND_HEIGHT = 50;
-  private static final double MIN_MOBILOGRAM_WIDTH = 200;
+  private static final double MIN_MOBILOGRAM_WIDTH = 150;
+  private static final double MAX_MOBILOGRAM_WIDTH = 250;
 
   private final SimpleXYZScatterPlot<IonMobilogramTimeSeriesToRtMobilityHeatmapProvider> traceChart;
   private final SimpleXYChart<IonTimeSeriesToXYProvider> ticChart;
@@ -80,7 +81,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
   private int ticFeatureDatasetIndex = 0;
 
   private double traceChartMinHeight = 200;
-  private double traceChartMinWidth = 200;
+  private double traceChartMinWidth = 300;
 
 
   public IMSTraceVisualizerPane() {
@@ -187,6 +188,7 @@ public class IMSTraceVisualizerPane extends BorderPane {
     axis.setAutoRangeStickyZero(false);
     mobilogramChart.setMinHeight(300);
     mobilogramChart.setMinWidth(MIN_MOBILOGRAM_WIDTH);
+    mobilogramChart.setMaxWidth(MAX_MOBILOGRAM_WIDTH);
 
     mobilogramChart.addDatasetChangeListener(e -> {
       mobilogramChart.getXYPlot().getRangeAxis().setAutoRange(true);
