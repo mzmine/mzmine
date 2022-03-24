@@ -110,7 +110,7 @@ public class MirrorChartFactory {
     double rtA = scan.getRetentionTime();
 
     Double precursorMZB = db.getEntry().getPrecursorMZ();
-    Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
+    Double rtB = ((Float) db.getEntry().getField(DBEntryField.RT).orElse(0d)).doubleValue();
 
     // create without data
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + scan.getScanDefinition(),
