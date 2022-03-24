@@ -153,7 +153,12 @@ public class ConversionUtils {
       }
     }
 
-    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
+    Integer msLevel = scan.getMsLevel();
+    String scand = scan.getScanDefinition();
+    if(scand.contains("sid")) {
+      msLevel = 2;
+    }
+    final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), msLevel,
         scan.getRetentionTime() / 60, info, mzs, intensities, spectrumType,
         ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
         scan.getScanningRange());
