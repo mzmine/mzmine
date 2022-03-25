@@ -99,7 +99,7 @@ public class MultiChoiceComponent<T extends StringMapParser<T>> extends BorderPa
     if (btnExport) {
       buttonBar.getChildren().addAll(exportButton);
     }
-    Button toggleSelectButton = new Button("(De-)select");
+    Button toggleSelectButton = new Button("(De)select");
     if (btnToggleSelect) {
       buttonBar.getChildren().addAll(toggleSelectButton);
     }
