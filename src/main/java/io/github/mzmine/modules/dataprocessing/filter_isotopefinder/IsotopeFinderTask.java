@@ -197,11 +197,11 @@ class IsotopeFinderTask extends AbstractTask {
         RawDataFile data = feature.getRawDataFile();
         Float mobility = feature.getMobility();
         MobilityType mobilityType = feature.getMobilityUnit();
-        if (data instanceof IMSRawDataFile imsfile){
+        if (data instanceof IMSRawDataFile imsfile) {
           if (imsfile.getCCSCalibration() != null) {
-            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0) {
-              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType,
-                  bestCharge, imsfile);
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+                && mobilityType != null) {
+              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
               if (ccs != null) {
                 feature.setCCS(ccs);
               }
