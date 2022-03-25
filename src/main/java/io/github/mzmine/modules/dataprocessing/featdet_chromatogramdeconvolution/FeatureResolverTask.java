@@ -434,7 +434,11 @@ public class FeatureResolverTask extends AbstractTask {
       final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters, rSession,
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
+      final Integer minNumDp = parameters.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
       for (final ResolvedPeak peak : peaks) {
+        if(peak.getScanNumbers().length < minNumDp) {
+          continue;
+        }
         peak.setParentChromatogramRowID(originalRow.getID());
         final ModularFeatureListRow newRow = new ModularFeatureListRow(resolvedFeatureList,
             peakId++);

@@ -44,7 +44,7 @@ public class BaselineFeatureResolverParameters extends GeneralResolverParameters
 
   public BaselineFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, MIN_PEAK_HEIGHT,
-        PEAK_DURATION, BASELINE_LEVEL});
+        PEAK_DURATION, BASELINE_LEVEL, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override
