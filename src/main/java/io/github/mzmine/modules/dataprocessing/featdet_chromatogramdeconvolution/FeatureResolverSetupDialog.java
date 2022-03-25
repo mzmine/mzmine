@@ -377,7 +377,8 @@ public class FeatureResolverSetupDialog extends ParameterSetupDialogWithPreview 
           int resolvedFeatureCounter = 0;
           SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
 
-          if (resolver == null) {
+          if (resolver == null || (flistBox.getValue() != null
+              && resolver.getRawDataFile() != flistBox.getValue().getRawDataFile(0))) {
             resolver = ((GeneralResolverParameters) parameterSet).getResolver(parameterSet,
                 (ModularFeatureList) flistBox.getValue());
           }
