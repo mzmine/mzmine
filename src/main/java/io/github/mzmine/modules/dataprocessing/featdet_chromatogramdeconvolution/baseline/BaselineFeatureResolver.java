@@ -68,10 +68,11 @@ public class BaselineFeatureResolver implements FeatureResolver {
       final Scan scanNum = scanNumbers.get(i);
       retentionTimes[i] = scanNum.getRetentionTime();
       DataPoint dp = chromatogram.getDataPointAtIndex(i);
-      if (dp != null)
+      if (dp != null) {
         intensities[i] = dp.getIntensity();
-      else
+      } else {
         intensities[i] = 0.0;
+      }
     }
 
     // Get parameters.
@@ -93,8 +94,8 @@ public class BaselineFeatureResolver implements FeatureResolver {
 
         // Search for end of the region
         int currentRegionEnd;
-        for (currentRegionEnd =
-            currentRegionStart + 1; currentRegionEnd < scanCount; currentRegionEnd++) {
+        for (currentRegionEnd = currentRegionStart + 1; currentRegionEnd < scanCount;
+            currentRegionEnd++) {
 
           final DataPoint endPeak = chromatogram.getDataPointAtIndex(currentRegionEnd);
           if (endPeak == null || endPeak.getIntensity() < baselineLevel) {
@@ -110,13 +111,14 @@ public class BaselineFeatureResolver implements FeatureResolver {
         currentRegionEnd--;
 
         // Check current region, if it makes a good peak.
-        if (currentRegionEnd - currentRegionStart > 0 && durationRange
-            .contains(retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])
+        if (durationRange.contains(
+            retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])
             && currentRegionHeight >= minimumPeakHeight) {
 
           // Create a new ResolvedPeak and add it.
-          resolvedPeaks.add(new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd,
-              mzCenterFunction, msmsRange, rTRangeMSMS));
+          resolvedPeaks.add(
+              new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd, mzCenterFunction,
+                  msmsRange, rTRangeMSMS));
         }
 
         // Find next peak region, starting from next data point.

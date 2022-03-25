@@ -425,6 +425,7 @@ public class FeatureResolverTask extends AbstractTask {
     processedRows = 0;
     totalRows = originalFeatureList.getNumberOfRows();
     int peakId = 1;
+    final Integer minNumDp = parameters.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
 
     for (int i = 0; i < totalRows; i++) {
       final ModularFeatureListRow originalRow = (ModularFeatureListRow) originalFeatureList.getRow(
@@ -434,7 +435,6 @@ public class FeatureResolverTask extends AbstractTask {
       final ResolvedPeak[] peaks = resolver.resolvePeaks(originalFeature, parameters, rSession,
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
-      final Integer minNumDp = parameters.getValue(GeneralResolverParameters.MIN_NUMBER_OF_DATAPOINTS);
       for (final ResolvedPeak peak : peaks) {
         if(peak.getScanNumbers().length < minNumDp) {
           continue;
