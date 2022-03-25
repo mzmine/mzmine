@@ -196,18 +196,18 @@ class IsotopeFinderTask extends AbstractTask {
         //CCS Calculation
         RawDataFile data = feature.getRawDataFile();
         Float mobility = feature.getMobility();
-        if (data instanceof IMSRawDataFile imsfile) {
+        MobilityType mobilityType = feature.getMobilityUnit();
+        if (data instanceof IMSRawDataFile imsfile){
           if (imsfile.getCCSCalibration() != null) {
             if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0) {
-              MobilityType mobilityType = feature.getMobilityUnit();
-              Float ccs = CCSUtils.calcCCS(mz, mobility, Objects.requireNonNull(mobilityType),
+              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType,
                   bestCharge, imsfile);
               if (ccs != null) {
                 feature.setCCS(ccs);
               }
             }
           }
-        }
+        }//end
         detected++;
       } else {
         // find pattern in FWHM
