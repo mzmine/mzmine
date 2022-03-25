@@ -39,6 +39,13 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -47,12 +54,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
 
-  private static final Logger logger = Logger
-      .getLogger(FeatureListSummaryController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureListSummaryController.class.getName());
 
   @FXML
   public TextField tfNumRows;
@@ -66,6 +77,9 @@ public class FeatureListSummaryController {
   public Label lbFeatureListName;
   @FXML
   public Button btnOpenInBatchQueue;
+  @FXML
+  public Button exportfeature;
+
 
   @FXML
   public void initialize() {
@@ -133,7 +147,7 @@ public class FeatureListSummaryController {
         sb.append(parameterToString(parameter1));
       }
     }
-    if(parameter instanceof OptionalParameter) {
+    if (parameter instanceof OptionalParameter) {
       sb.append("\t(");
       sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
       sb.append(")");
@@ -171,7 +185,7 @@ public class FeatureListSummaryController {
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
-    if(batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+    if (batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
       MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
     }
   }
@@ -187,6 +201,57 @@ public class FeatureListSummaryController {
             RawDataFilesSelectionType.BATCH_LAST_FILES);
         ((RawDataFilesParameter) parameter).setValue(rawDataFilesSelection);
       }
+    }
+  }
+
+  @FXML
+  void exportRecord() throws IOException {
+    ButtonType btn = MZmineCore.getDesktop()
+        .displayConfirmation("Export all steps and parameters\nDo you wish to continue?",
+            ButtonType.YES, ButtonType.NO);
+
+    if (btn != ButtonType.YES) {
+      return;
+    }
+    String filePath =
+        System.getProperty("user.dir") + File.separator + "Export" + File.separator + "Export.csv";
+    // specified by filepath
+    File file = new File(filePath);
+    if (!file.exists()) {
+      file.createNewFile();
+    }
+    try {
+      FileWriter outputfile = new FileWriter(file, true);
+      BufferedWriter writer = new BufferedWriter(outputfile);
+      PrintWriter pw = new PrintWriter(writer);
+      for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+        //String par =item.getParameters().toString().replaceAll("[,]","\n");
+        StringBuilder sb = new StringBuilder(item.getDescription());
+        sb.append(":\t");
+        pw.println(sb);
+        ParameterSet parameterSet = item.getParameters();
+        for (Parameter<?> parameter : parameterSet.getParameters()) {
+          pw.println(parameterToString(parameter));
+        }
+        /*else
+        {
+          sb.append(item.getParameters().toString());
+          sb.append("\n");
+          pw.println(sb);
+        }*/
+        //pw.println(item.getDescription());
+        /*if(item.getParameters() instanceof Parameter<?> parameter) {
+          String Spar = parameterToString(parameter);
+          //pw.println(Spar);
+        }
+        else {
+          //pw.println(";"+par);
+        }*/
+      }
+      pw.flush();
+      pw.close();
+    } catch (IOException e) {
+      logger.info(e.getMessage());
     }
   }
 }
