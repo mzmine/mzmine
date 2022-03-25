@@ -110,7 +110,7 @@ public class BaselineFeatureResolver implements FeatureResolver {
         currentRegionEnd--;
 
         // Check current region, if it makes a good peak.
-        if (durationRange
+        if (currentRegionEnd - currentRegionStart > 0 && durationRange
             .contains(retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])
             && currentRegionHeight >= minimumPeakHeight) {
 
