@@ -30,7 +30,6 @@ import javafx.scene.layout.HBox;
 
 /**
  * A component for selecting adducts.
- *
  */
 public class IonModificationComponent extends HBox {
 
@@ -42,26 +41,29 @@ public class IonModificationComponent extends HBox {
    *
    * @param choicesAdducts the adduct choices.
    */
-  public IonModificationComponent(List<IonModification> choicesAdducts, List<IonModification> choicesMods) {
+  public IonModificationComponent(List<IonModification> choicesAdducts,
+      List<IonModification> choicesMods) {
     setFillHeight(true);
     setSpacing(5);
 
-    adducts = new MultiChoiceComponent<>(choicesAdducts, List.of(IonModification.getDefaultValuesPos()), null,
-            IonModification.H, // just any object as a parser
-        false, true, true, false
-    );
+    adducts = new MultiChoiceComponent<>(choicesAdducts,
+        List.of(IonModification.getDefaultValuesPos()), null, IonModification.H,
+        // just any object as a parser
+        true, true, false, true, true, false);
     // add top label
     adducts.setTitle("Adducts");
     // add buttons
     adducts.addButton("Add", new AddIonModificationAction(adducts));
     adducts.addButton("Combine", new CombineESIAdductsAction(adducts));
-    adducts.addButton("Reset positive", (e) -> adducts.setChoices(IonModification.getDefaultValuesPos()));
-    adducts.addButton("Reset negative", (e) -> adducts.setChoices(IonModification.getDefaultValuesNeg()));
+    adducts.addButton("Reset positive",
+        (e) -> adducts.setChoices(IonModification.getDefaultValuesPos()));
+    adducts.addButton("Reset negative",
+        (e) -> adducts.setChoices(IonModification.getDefaultValuesNeg()));
 
-    mods = new MultiChoiceComponent<IonModification>(choicesMods, List.of(IonModification.getDefaultModifications()), null,
-            IonModification.H, // just any object as a parser
-        false, true, true, false
-    );
+    mods = new MultiChoiceComponent<>(choicesMods,
+        List.of(IonModification.getDefaultModifications()), null, IonModification.H,
+        // just any object as a parser
+        true, true, false, true, true, false);
     // add top label
     mods.setTitle("Modifications");
     // add buttons
@@ -75,8 +77,7 @@ public class IonModificationComponent extends HBox {
   public IonModification[][] getChoices() {
     IonModification[] ad = adducts.getChoices().toArray(IonModification[]::new);
     IonModification[] md = mods.getChoices().toArray(IonModification[]::new);
-    IonModification[][] all = {ad, md};
-    return all;
+    return new IonModification[][]{ad, md};
   }
 
   /**
@@ -89,8 +90,7 @@ public class IonModificationComponent extends HBox {
         .toArray(IonModification[]::new);
     IonModification[] md = mods.getValue().stream().filter(Objects::nonNull)
         .toArray(IonModification[]::new);
-    IonModification[][] all = {ad, md};
-    return all;
+    return new IonModification[][]{ad, md};
   }
 
   public void setValue(final IonModification[][] values) {
