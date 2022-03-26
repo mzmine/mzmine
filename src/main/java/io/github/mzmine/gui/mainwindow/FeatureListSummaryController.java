@@ -227,26 +227,11 @@ public class FeatureListSummaryController {
       for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
         //String par =item.getParameters().toString().replaceAll("[,]","\n");
         StringBuilder sb = new StringBuilder(item.getDescription());
-        sb.append(":\t");
         pw.println(sb);
         ParameterSet parameterSet = item.getParameters();
         for (Parameter<?> parameter : parameterSet.getParameters()) {
           pw.println(parameterToString(parameter));
         }
-        /*else
-        {
-          sb.append(item.getParameters().toString());
-          sb.append("\n");
-          pw.println(sb);
-        }*/
-        //pw.println(item.getDescription());
-        /*if(item.getParameters() instanceof Parameter<?> parameter) {
-          String Spar = parameterToString(parameter);
-          //pw.println(Spar);
-        }
-        else {
-          //pw.println(";"+par);
-        }*/
       }
       pw.flush();
       pw.close();
