@@ -57,10 +57,10 @@ public class SimpleParameterSet implements ParameterSet {
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  private final String helpUrl;
   private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
   protected Parameter<?>[] parameters;
   private boolean skipSensitiveParameters = false;
+  protected String helpUrl = null;
 
   public SimpleParameterSet() {
     this(new Parameter<?>[0], null);
@@ -184,6 +184,7 @@ public class SimpleParameterSet implements ParameterSet {
       SimpleParameterSet newSet = this.getClass().getDeclaredConstructor().newInstance();
       newSet.parameters = newParameters;
       newSet.setSkipSensitiveParameters(skipSensitiveParameters);
+      newSet.helpUrl = helpUrl;
 
       return newSet;
     } catch (Throwable e) {
