@@ -54,7 +54,7 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public MultiThreadPeakFinderParameters() {
     super(new Parameter[]{peakLists, suffix, intTolerance, MZTolerance, RTTolerance, minDataPoints,
-        handleOriginal});
+        handleOriginal}, "https://mzmine.github.io/mzmine_documentation/module_docs/gapfill_peak_finder/gap-filling.html");
   }
 
   @Override

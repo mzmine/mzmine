@@ -62,7 +62,11 @@ public abstract class GeneralResolverParameters extends SimpleParameterSet {
       "Min # of data points", "Minimum number of data points on a feature", 3, true);
 
   public GeneralResolverParameters(Parameter[] parameters) {
-    super(parameters);
+    this(parameters, null);
+  }
+
+  public GeneralResolverParameters(Parameter[] parameters, String url) {
+    super(parameters, url);
   }
 
   @Deprecated

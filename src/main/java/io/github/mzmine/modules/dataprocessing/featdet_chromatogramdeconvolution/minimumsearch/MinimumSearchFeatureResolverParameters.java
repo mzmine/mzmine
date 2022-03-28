@@ -41,8 +41,7 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
       "Chromatographic threshold", "Percentile threshold for removing noise.\n"
       + "The algorithm will remove the lowest abundant X % data points from a chromatogram and only consider\n"
-      + "the remaining (highest) values. Important filter for noisy chromatograms.",
-      0.85d, 0d, 1d);
+      + "the remaining (highest) values. Important filter for noisy chromatograms.", 0.85d, 0d, 1d);
 
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
       "Minimum search range RT/Mobility (absolute)",
@@ -69,8 +68,9 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   public MinimumSearchFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
-        CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT,
-        MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
+            CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT,
+            MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
   }
 
   @Override

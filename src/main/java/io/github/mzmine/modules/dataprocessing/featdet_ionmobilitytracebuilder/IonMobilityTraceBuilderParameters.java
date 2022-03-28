@@ -64,7 +64,7 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
-        minTotalSignals, suffix, advancedParameters});
+        minTotalSignals, suffix, advancedParameters}, "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ion_mobility_trace_builder/ion-mobility-trace-builder.html");
   }
 
   @NotNull

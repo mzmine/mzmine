@@ -43,6 +43,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ButtonType;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -56,17 +57,22 @@ public class SimpleParameterSet implements ParameterSet {
   private static final String parameterElement = "parameter";
   private static final String nameAttribute = "name";
   private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
-  protected Parameter<?> parameters[];
+  private final String helpUrl;
+  private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
+  protected Parameter<?>[] parameters;
   private boolean skipSensitiveParameters = false;
 
-  private final BooleanProperty parametersChangeProperty = new SimpleBooleanProperty();
-
   public SimpleParameterSet() {
-    this.parameters = new Parameter<?>[0];
+    this(new Parameter<?>[0], null);
   }
 
   public SimpleParameterSet(Parameter<?> parameters[]) {
+    this(parameters, null);
+  }
+
+  public SimpleParameterSet(Parameter<?> parameters[], String onlineHelpUrl) {
     this.parameters = parameters;
+    this.helpUrl = onlineHelpUrl;
   }
 
   @Override
@@ -162,7 +168,7 @@ public class SimpleParameterSet implements ParameterSet {
     // Make a deep copy of the parameters
     Parameter<?> newParameters[] = new Parameter[parameters.length];
     for (int i = 0; i < parameters.length; i++) {
-      if(keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
+      if (keepSelection && parameters[i] instanceof RawDataFilesParameter rfp) {
         newParameters[i] = rfp.cloneParameter(keepSelection);
       } else {
         newParameters[i] = parameters[i].cloneParameter();
@@ -204,7 +210,7 @@ public class SimpleParameterSet implements ParameterSet {
     if ((parameters == null) || (parameters.length == 0)) {
       return ExitCode.OK;
     }
-    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this);
+    ParameterSetupDialog dialog = new ParameterSetupDialog(valueCheckRequired, this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -321,5 +327,10 @@ public class SimpleParameterSet implements ParameterSet {
    */
   public BooleanProperty parametersChangeProperty() {
     return parametersChangeProperty;
+  }
+
+  @Override
+  public @Nullable String getOnlineHelpUrl() {
+    return helpUrl;
   }
 }
