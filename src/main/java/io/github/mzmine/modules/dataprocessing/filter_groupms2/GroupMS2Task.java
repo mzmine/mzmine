@@ -155,7 +155,7 @@ public class GroupMS2Task extends AbstractTask {
       if (f != null && f.getFeatureStatus() != FeatureStatus.UNKNOWN && (
           f.getMobilityUnit() == io.github.mzmine.datamodel.MobilityType.TIMS || (
               f.getRawDataFile() instanceof IMSRawDataFile imsfile
-              && imsfile.getMobilityType() == MobilityType.TIMS))) {
+                  && imsfile.getMobilityType() == MobilityType.TIMS))) {
         processTimsFeature(f);
       } else if (f != null && !f.getFeatureStatus().equals(FeatureStatus.UNKNOWN)) {
         RawDataFile raw = f.getRawDataFile();
