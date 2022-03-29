@@ -40,8 +40,8 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
       "Data points below this threshold will be ignored.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E1, 0d, 1E12);
 
-  public static final ComboParameter<MergingType> mergingType = new ComboParameter<>(
-      "Merging type", "merging type", MergingType.values(), MergingType.SUMMED);
+  public static final ComboParameter<MergingType> mergingType = new ComboParameter<>("Merging type",
+      "merging type", MergingType.values(), MergingType.SUMMED);
 
   public static final ComboParameter<Weighting> weightingType = new ComboParameter<>(
       "m/z weighting", "Weights m/z values by their intensities with the given function.",
@@ -54,12 +54,14 @@ public class MobilityScanMergerParameters extends SimpleParameterSet {
 
   public MobilityScanMergerParameters() {
     super(new Parameter[]{rawDataFiles, noiseLevel, mergingType, weightingType, scanSelection,
-        mzTolerance});
+            mzTolerance},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mobility_scan_merging/mobility-scan-merging.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    MobilityScanMergerSetupDialog dialog = new MobilityScanMergerSetupDialog(valueCheckRequired,this);
+    MobilityScanMergerSetupDialog dialog = new MobilityScanMergerSetupDialog(valueCheckRequired,
+        this);
     dialog.showAndWait();
     ExitCode code = dialog.getExitCode();
     return code;

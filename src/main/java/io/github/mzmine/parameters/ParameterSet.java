@@ -24,6 +24,7 @@ import io.github.mzmine.util.ExitCode;
 import java.util.Collection;
 import javafx.beans.property.BooleanProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 /**
@@ -98,4 +99,6 @@ public interface ParameterSet extends ParameterContainer {
    * @return BooleanProperty signalizing a change of any parameter of this ParameterSet
    */
   public BooleanProperty parametersChangeProperty();
+
+  @Nullable String getOnlineHelpUrl();
 }
