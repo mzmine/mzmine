@@ -14,12 +14,14 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,6 +81,25 @@ public class BioTransformerTask extends AbstractTask {
     if (numEducts == 0) {
       setStatus(TaskStatus.FINISHED);
       return;
+    }
+
+    // make a map of all unique annotations (by smiles code)
+    int numEducts = 0;
+    Map<String, IonType> uniqueSmilesMap = new HashMap<>();
+    for (ModularFeatureList flist : flists) {
+      for (FeatureListRow row : flist.getRows()) {
+        if (isCanceled()) {
+          return;
+        }
+
+        StringProperty prefix = new SimpleStringProperty();
+        final String bestSmiles = getBestSmiles(row, prefix);
+        if (bestSmiles == null) {
+          processing++;
+          continue;
+        }
+
+      }
     }
 
     for (ModularFeatureList flist : flists) {
@@ -159,13 +180,13 @@ public class BioTransformerTask extends AbstractTask {
    */
   @Nullable
   private String getBestSmiles(@NotNull FeatureListRow row, @Nullable StringProperty compoundName) {
-    final List<SpectralDBFeatureIdentity> spectralLibraryMatches = row.getSpectralLibraryMatches();
+    final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty()) {
       final String smiles = spectralLibraryMatches.get(0).getEntry()
           .getOrElse(DBEntryField.SMILES, null);
       if (smiles != null) {
         if (compoundName != null) {
-          compoundName.set(spectralLibraryMatches.get(0).getName());
+          compoundName.set(spectralLibraryMatches.get(0).getCompoundName());
         }
         return smiles;
       }
@@ -174,7 +195,7 @@ public class BioTransformerTask extends AbstractTask {
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (!compoundAnnotations.isEmpty()) {
       if (compoundName != null) {
-        compoundName.set(compoundAnnotations.get(0).getCompundName());
+        compoundName.set(compoundAnnotations.get(0).getCompoundName());
       }
       return compoundAnnotations.get(0).getSmiles();
     }
