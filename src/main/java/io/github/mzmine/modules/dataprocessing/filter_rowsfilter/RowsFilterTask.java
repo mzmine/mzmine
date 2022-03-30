@@ -44,7 +44,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -290,7 +290,7 @@ public class RowsFilterTask extends AbstractTask {
         // Check identities.
         List<MatchedLipid> matchedLipids = row.get(LipidMatchListType.class);
         if (onlyIdentified) {
-          List<SpectralDBFeatureIdentity> matches = row.getSpectralLibraryMatches();
+          List<SpectralDBAnnotation> matches = row.getSpectralLibraryMatches();
           List<GNPSLibraryMatch> gnps = row.get(GNPSSpectralLibraryMatchesType.class);
 
           boolean noIdentity = (row.getPreferredFeatureIdentity() == null);
@@ -339,7 +339,7 @@ public class RowsFilterTask extends AbstractTask {
           }
           if (!foundText && row.getSpectralLibraryMatches() != null) {
             for (var id : row.getSpectralLibraryMatches()) {
-              if (id != null && id.getName().toLowerCase().trim().contains(searchText)) {
+              if (id != null && id.getCompoundName().toLowerCase().trim().contains(searchText)) {
                 foundText = true;
                 break;
               }

@@ -61,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public interface CompoundDBAnnotation extends Cloneable {
+public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
   Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
@@ -199,16 +199,6 @@ public interface CompoundDBAnnotation extends Cloneable {
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable
-  public default Double getPrecursorMZ() {
-    return get(PrecursorMZType.class);
-  }
-
-  @Nullable
-  public default String getSmiles() {
-    return get(SmilesStructureType.class);
-  }
-
-  @Nullable
   public default DatabaseMatchInfo getDatabaseMatchInfo() {
     return get(DatabaseMatchInfoType.class);
   }
@@ -219,44 +209,64 @@ public interface CompoundDBAnnotation extends Cloneable {
     return databaseMatchInfo == null ? null : databaseMatchInfo.url();
   }
 
+  @Override
   @Nullable
-  public default String getCompundName() {
+  public default Double getPrecursorMZ() {
+    return get(PrecursorMZType.class);
+  }
+
+  @Override
+  @Nullable
+  public default String getSmiles() {
+    return get(SmilesStructureType.class);
+  }
+
+  @Override
+  @Nullable
+  public default String getCompoundName() {
     return get(CompoundNameType.class);
   }
 
+  @Override
   @Nullable
   public default String getFormula() {
     return get(FormulaType.class);
   }
 
+  @Override
   @Nullable
   public default IonType getAdductType() {
     return get(IonTypeType.class);
   }
 
+  @Override
   @Nullable
   public default Float getMobility() {
     return get(MobilityType.class);
   }
 
+  @Override
   @Nullable
   public default Float getCCS() {
     return get(CCSType.class);
   }
 
+  @Override
   @Nullable
   public default Float getRT() {
     return get(RTType.class);
   }
 
-  @Nullable
-  public default String getDatabase() {
-    return get(DatabaseNameType.class);
-  }
-
+  @Override
   @Nullable
   public default Float getScore() {
     return get(CompoundAnnotationScoreType.class);
+  }
+
+  @Override
+  @Nullable
+  public default String getDatabase() {
+    return get(DatabaseNameType.class);
   }
 
   public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,

@@ -32,7 +32,6 @@ import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.dataprocessing.id_spectral_match_sort.SortSpectralMatchesTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SingleSpectrumLibrarySearchParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -46,8 +45,8 @@ import io.github.mzmine.util.scans.similarity.SpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -315,8 +314,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
               precursorCCS);
 
           matches.incrementAndGet();
-          addIdentities(null, List.of(new SpectralDBFeatureIdentity(scan, entry, sim,
-              SingleSpectrumLibrarySearchModule.MODULE_NAME, ccsError)));
+          addIdentities(null, List.of(new SpectralDBAnnotation(entry, sim, scan, ccsError)));
         }
       }
     } catch (MissingMassListException e) {
@@ -376,11 +374,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
       }
 
       final Float rowCCS = row.getAverageCCS();
-      List<SpectralDBFeatureIdentity> ids = null;
+      List<SpectralDBAnnotation> ids = null;
       // match against all library entries
       for (SpectralDBEntry ident : entries) {
         final Float libCCS = ident.getOrElse(DBEntryField.CCS, null);
-        SpectralDBFeatureIdentity best = null;
+        SpectralDBAnnotation best = null;
         // match all scans against this ident to find best match
         for (int i = 0; i < scans.size(); i++) {
           SpectralSimilarity sim = matchSpectrum(row.getAverageRT(), row.getAverageMZ(), rowCCS,
@@ -392,8 +390,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
             Float ccsRelativeError = PercentTolerance.getPercentError(rowCCS, libCCS);
 
-            best = new SpectralDBFeatureIdentity(scans.get(i), ident, sim, METHOD,
-                ccsRelativeError);
+            best = new SpectralDBAnnotation(ident, sim, scans.get(i), ccsRelativeError);
           }
         }
         // has match?
@@ -557,7 +554,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     }
   }
 
-  protected void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
+  protected void addIdentities(FeatureListRow row, List<SpectralDBAnnotation> matches) {
     // add new identity to the row
     if (row != null) {
       row.addSpectralLibraryMatches(matches);

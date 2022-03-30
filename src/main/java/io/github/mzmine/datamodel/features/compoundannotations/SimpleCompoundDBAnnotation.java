@@ -31,8 +31,6 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -41,12 +39,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -63,7 +61,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 public class SimpleCompoundDBAnnotation implements
     CompoundDBAnnotation {
 
-  private final Map<DataType<?>, Object> data = new HashMap<>();
+  protected final Map<DataType<?>, Object> data = new HashMap<>();
 
   public static final String XML_TYPE_NAME = "simplecompounddbannotation";
 
@@ -119,6 +117,7 @@ public class SimpleCompoundDBAnnotation implements
     return (T) value;
   }
 
+  @Override
   public <T> T get(Class<? extends DataType<T>> key) {
     var actualKey = DataTypes.get(key);
     return get(actualKey);
@@ -143,6 +142,11 @@ public class SimpleCompoundDBAnnotation implements
               value.getClass(), actualKey.getClass()));
     }
     return (T) data.put(actualKey, value);
+  }
+
+  @Override
+  public Set<DataType<?>> getTypes() {
+    return data.keySet();
   }
 
   /**
@@ -202,7 +206,7 @@ public class SimpleCompoundDBAnnotation implements
           reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
       if (typeForId != null) {
         Object o = typeForId.loadFromXML(reader, flist, row, null, null);
-        id.put((DataType)typeForId, o);
+        id.put((DataType) typeForId, o);
       }
       i++;
 
@@ -316,25 +320,10 @@ public class SimpleCompoundDBAnnotation implements
   @Override
   public String toString() {
 
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    final NumberFormat scoreFormat = MZmineCore.getConfiguration().getScoreFormat();
-    final IonType adductType = getAdductType();
-
     final StringBuilder b = new StringBuilder();
-
-    if(getCompundName()!= null) {
-      b.append(getCompundName()).append(",");
-    }
-    if(getAdductType() != null) {
-      b.append(" ").append(getAdductType().toString(false)).append(", ");
-    }
-    if(getPrecursorMZ() != null) {
-      b.append(mzFormat.format(getPrecursorMZ())).append(", ");
-    }
-    if(getScore() != null) {
-      b.append(scoreFormat.format(getScore()));
-    }
-    return b.toString();
+    b.append(getCompoundName());
+//    data.forEach((k, v) -> b.append(k.getFormattedStringCheckType(v)).append(" "));
+    return b.toString().trim();
   }
 
   @Override
@@ -346,7 +335,7 @@ public class SimpleCompoundDBAnnotation implements
       return false;
     }
     SimpleCompoundDBAnnotation that = (SimpleCompoundDBAnnotation) o;
-    return data.equals(that.data);
+    return Objects.equals(data, that.data);
   }
 
   @Override

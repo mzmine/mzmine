@@ -51,5 +51,4 @@ public class SmilesStructureType extends StringType
   public StringConverter<String> getStringConverter() {
     return converter;
   }
-
 }

@@ -57,7 +57,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.FragmentScanSorter;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -558,9 +558,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
+  public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
     synchronized (getMap()) {
-      List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
+      List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
       if (matches == null) {
         matches = new ArrayList<>();
       }
@@ -570,9 +570,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches) {
+  public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
     synchronized (getMap()) {
-      List<SpectralDBFeatureIdentity> old = get(SpectralLibraryMatchesType.class);
+      List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
       if (old == null) {
         old = new ArrayList<>();
       }
@@ -588,16 +588,15 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches) {
+  public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
     synchronized (getMap()) {
       set(SpectralLibraryMatchesType.class, matches);
     }
   }
 
   @Override
-  @NotNull
-  public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
-    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
+  public @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches() {
+    List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
     return matches == null ? List.of() : matches;
   }
 
