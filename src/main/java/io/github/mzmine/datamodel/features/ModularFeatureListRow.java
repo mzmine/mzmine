@@ -496,7 +496,7 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public List<FeatureIdentity> getPeakIdentities() {
     ManualAnnotation manual = getManualAnnotation();
-    return manual == null ? List.of() : manual.getIdentities();
+    return manual == null ? List.of() : Objects.requireNonNullElse(manual.getIdentities(), List.of());
   }
 
   public void setPeakIdentities(List<FeatureIdentity> identities) {
