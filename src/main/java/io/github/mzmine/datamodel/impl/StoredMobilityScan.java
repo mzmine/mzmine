@@ -122,7 +122,11 @@ public class StoredMobilityScan implements MobilityScan {
   @Nullable
   @Override
   public Double getTIC() {
-    throw new UnsupportedOperationException("Intentionally unimplemented to safe RAM.");
+    double tic = 0d;
+    for (int i = 0; i < getNumberOfDataPoints(); i++) {
+      tic += getIntensityValue(i);
+    }
+    return tic;
   }
 
   @NotNull
