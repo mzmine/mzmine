@@ -394,6 +394,9 @@ public class ChartGroup extends Node {
 
   public void resetDomainZoom() {
     // each a different range
+    if(list == null) {
+      return;
+    }
     for (ChartViewWrapper c : list) {
       if (c.getChartFX() != null) {
         ChartLogicsFX.autoDomainAxis(c.getChartFX());
@@ -410,6 +413,9 @@ public class ChartGroup extends Node {
   }
 
   public void resetRangeZoom() {
+    if(list == null) {
+      return;
+    }
     if (!combineRangeAxes) {
       // each a different range
       for (ChartViewWrapper c : list) {

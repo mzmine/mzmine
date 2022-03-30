@@ -19,7 +19,6 @@
 package io.github.mzmine.modules.dataprocessing.norm_rtcalibration;
 
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.FeatureIdentity;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
@@ -262,13 +261,6 @@ class RTCalibrationTask extends AbstractTask {
       // Normalize one row
       ModularFeatureListRow normalizedRow = normalizeRow(normalizedFeatureList, originalRow,
           standards, normalizedStdRTs);
-
-      // Copy comment and identification
-      normalizedRow.setComment(originalRow.getComment());
-      for (FeatureIdentity ident : originalRow.getPeakIdentities()) {
-        normalizedRow.addFeatureIdentity(ident, false);
-      }
-      normalizedRow.setPreferredFeatureIdentity(originalRow.getPreferredFeatureIdentity());
 
       // Add the new row to normalized feature list
       normalizedFeatureList.addRow(normalizedRow);

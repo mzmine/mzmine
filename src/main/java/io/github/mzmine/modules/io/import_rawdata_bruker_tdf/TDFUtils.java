@@ -654,8 +654,11 @@ public class TDFUtils {
         final String errorMessage = new String(errorBuffer, "UTF-8");
         logger.fine(() -> "Last TDF import error: " + errorMessage + " length: " + len
             + ". Required buffer size: " + errorCode + " actual size: " + BUFFER_SIZE);
+        if(errorMessage.contains("CorruptFrameDataError")) {
+          throw new IllegalStateException("Error reading tdf raw data. " + errorMessage);
+        }
       } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
+        logger.log(Level.WARNING, e.getMessage(), e);
       }
       return true;
     } else {

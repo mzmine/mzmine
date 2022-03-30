@@ -99,7 +99,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, outFilenameOption});
+    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, outFilenameOption},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
   @Override
@@ -174,7 +175,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
               + "This will not add a mass list to the files " + Arrays.stream(selectedFiles)
               .map(RawDataFile::getName).toList().toString() + ".\nDo you want to continue anyway?",
           ButtonType.YES, ButtonType.NO);
-      if(buttonType == ButtonType.NO) {
+      if (buttonType == ButtonType.NO) {
         return false;
       }
     }
