@@ -18,8 +18,14 @@
 
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
-import io.github.mzmine.datamodel.*;
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityType;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess.ScanDataType;
 import io.github.mzmine.datamodel.data_access.ScanDataAccess;

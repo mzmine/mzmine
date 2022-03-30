@@ -45,7 +45,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -54,10 +57,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
@@ -139,7 +141,12 @@ public class FeatureListSummaryController {
     Object value = parameter.getValue();
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
-    sb.append(value.toString());
+    if (value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
+    //sb.append(value.toString());
     if (parameter instanceof EmbeddedParameterSet embedded) {
       ParameterSet parameterSet = embedded.getEmbeddedParameters();
       for (Parameter<?> parameter1 : parameterSet.getParameters()) {
@@ -207,25 +214,21 @@ public class FeatureListSummaryController {
   @FXML
   void exportRecord() throws IOException {
     ButtonType btn = MZmineCore.getDesktop()
-        .displayConfirmation("Export all steps and parameters\nDo you wish to continue?",
+        .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",
             ButtonType.YES, ButtonType.NO);
-
     if (btn != ButtonType.YES) {
       return;
     }
-    String filePath =
-        System.getProperty("user.dir") + File.separator + "Export" + File.separator + "Export.csv";
+    FileChooser fc = new FileChooser();
+    fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("All File", "*.*"),
+        new FileChooser.ExtensionFilter("comma-separated values", "*.csv"));
     // specified by filepath
-    File file = new File(filePath);
-    if (!file.exists()) {
-      file.createNewFile();
-    }
+    fc.setTitle("Save Feature List Summary");
+    File file = fc.showSaveDialog(new Stage());
     try {
-      FileWriter outputfile = new FileWriter(file, true);
-      BufferedWriter writer = new BufferedWriter(outputfile);
+      BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
       PrintWriter pw = new PrintWriter(writer);
       for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
-        //String par =item.getParameters().toString().replaceAll("[,]","\n");
         StringBuilder sb = new StringBuilder(item.getDescription());
         pw.println(sb);
         ParameterSet parameterSet = item.getParameters();
@@ -235,7 +238,7 @@ public class FeatureListSummaryController {
       }
       pw.flush();
       pw.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.info(e.getMessage());
     }
   }
