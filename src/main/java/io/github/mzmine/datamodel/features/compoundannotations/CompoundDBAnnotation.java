@@ -51,6 +51,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -194,6 +195,8 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     }
     return get(key);
   }
+
+  Set<DataType<?>> getTypes();
 
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
