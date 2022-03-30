@@ -64,9 +64,9 @@ public class SmilesStructureType extends StringType implements EditableColumnTyp
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
     String compoundName = "";
     if(superType instanceof CompoundDatabaseMatchesType) {
-      compoundName = row.getCompoundAnnotations().get(0).getCompundName();
+      compoundName = row.getCompoundAnnotations().get(0).getCompoundName();
     } else if(superType instanceof SpectralLibraryMatchesType) {
-      compoundName = row.getSpectralLibraryMatches().get(0).getName();
+      compoundName = row.getSpectralLibraryMatches().get(0).getCompoundName();
     }
 
     if (value instanceof String smiles) {

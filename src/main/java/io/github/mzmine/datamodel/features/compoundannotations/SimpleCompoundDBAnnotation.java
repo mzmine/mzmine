@@ -117,6 +117,7 @@ public class SimpleCompoundDBAnnotation implements
     return (T) value;
   }
 
+  @Override
   public <T> T get(Class<? extends DataType<T>> key) {
     var actualKey = DataTypes.get(key);
     return get(actualKey);
@@ -319,7 +320,7 @@ public class SimpleCompoundDBAnnotation implements
   @Override
   public String toString() {
     final StringBuilder b = new StringBuilder();
-    b.append(getCompundName());
+    b.append(getCompoundName());
 //    data.forEach((k, v) -> b.append(k.getFormattedStringCheckType(v)).append(" "));
     return b.toString().trim();
   }

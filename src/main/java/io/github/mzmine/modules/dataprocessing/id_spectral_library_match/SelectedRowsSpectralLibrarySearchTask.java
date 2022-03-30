@@ -27,7 +27,7 @@ import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTa
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindowFX;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.time.Instant;
 import java.util.List;
 import java.util.logging.Logger;
@@ -86,7 +86,7 @@ public class SelectedRowsSpectralLibrarySearchTask extends RowsSpectralMatchTask
   }
 
   @Override
-  protected void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
+  protected void addIdentities(FeatureListRow row, List<SpectralDBAnnotation> matches) {
     super.addIdentities(row, matches);
     // one selected row -> show in dialog
     if (resultWindow != null) {
