@@ -341,7 +341,6 @@ public class TDFImportTask extends AbstractTask {
         "Imported " + rawDataFileName + ". Loaded " + newMZmineFile.getNumOfScans() + " scans and "
             + newMZmineFile.getNumberOfFrames() + " frames.");
     project.addFile(newMZmineFile);
-    // compareMobilities(newMZmineFile);
 
     setStatus(TaskStatus.FINISHED);
 
@@ -372,17 +371,13 @@ public class TDFImportTask extends AbstractTask {
 
         setDescription("Reading metadata for " + tdf.getName());
         metaDataTable.executeQuery(connection);
-        // metaDataTable.print();
 
         setDescription("Reading frame data for " + tdf.getName());
         frameTable.executeQuery(connection);
-        // frameTable.print();
 
         isMaldi = frameTable.getScanModeColumn()
             .contains(Integer.toUnsignedLong(BrukerScanMode.MALDI.getNum()));
 
-//        if (frameTable.getMsMsTypeColumn()
-//            .contains(Integer.toUnsignedLong(BrukerScanMode.PASEF.getNum()))) {
         setDescription("Reading precursor info for " + tdf.getName());
         precursorTable.executeQuery(connection);
 
@@ -391,14 +386,12 @@ public class TDFImportTask extends AbstractTask {
 
         setDescription("Reading PRM Target info for " + tdf.getName());
         prmFrameTargetTable.executeQuery(connection);
-//        }
 
         if (isMaldi) {
           setDescription("MALDI info for " + tdf.getName());
           maldiFrameInfoTable.executeQuery(connection);
           maldiFrameInfoTable.process();
           maldiFrameLaserInfoTable.executeQuery(connection);
-          // maldiFrameInfoTable.print();
         }
 
         connection.close();

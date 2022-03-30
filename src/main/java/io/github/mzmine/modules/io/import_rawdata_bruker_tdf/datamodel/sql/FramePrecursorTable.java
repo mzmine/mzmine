@@ -108,8 +108,7 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
         + TDFPasefFrameMsMsInfoTable.ISOLATION_WIDTH + ", " + msmstable + "."
         + TDFPasefFrameMsMsInfoTable.ISOLATION_MZ + ", " + precursorstable + "."
         + TDFPrecursorTable.LARGEST_PEAK_MZ + ", " + precursorstable + "."
-        + TDFPrecursorTable.CHARGE + ", " + precursorstable + "."
-        + TDFPrecursorTable.PARENT_ID;
+        + TDFPrecursorTable.CHARGE + ", " + precursorstable + "." + TDFPrecursorTable.PARENT_ID;
   }
 
   @Override
@@ -132,6 +131,12 @@ public class FramePrecursorTable extends TDFDataTable<Long> {
       final int frameId = frameIdColumn.get(i).intValue();
 
       Set<BuildingPASEFMsMsInfo> entry = info.computeIfAbsent(frameId, k -> new HashSet<>());
+
+      /**
+       * for some special cases the largest peak m/z might be 0 (usually corresponds with
+       * monoisotopic although monoisotopic is just an estimate). In that case, use the isolation
+       * m/z because it is always set.
+       */
       final double precursorMz =
           Double.compare(largestPeakMzColumn.get(i), 0d) != 0 ? largestPeakMzColumn.get(i)
               : isolationMzColumn.get(i);
