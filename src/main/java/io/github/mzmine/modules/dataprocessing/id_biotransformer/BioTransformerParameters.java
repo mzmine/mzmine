@@ -5,9 +5,12 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.IntegerParameter;
+import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
+import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.util.ExitCode;
 import javafx.application.Platform;
@@ -33,8 +36,16 @@ public class BioTransformerParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter(0.003, 5);
 
+  public static final OptionalModuleParameter<BioTransformerFilterParameters> filterParam = new OptionalModuleParameter(
+      "Filter parameters", "Additional filtering parameters.", new BioTransformerFilterParameters(),
+      false);
+
+  public static final ParameterSetParameter ionLibrary = new ParameterSetParameter("Ion Library",
+      "Potential ionizations of product molecules.", new IonLibraryParameterSet());
+
   public BioTransformerParameters() {
-    super(new Parameter[]{flists, bioPath, transformationType, steps, mzTol/*, cmdOptions*/});
+    super(new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam
+        /*, cmdOptions*/});
   }
 
   public BioTransformerParameters(boolean singleRow) {

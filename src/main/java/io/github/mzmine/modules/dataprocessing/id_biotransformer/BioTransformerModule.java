@@ -1,6 +1,7 @@
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -36,7 +37,10 @@ public class BioTransformerModule implements MZmineProcessingModule {
   public @NotNull ExitCode runModule(@NotNull MZmineProject project,
       @NotNull ParameterSet parameters, @NotNull Collection<Task> tasks,
       @NotNull Instant moduleCallDate) {
-    tasks.add(new BioTransformerTask(project, parameters, moduleCallDate));
+    for (ModularFeatureList flist : parameters.getValue(BioTransformerParameters.flists)
+        .getMatchingFeatureLists()) {
+      tasks.add(new BioTransformerTask(project, parameters, flist, moduleCallDate));
+    }
     return ExitCode.OK;
   }
 

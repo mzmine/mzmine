@@ -1,15 +1,18 @@
 package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
-import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -18,10 +21,11 @@ import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,12 +48,21 @@ public class BioTransformerTask extends AbstractTask {
   private final Integer steps;
   private final MZTolerance mzTolerance;
   private String description;
+  private final FeatureList flist;
 
-  private int numEducts;
-  private int processing = 1;
+  private final boolean useFilterParam;
+  private final boolean eductMustHaveMsMs;
+  private final boolean productMustHaveMsMs;
+  private final boolean checkEductIntensity;
+  private final boolean checkProdcutIntensity;
+  private final double minEductIntensity;
+  private final double minProductIntensity;
+
+  private int numEducts = 0;
+  private int predictions = 1;
 
   public BioTransformerTask(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+      FeatureList flist, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
     this.project = project;
     this.parameters = parameters;
@@ -60,8 +73,20 @@ public class BioTransformerTask extends AbstractTask {
     flists = parameters.getValue(BioTransformerParameters.flists).getMatchingFeatureLists();
     mzTolerance = parameters.getValue(BioTransformerParameters.mzTol);
 
-    numEducts = Arrays.stream(flists).mapToInt(this::getNumEducts).sum();
+    useFilterParam = parameters.getValue(BioTransformerParameters.filterParam);
+    var filterParam = parameters.getParameter(BioTransformerParameters.filterParam)
+        .getEmbeddedParameters();
+    eductMustHaveMsMs = filterParam.getValue(BioTransformerFilterParameters.eductMustHaveMsMs);
+    productMustHaveMsMs = filterParam.getValue(BioTransformerFilterParameters.productMustHaveMsMs);
+    checkEductIntensity = filterParam.getValue(BioTransformerFilterParameters.minEductHeight);
+    checkProdcutIntensity = filterParam.getValue(BioTransformerFilterParameters.minProductHeight);
+    minEductIntensity = filterParam.getParameter(BioTransformerFilterParameters.minEductHeight)
+        .getEmbeddedParameter().getValue();
+    minProductIntensity = filterParam.getParameter(BioTransformerFilterParameters.minProductHeight)
+        .getEmbeddedParameter().getValue();
+
     description = "Biotransformer process";
+    this.flist = flist;
   }
 
   @Override
@@ -71,79 +96,85 @@ public class BioTransformerTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return (processing - 1d) / numEducts;
+
+    return numEducts == 0 ? 0d : (predictions - 1d) / numEducts;
   }
 
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    if (numEducts == 0) {
-      setStatus(TaskStatus.FINISHED);
-      return;
-    }
-
     // make a map of all unique annotations (by smiles code)
-    int numEducts = 0;
-    Map<String, IonType> uniqueSmilesMap = new HashMap<>();
-    for (ModularFeatureList flist : flists) {
-      for (FeatureListRow row : flist.getRows()) {
-        if (isCanceled()) {
-          return;
-        }
-
-        StringProperty prefix = new SimpleStringProperty();
-        final String bestSmiles = getBestSmiles(row, prefix);
-        if (bestSmiles == null) {
-          processing++;
-          continue;
-        }
-
-      }
-    }
-
-    for (ModularFeatureList flist : flists) {
-      for (FeatureListRow row : flist.getRows()) {
-        if (isCanceled()) {
-          return;
-        }
-
-        StringProperty prefix = new SimpleStringProperty();
-        final String bestSmiles = getBestSmiles(row, prefix);
-        if (bestSmiles == null) {
-          processing++;
-          continue;
-        }
-        description =
-            "Biotransformer task " + processing + "/" + numEducts + " SMILES: " + bestSmiles;
-
-        final List<BioTransformerAnnotation> bioTransformerAnnotations = singleRowPrediction(row,
-            bestSmiles, prefix.getValue(), bioPath, parameters);
-
-        if (bioTransformerAnnotations.isEmpty()) {
-          processing++;
-          continue;
-        }
-
-        for (BioTransformerAnnotation annotation : bioTransformerAnnotations) {
-          flist.stream().forEach(
-              r -> LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance,
-                  null, null, null));
-        }
-
-        processing++;
+    final Map<String, FeatureListRow> uniqueSmilesMap = new HashMap<>();
+    for (FeatureListRow row : flist.getRows()) {
+      if (isCanceled()) {
+        return;
       }
 
-      flist.getAppliedMethods().add(
-          new SimpleFeatureListAppliedMethod(BioTransformerModule.class, parameters,
-              getModuleCallDate()));
+      if (!filterEductRow(row)) {
+        continue;
+      }
+
+      StringProperty prefix = new SimpleStringProperty();
+      final FeatureAnnotation bestAnnotation = getBestAnnotation(row, prefix);
+      if (bestAnnotation == null) {
+        continue;
+      }
+      uniqueSmilesMap.put(bestAnnotation.getSmiles(), row);
     }
+
+    numEducts = uniqueSmilesMap.size();
+
+    for (Entry<String, FeatureListRow> entry : uniqueSmilesMap.entrySet()) {
+      if (isCanceled()) {
+        return;
+      }
+
+      final String bestSmiles = entry.getKey();
+      final FeatureListRow row = entry.getValue();
+      final FeatureAnnotation bestAnnotation = getBestAnnotation(row, null);
+
+      if (bestAnnotation == null || !bestSmiles.equals(bestAnnotation.getSmiles())) {
+        throw new ConcurrentModificationException(
+            "Best smiles of row " + row.getID() + " was altered.");
+      }
+
+      description = String.format(
+          "Biotransformer task for %s. Processing educt %d/%d\tName: %s SMILES: %s",
+          flist.getName(), predictions, numEducts, bestAnnotation.getCompoundName(), bestSmiles);
+
+      final List<BioTransformerAnnotation> bioTransformerAnnotations = singleRowPrediction(row,
+          bestSmiles, bestAnnotation.getCompoundName(), bioPath, parameters);
+
+      if (bioTransformerAnnotations.isEmpty()) {
+        predictions++;
+        continue;
+      }
+
+      for (BioTransformerAnnotation annotation : bioTransformerAnnotations) {
+        flist.stream().filter(this::filterProductRow).forEach(
+            r -> LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
+                null, null));
+      }
+
+      predictions++;
+    }
+
+    flist.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(BioTransformerModule.class, parameters,
+            getModuleCallDate()));
+
+    setStatus(TaskStatus.FINISHED);
   }
 
   @NotNull
   public static List<BioTransformerAnnotation> singleRowPrediction(@NotNull FeatureListRow row,
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
       @NotNull ParameterSet parameters) {
+
+    var ionLibraryParam = parameters.getParameter(BioTransformerParameters.ionLibrary).getValue();
+    var ionLibrary = new IonNetworkLibrary((IonLibraryParameterSet) ionLibraryParam);
+
     final Integer id = row.getID();
     String filename = id + "_transformation";
     final File file;
@@ -163,7 +194,8 @@ public class BioTransformerTask extends AbstractTask {
     final List<BioTransformerAnnotation> bioTransformerAnnotations;
     try {
       bioTransformerAnnotations = BioTransformerUtil.parseLibrary(file,
-          new IonType[]{new IonType(IonModification.H)}, new AtomicBoolean(), new AtomicInteger());
+          ionLibrary.getAllAdducts().toArray(new IonType[0]), new AtomicBoolean(),
+          new AtomicInteger());
     } catch (IOException e) {
       logger.log(Level.WARNING, e.getMessage(), e);
       return List.of();
@@ -179,31 +211,46 @@ public class BioTransformerTask extends AbstractTask {
    * @return The smiles of the first spectral library match or compound db match. (may be null)
    */
   @Nullable
-  private String getBestSmiles(@NotNull FeatureListRow row, @Nullable StringProperty compoundName) {
+  private FeatureAnnotation getBestAnnotation(@NotNull FeatureListRow row,
+      @Nullable StringProperty compoundName) {
     final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
     if (!spectralLibraryMatches.isEmpty()) {
       final String smiles = spectralLibraryMatches.get(0).getEntry()
           .getOrElse(DBEntryField.SMILES, null);
-      if (smiles != null) {
-        if (compoundName != null) {
-          compoundName.set(spectralLibraryMatches.get(0).getCompoundName());
-        }
-        return smiles;
-      }
+      return spectralLibraryMatches.get(0);
     }
 
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (!compoundAnnotations.isEmpty()) {
-      if (compoundName != null) {
-        compoundName.set(compoundAnnotations.get(0).getCompoundName());
-      }
-      return compoundAnnotations.get(0).getSmiles();
+      return compoundAnnotations.get(0);
     }
 
     return null;
   }
 
-  private int getNumEducts(ModularFeatureList featureList) {
-    return (int) featureList.stream().filter(row -> getBestSmiles(row, null) != null).count();
+  boolean filterProductRow(FeatureListRow row) {
+    if (!useFilterParam) {
+      return true;
+    }
+    if (checkProdcutIntensity && row.getBestFeature().getHeight() < minProductIntensity) {
+      return false;
+    }
+    if (productMustHaveMsMs && row.getMostIntenseFragmentScan() == null) {
+      return false;
+    }
+    return true;
+  }
+
+  boolean filterEductRow(FeatureListRow row) {
+    if (!useFilterParam) {
+      return true;
+    }
+    if (checkEductIntensity && row.getBestFeature().getHeight() < minEductIntensity) {
+      return false;
+    }
+    if (eductMustHaveMsMs && row.getMostIntenseFragmentScan() == null) {
+      return false;
+    }
+    return true;
   }
 }
