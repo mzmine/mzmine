@@ -49,8 +49,8 @@ public class BioTransformerParameters extends SimpleParameterSet {
   }
 
   public BioTransformerParameters(boolean singleRow) {
-    super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol}
-        : new Parameter[]{flists, bioPath, transformationType, steps, mzTol});
+    super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol, ionLibrary, filterParam}
+        : new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam});
 
     /*final ParameterSet moduleParameters = MZmineCore.getConfiguration()
         .getModuleParameters(BioTransformerModule.class);
