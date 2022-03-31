@@ -200,8 +200,9 @@ public class BioTransformerTask extends AbstractTask {
       logger.log(Level.WARNING, e.getMessage(), e);
       return List.of();
     }
+    AtomicInteger counter = new AtomicInteger(1);
     bioTransformerAnnotations.forEach(a -> a.put(CompoundNameType.class,
-        Objects.requireNonNullElse(prefix, "") + "_transformation"));
+        Objects.requireNonNullElse(prefix, "") + "_transformation " + counter.getAndIncrement()));
     return bioTransformerAnnotations;
   }
 
