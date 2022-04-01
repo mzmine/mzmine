@@ -180,7 +180,7 @@ class IsotopeFinderTask extends AbstractTask {
           candidates = normalizeImsIntensities(candidates, scan, featureDp);
         }
 
-        if (!candidates.isEmpty()) {
+        if (candidates.size() > 1) { // feature itself is always in cadidates
           IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
               charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
           if (pattern == null) {
