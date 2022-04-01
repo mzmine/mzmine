@@ -332,7 +332,7 @@ public class SimpleCompoundDBAnnotation implements
       b.append(mzFormat.format(getPrecursorMZ())).append(", ");
     }
     if(getScore() != null) {
-      b.append(getScore());
+      b.append(scoreFormat.format(getScore()));
     }
     return b.toString();
   }
