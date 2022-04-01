@@ -4,11 +4,15 @@ import com.google.common.reflect.ClassPath;
 import io.github.mzmine.datamodel.features.types.DataType;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class DataTypesTest {
+
+  private static final Logger logger = Logger.getLogger(DataTypesTest.class.getName());
 
   @Test
   public void testUniqueID() {
@@ -21,7 +25,9 @@ public class DataTypesTest {
       classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
           .forEach(classInfo -> {
             try {
-              Object o = classInfo.load().getDeclaredConstructor().newInstance();
+              final Class<?> clazz = classInfo.load();
+              clazz.asSubclass(DataType.class);
+              Object o = clazz.getDeclaredConstructor().newInstance();
               if (o instanceof DataType dt) {
                 var value = map.put(dt.getUniqueID(), dt);
                 if (value != null) {
@@ -31,8 +37,13 @@ public class DataTypesTest {
                 }
               }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-              //               can go silent
-              //              logger.log(Level.INFO, e.getMessage(), e);
+              if (!Modifier.isAbstract(classInfo.load().getModifiers()) && !classInfo.load()
+                  .isInterface()) {
+                Assertions.fail("Cannot instantiate DataType class " + classInfo.load().getName()
+                    + ". Is the constructor not public?");
+              }
+            } catch (ClassCastException e) {
+              // can go silent, not a DataType
             }
           });
     } catch (IOException e) {
@@ -50,7 +61,9 @@ public class DataTypesTest {
       classPath.getTopLevelClassesRecursive("io.github.mzmine.datamodel.features.types")
           .forEach(classInfo -> {
             try {
-              Object o = classInfo.load().getDeclaredConstructor().newInstance();
+              final Class<?> clazz = classInfo.load();
+              clazz.asSubclass(DataType.class);
+              Object o = clazz.getDeclaredConstructor().newInstance();
               if (o instanceof DataType dt) {
                 var value = map.put(dt.getClass().getSimpleName(), dt);
                 if (value != null) {
@@ -60,6 +73,13 @@ public class DataTypesTest {
                 }
               }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+              if (!Modifier.isAbstract(classInfo.load().getModifiers()) && !classInfo.load()
+                  .isInterface()) {
+                Assertions.fail("Cannot instantiate DataType class " + classInfo.load().getName()
+                    + ". Is the constructor not public?");
+              }
+            } catch (ClassCastException e) {
+              // can go silent, not a DataType
             }
           });
     } catch (IOException e) {
