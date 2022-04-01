@@ -146,7 +146,6 @@ public class FeatureListSummaryController {
     } else {
       sb.append(value.toString());
     }
-    //sb.append(value.toString());
     if (parameter instanceof EmbeddedParameterSet embedded) {
       ParameterSet parameterSet = embedded.getEmbeddedParameters();
       for (Parameter<?> parameter1 : parameterSet.getParameters()) {
@@ -222,7 +221,6 @@ public class FeatureListSummaryController {
     FileChooser fc = new FileChooser();
     fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("All File", "*.*"),
         new FileChooser.ExtensionFilter("comma-separated values", "*.csv"));
-    // specified by filepath
     fc.setTitle("Save Feature List Summary");
     File file = fc.showSaveDialog(new Stage());
     try {

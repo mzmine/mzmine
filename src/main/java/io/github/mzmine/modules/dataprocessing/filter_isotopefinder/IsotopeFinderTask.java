@@ -199,7 +199,7 @@ class IsotopeFinderTask extends AbstractTask {
         // add isotope pattern and charge
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
-        //CCS Calculation
+        //Final CCS Calculation
         RawDataFile data = feature.getRawDataFile();
         Float mobility = feature.getMobility();
         MobilityType mobilityType = feature.getMobilityUnit();
