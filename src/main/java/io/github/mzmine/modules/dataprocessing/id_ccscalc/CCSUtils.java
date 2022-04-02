@@ -58,7 +58,8 @@ public class CCSUtils {
   private static final Logger logger = Logger.getLogger(CCSUtils.class.getName());
   private static final TDFUtils tdfUtils = new TDFUtils();
 
-  private CCSUtils() {}
+  private CCSUtils() {
+  }
 
   /**
    * @return The calculated CCS value or null if no calibration information is available.
@@ -73,6 +74,16 @@ public class CCSUtils {
           : calcCCSFromTimsMobility(mobility.doubleValue(), charge, mz);
       case NONE, FAIMS, MIXED -> logUnsupportedMobilityUnit();
     };
+  }
+
+  public static boolean hasValidMobilityType(@NotNull IMSRawDataFile file) {
+    //Valid Mobility Check for CCS calculation in the function
+    if (file.getMobilityType() == MobilityType.TIMS
+        || file.getMobilityType() == MobilityType.DRIFT_TUBE
+        || file.getMobilityType() == MobilityType.TRAVELING_WAVE) {
+      return true;
+    }
+    return false;
   }
 
   /**
