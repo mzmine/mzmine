@@ -211,6 +211,7 @@ public class FeatureListSummaryController {
   }
 
   @FXML
+  //Export Record
   void exportRecord() throws IOException {
     ButtonType btn = MZmineCore.getDesktop()
         .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",
