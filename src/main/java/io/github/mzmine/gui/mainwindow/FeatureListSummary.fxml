@@ -55,6 +55,7 @@
             <Label styleClass="title-label" text="Date created" GridPane.rowIndex="1" />
             <TextField fx:id="tfCreated" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <Button fx:id="btnOpenInBatchQueue" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#setAsBatchQueue" text="Open in batch queue" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+            <Button fx:id="exportfeature" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#exportRecord" text="Export" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

@@ -41,10 +41,13 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.util.ExitCode;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
@@ -55,6 +58,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +81,7 @@ public class FeatureListSummaryController {
   public Button btnOpenInBatchQueue;
   @FXML
   public Button exportfeature;
+
 
   @FXML
   public void initialize() {
