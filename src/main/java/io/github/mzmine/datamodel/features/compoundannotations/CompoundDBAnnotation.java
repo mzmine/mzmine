@@ -74,6 +74,10 @@ public interface CompoundDBAnnotation extends Cloneable {
       CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     for (IonType adduct : library.getAllAdducts()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent() || adduct.getName()
+          .contains("?")) {
+        continue;
+      }
       try {
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
