@@ -29,6 +29,7 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -76,11 +77,19 @@ public class CCSUtils {
     };
   }
 
+  /**
+   * @param file Represents a raw data file @return The {@link IMSRawDataFile#getMobilityType()} and
+   *             {@link IMSRawDataFile#getCCSCalibration()} of this data file.
+   * @return true if it has the valid mobility type and the calibration.
+   * @author https://github.com/Tarush-Singh35
+   */
   public static boolean hasValidMobilityType(@NotNull IMSRawDataFile file) {
     //Valid Mobility Check for CCS calculation in the function
-    if (file.getMobilityType() == MobilityType.TIMS
-        || file.getMobilityType() == MobilityType.DRIFT_TUBE
-        || file.getMobilityType() == MobilityType.TRAVELING_WAVE) {
+    if (file.getMobilityType() == MobilityType.TIMS) {
+      return true;
+    } else if ((file.getMobilityType() == MobilityType.DRIFT_TUBE
+        || file.getMobilityType() == MobilityType.TRAVELING_WAVE)
+        && file.getCCSCalibration() != null) {
       return true;
     }
     return false;

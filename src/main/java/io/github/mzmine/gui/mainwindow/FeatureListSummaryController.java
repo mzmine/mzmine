@@ -229,12 +229,14 @@ public class FeatureListSummaryController {
       BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
       PrintWriter pw = new PrintWriter(writer);
       for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
-        StringBuilder sb = new StringBuilder(item.getDescription());
+        String sb = item.getDescription();
+        //StringBuilder sb = new StringBuilder(item.getDescription());
         pw.println(sb);
         ParameterSet parameterSet = item.getParameters();
         for (Parameter<?> parameter : parameterSet.getParameters()) {
           pw.println(parameterToString(parameter));
         }
+        pw.println();
       }
       pw.flush();
       pw.close();
