@@ -151,12 +151,16 @@ public class BioTransformerTask extends AbstractTask {
         continue;
       }
 
+      AtomicInteger numAnnotations = new AtomicInteger(0);
       for (BioTransformerAnnotation annotation : bioTransformerAnnotations) {
-        flist.stream().filter(this::filterProductRow).forEach(
-            r -> LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
-                null, null));
+        flist.stream().filter(this::filterProductRow).forEach(r -> {
+          if (LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
+              null, null)) {
+            numAnnotations.getAndIncrement();
+          }
+        });
       }
-
+      description = "Annotated " + numAnnotations + " rows for as transformations of " + bestAnnotation.getCompoundName();
       predictions++;
     }
 

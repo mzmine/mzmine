@@ -40,8 +40,8 @@ import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
 import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
 import io.github.mzmine.datamodel.features.types.numbers.RTType;
-import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.scores.CompoundAnnotationScoreType;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -204,7 +204,7 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         ccsTolerance);
   }
 
-  public static void checkMatchAnnotateRow(CompoundDBAnnotation annotation, FeatureListRow peakRow,
+  public static boolean checkMatchAnnotateRow(CompoundDBAnnotation annotation, FeatureListRow peakRow,
       @Nullable final MZTolerance mzTolerance, @Nullable final RTTolerance rtTolerance,
       @Nullable final MobilityTolerance mobTolerance, @Nullable final Double ccsTolerance) {
     if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
@@ -230,7 +230,9 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
           .stream().filter(Objects::nonNull)
           .sorted(Comparator.comparingDouble(CompoundDBAnnotation::getScore)).toList();
       peakRow.setCompoundAnnotations(sorted);
+      return true;
     }
+    return false;
   }
 
   @NotNull
