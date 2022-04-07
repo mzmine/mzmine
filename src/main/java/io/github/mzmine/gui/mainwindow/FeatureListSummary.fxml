@@ -15,7 +15,7 @@
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
   ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
-  ~
+  ~ changed
   -->
 
 <?import javafx.geometry.Insets?>
@@ -28,6 +28,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.control.ButtonBar?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="400.0" prefWidth="600.0"
   xmlns="http://javafx.com/javafx/11.0.1"
   fx:controller="io.github.mzmine.gui.mainwindow.FeatureListSummaryController">
@@ -54,7 +55,12 @@
             <TextField fx:id="tfNumRows" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <Label styleClass="title-label" text="Date created" GridPane.rowIndex="1" />
             <TextField fx:id="tfCreated" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Button fx:id="btnOpenInBatchQueue" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#setAsBatchQueue" text="Open in batch queue" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+           <ButtonBar GridPane.columnIndex="1" GridPane.rowIndex="3">
+           <buttons>
+            <Button fx:id="btnOpenInBatchQueue" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#setAsBatchQueue" text="Open in batch queue"/>
+            <Button fx:id="exportfeature" alignment="TOP_CENTER" mnemonicParsing="false" onAction="#exportRecord" text="Export"/>
+           </buttons>
+           </ButtonBar>
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

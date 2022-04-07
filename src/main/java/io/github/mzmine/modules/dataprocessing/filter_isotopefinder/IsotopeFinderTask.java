@@ -19,9 +19,11 @@
 package io.github.mzmine.modules.dataprocessing.filter_isotopefinder;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
@@ -35,6 +37,7 @@ import io.github.mzmine.datamodel.impl.MultiChargeStateIsotopePattern;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.modules.dataprocessing.filter_isotopefinder.IsotopeFinderParameters.ScanRange;
+import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSUtils;
 import io.github.mzmine.modules.tools.msmsspectramerge.MergedDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -42,11 +45,13 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.IsotopesUtils;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.NotNull;
 import org.openscience.cdk.Element;
 
@@ -66,6 +71,7 @@ class IsotopeFinderTask extends AbstractTask {
   private final String isotopes;
   private final ScanRange scanRange;
   private int processedRows, totalRows;
+
 
   IsotopeFinderTask(MZmineProject project, ModularFeatureList featureList, ParameterSet parameters,
       @NotNull Instant moduleCallDate) {
@@ -137,16 +143,15 @@ class IsotopeFinderTask extends AbstractTask {
 
     int missingValues = 0;
     int detected = 0;
-
     // find for all rows the isotope pattern
     for (FeatureListRow row : featureList.getRows()) {
       if (isCanceled()) {
         return;
       }
-
       // start at max intensity signal
       Feature feature = row.getFeature(raw);
       double mz = feature.getMZ();
+      //ended
       Scan maxScan = feature.getRepresentativeScan();
       int scanIndex = scans.indexOf(maxScan);
       scans.jumpToIndex(scanIndex);
@@ -165,7 +170,6 @@ class IsotopeFinderTask extends AbstractTask {
         final double currentMaxDiff = maxIsoMzDiff[i];
         List<DataPoint> candidates = IsotopesUtils.findIsotopesInScan(currentChargeDiffs,
             currentMaxDiff, isoMzTolerance, scans, new SimpleDataPoint(mz, feature.getHeight()));
-
         if (!candidates.isEmpty()) {
           IsotopePattern newPattern = new SimpleIsotopePattern(candidates.toArray(new DataPoint[0]),
               charge, IsotopePatternStatus.DETECTED, IsotopeFinderModule.MODULE_NAME);
@@ -180,7 +184,6 @@ class IsotopeFinderTask extends AbstractTask {
           } else {
             throw new IllegalStateException("Isotope pattern type is not handled.");
           }
-
           if (candidates.size() > maxFoundIsotopes) {
             maxFoundIsotopes = candidates.size();
             // charge is zero indexed but always starts at 1 -> max charge
@@ -192,11 +195,23 @@ class IsotopeFinderTask extends AbstractTask {
         // no pattern found
         continue;
       }
-
       if (scanRange == ScanRange.SINGLE_MOST_INTENSE) {
         // add isotope pattern and charge
         feature.setIsotopePattern(pattern);
         feature.setCharge(bestCharge);
+        //Final CCS Calculation
+        RawDataFile data = feature.getRawDataFile();
+        Float mobility = feature.getMobility();
+        MobilityType mobilityType = feature.getMobilityUnit();
+        if (data instanceof IMSRawDataFile imsfile) {
+            if (CCSUtils.hasValidMobilityType(imsfile) && mobility != null && bestCharge > 0
+                && mobilityType != null) {
+              Float ccs = CCSUtils.calcCCS(mz, mobility, mobilityType, bestCharge, imsfile);
+              if (ccs != null) {
+                feature.setCCS(ccs);
+              }
+            }
+        }//end
         detected++;
       } else {
         // find pattern in FWHM
