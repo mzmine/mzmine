@@ -158,4 +158,15 @@ public abstract class FloatType extends NumberType<Float> {
     return result;
   }
 
+  @Override
+  public @Nullable Float valueFromString(String str) {
+    if(str == null) {
+      return null;
+    }
+    try {
+      return Float.parseFloat(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
 }

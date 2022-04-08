@@ -51,6 +51,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
@@ -199,18 +200,10 @@ public interface CompoundDBAnnotation extends Cloneable {
     return get(key);
   }
 
+  Set<DataType<?>> getTypes();
+
   void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
-
-  @Nullable
-  public default Double getPrecursorMZ() {
-    return get(PrecursorMZType.class);
-  }
-
-  @Nullable
-  public default String getSmiles() {
-    return get(SmilesStructureType.class);
-  }
 
   @Nullable
   public default DatabaseMatchInfo getDatabaseMatchInfo() {
@@ -223,8 +216,36 @@ public interface CompoundDBAnnotation extends Cloneable {
     return databaseMatchInfo == null ? null : databaseMatchInfo.url();
   }
 
+  public default boolean hasValueForTypes(DataType<?>... types) {
+    for (DataType<?> type : types) {
+      if (get(type) == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public default boolean hasValueForTypes(List<DataType<?>> types) {
+    for (DataType<?> type : types) {
+      if (get(type) == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Nullable
-  public default String getCompundName() {
+  public default Double getPrecursorMZ() {
+    return get(PrecursorMZType.class);
+  }
+
+  @Nullable
+  public default String getSmiles() {
+    return get(SmilesStructureType.class);
+  }
+
+  @Nullable
+  public default String getCompoundName() {
     return get(CompoundNameType.class);
   }
 
@@ -254,13 +275,13 @@ public interface CompoundDBAnnotation extends Cloneable {
   }
 
   @Nullable
-  public default String getDatabase() {
-    return get(DatabaseNameType.class);
+  public default Float getScore() {
+    return get(CompoundAnnotationScoreType.class);
   }
 
   @Nullable
-  public default Float getScore() {
-    return get(CompoundAnnotationScoreType.class);
+  public default String getDatabase() {
+    return get(DatabaseNameType.class);
   }
 
   public boolean matches(FeatureListRow row, @Nullable MZTolerance mzTolerance,
@@ -316,4 +337,5 @@ public interface CompoundDBAnnotation extends Cloneable {
   public Map<DataType<?>, Object> getReadOnlyMap();
 
   CompoundDBAnnotation clone();
+
 }

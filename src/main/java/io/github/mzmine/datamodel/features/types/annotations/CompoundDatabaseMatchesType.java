@@ -59,8 +59,8 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new DatabaseMatchInfoType());
   private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries(
       //
-      createEntry(CompoundDatabaseMatchesType.class, match -> match.getCompundName()), //
-      createEntry(CompoundNameType.class, CompoundDBAnnotation::getCompundName), //
+      createEntry(CompoundDatabaseMatchesType.class, match -> match.getCompoundName()), //
+      createEntry(CompoundNameType.class, CompoundDBAnnotation::getCompoundName), //
       createEntry(CompoundAnnotationScoreType.class, CompoundDBAnnotation::getScore),
       createEntry(FormulaType.class, CompoundDBAnnotation::getFormula), //
       createEntry(IonTypeType.class, CompoundDBAnnotation::getAdductType), //

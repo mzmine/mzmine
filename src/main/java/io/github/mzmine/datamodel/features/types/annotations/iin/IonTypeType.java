@@ -96,4 +96,12 @@ public class IonTypeType extends DataType<IonType> {
     }
     return value.toString(false);
   }
+
+  @Override
+  public @Nullable IonType valueFromString(@Nullable String str) {
+    if(str == null) {
+      return null;
+    }
+    return IonType.parseFromString(str);
+  }
 }

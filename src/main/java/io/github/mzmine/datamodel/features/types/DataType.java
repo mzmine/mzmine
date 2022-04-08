@@ -246,7 +246,7 @@ public abstract class DataType<T> {
     } else {
       throw new UnsupportedOperationException(
           "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
-          + " class " + this.getClass().toString());
+              + " class " + this.getClass().toString());
     }
   }
 
@@ -365,5 +365,19 @@ public abstract class DataType<T> {
       default:
         return null;
     }
+  }
+
+
+  /**
+   * Converts the given string value to a value of this data type or null, if not implemented.
+   *
+   * @param str The string value to convert.
+   * @return The value of type {@link T} or null if the value cannot be converted or the conversion
+   * is not implemented.
+   */
+  @Nullable
+  public T valueFromString(@Nullable String str) {
+    logger.finest(() -> "String conversion not implemented for data type " + this.getClass().toString());
+    return null;
   }
 }

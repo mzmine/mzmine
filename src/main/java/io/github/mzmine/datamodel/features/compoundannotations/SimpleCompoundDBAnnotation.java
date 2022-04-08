@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -143,6 +144,11 @@ public class SimpleCompoundDBAnnotation implements
               value.getClass(), actualKey.getClass()));
     }
     return (T) data.put(actualKey, value);
+  }
+
+  @Override
+  public Set<DataType<?>> getTypes() {
+    return data.keySet();
   }
 
   /**
@@ -322,8 +328,8 @@ public class SimpleCompoundDBAnnotation implements
 
     final StringBuilder b = new StringBuilder();
 
-    if(getCompundName()!= null) {
-      b.append(getCompundName()).append(",");
+    if(getCompoundName()!= null) {
+      b.append(getCompoundName()).append(",");
     }
     if(getAdductType() != null) {
       b.append(" ").append(getAdductType().toString(false)).append(", ");

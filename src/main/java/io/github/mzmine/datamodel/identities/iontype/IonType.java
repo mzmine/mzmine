@@ -526,7 +526,7 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     return result;
   }
 
-  public static IonType parseFromString(String str) {
+  public static IonType parseFromString(@Nullable String str) {
     if(str == null) {
       return null;
     }
@@ -541,6 +541,8 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
     // 6: ] (opt)
     // 7: 2 (opt)
     // 8: + (+ or - opt)
+
+    str = str.replaceAll(" ", "");
 
     final Pattern pattern = Pattern.compile(
         "(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]+)([\\]])?([\\d])?([\\+\\-])?");

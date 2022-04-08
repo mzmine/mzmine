@@ -163,4 +163,16 @@ public abstract class IntegerType extends NumberType<Integer> {
     }
     return result;
   }
+
+  @Override
+  public @Nullable Integer valueFromString(String str) {
+    if(str == null) {
+      return null;
+    }
+    try {
+      return Integer.parseInt(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
 }
