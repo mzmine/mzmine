@@ -153,10 +153,19 @@ public class ConversionUtils {
       }
     }
 
+    Float injTime;
+    try {
+      final Optional<String> value = scan.getScanList().getScans().get(0).getCVParamsList().get(2)
+          .getValue();
+      injTime = value.isPresent() ? Float.parseFloat(value.get()) : 0f;
+    } catch (Exception e) {
+      injTime = 0f;
+    }
+
     final SimpleScan newScan = new SimpleScan(rawDataFile, scan.getScanNumber(), scan.getMsLevel(),
         scan.getRetentionTime() / 60, info, mzs, intensities, spectrumType,
-        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()), scan.getScanDefinition(),
-        scan.getScanningRange());
+        ConversionUtils.msdkToMZminePolarityType(scan.getPolarity()),
+        String.format("%.1f", injTime) + " " + scan.getScanDefinition(), scan.getScanningRange());
 
     return newScan;
   }
