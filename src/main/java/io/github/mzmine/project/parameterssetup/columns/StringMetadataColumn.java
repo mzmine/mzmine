@@ -26,4 +26,8 @@ public final class StringMetadataColumn extends MetadataColumn {
   public StringMetadataColumn(String title) {
     super(title);
   }
+
+  public StringMetadataColumn(String title, String description) {
+    super(title, description);
+  }
 }

@@ -30,8 +30,19 @@ public abstract sealed class MetadataColumn permits StringMetadataColumn, Double
    */
   private final String title;
 
+  /**
+   * Description (optional) of the parameter
+   */
+  private final String description;
+
   public MetadataColumn(String title) {
     this.title = title;
+    this.description = "None";
+  }
+
+  public MetadataColumn(String title, String description) {
+    this.title = title;
+    this.description = description;
   }
 
   /**
@@ -41,5 +52,14 @@ public abstract sealed class MetadataColumn permits StringMetadataColumn, Double
    */
   public String getTitle() {
     return title;
+  }
+
+  /**
+   * Get the project parameter description.
+   *
+   * @return project parameter description.
+   */
+  public String getDescription() {
+    return description;
   }
 }

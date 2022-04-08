@@ -26,4 +26,8 @@ public final class DateMetadataColumn extends MetadataColumn {
   public DateMetadataColumn(String title) {
     super(title);
   }
+
+  public DateMetadataColumn(String title, String description) {
+    super(title, description);
+  }
 }
