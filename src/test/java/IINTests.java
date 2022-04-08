@@ -25,6 +25,24 @@ public class IINTests {
       IonType ionType = IonType.parseFromString(s);
       Assertions.assertEquals(type1, ionType);
     }
+
+    IonType mminush = new IonType(IonModification.H_NEG);
+    // fix me: "M-H-" "[M-H]"
+    final String[] mminush_options = new String[] {"[M-H]-", "[M-H]1-"};
+    for (String str : mminush_options) {
+      logger.info("Parsing M-H- from " + str);
+      final IonType mminus = IonType.parseFromString(str);
+      Assertions.assertEquals(mminush, mminus);
+    }
+
+    IonType mplush = new IonType(IonModification.H);
+    // fix me: "M+H+"
+    final String[] mplush_options = new String[] {"[M+H]+", "[M+H]1+", "[M+H]"};
+    for (String str : mplush_options) {
+      final IonType mplus = IonType.parseFromString(str);
+      logger.info("Parsing M+H+ from " + str);
+      Assertions.assertEquals(mplush, mplus);
+    }
   }
 
   @Test

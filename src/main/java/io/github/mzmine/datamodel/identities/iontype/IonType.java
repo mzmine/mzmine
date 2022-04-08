@@ -572,10 +572,10 @@ public class IonType extends NeutralMolecule implements Comparable<IonType> {
 
     IonModification mod = switch (pol) {
       case POSITIVE -> Arrays.stream(IonModification.DEFAULT_VALUES_POSITIVE)
-          .filter(m -> m.getName().equals(modification) || modification.equals(m.getMolFormula()))
+          .filter(m -> (m.getName().equals(modification) || modification.equals(m.getMolFormula())) && m.getCharge() == absCharge * pol.getSign())
           .findFirst().orElse(null);
       case NEGATIVE -> Arrays.stream(IonModification.DEFAULT_VALUES_NEGATIVE)
-          .filter(m -> m.getName().equals(modification) || modification.equals(m.getMolFormula()))
+          .filter(m -> (m.getName().equals(modification) || modification.equals(m.getMolFormula())) && m.getCharge() == absCharge * pol.getSign())
           .findFirst().orElse(null);
       default -> null;
     };
