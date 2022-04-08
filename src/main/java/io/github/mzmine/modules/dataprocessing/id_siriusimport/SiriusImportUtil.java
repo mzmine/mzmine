@@ -39,6 +39,7 @@ public class SiriusImportUtil {
 
   private static final String featureDirRegex = "([\\d+])_([_a-zA-Z0-9.()\\s]" + "+)_(\\d+)";
   private static final Pattern featureDirPattern = Pattern.compile(featureDirRegex);
+  private static final int ROW_ID_GROUP = 3;
 
   private static final List<ImportType> fingerIdColumns = List.of(
       new ImportType(true, "rank", new SiriusRankType()), //
@@ -52,32 +53,36 @@ public class SiriusImportUtil {
       new ImportType(true, "molecularFormula", new FormulaType()),
       new ImportType(true, "id", new SiriusIdType()));
 
-  private static final List<DataType<?>> requiredTypes = List.of(new SiriusConfidenceScoreType(),
+  private static final List<DataType<?>> requiredTypesBestId = List.of(
+      new SiriusConfidenceScoreType(), new SiriusFingerIdScoreType(), new IonTypeType(),
+      new SmilesStructureType(), new FormulaType(), new SiriusIdType());
+
+  private static final List<DataType<?>> requiredTypesCandidates = List.of(
       new SiriusFingerIdScoreType(), new IonTypeType(), new SmilesStructureType(),
-      new FormulaType(), new SiriusIdType());
+      new FormulaType()); // id type added via the folder name
 
   @Nullable
   public static File[] getFeatureDirectories(File siriusProjectDir) {
-    checkProjectDir(siriusProjectDir);
+    checkProjectDirAndThrow(siriusProjectDir);
     return siriusProjectDir.listFiles(f -> f.getName().matches(featureDirRegex));
   }
 
   public static Map<Integer, CompoundDBAnnotation> readBestCompoundIdentifications(
-      File siriusProjectDir) {
-    checkProjectDir(siriusProjectDir);
+      @NotNull final File siriusProjectDir) {
+    checkProjectDirAndThrow(siriusProjectDir);
     final File fingerIdFile = new File(siriusProjectDir, "compound_identifications.tsv");
-    checkFile(fingerIdFile);
+    checkFileAndThrow(fingerIdFile);
 
     final Map<Integer, CompoundDBAnnotation> annotationsMap = new HashMap<>();
     final List<CompoundDBAnnotation> compoundDBAnnotations = readAnnotationsFromFile(fingerIdFile);
 
     // map annotations to the feature list row id
     for (CompoundDBAnnotation annotation : compoundDBAnnotations) {
-      if (annotation.hasValueForTypes(requiredTypes)) {
+      if (annotation.hasValueForTypes(requiredTypesBestId)) {
         final String siriusId = annotation.get(SiriusIdType.class);
         final Matcher matcher = featureDirPattern.matcher(siriusId);
         assert matcher.matches();
-        final String rowIdStr = matcher.group(3);
+        final String rowIdStr = matcher.group(ROW_ID_GROUP);
         annotationsMap.put(Integer.parseInt(rowIdStr), annotation);
       }
     }
@@ -85,11 +90,57 @@ public class SiriusImportUtil {
     return annotationsMap;
   }
 
-  private static List<CompoundDBAnnotation> readAnnotationsFromFile(final File compoundsFile) {
+  public static Map<Integer, List<CompoundDBAnnotation>> readAllStructureCandidatesFromProject(
+      @NotNull final File siriusProjectDir) {
+
+    final @Nullable File[] featureDirectories = getFeatureDirectories(siriusProjectDir);
+    if (featureDirectories == null) {
+      throw new IllegalStateException(
+          "No feature identifications found in " + siriusProjectDir + ". Did you run sirius?");
+    }
+
+    Map<Integer, List<CompoundDBAnnotation>> siriusAnnotations = new HashMap<>();
+    for (File dir : featureDirectories) {
+      if (dir == null) {
+        continue;
+      }
+
+      final File candidates = new File(dir, "structure_candidates.tsv");
+      checkFileAndThrow(candidates);
+      // read candidates and keep only annotations with minimum types.
+      final List<CompoundDBAnnotation> compoundDBAnnotations = readAnnotationsFromFile(
+          candidates).stream().filter(a -> a.hasValueForTypes(requiredTypesCandidates)).toList();
+
+      if (compoundDBAnnotations.isEmpty()) {
+        continue;
+      }
+
+      final Matcher matcher = featureDirPattern.matcher(dir.getName());
+      if (!matcher.matches()) {
+        logger.warning("Feature dir did not match name pattern anymore. This is unexpected.");
+        continue;
+      }
+
+      Integer rowId = Integer.parseInt(matcher.group(ROW_ID_GROUP));
+      siriusAnnotations.put(rowId, compoundDBAnnotations);
+    }
+    return siriusAnnotations;
+  }
+
+  /**
+   * Reads a sirius compound_identifications.tsv file and creates a list of {@link
+   * CompoundDBAnnotation}'s with the values specified in {@link SiriusImportUtil#fingerIdColumns}.
+   * If a column is not found, no entry is created in the {@link CompoundDBAnnotation}.
+   *
+   * @param compoundsFile The compound_identifications.tsv file.
+   * @return A list of annotations. Empty if no annotations were found.
+   */
+  @NotNull
+  private static List<CompoundDBAnnotation> readAnnotationsFromFile(
+      @NotNull final File compoundsFile) {
     List<CompoundDBAnnotation> annotations = new ArrayList<>();
     try (FileInputStream fileInputStream = new FileInputStream(compoundsFile)) {
       final CSVParser parser = new CSVParser(fileInputStream, '\t');
-
       final String[] header = parser.getLine();
       final List<ImportType> lineIds = CSVParsingUtils.findLineIds(fingerIdColumns, header);
 
@@ -106,16 +157,21 @@ public class SiriusImportUtil {
         }
 
         final CompoundDBAnnotation annotation = convertValueMapToAnnotation(values);
-
         annotations.add(annotation);
       }
-
     } catch (IOException e) {
       logger.log(Level.WARNING, "Cannot parse sirius file " + compoundsFile, e);
     }
     return annotations;
   }
 
+  /**
+   * Converts a map of {@link ImportType}s and the read value for that import type to a {@link
+   * CompoundDBAnnotation}.
+   *
+   * @param values The map to convert.
+   * @return A Compound annotation. Null/empty values are not converted and not added to the map.
+   */
   @NotNull
   private static CompoundDBAnnotation convertValueMapToAnnotation(Map<ImportType, String> values) {
     final CompoundDBAnnotation annotation = new SimpleCompoundDBAnnotation();
@@ -135,17 +191,35 @@ public class SiriusImportUtil {
     return annotation;
   }
 
-  private static void checkFile(File fingerIdFile) {
-    if (!fingerIdFile.exists() || fingerIdFile.isDirectory()) {
+  /**
+   * Checks if the file exists, throws an exception otherwise.
+   *
+   * @param fingerIdFile The file.
+   */
+  private static void checkFileAndThrow(File fingerIdFile) {
+    if (isFileValid(fingerIdFile)) {
       throw new IllegalStateException(
           fingerIdFile.toString() + " does not exist or is not a file.");
     }
   }
 
-  private static void checkProjectDir(File siriusProjectDir) {
-    if (!siriusProjectDir.exists() || !siriusProjectDir.isDirectory()) {
+  private static boolean isFileValid(File fingerIdFile) {
+    return !fingerIdFile.exists() || fingerIdFile.isDirectory();
+  }
+
+  /**
+   * Checks if the directory exists, throws an exception otherwise.
+   *
+   * @param siriusProjectDir The directory.
+   */
+  private static void checkProjectDirAndThrow(File siriusProjectDir) {
+    if (isProjectDirValid(siriusProjectDir)) {
       throw new IllegalStateException("Given sirius project dir " + siriusProjectDir.toString()
           + " does not exist or is not a directory.");
     }
+  }
+
+  private static boolean isProjectDirValid(File siriusProjectDir) {
+    return !siriusProjectDir.exists() || !siriusProjectDir.isDirectory();
   }
 }
