@@ -29,7 +29,6 @@ import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.MZType;
-import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
 import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.CCSCalibrant;
 import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFUtils;
 import io.github.mzmine.parameters.parametertypes.ImportType;
@@ -127,7 +126,8 @@ public class CCSUtils {
             new ImportType(true, "ccs", DataTypes.get(CCSType.class)), //
             new ImportType(true, "charge", DataTypes.get(ChargeType.class))), content[0]);
 
-    if (importTypes == null) {
+    if (importTypes.size() != 4) {
+      // not all columns found
       return null;
     }
 
