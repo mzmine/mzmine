@@ -1,54 +1,73 @@
+/*
+ * Copyright 2006-2021 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
+
 package io.github.mzmine.project.parameterssetup;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.parameters.UserParameter;
+import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Holds metadata of a project and represents it as a table (parameters are columns).
+ * Holds the metadata of a project and represents it as a table (parameters are columns).
  */
 public class MetadataTable {
 
-  private Map<MetadataColumn<?>, Map<RawDataFile, ?>> data = new HashMap<>();
+  private final Map<MetadataColumn, Map<RawDataFile, ?>> data = new HashMap<>();
 
-  public Map<MetadataColumn<?>, Map<RawDataFile, ?>> getData() {
+  public Map<MetadataColumn, Map<RawDataFile, ?>> getData() {
     return data;
   }
 
-  public void setData(Map<MetadataColumn<?>, Map<RawDataFile, ?>> data) {
-    this.data = data;
+  /**
+   * Clear the metadata table up.
+   */
+  public void clearData() {
+    data.clear();
   }
 
   /**
    * Add new parameter column to the metadata table.
    *
-   * @param parameterColumn new parameter column
+   * @param column new parameter column
    */
-  public void addParameterColumn(MetadataColumn<?> parameterColumn) {
-    if (!data.containsKey(parameterColumn)) {
-      data.put(parameterColumn, new HashMap<>());
-    }
+  public void addColumn(MetadataColumn column) {
+    data.putIfAbsent(column, new HashMap<>());
   }
 
   /**
    * Remove parameter column from the metadata table.
    *
-   * @param parameterColumn parameter column
+   * @param column parameter column
    */
-  public void removeParameterColumn(MetadataColumn<?> parameterColumn) {
-    data.remove(parameterColumn);
+  public void removeColumn(MetadataColumn column) {
+    data.remove(column);
   }
 
   /**
-   * Is the specified parameter obtained in the metadata table?
+   * Is the specified metadata column obtained in the metadata table?
    *
-   * @param parameter project parameter
+   * @param column project parameter column
    * @return true if it's contained, false otherwise
    */
-  public boolean hasParameter(UserParameter<?, ?> parameter) {
-    return getParameterColumnByName(parameter.getName()) != null;
+  public boolean hasColumn(MetadataColumn column) {
+    return data.containsKey(column);
   }
 
   /**
@@ -56,21 +75,21 @@ public class MetadataTable {
    *
    * @return set with the parameters columns
    */
-  public Set<MetadataColumn<?>> getParametersColumns() {
+  public Set<MetadataColumn> getColumns() {
     return data.keySet();
   }
 
   /**
    * Return parameter column with the corresponding parameter name.
    *
-   * @param parameterName name of the parameter
+   * @param name name of the parameter
    * @return parameterColumn or null in case if the parameter with the passed name isn't obtained in
    * the metadata table
    */
-  public MetadataColumn<?> getParameterColumnByName(String parameterName) {
-    for (MetadataColumn<?> parameterColumn : getParametersColumns()) {
-      if (parameterColumn.getParameter().getName().equals(parameterName)) {
-        return parameterColumn;
+  public MetadataColumn getColumnByName(String name) {
+    for (MetadataColumn column : getColumns()) {
+      if (column.getTitle().equals(name)) {
+        return column;
       }
     }
 
@@ -80,14 +99,15 @@ public class MetadataTable {
   /**
    * Return parameter value of the corresponding RawData file.
    *
-   * @param parameter   project parameter
+   * @param column      project parameter column
    * @param rawDataFile RawData file
    * @param <T>         type of the project parameter
    * @return parameter value
    */
-  public <T> T getParameterValue(UserParameter<T, ?> parameter, RawDataFile rawDataFile) {
-    if (hasParameter(parameter)) {
-      return (T) data.get(getParameterColumnByName(parameter.getName())).get(rawDataFile);
+  public <T> T getValue(MetadataColumn column, RawDataFile rawDataFile) {
+    var row = data.get(column);
+    if (row != null) {
+      return (T) row.get(rawDataFile);
     }
 
     return null;
@@ -97,15 +117,16 @@ public class MetadataTable {
    * Try to set particular value of the parameter of the RawData file. The parameter column will be
    * added in case if it wasn't previously obtained in the table.
    *
-   * @param column parameter
+   * @param column project parameter column
    * @param file   RawData file
    * @param value  value to be set
    * @param <T>    type of the parameter
    */
-  public <T> void setParameterValue(MetadataColumn<T> column, RawDataFile file, T value) {
+  public <T> void setParameterValue(MetadataColumn column, RawDataFile file, T value) {
     if (!data.containsKey(column)) {
-      addParameterColumn(column);
+      addColumn(column);
     }
+
     data.put(column, Map.of(file, value));
   }
 }
