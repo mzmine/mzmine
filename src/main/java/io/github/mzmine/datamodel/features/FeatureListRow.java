@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,37 +173,55 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param identity  New feature identity
    * @param preffered boolean value to define this identity as preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void addFeatureIdentity(FeatureIdentity identity, boolean preffered);
 
   /**
    * Remove identity candidate
    *
    * @param identity Feature identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void removeFeatureIdentity(FeatureIdentity identity);
-
-  void addCompoundAnnotation(CompoundDBAnnotation id);
 
   /**
    * Returns all candidates for this feature's identity
    *
    * @return Identity candidates
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   List<FeatureIdentity> getPeakIdentities();
 
   /**
    * Returns preferred feature identity among candidates
    *
    * @return Preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   FeatureIdentity getPreferredFeatureIdentity();
 
   /**
    * Sets a preferred feature identity among candidates
    *
    * @param identity Preferred identity
+   * @deprecated To be replaced by {@link #get(DataType)} and {@link #set(DataType, Object)} and the
+   * corresponding data types.
    */
+  @Deprecated
+  @ScheduledForRemoval
   void setPreferredFeatureIdentity(FeatureIdentity identity);
 
   /**
@@ -252,11 +272,27 @@ public interface FeatureListRow extends ModularDataModel {
 
   void setFeatureList(@NotNull FeatureList flist);
 
+  /**
+   *
+   * @return A list of all compound annotations.
+   */
   @NotNull List<CompoundDBAnnotation> getCompoundAnnotations();
 
+  /**
+   * Appends a compound annotation.
+   * @param id
+   */
+  void addCompoundAnnotation(CompoundDBAnnotation id);
+
+  /**
+   *
+   * @param annotations sets all compound annotations.
+   */
   void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
   void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
+
+  boolean isIdentified();
 
   /**
    * Correlated features grouped
