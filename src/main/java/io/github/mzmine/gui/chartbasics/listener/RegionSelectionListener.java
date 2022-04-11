@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.listener;
@@ -27,12 +27,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.scene.input.MouseButton;
 import org.jfree.chart.fx.interaction.ChartMouseEventFX;
 import org.jfree.chart.fx.interaction.ChartMouseListenerFX;
 
 public class RegionSelectionListener implements ChartMouseListenerFX {
-
 
   private final ObjectProperty<java.awt.geom.Path2D> buildingPath;
   private final ListProperty<Point2D> points;
@@ -42,6 +42,10 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
     this.chart = chart;
     points = new SimpleListProperty<>(FXCollections.observableArrayList());
     buildingPath = new SimpleObjectProperty<>();
+    points.addListener((ListChangeListener<Point2D>) c -> {
+      c.next();
+      buildingPath.set(getShape());
+    });
   }
 
   @Override
@@ -55,7 +59,7 @@ public class RegionSelectionListener implements ChartMouseListenerFX {
         .mouseXYToPlotXY(chart, event.getTrigger().getX(), event.getTrigger().getY());
 
     points.get().add(p);
-    buildingPath.set(getShape());
+//    buildingPath.set(getShape());
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,67 +8,108 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_localcsvsearch;
 
+import com.Ostermiller.util.CSVParser;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
-import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
-import java.io.File;
-import java.io.FileReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import com.Ostermiller.util.CSVParser;
-import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.DataTypes;
+import io.github.mzmine.datamodel.features.types.annotations.CommentType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.CompoundAnnotationScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSRelativeErrorType;
+import io.github.mzmine.datamodel.features.types.numbers.CCSType;
+import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
+import io.github.mzmine.datamodel.features.types.numbers.MzPpmDifferenceType;
+import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.features.types.numbers.RTType;
+import io.github.mzmine.datamodel.features.types.numbers.RtRelativeErrorType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
+import io.github.mzmine.modules.dataprocessing.id_ion_identity_networking.ionidnetworking.IonNetworkLibrary;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.ImportType;
+import io.github.mzmine.parameters.parametertypes.ionidentity.IonLibraryParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.PercentTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
+import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.MathUtils;
+import java.io.File;
+import java.io.FileReader;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
-class LocalCSVDatabaseSearchTask extends AbstractTask {
+public class LocalCSVDatabaseSearchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static Logger logger = Logger.getLogger(LocalCSVDatabaseSearchTask.class.getName());
 
-  private FeatureList peakList;
+  private final MobilityTolerance mobTolerance;
+  private final Double ccsTolerance;
+  private final File dataBaseFile;
+  private final String fieldSeparator;
+  private final MZTolerance mzTolerance;
+  private final RTTolerance rtTolerance;
+  private final ParameterSet parameters;
+  private final List<ImportType> importTypes;
+  private final IonLibraryParameterSet ionLibraryParameterSet;
+  private IonNetworkLibrary ionNetworkLibrary;
 
   private String[][] databaseValues;
   private int finishedLines = 0;
+  private FeatureList peakList;
 
-  private File dataBaseFile;
-  private String fieldSeparator;
-  private FieldItem[] fieldOrder;
-  private boolean ignoreFirstLine;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private ParameterSet parameters;
-
-  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters) {
-    super(null); // no new data stored -> null
+  LocalCSVDatabaseSearchTask(FeatureList peakList, ParameterSet parameters,
+      @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
 
     this.peakList = peakList;
     this.parameters = parameters;
 
-    dataBaseFile =
-        parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile).getValue();
-    fieldSeparator =
-        parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator).getValue();
-
-    fieldOrder = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldOrder).getValue();
-
-    ignoreFirstLine =
-        parameters.getParameter(LocalCSVDatabaseSearchParameters.ignoreFirstLine).getValue();
+    dataBaseFile = parameters.getParameter(LocalCSVDatabaseSearchParameters.dataBaseFile)
+        .getValue();
+    fieldSeparator = parameters.getParameter(LocalCSVDatabaseSearchParameters.fieldSeparator)
+        .getValue();
+    importTypes = parameters.getParameter(LocalCSVDatabaseSearchParameters.columns).getValue();
     mzTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.rtTolerance).getValue();
+    mobTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.mobTolerance)
+        .getValue();
+    ccsTolerance = parameters.getParameter(LocalCSVDatabaseSearchParameters.ccsTolerance)
+        .getValue();
 
+    Boolean calcMz = parameters.getValue(LocalCSVDatabaseSearchParameters.ionLibrary);
+    ionLibraryParameterSet = calcMz != null && calcMz ? parameters.getParameter(
+        LocalCSVDatabaseSearchParameters.ionLibrary).getEmbeddedParameters() : null;
   }
 
   /**
@@ -76,8 +117,9 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
    */
   @Override
   public double getFinishedPercentage() {
-    if (databaseValues == null)
+    if (databaseValues == null) {
       return 0;
+    }
     return ((double) finishedLines) / databaseValues.length;
   }
 
@@ -98,20 +140,26 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
+      ionNetworkLibrary =
+          ionLibraryParameterSet != null ? new IonNetworkLibrary(ionLibraryParameterSet,
+              mzTolerance) : null;
       // read database contents in memory
       FileReader dbFileReader = new FileReader(dataBaseFile);
       databaseValues = CSVParser.parse(dbFileReader, fieldSeparator.charAt(0));
-      if (ignoreFirstLine)
-        finishedLines++;
+
+      List<ImportType> lineIds = findLineIds(importTypes, databaseValues[0]);
+
+//      peakList.addRowType(new CompoundDatabaseMatchesType());
+      finishedLines++;
       for (; finishedLines < databaseValues.length; finishedLines++) {
         if (isCanceled()) {
           dbFileReader.close();
           return;
         }
         try {
-          processOneLine(databaseValues[finishedLines]);
+          processOneLine(databaseValues[finishedLines], lineIds);
         } catch (Exception e) {
-          // ignore incorrect lines
+          logger.log(Level.FINE, "Exception while processing csv line " + finishedLines, e);
         }
       }
       dbFileReader.close();
@@ -124,55 +172,151 @@ class LocalCSVDatabaseSearchTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    peakList.addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(
-        "Peak identification using database " + dataBaseFile,
-        LocalCSVDatabaseSearchModule.class, parameters));
-
+    peakList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Peak identification using database " + dataBaseFile,
+            LocalCSVDatabaseSearchModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
   }
 
-  private void processOneLine(String values[]) {
+  private void processOneLine(String values[], List<ImportType> linesWithIndices) {
 
-    int numOfColumns = Math.min(fieldOrder.length, values.length);
-
-    String lineID = null, lineName = null, lineFormula = null;
-    double lineMZ = 0, lineRT = 0;
-
-    for (int i = 0; i < numOfColumns; i++) {
-      if (fieldOrder[i] == FieldItem.FIELD_ID)
-        lineID = values[i];
-      if (fieldOrder[i] == FieldItem.FIELD_NAME)
-        lineName = values[i];
-      if (fieldOrder[i] == FieldItem.FIELD_FORMULA)
-        lineFormula = values[i];
-      if (fieldOrder[i] == FieldItem.FIELD_MZ)
-        lineMZ = Double.parseDouble(values[i]);
-      if (fieldOrder[i] == FieldItem.FIELD_RT)
-        lineRT = Double.parseDouble(values[i]);
+    final CompoundDBAnnotation baseAnnotation = getCompoundFromLine(values, linesWithIndices);
+    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
+    if (ionNetworkLibrary != null) {
+      annotations.addAll(
+          CompoundDBAnnotation.buildCompoundsWithAdducts(baseAnnotation, ionNetworkLibrary));
+    } else {
+      annotations.add(baseAnnotation);
     }
 
-    SimpleFeatureIdentity newIdentity =
-        new SimpleFeatureIdentity(lineName, lineFormula, dataBaseFile.getName(), lineID, null);
+    for (CompoundDBAnnotation annotation : annotations) {
+      for (FeatureListRow peakRow : peakList.getRows()) {
+        if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
+          final CompoundDBAnnotation clone = annotation.clone();
+          clone.put(CompoundAnnotationScoreType.class,
+              clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance));
+          clone.put(MzPpmDifferenceType.class,
+              (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
+                  peakRow.getAverageMZ()));
+          if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
+            clone.put(CCSRelativeErrorType.class,
+                PercentTolerance.getPercentError(annotation.get(CCSType.class),
+                    peakRow.getAverageCCS()));
+          }
+          if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
+            clone.put(RtRelativeErrorType.class,
+                PercentTolerance.getPercentError(annotation.get(RTType.class),
+                    peakRow.getAverageRT()));
+          }
 
-    for (FeatureListRow peakRow : peakList.getRows()) {
+          peakRow.addCompoundAnnotation(clone);
+          peakRow.getCompoundAnnotations()
+              .sort(Comparator.comparingDouble(a -> Objects.requireNonNullElse(a.getScore(), 0f)));
+        }
+      }
+    }
+  }
 
-      Range<Double> mzRange = mzTolerance.getToleranceRange(peakRow.getAverageMZ());
-      Range<Float> rtRange = rtTolerance.getToleranceRange(peakRow.getAverageRT());
+  @NotNull
+  private CompoundDBAnnotation getCompoundFromLine(String[] values,
+      List<ImportType> linesWithIndices) {
+    var formulaType = DataTypes.get(FormulaType.class);
+    var compoundNameType = DataTypes.get(CompoundNameType.class);
+    var commentType = DataTypes.get(CommentType.class);
+    var precursorMz = DataTypes.get(PrecursorMZType.class);
+    var rtType = DataTypes.get(RTType.class);
+    var mobType = DataTypes.get(MobilityType.class);
+    var ccsType = DataTypes.get(CCSType.class);
+    var smilesType = DataTypes.get(SmilesStructureType.class);
+    var adductType = DataTypes.get(IonTypeType.class);
+    var neutralMassType = DataTypes.get(NeutralMassType.class);
+    var ionTypeType = DataTypes.get(IonTypeType.class);
+    var pubchemIdType = new PubChemIdType();
 
-      boolean mzMatches = (lineMZ == 0d) || mzRange.contains(lineMZ);
-      boolean rtMatches = (lineRT == 0d) || rtRange.contains((float) lineRT);
+    final Map<DataType<?>, String> entry = new HashMap<>();
 
-      if (mzMatches && rtMatches) {
-
-        logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
-
-        // add new identity to the row
-        peakRow.addFeatureIdentity(newIdentity, false);
-
+    for (int i = 0; i < linesWithIndices.size(); i++) {
+      var type = linesWithIndices.get(i);
+      if (values[type.getColumnIndex()] != null && !values[type.getColumnIndex()].isEmpty()) {
+        entry.put(type.getDataType(), values[type.getColumnIndex()]);
       }
     }
 
+    final String lineName = entry.get(compoundNameType);
+    final String lineFormula = entry.get(formulaType);
+    final String lineAdduct = entry.get(adductType);
+    final String lineComment = entry.get(commentType);
+    final Double lineMZ =
+        (entry.get(precursorMz) != null) ? Double.parseDouble(entry.get(precursorMz)) : null;
+    final Float lineRT = (entry.get(rtType) != null) ? Float.parseFloat(entry.get(rtType)) : null;
+    final Float lineMob =
+        (entry.get(mobType) != null) ? Float.parseFloat(entry.get(mobType)) : null;
+    final Float lineCCS =
+        (entry.get(ccsType) != null) ? Float.parseFloat(entry.get(ccsType)) : null;
+    final Double neutralMass =
+        entry.get(neutralMassType) != null ? Double.parseDouble(entry.get(neutralMassType)) : null;
+    final String smiles = entry.get(smilesType);
+    final String pubchemId = entry.get(pubchemIdType);
+
+    CompoundDBAnnotation a = new SimpleCompoundDBAnnotation();
+    doIfNotNull(lineName, () -> a.put(compoundNameType, lineName));
+    doIfNotNull(lineFormula, () -> a.put(formulaType, lineFormula));
+    doIfNotNull(lineComment, () -> a.put(commentType, lineComment));
+    doIfNotNull(lineRT, () -> a.put(rtType, lineRT));
+    doIfNotNull(lineMob, () -> a.put(mobType, lineMob));
+    doIfNotNull(lineCCS, () -> a.put(ccsType, lineCCS));
+    doIfNotNull(smiles, () -> a.put(smilesType, smiles));
+    doIfNotNull(lineMZ, () -> a.put(precursorMz, lineMZ));
+    doIfNotNull(neutralMass, () -> a.put(neutralMassType, neutralMass));
+    doIfNotNull(IonType.parseFromString(lineAdduct),
+        () -> a.put(ionTypeType, IonType.parseFromString(lineAdduct)));
+    doIfNotNull(pubchemId, () -> a.put(new DatabaseMatchInfoType(),
+        new DatabaseMatchInfo(OnlineDatabases.PubChem, pubchemId)));
+    return a;
+  }
+
+  private List<ImportType> findLineIds(List<ImportType> importTypes, String[] firstLine) {
+    List<ImportType> lines = new ArrayList<>();
+    for (ImportType importType : importTypes) {
+      if (importType.isSelected()) {
+        ImportType type = new ImportType(importType.isSelected(), importType.getCsvColumnName(),
+            importType.getDataType());
+        lines.add(type);
+      }
+    }
+
+    for (ImportType importType : lines) {
+      for (int i = 0; i < firstLine.length; i++) {
+        String columnName = firstLine[i];
+        if (columnName.trim().equalsIgnoreCase(importType.getCsvColumnName().trim())) {
+          if (importType.getColumnIndex() != -1) {
+            setErrorMessage(
+                "Library file " + dataBaseFile.getAbsolutePath() + " contains two columns called \""
+                    + columnName + "\".");
+            setStatus(TaskStatus.ERROR);
+          }
+          importType.setColumnIndex(i);
+        }
+      }
+    }
+
+    final List<ImportType> nullMappings = lines.stream().filter(val -> val.getColumnIndex() == -1)
+        .toList();
+    if (!nullMappings.isEmpty()) {
+      setErrorMessage("Did not find specified column " + Arrays.toString(
+          nullMappings.stream().map(ImportType::getCsvColumnName).toArray()) + " in file "
+          + dataBaseFile.getAbsolutePath());
+      setStatus(TaskStatus.ERROR);
+    }
+
+    return lines;
+  }
+
+  private void doIfNotNull(Object something, Runnable r) {
+    if (something != null) {
+      r.run();
+    }
   }
 }

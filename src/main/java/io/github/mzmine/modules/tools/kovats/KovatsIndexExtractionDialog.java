@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,40 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.tools.kovats;
 
-import io.github.mzmine.util.RangeUtils;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Stroke;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import org.apache.commons.lang3.ArrayUtils;
-import org.controlsfx.control.CheckListView;
-import org.jfree.chart.plot.ValueMarker;
-import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
 import io.github.mzmine.datamodel.IonizationType;
@@ -71,9 +47,28 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectio
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DialogLoggerUtil;
+import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import io.github.mzmine.util.javafx.FxIconUtil;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Stroke;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -88,6 +83,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import org.apache.commons.lang3.ArrayUtils;
+import org.controlsfx.control.CheckListView;
+import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.xy.XYDataset;
 
 public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
@@ -141,7 +141,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   /**
    *
-   * @param parent
    * @param parameters
    * @param saveFileListener accepts saved files
    */
@@ -233,17 +232,17 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     btnLoad.setOnAction(e -> loadFile());
     pnButtonFlow.getChildren().add(btnLoad);
     Button btnCombineFiles = new Button("Combine files");
-    btnCombineFiles
-        .setTooltip(new Tooltip("Select multiple Kovats index files to be combined into one"));
+    btnCombineFiles.setTooltip(
+        new Tooltip("Select multiple Kovats index files to be combined into one"));
     btnCombineFiles.setOnAction(e -> combineFiles());
     pnButtonFlow.getChildren().add(btnCombineFiles);
 
     // add combo for raw data file
 
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
-    comboDataFileName2 = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
+    comboDataFileName2 = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     cbSecondRaw = new CheckBox();
     initRawDataFileSelection();
 
@@ -317,9 +316,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    */
   private void initRawDataFileSelection() {
 
-    var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles();
+    var dataFiles = MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles();
 
-    if (dataFiles != null && dataFiles.size() <= 0)
+    if (dataFiles == null || dataFiles.isEmpty())
       return;
 
     RawDataFilesSelection select =
@@ -604,7 +603,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
   @Override
-  protected void updateParameterSetFromComponents() {
+  public void updateParameterSetFromComponents() {
     super.updateParameterSetFromComponents();
     selectedKovats = parameterSet.getParameter(KovatsIndexExtractionParameters.kovats).getValue();
     pickedValuesString =

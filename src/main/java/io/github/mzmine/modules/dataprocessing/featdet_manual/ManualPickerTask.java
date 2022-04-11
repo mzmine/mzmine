@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_manual;
@@ -36,8 +36,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -58,7 +60,7 @@ class ManualPickerTask extends AbstractTask {
 
   ManualPickerTask(MZmineProject project, FeatureListRow featureListRow, RawDataFile dataFiles[],
       ManualPickerParameters parameters, FeatureList featureList, FeatureTableFX table) {
-    super(null); // we get passed a flist, so it should contain a storage
+    super(null, Instant.now()); // we get passed a flist, so it should contain a storage
 
     this.project = project;
     this.featureListRow = featureListRow;
@@ -159,7 +161,7 @@ class ManualPickerTask extends AbstractTask {
     }
 
     featureList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(
-        ManualFeaturePickerModule.class, parameterSet));
+        ManualFeaturePickerModule.class, parameterSet, getModuleCallDate()));
 
     logger.finest("Finished manual feature picker, " + processedScans + " scans processed");
 

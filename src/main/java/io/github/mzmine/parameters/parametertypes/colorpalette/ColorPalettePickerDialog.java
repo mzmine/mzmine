@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.colorpalette;
@@ -34,8 +34,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Dialog to pick colors for a color palette.
@@ -77,6 +77,10 @@ public class ColorPalettePickerDialog extends Stage {
 
     pnWrapParam.setPadding(new Insets(10.0));
 
+    if (palette == null) {
+      palette = new SimpleColorPalette();
+    }
+
     setTitle("Editing of color palette " + palette.getName());
 
     Scene scene = new Scene(pnMain);
@@ -86,9 +90,6 @@ public class ColorPalettePickerDialog extends Stage {
 
     exitCode = ExitCode.CANCEL;
 
-    if (palette == null) {
-      palette = new SimpleColorPalette();
-    }
     this.palette = palette;
     selected = 0;
 
@@ -230,7 +231,7 @@ public class ColorPalettePickerDialog extends Stage {
     return exitCode;
   }
 
-  public @Nonnull
+  public @NotNull
   SimpleColorPalette getPalette() {
     return palette;
   }

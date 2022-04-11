@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util.exceptions;
@@ -21,8 +20,7 @@ package io.github.mzmine.util.exceptions;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.util.scans.ScanUtils;
 
-public class MissingMassListException extends Exception {
-  private static final long serialVersionUID = 1L;
+public class MissingMassListException extends RuntimeException {
 
   public MissingMassListException(Scan scan) {
     this("", scan);

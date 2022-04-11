@@ -1,29 +1,29 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -37,8 +37,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 
 public class DPPParameterValueWrapper {
   DataPointProcessingQueue[] queues;
@@ -99,7 +97,7 @@ public class DPPParameterValueWrapper {
     return val;
   }
 
-  public void saveValueToXML(@Nonnull Element xmlElement) {
+  public void saveValueToXML(@NotNull Element xmlElement) {
     final Document document = xmlElement.getOwnerDocument();
 
     final Element[] msLevelElements = new Element[MSLevel.cropValues().length];
@@ -115,7 +113,7 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public void loadfromXML(final @Nonnull Element xmlElement) {
+  public void loadfromXML(final @NotNull Element xmlElement) {
 
     setDifferentiateMSn(Boolean.valueOf(xmlElement.getAttribute(DIFFMSN_ELEMENT)));
 
@@ -134,7 +132,7 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public void saveToFile(final @Nonnull File file) {
+  public void saveToFile(final @NotNull File file) {
     try {
       Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
       final Element element = document.createElement(MAINFILE_ELEMENT);
@@ -149,17 +147,18 @@ public class DPPParameterValueWrapper {
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 
+      FileOutputStream os = new FileOutputStream(file);
+      StreamResult res = new StreamResult(os);
       // Write to file and transform.
-      transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
-
-    } catch (ParserConfigurationException | TransformerFactoryConfigurationError
-        | FileNotFoundException | TransformerException e) {
+      transformer.transform(new DOMSource(document), res);
+      os.close();
+    } catch (ParserConfigurationException | TransformerFactoryConfigurationError | TransformerException | IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
 
-  public void loadFromFile(@Nonnull File file) {
+  public void loadFromFile(@NotNull File file) {
     try {
       Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
           .getDocumentElement();
@@ -169,12 +168,12 @@ public class DPPParameterValueWrapper {
     }
   }
 
-  public @Nonnull DataPointProcessingQueue getQueue(int ordinal) {
+  public @NotNull DataPointProcessingQueue getQueue(int ordinal) {
     checkValues();
     return this.queues[ordinal];
   }
 
-  public @Nonnull DataPointProcessingQueue getQueue(MSLevel mslevel) {
+  public @NotNull DataPointProcessingQueue getQueue(MSLevel mslevel) {
     return getQueue(mslevel.ordinal());
   }
 

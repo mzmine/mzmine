@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,18 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
 
 import com.google.common.collect.Range;
+import io.github.msdk.datamodel.ActivationInfo;
 import io.github.msdk.datamodel.IsolationInfo;
 import io.github.msdk.datamodel.MsScan;
 import io.github.mzmine.datamodel.DataPoint;
@@ -26,11 +28,13 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.modules.io.import_mzml_msdk.ConversionUtils;
+import io.github.mzmine.datamodel.msms.ActivationMethod;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.import_rawdata_mzml.ConversionUtils;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Robin Schmid (https://github.com/robinschmid)
@@ -39,9 +43,25 @@ public class MsdkScanWrapper implements Scan {
 
   // wrap this scan
   private final MsScan scan;
+  private final MsMsInfo msMsInfo;
 
   public MsdkScanWrapper(MsScan scan) {
     this.scan = scan;
+    scan.getIsolations();
+    if (!scan.getIsolations().isEmpty()) {
+      IsolationInfo isolationInfo = scan.getIsolations().get(0);
+      ActivationInfo activationInfo = isolationInfo.getActivationInfo();
+      Float energy = activationInfo != null && activationInfo.getActivationEnergy() != null
+          ? activationInfo.getActivationEnergy().floatValue() : null;
+      ActivationMethod activationMethod = activationInfo != null ? ActivationMethod.valueOf(
+          activationInfo.getActivationType().name()) : null;
+
+      msMsInfo = new DDAMsMsInfoImpl(isolationInfo.getPrecursorMz(),
+          isolationInfo.getPrecursorCharge(), energy, this, null, scan.getMsLevel(),
+          activationMethod, null);
+    } else {
+      msMsInfo = null;
+    }
   }
 
   @Override
@@ -55,12 +75,12 @@ public class MsdkScanWrapper implements Scan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     return scan.getMzValues(dst);
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     throw new UnsupportedOperationException(
         "Unsupported operation. MSDK scan uses float array and the conversion in this method is not efficient.");
   }
@@ -114,14 +134,14 @@ public class MsdkScanWrapper implements Scan {
         "Unsupported operation. MSDK scan is not supposed to be used here.");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException(
         "Unsupported operation. MSDK scan is not supposed to be used here.");
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     throw new UnsupportedOperationException(
@@ -133,7 +153,7 @@ public class MsdkScanWrapper implements Scan {
     return scan.getScanNumber();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getScanDefinition() {
     return scan.getScanDefinition();
@@ -149,24 +169,18 @@ public class MsdkScanWrapper implements Scan {
     return scan.getRetentionTime();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Double> getScanningMZRange() {
     return scan.getScanningRange();
   }
 
   @Override
-  public double getPrecursorMZ() {
-    return scan.getIsolations().stream().findFirst().map(IsolationInfo::getPrecursorMz).orElse(-1d);
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
-  @Override
-  public int getPrecursorCharge() {
-    return scan.getIsolations().stream().findFirst().map(IsolationInfo::getPrecursorCharge)
-        .orElse(-1);
-  }
-
-  @Nonnull
+  @NotNull
   @Override
   public PolarityType getPolarity() {
     return ConversionUtils.msdkToMZminePolarityType(scan.getPolarity());
@@ -180,7 +194,8 @@ public class MsdkScanWrapper implements Scan {
   }
 
   @Override
-  public void addMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
 
   }
+
 }

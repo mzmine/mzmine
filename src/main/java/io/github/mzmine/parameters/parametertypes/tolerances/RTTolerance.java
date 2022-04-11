@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
@@ -21,10 +21,10 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 
 /**
- * RTTolerance allows specifying retention time tolerance
- * it is either absolute (seconds or minutes) or relative (percent)
- * but as rest of MZmine codebase, it assumes that rt values (other than the tolerance given in constructor)
- * are in minutes in methods such as getToleranceRange or checkWithinTolerance
+ * RTTolerance allows specifying retention time tolerance it is either absolute (seconds or minutes)
+ * or relative (percent) but as rest of MZmine codebase, it assumes that rt values (other than the
+ * tolerance given in constructor) are in minutes in methods such as getToleranceRange or
+ * checkWithinTolerance
  */
 public class RTTolerance {
 
@@ -38,7 +38,7 @@ public class RTTolerance {
 
   // old constructor for compatibility with other mzmine branches and pull requests
   public RTTolerance(final boolean isAbsolute, final float rtTolerance) {
-      this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
+    this(rtTolerance, isAbsolute ? Unit.MINUTES : Unit.PERCENT);
   }
 
   public boolean isAbsolute() {
@@ -46,7 +46,7 @@ public class RTTolerance {
 //    return unit == Unit.SECONDS || unit == Unit.MINUTES;
   }
 
-  public double getTolerance() {
+  public float getTolerance() {
     return tolerance;
   }
 
@@ -70,6 +70,15 @@ public class RTTolerance {
         break;
     }
     return Range.closed(rtValue - absoluteTolerance, rtValue + absoluteTolerance);
+  }
+
+  public float getToleranceInMinutes() {
+    return switch (unit) {
+      case SECONDS -> tolerance / 60;
+      case PERCENT -> 5f * 60f * (tolerance
+          / 100); // having getToleranceMethod is inconsistent with the unit percent being there...
+      case MINUTES -> tolerance;
+    };
   }
 
   public boolean checkWithinTolerance(final float rt1, final float rt2) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,35 +8,34 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder;
 
-import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Hashtable;
-import java.util.Map.Entry;
-import java.util.Vector;
-import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Chromatogram implementing ChromatographicPeak.
@@ -163,7 +162,7 @@ public class Chromatogram{
     return allMS2FragmentScanNumbers;
   }
 
-  public @Nonnull FeatureStatus getFeatureStatus() {
+  public @NotNull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
@@ -171,15 +170,15 @@ public class Chromatogram{
     return rt;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsIntensityRange() {
+  public @NotNull Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull Range<Double> getRawDataPointsMZRange() {
+  public @NotNull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull Range<Float> getRawDataPointsRTRange() {
+  public @NotNull Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
@@ -187,11 +186,11 @@ public class Chromatogram{
     return representativeScan;
   }
 
-  public @Nonnull Scan[] getScanNumbers() {
+  public @NotNull Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull RawDataFile getRawDataFile() {
+  public @NotNull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -199,7 +198,7 @@ public class Chromatogram{
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
@@ -255,11 +254,11 @@ public class Chromatogram{
     }
 
     // Update fragment scan
-    fragmentScan =
-        ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
+    fragmentScan = ScanUtils.streamAllMS2FragmentScans(dataFile, dataFile.getDataRTRange(1),
+        rawDataPointsMZRange).findFirst().orElse(null);
 
     if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+      int precursorCharge = Objects.requireNonNullElse(fragmentScan.getPrecursorCharge(), 0);
       if (precursorCharge > 0)
         this.charge = precursorCharge;
     }

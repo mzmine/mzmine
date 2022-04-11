@@ -31,7 +31,7 @@ import io.github.mzmine.util.ExitCode;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 public class MSMSExportModule implements MZmineModule {
 
@@ -94,13 +94,13 @@ public class MSMSExportModule implements MZmineModule {
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull
+  public @NotNull
   Class<? extends ParameterSet> getParameterSetClass() {
     return MSMSExportParameters.class;
   }

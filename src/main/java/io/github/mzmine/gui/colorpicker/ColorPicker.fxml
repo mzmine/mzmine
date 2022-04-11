@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import io.github.mzmine.gui.colorpicker.ColorMixer?>
+<?import io.github.mzmine.gui.colorpicker.ColorSwatch?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+  prefHeight="470.0"
+  prefWidth="400.0"
+  spacing="20" styleClass="color-picker"
+  stylesheets="@ColorPicker.css"
+  xmlns="http://javafx.com/javafx"
+  fx:controller="io.github.mzmine.gui.colorpicker.ColorPicker">
+  <Text>Quick Select</Text>
+  <HBox>
+    <Region HBox.hgrow="ALWAYS" />
+    <ColorSwatch fx:id="colorSwatch" styleClass="color-swatch" />
+    <Region HBox.hgrow="ALWAYS" />
+  </HBox>
+  <Text>Custom Color</Text>
+  <ColorMixer fx:id="colorMixer" VBox.vgrow="SOMETIMES" spacing="10" />
+  <HBox>
+    <Region HBox.hgrow="ALWAYS" />
+    <Button onAction="#onCustomColorConfirm" text="Confirm" />
+    <Region HBox.hgrow="ALWAYS" />
+  </HBox>
+</VBox>

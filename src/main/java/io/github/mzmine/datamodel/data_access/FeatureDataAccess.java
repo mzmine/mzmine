@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -35,8 +36,10 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
@@ -112,6 +115,10 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
     this.totalFeatures = totalFeatures;
   }
 
+  public Feature getFeature() {
+    return feature;
+  }
+
   /**
    * The maximum number of data points on a feature/chromatogram
    */
@@ -165,8 +172,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
             currentRowIndex = 0;
             currentRawFileIndex++;
           }
-          feature = getRow()
-              .getFeature(getRow().getRawDataFiles().get(currentRawFileIndex));
+          feature = getRow().getFeature(getRow().getRawDataFiles().get(currentRawFileIndex));
         } while (feature == null);
       } else {
         currentRowIndex++;
@@ -232,14 +238,14 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   // Unsupported methods due to different intended use
   @Override
   public IonTimeSeries<Scan> subSeries(@Nullable MemoryMapStorage storage,
-      @Nonnull List<Scan> subset) {
+      @NotNull List<Scan> subset) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
 
   @Override
   public IonSpectrumSeries<Scan> copyAndReplace(@Nullable MemoryMapStorage storage,
-      @Nonnull double[] newMzValues, @Nonnull double[] newIntensityValues) {
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues) {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -251,7 +257,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getIntensityValues() {
+  public DoubleBuffer getIntensityValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -263,7 +269,7 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
   }
 
   @Override
-  public DoubleBuffer getMZValues() {
+  public DoubleBuffer getMZValueBuffer() {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }
@@ -306,6 +312,13 @@ public abstract class FeatureDataAccess implements IonTimeSeries<Scan> {
 
   @Override
   public Spliterator<DataPoint> spliterator() {
+    throw new UnsupportedOperationException(
+        "The intended use of this class is to loop over all features and data points in a feature list");
+  }
+
+  @Override
+  public void saveValueToXML(XMLStreamWriter writer, List<Scan> allScans)
+      throws XMLStreamException {
     throw new UnsupportedOperationException(
         "The intended use of this class is to loop over all features and data points in a feature list");
   }

@@ -1,205 +1,157 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
 
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MergedMsMsSpectrum;
 import io.github.mzmine.datamodel.MobilityScan;
-import io.github.mzmine.datamodel.PolarityType;
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.maths.CenterFunction;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.SpectraMerging;
 import io.github.mzmine.util.scans.SpectraMerging.MergingType;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a merged spectrum from scans of the same raw data file. If a merged spectrum across
- * multiple raw data files is needed, implementations have to check for compatibility.
+ * multiple raw data files is needed, implementations have to check for compatibility. {@link
+ * SimpleMergedMsMsSpectrum#getScanNumber()} will return -1 to represent the artificial state of
+ * this spectrum.
+ *
+ * @author https://github.com/SteffenHeu
  */
-public class SimpleMergedMsMsSpectrum extends AbstractStorableSpectrum implements
+public class SimpleMergedMsMsSpectrum extends SimpleMergedMassSpectrum implements
     MergedMsMsSpectrum {
+
+  public static final String XML_SCAN_TYPE = "simplemergedmsmsspectrum";
 
   private static final Logger logger = Logger.getLogger(SimpleMergedMsMsSpectrum.class.getName());
 
-  private final List<MassSpectrum> sourceSpectra;
-  private final MergingType mergingType;
-  private final CenterFunction centerFunction;
-  private final float collisionEnergy;
-  private final RawDataFile rawDataFile;
-  private final float retentionTime;
-  private final double precursorMz;
-  private final int msLevel;
-  private final Range<Double> scanningMzRange;
-  private final PolarityType polarity;
-  private MassList massList = null;
-  private final String scanDefinition;
+  protected MsMsInfo msMsInfo;
 
-  public SimpleMergedMsMsSpectrum(@Nonnull MemoryMapStorage storage, @Nonnull double[] mzValues,
-      @Nonnull double[] intensityValues, double precursorMz,
-      float collisionEnergy, int msLevel, @Nonnull List<? extends MassSpectrum> sourceSpectra,
-      @Nonnull MergingType mergingType, @Nonnull CenterFunction centerFunction) {
-    super(storage, mzValues, intensityValues);
+  public SimpleMergedMsMsSpectrum(@Nullable MemoryMapStorage storage, @NotNull double[] mzValues,
+      @NotNull double[] intensityValues, MsMsInfo info, int msLevel,
+      @NotNull List<? extends MassSpectrum> sourceSpectra, @NotNull MergingType mergingType,
+      @NotNull CenterFunction centerFunction) {
+    super(storage, mzValues, intensityValues, msLevel, sourceSpectra, mergingType, centerFunction);
 
-    assert !sourceSpectra.isEmpty();
-
-    RawDataFile file = null;
-    PolarityType tempPolarity = null;
-    Range<Double> tempScanningMzRange = null;
-    float tempRt = 0f;
-    for (MassSpectrum spectrum : sourceSpectra) {
-      if (file == null) {
-        if (spectrum instanceof Scan) {
-          file = ((Scan) spectrum).getDataFile();
-          tempPolarity = ((Scan) spectrum).getPolarity();
-          tempScanningMzRange = ((Scan) spectrum).getScanningMZRange();
-          tempRt = ((Scan) spectrum).getRetentionTime();
-        } else if (spectrum instanceof MobilityScan) {
-          file = ((MobilityScan) spectrum).getDataFile();
-          tempPolarity = ((MobilityScan) spectrum).getFrame().getPolarity();
-          tempScanningMzRange = ((MobilityScan) spectrum).getFrame()
-              .getScanningMZRange();
-          tempRt = ((MobilityScan) spectrum).getRetentionTime();
-        }
-      }
-      if (spectrum instanceof Scan) {
-        if (file != ((Scan) spectrum).getDataFile()) {
-          logger.warning("Merging spectra with different raw data files");
-        }
-      } else if (spectrum instanceof MobilityScan) {
-        if (file != ((MobilityScan) spectrum).getDataFile()) {
-          logger.warning("Merging spectra with different raw data files");
-        }
-      }
-    }
-    rawDataFile = file;
-
-    this.retentionTime = tempRt;
-    this.polarity = tempPolarity;
-    this.scanningMzRange = tempScanningMzRange;
-    this.sourceSpectra = (List<MassSpectrum>) sourceSpectra;
-    this.mergingType = mergingType;
-    this.centerFunction = centerFunction;
-    this.collisionEnergy = collisionEnergy;
-    this.precursorMz = precursorMz;
-    this.msLevel = msLevel;
+    msMsInfo = info;
     this.scanDefinition = ScanUtils.scanToString(this, true);
   }
 
   @Override
-  public List<MassSpectrum> getSourceSpectra() {
-    return Collections.unmodifiableList(sourceSpectra);
-  }
-
-  @Override
-  public MergingType getMergingType() {
-    return mergingType;
-  }
-
-  @Override
-  public CenterFunction getCenterFunction() {
-    return centerFunction;
-  }
-
-
-  @Override
   public float getCollisionEnergy() {
-    return collisionEnergy;
-  }
-
-  @Nonnull
-  @Override
-  public RawDataFile getDataFile() {
-    return rawDataFile;
+    return msMsInfo != null ? Objects.requireNonNullElse(msMsInfo.getActivationEnergy(), 0f) : 0f;
   }
 
   @Override
-  public int getScanNumber() {
-    return -1;
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
-  @Nonnull
-  @Override
-  public String getScanDefinition() {
-    return scanDefinition;
-  }
+  protected static final String XML_MSLEVEL_ATTR = "mslevel";
+  protected static final String XML_CE_ATTR = "ce";
+  protected static final String XML_PRECURSOR_MZ_ATTR = "precursormz";
+  protected static final String XML_PRECURSOR_CHARGE_ATTR = "precursorcharge";
+  protected static final String XML_MERGING_TYPE_ATTR = "mergingtype";
 
-  @Override
-  public int getMSLevel() {
-    return msLevel;
-  }
+  public static SimpleMergedMsMsSpectrum loadFromXML(XMLStreamReader reader, IMSRawDataFile file)
+      throws XMLStreamException {
+    final int mslevel = Integer.parseInt(reader.getAttributeValue(null, XML_MSLEVEL_ATTR));
+    final MergingType type = MergingType.valueOf(
+        reader.getAttributeValue(null, XML_MERGING_TYPE_ATTR));
+    assert file.getName().equals(reader.getAttributeValue(null, CONST.XML_RAW_FILE_ELEMENT));
 
-  @Override
-  public float getRetentionTime() {
-    return retentionTime;
-  }
-
-  @Nonnull
-  @Override
-  public Range<Double> getScanningMZRange() {
-    return scanningMzRange;
-  }
-
-  @Override
-  public double getPrecursorMZ() {
-    return precursorMz;
-  }
-
-  @Nonnull
-  @Override
-  public PolarityType getPolarity() {
-    return polarity;
-  }
-
-  @Override
-  public int getPrecursorCharge() {
-    return 0;
-  }
-
-  @Nullable
-  @Override
-  public MassList getMassList() {
-    return massList;
-  }
-
-
-  @Override
-  public synchronized void addMassList(final @Nonnull MassList massList) {
-    // we are not going into any details if this.massList equals massList
-    // do not call listeners if the same object is passed multiple times
-    if (this.massList == massList) {
-      return;
+    double[] mzs = null;
+    double[] intensties = null;
+    List<MobilityScan> scans = null;
+    MsMsInfo info = null;
+    while (reader.hasNext()) {
+      int next = reader.next();
+      if (next == XMLEvent.END_ELEMENT && reader.getLocalName().equals(Scan.XML_SCAN_ELEMENT)) {
+        break;
+      }
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensties = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_SCAN_LIST_ELEMENT -> scans = ParsingUtils.stringToMobilityScanList(
+            reader.getElementText(), file);
+        case MsMsInfo.XML_ELEMENT -> info = MsMsInfo.loadFromXML(reader, file);
+      }
     }
-    MassList old = this.massList;
-    this.massList = massList;
 
-    if (rawDataFile != null) {
-      rawDataFile.applyMassListChanged(this, old, massList);
-    }
+    assert mzs != null && intensties != null && scans != null;
+    return new SimpleMergedMsMsSpectrum(file.getMemoryMapStorage(), mzs, intensties, info, mslevel,
+        scans, type, SpectraMerging.DEFAULT_CENTER_FUNCTION);
   }
 
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(Scan.XML_SCAN_ELEMENT);
+    writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleMergedMsMsSpectrum.XML_SCAN_TYPE);
+
+    writer.writeAttribute(XML_MSLEVEL_ATTR, String.valueOf(getMSLevel()));
+    writer.writeAttribute(XML_CE_ATTR, String.valueOf(getCollisionEnergy()));
+    writer.writeAttribute(XML_MERGING_TYPE_ATTR, getMergingType().name());
+    writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, getDataFile().getName());
+
+    if(msMsInfo != null) {
+      msMsInfo.writeToXML(writer);
+    }
+
+    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(getMzValues()));
+    writer.writeEndElement();
+
+    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+    writer.writeCharacters(ParsingUtils.doubleBufferToString(getIntensityValues()));
+    writer.writeEndElement();
+
+    List<MobilityScan> mobilityScans = getSourceSpectra().stream()
+        .<MobilityScan>mapMulti((s, c) -> {
+          if (s instanceof MobilityScan) {
+            c.accept((MobilityScan) s);
+          }
+        }).toList();
+
+    writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);
+    writer.writeCharacters(ParsingUtils.mobilityScanListToString(mobilityScans));
+    writer.writeEndElement();
+
+    writer.writeEndElement();
+  }
 }

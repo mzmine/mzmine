@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+  ~ Copyright 2006-2021 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  -->
+
+<?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
 <?import io.github.mzmine.util.javafx.groupablelistview.GroupableListView?>
 <?import java.net.URL?>
 <?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
@@ -50,19 +70,26 @@
                             <contextMenu>
                               <ContextMenu fx:id="rawDataContextMenu">
                                 <items>
+                                  <MenuItem text="Show raw data overview" onAction="#handleShowRawDataOverview"/>
+                                  <MenuItem text="Show ion mobility raw data overview" onAction="#handleShowIMSDataOverview"/>
+                                  <MenuItem text="Show image viewer" onAction="#handleShowImageViewer" />
+
+                                  <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleShowChromatogram"
                                     text="Show chromatogram"/>
                                   <MenuItem onAction="#handleShowMsSpectrum"
                                     text="Show mass spectrum"/>
                                   <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
                                   <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
-                                  <MenuItem onAction="#handleShowMsMsPlot" text="Show MS/MS plot"/>
+                                  <MenuItem onAction="#handleShowMsMsPlot"
+                                    text="Show MS/MS scatter plot"/>
 
                                   <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleRawDataSort" text="Sort alphabetically"/>
                                   <MenuItem fx:id="rawDataRemoveExtensionMenuItem"
                                     onAction="#handleRemoveFileExtension"
                                     text="Remove file extension"/>
+                                  <MenuItem onAction="#handleShowFileSummary" text="Show file summary"/>
 
                                   <SeparatorMenuItem/>
                                   <Menu text="Raw data export">
@@ -84,9 +111,9 @@
                                     onAction="#handleGroupRawDataFiles" text="Group/Ungroup files"/>
 
                                   <SeparatorMenuItem/>
-                                  <MenuItem fx:id="rawDataSetColorMenuItem"
-                                    onAction="#handleSetRawDataFileColor" text="Set color"/>
-
+                                  <Menu text="Set color" fx:id="rawDataSetColorMenu">
+                                    <ColorPickerMenuItem fx:id="rawDataFileColorPicker" />
+                                  </Menu>
                                 </items>
                               </ContextMenu>
                             </contextMenu>
@@ -123,6 +150,28 @@
                               </ContextMenu>
                             </contextMenu>
                           </GroupableListView>
+                        </children>
+                      </AnchorPane>
+                    </content>
+                  </Tab>
+                  <Tab closable="false" text="Libraries">
+                    <content>
+                      <AnchorPane minHeight="0.0" minWidth="0.0">
+                        <children>
+                          <ListView AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                            editable="true" fx:id="spectralLibraryList">
+                            <contextMenu>
+                              <ContextMenu fx:id="spectralLibraryContextMenu">
+                                <items>
+                                  <MenuItem onAction="#handleSpectralLibrarySort"
+                                    text="Sort alphabetically"/>
+                                  <MenuItem onAction="#handleSpectralLibraryRemove"
+                                    text="Remove library" fx:id="spectralLibraryRemoveMenuItem"/>
+                                </items>
+                              </ContextMenu>
+                            </contextMenu>
+                          </ListView>
                         </children>
                       </AnchorPane>
                     </content>

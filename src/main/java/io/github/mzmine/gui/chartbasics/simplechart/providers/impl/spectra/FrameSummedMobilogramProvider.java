@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra;
@@ -44,14 +44,16 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   protected final NumberFormat intensityFormat;
   protected final UnitFormat unitFormat;
   private final Frame frame;
+  private final int binWidth;
 
   private double[] mobilites;
   private double[] intensities;
 
   private double finishedPercentage;
 
-  public FrameSummedMobilogramProvider(Frame frame) {
+  public FrameSummedMobilogramProvider(Frame frame, int binWidth) {
     this.frame = frame;
+    this.binWidth = binWidth;
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     mobilityFormat = MZmineCore.getConfiguration().getMobilityFormat();
@@ -60,7 +62,11 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
     finishedPercentage = 0d;
   }
 
-  @Override
+  public FrameSummedMobilogramProvider(Frame frame) {
+    this(frame, 1);
+  }
+
+      @Override
   public double getDomainValue(int index) {
     return intensities[index];
   }
@@ -86,7 +92,7 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
 
   @Override
   public String getToolTipText(int itemIndex) {
-    MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex);
+    MobilityScan scan = frame.getSortedMobilityScans().get(itemIndex / binWidth);
     if (scan == null || scan.getBasePeakMz() == null || scan.getBasePeakIntensity() == null) {
       return null;
     }
@@ -121,12 +127,13 @@ public class FrameSummedMobilogramProvider implements PlotXYDataProvider {
   public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     List<MobilityScan> scans = frame.getSortedMobilityScans();
 
-    int numScans = scans.size();
-    mobilites = new double[numScans];
-    intensities = new double[numScans];
+    final int numScans = ((int)(scans.size() / binWidth)) * binWidth;
+    mobilites = new double[numScans / binWidth];
+    intensities = new double[numScans / binWidth];
     for (int i = 0; i < numScans; i++) {
-      mobilites[i] = scans.get(i).getMobility();
-      intensities[i] = scans.get(i).getTIC();
+      final int index = i / binWidth;
+      mobilites[index] += scans.get(i).getMobility() / binWidth;
+      intensities[index] += scans.get(i).getTIC();
       finishedPercentage = (double) i / numScans;
     }
     finishedPercentage = 1.0;

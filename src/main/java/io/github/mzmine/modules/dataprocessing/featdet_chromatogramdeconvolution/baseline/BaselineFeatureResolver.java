@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.baseline;
@@ -36,7 +36,7 @@ import io.github.mzmine.util.R.RSessionWrapper;
 import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class implements a simple peak deconvolution algorithm. Continuous peaks above a given
@@ -45,7 +45,7 @@ import javax.annotation.Nonnull;
 public class BaselineFeatureResolver implements FeatureResolver {
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Baseline cut-off";
   }
 
@@ -68,10 +68,11 @@ public class BaselineFeatureResolver implements FeatureResolver {
       final Scan scanNum = scanNumbers.get(i);
       retentionTimes[i] = scanNum.getRetentionTime();
       DataPoint dp = chromatogram.getDataPointAtIndex(i);
-      if (dp != null)
+      if (dp != null) {
         intensities[i] = dp.getIntensity();
-      else
+      } else {
         intensities[i] = 0.0;
+      }
     }
 
     // Get parameters.
@@ -93,8 +94,8 @@ public class BaselineFeatureResolver implements FeatureResolver {
 
         // Search for end of the region
         int currentRegionEnd;
-        for (currentRegionEnd =
-            currentRegionStart + 1; currentRegionEnd < scanCount; currentRegionEnd++) {
+        for (currentRegionEnd = currentRegionStart + 1; currentRegionEnd < scanCount;
+            currentRegionEnd++) {
 
           final DataPoint endPeak = chromatogram.getDataPointAtIndex(currentRegionEnd);
           if (endPeak == null || endPeak.getIntensity() < baselineLevel) {
@@ -110,13 +111,14 @@ public class BaselineFeatureResolver implements FeatureResolver {
         currentRegionEnd--;
 
         // Check current region, if it makes a good peak.
-        if (durationRange
-            .contains(retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])
+        if (durationRange.contains(
+            retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])
             && currentRegionHeight >= minimumPeakHeight) {
 
           // Create a new ResolvedPeak and add it.
-          resolvedPeaks.add(new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd,
-              mzCenterFunction, msmsRange, rTRangeMSMS));
+          resolvedPeaks.add(
+              new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd, mzCenterFunction,
+                  msmsRange, rTRangeMSMS));
         }
 
         // Find next peak region, starting from next data point.
@@ -129,7 +131,7 @@ public class BaselineFeatureResolver implements FeatureResolver {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return BaselineFeatureResolverParameters.class;
   }
 

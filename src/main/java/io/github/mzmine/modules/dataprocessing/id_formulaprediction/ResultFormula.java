@@ -12,71 +12,80 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction;
 
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
 import java.util.Map;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import io.github.mzmine.datamodel.IsotopePattern;
 
-public class ResultFormula {
+public class ResultFormula extends MolecularFormulaIdentity {
 
-  private final IMolecularFormula cdkFormula;
-  private Double rdbeValue, isotopeScore, msmsScore;
-  private IsotopePattern predictedIsotopePattern;
-  private Map<Integer, String> msmsAnnotation;
+  private final Float isotopeScore;
+  private final Float msmsScore;
+  private final IsotopePattern predictedIsotopePattern;
+  private Map<Double, String> msmsAnnotation;
+
+  protected ResultFormula(ResultFormula f) {
+    this(f.cdkFormula, f.predictedIsotopePattern, f.getIsotopeScore(), f.getMSMSScore(),
+        f.getMSMSannotation(),
+        f.getSearchedNeutralMass());
+  }
 
   public ResultFormula(IMolecularFormula cdkFormula, IsotopePattern predictedIsotopePattern,
-      Double rdbeValue, Double isotopeScore, Double msmsScore,
-      Map<Integer, String> msmsAnnotation) {
-
-    this.cdkFormula = cdkFormula;
+      Float isotopeScore, Float msmsScore,
+      Map<Double, String> msmsAnnotation, double searchedNeutralMass) {
+    super(cdkFormula, searchedNeutralMass);
     this.predictedIsotopePattern = predictedIsotopePattern;
     this.isotopeScore = isotopeScore;
     this.msmsScore = msmsScore;
     this.msmsAnnotation = msmsAnnotation;
-    this.rdbeValue = rdbeValue;
-
   }
 
-  public Double getRDBE() {
-    return rdbeValue;
-  }
-
-  public Map<Integer, String> getMSMSannotation() {
+  public Map<Double, String> getMSMSannotation() {
     return msmsAnnotation;
-  }
-
-  public String getFormulaAsString() {
-    return MolecularFormulaManipulator.getString(cdkFormula);
-  }
-
-  public String getFormulaAsHTML() {
-    return MolecularFormulaManipulator.getHTML(cdkFormula);
-  }
-
-  public IMolecularFormula getFormulaAsObject() {
-    return cdkFormula;
   }
 
   public IsotopePattern getPredictedIsotopes() {
     return predictedIsotopePattern;
   }
 
-  public Double getIsotopeScore() {
+  public Float getIsotopeScore() {
     return isotopeScore;
   }
 
-  public Double getMSMSScore() {
+  public Float getMSMSScore() {
     return msmsScore;
   }
 
-  public double getExactMass() {
-    return MolecularFormulaManipulator.getMass(cdkFormula);
+  @Override
+  public float getScore(double neutralMass, float ppmMax, float fIsotopeScore,
+      float fMSMSscore) {
+    float ppmScore = super.getPPMScore(neutralMass, ppmMax);
+    float totalScore = ppmScore;
+    float div = 1f;
+    Float isoScore = getIsotopeScore();
+    if (isoScore != null) {
+      totalScore += isoScore * fIsotopeScore;
+      div += fIsotopeScore;
+    }
+    Float msmsScore = getMSMSScore();
+    if (msmsScore != null) {
+      totalScore += msmsScore * fMSMSscore;
+      div += fMSMSscore;
+    }
+
+    return totalScore / div;
   }
 
+  public float getPpmDiff() {
+    return getPpmDiff(searchedNeutralMass);
+  }
+
+  public double getAbsoluteMzDiff() {
+    return searchedNeutralMass - getExactMass();
+  }
 }

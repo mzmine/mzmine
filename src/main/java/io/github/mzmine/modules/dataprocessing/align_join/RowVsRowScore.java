@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.align_join;
@@ -29,8 +29,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   private FeatureListRow peakListRow, alignedRow;
 
   RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight,
-      double rtMaxDiff, double rtWeight) {
+      double mzWeight, double rtMaxDiff, double rtWeight) {
 
     this.peakListRow = peakListRow;
     this.alignedRow = alignedRow;
@@ -45,8 +44,8 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   }
 
   RowVsRowScore(FeatureListRow peakListRow, FeatureListRow alignedRow, double mzMaxDiff,
-      double mzWeight,
-      double rtMaxDiff, double rtWeight, double mobilityMaxDiff, double mobilityWeight) {
+      double mzWeight, double rtMaxDiff, double rtWeight, double mobilityMaxDiff,
+      double mobilityWeight) {
 
     this.peakListRow = peakListRow;
     this.alignedRow = alignedRow;
@@ -56,13 +55,12 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
     double rtDiff = Math.abs(peakListRow.getAverageRT() - alignedRow.getAverageRT());
 
-    double mobilityDiff;
-    float row1Mobility = peakListRow.getAverageMobility();
-    float row2Mobility = alignedRow.getAverageMobility();
-    if (!Float.isNaN(peakListRow.getAverageMobility()) && !Float.isNaN(alignedRow.getAverageMobility())) {
-      mobilityDiff = Math.abs(row1Mobility - row2Mobility);
-      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight)
-          + ((1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
+    Float row1Mobility = peakListRow.getAverageMobility();
+    Float row2Mobility = alignedRow.getAverageMobility();
+    if (row1Mobility != null && row2Mobility != null) {
+      float mobilityDiff = Math.abs(row1Mobility - row2Mobility);
+      score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight) + (
+          (1 - mobilityDiff / mobilityMaxDiff) * mobilityWeight);
     } else {
       score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + ((1 - rtDiff / rtMaxDiff) * rtWeight);
     }
@@ -71,14 +69,14 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   /**
    * This method returns the feature list row which is being aligned
    */
-  FeatureListRow getPeakListRow() {
+  FeatureListRow getRowToAdd() {
     return peakListRow;
   }
 
   /**
    * This method returns the row of aligned feature list
    */
-  FeatureListRow getAlignedRow() {
+  FeatureListRow getAlignedBaseRow() {
     return alignedRow;
   }
 
@@ -90,7 +88,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
   }
 
   /**
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   * @see Comparable#compareTo(Object)
    */
   public int compareTo(RowVsRowScore object) {
 

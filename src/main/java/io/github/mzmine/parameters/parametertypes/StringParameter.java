@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes;
@@ -25,10 +25,10 @@ import javafx.scene.control.TextField;
 
 public class StringParameter implements UserParameter<String, TextField> {
 
-  private String name, description, value;
-  private int inputsize = 20;
-  private boolean valueRequired = true;
-  private final boolean sensitive;
+  protected String name, description, value;
+  protected int inputsize = 20;
+  protected boolean valueRequired = true;
+  protected final boolean sensitive;
 
   public StringParameter(String name, String description) {
     this(name, description, null);
@@ -63,17 +63,11 @@ public class StringParameter implements UserParameter<String, TextField> {
     this.sensitive = isSensitive;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getDescription()
-   */
   @Override
   public String getDescription() {
     return description;

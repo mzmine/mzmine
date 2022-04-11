@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,29 +8,24 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
  */
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
-
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Set;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * A spectrum of merged peaks with meta information
@@ -123,10 +118,10 @@ public class MergedSpectrum {
     this.origins = new RawDataFile[] {single.getDataFile()};
     this.scanIds = new int[] {single.getScanNumber()};
     this.polarity = single.getPolarity();
-    this.precursorCharge = single.getPrecursorCharge();
+    this.precursorCharge = Objects.requireNonNullElse(single.getPrecursorCharge(), 0);
     this.removedScansByLowCosine = 0;
     this.removedScansByLowQuality = 0;
-    this.precursorMz = single.getPrecursorMZ();
+    this.precursorMz = Objects.requireNonNullElse(single.getPrecursorMz(), 0d);
   }
 
   public MergedSpectrum(MergedDataPoint[] data, RawDataFile[] origins, int[] scanIds,

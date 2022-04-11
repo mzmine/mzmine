@@ -1,29 +1,28 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
 import com.google.common.collect.Range;
 import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleBoundStyle;
-import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleColorStyle;
 import io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScaleTransform;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PaintScaleProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.PieXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.XYZValueProvider;
 import io.github.mzmine.main.MZmineCore;
@@ -33,9 +32,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
-import javafx.application.Platform;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.data.xy.XYZDataset;
@@ -48,52 +47,48 @@ import org.jfree.data.xy.XYZDataset;
  */
 public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, PaintScaleProvider {
 
-  protected final static PaintScaleColorStyle FALLBACK_PS_STYLE = PaintScaleColorStyle.RAINBOW;
-  protected final static PaintScaleBoundStyle FALLBACK_PS_BOUND = PaintScaleBoundStyle.LOWER_AND_UPPER_BOUND;
+  private static Logger logger = Logger.getLogger(ColoredXYZDataset.class.getName());
 
   private final XYZValueProvider xyzValueProvider;
-  protected final boolean autocompute;
-  protected Double minZValue;
-  protected Double maxZValue;
+  private final RunOption runOption;
   protected PaintScale paintScale;
-  protected PaintScaleColorStyle defaultPaintScaleColorStyle;
-  protected PaintScaleBoundStyle defaultPaintScaleBoundStyle;
   protected Double boxWidth;
   protected Double boxHeight;
   protected AbstractXYItemRenderer renderer;
   protected boolean useAlphaInPaintscale;
+  protected Range<Double> zRange;
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider) {
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider) {
     this(dataProvider, true);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      @NotNull final RunOption runOption) {
+    this(dataProvider, true, runOption);
+  }
+
+  public ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
       final boolean useAlphaInPaintscale) {
-    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND);
+    this(dataProvider, useAlphaInPaintscale, RunOption.NEW_THREAD);
   }
 
-  public ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
-      PaintScaleBoundStyle paintScaleBoundStyle) {
-    this(dataProvider, useAlphaInPaintscale, FALLBACK_PS_STYLE, FALLBACK_PS_BOUND, true);
-  }
+  ColoredXYZDataset(@NotNull PlotXYZDataProvider dataProvider,
+      final boolean useAlphaInPaintscale, @NotNull final RunOption runOption) {
+    // do not run from super constructor! we need to do some other stuff first
+    super(dataProvider, RunOption.DO_NOT_RUN);
 
-  ColoredXYZDataset(@Nonnull PlotXYZDataProvider dataProvider,
-      final boolean useAlphaInPaintscale, PaintScaleColorStyle paintScaleColorStyle,
-      PaintScaleBoundStyle paintScaleBoundStyle, boolean autocompute) {
-    super(dataProvider, false);
+    if (dataProvider instanceof PieXYZDataProvider) {
+      throw new IllegalArgumentException(
+          "PieXYZDataProviders can only be used with ColoredXYPieDatasets");
+    }
+
     this.xyzValueProvider = dataProvider;
-    this.defaultPaintScaleColorStyle = paintScaleColorStyle;
-    this.defaultPaintScaleBoundStyle = paintScaleBoundStyle;
     this.useAlphaInPaintscale = useAlphaInPaintscale;
-    minZValue = Double.MAX_VALUE;
-    maxZValue = Double.MIN_VALUE;
     renderer = new XYBlockPixelSizeRenderer();
     paintScale = null;
-    this.autocompute = autocompute;
-    if(autocompute) {
-      MZmineCore.getTaskController().addTask(this);
-    }
+
+    this.runOption = checkRunOption(runOption);
+    handleRunOption(runOption);
   }
 
   public boolean isUseAlphaInPaintscale() {
@@ -110,10 +105,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
 
   @Override
   public Number getZ(int series, int item) {
-    if (!valuesComputed) {
-      return 0.0;
-    }
-    return xyzValueProvider.getZValue(item);
+    return getZValue(series, item);
   }
 
   @Override
@@ -124,12 +116,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     return xyzValueProvider.getZValue(item);
   }
 
-  public double getMinZValue() {
-    return minZValue;
-  }
-
-  public double getMaxZValue() {
-    return maxZValue;
+  public Range<Double> getZValueRange() {
+    return zRange;
   }
 
   /**
@@ -141,28 +129,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
   @Override
   public PaintScale getPaintScale() {
     return paintScale;
-  }
-
-//  public void setPaintScale(PaintScale paintScale) {
-//    this.paintScale = paintScale;
-//  }
-
-  public PaintScaleColorStyle getDefaultPaintScaleColorStyle() {
-    return defaultPaintScaleColorStyle;
-  }
-
-  public void setDefaultPaintScaleColorStyle(
-      PaintScaleColorStyle defaultPaintScaleColorStyle) {
-    this.defaultPaintScaleColorStyle = defaultPaintScaleColorStyle;
-  }
-
-  public PaintScaleBoundStyle getDefaultPaintScaleBoundStyle() {
-    return defaultPaintScaleBoundStyle;
-  }
-
-  public void setDefaultPaintScaleBoundStyle(
-      PaintScaleBoundStyle defaultPaintScaleBoundStyle) {
-    this.defaultPaintScaleBoundStyle = defaultPaintScaleBoundStyle;
   }
 
   public Double getBoxWidth() {
@@ -181,6 +147,7 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     this.boxHeight = boxHeight;
   }
 
+  @Override
   public int getValueIndex(final double domainValue, final double rangeValue) {
     for (int i = 0; i < computedItemCount; i++) {
       if (Double.compare(domainValue, getX(0, i).doubleValue()) == 0
@@ -231,11 +198,6 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
       max = 1;
     }
     Range<Double> zValueRange = Range.closed(min, max);
-    /*var paintScale =
-        new io.github.mzmine.gui.chartbasics.chartutils.paintscales.PaintScale(
-            defaultPaintScaleColorStyle, defaultPaintScaleBoundStyle, zValueRange, Color.WHITE);
-    PaintScaleFactory psf = new PaintScaleFactory();
-    paintScale = psf.createColorsForPaintScale(paintScale, true);*/
 
     paintScale = MZmineCore.getConfiguration().getDefaultPaintScalePalette().toPaintScale(
         PaintScaleTransform.LINEAR, zValueRange);
@@ -247,24 +209,36 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     status.set(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
 
-    if (status.get() != TaskStatus.PROCESSING) {
+    if (status.get() == TaskStatus.CANCELED || status.get() == TaskStatus.ERROR) {
       return;
     }
 
     computedItemCount = xyValueProvider.getValueCount();
     valuesComputed = true;
 
+    double minDomain = Double.POSITIVE_INFINITY;
+    double maxDomain = Double.NEGATIVE_INFINITY;
+    double minRange = Double.POSITIVE_INFINITY;
+    double maxRange = Double.NEGATIVE_INFINITY;
+    double minZ = Double.POSITIVE_INFINITY;
+    double maxZ = Double.NEGATIVE_INFINITY;
+
     for (int i = 0; i < computedItemCount; i++) {
-      if (minRangeValue.doubleValue() < xyValueProvider.getRangeValue(i)) {
-        minRangeValue = xyValueProvider.getRangeValue(i);
-      }
-      if (xyzValueProvider.getZValue(i) < minZValue) {
-        minZValue = xyzValueProvider.getZValue(i);
-      }
-      if (xyzValueProvider.getZValue(i) > maxZValue) {
-        maxZValue = xyzValueProvider.getZValue(i);
-      }
+      final double rangeValue = xyValueProvider.getRangeValue(i);
+      final double domainValue = xyValueProvider.getDomainValue(i);
+      final double zValue = xyzValueProvider.getZValue(i);
+
+      minDomain = Math.min(domainValue, minDomain);
+      maxDomain = Math.max(domainValue, maxDomain);
+      minRange = Math.min(rangeValue, minRange);
+      maxRange = Math.max(rangeValue, maxRange);
+      minZ = Math.min(zValue, minZ);
+      maxZ = Math.max(zValue, maxZ);
     }
+
+    domainRange = computedItemCount > 0 ? Range.closed(minDomain, maxDomain) : Range.closed(0d, 1d);
+    rangeRange = computedItemCount > 0 ? Range.closed(minRange, maxRange) : Range.closed(0d, 1d);
+    zRange = computedItemCount > 0 ? Range.closed(minZ, maxZ) : Range.closed(0d, 1d);
 
     boxHeight = xyzValueProvider.getBoxHeight();
     boxWidth = xyzValueProvider.getBoxWidth();
@@ -278,17 +252,10 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     if (xyzValueProvider instanceof PaintScaleProvider) {
       paintScale = ((PaintScaleProvider) xyzValueProvider).getPaintScale();
     }
-    paintScale = (paintScale != null) ? paintScale : createDefaultPaintScale(minZValue, maxZValue);
+    paintScale = (paintScale != null) ? paintScale
+        : createDefaultPaintScale(zRange.lowerEndpoint(), zRange.upperEndpoint());
 
-    computed = true;
-    status.set(TaskStatus.FINISHED);
-//    if (!this.autocompute) {
-    if (Platform.isFxApplicationThread()) {
-      fireDatasetChanged();
-    } else {
-      Platform.runLater(this::fireDatasetChanged);
-    }
-//    }
+    onCalculationsFinished();
   }
 
   // Makes protected method public // TODO: possible alternatives?
@@ -297,4 +264,8 @@ public class ColoredXYZDataset extends ColoredXYDataset implements XYZDataset, P
     super.fireDatasetChanged();
   }
 
+  @Override
+  protected RunOption getRunOption() {
+    return runOption;
+  }
 }

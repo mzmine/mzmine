@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,25 +8,27 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import com.google.common.collect.ImmutableList;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.UserParameter;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import com.google.common.collect.ImmutableList;
-import io.github.mzmine.parameters.UserParameter;
-import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  *
@@ -125,4 +127,16 @@ public class FileNamesParameter implements UserParameter<File[], FileNamesCompon
     return true;
   }
 
+  @Override
+  public boolean valueEquals(Parameter<?> that) {
+    if(that == null) {
+      return false;
+    }
+    if(!(that instanceof FileNamesParameter thatParam)) {
+      return false;
+    }
+
+    File[] thatValue = thatParam.getValue();
+    return Arrays.equals(value, thatValue);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.data_access;
@@ -23,7 +24,7 @@ import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
@@ -61,10 +62,10 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
 
   /**
    * Access the chromatographic data of features in a feature list sorted by scan ID (usually sorted
-   * by retention time). Full data access uses all scans of the whole chromatogram and adds zeros for
-   * missing data points. This is important for a few chromatogram deconvolution algorithms,
-   * smoothing, etc. However, if applied to already resolved features, zero intensities do not mean no
-   * signal.
+   * by retention time). Full data access uses all scans of the whole chromatogram and adds zeros
+   * for missing data points. This is important for a few chromatogram deconvolution algorithms,
+   * smoothing, etc. However, if applied to already resolved features, zero intensities do not mean
+   * no signal.
    *
    * @param flist    target feature list. Loops through all features in dataFile
    * @param dataFile define the data file in an aligned feature list
@@ -83,8 +84,7 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
       }
     } else {
       // one raw data file
-      max = flist.getSeletedScans(dataFile != null ? dataFile : flist.getRawDataFile(0))
-          .size();
+      max = flist.getSeletedScans(dataFile != null ? dataFile : flist.getRawDataFile(0)).size();
     }
 
     mzs = new double[max];
@@ -144,34 +144,64 @@ public class FeatureFullDataAccess extends FeatureDataAccess {
   public Feature nextFeature() {
     super.nextFeature();
     if (feature != null) {
-          // add detected data points and zero for missing values
-          allScans = (List<Scan>) flist.getSeletedScans(feature.getRawDataFile());
-          // read detected data in batch
-          List<Scan> detectedScans = feature.getScanNumbers();
-          featureData.getMzValues(detectedMzs);
-          featureData.getIntensityValues(detectedIntensities);
+      // add detected data points and zero for missing values
+      allScans = (List<Scan>) flist.getSeletedScans(feature.getRawDataFile());
+      // read detected data in batch
+      List<Scan> detectedScans = feature.getScanNumbers();
+      featureData.getMzValues(detectedMzs);
+      featureData.getIntensityValues(detectedIntensities);
 
-          int detectedIndex = 0;
-          for (int i = 0; i < intensities.length; i++) {
-            if (allScans.get(i) == detectedScans.get(detectedIndex)) {
-              intensities[i] = detectedIntensities[detectedIndex];
-              mzs[i] = detectedMzs[detectedIndex];
-              detectedIndex++;
-            } else {
-              intensities[i] = 0d;
-            }
-            if(detectedIndex == detectedScans.size() && i < intensities.length - 1) {
-              Arrays.fill(intensities, i+1, intensities.length, 0d);
-              break;
-            }
-          }
-          currentNumberOfDataPoints = allScans.size();
-    }
-    else {
+      int detectedIndex = 0;
+      for (int i = 0; i < intensities.length; i++) {
+        if (allScans.get(i) == detectedScans.get(detectedIndex)) {
+          intensities[i] = detectedIntensities[detectedIndex];
+          mzs[i] = detectedMzs[detectedIndex];
+          detectedIndex++;
+        } else {
+          intensities[i] = 0d;
+        }
+        if (detectedIndex == detectedScans.size() && i < intensities.length - 1) {
+          Arrays.fill(intensities, i + 1, intensities.length, 0d);
+          break;
+        }
+      }
+      currentNumberOfDataPoints = allScans.size();
+    } else {
       // clear
       allScans = null;
     }
     return feature;
   }
 
+  /**
+   * Usage of this method is strongly discouraged because it returns the internal buffer of this
+   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
+   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
+   * different raw data files, the number of data points in that raw file might be different from
+   * the length of this buffer, which is set to the longest XIC. The current number of data points
+   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
+   * <p></p>
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getIntensity(int)} (int)} is more appropriate.
+   *
+   * @return The intensity buffer of this data access.
+   */
+  public double[] getIntensityValues() {
+    return intensities;
+  }
+
+  /**
+   * Usage of this method is strongly discouraged because it returns the internal buffer of this
+   * data access. However, in exceptional use-cases such as resolving or smoothing XICs, a direct
+   * access might be necessary to avoid copying arrays. Since the chromatograms might originate from
+   * different raw data files, the number of data points in that raw file might be different from
+   * the length of this buffer, which is set to the longest XIC. The current number of data points
+   * can be accessed via {@link FeatureDataAccess#getNumberOfValues()}.
+   * <p></p>
+   * <b>NOTE:</b> In most cases, the use of  {@link FeatureDataAccess#getMZ(int)} is more appropriate.
+   *
+   * @return The m/z buffer of this data access.
+   */
+  public double[] getMzValues() {
+    return mzs;
+  }
 }

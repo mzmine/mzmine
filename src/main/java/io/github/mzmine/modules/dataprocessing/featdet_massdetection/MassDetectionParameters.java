@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
@@ -23,6 +23,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.dataprocessing.featdet_massdetection.auto.AutoMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.centroid.CentroidMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.exactmass.ExactMassDetector;
 import io.github.mzmine.modules.dataprocessing.featdet_massdetection.localmaxima.LocalMaxMassDetector;
@@ -31,65 +32,87 @@ import io.github.mzmine.modules.dataprocessing.featdet_massdetection.wavelet.Wav
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ModuleComboParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
-import io.github.mzmine.util.ExitCode;
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.control.ButtonType;
+import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  public static final CentroidMassDetector centroid = MZmineCore.getModuleInstance(
+      CentroidMassDetector.class);
+  public static final ExactMassDetector exact = MZmineCore.getModuleInstance(
+      ExactMassDetector.class);
+  public static final LocalMaxMassDetector localmax = MZmineCore.getModuleInstance(
+      LocalMaxMassDetector.class);
+  public static final RecursiveMassDetector recursive = MZmineCore.getModuleInstance(
+      RecursiveMassDetector.class);
+  public static final WaveletMassDetector wavelet = MZmineCore.getModuleInstance(
+      WaveletMassDetector.class);
+  public static final AutoMassDetector auto = MZmineCore.getModuleInstance(AutoMassDetector.class);
 
-  public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
-          new RecursiveMassDetector(), new WaveletMassDetector()};
+  public static final MassDetector[] massDetectors = {centroid, exact, localmax, recursive, wavelet,
+      auto};
+
+  public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
+      "Mass detector", "Algorithm to use for mass detection and its parameters.", massDetectors,
+      centroid);
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-  public static final ScanSelectionParameter scanSelection =
-      new ScanSelectionParameter(new ScanSelection(1));
+  public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+      new ScanSelection(1));
 
-  public static final ModuleComboParameter<MassDetector> massDetector =
-      new ModuleComboParameter<MassDetector>("Mass detector",
-          "Algorithm to use for mass detection and its parameters", massDetectors);
+  public static final ComboParameter<SelectedScanTypes> scanTypes = new ComboParameter<>(
+      "Scan types (IMS)", """
+      Specifies the type of scans the mass detection should be applied to.
+      All scans: Regular LC-MS data, and accumulated frames + mobility scans for IMS data.
+      Frames only: Only applies mass detection to accumulated frames.
+      Mobility scans only: Applies mass detection to mobility scans only.
+      """, SelectedScanTypes.values(), SelectedScanTypes.SCANS);
 
-  public static final FileNameParameter outFilename =
-      new FileNameParameter("Output netCDF filename (optional)",
-          "If selected, centroided spectra will be written to this file netCDF file. "
-              + "If the file already exists, it will be overwritten.",
-          "cdf", FileSelectionType.SAVE);
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("CDF", "*.cdf"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
 
-  public static final OptionalParameter<FileNameParameter> outFilenameOption =
-      new OptionalParameter<>(outFilename);
+  public static final FileNameParameter outFilename = new FileNameParameter(
+      "Output netCDF filename (optional)",
+      "If selected, centroided spectra will be written to this file netCDF file. "
+          + "If the file already exists, it will be overwritten.", extensions,
+      FileSelectionType.SAVE);
+
+  public static final OptionalParameter<FileNameParameter> outFilenameOption = new OptionalParameter<>(
+      outFilename);
+
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MassDetectionParameters() {
-    super(new Parameter[]{dataFiles, scanSelection, massDetector, outFilenameOption});
+    super(new Parameter[]{dataFiles, scanSelection, scanTypes, massDetector, outFilenameOption},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_mass_detection/mass-detection.html");
   }
 
   @Override
-  public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    ExitCode exitCode = super.showSetupDialog(valueCheckRequired);
-
-    // If the parameters are not complete, let's just stop here
-    if (exitCode != ExitCode.OK) {
-      return exitCode;
-    }
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    final boolean superCheck = super.checkParameterValues(errorMessages);
 
     RawDataFile selectedFiles[] = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
+    getParameter(dataFiles).getValue().resetSelection(); // reset selection after evaluation.
 
     // If no file selected (e.g. in batch mode setup), just return
     if ((selectedFiles == null) || (selectedFiles.length == 0)) {
-      return exitCode;
+      return superCheck;
     }
 
     // Do an additional check for centroid/continuous data and show a
@@ -110,7 +133,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
     // If no scans found, let's just stop here
     if (numCentroided + numProfile == 0) {
-      return exitCode;
+      return superCheck;
     }
 
     // Do we have mostly centroided scans?
@@ -120,37 +143,47 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
     // Check the selected mass detector
     String massDetectorName = getParameter(massDetector).getValue().toString();
+    if (!massDetectorName.contains("Auto")) {
+      if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
+        String msg =
+            "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans.\n"
+                + "This will likely produce wrong results. Try the Centroid mass detector instead.\n"
+                + "Continue anyway?";
+        if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
+            == ButtonType.NO) {
+          return false;
+        }
+      }
 
-    if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
-      String msg =
-          "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
-      MZmineCore.getDesktop().displayMessage(null, msg);
-    }
-
-    if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
-      String msg =
-          "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
-      MZmineCore.getDesktop().displayMessage(null, msg);
-    }
-
-    RawDataFile[] files = dataFiles.getValue().getMatchingRawDataFiles();
-    Optional<RawDataFile> opt = Arrays.stream(files)
-        .filter(file -> (file instanceof IMSRawDataFile)).findAny();
-    if (opt.isPresent() && !massDetectorName.startsWith("Centroid")) {
-      String msg = "MZmine thinks you are running a profile mass detector on an Ion mobility raw "
-          + "data file. Only the centroid mass detector officially supports mobility scan peak "
-          + "detection due to the size of ion mobility raw data files."
-          + " Do you want to continue anyway?";
-      if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
-          == ButtonType.NO) {
-        return ExitCode.CANCEL;
+      if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
+        String msg =
+            "MZmine thinks you are running the centroid mass detector on (mostly) profile scans.\n"
+                + "This will likely produce wrong results.\nContinue anyway?";
+        if (MZmineCore.getDesktop().displayConfirmation(msg, ButtonType.YES, ButtonType.NO)
+            == ButtonType.NO) {
+          return false;
+        }
       }
     }
 
-    return exitCode;
+    final SelectedScanTypes types = getValue(scanTypes);
+    if (types != SelectedScanTypes.SCANS && Arrays.stream(selectedFiles)
+        .anyMatch(file -> !(file instanceof IMSRawDataFile))) {
+      final ButtonType buttonType = MZmineCore.getDesktop().displayConfirmation(
+          "The scan types selection is set to \"" + types
+              + "\" but there are non IMS files selected."
+              + "This will not add a mass list to the files " + Arrays.stream(selectedFiles)
+              .map(RawDataFile::getName).toList().toString() + ".\nDo you want to continue anyway?",
+          ButtonType.YES, ButtonType.NO);
+      if (buttonType == ButtonType.NO) {
+        return false;
+      }
+    }
 
+    return superCheck;
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

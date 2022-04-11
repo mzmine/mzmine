@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -161,11 +161,11 @@ public class EICPlot extends EChartViewer {
       history.clear();
   }
 
-  // public void updateData(@Nonnull List <List <NavigableMap <Double,
+  // public void updateData(@NotNull List <List <NavigableMap <Double,
   // Double>>> clusters,
-  // @Nonnull List <Double> colors,
-  // @Nonnull List <List <String>> info,
-  // @Nonnull List <List<Boolean>> models)
+  // @NotNull List <Double> colors,
+  // @NotNull List <List <String>> info,
+  // @NotNull List <List<Boolean>> models)
   // {
   // final float DEFAULT_LINE_WIDTH = 1.0f;
   // final float THICK_LINE_WIDTH = 2.0f;
@@ -203,7 +203,7 @@ public class EICPlot extends EChartViewer {
   // }
   // }
 
-  void updateData(@Nonnull List<BetterPeak> peaks, @Nonnull List<BetterComponent> modelPeaks) {
+  void updateData(@NotNull List<BetterPeak> peaks, @NotNull List<BetterComponent> modelPeaks) {
     xyDataset.removeAllSeries();
     xyDataset.setNotify(false);
     toolTips.clear();

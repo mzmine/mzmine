@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.project.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -27,6 +28,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.io.IOException;
 import java.util.Hashtable;
@@ -37,10 +39,13 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -56,10 +61,14 @@ public class RawDataFileImpl implements RawDataFile {
 
   public static final String SAVE_IDENTIFIER = "Raw data file";
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(RawDataFileImpl.class.getName());
 
+  // for ease of use we have a javafx safe copy of name
+  private final StringProperty nameProperty = new SimpleStringProperty("");
   // Name of this raw data file - may be changed by the user
-  private String dataFileName;
+  private String name = "";
+
+  protected final String absolutePath;
 
   private final Hashtable<Integer, Range<Double>> dataMZRange = new Hashtable<>();
   private final Hashtable<Integer, Range<Float>> dataRTRange = new Hashtable<>();
@@ -76,17 +85,20 @@ public class RawDataFileImpl implements RawDataFile {
   // maximum number of data points and centroid data points in all scans
   protected int maxRawDataPoints = -1;
 
-  protected final ObservableList<FeatureListAppliedMethod> appliedMethods
-      = FXCollections.observableArrayList();
+  protected final ObservableList<FeatureListAppliedMethod> appliedMethods = FXCollections
+      .observableArrayList();
 
-  public RawDataFileImpl(String dataFileName, MemoryMapStorage storage) throws IOException {
-    this(dataFileName, storage, MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
+  public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
+      @Nullable final MemoryMapStorage storage) {
+    this(dataFileName, absolutePath, storage,
+        MZmineCore.getConfiguration().getDefaultColorPalette().getNextColor());
   }
 
-  public RawDataFileImpl(String dataFileName, MemoryMapStorage storage, Color color) throws IOException {
-
-    this.dataFileName = dataFileName;
+  public RawDataFileImpl(@NotNull final String dataFileName, @Nullable final String absolutePath,
+      @Nullable final MemoryMapStorage storage, @NotNull Color color) {
+    setName(dataFileName);
     this.storageMemoryMap = storage;
+    this.absolutePath = absolutePath;
 
     scans = FXCollections.observableArrayList();
 
@@ -94,8 +106,7 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  public @Nonnull
-  MemoryMapStorage getMemoryMapStorage() {
+  public @Nullable MemoryMapStorage getMemoryMapStorage() {
     return storageMemoryMap;
   }
 
@@ -108,18 +119,18 @@ public class RawDataFileImpl implements RawDataFile {
    * The maximum number of centroid data points in all scans (after mass detection and optional
    * processing)
    *
-   * @return
+   * @return data point with maximum intensity (centroided)
    */
   @Override
   public int getMaxCentroidDataPoints() {
-      return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
-          .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
+    return scans.stream().map(Scan::getMassList).filter(Objects::nonNull)
+        .mapToInt(MassList::getNumberOfDataPoints).max().orElse(0);
   }
 
   /**
    * The maximum number of raw data points in all scans
    *
-   * @return
+   * @return data point with maximum intensity in unprocessed data points
    */
   @Override
   public int getMaxRawDataPoints() {
@@ -187,7 +198,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int)
    */
   @Override
-  @Nonnull
+  @NotNull
   public List<Scan> getScanNumbers(int msLevel) {
     return scans.stream().filter(s -> s.getMSLevel() == msLevel).collect(Collectors.toList());
   }
@@ -196,9 +207,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getScanNumbers(int, Range)
    */
   @Override
-  public @Nonnull
-  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange) {
-    assert rtRange != null;
+  public @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange) {
     return scans.stream()
         .filter(s -> s.getMSLevel() == msLevel && rtRange.contains(s.getRetentionTime()))
         .toArray(Scan[]::new);
@@ -208,7 +217,7 @@ public class RawDataFileImpl implements RawDataFile {
    * @see io.github.mzmine.datamodel.RawDataFile#getMSLevels()
    */
   @Override
-  @Nonnull
+  @NotNull
   public int[] getMSLevels() {
     return scans.stream().mapToInt(Scan::getMSLevel).distinct().sorted().toArray();
   }
@@ -307,13 +316,13 @@ public class RawDataFileImpl implements RawDataFile {
 
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getDataMZRange() {
     return getDataMZRange(0);
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getDataMZRange(int msLevel) {
 
     // check if we have this value already cached
@@ -353,12 +362,12 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Float> getDataRTRange() {
     return getDataRTRange(0);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Range<Float> getDataRTRange(Integer msLevel) {
     if (msLevel == null) {
@@ -411,11 +420,11 @@ public class RawDataFileImpl implements RawDataFile {
     return getScanNumbers(msLevel).size();
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<PolarityType> getDataPolarity() {
-    Set<PolarityType> polarities =
-        scans.stream().map(Scan::getPolarity).collect(Collectors.toSet());
+    Set<PolarityType> polarities = scans.stream().map(Scan::getPolarity)
+        .collect(Collectors.toSet());
     return ImmutableList.copyOf(polarities);
   }
 
@@ -445,19 +454,46 @@ public class RawDataFileImpl implements RawDataFile {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public String getName() {
-    return dataFileName;
+    return name;
   }
 
   @Override
-  public void setName(@Nonnull String name) {
-    this.dataFileName = name;
+  public String setName(@NotNull String name) {
+    if (name.isBlank() || name.equals(getName())) {
+      // keep old name
+      return getName();
+    }
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+
+    if (project != null) {
+      project.setUniqueDataFileName(this, name);
+    } else {
+      // path safe encode
+      setNameNoChecks(FileAndPathUtil.safePathEncode(name));
+    }
+
+    return this.name;
+  }
+
+
+  @Override
+  public String setNameNoChecks(@NotNull String name) {
+    this.name = name;
+
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    if (project != null) {
+      project.fireDataFilesChangeEvent(List.of(this), ProjectChangeEvent.Type.RENAMED);
+    }
+    MZmineCore.runLater(() -> nameProperty.set(this.name));
+    return name;
   }
 
   @Override
   public String toString() {
-    return dataFileName;
+    return name;
   }
 
 
@@ -466,10 +502,15 @@ public class RawDataFileImpl implements RawDataFile {
     return scans;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public ObservableList<FeatureListAppliedMethod> getAppliedMethods() {
     return appliedMethods;
+  }
+
+  @Override
+  public StringProperty nameProperty() {
+    return nameProperty;
   }
 
   /**
@@ -480,5 +521,11 @@ public class RawDataFileImpl implements RawDataFile {
    * @param masses new mass list
    */
   public void applyMassListChanged(Scan scan, MassList old, MassList masses) {
+  }
+
+  @Nullable
+  @Override
+  public String getAbsolutePath() {
+    return absolutePath;
   }
 }

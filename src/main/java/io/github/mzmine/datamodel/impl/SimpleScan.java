@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -24,36 +24,37 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.util.scans.ScanUtils;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of the Scan interface.
  */
 public class SimpleScan extends AbstractStorableSpectrum implements Scan {
 
-  @Nonnull
-  private final RawDataFile dataFile;
+  public static final String XML_SCAN_TYPE = "simplescan";
+
+  @NotNull private final RawDataFile dataFile;
   private int scanNumber;
   private int msLevel;
 
-  private double precursorMZ;
-  private int precursorCharge;
   private float retentionTime;
   private PolarityType polarity;
   private String scanDefinition;
   private Range<Double> scanMZRange;
   private MassList massList = null;
+  private MsMsInfo msMsInfo;
 
   /**
    * Clone constructor
    */
-  public SimpleScan(@Nonnull RawDataFile dataFile, Scan sc, double[] newMzValues,
+  public SimpleScan(@NotNull RawDataFile dataFile, Scan sc, double[] newMzValues,
       double[] newIntensityValues) {
 
-    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getPrecursorMZ(),
-        sc.getPrecursorCharge(), newMzValues, newIntensityValues, sc.getSpectrumType(),
-        sc.getPolarity(),
+    this(dataFile, sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc.getMsMsInfo(),
+        newMzValues, newIntensityValues, sc.getSpectrumType(), sc.getPolarity(),
         sc.getScanDefinition(), sc.getScanningMZRange());
   }
 
@@ -61,8 +62,8 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   /**
    * Constructor for creating scan with given data
    */
-  public SimpleScan(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
-      double precursorMZ, int precursorCharge, double[] mzValues, double[] intensityValues,
+  public SimpleScan(@NotNull RawDataFile dataFile, int scanNumber, int msLevel, float retentionTime,
+      @Nullable MsMsInfo msMsInfo, double[] mzValues, double[] intensityValues,
       MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
       Range<Double> scanMZRange) {
 
@@ -72,12 +73,11 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.scanNumber = scanNumber;
     this.msLevel = msLevel;
     this.retentionTime = retentionTime;
-    this.precursorMZ = precursorMZ;
-    this.precursorCharge = precursorCharge;
     this.polarity = polarity;
     this.scanDefinition = scanDefinition;
     this.scanMZRange = scanMZRange;
     setSpectrumType(spectrumType);
+    setMsMsInfo(msMsInfo);
   }
 
 
@@ -111,34 +111,17 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     this.msLevel = msLevel;
   }
 
-  /**
-   * @see io.github.mzmine.datamodel.Scan#getPrecursorMZ()
-   */
   @Override
-  public double getPrecursorMZ() {
-    return precursorMZ;
+  public @Nullable MsMsInfo getMsMsInfo() {
+    return msMsInfo;
   }
 
-  /**
-   * @param precursorMZ The precursorMZ to set.
-   */
-  public void setPrecursorMZ(double precursorMZ) {
-    this.precursorMZ = precursorMZ;
-  }
-
-  /**
-   * @return Returns the precursorCharge.
-   */
-  @Override
-  public int getPrecursorCharge() {
-    return precursorCharge;
-  }
-
-  /**
-   * @param precursorCharge The precursorCharge to set.
-   */
-  public void setPrecursorCharge(int precursorCharge) {
-    this.precursorCharge = precursorCharge;
+  public void setMsMsInfo(@Nullable MsMsInfo info) {
+    msMsInfo = info; // in case its null
+    if (info != null) {
+      msMsInfo = info.createCopy();
+      msMsInfo.setMsMsScan(this);
+    }
   }
 
   /**
@@ -163,7 +146,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  public synchronized void addMassList(final @Nonnull MassList massList) {
+  public synchronized void addMassList(final @NotNull MassList massList) {
     // we are not going into any details if this.massList equals massList
     // do not call listeners if the same object is passed multiple times
     if (this.massList == massList) {
@@ -183,13 +166,13 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public RawDataFile getDataFile() {
     return dataFile;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public PolarityType getPolarity() {
     if (polarity == null) {
       polarity = PolarityType.UNKNOWN;
@@ -197,7 +180,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
     return polarity;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public String getScanDefinition() {
     if (scanDefinition == null) {
@@ -207,7 +190,7 @@ public class SimpleScan extends AbstractStorableSpectrum implements Scan {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getScanningMZRange() {
     if (scanMZRange == null) {
       scanMZRange = getDataPointMZRange();

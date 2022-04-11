@@ -1,23 +1,24 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.scans.similarity.impl.composite;
 
+import io.github.mzmine.util.scans.similarity.HandleUnmatchedSignalOptions;
 import java.text.DecimalFormat;
 
 import io.github.mzmine.parameters.Parameter;
@@ -39,13 +40,14 @@ public class CompositeCosineSpectralSimilarityParameters extends SimpleParameter
           + "Considers only signals which were found in both the masslist and the library entry)",
       new DecimalFormat("0.000"), 0.7);
 
-  public static final BooleanParameter removeUnmatched = new BooleanParameter(
-      "Remove unmatched signals",
-      "CAUTION: Remove unmatched signals before cosine calculation. (Does only use signals which are present in both the query and library spectrum) Leeds to higher cosine similarity but also to a higher false positive rate. Especially good for noisy library or query spectra.",
-      false);
+  public static final ComboParameter<HandleUnmatchedSignalOptions> handleUnmatched =
+      new ComboParameter<>("Handle unmatched signals",
+          "Options to handle signals that only occur in one scan. (Usually - replace intensities of missing pairs to zero for a negative weight)",
+          HandleUnmatchedSignalOptions.values(),
+          HandleUnmatchedSignalOptions.KEEP_ALL_AND_MATCH_TO_ZERO);
 
   public CompositeCosineSpectralSimilarityParameters() {
-    super(new Parameter[] {weight, minCosine, removeUnmatched});
+    super(new Parameter[] {weight, minCosine, handleUnmatched});
   }
 
 }

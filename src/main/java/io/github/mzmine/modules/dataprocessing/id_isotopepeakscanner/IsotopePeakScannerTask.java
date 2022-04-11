@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,26 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_isotopepeakscanner;
 
-import io.github.mzmine.util.MemoryMapStorage;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.openscience.cdk.interfaces.IIsotope;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
@@ -54,10 +44,21 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IIsotope;
 
 /**
  * This will scan a feature list for calculated isotope patterns. This class loops through every
@@ -75,6 +76,9 @@ import javafx.collections.ObservableList;
  */
 public class IsotopePeakScannerTask extends AbstractTask {
 
+  ScanType scanType;
+  RatingType ratingType;
+  IIsotope[] el;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private ParameterSet parameters;
   private boolean checkIntensity;
@@ -97,38 +101,19 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private boolean accurateAvgIntensity;
   private String ratingChoice;
   private double minAccurateAvgIntensity;
-
   private boolean autoCarbon;
   private int carbonRange, autoCarbonMin, autoCarbonMax;
   private int maxPatternSize, maxPatternIndex;
   private int autoCarbonMinPatternSize;
   private boolean excludeZeroCPattern;
 
-  public enum RatingType {
-    HIGHEST, TEMPAVG
-  }
-
-  ;
-
-  public enum ScanType {
-    SPECIFIC, AUTOCARBON
-  }
-
-  ;
-
-  ScanType scanType;
-
-  RatingType ratingType;
-
-  IIsotope[] el;
-
   /**
    * @param parameters
    * @param peakList
    */
   IsotopePeakScannerTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
     this.parameters = parameters;
     this.project = project;
     this.peakList = peakList;
@@ -183,7 +168,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     if (getPeakListPolarity(peakList) != polarityType) {
       logger.warning("PeakList.polarityType does not match selected polarity. "
-          + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
+                     + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
     }
 
     if (suffix.equals("auto")) {
@@ -192,10 +177,56 @@ public class IsotopePeakScannerTask extends AbstractTask {
         suffix = " autoCarbon";
       }
       suffix += "_-Pat=" + element + "-RT=" + checkRT + "-INT=" + checkIntensity + "-minR="
-          + minRating + "-minH=" + minHeight + "_results";
+                + minRating + "-minH=" + minHeight + "_results";
     }
 
     message = "Got paramenters...";
+  }
+
+  /**
+   * @param pattern IsotopePattern to calculate intensity ratios of
+   * @param index   DataPoint index to normalize the intesitys to
+   * @return String of intensity ratios seperated by ":"
+   */
+  private static String getIntensityRatios(IsotopePattern pattern, int index) {
+    DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
+
+    String ratios = "";
+    for (int i = 0; i < dp.length; i++)
+    // ratios += round(dp[i].getIntensity(), 2) + ":";
+    {
+      ratios += round((dp[i].getIntensity() / dp[index].getIntensity()), 2) + ":";
+    }
+    ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length() - 1) : ratios;
+    return ratios;
+  }
+
+  public static double round(double value,
+      int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
+    if (places < 0) {
+      throw new IllegalArgumentException();
+    }
+
+    BigDecimal bd = new BigDecimal(value);
+    bd = bd.setScale(places, RoundingMode.HALF_UP);
+    return bd.doubleValue();
+  }
+
+  /**
+   * adds a comment to a PeakListRow without deleting the current comment
+   *
+   * @param row PeakListRow to add the comment to
+   * @param str comment to be added
+   */
+  public static void addComment(FeatureListRow row, String str) {
+    String current = row.getComment();
+    if (current == null) {
+      row.setComment(str);
+    } else if (current.contains(str)) {
+      return;
+    } else {
+      row.setComment(current + " " + str);
+    }
   }
 
   /**
@@ -457,7 +488,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         continue;
       }
 
-      ModularFeatureListRow parent = new ModularFeatureListRow(resultPeakList, original, true);
+      ModularFeatureListRow parent = new ModularFeatureListRow(resultPeakList, original.getID(),
+          original, true);
 
       if (resultMap.containsID(parent.getID())) // if we can assign this
       // row multiple times we
@@ -507,7 +539,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
           continue;
         }
         ModularFeatureListRow child =
-            new ModularFeatureListRow(resultPeakList, originalChild, true);
+            new ModularFeatureListRow(resultPeakList, originalChild.getID(), originalChild, true);
 
         if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
@@ -525,7 +557,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
             pattern[bestPatternIndex].getBasePeakIndex()));
         if (accurateAvgIntensity) {
           addComment(parent, " Avg pattern rating: "
-              + round(candidates[bestPatternIndex].getAvgAccAvgRating(), 3));
+                             + round(candidates[bestPatternIndex].getAvgAccAvgRating(), 3));
         } else {
           addComment(parent,
               " pattern rating: " + round(candidates[bestPatternIndex].getSimpleAvgRating(), 3));
@@ -533,15 +565,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
         addComment(child,
             (parent.getID() + "-Parent ID" + " m/z-shift(ppm): "
-                + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff[bestPatternIndex][k])
-                / child.getAverageMZ() * 1E6, 2)
-                + " I(c)/I(p): "
-                + round(child.getAverageHeight() / plh
+             + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff[bestPatternIndex][k])
+                     / child.getAverageMZ() * 1E6, 2)
+             + " I(c)/I(p): "
+             + round(child.getAverageHeight() / plh
                 .getRowByID(candidates[bestPatternIndex]
                     .get(pattern[bestPatternIndex].getBasePeakIndex()).getCandID())
                 .getAverageHeight(), 2)
-                + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
-                + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));
+             + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
+             + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));
 
         rowBuffer.add(child);
       }
@@ -550,8 +582,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         continue;
       }
 
-      IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
-          element + " monoisotopic mass: " + parent.getAverageMZ());
+      IsotopePattern resultPattern = new SimpleIsotopePattern(dp, charge,
+          IsotopePatternStatus.DETECTED, element + " monoisotopic mass: " + parent.getAverageMZ());
       parent.getBestFeature().setIsotopePattern(resultPattern);
 
       for (FeatureListRow row : rowBuffer) {
@@ -567,8 +599,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
     }
 
     ArrayList<Integer> keys = resultMap.getAllKeys();
-    for (int j = 0; j < keys.size(); j++) {
-      resultPeakList.addRow(resultMap.getRowByID(keys.get(j)));
+    for (Integer key : keys) {
+      resultPeakList.addRow(resultMap.getRowByID(key));
     }
 
     if (resultPeakList.getNumberOfRows() > 1) {
@@ -615,8 +647,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
    * otherwise.
    */
   private @Nullable
-  ModularFeatureListRow getRowFromCandidate(@Nonnull Candidates[] candidates,
-      int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
+  ModularFeatureListRow getRowFromCandidate(@NotNull Candidates[] candidates,
+      int bestPatternIndex, int peakIndex, @NotNull PeakListHandler plh) {
 
     if (bestPatternIndex >= candidates.length) {
       return null;
@@ -767,7 +799,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       }
 
       if (!(pL[i].getAverageMZ() > mz
-          && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance()))) {
+            && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance()))) {
 
         if (pL[i].getAverageMZ() > (mz + maxDiff)) // since pL is sorted
         // by ascending mass,
@@ -789,52 +821,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * @param pattern IsotopePattern to calculate intensity ratios of
-   * @param index   DataPoint index to normalize the intesitys to
-   * @return String of intensity ratios seperated by ":"
-   */
-  private static String getIntensityRatios(IsotopePattern pattern, int index) {
-    DataPoint[] dp = ScanUtils.extractDataPoints(pattern);
-
-    String ratios = "";
-    for (int i = 0; i < dp.length; i++)
-    // ratios += round(dp[i].getIntensity(), 2) + ":";
-    {
-      ratios += round((dp[i].getIntensity() / dp[index].getIntensity()), 2) + ":";
-    }
-    ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length() - 1) : ratios;
-    return ratios;
-  }
-
-  public static double round(double value,
-      int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
-    if (places < 0) {
-      throw new IllegalArgumentException();
-    }
-
-    BigDecimal bd = new BigDecimal(value);
-    bd = bd.setScale(places, RoundingMode.HALF_UP);
-    return bd.doubleValue();
-  }
-
-  /**
-   * adds a comment to a PeakListRow without deleting the current comment
-   *
-   * @param row PeakListRow to add the comment to
-   * @param str comment to be added
-   */
-  public static void addComment(FeatureListRow row, String str) {
-    String current = row.getComment();
-    if (current == null) {
-      row.setComment(str);
-    } else if (current.contains(str)) {
-      return;
-    } else {
-      row.setComment(current + " " + str);
-    }
-  }
-
-  /**
    * Add feature list to project, delete old if requested, add description to result, show new
    * feature list in a new tab
    */
@@ -850,7 +836,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("IsotopePeakScanner",
-            IsotopePeakScannerModule.class, parameters));
+            IsotopePeakScannerModule.class, parameters, getModuleCallDate()));
   }
 
   private PolarityType getPeakListPolarity(FeatureList peakList) {
@@ -875,13 +861,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (ratingType == RatingType.TEMPAVG) {
         setErrorMessage(
             "Error: Rating Type = temporary average but no masslist was selected.\nYou can"
-                + " select a mass list without checking accurate average.");
+            + " select a mass list without checking accurate average.");
         setStatus(TaskStatus.ERROR);
         return false;
       }
       if (peakList.getNumberOfRawDataFiles() > 1) {
         setErrorMessage("The number of raw data files of feature list \"" + peakList.getName()
-            + "\" is greater than 1. This is not supported by this module.");
+                        + "\" is greater than 1. This is not supported by this module.");
         setStatus(TaskStatus.ERROR);
         return false;
       }
@@ -900,11 +886,19 @@ public class IsotopePeakScannerTask extends AbstractTask {
       }
       if (foundMassList == false) {
         setErrorMessage("Feature list \"" + peakList.getName()
-            + "\" does not contain a mass list");
+                        + "\" does not contain a mass list");
         setStatus(TaskStatus.ERROR);
         return false;
       }
     }
     return true;
+  }
+
+  public enum RatingType {
+    HIGHEST, TEMPAVG
+  }
+
+  public enum ScanType {
+    SPECIFIC, AUTOCARBON
   }
 }

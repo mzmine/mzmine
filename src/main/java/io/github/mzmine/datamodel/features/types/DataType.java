@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -24,27 +24,31 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditComboCellFactory;
 import io.github.mzmine.datamodel.features.types.fx.EditableDataTypeCellFactory;
-import io.github.mzmine.datamodel.features.types.fx.ModularDataTypeCellValueFactory;
 import io.github.mzmine.datamodel.features.types.modifiers.AddElementDialog;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
 import io.github.mzmine.datamodel.features.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.features.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.features.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.ListDataType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.Property;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class of data types: Provides formatters. Should be added to one {@link ModularDataModel}
@@ -52,34 +56,116 @@ import javax.annotation.Nullable;
  * @param <T>
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public abstract class DataType<T extends Property<?>> {
+public abstract class DataType<T> {
 
-  protected Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(DataType.class.getName());
 
   public DataType() {
   }
 
   /**
-   * A formatted string representation of the value
+   * Creates a standard column and handles editable columns
    *
-   * @return the formatted representation of the value (or an empty String)
+   * @param <T>
+   * @param type
+   * @param raw
+   * @param parentType
+   * @return
    */
-  @Nonnull
-  public String getFormattedString(T property) {
-    return property == null ? "" : getFormattedString(property.getValue());
+  public static <T> TreeTableColumn<ModularFeatureListRow, Object> createStandardColumn(
+      @NotNull DataType<T> type, @Nullable RawDataFile raw, @Nullable SubColumnsFactory parentType,
+      int subColumnIndex) {
+    TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(
+        type.getHeaderString());
+    col.setUserData(type);
+    col.setSortable(true);
+
+    // define observable
+    col.setCellValueFactory(new DataTypeCellValueFactory(raw, type, parentType, subColumnIndex));
+    // value representation
+    if (type instanceof EditableColumnType) {
+      col.setCellFactory(type.getEditableCellFactory(raw, parentType, subColumnIndex));
+      col.setEditable(true);
+      col.setOnEditCommit(event -> {
+        Object data = event.getNewValue();
+        if (data != null) {
+          ModularFeatureListRow row = event.getRowValue().getValue();
+          ModularDataModel model = raw == null ? row : row.getFeature(raw);
+
+          // if parent type is different than type - parent type will handle the value change
+          // e.g. see io.github.mzmine.datamodel.features.types.ListWithSubsType
+          if (type instanceof ListDataType && type instanceof AddElementDialog addDialog
+              && data instanceof String && AddElementDialog.BUTTON_TEXT.equals(data)) {
+            addDialog.createNewElementDialog(model, parentType, type, subColumnIndex,
+                (newElement) -> { // refresh table due to change
+                  col.getTreeTableView().refresh();
+                });
+          } else if (parentType != null && !parentType.equals(type)) {
+            parentType.valueChanged(model, (DataType) type, subColumnIndex, data);
+            col.getTreeTableView().refresh();
+          } else {
+            if (type instanceof ListDataType) {
+              try {
+                List list = (List) model.get(type);
+                if (list != null) {
+                  list = new ArrayList<>(list);
+                  list.remove(data);
+                  list.add(0, (T) data);
+                  model.set((DataType) type, list);
+                }
+              } catch (Exception ex) {
+                logger.log(Level.SEVERE,
+                    "Cannot set value from table cell to data type: " + type.getHeaderString());
+                logger.log(Level.SEVERE, ex.getMessage(), ex);
+              }
+            } else {
+              // TODO check if this cast is safe
+              model.set(type, (T) data);
+            }
+          }
+        }
+        event.getTreeTableView().refresh();
+      });
+    } else {
+      col.setCellFactory(new DataTypeCellFactory(raw, type, parentType, subColumnIndex));
+    }
+    return col;
   }
+
+  /**
+   * A unique ID that is used to store and retrieve data types. This value should never be changed
+   * after introducing a new type to retain backwards compatibility. (even if the class name or
+   * string representation changes)
+   *
+   * @return a unique identifier
+   */
+  @NotNull
+  public abstract String getUniqueID();
 
   /**
    * A formatted string representation of the value
    *
    * @return the formatted representation of the value (or an empty String)
    */
-  @Nonnull
-  public String getFormattedString(@Nullable Object value) {
-    if (value != null) {
-      return value.toString();
+  @NotNull
+  public String getFormattedString(T value) {
+    return value != null ? value.toString() : "";
+  }
+
+  /**
+   * A formatted string representation of the value, if value is instance of {@link
+   * #getValueClass()}.
+   *
+   * @return the formatted representation of the value (or an empty String)
+   */
+  @NotNull
+  public String getFormattedStringCheckType(Object value) {
+    if (value == null) {
+      return getFormattedString(null);
+    } else if (getValueClass().isInstance(value)) {
+      return getFormattedString(getValueClass().cast(value));
     } else {
-      return "";
+      throw new IllegalArgumentException("value is not ValueClass: " + getValueClass().toString());
     }
   }
 
@@ -88,102 +174,79 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public abstract String getHeaderString();
+
+  /**
+   * The default value for this data type
+   *
+   * @return the default value (null for most types)
+   */
+  public @Nullable T getDefaultValue() {
+    return null;
+  }
 
   /**
    * Creates a TreeTableColumn or null if the value is not represented in a column. A {@link
    * SubColumnsFactory} DataType can also add multiple sub columns to the main column generated by
    * this class.
    *
-   * @param raw               null if this is a FeatureListRow column. For Feature columns: the raw
-   *                          data file specifies the feature.
-   * @param modularParentType if this type is a sub type of modularParentType (or null): Changes the
-   *                          CellFactory for editable cells and the CellValueFactory
+   * @param raw        null if this is a FeatureListRow column. For Feature columns: the raw data
+   *                   file specifies the feature.
+   * @param parentType if this type is a sub type of modularParentType (or null): Changes the
+   *                   CellFactory for editable cells and the CellValueFactory
    * @return the TreeTableColumn or null if this DataType.value is not represented in a column
    */
   @Nullable
   public TreeTableColumn<ModularFeatureListRow, Object> createColumn(
-      final @Nullable RawDataFile raw,
-      final @Nullable ModularType modularParentType) {
+      final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType) {
+    return createColumn(raw, parentType, -1);
+  }
+
+  /**
+   * Creates a TreeTableColumn or null if the value is not represented in a column. A {@link
+   * SubColumnsFactory} DataType can also add multiple sub columns to the main column generated by
+   * this class.
+   *
+   * @param raw        null if this is a FeatureListRow column. For Feature columns: the raw data
+   *                   file specifies the feature.
+   * @param parentType if this type is a sub type of modularParentType (or null): Changes the
+   *                   CellFactory for editable cells and the CellValueFactory
+   * @return the TreeTableColumn or null if this DataType.value is not represented in a column
+   */
+  @Nullable
+  public TreeTableColumn<ModularFeatureListRow, Object> createColumn(
+      final @Nullable RawDataFile raw, final @Nullable SubColumnsFactory parentType,
+      int subColumnIndex) {
     if (this instanceof NullColumnType) {
       return null;
     }
     // create column
-    TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(getHeaderString());
-    col.setUserData(this);
+    if (this instanceof SubColumnsFactory sub) {
+      TreeTableColumn<ModularFeatureListRow, Object> col = new TreeTableColumn<>(getHeaderString());
+      col.setUserData(this);
 
-    if (this instanceof SubColumnsFactory) {
       col.setSortable(false);
       // add sub columns
-      List<TreeTableColumn<ModularFeatureListRow, ?>> children =
-          ((SubColumnsFactory) this).createSubColumns(raw);
+      var children = sub.createSubColumns(raw, parentType);
       col.getColumns().addAll(children);
       return col;
     } else {
-      col.setSortable(true);
-
-      // is sub column of modularParentType?
-      // define observable
-      if (modularParentType != null) {
-        col.setCellValueFactory(new ModularDataTypeCellValueFactory(raw, modularParentType, this));
-      } else {
-        col.setCellValueFactory(new DataTypeCellValueFactory(raw, this));
-      }
-      // value representation
-      if (this instanceof EditableColumnType) {
-        col.setCellFactory(getEditableCellFactory(col, raw, modularParentType));
-        col.setEditable(true);
-        col.setOnEditCommit(event -> {
-          Object data = event.getNewValue();
-          if (data != null) {
-            ModularDataModel model;
-            if (raw == null) {
-              model = event.getRowValue().getValue();
-            } else {
-              model = event.getRowValue().getValue().getFilesFeatures().get(raw);
-            }
-            // set value
-            if (modularParentType != null) {
-              model = model.get(modularParentType);
-            }
-            if (this instanceof ListDataType) {
-              if (this instanceof AddElementDialog && data instanceof String &&
-                  AddElementDialog.BUTTON_TEXT.equals(data)) {
-                ((AddElementDialog) this).createNewElementDialog(model, this);
-              } else {
-                try {
-                  ((ListProperty) model.get(this)).remove(data);
-                  ((ListProperty) model.get(this)).add(0, data);
-                } catch (Exception ex) {
-                  logger.log(Level.SEVERE, "Cannot set value from table cell to data type: "
-                      + this.getHeaderString());
-                  logger.log(Level.SEVERE, ex.getMessage(), ex);
-                }
-              }
-            } else {
-              model.set(this, data);
-            }
-          }
-        });
-      } else {
-        col.setCellFactory(new DataTypeCellFactory(raw, this));
-      }
+      // create a standard column and handle editable columns
+      return createStandardColumn(this, raw, parentType, subColumnIndex);
     }
-    return col;
   }
 
-  protected Callback<TreeTableColumn<ModularFeatureListRow, Object>,
-      TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
-      TreeTableColumn<ModularFeatureListRow, Object> col,
-      RawDataFile raw, ModularType modularParentType) {
+  protected Callback<TreeTableColumn<ModularFeatureListRow, Object>, TreeTableCell<ModularFeatureListRow, Object>> getEditableCellFactory(
+      RawDataFile raw, SubColumnsFactory parentType, int subColumnIndex) {
     if (this instanceof ListDataType) {
-      return new EditComboCellFactory(raw, this, modularParentType);
+      return new EditComboCellFactory(raw, this, parentType, subColumnIndex);
     } else if (this instanceof StringParser<?>) {
-      return new EditableDataTypeCellFactory(raw, this);
+      return new EditableDataTypeCellFactory(this);
     } else {
-      throw new UnsupportedOperationException("Programming error: No edit CellFactory for "
-          + "data type: " + this.getHeaderString() + " class " + this.getClass().toString());
+      throw new UnsupportedOperationException(
+          "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
+          + " class " + this.getClass().toString());
     }
   }
 
@@ -203,7 +266,7 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return
    */
-  public abstract T createProperty();
+  public abstract Property<T> createProperty();
 
 
   /**
@@ -212,15 +275,95 @@ public abstract class DataType<T extends Property<?>> {
    *
    * @return
    */
-  @Nonnull
+  @NotNull
   public List<RowBinding> createDefaultRowBindings() {
     return List.of();
   }
 
   @Nullable
-  public Runnable getDoubleClickAction(@Nonnull ModularFeatureListRow row,
-      @Nonnull List<RawDataFile> file) {
+  public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
+      @NotNull List<RawDataFile> file) {
     return null;
   }
 
+  @Override
+  public String toString() {
+    return getHeaderString();
+  }
+
+  /**
+   * Writes the given value of this data type to an XML using the given writer. An element for the
+   * data type will have been created by the calling method and will be closed by the calling
+   * method. Attributes may be set in this method. Additional elements may be created, but must be
+   * closed.
+   *
+   * @param writer The writer.
+   * @param value  The value.
+   */
+  public void saveToXML(@NotNull final XMLStreamWriter writer, @Nullable final Object value,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
+    if (value == null) {
+      return;
+    }
+    writer.writeCharacters(String.valueOf(value));
+  }
+
+  /**
+   * @param reader  The xml reader. The current position is an element of this data type.
+   * @param flist   The current {@link ModularFeatureList}. Not null.
+   * @param row     The current {@link ModularFeatureListRow}. Not null.
+   * @param feature The current {@link ModularFeature}. May be null.
+   * @param file    The {@link RawDataFile} of the current feature. May be null.
+   * @return The value of the data type being read.
+   * @throws XMLStreamException
+   */
+  public Object loadFromXML(@NotNull final XMLStreamReader reader,
+      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row,
+      @Nullable final ModularFeature feature, @Nullable final RawDataFile file)
+      throws XMLStreamException {
+    return null;
+  }
+
+  /**
+   * @return The value class
+   */
+  public abstract Class<T> getValueClass();
+
+  /**
+   * Evaluate a binding for a list of data models (calc the mean value, etc). Used in {@link
+   * SimpleRowBinding} to bind a row type to its feautre types.
+   *
+   * @param bindingType type of binding
+   * @param models
+   * @return
+   */
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    // general cases here - special cases handled in other classes
+    switch (bindingType) {
+      case COUNT: {
+        int c = 0;
+        for (var model : models) {
+          if (model.get(this) != null) {
+            c++;
+          }
+        }
+        return c;
+      }
+      case LIST: {
+        List<T> list = new ArrayList<>();
+        for (var model : models) {
+          T value = model.get(this);
+          if (value != null) {
+            list.add(value);
+          }
+        }
+        return list;
+      }
+      default:
+        return null;
+    }
+  }
 }

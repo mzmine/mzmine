@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.gapfill_samerange;
@@ -27,44 +27,47 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.FeatureConvertors;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class SameRangeTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private ModularFeatureList peakList, processedPeakList;
 
   private String suffix;
   private MZTolerance mzTolerance;
-  private boolean removeOriginal;
 
   private int processedRows, totalRows;
-  private AtomicInteger processedRowsAtomic;;
+  private AtomicInteger processedRowsAtomic;
+  ;
 
   private ParameterSet parameters;
 
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
-      @Nullable MemoryMapStorage storage) {
-    super(storage);
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.peakList = (ModularFeatureList) peakList;
@@ -72,7 +75,8 @@ class SameRangeTask extends AbstractTask {
 
     suffix = parameters.getParameter(SameRangeGapFillerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(SameRangeGapFillerParameters.mzTolerance).getValue();
-    removeOriginal = parameters.getParameter(SameRangeGapFillerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getParameter(SameRangeGapFillerParameters.handleOriginal)
+        .getValue();
 
   }
 
@@ -93,26 +97,25 @@ class SameRangeTask extends AbstractTask {
     processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
         columns);
 
-    /*************************************************************
-     * Creating a stream to process the data in parallel
-     */
-
     processedRowsAtomic = new AtomicInteger(0);
 
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
-    peakList.parallelStream().map(r -> (ModularFeatureListRow)r).forEach(sourceRow -> {
+    peakList.parallelStream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
       // Canceled?
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
-      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow, true);
+      FeatureListRow newRow = new ModularFeatureListRow(processedPeakList, sourceRow.getID(),
+          sourceRow, true);
 
       // Copy each peaks and fill gaps
       for (RawDataFile column : columns) {
         // Canceled?
-        if (isCanceled())
+        if (isCanceled()) {
           return;
+        }
 
         // Get current peak
         Feature currentPeak = sourceRow.getFeature(column);
@@ -133,13 +136,13 @@ class SameRangeTask extends AbstractTask {
     });
 
     /* End Parallel Implementation */
-    /*******************************************************************************/
 
     // Canceled?
-    if (isCanceled())
+    if (isCanceled()) {
       return;
+    }
     // Append processed feature list to the project
-    project.addFeatureList(processedPeakList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, processedPeakList, peakList);
 
     // Add quality parameters to peaks
     //QualityParameters.calculateQualityParameters(processedPeakList);
@@ -147,11 +150,7 @@ class SameRangeTask extends AbstractTask {
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Gap filling using RT and m/z range",
-            SameRangeGapFillerModule.class, parameters));
-
-    // Remove the original peaklist if requested
-    if (removeOriginal)
-      project.removeFeatureList(peakList);
+            SameRangeGapFillerModule.class, parameters, getModuleCallDate()));
 
     setStatus(TaskStatus.FINISHED);
 
@@ -161,16 +160,15 @@ class SameRangeTask extends AbstractTask {
 
   private Feature fillGap(FeatureListRow row, RawDataFile column) {
 
-    SameRangePeak newPeak = new SameRangePeak(column);
-
     Range<Double> mzRange = null;
     Range<Float> rtRange = null;
 
     // Check the peaks for selected data files
     for (RawDataFile dataFile : row.getRawDataFiles()) {
       Feature peak = row.getFeature(dataFile);
-      if (peak == null)
+      if (peak == null) {
         continue;
+      }
       if ((mzRange == null) || (rtRange == null)) {
         mzRange = peak.getRawDataPointsMZRange();
         rtRange = peak.getRawDataPointsRTRange();
@@ -184,36 +182,49 @@ class SameRangeTask extends AbstractTask {
     assert rtRange != null;
 
     Range<Double> mzRangeWithTol = mzTolerance.getToleranceRange(mzRange);
+    final double centerMZ = RangeUtils.rangeCenter(mzRangeWithTol);
 
     // Get scan numbers
     Scan[] scanNumbers = column.getScanNumbers(1, rtRange);
 
     boolean dataPointFound = false;
 
+    // results
+    SimpleGapFeature gapFeature = new SimpleGapFeature();
+
     for (Scan scan : scanNumbers) {
 
-      if (isCanceled())
+      if (isCanceled()) {
         return null;
+      }
 
       // Find most intense m/z peak
       DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRangeWithTol);
 
       if (basePeak != null) {
-        if (basePeak.getIntensity() > 0)
+        if (basePeak.getIntensity() > 0) {
           dataPointFound = true;
-        newPeak.addDatapoint(scan, basePeak);
+        }
+        gapFeature.addDataPoint(scan, basePeak);
       } else {
-        DataPoint fakeDataPoint = new SimpleDataPoint(RangeUtils.rangeCenter(mzRangeWithTol), 0);
-        newPeak.addDatapoint(scan, fakeDataPoint);
+        DataPoint fakeDataPoint = new SimpleDataPoint(centerMZ, 0);
+        gapFeature.addDataPoint(scan, fakeDataPoint);
       }
 
     }
 
     if (dataPointFound) {
-      newPeak.finalizePeak();
-      if (newPeak.getArea() == 0)
+      gapFeature.removeEdgeZeroIntensities();
+      if (gapFeature.isEmpty()) {
         return null;
-      return FeatureConvertors.SameRangePeakToModularFeature(processedPeakList, newPeak);
+      }
+      final ModularFeature feature = new ModularFeature(processedPeakList, column,
+          gapFeature.toIonTimeSeries(processedPeakList.getMemoryMapStorage()),
+          FeatureStatus.ESTIMATED);
+
+      var allMS2 = ScanUtils.streamAllMS2FragmentScans(column, rtRange, mzRange).toList();
+      feature.setAllMS2FragmentScans(allMS2);
+      return feature;
     }
 
     return null;
@@ -221,8 +232,9 @@ class SameRangeTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0;
+    }
     return (double) processedRowsAtomic.get() / (double) totalRows;
 
   }

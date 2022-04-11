@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
@@ -47,30 +47,31 @@ public class FeatureListsComponent extends BorderPane {
     numPeakListsLabel = new Label();
     setLeft(numPeakListsLabel);
 
-    detailsButton = new Button("...");
+    detailsButton = new Button("Select");
     detailsButton.setDisable(true);
     setRight(detailsButton);
 
     typeCombo = new ComboBox<>(FXCollections.observableArrayList(FeatureListsSelectionType.values()));
-    typeCombo.setOnAction(e -> {
-      FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
-      currentValue.setSelectionType(type);
-      detailsButton.setDisable((type != FeatureListsSelectionType.NAME_PATTERN)
-          && (type != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
+    typeCombo.getSelectionModel().selectFirst();
+
+    typeCombo.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
+      currentValue.setSelectionType(newValue);
+      detailsButton.setDisable((newValue != FeatureListsSelectionType.NAME_PATTERN)
+          && (newValue != FeatureListsSelectionType.SPECIFIC_FEATURELISTS));
       updateNumPeakLists();
     });
-    typeCombo.getSelectionModel().selectFirst();
+
     setCenter(typeCombo);
 
     detailsButton.setOnAction(e -> {
       FeatureListsSelectionType type = typeCombo.getSelectionModel().getSelectedItem();
 
       if (type == FeatureListsSelectionType.SPECIFIC_FEATURELISTS) {
-        final MultiChoiceParameter<FeatureList> plsParameter =
-            new MultiChoiceParameter<FeatureList>("Select feature lists", "Select feature lists",
-                MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new),
-                currentValue.getSpecificFeatureLists());
-        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {plsParameter});
+        final MultiChoiceParameter<FeatureList> plsParameter = new MultiChoiceParameter<FeatureList>(
+            "Select feature lists", "Select feature lists",
+            MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+                .toArray(FeatureList[]::new), currentValue.getSpecificFeatureLists());
+        final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[]{plsParameter});
         final ExitCode exitCode = paramSet.showSetupDialog(true);
         if (exitCode == ExitCode.OK) {
           FeatureList pls[] = paramSet.getParameter(plsParameter).getValue();

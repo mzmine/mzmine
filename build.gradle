@@ -1,96 +1,119 @@
+/*
+ * Copyright 2006-2022 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id "java"
     id "application"
-    id "org.openjfx.javafxplugin" version "0.0.9"
-    id "org.beryx.runtime" version "1.12.1"
+    id "org.openjfx.javafxplugin" version "0.0.10"
+    id "org.beryx.runtime" version "1.12.7"
+
+    // versioning now in version.properties file
+    // https://github.com/ethauvin/semver-gradle
+    id "net.thauvin.erik.gradle.semver" version "1.0.4"
 }
 
+// save version to main resources
+// version bump by .\gradlew incrementPatch ... incrementMinor
+// gradle -Dversion.prerelease=beta incrementPatch
+// version with -beta is currently not supported by jpackage (maybe windows --app-version)
+// java.lang.IllegalArgumentException: "Version [3.0.0-beta] contains invalid component [0-beta]"
+semver {
+    properties = "src/main/resources/mzmineversion.properties"
+}
+
+// version is now in version.properties
 group = "io.github.mzmine"
-version = "3.0"
 description = "MZmine"
 
-// JDK 14+ is needed for jpackage
-sourceCompatibility = "14"
-targetCompatibility = "14"
-defaultTasks "jpackage"
+sourceCompatibility = "17"
+targetCompatibility = "17"
+defaultTasks "test", "jpackage"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
-if (OperatingSystem.current().isMacOsX())
-    project.ext.osSuffix = "macOS"
-if (OperatingSystem.current().isLinux())
-    project.ext.osSuffix = "Linux"
-if (OperatingSystem.current().isWindows())
-    project.ext.osSuffix = "Windows"
+if (OperatingSystem.current().isMacOsX()) project.ext.osSuffix = "macOS"
+if (OperatingSystem.current().isLinux()) project.ext.osSuffix = "Linux"
+if (OperatingSystem.current().isWindows()) project.ext.osSuffix = "Windows"
 println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    maven {
-        url = "file://" + projectDir + "/src/main/lib"
-    }
-    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
-        url = "https://dl.bintray.com/lifs/maven/"
-    }
-    maven { // For jmzml, etc.
-        url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
-    }
-    maven {
-        url = "https://repo.maven.apache.org/maven2"
-    }
-    maven { // For SIRIUS ID modules
-        url = "https://bio.informatik.uni-jena.de/repository/libs-oss/"
-    }
-    maven {
-        url = "https://jitpack.io"
-    }
-    maven {
-        url = "https://www.xypron.de/repository/"
-    }
-    maven { // For cpdetector
-        url = "https://nexus.nuiton.org/nexus/content/groups/releases/"
-    }
-    maven { // For jimzml
-        url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser"
-    }
+
+    // TODO change to mavenCentral()
+    // mavenLocal()
+    maven { url = "https://repo.maven.apache.org/maven2" }
+    // local libraries
+    maven { url = "file://" + projectDir + "/src/main/lib" }
+    // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
+    maven { url = "https://lifstools.jfrog.io/artifactory/ebi-tools/" }
+    // For jmzml, etc.
+    maven { url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/" }
+    // For SIRIUS ID modules
+    maven { url = "https://bio.informatik.uni-jena.de/repository/libs-oss/" }
+    maven { url = "https://jitpack.io" }
+    maven { url = "https://www.xypron.de/repository/" }
+    // For cpdetector
+    maven { url = "https://nexus.nuiton.org/nexus/content/groups/releases/" }
+    // For jimzml
+    maven { url = "https://mvnrepository.com/artifact/com.alanmrace/jimzmlparser" }
 }
 
 ext {
     msdkVersion = "0.0.27"
-    cdkVersion = "2.3"
+    cdkVersion = "2.5"
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
     guavaVersion = "30.1-jre"
-    slf4jVersion = "1.7.30"
-    poiVersion = "4.1.0"
-    batikVersion = "1.11"
-    controlsfxVersion = "11.0.3"
+    slf4jVersion = '1.7.32'
+    poiVersion = '5.0.0'
+    batikVersion = '1.14'
+    controlsfxVersion = '11.1.1'
     jmzTabmVersion = "1.0.6"
-    jnaVersion = "5.6.0"
-    junitversion = "5.7.0"
+    jnaVersion = '5.9.0'
+    junitversion = '5.8.2'
+    mockitoversion = '4.2.0'
 
     // UUID for upgrades of this package on Windows. Generated by https://www.uuidgenerator.net 
     win_uuid = "896e9c2d-6db8-4259-a1af-1b5f8112d1e1"
 }
 
 dependencies {
-    implementation "com.github.graphstream:gs-core:2.0-alpha"
-    implementation "com.github.graphstream:gs-ui-javafx:2.0-alpha"
+    // MZmine version parsing
+    implementation 'com.vdurmont:semver4j:3.1.0'
+//    implementation "org.graphstream:gs-core:2.0"
+    // use patched version via jitpack from https://github.com/robinschmid/gs-core/tree/patch-1
+    implementation "com.github.robinschmid:gs-core:45504f632f"
+    implementation "org.graphstream:gs-ui-javafx:2.0"
+    implementation "org.graphstream:gs-algo:2.0"
     implementation "org.jfree:jfreechart:1.5.3"
     implementation "org.jfree:org.jfree.chart.fx:2.0.1"
-    implementation "org.jfree:org.jfree.fxgraphics2d:2.1"
+    implementation "org.jfree:org.jfree.fxgraphics2d:2.1.1"
     implementation "org.jfree:org.jfree.svg:4.1"
     implementation "org.jfree:org.jfree.pdf:2.0"
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "org.apache.commons:commons-math:2.2"
     implementation "edu.ucar:netcdf4:4.5.5"
     implementation "org.ostermiller:utils:1.07.00"
-    implementation "com.google.code.findbugs:jsr305:3.0.2"
-    implementation "nz.ac.waikato.cms.weka:weka-stable:3.8.3"
-    implementation "net.sourceforge.jmol:jmol:14.29.27"
+    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation 'nz.ac.waikato.cms.weka:weka-stable:3.8.5'
+    implementation 'net.sourceforge.jmol:jmol:14.31.10'
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.slf4j:slf4j-jdk14:$slf4jVersion"
     implementation "org.apache.poi:poi:$poiVersion"
@@ -112,23 +135,23 @@ dependencies {
     implementation "org.rsc.chemspider:chemspider-api:1.0.0"
     implementation "org.nuiton.thirdparty:REngine:1.8-5"
     implementation "org.nuiton.thirdparty:Rserve:1.8-5"
-    implementation "com.github.jbytecode:RCaller:3.0"
+    implementation 'com.github.jbytecode:RCaller:4.0.2'
     implementation "mzmine:jmprojection:1.0"
     implementation "mzmine:gslibml:0.0.1"
     implementation "uk.ac.ebi.pride:jmztab-modular-model:$jmztabVersion"
     implementation "uk.ac.ebi.pride:jmztab-modular-util:$jmztabVersion"
-    implementation "org.apache.xmlgraphics:fop:1.0"
+    implementation 'org.apache.xmlgraphics:fop:2.6'
     implementation "org.freehep:freehep-graphicsio-emf:2.4"
     implementation "io.github.msdk:msdk-io-mzml:$msdkVersion"
     implementation "io.github.msdk:msdk-io-netcdf:$msdkVersion"
     implementation "io.github.msdk:msdk-featuredetection-adap3d:$msdkVersion"
     implementation "io.github.msdk:msdk-id-sirius:$msdkVersion"
     implementation "org.xerial:sqlite-jdbc:3.8.11.2"
-    implementation "org.du-lab.adap:adap:4.1.4"
-    implementation "gnf:clustering:20130919"
-    implementation "it.unimi.dsi:fastutil:8.2.2"
-    implementation "com.itextpdf:itextpdf:5.5.13.1"
-    implementation "org.apache.xmlgraphics:xmlgraphics-commons:2.3"
+    implementation "org.du-lab.adap:adap:4.1.10"
+    implementation "gnf:clustering:20210422"
+    implementation 'it.unimi.dsi:fastutil:8.5.6'
+    implementation 'com.itextpdf:itextpdf:5.5.13.2'
+    implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.6'
     implementation "org.apache.xmlgraphics:batik-util:$batikVersion"
     implementation "org.apache.xmlgraphics:batik-transcoder:$batikVersion"
     implementation "org.apache.xmlgraphics:batik-codec:$batikVersion"
@@ -153,23 +176,34 @@ dependencies {
     implementation "io.swagger:swagger-annotations:$swaggerVersion"
     implementation "com.squareup.okhttp:okhttp:$okhttpVersion"
     implementation "com.squareup.okhttp:logging-interceptor:$okhttpVersion"
-    implementation "com.google.code.gson:gson:2.8.5"
-    implementation "io.gsonfire:gson-fire:1.8.0"
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'io.gsonfire:gson-fire:1.8.5'
     implementation "org.threeten:threetenbp:1.3.8"
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
-    implementation "org.json:json:20190722"
+    implementation 'org.json:json:20211205'
     implementation "com.github.oshi:oshi-core:4.5.2"
     // because the version that is pulled by SIRIUS crashes
     implementation "de.isas.mztab:jmztabm-io:$jmzTabmVersion"
     implementation 'net.java.dev.jna:jna:$jnaVersion'
     implementation "com.alanmrace:jimzmlparser:1.0.5"
-    // https://mvnrepository.com/artifact/commons-cli/commons-cli
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'
-
-
+    implementation "net.csibio.aird:aird-sdk:1.1.6.1"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitversion"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitversion"
+    testImplementation "org.mockito:mockito-inline:$mockitoversion"
+    testImplementation "org.mockito:mockito-junit-jupiter:$mockitoversion"
+
+//    https://blog.gradle.org/log4j-vulnerability
+    constraints {
+        implementation("org.apache.logging.log4j:log4j-core") {
+            version {
+                strictly("[2.17, 3[")
+                prefer("2.17.1")
+            }
+            because("CVE-2021-44228, CVE-2021-45046, CVE-2021-45105: Log4j vulnerable to remote code execution and other critical security vulnerabilities")
+        }
+    }
 }
 
 /*
@@ -185,6 +219,8 @@ configurations.all {
     exclude group: "ch.qos.logback", module: "logback-classic"
     exclude group: "gurobi", module: "gurobi-linux64"
     exclude group: "cplex", module: "cplex"
+    exclude group: "org.checkerframework", module: "checker-qual"
+    exclude group: "javax.annotation", module: "javax.annotation-api"
 }
 
 
@@ -192,26 +228,25 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "15.0.1"
+    version = "16"
     modules = ["javafx.controls",
                "javafx.swing",
                "javafx.fxml",
                "javafx.web",
-               "javafx.graphics"
-    ]
+               "javafx.graphics"]
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-    options.compilerArgs += ['--enable-preview']
+    /*options.compilerArgs += ['--enable-preview']*/
 }
 
 tasks.withType(Test) {
-    jvmArgs += "--enable-preview"
+    /*jvmArgs += "--enable-preview"*/
 }
 
 tasks.withType(JavaExec) {
-    jvmArgs += '--enable-preview'
+    /*jvmArgs += '--enable-preview'*/
 }
 
 /*
@@ -251,8 +286,11 @@ runtime {
         if (OperatingSystem.current().isWindows()) {
             // The WiX toolset must be installed, see https://wixtoolset.org/releases/
             installerType = "msi"
+            installerName = "MZmine_Windows_installer"
             // additional options for jpackage
-            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico"]
+            imageOptions = ["--icon", "src/main/resources/MZmineIcon.ico",
+                            "--add-launcher", "MZmine_console=gradle/win_console_launcher.properties"
+            ]
             installerOptions = ["--win-menu",
                                 "--win-menu-group", "MZmine",
                                 "--win-shortcut",
@@ -266,20 +304,21 @@ runtime {
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
             installerOptions = ["--license-file", "LICENSE.txt"]
+            installerName = "MZmine_macOS_installer"
         }
         if (OperatingSystem.current().isLinux()) {
+            // leave installer type empty to generate all that match
             // for rpm, rpmbuild and rpm tools need to be installed, installerType needs to be set to "rpm"
-            installerType = "deb"
+            // installerType = "deb"
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.png"]
             installerOptions = ["--linux-shortcut",
                                 "--linux-menu-group", "MZmine",
                                 "--license-file", "LICENSE.txt",
-                                "--linux-deb-maintainer", "plusik@gmail.com"
-            ]
+                                "--linux-deb-maintainer", "plusik@gmail.com"]
 
+            installerName = "MZmine_Linux_installer"
         }
-        installerName = "MZmine"
         imageName = "MZmine"
         jvmArgs = ["-showversion",
                    "-XX:MaxHeapFreeRatio=100",
@@ -287,9 +326,8 @@ runtime {
                    "-XX:MinRAMPercentage=80",
                    "-XX:MaxRAMPercentage=80",
                    "-enableassertions",
-                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration",
-                   "--enable-preview"
-        ]
+                   "-Djava.util.logging.config.class=io.github.mzmine.main.MZmineLoggingConfiguration"
+                   /*"--enable-preview"*/]
     }
 }
 
@@ -300,15 +338,6 @@ runtime {
  */
 jar {
     sourceSets.main.resources.srcDirs += ["src/main/java"]
-}
-
-/*
- * Add MZmine version number to mzmineversion.properties
- */
-processResources {
-    filesMatching("mzmineversion.properties") {
-        expand(project.properties)
-    }
 }
 
 test {
@@ -323,3 +352,4 @@ task copyTestResources(type: Copy) {
     into "${buildDir}/classes/test"
 }
 processTestResources.dependsOn copyTestResources
+

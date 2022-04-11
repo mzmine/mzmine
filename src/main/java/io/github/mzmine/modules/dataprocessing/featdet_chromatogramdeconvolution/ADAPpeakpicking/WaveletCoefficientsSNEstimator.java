@@ -20,13 +20,13 @@
  */
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ADAPpeakpicking;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.parameters.ParameterSet;
 
 public class WaveletCoefficientsSNEstimator implements SNEstimatorChoice {
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return "Wavelet Coeff. SN";
   }
 
@@ -35,7 +35,7 @@ public class WaveletCoefficientsSNEstimator implements SNEstimatorChoice {
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return WaveletCoefficientsSNParameters.class;
   }
 

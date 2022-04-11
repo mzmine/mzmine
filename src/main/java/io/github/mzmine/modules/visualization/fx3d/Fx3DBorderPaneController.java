@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,34 +8,32 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.fx3d;
 
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.features.FeatureList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import org.controlsfx.glyphfont.Glyph;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
 import io.github.mzmine.util.components.SliderCell;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -68,6 +66,8 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
+import org.controlsfx.glyphfont.Glyph;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author akshaj The controller class of the Fx3DVisualizer which handles all user actions and
@@ -191,16 +191,17 @@ public class Fx3DBorderPaneController {
     axesBtn.setSelected(true);
     lightsBtn.setSelected(true);
     addLights();
-    rotateAnimationTimeline =
-        new Timeline(new KeyFrame(Duration.seconds(0), new KeyValue(yRotate.angleProperty(), 360)),
-            new KeyFrame(Duration.seconds(50), new KeyValue(yRotate.angleProperty(), 0)));
+    rotateAnimationTimeline = new Timeline(
+        new KeyFrame(Duration.seconds(0), new KeyValue(yRotate.angleProperty(), 360)),
+        new KeyFrame(Duration.seconds(50), new KeyValue(yRotate.angleProperty(), 0)));
     rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
     tableView.setItems(visualizedMeshPlots);
     plot.getChildren().add(meshViews);
     plot.getChildren().add(lights);
     allDataFiles = Arrays.asList(MZmineCore.getProjectManager().getCurrentProject().getDataFiles());
-    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(new FeatureList[0]);
+    allFeatureLists = MZmineCore.getProjectManager().getCurrentProject().getCurrentFeatureLists()
+        .toArray(new FeatureList[0]);
     scene3D.widthProperty().bind(root.widthProperty());
     scene3D.heightProperty().bind(root.heightProperty());
     scene3D.setCamera(camera);
@@ -317,7 +318,7 @@ public class Fx3DBorderPaneController {
     });
   }
 
-  @Nonnull
+  @NotNull
   public List<Object> getVisualizedFiles() {
     return visualizedFiles;
   }

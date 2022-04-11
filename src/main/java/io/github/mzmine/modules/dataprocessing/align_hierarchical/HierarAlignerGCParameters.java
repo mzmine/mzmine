@@ -1,27 +1,23 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.align_hierarchical;
 
-import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
-import java.text.NumberFormat;
-
-import io.github.mzmine.modules.dataprocessing.align_hierarchical.ClustererType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
@@ -31,10 +27,19 @@ import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
+import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import java.text.NumberFormat;
+import java.util.List;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class HierarAlignerGCParameters extends SimpleParameterSet {
+
+  private static final List<ExtensionFilter> extensions = List.of( //
+      new ExtensionFilter("Text file", "*.txt"), //
+      new ExtensionFilter("All files", "*.*") //
+  );
 
   // -- Save RAM 1
   public static final BooleanParameter saveRAMratherThanCPU_1 = new BooleanParameter(
@@ -113,9 +118,9 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
   public static final FileNameParameter dendrogramTxtFilename = new FileNameParameter(
       "Dendrogram output text filename",
       " Requires \"Export dendrogram as TXT\" checked."
-          + " Name of the resulting TXT/CDT file to write the clustering resulting dendrogram to."
-          + " If the file already exists, it will be overwritten.",
-      "txt", FileSelectionType.SAVE);
+      + " Name of the resulting TXT/CDT file to write the clustering resulting dendrogram to."
+      + " If the file already exists, it will be overwritten.",
+      extensions, FileSelectionType.SAVE);
 
   /**
    * GLG HACK: temporarily removed for clarity public static final BooleanParameter

@@ -8,10 +8,27 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
+<!--
+  ~ Copyright 2006-2021 The MZmine Development Team
+  ~
+  ~ This file is part of MZmine.
+  ~
+  ~ MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+  ~ General Public License as published by the Free Software Foundation; either version 2 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+  ~
+  -->
 
-<AnchorPane prefHeight="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.util.dialogs.PeriodicTableDialogController">
+<AnchorPane fx:id="pnRoot" prefHeight="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.util.dialogs.PeriodicTableDialogController">
    <children>
-      <GridPane layoutY="124.0" prefHeight="269.0" prefWidth="698.0">
+      <GridPane fx:id="gridPane" layoutY="124.0" prefHeight="269.0" prefWidth="698.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="101.0" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" maxWidth="132.0" minWidth="10.0" prefWidth="100.0" />
@@ -56,155 +73,155 @@
             <Button mnemonicParsing="false" prefWidth="36.0" text="5" GridPane.rowIndex="5" />
             <Button mnemonicParsing="false" prefWidth="36.0" text="6" GridPane.rowIndex="6" />
             <Button mnemonicParsing="false" prefWidth="36.0" text="7" GridPane.rowIndex="7" />
-            <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="H" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="H" GridPane.columnIndex="1" GridPane.rowIndex="1">
                <effect>
                   <ColorAdjust />
                </effect></Button>
-            <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Li" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Na" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Li" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Na" GridPane.columnIndex="1" GridPane.rowIndex="3">
                </Button>
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="K" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Rb" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Cs" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Fr" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="K" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Rb" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Cs" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #8282FF;" text="Fr" GridPane.columnIndex="1" GridPane.rowIndex="7" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="2" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Be" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-            <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Mg" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Ca" GridPane.columnIndex="2" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Sr" GridPane.columnIndex="2" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Ba" GridPane.columnIndex="2" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Ra" GridPane.columnIndex="2" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Be" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Mg" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Ca" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Sr" GridPane.columnIndex="2" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Ba" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: #6696FF;" text="Ra" GridPane.columnIndex="2" GridPane.rowIndex="7" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="3" GridPane.columnIndex="3" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Sc" GridPane.columnIndex="3" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Y" GridPane.columnIndex="3" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="La" GridPane.columnIndex="3" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Ac" GridPane.columnIndex="3" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Ce" GridPane.columnIndex="3" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Th" GridPane.columnIndex="3" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Sc" GridPane.columnIndex="3" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Y" GridPane.columnIndex="3" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="La" GridPane.columnIndex="3" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Ac" GridPane.columnIndex="3" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Ce" GridPane.columnIndex="3" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Th" GridPane.columnIndex="3" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="4" GridPane.columnIndex="4" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ti" GridPane.columnIndex="4" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Zr" GridPane.columnIndex="4" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Hf" GridPane.columnIndex="4" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Rf" GridPane.columnIndex="4" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Pr" GridPane.columnIndex="4" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Pa" GridPane.columnIndex="4" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ti" GridPane.columnIndex="4" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Zr" GridPane.columnIndex="4" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Hf" GridPane.columnIndex="4" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Rf" GridPane.columnIndex="4" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Pr" GridPane.columnIndex="4" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Pa" GridPane.columnIndex="4" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="5" GridPane.columnIndex="5" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="V" GridPane.columnIndex="5" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Nb" GridPane.columnIndex="5" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ta" GridPane.columnIndex="5" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Db" GridPane.columnIndex="5" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Nd" GridPane.columnIndex="5" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="U" GridPane.columnIndex="5" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="V" GridPane.columnIndex="5" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Nb" GridPane.columnIndex="5" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ta" GridPane.columnIndex="5" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Db" GridPane.columnIndex="5" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Nd" GridPane.columnIndex="5" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="U" GridPane.columnIndex="5" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="6" GridPane.columnIndex="6" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Cr" GridPane.columnIndex="6" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Mo" GridPane.columnIndex="6" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="W" GridPane.columnIndex="6" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Sg" GridPane.columnIndex="6" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Pm" GridPane.columnIndex="6" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Np" GridPane.columnIndex="6" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Cr" GridPane.columnIndex="6" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Mo" GridPane.columnIndex="6" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="W" GridPane.columnIndex="6" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Sg" GridPane.columnIndex="6" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Pm" GridPane.columnIndex="6" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Np" GridPane.columnIndex="6" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="7" GridPane.columnIndex="7" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Mn" GridPane.columnIndex="7" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Tc" GridPane.columnIndex="7" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Re" GridPane.columnIndex="7" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Bh" GridPane.columnIndex="7" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Sm" GridPane.columnIndex="7" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Pu" GridPane.columnIndex="7" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Mn" GridPane.columnIndex="7" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Tc" GridPane.columnIndex="7" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Re" GridPane.columnIndex="7" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Bh" GridPane.columnIndex="7" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Sm" GridPane.columnIndex="7" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Pu" GridPane.columnIndex="7" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="8" GridPane.columnIndex="8" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Fe" GridPane.columnIndex="8" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ru" GridPane.columnIndex="8" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Os" GridPane.columnIndex="8" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Hs" GridPane.columnIndex="8" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Eu" GridPane.columnIndex="8" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Am" GridPane.columnIndex="8" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Fe" GridPane.columnIndex="8" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ru" GridPane.columnIndex="8" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Os" GridPane.columnIndex="8" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Hs" GridPane.columnIndex="8" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Eu" GridPane.columnIndex="8" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Am" GridPane.columnIndex="8" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="9" GridPane.columnIndex="9" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Co" GridPane.columnIndex="9" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Rh" GridPane.columnIndex="9" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ir" GridPane.columnIndex="9" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Mt" GridPane.columnIndex="9" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Gd" GridPane.columnIndex="9" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Cm" GridPane.columnIndex="9" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Co" GridPane.columnIndex="9" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Rh" GridPane.columnIndex="9" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ir" GridPane.columnIndex="9" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Mt" GridPane.columnIndex="9" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Gd" GridPane.columnIndex="9" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Cm" GridPane.columnIndex="9" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="10" GridPane.columnIndex="10" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ni" GridPane.columnIndex="10" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Pd" GridPane.columnIndex="10" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Pt" GridPane.columnIndex="10" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ds" GridPane.columnIndex="10" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Tb" GridPane.columnIndex="10" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Bk" GridPane.columnIndex="10" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ni" GridPane.columnIndex="10" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Pd" GridPane.columnIndex="10" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Pt" GridPane.columnIndex="10" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ds" GridPane.columnIndex="10" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Tb" GridPane.columnIndex="10" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Bk" GridPane.columnIndex="10" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="11" GridPane.columnIndex="11" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Cu" GridPane.columnIndex="11" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ag" GridPane.columnIndex="11" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Au" GridPane.columnIndex="11" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Rg" GridPane.columnIndex="11" GridPane.rowIndex="7" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Dy" GridPane.columnIndex="11" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Cf" GridPane.columnIndex="11" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Cu" GridPane.columnIndex="11" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Ag" GridPane.columnIndex="11" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Au" GridPane.columnIndex="11" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Rg" GridPane.columnIndex="11" GridPane.rowIndex="7" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Dy" GridPane.columnIndex="11" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Cf" GridPane.columnIndex="11" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="12" GridPane.columnIndex="12" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Zn" GridPane.columnIndex="12" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Cd" GridPane.columnIndex="12" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Hg" GridPane.columnIndex="12" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Ho" GridPane.columnIndex="12" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Es" GridPane.columnIndex="12" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Zn" GridPane.columnIndex="12" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Cd" GridPane.columnIndex="12" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF6E;" text="Hg" GridPane.columnIndex="12" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Ho" GridPane.columnIndex="12" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Es" GridPane.columnIndex="12" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="13" GridPane.columnIndex="13" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="B" GridPane.columnIndex="13" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Al" GridPane.columnIndex="13" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Ga" GridPane.columnIndex="13" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="In" GridPane.columnIndex="13" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Tl" GridPane.columnIndex="13" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Er" GridPane.columnIndex="13" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Fm" GridPane.columnIndex="13" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="B" GridPane.columnIndex="13" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Al" GridPane.columnIndex="13" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Ga" GridPane.columnIndex="13" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="In" GridPane.columnIndex="13" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Tl" GridPane.columnIndex="13" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Er" GridPane.columnIndex="13" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Fm" GridPane.columnIndex="13" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="14" GridPane.columnIndex="14" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="C" GridPane.columnIndex="14" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="Si" GridPane.columnIndex="14" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Ge" GridPane.columnIndex="14" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Sn" GridPane.columnIndex="14" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Pb" GridPane.columnIndex="14" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Tm" GridPane.columnIndex="14" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Md" GridPane.columnIndex="14" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="C" GridPane.columnIndex="14" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="Si" GridPane.columnIndex="14" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Ge" GridPane.columnIndex="14" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Sn" GridPane.columnIndex="14" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Pb" GridPane.columnIndex="14" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Tm" GridPane.columnIndex="14" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Md" GridPane.columnIndex="14" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="15" GridPane.columnIndex="15" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="N" GridPane.columnIndex="15" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="P" GridPane.columnIndex="15" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="As" GridPane.columnIndex="15" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Sb" GridPane.columnIndex="15" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Bi" GridPane.columnIndex="15" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Yb" GridPane.columnIndex="15" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="No" GridPane.columnIndex="15" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="N" GridPane.columnIndex="15" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="P" GridPane.columnIndex="15" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="As" GridPane.columnIndex="15" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Sb" GridPane.columnIndex="15" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Bi" GridPane.columnIndex="15" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Yb" GridPane.columnIndex="15" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="No" GridPane.columnIndex="15" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="16" GridPane.columnIndex="16" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="O" GridPane.columnIndex="16" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="S" GridPane.columnIndex="16" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="Se" GridPane.columnIndex="16" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="Te" GridPane.columnIndex="16" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Po" GridPane.columnIndex="16" GridPane.rowIndex="6" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Lu" GridPane.columnIndex="16" GridPane.rowIndex="8" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Lr" GridPane.columnIndex="16" GridPane.rowIndex="9" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="O" GridPane.columnIndex="16" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="S" GridPane.columnIndex="16" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="Se" GridPane.columnIndex="16" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF985A;" text="Te" GridPane.columnIndex="16" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF3200;" text="Po" GridPane.columnIndex="16" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFF96;" text="Lu" GridPane.columnIndex="16" GridPane.rowIndex="8" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FFFFC8;" text="Lr" GridPane.columnIndex="16" GridPane.rowIndex="9" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="17" GridPane.columnIndex="17" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="F" GridPane.columnIndex="17" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="Cl" GridPane.columnIndex="17" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="Br" GridPane.columnIndex="17" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="I" GridPane.columnIndex="17" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="At" GridPane.columnIndex="17" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="F" GridPane.columnIndex="17" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="Cl" GridPane.columnIndex="17" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="Br" GridPane.columnIndex="17" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="I" GridPane.columnIndex="17" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF9999;" text="At" GridPane.columnIndex="17" GridPane.rowIndex="6" />
 
              <Button mnemonicParsing="false" prefWidth="36.0" text="18" GridPane.columnIndex="18" />
-            <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="He" GridPane.columnIndex="18" GridPane.rowIndex="1" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Ne" GridPane.columnIndex="18" GridPane.rowIndex="2" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Ar" GridPane.columnIndex="18" GridPane.rowIndex="3" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Kr" GridPane.columnIndex="18" GridPane.rowIndex="4" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Xe" GridPane.columnIndex="18" GridPane.rowIndex="5" />
-             <Button mnemonicParsing="false" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Rn" GridPane.columnIndex="18" GridPane.rowIndex="6" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="He" GridPane.columnIndex="18" GridPane.rowIndex="1" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Ne" GridPane.columnIndex="18" GridPane.rowIndex="2" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Ar" GridPane.columnIndex="18" GridPane.rowIndex="3" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Kr" GridPane.columnIndex="18" GridPane.rowIndex="4" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Xe" GridPane.columnIndex="18" GridPane.rowIndex="5" />
+             <Button mnemonicParsing="false" onMouseClicked="#handleMousePressed" onMouseEntered="#handleMouseEnter" prefWidth="36.0" style="-fx-background-color: FF99FF;" text="Rn" GridPane.columnIndex="18" GridPane.rowIndex="6" />
 
          </children>
          <opaqueInsets>

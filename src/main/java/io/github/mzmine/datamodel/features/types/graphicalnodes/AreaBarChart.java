@@ -12,21 +12,17 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types.graphicalnodes;
 
-import java.util.Map.Entry;
-import javax.annotation.Nonnull;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.util.color.ColorsFX;
-import javafx.beans.property.Property;
+import java.util.Map.Entry;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -36,18 +32,19 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 
 public class AreaBarChart extends StackPane {
 
-  public AreaBarChart(@Nonnull ModularFeatureListRow row, AtomicDouble progress) {
+  public AreaBarChart(@NotNull ModularFeatureListRow row, AtomicDouble progress) {
     XYChart.Series data = new XYChart.Series();
     int i = 1;
     int size = row.getFilesFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFilesFeatures().entrySet()) {
-      Property<Float> areaProperty = entry.getValue().get(AreaType.class);
+      Float areaProperty = entry.getValue().getArea();
       // set bar color according to the raw data file
       Data newData =
-          new XYChart.Data("" + i, areaProperty.getValue() == null ? 0f : areaProperty.getValue());
+          new XYChart.Data("" + i, areaProperty == null ? 0f : areaProperty);
       newData.nodeProperty().addListener((ChangeListener<Node>) (ov, oldNode, newNode) -> {
         if (newNode != null) {
           Node node = newData.getNode();

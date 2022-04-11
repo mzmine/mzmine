@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.example;
@@ -26,6 +26,7 @@ import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter.OriginalFeatureListOption;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -34,15 +35,18 @@ import io.github.mzmine.util.FeatureListRowSorter;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class FeatureListRowLearnerTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(FeatureListRowLearnerTask.class.getName());
 
   private final MZmineProject project;
+  private final OriginalFeatureListOption handleOriginal;
   private FeatureList featureList;
   private ModularFeatureList resultFeatureList;
 
@@ -54,7 +58,6 @@ class FeatureListRowLearnerTask extends AbstractTask {
   private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private boolean removeOriginal;
   private ParameterSet parameters;
 
   /**
@@ -62,8 +65,8 @@ class FeatureListRowLearnerTask extends AbstractTask {
    *
    */
   public FeatureListRowLearnerTask(MZmineProject project, FeatureList featureList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+      MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
     this.project = project;
     this.featureList = featureList;
     this.parameters = parameters;
@@ -71,20 +74,14 @@ class FeatureListRowLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
+    handleOriginal = parameters.getValue(LearnerParameters.handleOriginal);
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
-   */
   @Override
   public String getTaskDescription() {
     return "Learner task on " + featureList;
   }
 
-  /**
-   * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
-   */
   @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
@@ -92,9 +89,6 @@ class FeatureListRowLearnerTask extends AbstractTask {
     return (double) processedFeatures / (double) totalRows;
   }
 
-  /**
-   * @see Runnable#run()
-   */
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
@@ -147,7 +141,7 @@ class FeatureListRowLearnerTask extends AbstractTask {
    */
   public void addResultToProject() {
     // Add new feature list to the project
-    project.addFeatureList(resultFeatureList);
+    handleOriginal.reflectNewFeatureListToProject(suffix, project, resultFeatureList, featureList);
 
     // Load previous applied methods
     for (FeatureListAppliedMethod proc : featureList.getAppliedMethods()) {
@@ -156,11 +150,8 @@ class FeatureListRowLearnerTask extends AbstractTask {
 
     // Add task description to feature list
     resultFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters));
+        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod(LearnerModule.class, parameters, getModuleCallDate()));
 
-    // Remove the original feature list if requested
-    if (removeOriginal)
-      project.removeFeatureList(featureList);
   }
 
 }

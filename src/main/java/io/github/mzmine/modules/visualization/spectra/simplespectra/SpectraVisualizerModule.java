@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,18 +8,19 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
+import java.time.Instant;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -42,24 +43,32 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   private static final String MODULE_DESCRIPTION = "Spectra visualizer."; // TODO
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-    RawDataFile dataFiles[] = parameters.getParameter(SpectraVisualizerParameters.dataFiles)
-        .getValue().getMatchingRawDataFiles();
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
+    RawDataFile dataFile = parameters.getParameter(SpectraVisualizerParameters.dataFiles)
+        .getValue().getMatchingRawDataFiles()[0];
 
     int scanNumber = parameters.getParameter(SpectraVisualizerParameters.scanNumber).getValue();
-    addNewSpectrumTab(dataFiles[0], dataFiles[0].getScanAtNumber(scanNumber));
+    Scan scan = dataFile.getScanAtNumber(scanNumber);
+    if (scan == null) {
+      assert MZmineCore.getDesktop() != null;
+      MZmineCore.getDesktop().displayErrorMessage("Raw data file " + dataFile +
+          " does not contain scan #" + scanNumber + ".");
+      return ExitCode.ERROR;
+    }
+
+    addNewSpectrumTab(dataFile, scan);
     return ExitCode.OK;
   }
 
@@ -93,8 +102,9 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
     assert Platform.isFxApplicationThread();
 
     if (scan == null) {
+      assert MZmineCore.getDesktop() != null;
       MZmineCore.getDesktop()
-          .displayErrorMessage("Raw data file " + dataFile + " does not contain scan #" + scan);
+          .displayErrorMessage("Raw data file " + dataFile + " does not contain the given scan.");
       return null;
     }
 
@@ -124,12 +134,12 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.VISUALIZATIONRAWDATA;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return SpectraVisualizerParameters.class;
   }
 

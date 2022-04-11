@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,17 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
@@ -44,8 +45,9 @@ public class SinglePeakDataSet extends AbstractXYDataset implements IntervalXYDa
       mz = ((ModularFeature) peak).getFeatureData().getMzForSpectrum(scanNumber);
       intensity = ((ModularFeature) peak).getFeatureData().getIntensityForSpectrum(scanNumber);
     } else {
-      mz = peak.getDataPoint(scanNumber).getMZ();
-      intensity = peak.getDataPoint(scanNumber).getIntensity();
+      final DataPoint dp = peak.getDataPoint(scanNumber);
+      mz = dp.getMZ();
+      intensity = dp.getIntensity();
     }
   }
 

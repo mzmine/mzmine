@@ -1,29 +1,30 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilityscanmerger;
 
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
+import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.chartbasics.chartthemes.EStandardChartTheme;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
-import io.github.mzmine.gui.chartbasics.simplechart.datasets.FastColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
 import io.github.mzmine.gui.chartbasics.simplechart.generators.SimpleXYLabelGenerator;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.impl.spectra.MassSpectrumProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.renderers.ColoredXYBarRenderer;
@@ -53,8 +54,8 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
   private final SimpleParameterSet parameterSet;
   private final ComboBox<Frame> frameComboBox;
 
-  public MobilityScanMergerSetupDialog(SimpleParameterSet parameterSet) {
-    super(true, parameterSet);
+  public MobilityScanMergerSetupDialog(boolean valueCheckRequired, SimpleParameterSet parameterSet) {
+    super(valueCheckRequired, parameterSet);
     this.parameterSet = parameterSet;
 
     plot = new SimpleXYChart<>();
@@ -97,8 +98,16 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     controlPane.add(frameComboBox, 1, 1);
   }
 
+  public MobilityScanMergerSetupDialog(SimpleParameterSet parameterSet) {
+    this(true, parameterSet);
+  }
+
   @Override
   protected void parametersChanged() {
+    if (frameComboBox.getValue() == null) {
+      return;
+    }
+
     updateParameterSetFromComponents();
     double noiseLevel = parameterSet.getParameter(MobilityScanMergerParameters.noiseLevel)
         .getValue();
@@ -109,18 +118,20 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
     Weighting weighting = parameterSet.getParameter(MobilityScanMergerParameters.weightingType)
         .getValue();
 
-    if (mergingType == null || mzTolerance == null) {
+    if (mergingType == null || mzTolerance == null || frameComboBox.getValue() == null) {
       return;
     }
 
-    logger.info("Start calc");
-    double[][] merged = SpectraMerging
-        .calculatedMergedMzsAndIntensities(frameComboBox.getValue().getMobilityScans(), noiseLevel,
-            mzTolerance, mergingType, new CenterFunction(
-                CenterMeasure.AVG, weighting));
-    logger.info("End calc");
-
-    if (merged == null) {
+    double[][] merged;
+    try {
+      merged = SpectraMerging.calculatedMergedMzsAndIntensities(
+          frameComboBox.getValue().getMobilityScans().stream().map(MobilityScan::getMassList)
+              .toList(), mzTolerance, mergingType, new CenterFunction(CenterMeasure.AVG, weighting),
+          noiseLevel, null);
+    } catch (NullPointerException e) {
+      MZmineCore.getDesktop().displayErrorMessage(
+          "No mass list present in " + frameComboBox.getValue().getDataFile().getName()
+              + ".\nPlease run mass detection first.");
       return;
     }
 
@@ -129,8 +140,7 @@ public class MobilityScanMergerSetupDialog extends ParameterSetupDialogWithPrevi
 
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     plot.removeAllDatasets();
-    plot.addDataset(
-        new FastColoredXYDataset(new MassSpectrumProvider(merged[0], merged[1], "Preview")),
+    plot.addDataset(new ColoredXYDataset(new MassSpectrumProvider(merged[0], merged[1], "Preview")),
         coloredXYBarRenderer);
     theme.apply(plot.getChart());
   }

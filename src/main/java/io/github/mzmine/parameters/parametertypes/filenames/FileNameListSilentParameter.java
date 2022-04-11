@@ -1,44 +1,42 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
 
+import io.github.mzmine.parameters.Parameter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import io.github.mzmine.parameters.Parameter;
-
 /**
  * Simple Parameter implementation
- * 
  */
 public class FileNameListSilentParameter implements Parameter<List<File>> {
 
   private static final String FILE_ELEMENT = "file";
   private String name;
-  private @Nonnull List<File> value;
+  private @NotNull List<File> value;
 
   private List<FileNameListChangedListener> listener;
 
@@ -47,32 +45,27 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
     value = new ArrayList<>();
   }
 
-  /**
-   * @see io.github.mzmine.data.Parameter#getName()
-   */
   @Override
   public String getName() {
     return name;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public List<File> getValue() {
     return value;
   }
 
   @Override
   public void setValue(List<File> value) {
-    if (value == null)
-      this.value = new ArrayList<>();
-    else
-      this.value = value;
+    this.value = Objects.requireNonNullElse(value, new ArrayList<>());
     fireChanged();
   }
 
   public void addFile(File f) {
-    if (f == null)
+    if (f == null) {
       return;
+    }
 
     // add to last files if not already inserted
     value.remove(f);
@@ -95,8 +88,9 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
     for (int i = 0; i < nodes.getLength(); i++) {
       Node n = nodes.item(i);
       File f = new File(n.getTextContent());
-      if (f.exists())
+      if (f.exists()) {
         value.add(f);
+      }
     }
     fireChanged();
   }
@@ -120,15 +114,18 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   private void fireChanged() {
-    if (listener != null)
+    if (listener != null) {
       listener.stream().forEach(l -> l.fileListChanged(value));
+    }
   }
 
   public void addFileListChangedListener(FileNameListChangedListener list) {
-    if (list == null)
+    if (list == null) {
       return;
-    if (listener == null)
+    }
+    if (listener == null) {
       listener = new ArrayList<>();
+    }
     listener.add(list);
   }
 }

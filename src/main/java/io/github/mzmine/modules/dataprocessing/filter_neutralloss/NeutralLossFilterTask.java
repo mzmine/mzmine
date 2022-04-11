@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.filter_neutralloss;
@@ -41,21 +41,23 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 
 /**
  * This module will scan for neutral losses in a very similar way to IsotopePeakScanner.
- *
  */
 public class NeutralLossFilterTask extends AbstractTask {
 
+  IIsotope[] el;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private ParameterSet parameters;
   private double minRating;
@@ -70,14 +72,12 @@ public class NeutralLossFilterTask extends AbstractTask {
   private MZmineProject project;
   private FeatureList peakList;
   private boolean checkRT;
-
   private double dMassLoss;
-  IIsotope[] el;
   private IMolecularFormula formula;
 
-  NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+  NeutralLossFilterTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
+      @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.parameters = parameters;
     this.project = project;
@@ -96,8 +96,9 @@ public class NeutralLossFilterTask extends AbstractTask {
       formula = FormulaUtils.createMajorIsotopeMolFormula(molecule);
       if (formula != null) {
         dMassLoss = 0;
-        for (IIsotope i : formula.isotopes())
+        for (IIsotope i : formula.isotopes()) {
           dMassLoss += i.getExactMass() * formula.getIsotopeCount(i);
+        }
         logger.info("Mass of molecule: " + molecule + " = " + dMassLoss);
       }
     }
@@ -105,13 +106,45 @@ public class NeutralLossFilterTask extends AbstractTask {
     message = "Got paramenters...";
   }
 
+  public static double round(double value,
+      int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
+    if (places < 0) {
+      throw new IllegalArgumentException();
+    }
+
+    BigDecimal bd = new BigDecimal(value);
+    bd = bd.setScale(places, RoundingMode.HALF_UP);
+    return bd.doubleValue();
+  }
+
+  /**
+   * adds a comment to a PeakListRow without deleting the current comment
+   *
+   * @param row PeakListRow to add the comment to
+   * @param str comment to be added
+   */
+  public static void addComment(FeatureListRow row, String str) { // maybe add
+    // this to
+    // PeakListRow
+    // class?
+    String current = row.getComment();
+    if (current == null) {
+      row.setComment(str);
+    } else if (current.contains(str)) {
+      return;
+    } else {
+      row.setComment(current + " " + str);
+    }
+  }
+
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   @Override
   public double getFinishedPercentage() {
-    if (totalRows == 0)
+    if (totalRows == 0) {
       return 0.0;
+    }
     return (double) finishedRows / (double) totalRows;
   }
 
@@ -138,11 +171,12 @@ public class NeutralLossFilterTask extends AbstractTask {
     }
 
     if (suffix.equals("auto")) {
-      if (molecule.equals(""))
+      if (molecule.equals("")) {
         suffix = " NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
-      else
+      } else {
         suffix = " NL (" + molecule + "): " + dMassLoss + " RTtol: " + rtTolerance.getTolerance()
-            + "_results";
+                 + "_results";
+      }
     }
 
     // get all rows and sort by m/z
@@ -177,31 +211,33 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       ResultBuffer[] resultBuffer = new ResultBuffer[diff.size()]; // this
-                                                                   // will
-                                                                   // store
-                                                                   // row
-                                                                   // indexes
-                                                                   // of
-                                                                   // all
-                                                                   // features
-                                                                   // with
-                                                                   // fitting
-                                                                   // rt
-                                                                   // and
-                                                                   // mz
+      // will
+      // store
+      // row
+      // indexes
+      // of
+      // all
+      // features
+      // with
+      // fitting
+      // rt
+      // and
+      // mz
       for (int a = 0; a < diff.size(); a++) // resultBuffer[i] index will
-                                            // represent Isotope[i] (if
-                                            // numAtoms = 0)
+      // represent Isotope[i] (if
+      // numAtoms = 0)
+      {
         resultBuffer[a] = new ResultBuffer(); // [0] will be the isotope
-                                              // with lowest mass#
+      }
+      // with lowest mass#
 
       for (int j = 0; j < groupedPeaks.size(); j++) // go through all
-                                                    // possible peaks
+      // possible peaks
       {
         for (int k = 0; k < diff.size(); k++) // check for each peak if
-                                              // it is a possible
-                                              // feature for
-                                              // every diff[](isotope)
+        // it is a possible
+        // feature for
+        // every diff[](isotope)
         { // this is necessary bc there might be more than one possible
           // feature
           // j represents the row index in groupedPeaks
@@ -220,9 +256,9 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       if (!checkIfAllTrue(resultBuffer)) // this means that for every
-                                         // isotope we expected to find,
-                                         // we found one or more possible
-                                         // features
+      // isotope we expected to find,
+      // we found one or more possible
+      // features
       {
         finishedRows++;
         continue;
@@ -231,8 +267,8 @@ public class NeutralLossFilterTask extends AbstractTask {
       Candidates candidates = new Candidates(diff.size(), minHeight, mzTolerance, plh);
 
       for (int k = 0; k < resultBuffer.length; k++) // reminder:
-                                                    // resultBuffer.length
-                                                    // = diff.size()
+      // resultBuffer.length
+      // = diff.size()
       {
         for (int l = 0; l < resultBuffer[k].getFoundCount(); l++) {
           // k represents index resultBuffer[k] and thereby the
@@ -260,10 +296,12 @@ public class NeutralLossFilterTask extends AbstractTask {
         finishedRows++;
         continue;
       }
-      FeatureListRow child = new ModularFeatureListRow(resultPeakList, originalChild, true);
+      FeatureListRow child = new ModularFeatureListRow(resultPeakList, originalChild.getID(),
+          originalChild, true);
 
-      if (resultMap.containsID(child.getID()))
+      if (resultMap.containsID(child.getID())) {
         comChild += resultMap.getRowByID(child.getID()).getComment();
+      }
 
       comChild += "Parent ID: " + candidates.get(1).getCandID();
       addComment(child, comChild);
@@ -274,9 +312,9 @@ public class NeutralLossFilterTask extends AbstractTask {
       rowBuffer.add(child);
 
       for (int k = 1; k < candidates.size(); k++) // we skip k=0 because
-                                                  // == groupedPeaks[0]
-                                                  // which we
-                                                  // added before
+      // == groupedPeaks[0]
+      // which we
+      // added before
       {
         ModularFeatureListRow originalParent = getRowFromCandidate(candidates, 1, plh);
 
@@ -285,60 +323,70 @@ public class NeutralLossFilterTask extends AbstractTask {
           continue;
         }
 
-        FeatureListRow parent = new ModularFeatureListRow(resultPeakList, originalParent, true);
+        FeatureListRow parent = new ModularFeatureListRow(resultPeakList, originalParent.getID(),
+            originalParent, true);
 
-        if (resultMap.containsID(parent.getID()))
+        if (resultMap.containsID(parent.getID())) {
           comParent += resultMap.getRowByID(parent.getID()).getComment();
+        }
 
         comParent += ("[--IS PARENT-- child ID: " + child.getID() + " ] | ");
         addComment(parent, comParent);
 
         addComment(child,
             " m/z shift(ppm): "
-                + round(((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1))
+            + round(((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1))
                     / parent.getAverageMZ() * 1E6, 2)
-                + " ");
+            + " ");
 
         rowBuffer.add(parent);
       }
 
-      if (allPeaksAddable)
-        for (FeatureListRow row : rowBuffer)
+      if (allPeaksAddable) {
+        for (FeatureListRow row : rowBuffer) {
           resultMap.addRow(row);
+        }
+      }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
       finishedRows++;
     }
 
     ArrayList<Integer> keys = resultMap.getAllKeys();
-    for (int j = 0; j < keys.size(); j++)
+    for (int j = 0; j < keys.size(); j++) {
       resultPeakList.addRow(resultMap.getRowByID(keys.get(j)));
+    }
 
-    if (resultPeakList.getNumberOfRows() > 1)
+    if (resultPeakList.getNumberOfRows() > 1) {
       addResultToProject(/* resultPeakList */);
-    else
+    } else {
       message = "Element not found.";
+    }
     setStatus(TaskStatus.FINISHED);
   }
 
   /**
-   *
    * @param b
    * @return true if every
    */
   private boolean checkIfAllTrue(ResultBuffer[] b) {
-    for (int i = 0; i < b.length; i++)
-      if (b[i].getFoundCount() == 0)
+    for (int i = 0; i < b.length; i++) {
+      if (b[i].getFoundCount() == 0) {
         return false;
+      }
+    }
     return true;
   }
 
   private boolean checkIfAllTrue(Candidate[] cs) {
-    for (Candidate c : cs)
-      if (c.getRating() == 0)
+    for (Candidate c : cs) {
+      if (c.getRating() == 0) {
         return false;
+      }
+    }
     return true;
   }
 
@@ -351,32 +399,34 @@ public class NeutralLossFilterTask extends AbstractTask {
   }
 
   /**
-   *
    * @param pL
    * @param parentIndex index of possible parent peak
    * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz
-   *         -> pL[parentIndex].mz+maxMass
+   * -> pL[parentIndex].mz+maxMass
    */
-  private ArrayList<FeatureListRow> groupPeaks(FeatureListRow[] pL, int parentIndex, double maxDiff) {
+  private ArrayList<FeatureListRow> groupPeaks(FeatureListRow[] pL, int parentIndex,
+      double maxDiff) {
     ArrayList<FeatureListRow> buf = new ArrayList<FeatureListRow>();
 
     buf.add(pL[parentIndex]); // this means the result will contain
-                              // row(parentIndex) itself
+    // row(parentIndex) itself
 
     double mz = pL[parentIndex].getAverageMZ();
     float rt = pL[parentIndex].getAverageRT();
 
     for (int i = parentIndex + 1; i < pL.length; i++) // will not add the
-                                                      // parent peak itself
+    // parent peak itself
     {
       FeatureListRow r = pL[i];
       // check for rt
 
-      if (r.getAverageHeight() < minHeight)
+      if (r.getAverageHeight() < minHeight) {
         continue;
+      }
 
-      if (!rtTolerance.checkWithinTolerance(rt, r.getAverageRT()) && checkRT)
+      if (!rtTolerance.checkWithinTolerance(rt, r.getAverageRT()) && checkRT) {
         continue;
+      }
 
       if (pL[i].getAverageMZ() > mz
           && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance())) {
@@ -384,39 +434,13 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       if (pL[i].getAverageMZ() > (mz + maxDiff)) // since pL is sorted by
-                                                 // ascending mass, we can
-                                                 // stop now
+      // ascending mass, we can
+      // stop now
+      {
         return buf;
+      }
     }
     return buf;
-  }
-
-  public static double round(double value, int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
-    if (places < 0)
-      throw new IllegalArgumentException();
-
-    BigDecimal bd = new BigDecimal(value);
-    bd = bd.setScale(places, RoundingMode.HALF_UP);
-    return bd.doubleValue();
-  }
-
-  /**
-   * adds a comment to a PeakListRow without deleting the current comment
-   *
-   * @param row PeakListRow to add the comment to
-   * @param str comment to be added
-   */
-  public static void addComment(FeatureListRow row, String str) { // maybe add
-                                                               // this to
-                                                               // PeakListRow
-                                                               // class?
-    String current = row.getComment();
-    if (current == null)
-      row.setComment(str);
-    else if (current.contains(str))
-      return;
-    else
-      row.setComment(current + " " + str);
   }
 
   /**
@@ -434,23 +458,26 @@ public class NeutralLossFilterTask extends AbstractTask {
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("NeutralLossFilter",
-            NeutralLossFilterModule.class, parameters));
+            NeutralLossFilterModule.class, parameters, getModuleCallDate()));
   }
 
   /**
    * Extracts a feature list row from a Candidates array.
    *
    * @param candidates
-   * @param peakIndex the index of the candidate peak, the feature list row should be extracted for.
+   * @param peakIndex  the index of the candidate peak, the feature list row should be extracted
+   *                   for.
    * @param plh
    * @return null if no peak with the given parameters exists, the specified feature list row
-   *         otherwise.
+   * otherwise.
    */
-  private @Nullable ModularFeatureListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
-      @Nonnull PeakListHandler plh) {
+  private @Nullable
+  ModularFeatureListRow getRowFromCandidate(@NotNull Candidates candidates, int peakIndex,
+      @NotNull PeakListHandler plh) {
 
-    if (peakIndex >= candidates.size())
+    if (peakIndex >= candidates.size()) {
       return null;
+    }
 
     Candidate cand = candidates.get(peakIndex);
 

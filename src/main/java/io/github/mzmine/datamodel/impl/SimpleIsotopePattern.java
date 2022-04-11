@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -24,66 +24,129 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.datamodel.MassSpectrumType;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
+import io.github.mzmine.util.ParsingUtils;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Simple implementation of IsotopePattern interface
  */
 public class SimpleIsotopePattern implements IsotopePattern {
 
+  public static final String XML_ELEMENT = "simpleisotopepattern";
+  public static final String XML_DESCRIPTION_ELEMENT = "description";
+  private static final String XML_COMPOSITION_ELEMENT = "composition";
+  private static final String XML_STATUS_ELEMENT = "status";
+  private static final String XML_CHARGE_ELEMENT = "charge";
+
   private double mzValues[], intensityValues[];
+  private final double tic;
+  private int charge;
   private int highestIsotope;
   private IsotopePatternStatus status;
   private String description;
   private Range<Double> mzRange;
   private String[] isotopeCompostion;
 
-  public SimpleIsotopePattern(double mzValues[], double intensityValues[],
-      IsotopePatternStatus status, String description, String[] isotopeCompostion) {
-    this(mzValues, intensityValues, status, description);
-    this.isotopeCompostion = isotopeCompostion;
-  }
 
-  public SimpleIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
-      String description, String[] isotopeCompostion) {
-
-    this(dataPoints, status, description);
-    this.isotopeCompostion = isotopeCompostion;
+  public SimpleIsotopePattern(double[] mzValues, double[] intensityValues, int charge,
+      IsotopePatternStatus status, String description) {
+    this(mzValues, intensityValues, charge, status, description, null);
   }
 
 
-  public SimpleIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
+  public SimpleIsotopePattern(DataPoint[] dataPoints, int charge, IsotopePatternStatus status,
       String description) {
+    this(dataPoints, charge, status, description, null);
+  }
+
+  public SimpleIsotopePattern(DataPoint dataPoints[], int charge, IsotopePatternStatus status,
+      String description, String[] isotopeCompostion) {
 
     mzValues = new double[dataPoints.length];
     intensityValues = new double[dataPoints.length];
+    double tic = 0;
     for (int i = 0; i < dataPoints.length; i++) {
       mzValues[i] = dataPoints[i].getMZ();
       intensityValues[i] = dataPoints[i].getIntensity();
+      tic += intensityValues[i];
     }
+    this.tic = tic;
+    this.charge = charge;
     this.status = status;
     this.description = description;
+    this.isotopeCompostion = isotopeCompostion;
     this.mzRange = ScanUtils.findMzRange(mzValues);
-    highestIsotope = ScanUtils.findTopDataPoint(intensityValues);
+    this.highestIsotope = ScanUtils.findTopDataPoint(intensityValues);
   }
 
-
-  public SimpleIsotopePattern(double mzValues[], double intensityValues[],
-      IsotopePatternStatus status, String description) {
+  public SimpleIsotopePattern(double mzValues[], double intensityValues[], int charge,
+      IsotopePatternStatus status, String description, String[] isotopeCompostion) {
 
     assert mzValues.length > 0;
     assert mzValues.length == intensityValues.length;
 
-    highestIsotope = ScanUtils.findTopDataPoint(intensityValues);
+    this.charge = charge;
     this.mzValues = mzValues;
     this.intensityValues = intensityValues;
     this.status = status;
     this.description = description;
+    this.isotopeCompostion = isotopeCompostion;
     this.mzRange = ScanUtils.findMzRange(mzValues);
+    this.highestIsotope = ScanUtils.findTopDataPoint(intensityValues);
+    this.tic = Arrays.stream(intensityValues).sum();
+  }
+
+  public static IsotopePattern loadFromXML(XMLStreamReader reader) throws XMLStreamException {
+    if (!reader.getLocalName().equals(XML_ELEMENT)) {
+      throw new IllegalStateException("Invalid element");
+    }
+
+    double[] mzs = null;
+    double[] intensities = null;
+    String desc = null;
+    String[] comp = null;
+    IsotopePatternStatus status = null;
+    int charge = 1;
+
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
+        .equals(XML_ELEMENT))) {
+      int next = reader.next();
+      if (next != XMLEvent.START_ELEMENT) {
+        continue;
+      }
+
+      switch (reader.getLocalName()) {
+        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils.stringToDoubleArray(
+            reader.getElementText());
+        case XML_DESCRIPTION_ELEMENT -> desc = reader.getElementText();
+        case XML_COMPOSITION_ELEMENT -> {
+          if (!reader.getElementText().trim().isEmpty()) {
+            comp = ParsingUtils.stringToStringArray(reader.getElementText());
+          }
+        }
+        case XML_STATUS_ELEMENT -> status = IsotopePatternStatus.valueOf(reader.getElementText());
+        case XML_CHARGE_ELEMENT -> charge = Integer.parseInt(reader.getElementText());
+      }
+    }
+    return new SimpleIsotopePattern(mzs, intensities, charge, status, desc, comp);
+  }
+
+  @Override
+  public int getCharge() {
+    return charge;
   }
 
   @Override
@@ -92,7 +155,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @Nonnull IsotopePatternStatus getStatus() {
+  public @NotNull IsotopePatternStatus getStatus() {
     return status;
   }
 
@@ -102,7 +165,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return description;
   }
 
@@ -112,14 +175,14 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getDataPointMZRange() {
     return mzRange;
   }
 
   @Override
-  public @Nonnull Double getTIC() {
-    return 0.0;
+  public @NotNull Double getTIC() {
+    return tic;
   }
 
   @Override
@@ -128,7 +191,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
+  public double[] getMzValues(@NotNull double[] dst) {
     if (dst.length < mzValues.length) {
       return mzValues;
     }
@@ -140,7 +203,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
+  public double[] getIntensityValues(@NotNull double[] dst) {
     if (dst.length < intensityValues.length) {
       return intensityValues;
     }
@@ -151,6 +214,26 @@ public class SimpleIsotopePattern implements IsotopePattern {
     return dst;
   }
 
+  /*
+   * @Override public DataPoint getHighestDataPoint() { if (highestIsotope < 0) return null; return
+   * getDataPoints()[highestIsotope]; }
+   *
+   * @Override public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
+   *
+   * DataPoint[] dataPoints = getDataPoints(); int startIndex, endIndex; for (startIndex = 0;
+   * startIndex < dataPoints.length; startIndex++) { if (dataPoints[startIndex].getMZ() >=
+   * mzRange.lowerEndpoint()) { break; } }
+   *
+   * for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) { if
+   * (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) { break; } }
+   *
+   * DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+   *
+   * // Copy the relevant points System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0,
+   * endIndex - startIndex);
+   *
+   * return pointsWithinRange; }
+   */
 
   public String getIsotopeComposition(int num) {
     if (isotopeCompostion != null && num < isotopeCompostion.length) {
@@ -160,8 +243,9 @@ public class SimpleIsotopePattern implements IsotopePattern {
   }
 
   public String[] getIsotopeCompositions() {
-    if (isotopeCompostion != null)
+    if (isotopeCompostion != null) {
       return isotopeCompostion;
+    }
     return null;
   }
 
@@ -172,27 +256,6 @@ public class SimpleIsotopePattern implements IsotopePattern {
     }
     return d;
   }
-
-  /*
-   * @Override public DataPoint getHighestDataPoint() { if (highestIsotope < 0) return null; return
-   * getDataPoints()[highestIsotope]; }
-   * 
-   * @Override public DataPoint[] getDataPointsByMass(Range<Double> mzRange) {
-   * 
-   * DataPoint[] dataPoints = getDataPoints(); int startIndex, endIndex; for (startIndex = 0;
-   * startIndex < dataPoints.length; startIndex++) { if (dataPoints[startIndex].getMZ() >=
-   * mzRange.lowerEndpoint()) { break; } }
-   * 
-   * for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) { if
-   * (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint()) { break; } }
-   * 
-   * DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
-   * 
-   * // Copy the relevant points System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0,
-   * endIndex - startIndex);
-   * 
-   * return pointsWithinRange; }
-   */
 
   @Override
   public double getMzValue(int index) {
@@ -207,19 +270,21 @@ public class SimpleIsotopePattern implements IsotopePattern {
   @Override
   @Nullable
   public Double getBasePeakMz() {
-    if (highestIsotope < 0)
+    if (highestIsotope < 0) {
       return null;
-    else
+    } else {
       return mzValues[highestIsotope];
+    }
   }
 
   @Override
   @Nullable
   public Double getBasePeakIntensity() {
-    if (highestIsotope < 0)
+    if (highestIsotope < 0) {
       return null;
-    else
+    } else {
       return intensityValues[highestIsotope];
+    }
   }
 
   @Override
@@ -232,11 +297,67 @@ public class SimpleIsotopePattern implements IsotopePattern {
     return Streams.stream(this);
   }
 
+  @Override
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+
+    writer.writeStartElement(CONST.XML_MZ_VALUES_ELEMENT);
+    writer.writeCharacters(ParsingUtils.doubleArrayToString(mzValues, mzValues.length));
+    writer.writeEndElement();
+
+    writer.writeStartElement(CONST.XML_INTENSITY_VALUES_ELEMENT);
+    writer.writeCharacters(
+        ParsingUtils.doubleArrayToString(intensityValues, intensityValues.length));
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_DESCRIPTION_ELEMENT);
+    writer.writeCharacters(description);
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_STATUS_ELEMENT);
+    writer.writeCharacters(status.name());
+    writer.writeEndElement();
+
+    writer.writeStartElement(XML_CHARGE_ELEMENT);
+    writer.writeCharacters(String.valueOf(charge));
+    writer.writeEndElement();
+
+    if (isotopeCompostion != null) {
+      writer.writeStartElement(XML_COMPOSITION_ELEMENT);
+      writer.writeCharacters(ParsingUtils.stringArrayToString(isotopeCompostion));
+      writer.writeEndElement();
+    }
+
+    writer.writeEndElement();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SimpleIsotopePattern that = (SimpleIsotopePattern) o;
+    return charge == that.charge && Arrays.equals(mzValues, that.mzValues) && Arrays.equals(
+        intensityValues, that.intensityValues) && status == that.status && Objects.equals(
+        description, that.description);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hash(charge, status, description);
+    result = 31 * result + Arrays.hashCode(mzValues);
+    result = 31 * result + Arrays.hashCode(intensityValues);
+    return result;
+  }
+
   private class DataPointIterator implements Iterator<DataPoint>, DataPoint {
 
+    private final MassSpectrum spectrum;
     // We start at -1 so the first call to next() moves us to index 0
     private int cursor = -1;
-    private final MassSpectrum spectrum;
 
     DataPointIterator(MassSpectrum spectrum) {
       this.spectrum = spectrum;
@@ -268,5 +389,4 @@ public class SimpleIsotopePattern implements IsotopePattern {
       return spectrum.getIntensityValue(cursor);
     }
   }
-
 }

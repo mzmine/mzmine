@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,74 +8,75 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.minimumsearch;
 
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolverSetupDialog;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.GeneralResolverParameters;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.XYResolver;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.Resolver;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
-import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.PercentParameter;
 import io.github.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import io.github.mzmine.util.ExitCode;
-import javax.annotation.Nullable;
+import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MinimumSearchFeatureResolverParameters extends GeneralResolverParameters {
 
   public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
-      "Chromatographic threshold",
-      "Threshold for removing noise. The algorithm finds such intensity that given percentage of the"
-          + "\nchromatogram data points is below that intensity, and removes all data points below that level.");
+      "Chromatographic threshold", "Percentile threshold for removing noise.\n"
+      + "The algorithm will remove the lowest abundant X % data points from a chromatogram and only consider\n"
+      + "the remaining (highest) values. Important filter for noisy chromatograms.", 0.85d, 0d, 1d);
 
   public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
-      "Search minimum in RT range (min)",
-      "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
-      MZmineCore.getConfiguration().getRTFormat());
+      "Minimum search range RT/Mobility (absolute)",
+      "If a local minimum is minimal in this range of retention time or mobility, it will be considered a border between two peaks.\n"
+          + "Start optimising with a value close to the FWHM of a peak.",
+      new DecimalFormat("0.000"), 0.05);
 
-  public static final PercentParameter MIN_RELATIVE_HEIGHT =
-      new PercentParameter("Minimum relative height",
-          "Minimum height of a peak relative to the chromatogram top data point");
+  public static final PercentParameter MIN_RELATIVE_HEIGHT = new PercentParameter(
+      "Minimum relative height",
+      "Minimum height of a peak relative to the chromatogram top data point", 0d);
 
   public static final DoubleParameter MIN_ABSOLUTE_HEIGHT = new DoubleParameter(
       "Minimum absolute height", "Minimum absolute height of a peak to be recognized",
-      MZmineCore.getConfiguration().getIntensityFormat());
+      MZmineCore.getConfiguration().getIntensityFormat(), 1E3);
 
   public static final DoubleParameter MIN_RATIO = new DoubleParameter("Min ratio of peak top/edge",
       "Minimum ratio between peak's top intensity and side (lowest) data points."
-          + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
+          + "\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.",
+      new DecimalFormat("0.00"), 1.7d);
 
-  public static final DoubleRangeParameter PEAK_DURATION =
-      new DoubleRangeParameter("Peak duration range (min)", "Range of acceptable peak lengths",
-          MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
-
-  public static final IntegerParameter MIN_NUMBER_OF_DATAPOINTS = new IntegerParameter("Min # of data points",
-      "Minimum number of data points on a feature", 3, true);
-
+  public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
+      "Peak duration range (min/mobility)", "Range of acceptable peak lengths",
+      MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
   public MinimumSearchFeatureResolverParameters() {
-    super(new Parameter[]{PEAK_LISTS, SUFFIX, MZ_CENTER_FUNCTION, AUTO_REMOVE, groupMS2Parameters,
-        dimension, CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE,
-        MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT, MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS});
+    super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, dimension,
+            CHROMATOGRAPHIC_THRESHOLD_LEVEL, SEARCH_RT_RANGE, MIN_RELATIVE_HEIGHT, MIN_ABSOLUTE_HEIGHT,
+            MIN_RATIO, PEAK_DURATION, MIN_NUMBER_OF_DATAPOINTS},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_resolver_local_minimum/local-minimum-resolver.html");
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-    final FeatureResolverSetupDialog dialog =
-        new FeatureResolverSetupDialog(valueCheckRequired, this, null);
+    final FeatureResolverSetupDialog dialog = new FeatureResolverSetupDialog(valueCheckRequired,
+        this, null);
     dialog.showAndWait();
     return dialog.getExitCode();
   }
@@ -87,10 +88,11 @@ public class MinimumSearchFeatureResolverParameters extends GeneralResolverParam
 
   @Nullable
   @Override
-  public XYResolver<Double, Double, double[], double[]> getXYResolver(ParameterSet parameters) {
-    return new MinimumSearchFeatureResolver(parameters);
+  public Resolver getResolver(ParameterSet parameters, ModularFeatureList flist) {
+    return new MinimumSearchFeatureResolver(parameters, flist);
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

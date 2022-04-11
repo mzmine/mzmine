@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * It is freely available under the GNU GPL licence of MZmine2.
- *
- * For any questions or concerns, please refer to:
- * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
  */
 
 package io.github.mzmine.modules.tools.msmsspectramerge;
@@ -35,7 +30,7 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
 
   public MsMsSpectraMergeParameters() {
     super(new Parameter[] {MERGE_MODE, MZ_MERGE_MODE, INTENSITY_MERGE_MODE, MASS_ACCURACY,
-        COSINE_PARAMETER, FEATURE_COUNT_PARAMETER, ISOLATION_WINDOW_OFFSET, ISOLATION_WINDOW_WIDTH});
+        COSINE_PARAMETER, REL_SIGNAL_COUNT_PARAMETER, ISOLATION_WINDOW_OFFSET, ISOLATION_WINDOW_WIDTH});
   }
 
   public static final PercentParameter COSINE_PARAMETER = new PercentParameter(
@@ -43,9 +38,9 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
       "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!",
       0.7d, 0d, 1d);
 
-  public static final PercentParameter FEATURE_COUNT_PARAMETER =
-      new PercentParameter("Feature count threshold (%)",
-          "After merging, remove all features which occur in less than X % of the merged spectra.",
+  public static final PercentParameter REL_SIGNAL_COUNT_PARAMETER =
+      new PercentParameter("Signal count threshold (%)",
+          "After merging, remove all signals which occur in less than X % of the merged spectra.",
           0.2d, 0d, 1d);
 
   public static final MZToleranceParameter MASS_ACCURACY = new MZToleranceParameter(

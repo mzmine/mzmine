@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class IonTimeSeriesTest {
@@ -49,12 +50,12 @@ class IonTimeSeriesTest {
 
   public static IonTimeSeries<? extends Scan> makeSimpleTimeSeries() throws IOException {
 
-    RawDataFile file = new RawDataFileImpl("test", null, Color.BLACK);
+    RawDataFile file = new RawDataFileImpl("test", null, null, Color.BLACK);
     List<Scan> scans = new ArrayList();
-    scans.add(new SimpleScan(file, 0, 1, 1f, 0, 0, new double[]{10d, 10d}, new double[]{10d, 10d},
+    scans.add(new SimpleScan(file, 0, 1, 1f, null, new double[]{10d, 10d}, new double[]{10d, 10d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(10d, 10d)));
-    scans.add(new SimpleScan(file, 1, 1, 1f, 0, 0, new double[]{11d, 11d}, new double[]{11d, 11d},
+    scans.add(new SimpleScan(file, 1, 1, 1f, null, new double[]{11d, 11d}, new double[]{11d, 11d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d)));
     SimpleIonTimeSeries series = new SimpleIonTimeSeries(null,
@@ -63,10 +64,10 @@ class IonTimeSeriesTest {
   }
 
   public static IonTimeSeries<Frame> makeIonMobilityTimeSeries() throws IOException {
-    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, Color.BLACK);
+    IMSRawDataFile file = new IMSRawDataFileImpl("test", null, null, Color.BLACK);
 
     List<Frame> frames = new ArrayList<>();
-    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f, 0, 0,
+    SimpleFrame frame = new SimpleFrame(file, 1, 1, 1f,
         new double[]{1d}, new double[]{1d},
         MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "",
         Range.closed(11d, 11d), MobilityType.TIMS, null);
@@ -78,16 +79,16 @@ class IonTimeSeriesTest {
     mobilityScans
         .add(new BuildingMobilityScan(1, new double[]{2d, 2d}, new double[]{4d, 4d}));
 
-    frame.setMobilityScans(mobilityScans);
+    frame.setMobilityScans(mobilityScans, false);
 
     SimpleIonMobilitySeries ionMobilitySeries = new SimpleIonMobilitySeries(null,
         new double[]{1d, 2d}, new double[]{2d, 4d}, frame.getMobilityScans());
 
     return IonMobilogramTimeSeriesFactory
-        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 0.001));
-
+        .of(null, List.of(ionMobilitySeries), new BinningMobilogramDataAccess(file, 1));
   }
 
+  @Disabled
   @Test
   void testCasting() {
 

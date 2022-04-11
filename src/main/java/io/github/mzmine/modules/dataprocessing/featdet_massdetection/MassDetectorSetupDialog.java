@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,27 +8,25 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_massdetection;
 
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MzIntensityDataSet;
-import java.util.ArrayList;
-import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerTab;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectrumPlotType;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
+import java.util.ArrayList;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This is used to preview
@@ -36,8 +34,8 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  */
 public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview {
 
-  private MassDetector massDetector;
-  private ParameterSet parameters;
+  protected MassDetector massDetector;
+  protected ParameterSet parameters;
 
   /**
    * @param parameters
@@ -66,20 +64,20 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     spectrumPlot.setPlotMode(SpectrumPlotType.fromScan(previewScan));
 
     spectrumPlot.removeAllDataSets();
-    spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerTab.scanColor, false);
+    spectrumPlot.addDataSet(spectraDataSet, previewScan.getDataFile().getColorAWT(), false, true);
 
     // If there is some illegal value, do not load the preview but just exit
     ArrayList<String> errorMessages = new ArrayList<String>();
     boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
-    if (!paramsOK)
+    if (!paramsOK) {
       return;
+    }
 
     double[][] mzValues = massDetector.getMassValues(previewScan, parameters);
 
-    MzIntensityDataSet peaksDataSet = new MzIntensityDataSet("Detected peaks",
-        mzValues[0], mzValues[1]);
+    MassListDataSet peaksDataSet = new MassListDataSet(mzValues[0], mzValues[1]);
 
-    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false);
+    spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerTab.peaksColor, false, true);
   }
 
 }

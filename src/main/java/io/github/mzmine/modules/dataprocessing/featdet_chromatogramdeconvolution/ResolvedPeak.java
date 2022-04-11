@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution;
@@ -24,11 +24,13 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -41,12 +43,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ResolvedPeak
  */
+@Deprecated
 public class ResolvedPeak implements PlotXYDataProvider {
 
   private SimpleFeatureInformation peakInfo;
@@ -67,10 +70,10 @@ public class ResolvedPeak implements PlotXYDataProvider {
   private double dataPointMZValues[], dataPointIntensityValues[];
 
   // Top intensity scan, fragment scan
-  private Scan representativeScan, fragmentScan;
+  private Scan representativeScan;
 
   // All MS2 fragment scan numbers
-  private Scan[] allMS2FragmentScanNumbers;
+  private List<Scan> allMS2FragmentScanNumbers;
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsMZRange;
@@ -99,7 +102,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd,
       CenterFunction mzCenterFunction, double msmsRange, float RTRangeMSMS) {
 
-    assert regionEnd > regionStart;
+    assert regionEnd >= regionStart;
 
     this.peakList = chromatogram.getFeatureList();
     this.dataFile = chromatogram.getRawDataFile();
@@ -126,10 +129,9 @@ public class ResolvedPeak implements PlotXYDataProvider {
       dataPointMZValues[i] = mzValue;
 
       if (chromatogram instanceof ModularFeature) {
-        dataPointMZValues[i] = ((ModularFeature) chromatogram).getFeatureData()
-            .getMzForSpectrum(scanNumbers[i]);
-        dataPointIntensityValues[i] = ((ModularFeature) chromatogram).getFeatureData()
-            .getIntensityForSpectrum(scanNumbers[i]);
+        final IonTimeSeries<? extends Scan> data = chromatogram.getFeatureData();
+        dataPointMZValues[i] = data.getMzForSpectrum(scanNumbers[i]);
+        dataPointIntensityValues[i] = data.getIntensityForSpectrum(scanNumbers[i]);
       } else {
         DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
 
@@ -154,10 +156,10 @@ public class ResolvedPeak implements PlotXYDataProvider {
         rawDataPointsRTRange = Range.singleton(scanNumbers[i].getRetentionTime());
         rawDataPointsMZRange = Range.singleton(dataPointMZValues[i]);
       } else {
-        rawDataPointsRTRange = rawDataPointsRTRange
-            .span(Range.singleton(scanNumbers[i].getRetentionTime()));
-        rawDataPointsIntensityRange =
-            rawDataPointsIntensityRange.span(Range.singleton((float) dataPointIntensityValues[i]));
+        rawDataPointsRTRange = rawDataPointsRTRange.span(
+            Range.singleton(scanNumbers[i].getRetentionTime()));
+        rawDataPointsIntensityRange = rawDataPointsIntensityRange.span(
+            Range.singleton((float) dataPointIntensityValues[i]));
         rawDataPointsMZRange = rawDataPointsMZRange.span(Range.singleton(dataPointMZValues[i]));
       }
 
@@ -211,12 +213,14 @@ public class ResolvedPeak implements PlotXYDataProvider {
       searchingRangeRT = rawDataPointsRTRange;
     }
 
-    fragmentScan = ScanUtils.findBestFragmentScan(dataFile, searchingRangeRT, searchingRange);
-    allMS2FragmentScanNumbers =
-        ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
+    allMS2FragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(dataFile, searchingRangeRT,
+        searchingRange).toList();
 
-    if (fragmentScan != null) {
-      int precursorCharge = fragmentScan.getPrecursorCharge();
+    if (!allMS2FragmentScanNumbers.isEmpty()) {
+      Scan fragmentScan = allMS2FragmentScanNumbers.get(0);
+      int precursorCharge = fragmentScan.getMsMsInfo() != null
+                            && fragmentScan.getMsMsInfo() instanceof DDAMsMsInfo dda
+                            && dda.getPrecursorCharge() != null ? dda.getPrecursorCharge() : 0;
       if (precursorCharge > 0) {
         this.charge = precursorCharge;
       }
@@ -232,9 +236,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     if (index < 0) {
       return null;
     }
-    SimpleDataPoint dp =
-        new SimpleDataPoint(dataPointMZValues[index], dataPointIntensityValues[index]);
-    return dp;
+    return new SimpleDataPoint(dataPointMZValues[index], dataPointIntensityValues[index]);
   }
 
   /**
@@ -251,14 +253,14 @@ public class ResolvedPeak implements PlotXYDataProvider {
    */
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
     Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
     buf.append("m/z ");
     buf.append(mzFormat.format(getMZ()));
     buf.append(" (");
     buf.append(timeFormat.format(getRT()));
-    buf.append(" min) [" + getRawDataFile().getName() + "]");
+    buf.append(" min) [").append(getRawDataFile().getName()).append("]");
     return buf.toString();
   }
 
@@ -270,32 +272,11 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return height;
   }
 
-  public Scan getMostIntenseFragmentScanNumber() {
-    return fragmentScan;
-  }
-
-  public Scan[] getAllMS2FragmentScanNumbers() {
+  public List<Scan> getAllMS2FragmentScanNumbers() {
     return allMS2FragmentScanNumbers;
   }
 
-  public void setAllMS2FragmentScanNumbers(Scan[] allMS2FragmentScanNumbers) {
-    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
-    // also set best scan by TIC
-    Scan best = null;
-    double tic = 0;
-    if (allMS2FragmentScanNumbers != null) {
-      for (Scan scan : allMS2FragmentScanNumbers) {
-        if (tic < scan.getTIC()) {
-          best = scan;
-          tic = scan.getTIC();
-        }
-      }
-    }
-    setFragmentScanNumber(best);
-  }
-
-  public @Nonnull
-  FeatureStatus getFeatureStatus() {
+  public @NotNull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
@@ -303,18 +284,15 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return rt;
   }
 
-  public @Nonnull
-  Range<Float> getRawDataPointsIntensityRange() {
+  public @NotNull Range<Float> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
-  public @Nonnull
-  Range<Double> getRawDataPointsMZRange() {
+  public @NotNull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
-  public @Nonnull
-  Range<Float> getRawDataPointsRTRange() {
+  public @NotNull Range<Float> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
@@ -322,13 +300,11 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return representativeScan;
   }
 
-  public @Nonnull
-  Scan[] getScanNumbers() {
+  public @NotNull Scan[] getScanNumbers() {
     return scanNumbers;
   }
 
-  public @Nonnull
-  RawDataFile getRawDataFile() {
+  public @NotNull RawDataFile getRawDataFile() {
     return dataFile;
   }
 
@@ -336,7 +312,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return isotopePattern;
   }
 
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
+  public void setIsotopePattern(@NotNull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
@@ -360,22 +336,10 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return tf;
   }
 
-  public void setTailingFactor(Double tf) {
-    this.tf = tf;
-  }
-
   public Double getAsymmetryFactor() {
     return af;
   }
 
-  public void setAsymmetryFactor(Double af) {
-    this.af = af;
-  }
-
-  // dulab Edit
-  public void outputChromToFile() {
-    int nothing = -1;
-  }
   // End dulab Edit
 
   public SimpleFeatureInformation getPeakInformation() {
@@ -395,10 +359,6 @@ public class ResolvedPeak implements PlotXYDataProvider {
     this.parentChromatogramRowID = id;
   }
 
-  public void setFragmentScanNumber(Scan fragmentScanNumber) {
-    this.fragmentScan = fragmentScanNumber;
-  }
-
   public FeatureList getPeakList() {
     return peakList;
   }
@@ -416,13 +376,13 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return dp;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -434,10 +394,11 @@ public class ResolvedPeak implements PlotXYDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
-    return String.format("%f - %f min", getRawDataPointsIntensityRange().lowerEndpoint(), getRawDataPointsRTRange().upperEndpoint());
+    return String.format("%f - %f min", getRawDataPointsIntensityRange().lowerEndpoint(),
+        getRawDataPointsRTRange().upperEndpoint());
   }
 
   @Nullable
@@ -447,7 +408,7 @@ public class ResolvedPeak implements PlotXYDataProvider {
   }
 
   @Override
-  public void computeValues(SimpleObjectProperty<TaskStatus> status){
+  public void computeValues(SimpleObjectProperty<TaskStatus> status) {
     // nothing to compute
   }
 

@@ -1,23 +1,27 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util.spectraldb.parser;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -28,15 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-
-public class NistMspParser extends SpectralDBParser {
+public class NistMspParser extends SpectralDBTextParser {
 
   public NistMspParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -46,6 +44,7 @@ public class NistMspParser extends SpectralDBParser {
 
   @Override
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+    super.parse(mainTask, dataBaseFile);
     logger.info("Parsing NIST msp spectral library " + dataBaseFile.getAbsolutePath());
 
     // metadata fields and data points
@@ -100,6 +99,7 @@ public class NistMspParser extends SpectralDBParser {
           fields = new EnumMap<>(fields);
           dps.clear();
         }
+        processedLines.incrementAndGet();
       }
       // finish and process all entries
       finish();
@@ -126,6 +126,16 @@ public class NistMspParser extends SpectralDBParser {
         logger.log(Level.WARNING, "Cannot parse data point", e);
       }
     }
+
+    data = dataAndComment[0].split("\t");
+    if (data.length == 2) {
+      try {
+        return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Cannot parse data point", e);
+      }
+    }
+
     return null;
   }
 

@@ -12,13 +12,11 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.project.impl;
 
-import java.io.File;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.MZmineGUI;
@@ -27,6 +25,7 @@ import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
+import java.io.File;
 
 /**
  * Project manager implementation
@@ -36,6 +35,10 @@ public class ProjectManagerImpl implements ProjectManager {
   private static ProjectManagerImpl myInstance;
 
   MZmineProject currentProject;
+
+  public static ProjectManagerImpl getInstance() {
+    return myInstance;
+  }
 
   public void initModule() {
     currentProject = new MZmineProjectImpl();
@@ -50,8 +53,9 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public void setCurrentProject(MZmineProject project) {
 
-    if (project == currentProject)
+    if (project == currentProject) {
       return;
+    }
 
     // Close previous data files
     if (currentProject != null) {
@@ -74,12 +78,9 @@ public class ProjectManagerImpl implements ProjectManager {
     }
 
     // Notify the GUI about project structure change
-    MZmineGUI.activateProject(project);
-
-  }
-
-  public static ProjectManagerImpl getInstance() {
-    return myInstance;
+    if (!MZmineCore.isHeadLessMode()) {
+      MZmineGUI.activateProject(project);
+    }
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules;
@@ -31,11 +31,13 @@ public enum MZmineModuleCategory {
   ISOTOPES("Isotopes"), //
   FEATURELIST("Feature list methods"), //
   FEATURE_RESOLVING("Resolving"), //
+  FEATURE_GROUPING("Feature grouping"), //
+  ION_IDENTITY_NETWORKS("Ion identity networking"), //
   SPECTRALDECONVOLUTION("Spectral deconvolution"), //
   FEATURELISTFILTERING("Feature list filtering"), //
   ALIGNMENT("Alignment"), //
   NORMALIZATION("Normalization"), //
-  IDENTIFICATION("Annotation"), // todo: rename to annotation
+  ANNOTATION("Annotation"), //
   FEATURELISTEXPORT("Feature list export"), //
   FEATURELISTIMPORT("Feature list import"), //
   VISUALIZATIONRAWDATA("Visualization"), //
@@ -59,14 +61,14 @@ public enum MZmineModuleCategory {
     return switch (this) {
       case PROJECT, PROJECTIO -> MainCategory.PROJECT;
       case RAWDATAIMPORT, RAWDATAEXPORT, RAWDATA, RAWDATAFILTERING -> MainCategory.SPECTRAL_DATA;
-      case EIC_DETECTION, FEATURELIST, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT -> MainCategory.FEATURE_DETECTION;
+      case EIC_DETECTION, FEATURE_RESOLVING, GAPFILLING, ALIGNMENT, FEATURELIST-> MainCategory.FEATURE_DETECTION;
       case ISOTOPES, SPECTRALDECONVOLUTION, FEATURELISTFILTERING -> MainCategory.FEATURE_FILTERING;
-      case NORMALIZATION, IDENTIFICATION, DATAANALYSIS -> MainCategory.FEATURE_PROCESSING;
+      case NORMALIZATION, ANNOTATION, DATAANALYSIS,FEATURE_GROUPING, ION_IDENTITY_NETWORKS -> MainCategory.FEATURE_PROCESSING;
       case FEATURELISTEXPORT, FEATURELISTIMPORT -> MainCategory.FEATURE_IO;
       case VISUALIZATIONRAWDATA, VISUALIZATIONFEATURELIST -> MainCategory.VISUALIZATION;
       // no main category
       case HELPSYSTEM, TOOLS -> MainCategory.OTHER;
-      default -> throw new IllegalArgumentException("Category " + this + " has no main category.");
+      // no default so that the compiler marks missing cases
     };
   }
 

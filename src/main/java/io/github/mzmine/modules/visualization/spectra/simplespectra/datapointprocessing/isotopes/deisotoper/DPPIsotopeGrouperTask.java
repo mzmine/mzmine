@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,22 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
-import java.util.logging.Logger;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -36,16 +30,19 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
-import io.github.mzmine.util.scans.ScanUtils;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 /**
  *
@@ -177,8 +174,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       }
 
       DataPoint[] originalPeaks = bestFitPeaks.toArray(new DataPoint[0]);
-      SimpleIsotopePattern newPattern =
-          new SimpleIsotopePattern(originalPeaks, IsotopePatternStatus.DETECTED, aPeak.toString());
+      SimpleIsotopePattern newPattern = new SimpleIsotopePattern(originalPeaks, bestFitCharge,
+          IsotopePatternStatus.DETECTED, aPeak.toString());
 
       sortedDataPoints[i].addResult(new DPPIsotopePatternResult(newPattern, bestFitCharge));
       deisotopedDataPoints.add(sortedDataPoints[i]);
@@ -315,40 +312,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     if (isDisplayResults() || getController().isLastTaskRunning()) {
       getTargetPlot().addDataSet(
           new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), getColor(),
-          false);
+          false, true);
     }
   }
 
-  /**
-   * This method generates a single IsotopesDataSet from all detected isotope patterns in the
-   * results.
-   *
-   * @param dataPoints
-   * @return
-   */
-  private IsotopesDataSet compressIsotopeDataSets(ProcessedDataPoint[] dataPoints) {
-    List<IsotopePattern> list = new ArrayList<>();
-
-    for (ProcessedDataPoint dp : dataPoints) {
-      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-        list.add(((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))
-            .getValue());
-      }
-    }
-    if (list.isEmpty())
-      return null;
-
-    List<DataPoint> dpList = new ArrayList<>();
-
-    for (IsotopePattern pattern : list) {
-      for (DataPoint dp : ScanUtils.extractDataPoints(pattern))
-        dpList.add(dp);
-    }
-    if (dpList.isEmpty())
-      return null;
-
-    IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
-        IsotopePatternStatus.DETECTED, "Isotope patterns");
-    return new IsotopesDataSet(full);
-  }
 }

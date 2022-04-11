@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,67 +8,61 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.spectraldbsubmit.view;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.MassList;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.util.color.SimpleColorPalette;
+import io.github.mzmine.util.exceptions.MissingMassListException;
+import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
-import java.awt.BorderLayout;
-import java.awt.Color;
+import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.sorting.ScanSortMode;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.border.LineBorder;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.Document;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.MassList;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.gui.framework.documentfilter.DocumentSizeFilter;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
-import io.github.mzmine.util.exceptions.MissingMassListException;
-import io.github.mzmine.util.scans.ScanUtils;
-import io.github.mzmine.util.scans.sorting.ScanSortMode;
-import net.miginfocom.swing.MigLayout;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class ScanSelectPanel extends JPanel implements ActionListener {
+public class ScanSelectPanel extends BorderPane {
 
-  public final Color colorRemovedData;
-  public final Color colorUsedData;
-
-  private static final int SIZE = 40;
+  private static final Logger logger = Logger.getLogger(ScanSelectPanel.class.getName());
   // icons
   static final Image iconTIC = FxIconUtil.loadImageFromResources("icons/btnTIC.png");
   static final Image iconTICFalse = FxIconUtil.loadImageFromResources("icons/btnTIC_grey.png");
@@ -81,40 +75,40 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   static final Image iconPrev = FxIconUtil.loadImageFromResources("icons/btnPrev.png");
   static final Image iconNextGrey = FxIconUtil.loadImageFromResources("icons/btnNext_grey.png");
   static final Image iconPrevGrey = FxIconUtil.loadImageFromResources("icons/btnPrev_grey.png");
-
-  private Logger log = Logger.getLogger(this.getClass().getName());
-  private final Color errorColor = Color.decode("#ffb3b3");
-
-  private JToggleButton btnToggleUse;
-  private JTextField txtAdduct;
+  private static final int SIZE = 40;
+  public final Color colorRemovedData;
+  public final Color colorUsedData;
+  private final Color errorColor = Color.web("#ffb3b3");
+  private ToggleButton btnToggleUse;
+  private TextField txtAdduct;
   private ScanSortMode sort;
   // noise level to cut off signals
   private double noiseLevel;
   // minimum of 1
   private int minNumberOfSignals;
-  private JLabel lbMassListError;
+  private Label lbMassListError;
 
   //
   private List<Scan> scans;
   private int selectedScanI;
 
-  private JPanel pnChart;
+  private BorderPane pnChart;
 
-  private JToggleButton btnSignals;
-  private JToggleButton btnMaxTic;
+  private ToggleButton btnSignals;
+  private ToggleButton btnMaxTic;
   private SpectraPlot spectrumPlot;
 
   private Consumer<EChartPanel> listener;
-  private JLabel lblTic;
-  private JLabel lblSignals;
-  private JLabel lbTIC;
-  private JLabel lbSignals;
-  private Dimension chartSize = new Dimension(350, 320);
+  private Label lblTic;
+  private Label lblSignals;
+  private Label lbTIC;
+  private Label lbSignals;
+  private Dimension chartSize = new Dimension(500, 320);
   private boolean validSelection = false;
-  private JTextField txtCharge;
-  private JTextField txtPrecursorMZ;
-  private JLabel lblChargeMz;
-  private JButton btnFromScan;
+  private TextField txtCharge;
+  private TextField txtPrecursorMZ;
+  private Label lblChargeMz;
+  private Button btnFromScan;
 
   private boolean showRemovedData = true;
   private boolean showLegend = true;
@@ -124,10 +118,10 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   // data either row or scans
   private FeatureListRow row;
   private ObservableList<Scan> scansEntry;
-  private JLabel lblAdduct;
-  private JPanel pnData;
-  private JButton btnPrev;
-  private JButton btnNext;
+  private Label lblAdduct;
+  private GridPane pnData;
+  private Button btnPrev;
+  private Button btnNext;
 
   /**
    * Create the panel.
@@ -153,135 +147,149 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals) {
+//    setMinSize(400, 300);
+
     // get colors for vision
     SimpleColorPalette palette = MZmineCore.getConfiguration().getDefaultColorPalette();
-    colorUsedData = palette.getPositiveColorAWT();
-    colorRemovedData = palette.getNegativeColorAWT();
+    colorUsedData = palette.getPositiveColor();
+    colorRemovedData = palette.getNegativeColor();
 
-    setBorder(new LineBorder(UIManager.getColor("textHighlight")));
+//    setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.sort = sort;
     this.noiseLevel = noiseLevel;
     setMinNumberOfSignals(minNumberOfSignals);
-    setLayout(new BorderLayout(0, 0));
 
-    pnChart = new JPanel();
-    add(pnChart, BorderLayout.CENTER);
-    pnChart.setLayout(new BorderLayout(0, 0));
+    pnChart = new BorderPane();
+    setCenter(pnChart);
 
-    JPanel pnMenu = new JPanel();
-    add(pnMenu, BorderLayout.EAST);
-    pnMenu.setLayout(new BorderLayout(0, 0));
+    BorderPane pnMenu = new BorderPane();
+    setRight(pnMenu);
 
-    JPanel pnButtons = new JPanel();
-    pnMenu.add(pnButtons, BorderLayout.WEST);
-    pnButtons.setLayout(new MigLayout("", "[40px]", "[grow][40px][40px][40px][40px][40px][grow]"));
+    GridPane pnButtons = new GridPane();
+    pnMenu.setLeft(pnButtons);
+//    pnButtons.setLayout(new MigLayout("", "[40px]", "[grow][40px][40px][40px][40px][40px][grow]"));
 
     // TODO: uncomment all and change to JavaFX
-    btnToggleUse = new JToggleButton(/*iconCross*/);
+    btnToggleUse = new ToggleButton(null, new ImageView(iconCross));
     //btnToggleUse.setSelectedIcon(iconAccept);
-    btnToggleUse.setToolTipText(
-        "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once.");
-    btnToggleUse.setPreferredSize(new Dimension(SIZE, SIZE));
-    btnToggleUse.setMaximumSize(new Dimension(SIZE, SIZE));
-    pnButtons.add(btnToggleUse, "cell 0 1,grow");
+    btnToggleUse.setTooltip(new Tooltip(
+        "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once."));
+    btnToggleUse.setPrefSize(SIZE, SIZE);
+    btnToggleUse.setMaxSize(SIZE, SIZE);
+    pnButtons.add(btnToggleUse, 0, 1);
     btnToggleUse.setSelected(true);
-    btnToggleUse.addItemListener(il -> applySelectionState());
+    btnToggleUse.selectedProperty().addListener((o, ol, ne) -> applySelectionState());
 
-    btnNext = new JButton(/*iconNext*/);
+    btnNext = new Button(null, new ImageView(iconNext));
     //btnNext.setDisabledIcon(iconNextGrey);
-    btnNext.setToolTipText("Next spectrum (in respect to sorting)");
-    btnNext.setPreferredSize(new Dimension(SIZE, SIZE));
-    btnNext.setMaximumSize(new Dimension(SIZE, SIZE));
-    btnNext.addActionListener(a -> nextScan());
-    pnButtons.add(btnNext, "cell 0 2,grow");
+    btnNext.setTooltip(new Tooltip("Next spectrum (in respect to sorting)"));
+    btnNext.setPrefSize(SIZE, SIZE);
+    btnNext.setMaxSize(SIZE, SIZE);
+    btnNext.setOnAction(e -> nextScan());
+    pnButtons.add(btnNext, 0, 2);
 
-    btnPrev = new JButton(/*iconPrev*/);
+    btnPrev = new Button(null, new ImageView(iconPrev));
     //btnPrev.setDisabledIcon(iconPrevGrey);
-    btnPrev.setToolTipText("Previous spectrum (in respect to sorting)");
-    btnPrev.setPreferredSize(new Dimension(SIZE, SIZE));
-    btnPrev.setMaximumSize(new Dimension(SIZE, SIZE));
-    btnPrev.addActionListener(a -> prevScan());
-    pnButtons.add(btnPrev, "cell 0 3,grow");
+    btnPrev.setTooltip(new Tooltip("Previous spectrum (in respect to sorting)"));
+    btnPrev.setPrefSize(SIZE, SIZE);
+    btnPrev.setMaxSize(SIZE, SIZE);
+    btnPrev.setOnAction(a -> prevScan());
+    pnButtons.add(btnPrev, 0, 3);
 
-    btnMaxTic = new JToggleButton(/*iconTICFalse*/);
-    btnMaxTic.setToolTipText("Change sorting to max TIC");
+    btnMaxTic = new ToggleButton(null, new ImageView(iconTICFalse));
+    btnMaxTic.setTooltip(new Tooltip("Change sorting to max TIC"));
     //btnMaxTic.setSelectedIcon(iconTIC);
-    btnMaxTic.setPreferredSize(new Dimension(SIZE, SIZE));
-    btnMaxTic.setMaximumSize(new Dimension(SIZE, SIZE));
-    btnMaxTic.addItemListener(a -> {
-      if (a.getStateChange() == ItemEvent.SELECTED)
+    btnMaxTic.setPrefSize(SIZE, SIZE);
+    btnMaxTic.setMaxSize(SIZE, SIZE);
+    btnMaxTic.selectedProperty().addListener((o, ol, ne) -> {
+      if (ne) {
         setSortMode(ScanSortMode.MAX_TIC);
+      }
     });
-    pnButtons.add(btnMaxTic, "cell 0 4,grow");
+    pnButtons.add(btnMaxTic, 0, 4);
 
-    btnSignals = new JToggleButton(/*iconSignalsFalse*/);
-    btnSignals.setToolTipText("Change sorting to max number of signals");
-    //btnSignals.setSelectedIcon(iconSignals);
-    btnSignals.setPreferredSize(new Dimension(SIZE, SIZE));
-    btnSignals.setMaximumSize(new Dimension(SIZE, SIZE));
-    btnSignals.addItemListener(a -> {
-      if (a.getStateChange() == ItemEvent.SELECTED)
+    btnSignals = new ToggleButton(null, new ImageView(iconSignalsFalse));
+    btnSignals.setTooltip(new Tooltip("Change sorting to max number of signals"));
+//    btnSignals.setSelectedIcon(iconSignals);
+    btnSignals.setPrefSize(SIZE, SIZE);
+    btnSignals.setMaxSize(SIZE, SIZE);
+    btnSignals.selectedProperty().addListener((o, ol, ne) -> {
+      if (ne) {
         setSortMode(ScanSortMode.NUMBER_OF_SIGNALS);
+      }
     });
-    pnButtons.add(btnSignals, "cell 0 5,grow");
+    pnButtons.add(btnSignals, 0, 5);
 
-    ButtonGroup group = new ButtonGroup();
-    group.add(btnSignals);
-    group.add(btnMaxTic);
+    ToggleGroup group = new ToggleGroup();
+    group.getToggles().add(btnSignals);
+    group.getToggles().add(btnMaxTic);
 
-    pnData = new JPanel();
-    pnMenu.add(pnData, BorderLayout.CENTER);
-    pnData.setLayout(new MigLayout("", "[grow][][]", "[][][][][][][][]"));
+    pnData = new GridPane();
+    pnMenu.setCenter(pnData);
+//    pnData.setLayout(new MigLayout("", "[grow][][]", "[][][][][][][][]"));
 
-    lblAdduct = new JLabel("Adduct:");
-    pnData.add(lblAdduct, "cell 0 0 3 1");
+    lblAdduct = new Label("Adduct:");
+//    pnData.add(lblAdduct, "cell 0 0 3 1");
+    pnData.add(lblAdduct, 0, 0, 3, 1);
 
-    txtAdduct = new JTextField();
-    Document doc = txtAdduct.getDocument();
-    if (doc instanceof AbstractDocument)
+    txtAdduct = new TextField();
+    /*Document doc = txtAdduct.getDocument();
+    if (doc instanceof AbstractDocument) {
       ((AbstractDocument) doc).setDocumentFilter(new DocumentSizeFilter(20));
-    txtAdduct.setToolTipText(
-        "Insert adduct in this format: M+H, M-H2O+H, 2M+Na, M+2H+2 (for doubly charged)");
-    pnData.add(txtAdduct, "cell 0 1 3 1,growx");
-    txtAdduct.setColumns(10);
+    }*/
+    txtAdduct.setTooltip(new Tooltip(
+        "Insert adduct in this format: M+H, M-H2O+H, 2M+Na, M+2H+2 (for doubly charged)"));
+//    pnData.add(txtAdduct, "cell 0 1 3 1,growx");
+    pnData.add(txtAdduct, 0, 1, 3, 1);
+    txtAdduct.setPrefColumnCount(10);
 
-    lblChargeMz = new JLabel("Charge; m/z");
-    pnData.add(lblChargeMz, "cell 0 2");
+    lblChargeMz = new Label("Charge; m/z");
+//    pnData.add(lblChargeMz, "cell 0 2");
+    pnData.add(lblChargeMz, 0, 2);
 
-    txtCharge = new JTextField();
-    txtCharge.setToolTipText("Charge (numeric, integer)");
+    txtCharge = new TextField();
+    txtCharge.setTooltip(new Tooltip("Charge (numeric, integer)"));
     txtCharge.setText("1");
-    pnData.add(txtCharge, "cell 0 3,growx,aligny top");
-    txtCharge.setColumns(4);
+//    pnData.add(txtCharge, "cell 0 3,growx,aligny top");
+    pnData.add(txtCharge, 0, 3);
+    txtCharge.setPrefColumnCount(4);
 
-    txtPrecursorMZ = new JTextField();
-    txtPrecursorMZ.setToolTipText("Exact (ideally calculated) precursor m/z of this ion");
-    pnData.add(txtPrecursorMZ, "cell 0 4,growx,aligny top");
-    txtPrecursorMZ.setColumns(9);
+    txtPrecursorMZ = new TextField();
+    txtPrecursorMZ.setTooltip(new Tooltip("Exact (ideally calculated) precursor m/z of this ion"));
+//    pnData.add(txtPrecursorMZ, "cell 0 4,growx,aligny top");
+    pnData.add(txtPrecursorMZ, 0, 4);
+    txtPrecursorMZ.setPrefColumnCount(9);
 
-    btnFromScan = new JButton("From scan");
-    btnFromScan.setToolTipText("Precursor m/z and charge from scan or feature");
-    btnFromScan.addActionListener(e -> setMZandChargeFromScan());
-    pnData.add(btnFromScan, "cell 0 5,growx");
+    btnFromScan = new Button("From scan");
+    btnFromScan.setTooltip(new Tooltip("Precursor m/z and charge from scan or feature"));
+    btnFromScan.setOnAction(e -> setMZandChargeFromScan());
+//    pnData.add(btnFromScan, "cell 0 5,growx");
+    pnData.add(btnFromScan, 0, 5);
 
-    lblTic = new JLabel("TIC=");
-    pnData.add(lblTic, "cell 0 6,alignx trailing");
+    lblTic = new Label("TIC=");
+//    pnData.add(lblTic, "cell 0 6,alignx trailing");
+    pnData.add(lblTic, 0, 6);
 
-    lbTIC = new JLabel("0");
-    pnData.add(lbTIC, "cell 1 6");
+    lbTIC = new Label("0");
+//    pnData.add(lbTIC, "cell 1 6");
+    pnData.add(lbTIC, 1, 6);
 
-    lblSignals = new JLabel("signals: ");
-    pnData.add(lblSignals, "cell 0 7,alignx trailing");
+    lblSignals = new Label("Signals: ");
+//    pnData.add(lblSignals, "cell 0 7,alignx trailing");
+    pnData.add(lblSignals, 0, 7);
 
-    lbSignals = new JLabel("0");
-    pnData.add(lbSignals, "cell 1 7");
+    lbSignals = new Label("0");
+//    pnData.add(lbSignals, "cell 1 7");
+    pnData.add(lbSignals, 1, 7);
 
-    lbMassListError = new JLabel("ERROR with masslist selection: Wrong name or no masslist");
-    lbMassListError.setFont(new Font("Tahoma", Font.BOLD, 13));
-    lbMassListError.setHorizontalAlignment(SwingConstants.CENTER);
-    lbMassListError.setForeground(new Color(220, 20, 60));
+    lbMassListError = new Label("ERROR with masslist selection: Wrong name or no masslist");
+//    lbMassListError.setFont(new Font("Tahoma", Font.BOLD, 13));
+    lbMassListError.setAlignment(Pos.CENTER);
+    lbMassListError
+        .setTextFill(new Color(220 / (double) 255, 20 / (double) 255, 60 / (double) 255, 1d));
     lbMassListError.setVisible(false);
-    add(lbMassListError, BorderLayout.NORTH);
+//    add(lbMassListError, BorderLayout.NORTH);
+    setTop(lbMassListError);
   }
 
   /**
@@ -298,8 +306,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     txtCharge.setVisible(isFragmentScan);
     txtPrecursorMZ.setVisible(isFragmentScan);
     btnFromScan.setVisible(isFragmentScan);
-    pnData.revalidate();
-    pnData.repaint();
+//    pnData.revalidate();
+//    pnData.repaint();
 
     // if data is from rows - get new list of scans
     if (row != null) {
@@ -313,22 +321,26 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
    */
   public void setMZandChargeFromScan() {
     // MS1
-    if (!isFragmentScan)
+    if (!isFragmentScan) {
       return;
+    }
 
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
-      double mz = scan.getPrecursorMZ();
+      double mz = scan.getPrecursorMz() != null ? scan.getPrecursorMz() : 0;
       if (mz == 0) {
-        if (row != null)
+        if (row != null) {
           mz = row.getAverageMZ();
+        }
       }
-      int charge = scan.getPrecursorCharge();
-      if (charge == 0 && row != null)
+      int charge = scan.getPrecursorCharge() != null ? scan.getPrecursorCharge() : 0;
+      if (charge == 0 && row != null) {
         charge = row.getRowCharge();
+      }
 
-      if (charge == 0)
+      if (charge == 0) {
         charge = 1;
+      }
 
       // set as text
       txtCharge.setText(String.valueOf(charge));
@@ -353,10 +365,14 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   public double getPrecursorMZ() {
     try {
       double c = Double.parseDouble(txtPrecursorMZ.getText());
-      txtCharge.setBorder(BorderFactory.createLineBorder(Color.black));
+      txtPrecursorMZ.setBorder(new Border(
+          new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+              new BorderWidths(1d))));
       return c;
     } catch (Exception e) {
-      txtCharge.setBorder(BorderFactory.createLineBorder(Color.red));
+      txtPrecursorMZ.setBorder(new Border(
+          new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+              new BorderWidths(1d))));
       return 0;
     }
   }
@@ -364,31 +380,39 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   public int getPrecursorCharge() {
     try {
       int c = Integer.parseInt(txtCharge.getText());
-      txtCharge.setBorder(BorderFactory.createLineBorder(Color.black));
+      txtCharge.setBorder(new Border(
+          new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+              new BorderWidths(1d))));
       return c;
     } catch (Exception e) {
-      txtCharge.setBorder(BorderFactory.createLineBorder(Color.red));
+      txtCharge.setBorder(new Border(
+          new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+              new BorderWidths(1d))));
       return 0;
     }
   }
 
   public boolean checkParameterValues(List<String> messages) {
     // no parameters for MS1 scan
-    if (!isFragmentScan)
+    if (!isFragmentScan) {
       return true;
+    }
 
     // for MS/MS scans:
     String adduct = getAdduct();
-    if (adduct.isEmpty())
+    if (adduct.isEmpty()) {
       messages.add("Adduct is not set properly: " + txtAdduct.getText());
+    }
 
     int charge = getPrecursorCharge();
-    if (charge <= 0)
+    if (charge <= 0) {
       messages.add("Charge is not set properly: " + txtCharge.getText());
+    }
 
     double mz = getPrecursorCharge();
-    if (mz <= 0)
+    if (mz <= 0) {
       messages.add("Precursor m/z is not set properly: " + txtPrecursorMZ.getText());
+    }
 
     return !(adduct.isEmpty() || charge <= 0 || mz <= 0);
   }
@@ -406,13 +430,15 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     boolean selected = btnToggleUse.isSelected();
     SpectraPlot chart = getChart();
     if (chart != null) {
-      chart.getChart().getXYPlot().setBackgroundPaint(selected ? Color.WHITE : errorColor);
+      chart.getChart().getXYPlot().setBackgroundPaint(
+          selected ? FxColorUtil.fxColorToAWT(Color.WHITE) : FxColorUtil.fxColorToAWT(errorColor));
     }
   }
 
   public void setSortMode(ScanSortMode sort) {
-    if (this.sort.equals(sort))
+    if (this.sort.equals(sort)) {
       return;
+    }
 
     this.sort = sort;
     switch (sort) {
@@ -436,8 +462,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
    * Creates a sorted list of all scans that match the minimum criteria
    */
   private void createSortedScanList() {
-    if (row == null && scansEntry == null)
+    if (row == null && scansEntry == null) {
       return;
+    }
     // get all scans that match filter criteria
     try {
       if (row != null) {
@@ -458,14 +485,14 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
       // no error
       lbMassListError.setVisible(false);
-      revalidate();
-      repaint();
+//      revalidate();
+//      repaint();
     } catch (MissingMassListException e) {
-      log.log(Level.WARNING, e.getMessage(), e);
+      logger.log(Level.WARNING, e.getMessage(), e);
       // create error label
       lbMassListError.setVisible(true);
-      revalidate();
-      repaint();
+//      revalidate();
+//      repaint();
     }
     // create chart
     createChart();
@@ -485,7 +512,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     }
   }
 
-  public JToggleButton getBtnToggleUse() {
+  public ToggleButton getBtnToggleUse() {
     return btnToggleUse;
   }
 
@@ -502,7 +529,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
    */
   public void createChart() {
     setValidSelection(false);
-    pnChart.removeAll();
+    pnChart.getChildren().clear();
 
     if (scans != null && !scans.isEmpty()) {
       // get MS/MS spectra window only for the spectra chart
@@ -510,6 +537,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
       if (spectrumPlot == null) {
         spectrumPlot = new SpectraPlot();
+//        spectrumPlot.setMinSize(400, 400);
         if (listener != null) {
           // chart has changed
           // listener.accept(spectrumPlot);
@@ -519,17 +547,18 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
       DataPointsDataSet data = new DataPointsDataSet("Data", getFilteredDataPoints());
       // green
-      spectrumPlot.addDataSet(data, colorUsedData, false);
+      spectrumPlot.addDataSet(data, FxColorUtil.fxColorToAWT(colorUsedData), false, true);
       if (showRemovedData) {
         // orange
         DataPointsDataSet dataRemoved =
             new DataPointsDataSet("Removed", getFilteredDataPointsRemoved());
-        spectrumPlot.addDataSet(dataRemoved, colorRemovedData, false);
+        spectrumPlot.addDataSet(dataRemoved, FxColorUtil.fxColorToAWT(colorRemovedData), false,
+            true);
       }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
       // spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
-      // spectrumPlot.setPreferredSize(chartSize);
-      // pnChart.add(spectrumPlot, BorderLayout.CENTER);
+       spectrumPlot.setPrefSize(chartSize.width, chartSize.height);
+      pnChart.setCenter(spectrumPlot);
 
       Scan scan = scans.get(selectedScanI);
       analyzeScan(scan);
@@ -537,26 +566,26 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       setValidSelection(true);
     } else {
       // add error label
-      JLabel error = new JLabel(MessageFormat
+      Label error = new Label(MessageFormat
           .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
-      error.setFont(new Font("Tahoma", Font.BOLD, 13));
-      error.setHorizontalAlignment(SwingConstants.CENTER);
-      pnChart.add(error, BorderLayout.CENTER);
+//      error.setFont(new Font("Tahoma", Font.BOLD, 13));
+      error.setAlignment(Pos.CENTER);
+      pnChart.setCenter(error);
       //
     }
     // set next and prev button enabled
-    btnPrev.setEnabled(selectedScanI - 1 >= 0);
-    btnNext.setEnabled(scans != null && selectedScanI + 1 < scans.size());
+    btnPrev.setDisable(!(selectedScanI - 1 >= 0));
+    btnNext.setDisable(!(scans != null && selectedScanI + 1 < scans.size()));
 
-    revalidate();
-    repaint();
   }
 
   private int getTotalScans() {
-    if (row != null)
-      return row.getAllMS2Fragmentations().size();
-    if (scansEntry != null)
+    if (row != null) {
+      return row.getAllFragmentScans().size();
+    }
+    if (scansEntry != null) {
       return scansEntry.size();
+    }
     return 0;
   }
 
@@ -572,8 +601,6 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       int signals = ScanUtils.getNumberOfSignals(dp, noiseLevel);
       lbTIC.setText(MZmineCore.getConfiguration().getIntensityFormat().format(tic));
       lbSignals.setText("" + signals);
-      lbTIC.getParent().revalidate();
-      lbTIC.getParent().repaint();
     }
   }
 
@@ -587,8 +614,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
       MassList massList = scan.getMassList();
-      if (massList != null)
+      if (massList != null) {
         return ScanUtils.getFiltered(massList.getDataPoints(), noiseLevel);
+      }
     }
     return null;
   }
@@ -603,13 +631,14 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
       MassList massList = scan.getMassList();
-      if (massList != null)
+      if (massList != null) {
         return ScanUtils.getBelowThreshold(massList.getDataPoints(), noiseLevel);
+      }
     }
     return null;
   }
 
-  public JLabel getLbMassListError() {
+  public Label getLbMassListError() {
     return lbMassListError;
   }
 
@@ -622,11 +651,11 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     this.listener = listener;
   }
 
-  public JLabel getLbTIC() {
+  public Label getLbTIC() {
     return lbTIC;
   }
 
-  public JLabel getLbSignals() {
+  public Label getLbSignals() {
     return lbSignals;
   }
 
@@ -635,20 +664,24 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
    *
    * @return The adduct or an empty String for wrong input
    */
-  @Nonnull
+  @NotNull
   public String getAdduct() {
     String adduct = txtAdduct.getText();
 
     String formatted = AdductParser.parse(adduct);
     if (formatted.isEmpty()) {
-      txtAdduct.setBorder(BorderFactory.createLineBorder(Color.red));
+      txtAdduct.setBorder(new Border(
+          new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+              new BorderWidths(1d))));
       return "";
     }
 
     if (!formatted.equals(adduct)) {
       txtAdduct.setText(formatted);
     }
-    txtAdduct.setBorder(BorderFactory.createLineBorder(Color.black));
+    txtAdduct.setBorder(new Border(
+        new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY,
+            new BorderWidths(1d))));
     return formatted;
   }
 
@@ -669,22 +702,16 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     return isSelected() && validSelection;
   }
 
-  public JTextField getTxtCharge() {
+  public TextField getTxtCharge() {
     return txtCharge;
   }
 
-  public JTextField getTxtPrecursorMZ() {
+  public TextField getTxtPrecursorMZ() {
     return txtPrecursorMZ;
   }
 
   public boolean hasAdduct() {
     return !getAdduct().isEmpty();
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    // TODO Auto-generated method stub
-
   }
 
 }

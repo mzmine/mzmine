@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
@@ -82,9 +82,11 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class SpectralMatchPanelFX extends GridPane {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private static final int ICON_WIDTH = 50;
+  public static final int META_WIDTH = 500;
+  public static final int ENTRY_HEIGHT = 500;
+  public static final int STRUCTURE_HEIGHT = 150;
+  public static final double MIN_COS_COLOR_VALUE = 0.5;
+  public static final double MAX_COS_COLOR_VALUE = 1.0;
   protected static final Image iconAll = FxIconUtil
       .loadImageFromResources("icons/exp_graph_all.png");
   protected static final Image iconPdf = FxIconUtil
@@ -95,44 +97,27 @@ public class SpectralMatchPanelFX extends GridPane {
       .loadImageFromResources("icons/exp_graph_emf.png");
   protected static final Image iconSvg = FxIconUtil
       .loadImageFromResources("icons/exp_graph_svg.png");
-
+  private static final int ICON_WIDTH = 50;
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
-
-  private static Font font;
-
-  public static final int META_WIDTH = 500;
-  public static final int ENTRY_HEIGHT = 500;
-  public static final int STRUCTURE_HEIGHT = 150;
-
-  public static final double MIN_COS_COLOR_VALUE = 0.5;
-  public static final double MAX_COS_COLOR_VALUE = 1.0;
-
   // min color is a darker red
   // max color is a darker green
   public static Color MAX_COS_COLOR = Color.web("0x388E3C");
   public static Color MIN_COS_COLOR = Color.web("0xE30B0B");
-
+  private static Font font;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final EChartViewer mirrorChart;
-
+  private final SpectralDBFeatureIdentity hit;
   private boolean setCoupleZoomY;
-
   private XYPlot queryPlot;
   private XYPlot libraryPlot;
-
   private VBox metaDataPanel;
   private ScrollPane metaDataScroll;
   private GridPane pnTitle;
   private GridPane pnExport;
-
   private BorderPane mirrorChartWrapper;
-
   private Label lblScore;
   private Label lblHit;
-
   private EStandardChartTheme theme;
-
-  private final SpectralDBFeatureIdentity hit;
-
   private SpectralMatchPanel swingPanel;
 
   public SpectralMatchPanelFX(SpectralDBFeatureIdentity hit) {
@@ -161,8 +146,7 @@ public class SpectralMatchPanelFX extends GridPane {
 
     // put into main
     ColumnConstraints ccSpectrum = new ColumnConstraints(400, -1, Region.USE_COMPUTED_SIZE,
-        Priority.ALWAYS, HPos.CENTER,
-        true);
+        Priority.ALWAYS, HPos.CENTER, true);
     ColumnConstraints ccMetadata = new ColumnConstraints(META_WIDTH + 30, META_WIDTH + 30,
         Region.USE_COMPUTED_SIZE, Priority.NEVER, HPos.LEFT, false);
 
@@ -194,9 +178,9 @@ public class SpectralMatchPanelFX extends GridPane {
 
     lblScore = new Label(COS_FORM.format(simScore));
     lblScore.getStyleClass().add("white-score-label");
-    lblScore
-        .setTooltip(new Tooltip("Cosine similarity of raw data scan (top, blue) and database scan: "
-            + COS_FORM.format(simScore)));
+    lblScore.setTooltip(new Tooltip(
+        "Cosine similarity of raw data scan (top, blue) and database scan: " + COS_FORM
+            .format(simScore)));
 
     pnTitle.add(lblHit, 0, 0);
     pnTitle.add(lblScore, 1, 0);
@@ -272,17 +256,17 @@ public class SpectralMatchPanelFX extends GridPane {
     g1.getStyleClass().add("region");
     BorderPane pnCompounds = extractMetaData("Compound information", hit.getEntry(),
         DBEntryField.COMPOUND_FIELDS);
-    BorderPane panelInstrument =
-        extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
+    BorderPane panelInstrument = extractMetaData("Instrument information", hit.getEntry(),
+        DBEntryField.INSTRUMENT_FIELDS);
     g1.add(pnCompounds, 0, 0);
     g1.add(panelInstrument, 1, 0);
     g1.getColumnConstraints().add(0, ccMetadata1);
     g1.getColumnConstraints().add(1, ccMetadata2);
 
-    BorderPane pnDB =
-        extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
-    BorderPane pnOther =
-        extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
+    BorderPane pnDB = extractMetaData("Database links", hit.getEntry(),
+        DBEntryField.DATABASE_FIELDS);
+    BorderPane pnOther = extractMetaData("Other information", hit.getEntry(),
+        DBEntryField.OTHER_FIELDS);
     g1.add(pnDB, 0, 1);
     g1.add(pnOther, 1, 1);
 
@@ -330,12 +314,17 @@ public class SpectralMatchPanelFX extends GridPane {
   private void rangeHasChanged(Range range) {
     if (setCoupleZoomY) {
       ValueAxis axis = libraryPlot.getRangeAxis();
-      if (!axis.getRange().equals(range)) {
-        axis.setRange(range);
-      }
       ValueAxis axisQuery = queryPlot.getRangeAxis();
-      if (!axisQuery.getRange().equals(range)) {
-        axisQuery.setRange(range);
+      // is this range still active or was it changed again?
+      final Range axisRange = axis.getRange();
+      final Range queryRange = axisQuery.getRange();
+      if (axisRange.equals(range) ^ queryRange.equals(range)) {
+        if (!axisRange.equals(range)) {
+          axis.setRange(range);
+        }
+        if (!queryRange.equals(range)) {
+          axisQuery.setRange(range);
+        }
       }
     }
   }
@@ -356,8 +345,8 @@ public class SpectralMatchPanelFX extends GridPane {
       try {
         factory = InChIGeneratorFactory.getInstance();
         // Get InChIToStructure
-        InChIToStructure inchiToStructure =
-            factory.getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
+        InChIToStructure inchiToStructure = factory
+            .getInChIToStructure(inchiString, DefaultChemObjectBuilder.getInstance());
         molecule = inchiToStructure.getAtomContainer();
         return molecule;
       } catch (CDKException e) {
@@ -424,15 +413,20 @@ public class SpectralMatchPanelFX extends GridPane {
   private void addExportButtons(ParameterSet param) {
     Button btnExport = null;
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
-      ImageView img = new ImageView(iconAll);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("all"));
-      pnExport.add(btnExport, 0, 0);
-    }
+    // TODO does not work - so remove
+    //    if (true) {
+    //      return;
+    //    }
+
+    //    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
+    //      ImageView img = new ImageView(iconAll);
+    //      img.setPreserveRatio(true);
+    //      img.setFitWidth(ICON_WIDTH);
+    //      btnExport = new Button(null, img);
+    //      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+    //      btnExport.setOnAction(e -> exportToGraphics("all"));
+    //      pnExport.add(btnExport, 0, 0);
+    //    }
 
     if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
       ImageView img = new ImageView(iconPdf);
@@ -464,15 +458,16 @@ public class SpectralMatchPanelFX extends GridPane {
       pnExport.add(btnExport, 0, 3);
     }
 
-    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
-      ImageView img = new ImageView(iconSvg);
-      img.setPreserveRatio(true);
-      img.setFitWidth(ICON_WIDTH);
-      btnExport = new Button(null, img);
-      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
-      btnExport.setOnAction(e -> exportToGraphics("svg"));
-      pnExport.add(btnExport, 0, 4);
-    }
+    //TODO SVG broken somehow
+    //    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
+    //      ImageView img = new ImageView(iconSvg);
+    //      img.setPreserveRatio(true);
+    //      img.setFitWidth(ICON_WIDTH);
+    //      btnExport = new Button(null, img);
+    //      btnExport.setMaxSize(ICON_WIDTH + 6, ICON_WIDTH + 6);
+    //      btnExport.setOnAction(e -> exportToGraphics("svg"));
+    //      pnExport.add(btnExport, 0, 4);
+    //    }
   }
 
   /**
@@ -483,9 +478,9 @@ public class SpectralMatchPanelFX extends GridPane {
   public void exportToGraphics(String format) {
 
     // old path
-    FileNameParameter param =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
-            .getParameter(SpectraIdentificationResultsParameters.file);
+    FileNameParameter param = MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class)
+        .getParameter(SpectraIdentificationResultsParameters.file);
     final FileChooser chooser;
     if (param.getValue() != null) {
       chooser = new FileChooser();

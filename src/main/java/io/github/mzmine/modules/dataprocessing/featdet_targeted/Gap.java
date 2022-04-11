@@ -1,35 +1,35 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_targeted;
 
-import io.github.mzmine.datamodel.features.FeatureListRow;
-import io.github.mzmine.datamodel.features.ModularFeature;
-import java.util.List;
-import java.util.Vector;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.util.scans.ScanUtils;
+import java.util.List;
+import java.util.Vector;
 
 class Gap {
 
@@ -175,24 +175,22 @@ class Gap {
         double intensityEnd = bestPeakDataPoints.get(i + 1).getIntensity();
 
         // calculate area of the interval
-        area += (rtDifference * (intensityStart + intensityEnd) / 2);
+        area += (float) (rtDifference * (intensityStart + intensityEnd) / 2);
 
       }
 
       // Calculate average m/z value
       mz /= bestPeakDataPoints.size();
 
-      // Find the best fragmentation scan, if available
-      Scan fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
-
       // Find all MS2 fragment scans, if available
-      Scan[] allMS2fragmentScanNumbers =
-          ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
+      List<Scan> allMS2fragmentScanNumbers = ScanUtils.streamAllMS2FragmentScans(rawDataFile,
+          finalRTRange, finalMZRange).toList();
 
       // Is intensity above the noise level?
       if (height >= noiseLevel) {
-        ModularFeature newPeak = new ModularFeature((ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area, scanNumbers,
-            finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
+        ModularFeature newPeak = new ModularFeature(
+            (ModularFeatureList) peakListRow.getFeatureList(), rawDataFile, mz, rt, height, area,
+            scanNumbers, finalDataPoint, FeatureStatus.ESTIMATED, representativeScan,
             allMS2fragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
         // Fill the gap

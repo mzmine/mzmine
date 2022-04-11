@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.histogram;
 
-import io.github.mzmine.datamodel.features.FeatureList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +29,9 @@ import org.jfree.data.statistics.HistogramType;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.Feature;
+import io.github.mzmine.datamodel.features.FeatureList;
 
 public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
@@ -207,8 +207,8 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
     HashMap<String, Object> map = new HashMap<String, Object>();
     map.put("key", key);
     map.put("bins", binList);
-    map.put("values.length", new Integer(values.length));
-    map.put("bin width", new Double(binWidth));
+    map.put("values.length", values.length);
+    map.put("bin width", binWidth);
     map.put("values", values);
     this.list.add(map);
   }
@@ -361,7 +361,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
     double x = (bin.getStartBoundary() + bin.getEndBoundary()) / 2.;
-    return new Double(x);
+    return x;
   }
 
   /**
@@ -383,11 +383,11 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
     double binWidth = getBinWidth(series);
 
     if (this.type == HistogramType.FREQUENCY) {
-      return new Double(bin.getCount());
+      return bin.getCount();
     } else if (this.type == HistogramType.RELATIVE_FREQUENCY) {
-      return new Double(bin.getCount() / total);
+      return bin.getCount() / total;
     } else if (this.type == HistogramType.SCALE_AREA_TO_1) {
-      return new Double(bin.getCount() / (binWidth * total));
+      return bin.getCount() / (binWidth * total);
     } else { // pretty sure this shouldn't ever happen
       throw new IllegalStateException();
     }
@@ -408,7 +408,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   public Number getStartX(int series, int item) {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
-    return new Double(bin.getStartBoundary());
+    return bin.getStartBoundary();
   }
 
   /**
@@ -426,7 +426,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
   public Number getEndX(int series, int item) {
     List<?> bins = getBins(series);
     HistogramBin bin = (HistogramBin) bins.get(item);
-    return new Double(bin.getEndBoundary());
+    return bin.getEndBoundary();
   }
 
   /**

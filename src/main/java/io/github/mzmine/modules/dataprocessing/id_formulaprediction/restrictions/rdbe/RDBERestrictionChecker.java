@@ -1,32 +1,28 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe;
 
+import com.google.common.collect.Range;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.ParameterSet;
 
 public class RDBERestrictionChecker {
 
@@ -35,6 +31,7 @@ public class RDBERestrictionChecker {
    * lowest (ground) valence.
    */
   private static final Map<String, Integer> valences = new HashMap<String, Integer>();
+
   static {
     valences.put("H", 1);
     valences.put("C", 4);
@@ -54,12 +51,11 @@ public class RDBERestrictionChecker {
 
   /**
    * Calculates possible RDBE (degree of unsaturation) values according to the formula:
-   * 
+   * <p>
    * RDBE = 1 + Sum(ni x vi - 2) / 2
-   * 
+   * <p>
    * where ni is the number of atoms with valence vi. If multiple valences are allowed (e.g. N may
    * have valence 3 or 5), there may be multiple results for RDBE.
-   * 
    */
   public static Double calculateRDBE(IMolecularFormula formula) {
 
@@ -83,8 +79,9 @@ public class RDBERestrictionChecker {
     for (IIsotope isotope : formula.isotopes()) {
 
       Integer valence = valences2.get(isotope.getSymbol());
-      if (valence == null)
+      if (valence == null) {
         return null;
+      }
       sum += (valence - 2) * formula.getIsotopeCount(isotope);
     }
 
@@ -94,18 +91,13 @@ public class RDBERestrictionChecker {
     return sum;
   }
 
-  public static boolean checkRDBE(double rdbeValue, ParameterSet parameters) {
-
-    boolean mustBeInteger =
-        parameters.getParameter(RDBERestrictionParameters.rdbeWholeNum).getValue();
-    Range<Double> rdbeRange =
-        parameters.getParameter(RDBERestrictionParameters.rdbeRange).getValue();
-
-    if ((mustBeInteger) && (Math.floor(rdbeValue) != rdbeValue))
+  public static boolean checkRDBE(double rdbeValue, Range<Double> rdbeRange,
+      boolean mustBeInteger) {
+    if ((mustBeInteger) && (Math.floor(rdbeValue) != rdbeValue)) {
       return false;
+    }
 
     return rdbeRange.contains(rdbeValue);
-
   }
 
 }

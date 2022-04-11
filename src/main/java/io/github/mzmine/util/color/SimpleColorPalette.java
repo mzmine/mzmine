@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.util.color;
@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.w3c.dom.Element;
 
@@ -47,6 +47,10 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
       new Color[]{new Color(0.3d, 0d, 0.4d, 1d), new Color(0d, 0d, 1d, 1d),
           new Color(0d, 1d, 0d, 1d), new Color(1d, 1d, 0d, 1d), new Color(1d, .5d, 0, 1d),
           new Color(1d, 0, 0, 1d)}, "Rainbow");
+
+  public static final SimpleColorPalette BLUE_RED_WHITE = new SimpleColorPalette(
+      new Color[]{new Color(0d, 0d, 1d, 1d),
+          new Color(1d, 0, 0, 1d), new Color(1d, 1d, 1d, 1d)}, "Default");
 
   protected static final SimpleColorPalette DEFAULT_NORMAL =
       new SimpleColorPalette(ColorsFX.getSevenColorPalette(Vision.NORMAL_VISION, true), "Normal",
@@ -99,19 +103,19 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     neutralColor = ColorsFX.getNeutralColor();
   }
 
-  public SimpleColorPalette(@Nonnull Color[] clrs) {
+  public SimpleColorPalette(@NotNull Color[] clrs) {
     this();
     for (Color clr : clrs) {
       add(clr);
     }
   }
 
-  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name) {
+  public SimpleColorPalette(@NotNull Color[] clrs, @NotNull String name) {
     this(clrs);
     setName(name);
   }
 
-  public SimpleColorPalette(@Nonnull Color[] clrs, @Nonnull String name, Color positiveColor,
+  public SimpleColorPalette(@NotNull Color[] clrs, @NotNull String name, Color positiveColor,
       Color neutralColor, Color negativeColor) {
     this(clrs, name);
 
@@ -162,7 +166,7 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return FxColorUtil.fxColorToAWT(getNextColor());
   }
 
-  @Nonnull
+  @NotNull
   public Color getMainColor() {
     if (isValid()) {
       return get(MAIN_COLOR);
@@ -192,12 +196,12 @@ public class SimpleColorPalette extends ModifiableObservableListBase<Color> impl
     return true;
   }
 
-  @Nonnull
+  @NotNull
   public String getName() {
     return name;
   }
 
-  public void setName(@Nonnull String name) {
+  public void setName(@NotNull String name) {
     this.name = name;
   }
 

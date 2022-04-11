@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,26 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.logging.Logger;
-import org.jfree.chart.ChartRenderingInfo;
-import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.EntityCollection;
-import org.jfree.chart.fx.ChartCanvas;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.fx.interaction.MouseHandlerFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
@@ -41,9 +31,19 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.Handler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import org.jfree.chart.ChartRenderingInfo;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.fx.interaction.MouseHandlerFX;
 
 /**
  * Handles drag zooming of charts on a {@link ChartCanvas}. This handler should be configured with
@@ -127,7 +127,6 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    * Add drag handlers for each key (key and handler have to be ordered)
    *
-   * @param g
    * @param handler
    */
   @Override
@@ -141,7 +140,6 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    * Add a preset handler for specific gestures and ChartMouseGestureEvents
    *
-   * @param g
    * @param handler
    */
   @Override
@@ -155,13 +153,12 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    * Add a handler for specific gestures and ChartMouseGestureEvents
    *
-   * @param g
    * @param handler
    */
   @Override
   public void addGestureHandler(ChartGestureHandler handler) {
     if (gestureHandlers == null) {
-      gestureHandlers = new ArrayList<ChartGestureHandler>();
+      gestureHandlers = new ArrayList<>();
       for (Event e : Event.values())
         listensFor.put(e, false);
     }
@@ -174,7 +171,6 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    * Add a handler for specific gestures and ChartMouseGestureEvents
    *
-   * @param g
    * @param handler
    */
   @Override
@@ -197,9 +193,6 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
    *
-   * @param chartPanel
-   * @param x
-   * @param y
    * @return
    */
   private ChartEntity findChartEntity(MouseEventWrapper e) {
@@ -248,10 +241,10 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
    * Handles a mouse moved event. This implementation does nothing, override the method if required.
    *
    * @param canvas the canvas ({@code null} not permitted).
-   * @param e the event ({@code null} not permitted).
+   * @param eOrig the event ({@code null} not permitted).
    */
   @Override
-  public void handleMouseMoved(ChartCanvas chartPanel, MouseEvent eOrig) {
+  public void handleMouseMoved(ChartCanvas canvas, MouseEvent eOrig) {
     if (gestureHandlers == null || gestureHandlers.isEmpty() || !listensFor(Event.MOVED))
       return;
 
@@ -271,13 +264,15 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
    * required.
    *
    * @param canvas the canvas ({@code null} not permitted).
-   * @param e the event ({@code null} not permitted).
+   * @param eOrig the event ({@code null} not permitted).
    */
   @Override
-  public void handleMouseClicked(ChartCanvas chartPanel, MouseEvent eOrig) {
-    if (gestureHandlers == null || gestureHandlers.isEmpty()
-        || !(listensFor(Event.CLICK) || listensFor(Event.DOUBLE_CLICK)))
+  public void handleMouseClicked(ChartCanvas canvas, MouseEvent eOrig) {
+    // if mouse was moved during click - do not count click
+    if (!eOrig.isStillSincePress() || gestureHandlers == null || gestureHandlers.isEmpty() || !(
+        listensFor(Event.CLICK) || listensFor(Event.DOUBLE_CLICK))) {
       return;
+    }
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
     ChartEntity entity = findChartEntity(e);
@@ -303,10 +298,10 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
   /**
    *
    * @param canvas the canvas ({@code null} not permitted).
-   * @param e the event ({@code null} not permitted).
+   * @param eOrig the event ({@code null} not permitted).
    */
   @Override
-  public void handleMouseReleased(ChartCanvas chartPanel, MouseEvent eOrig) {
+  public void handleMouseReleased(ChartCanvas canvas, MouseEvent eOrig) {
     if (gestureHandlers == null || gestureHandlers.isEmpty() || !listensFor(Event.RELEASED))
       return;
 
@@ -333,10 +328,10 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
    * required.
    *
    * @param canvas the canvas ({@code null} not permitted).
-   * @param e the event ({@code null} not permitted).
+   * @param eOrig the event ({@code null} not permitted).
    */
   @Override
-  public void handleMousePressed(ChartCanvas chartPanel, MouseEvent eOrig) {
+  public void handleMousePressed(ChartCanvas canvas, MouseEvent eOrig) {
     if (gestureHandlers == null || gestureHandlers.isEmpty() || !listensFor(Event.PRESSED))
       return;
 

@@ -33,31 +33,32 @@ import static io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconv
 
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.PeakInfo;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.features.Feature;
-import io.github.mzmine.datamodel.impl.SimpleFeatureInformation;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.FeatureResolver;
-import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.ResolvedPeak;
+import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.AbstractResolver;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
-import io.github.mzmine.util.R.RSessionWrapperException;
-import io.github.mzmine.util.maths.CenterFunction;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
  */
-public class ADAPResolver implements FeatureResolver {
+public class ADAPResolver extends AbstractResolver {
+
+  private final ParameterSet parameters;
+  double[] xBuffer;
+  double[] yBuffer;
+
+  protected ADAPResolver(@NotNull ParameterSet parameters, @NotNull ModularFeatureList flist) {
+    super(parameters, flist);
+    this.parameters = parameters;
+  }
 
   @Override
   public Class<? extends MZmineProcessingModule> getModuleClass() {
@@ -73,80 +74,33 @@ public class ADAPResolver implements FeatureResolver {
   // Minutes <-> seconds.
   private static final double SECONDS_PER_MINUTE = 60.0;
 
-  @Nonnull
   @Override
-  public String getName() {
+  @NotNull
+  public List<Range<Double>> resolve(@NotNull final double[] retentionTimes,
+      @NotNull final double[] intensities) {
 
-    return NAME;
-  }
+    assert retentionTimes.length == intensities.length;
+    final int scanCount = retentionTimes.length;
 
-  @Nonnull
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
+    final Range<Double> peakDuration = parameters.getParameter(PEAK_DURATION).getValue();
 
-    return ADAPResolverParameters.class;
-  }
-
-  @Override
-  public String[] getRequiredRPackagesVersions() {
-    return null;
-  }
-
-  @Override
-  public boolean getRequiresR() {
-    return false;
-  }
-
-  @Override
-  public String[] getRequiredRPackages() {
-    return null;
-  }
-
-  @Override
-  public REngineType getREngineType(ParameterSet parameters) {
-    return null;
-  }
-
-  @Override
-  public ResolvedPeak[] resolvePeaks(final Feature chromatogram, final ParameterSet parameters,
-      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
-      float rTRangeMSMS) throws RSessionWrapperException {
-
-    List<Scan> scanNumbers = chromatogram.getScanNumbers();
-    final int scanCount = scanNumbers.size();
-    double retentionTimes[] = new double[scanCount];
-    double intensities[] = new double[scanCount];
-    RawDataFile dataFile = chromatogram.getRawDataFile();
-    for (int i = 0; i < scanCount; i++) {
-      final Scan scanNum = scanNumbers.get(i);
-      retentionTimes[i] = scanNum.getRetentionTime();
-      DataPoint dp = chromatogram.getDataPointAtIndex(i);
-      if (dp != null)
-        intensities[i] = dp.getIntensity();
-      else
-        intensities[i] = 0.0;
-    }
-
-    // List<PeakInfo> ADAPPeaks = new ArrayList<PeakInfo>();
-    List<PeakInfo> ADAPPeaks = null;
-
-    Range<Double> peakDuration = parameters.getParameter(PEAK_DURATION).getValue();
-
-    final MZmineProcessingStep<SNEstimatorChoice> signalNoiseEstimator =
-        parameters.getParameter(SN_ESTIMATORS).getValue();
+    final MZmineProcessingStep<SNEstimatorChoice> signalNoiseEstimator = parameters
+        .getParameter(SN_ESTIMATORS).getValue();
     String SNCode = signalNoiseEstimator.getModule().getSNCode();
 
     double signalNoiseWindowMult = -1.0;
     boolean absWavCoeffs = false;
+
     Map<String, Object> informationSN = new HashMap<String, Object>();
     if (SNCode == "Wavelet Coefficient Estimator") {
       informationSN.put("code", "Wavelet Coefficient Estimator");
-      signalNoiseWindowMult =
-          signalNoiseEstimator.getParameterSet().getParameter(HALF_WAVELET_WINDOW).getValue();
+      signalNoiseWindowMult = signalNoiseEstimator.getParameterSet()
+          .getParameter(HALF_WAVELET_WINDOW).getValue();
       absWavCoeffs = signalNoiseEstimator.getParameterSet().getParameter(ABS_WAV_COEFFS).getValue();
       informationSN.put("multiplier", signalNoiseWindowMult);
       informationSN.put("absolutewavecoeffs", absWavCoeffs);
     }
+
     if (SNCode == "Intensity Window Estimator") {
       informationSN.put("code", "Intensity Window Estimator");
     }
@@ -157,83 +111,38 @@ public class ADAPResolver implements FeatureResolver {
       rtSum += retentionTimes[i + 1] - retentionTimes[i];
     }
     double avgRTInterval = rtSum / (retentionTimes.length - 1);
-    // Change the lower and uper bounds for the wavelet scales from
-    // retention times to number of
+
+    // Change the lower and upper bounds for the wavelet scales from retention times to number of
     // scans.
-    Range<Double> rtRangeForCWTScales =
-        parameters.getParameter(RT_FOR_CWT_SCALES_DURATION).getValue();
-    double rtLow = rtRangeForCWTScales.lowerEndpoint();
-    double rtHigh = rtRangeForCWTScales.upperEndpoint();
-    int numScansRTLow = (int) Math.round(rtLow / avgRTInterval);
-    int numScansRTHigh = (int) Math.round(rtHigh / avgRTInterval);
+    Range<Double> rtRangeForCWTScales = parameters.getParameter(RT_FOR_CWT_SCALES_DURATION)
+        .getValue();
+    final double rtLow = rtRangeForCWTScales.lowerEndpoint();
+    final double rtHigh = rtRangeForCWTScales.upperEndpoint();
+    final int numScansRTLow = Math.max((int) Math.round(rtLow / avgRTInterval), 1);
+    final int numScansRTHigh = Math
+        .min((int) Math.round(rtHigh / avgRTInterval), retentionTimes.length);
 
-    if (numScansRTLow < 1) {
-      numScansRTLow = 1;
-    }
-    if (numScansRTHigh >= retentionTimes.length) {
-      numScansRTHigh = retentionTimes.length;
-    }
-
-    ADAPPeaks = DeconvoluteSignal(retentionTimes, intensities, chromatogram.getMZ(),
+    final List<PeakInfo> ADAPPeaks = DeconvoluteSignal(retentionTimes, intensities, 0d,
         parameters.getParameter(SN_THRESHOLD).getValue(),
         parameters.getParameter(MIN_FEAT_HEIGHT).getValue(), peakDuration,
         parameters.getParameter(COEF_AREA_THRESHOLD).getValue(), numScansRTLow, numScansRTHigh,
         informationSN);
 
-    final List<ResolvedPeak> resolvedPeaks;
-
     if (ADAPPeaks == null) {
-      resolvedPeaks = new ArrayList<ResolvedPeak>(0);
-
-    } else {
-
-      // Process peak matrix.
-      resolvedPeaks = new ArrayList<ResolvedPeak>(ADAPPeaks.size());
-
-      // The old way could detect the same peak more than once if the
-      // wavlet scales were too large.
-      // If the left bounds were the same and there was a null point
-      // before the right bounds it
-      // would
-      // make the same peak twice.
-      // To avoid the above see if the peak duration range is met before
-      // going into
-      // the loop
-
-      // for (final double[] peakRow : peakMatrix) {
-      for (int i = 0; i < ADAPPeaks.size(); i++) {
-
-        PeakInfo curPeak = ADAPPeaks.get(i);
-
-        SimpleFeatureInformation information = new SimpleFeatureInformation();
-        information.addProperty("Signal-to-Noise", Double.toString(curPeak.signalToNoiseRatio));
-        information.addProperty("Coefficient-over-area", Double.toString(curPeak.coeffOverArea));
-        // information.addProperty("index",
-        // //Integer.toString(scans[(int) peakIndex[j] - 1])); //
-        // Substract one because r-indices
-        // start from 1
-        // Integer.toString((int) curPeak.peakIndex));
-        // information.addProperty("sharpness",
-        // Double.toString(curPeak.sharpness));
-        // information.addProperty("signalToNoiseRatio",
-        // Double.toString(curPeak.signalToNoiseRatio));
-        // information.addProperty("isShared",
-        // Boolean.toString(curPeak.isShared));
-        // //Boolean.toString(1.0 == curPeak.isShared));
-        // information.addProperty("offset",
-        // Integer.toString((int) curPeak.offset));
-
-        ResolvedPeak peak = new ResolvedPeak(chromatogram, curPeak.leftApexIndex,
-            curPeak.rightApexIndex, mzCenterFunction, msmsRange, rTRangeMSMS);
-        peak.setPeakInformation(information);
-
-        resolvedPeaks.add(peak);
-        // resolvedPeaks.add(new
-        // ResolvedPeak(chromatogram,curPeak.leftApexIndex,
-        // curPeak.rightApexIndex));
-      }
+      return Collections.emptyList();
     }
 
-    return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
+    // The old way could detect the same peak more than once if the wavlet scales were too large.
+    // If the left bounds were the same and there was a null point before the right bounds it
+    // would make the same peak twice. To avoid the above see if the peak duration range is met
+    // before going into the loop
+
+    final List<Range<Double>> ranges = new ArrayList<>();
+    for (int i = 0; i < ADAPPeaks.size(); i++) {
+      final PeakInfo curPeak = ADAPPeaks.get(i);
+
+      ranges.add(Range.closed(curPeak.retTimeStart, curPeak.retTimeEnd));
+    }
+    return ranges;
   }
 }

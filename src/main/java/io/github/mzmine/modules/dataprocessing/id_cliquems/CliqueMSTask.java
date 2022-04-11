@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_cliquems;
@@ -33,12 +33,14 @@ import io.github.mzmine.modules.dataprocessing.id_cliquems.cliquemsimplementatio
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.mutable.MutableDouble;
+import org.jetbrains.annotations.NotNull;
 
 public class CliqueMSTask extends AbstractTask {
 
@@ -64,8 +66,8 @@ public class CliqueMSTask extends AbstractTask {
   private final ParameterSet parameters;
 
   public CliqueMSTask(final ParameterSet parameters,
-      final FeatureList list) {
-    super(null); // no new data stored -> null
+      final FeatureList list, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // no new data stored -> null
     this.parameters = parameters;
     peakList = list;
   }
@@ -155,7 +157,7 @@ public class CliqueMSTask extends AbstractTask {
       addFeatureIdentity(anClique, addInfos);
 
       peakList.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(CliqueMSModule.class,
-          parameters));
+          parameters, getModuleCallDate()));
 
       // Finished.
       this.progress.setValue(1.0);

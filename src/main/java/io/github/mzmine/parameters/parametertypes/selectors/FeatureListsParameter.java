@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,33 +8,33 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import com.google.common.base.Strings;
 import io.github.mzmine.datamodel.features.FeatureList;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.UserParameter;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import com.google.common.base.Strings;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.UserParameter;
 
 public class FeatureListsParameter implements UserParameter<FeatureListsSelection, FeatureListsComponent> {
 
   private String name = "Feature lists";
   private int minCount, maxCount;
 
-  private @Nonnull
+  private @NotNull
   FeatureListsSelection value = new FeatureListsSelection();
 
   public FeatureListsParameter() {
@@ -62,7 +62,7 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   }
 
   @Override
-  public void setValue(@Nonnull FeatureListsSelection newValue) {
+  public void setValue(@NotNull FeatureListsSelection newValue) {
     this.value = newValue;
   }
 
@@ -118,16 +118,17 @@ public class FeatureListsParameter implements UserParameter<FeatureListsSelectio
   @Override
   public void loadValueFromXML(Element xmlElement) {
 
-    FeatureList[] currentDataPeakLists =
-        MZmineCore.getProjectManager().getCurrentProject().getFeatureLists().toArray(FeatureList[]::new);
+    FeatureList[] currentDataPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+        .getCurrentFeatureLists().toArray(FeatureList[]::new);
 
     FeatureListsSelectionType selectionType;
     final String attrValue = xmlElement.getAttribute("type");
 
-    if (Strings.isNullOrEmpty(attrValue))
+    if (Strings.isNullOrEmpty(attrValue)) {
       selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
-    else
+    } else {
       selectionType = FeatureListsSelectionType.valueOf(xmlElement.getAttribute("type"));
+    }
 
     ArrayList<Object> newValues = new ArrayList<Object>();
 

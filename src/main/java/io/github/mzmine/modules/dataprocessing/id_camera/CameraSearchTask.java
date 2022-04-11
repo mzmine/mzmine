@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,30 +8,46 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
-
-/*
- * Code created was by or on behalf of Syngenta and is released under the open source license in use
- * for the pre-existing code or project. Syngenta does not assert ownership or copyright any over
- * pre-existing work.
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_camera;
 
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.IsotopePattern;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import io.github.mzmine.datamodel.MZmineProject;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.R.REngineType;
+import io.github.mzmine.util.R.RSessionWrapper;
+import io.github.mzmine.util.R.RSessionWrapperException;
+import io.github.mzmine.util.SortingDirection;
+import io.github.mzmine.util.SortingProperty;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,33 +62,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.MZmineProject;
-import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.taskcontrol.TaskStatus;
-import io.github.mzmine.util.DataPointSorter;
-import io.github.mzmine.util.SortingDirection;
-import io.github.mzmine.util.SortingProperty;
-import io.github.mzmine.util.R.REngineType;
-import io.github.mzmine.util.R.RSessionWrapper;
-import io.github.mzmine.util.R.RSessionWrapperException;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A task to perform a CAMERA search.
  *
  */
+@Deprecated
 public class CameraSearchTask extends AbstractTask {
 
   // Logger.
@@ -127,8 +124,8 @@ public class CameraSearchTask extends AbstractTask {
   private REngineType rEngineType;
 
   public CameraSearchTask(final MZmineProject project, final ParameterSet parameters,
-      final FeatureList list, @Nullable MemoryMapStorage storage) {
-    super(storage);
+      final FeatureList list, @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     // Initialize.
     peakList = list;
@@ -585,7 +582,7 @@ public class CameraSearchTask extends AbstractTask {
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
-            parameters));
+            parameters, getModuleCallDate()));
 
     // ------------------------------------------------
     // Find unique isotopes belonging to the same group
@@ -642,7 +639,7 @@ public class CameraSearchTask extends AbstractTask {
         if (isoGroup.equals(isotopeGroup)) {
           groupRows.add(row);
           groupNames.add(identity.getName());
-          spectrum.put(row.getAverageMZ(), row.getAverageHeight());
+          spectrum.put(row.getAverageMZ(), row.getAverageHeight().doubleValue());
 
           if (isoGroup.length() < minLength) {
             minLength = isoGroup.length();
@@ -672,8 +669,8 @@ public class CameraSearchTask extends AbstractTask {
       for (Entry<Double, Double> e : spectrum.entrySet())
         dataPoints[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
 
-      IsotopePattern pattern =
-          new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
+      IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
+          IsotopePatternStatus.PREDICTED, "Spectrum");
 
       groupRow.getBestFeature().setIsotopePattern(pattern);
 
@@ -696,8 +693,8 @@ public class CameraSearchTask extends AbstractTask {
           DataPoint[] dataPoints = new DataPoint[1];
           dataPoints[0] = new SimpleDataPoint(row.getAverageMZ(), row.getAverageHeight());
 
-          IsotopePattern pattern =
-              new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
+          IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
+              IsotopePatternStatus.PREDICTED, "Spectrum");
 
           row.getBestFeature().setIsotopePattern(pattern);
 
@@ -747,7 +744,7 @@ public class CameraSearchTask extends AbstractTask {
     // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
         new SimpleFeatureListAppliedMethod("Bioconductor CAMERA", CameraSearchModule.class,
-            parameters));
+            parameters, getModuleCallDate()));
 
     // --------------------
     // Find unique PCGroups
@@ -821,8 +818,8 @@ public class CameraSearchTask extends AbstractTask {
       for (Entry<Double, Double> e : spectrum.entrySet())
         dataPoints[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
 
-      IsotopePattern pattern =
-          new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, "Spectrum");
+      IsotopePattern pattern = new SimpleIsotopePattern(dataPoints, -1,
+          IsotopePatternStatus.PREDICTED, "Spectrum");
 
       groupRow.getBestFeature().setIsotopePattern(pattern);
 

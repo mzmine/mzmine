@@ -20,9 +20,12 @@ package io.github.mzmine.datamodel.data_access;
 import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A factory to get efficient data access to scans in RawDataFile and features in FeatureList.
@@ -40,7 +43,7 @@ public class EfficientDataAccess {
    * @param type     processed or raw data
    */
   public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type) {
-    return of(dataFile, type, null);
+    return new FileScanDataAccess(dataFile, type);
   }
 
   /**
@@ -54,7 +57,21 @@ public class EfficientDataAccess {
    */
   public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type,
       ScanSelection selection) {
-    return new ScanDataAccess(dataFile, type, selection);
+    return new FilteredScanDataAccess(dataFile, type, selection);
+  }
+
+  /**
+   * The intended use of this memory access is to loop over all selected scans in a {@link
+   * RawDataFile} and access data points via {@link ScanDataAccess#getMzValue(int)} and {@link
+   * ScanDataAccess#getIntensityValue(int)}
+   *
+   * @param dataFile target data file to loop over all scans or mass lists
+   * @param type     processed or raw data
+   * @param scans    list of scans
+   */
+  public static ScanDataAccess of(RawDataFile dataFile, ScanDataType type,
+      List<? extends Scan> scans) {
+    return new ScanListDataAccess(dataFile, type, scans);
   }
 
   /**
@@ -99,8 +116,13 @@ public class EfficientDataAccess {
    * @return
    */
   public static BinningMobilogramDataAccess of(final IMSRawDataFile dataFile,
-      final double binWidth) {
+      final int binWidth) {
     return new BinningMobilogramDataAccess(dataFile, binWidth);
+  }
+
+  public static MobilityScanDataAccess of(@NotNull final IMSRawDataFile file,
+      @NotNull final MobilityScanDataType type, @NotNull final ScanSelection selection) {
+    return new MobilityScanDataAccess(file, type, selection);
   }
 
   /**
@@ -119,6 +141,15 @@ public class EfficientDataAccess {
    * Use processed centroid data ({@link MassList}
    */
   public enum ScanDataType {
+    RAW, CENTROID
+  }
+
+  /**
+   * Different types to handle mobility scan data: {@link #RAW}: Use raw data as imported; {@link
+   * #CENTROID}: Use processed centroid data ({@link MassList}
+   */
+  public enum MobilityScanDataType {
+    // basically just a copy of ScanDataType, but useful to distinguish the factory methods
     RAW, CENTROID
   }
 

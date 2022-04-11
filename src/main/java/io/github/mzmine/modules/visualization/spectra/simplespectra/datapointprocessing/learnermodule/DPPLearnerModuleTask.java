@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
-import java.awt.Color;
 import io.github.mzmine.datamodel.MassSpectrum;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
@@ -29,6 +28,7 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.TaskStatusListener;
 import io.github.mzmine.util.javafx.FxColorUtil;
+import java.awt.Color;
 
 /**
  * This is the heart of every DataPointProcessingModule, the actual task being executed. Every new
@@ -100,8 +100,9 @@ public class DPPLearnerModuleTask extends DataPointProcessingTask {
   public void displayResults() {
     // if this is the last task, display even if not checked.
     if (getController().isLastTaskRunning() || isDisplayResults()) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet(
-          "Mass detection results (" + getResults().length + ")", getResults()), getColor(), false);
+      getTargetPlot().addDataSet(
+          new DPPResultsDataSet("Mass detection results (" + getResults().length + ")",
+              getResults()), getColor(), false, true);
     }
   }
 

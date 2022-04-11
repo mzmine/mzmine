@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,17 +8,16 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.batchmode;
 
-import com.google.common.collect.ImmutableList;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
@@ -27,6 +26,7 @@ import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.modules.MZmineProcessingStep;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -37,28 +37,27 @@ import io.github.mzmine.taskcontrol.TaskPriority;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Batch mode task
  */
 public class BatchTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  private int totalSteps, processedSteps;
-
-  private MZmineProject project;
   private final BatchQueue queue;
-
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private int totalSteps, processedSteps;
+  private MZmineProject project;
   private List<RawDataFile> createdDataFiles, previousCreatedDataFiles, startDataFiles;
   private List<FeatureList> createdFeatureLists, previousCreatedFeatureLists, startFeatureLists;
 
-  BatchTask(MZmineProject project, ParameterSet parameters) {
-    super(null); // we don't create any new data here.
+  BatchTask(MZmineProject project, ParameterSet parameters, @NotNull Instant moduleCallDate) {
+    super(null, moduleCallDate); // we don't create any new data here, date is irrelevant, too.
     this.project = project;
     this.queue = parameters.getParameter(BatchModeParameters.batchQueue).getValue();
     totalSteps = queue.size();
@@ -74,8 +73,9 @@ public class BatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Starting a batch of " + totalSteps + " steps");
 
-    startFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
-    startDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
+    // unmodifiable copies of currents lists
+    startFeatureLists = project.getCurrentFeatureLists();
+    startDataFiles = project.getCurrentRawDataFiles();
 
     // Process individual batch steps
     for (int i = 0; i < totalSteps; i++) {
@@ -104,8 +104,8 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    final List<FeatureList> beforeFeatureLists = ImmutableList.copyOf(project.getFeatureLists());
-    final List<RawDataFile> beforeDataFiles = ImmutableList.copyOf(project.getRawDataFiles());
+    final List<FeatureList> beforeFeatureLists = project.getCurrentFeatureLists();
+    final List<RawDataFile> beforeDataFiles = project.getCurrentRawDataFiles();
 
     // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
@@ -126,28 +126,15 @@ public class BatchTask extends AbstractTask {
         if (selectedFiles == null) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
+                          + "Missing parameter value for " + p.getName());
           return;
         }
         selectedFiles.setBatchLastFiles(createdFiles);
       }
     }
 
-    // Update the FeatureListsParameter parameters to reflect the current
-    // state of the batch
-    for (Parameter<?> p : batchStepParameters.getParameters()) {
-      if (p instanceof FeatureListsParameter) {
-        FeatureListsParameter rdp = (FeatureListsParameter) p;
-        FeatureList createdPls[] = createdFeatureLists.toArray(new FeatureList[0]);
-        final FeatureListsSelection selectedFeatureLists = rdp.getValue();
-        if (selectedFeatureLists == null) {
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-              + "Missing parameter value for " + p.getName());
-          return;
-        }
-        selectedFeatureLists.setBatchLastFeatureLists(createdPls);
-      }
+    if (!setBatchlastFeatureListsToParamSet(method, batchStepParameters)) {
+      return;
     }
 
     // Check if the parameter settings are valid
@@ -155,12 +142,16 @@ public class BatchTask extends AbstractTask {
     boolean paramsCheck = batchStepParameters.checkParameterValues(messages);
     if (!paramsCheck) {
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
-          + Arrays.toString(messages.toArray()));
+      setErrorMessage(
+          "Invalid parameter settings for module " + method.getName() + ": " + Arrays.toString(
+              messages.toArray()));
     }
 
     List<Task> currentStepTasks = new ArrayList<Task>();
-    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks);
+    Instant moduleCallDate = Instant.now();
+    logger.finest(() -> "Module " + method.getName() + " called at " + moduleCallDate.toString());
+    ExitCode exitCode = method.runModule(project, batchStepParameters, currentStepTasks,
+        moduleCallDate);
 
     if (exitCode != ExitCode.OK) {
       setStatus(TaskStatus.ERROR);
@@ -235,8 +226,8 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    createdDataFiles = new ArrayList<>(project.getRawDataFiles());
-    createdFeatureLists = new ArrayList<>(project.getFeatureLists());
+    createdDataFiles = new ArrayList<>(project.getCurrentRawDataFiles());
+    createdFeatureLists = new ArrayList<>(project.getCurrentFeatureLists());
     createdDataFiles.removeAll(beforeDataFiles);
     createdFeatureLists.removeAll(beforeFeatureLists);
     // Clear the saved data files and feature lists. Save them to the
@@ -247,6 +238,38 @@ public class BatchTask extends AbstractTask {
     if (!createdFeatureLists.isEmpty()) {
       previousCreatedFeatureLists = createdFeatureLists;
     }
+  }
+
+  /**
+   * Recursively sets the last feature lists to the parameters since there might be embedded
+   * parameters.
+   *
+   * @param method
+   * @param batchStepParameters
+   * @return false on error
+   */
+  private boolean setBatchlastFeatureListsToParamSet(MZmineProcessingModule method,
+      ParameterSet batchStepParameters) {
+    // Update the FeatureListsParameter parameters to reflect the current
+    // state of the batch
+    for (Parameter<?> p : batchStepParameters.getParameters()) {
+      if (p instanceof FeatureListsParameter featureListsParameter) {
+        FeatureList createdFlists[] = createdFeatureLists.toArray(new FeatureList[0]);
+        final FeatureListsSelection selectedFeatureLists = featureListsParameter.getValue();
+        if (selectedFeatureLists == null) {
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
+                          + "Missing parameter value for " + p.getName());
+          return false;
+        }
+        selectedFeatureLists.setBatchLastFeatureLists(createdFlists);
+      } else if (p instanceof EmbeddedParameterSet embedded) {
+        if (!setBatchlastFeatureListsToParamSet(method, embedded.getEmbeddedParameters())) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.align_join;
@@ -25,6 +25,7 @@ import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
+import io.github.mzmine.parameters.parametertypes.OriginalFeatureListHandlingParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -32,6 +33,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParamete
 import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.MobilityToleranceParameter;
 import java.text.DecimalFormat;
+import org.jetbrains.annotations.NotNull;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
@@ -59,28 +61,32 @@ public class JoinAlignerParameters extends SimpleParameterSet {
       new DecimalFormat("0.000"), 1d);
 
   public static final BooleanParameter SameChargeRequired = new BooleanParameter(
-      "Require same charge state", "If checked, only rows having same charge state can be aligned", false);
+      "Require same charge state", "If checked, only rows having same charge state can be aligned",
+      false);
 
   public static final BooleanParameter SameIDRequired = new BooleanParameter("Require same ID",
-      "If checked, only rows having same compound identities (or no identities) can be aligned", false);
+      "If checked, only rows having same compound identities (or no identities) can be aligned",
+      false);
 
-  public static final OptionalModuleParameter compareIsotopePattern =
-      new OptionalModuleParameter("Compare isotope pattern",
-          "If both peaks represent an isotope pattern, add isotope pattern score to match score",
-          new IsotopePatternScoreParameters(), false);
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> compareIsotopePattern = new OptionalModuleParameter<>(
+      "Compare isotope pattern",
+      "If both peaks represent an isotope pattern, add isotope pattern score to match score",
+      new IsotopePatternScoreParameters(), false);
 
-  public static final OptionalModuleParameter compareSpectraSimilarity =
-      new OptionalModuleParameter("Compare spectra similarity",
-          "Compare MS1 or MS2 spectra similarity",
-          new JoinAlignerSpectraSimilarityScoreParameters(), false);
+  public static final OptionalModuleParameter<JoinAlignerSpectraSimilarityScoreParameters> compareSpectraSimilarity = new OptionalModuleParameter<>(
+      "Compare spectra similarity", "Compare MS1 or MS2 spectra similarity",
+      new JoinAlignerSpectraSimilarityScoreParameters(), false);
+
+  public static final OriginalFeatureListHandlingParameter handleOriginal = new OriginalFeatureListHandlingParameter(
+      false);
 
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
         mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
-        compareIsotopePattern,
-        compareSpectraSimilarity});
+        compareIsotopePattern, compareSpectraSimilarity, handleOriginal});
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.SUPPORTED;

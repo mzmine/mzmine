@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.tolerances;
@@ -21,6 +21,7 @@ package io.github.mzmine.parameters.parametertypes.tolerances;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.Feature;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * This class represents m/z tolerance. Tolerance is set using absolute (m/z) and relative (ppm)
@@ -94,5 +95,23 @@ public class MZTolerance {
   @Override
   public String toString() {
     return mzTolerance + " m/z or " + ppmTolerance + " ppm";
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MZTolerance that = (MZTolerance) o;
+    return Double.compare(that.getMzTolerance(), getMzTolerance()) == 0
+        && Double.compare(that.getPpmTolerance(), getPpmTolerance()) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getMzTolerance(), getPpmTolerance());
   }
 }

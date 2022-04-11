@@ -17,7 +17,7 @@
 package io.github.mzmine.modules.dataprocessing.adap_mcr;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.parameters.ParameterSet;
@@ -31,7 +31,7 @@ public class ChromatogramPeakPair {
   public final FeatureList chromatograms;
   public final FeatureList peaks;
 
-  private ChromatogramPeakPair(@Nonnull FeatureList chromatograms, @Nonnull FeatureList peaks) {
+  private ChromatogramPeakPair(@NotNull FeatureList chromatograms, @NotNull FeatureList peaks) {
     this.chromatograms = chromatograms;
     this.peaks = peaks;
   }
@@ -42,7 +42,7 @@ public class ChromatogramPeakPair {
   }
 
   public static Map<RawDataFile, ChromatogramPeakPair> fromParameterSet(
-      @Nonnull ParameterSet parameterSet) {
+      @NotNull ParameterSet parameterSet) {
     Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
 
     FeatureList[] chromatograms =

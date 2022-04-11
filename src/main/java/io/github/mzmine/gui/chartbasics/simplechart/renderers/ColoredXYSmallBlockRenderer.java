@@ -1,28 +1,33 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.renderers;
 
+import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYDataset;
+import io.github.mzmine.gui.chartbasics.simplechart.datasets.ColoredXYZDataset;
+import io.github.mzmine.taskcontrol.TaskStatus;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
+import org.jfree.chart.LegendItem;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.event.RendererChangeEvent;
@@ -113,11 +118,20 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   private PaintScale paintScale;
 
   /**
-   * Creates a new {@code XYBlockRenderer} instance with default attributes.
+   * In some case a single paint scall shall be used for multiple datasets.
+   */
+  private boolean useDatasetPaintScale = true;
+
+  /**
+   * Creates a new {@code XYBlockRenderer} instance with default attributes. Item labels are
+   * disabled by default.
    */
   public ColoredXYSmallBlockRenderer() {
     updateOffsets();
     this.paintScale = new LookupPaintScale();
+
+    SimpleChartUtility.tryApplyDefaultChartThemeToRenderer(this);
+    setDefaultItemLabelsVisible(false);
   }
 
   /**
@@ -138,9 +152,15 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    * @see #getBlockWidth()
    */
   public void setBlockWidth(double width) {
+    setBlockWidth(width, true);
+  }
+
+  public void setBlockWidth(double width, boolean notify) {
     this.blockWidth = width;
     updateOffsets();
-    fireChangeEvent();
+    if (notify) {
+      fireChangeEvent();
+    }
   }
 
   /**
@@ -161,9 +181,15 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    * @see #getBlockHeight()
    */
   public void setBlockHeight(double height) {
+    setBlockHeight(height, true);
+  }
+
+  public void setBlockHeight(double height, boolean notify) {
     this.blockHeight = height;
     updateOffsets();
-    fireChangeEvent();
+    if (notify) {
+      fireChangeEvent();
+    }
   }
 
   /**
@@ -171,27 +197,9 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
    * {@link RectangleAnchor#CENTER}.
    *
    * @return The anchor point (never {@code null}).
-   * @see #setBlockAnchor(RectangleAnchor)
    */
   public RectangleAnchor getBlockAnchor() {
     return this.blockAnchor;
-  }
-
-  /**
-   * Sets the anchor point used to align a block at its (x, y) location and sends a {@link
-   * RendererChangeEvent} to all registered listeners.
-   *
-   * @param anchor the anchor.
-   * @see #getBlockAnchor()
-   */
-  public void setBlockAnchor(RectangleAnchor anchor) {
-    Args.nullNotPermitted(anchor, "anchor");
-    if (this.blockAnchor.equals(anchor)) {
-      return; // no change
-    }
-    this.blockAnchor = anchor;
-    updateOffsets();
-    fireChangeEvent();
   }
 
   /**
@@ -265,6 +273,11 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     if (dataset == null) {
       return null;
     }
+    if (dataset instanceof ColoredXYDataset ds
+        && ds.getStatus() == TaskStatus.FINISHED) {
+      return new Range(ds.getDomainValueRange().lowerEndpoint() + this.xOffset,
+          ds.getDomainValueRange().upperEndpoint() + this.blockWidth + this.xOffset);
+    }
     Range r = DatasetUtils.findDomainBounds(dataset, false);
     if (r == null) {
       return null;
@@ -284,6 +297,11 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   @Override
   public Range findRangeBounds(XYDataset dataset) {
     if (dataset != null) {
+      if (dataset instanceof ColoredXYZDataset ds
+          && ds.getStatus() == TaskStatus.FINISHED) {
+        return new Range(ds.getRangeValueRange().lowerEndpoint() + this.yOffset,
+            ds.getRangeValueRange().upperEndpoint() + this.blockHeight + this.yOffset);
+      }
       Range r = DatasetUtils.findRangeBounds(dataset, false);
       if (r == null) {
         return null;
@@ -325,6 +343,13 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     }
 
     Paint p = this.paintScale.getPaint(z);
+    if (dataset instanceof ColoredXYZDataset && isUseDatasetPaintScale()
+        && ((ColoredXYZDataset) dataset).getStatus() == TaskStatus.FINISHED) {
+      p = ((ColoredXYZDataset) dataset).getPaintScale().getPaint(z);
+      setBlockWidth(((ColoredXYZDataset) dataset).getBoxWidth(), false);
+      setBlockHeight(((ColoredXYZDataset) dataset).getBoxHeight(), false);
+    }
+
     double xx0 = domainAxis.valueToJava2D(x + this.xOffset, dataArea, plot.getDomainAxisEdge());
     double yy0 = rangeAxis.valueToJava2D(y + this.yOffset, dataArea, plot.getRangeAxisEdge());
     double xx1 = domainAxis.valueToJava2D(x + this.blockWidth + this.xOffset, dataArea,
@@ -399,6 +424,14 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     return super.equals(obj);
   }
 
+  public boolean isUseDatasetPaintScale() {
+    return useDatasetPaintScale;
+  }
+
+  public void setUseDatasetPaintScale(boolean useDatasetPaintScale) {
+    this.useDatasetPaintScale = useDatasetPaintScale;
+  }
+
   /**
    * Returns a clone of this renderer.
    *
@@ -408,6 +441,8 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
   @Override
   public Object clone() throws CloneNotSupportedException {
     ColoredXYSmallBlockRenderer clone = (ColoredXYSmallBlockRenderer) super.clone();
+    clone.setBlockHeight(this.blockHeight);
+    clone.setBlockWidth(this.blockWidth);
     if (this.paintScale instanceof PublicCloneable) {
       PublicCloneable pc = (PublicCloneable) this.paintScale;
       clone.paintScale = (PaintScale) pc.clone();
@@ -415,4 +450,9 @@ public class ColoredXYSmallBlockRenderer extends AbstractXYItemRenderer
     return clone;
   }
 
+  @Override
+  public LegendItem getLegendItem(int datasetIndex, int series) {
+    return null;
+//    return super.getLegendItem(datasetIndex, series);
+  }
 }

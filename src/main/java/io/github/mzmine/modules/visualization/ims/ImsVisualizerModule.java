@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.ims;
@@ -27,31 +27,31 @@ public class ImsVisualizerModule implements MZmineRunnableModule {
     private static final String MODULE_NAME = "IMS visualizer";
     private static final String MODULE_DESCRIPTION = "IMS visualizer";
 
-    @Nonnull
+    @NotNull
     @Override
     public String getDescription() {
         return MODULE_DESCRIPTION;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public String getName() {
         return MODULE_NAME;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public ExitCode runModule(
-            @Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters,
-            @Nonnull Collection<Task> tasks) {
+            @NotNull MZmineProject project,
+            @NotNull ParameterSet parameters,
+            @NotNull Collection<Task> tasks) {
 
         Task newTask = new ImsVisualizerTask(parameters);
         tasks.add(newTask);
         return ExitCode.OK;
     }
 
-    @Nonnull
+    @NotNull
     @Override
     public MZmineModuleCategory getModuleCategory() {
         return MZmineModuleCategory.VISUALIZATIONRAWDATA;

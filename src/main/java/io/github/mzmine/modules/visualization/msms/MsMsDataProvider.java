@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.msms;
@@ -35,15 +35,15 @@ import io.github.mzmine.util.RangeUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.paint.Color;
-import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.util.SortOrder;
 
@@ -146,13 +146,13 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public java.awt.Color getAWTColor() {
     return FxColorUtil.fxColorToAWT(color);
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public javafx.scene.paint.Color getFXColor() {
     return color;
@@ -164,7 +164,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     return null;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Comparable<?> getSeriesKey() {
     return "MS/MS dataset";
@@ -193,7 +193,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       // Check the scan for the mass list of
       if (scan.getMassList() == null) {
         status.setValue(TaskStatus.CANCELED);
-        Platform.runLater(() -> {
+        MZmineCore.runLater(() -> {
           Alert alert = new Alert(AlertType.ERROR);
           alert.setTitle("Mass detection issue");
           alert.setHeaderText("Masses are not detected properly for the " + dataFile.getName()
@@ -217,7 +217,9 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       }
 
       // Skip empty scans and check parent m/z and rt bounds
-      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMZ())
+      int precursorCharge = Objects.requireNonNullElse(scan.getPrecursorCharge(), -1);
+
+      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMz())
           || !rtRange.contains(scan.getRetentionTime())
           || scan.getMassList().getNumberOfDataPoints() < 1) {
         processedScans++;
@@ -262,11 +264,12 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Precursor intensity
       double precursorIntensity = 0;
+      double precursorMz = Objects.requireNonNullElse(scan.getPrecursorMz(), -1d);
       if (lastMS1Scan != null) {
 
         // Sum intensities of all ions from MS1 scan with similar m/z values
         MassList lastMS1ScanMassList = lastMS1Scan.getMassList();
-        Range<Double> toleranceRange = mzTolerance.getToleranceRange(scan.getPrecursorMZ());
+        Range<Double> toleranceRange = mzTolerance.getToleranceRange(precursorMz);
         for (int i = 0; i < lastMS1ScanMassList.getNumberOfDataPoints(); i++) {
           if (toleranceRange.contains(lastMS1ScanMassList.getMzValue(i))) {
             precursorIntensity += lastMS1ScanMassList.getIntensityValue(i);
@@ -306,7 +309,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
         // Diagnostic fragmentation filtering (neutral loss)
         if (!(dffListNl == null || dffListNl.isEmpty())) {
-          double neutralLoss = scan.getPrecursorMZ() - productMz;
+          double neutralLoss = precursorMz - productMz;
           Range<Double> toleranceRange = mzTolerance.getToleranceRange(neutralLoss);
           for (double targetNeutralLoss : dffListNl) {
             if (!toleranceRange.contains(targetNeutralLoss)) {
@@ -322,8 +325,8 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
         }
 
         // Create new data point
-        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, scan.getPrecursorMZ(),
-            scan.getPrecursorCharge(), scan.getRetentionTime(), productIntensity, precursorIntensity);
+        MsMsDataPoint newPoint = new MsMsDataPoint(scan.getScanNumber(), productMz, precursorMz,
+            precursorCharge, scan.getRetentionTime(), productIntensity, precursorIntensity);
 
         dataPoints.add(newPoint);
       }
@@ -334,7 +337,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
       status.setValue(TaskStatus.CANCELED);
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");
         alert.setHeaderText("There are no data points in " + dataFile.getName()

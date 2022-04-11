@@ -1,32 +1,35 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General License as published by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General License along with MZmine; if not, write to
- * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel;
 
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
-import javax.annotation.Nonnull;
-import com.google.common.collect.Range;
-import io.github.mzmine.util.MemoryMapStorage;
+import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface RawDataFile {
 
@@ -34,13 +37,24 @@ public interface RawDataFile {
    * Returns the name of this data file (can be a descriptive name, not necessarily the original
    * file name)
    */
-  @Nonnull
-  String getName();
+  @NotNull String getName();
 
   /**
-   * Change the name of this data file
+   * Change the name of this data file.
+   * <p></p>
+   * Setting the name of a file via this function is not reproducible in MZmine projects if the name
+   * is not predetermined in by a parameter. In that case, {@link io.github.mzmine.modules.tools.rawfilerename.RawDataFileRenameModule#renameFile(RawDataFile,
+   * String)} should be used.
+   *
+   * @return the actually set name after checking restricted symbols and for duplicate names
    */
-  void setName(@Nonnull String name);
+  String setName(@NotNull String name);
+
+  /**
+   * @return The absolute path this file was loaded from. Null if the file does not exist on the
+   * file space or was created as a dummy file by mzTab-m import.
+   */
+  @Nullable String getAbsolutePath();
 
   int getNumOfScans();
 
@@ -65,8 +79,7 @@ public interface RawDataFile {
   /**
    * Returns sorted array of all MS levels in this file
    */
-  @Nonnull
-  int[] getMSLevels();
+  @NotNull int[] getMSLevels();
 
   /**
    * Returns sorted array of all scan numbers in given MS level
@@ -74,8 +87,7 @@ public interface RawDataFile {
    * @param msLevel MS level (0 for all scans)
    * @return Sorted array of scan numbers, never returns null
    */
-  @Nonnull
-  List<Scan> getScanNumbers(int msLevel);
+  @NotNull List<Scan> getScanNumbers(int msLevel);
 
   /**
    * Returns sorted array of all scan numbers in given MS level and retention time range
@@ -84,35 +96,40 @@ public interface RawDataFile {
    * @param rtRange Retention time range
    * @return Sorted array of scan numbers, never returns null
    */
-  @Nonnull
-  Scan[] getScanNumbers(int msLevel, @Nonnull Range<Float> rtRange);
+  @NotNull Scan[] getScanNumbers(int msLevel, @NotNull Range<Float> rtRange);
 
   /**
-   * @param rt The rt
+   * @param rt      The rt
    * @param mslevel The ms level
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   *         the rt range of this file.
+   * the rt range of this file.
    */
   Scan getScanNumberAtRT(float rt, int mslevel);
 
   /**
    * @param rt The rt
    * @return Returns the scan closest to the given rt in the given ms level. -1 if the rt exceeds
-   *         the rt range of this file.
+   * the rt range of this file.
    */
   Scan getScanNumberAtRT(float rt);
 
-  @Nonnull
-  Range<Double> getDataMZRange();
+  @NotNull Range<Double> getDataMZRange();
 
-  @Nonnull
-  Range<Float> getDataRTRange();
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
+  @NotNull Range<Float> getDataRTRange();
 
-  @Nonnull
-  Range<Double> getDataMZRange(int msLevel);
+  @NotNull Range<Double> getDataMZRange(int msLevel);
 
-  @Nonnull
-  Range<Float> getDataRTRange(Integer msLevel);
+  /**
+   * @return The rt range of this raw data file. This range might be empty e.g., (0, 0). If a
+   * positive range is required, {@link io.github.mzmine.util.RangeUtils#getPositiveRange(Range,
+   * Number)}
+   */
+  @NotNull Range<Float> getDataRTRange(Integer msLevel);
 
   double getDataMaxBasePeakIntensity(int msLevel);
 
@@ -123,8 +140,7 @@ public interface RawDataFile {
    *
    * @return Scan polarity types.
    */
-  @Nonnull
-  List<PolarityType> getDataPolarity();
+  @NotNull List<PolarityType> getDataPolarity();
 
   java.awt.Color getColorAWT();
 
@@ -139,8 +155,7 @@ public interface RawDataFile {
    */
   void close();
 
-  @Nonnull
-  MemoryMapStorage getMemoryMapStorage();
+  @Nullable MemoryMapStorage getMemoryMapStorage();
 
   void addScan(Scan newScan) throws IOException;
 
@@ -149,8 +164,13 @@ public interface RawDataFile {
   void setMZRange(int msLevel, Range<Double> mzRange);
 
 
-  ObservableList<Scan> getScans();
+  String setNameNoChecks(@NotNull String name);
 
+  @NotNull ObservableList<Scan> getScans();
+
+  default @NotNull Stream<Scan> stream() {
+    return getScans().stream();
+  }
 
   /**
    * Mass list has changed. reset all precomputed values
@@ -182,6 +202,10 @@ public interface RawDataFile {
     return getScans().get(i);
   }
 
-  @Nonnull
-  ObservableList<FeatureListAppliedMethod> getAppliedMethods();
+  @NotNull ObservableList<FeatureListAppliedMethod> getAppliedMethods();
+
+  /**
+   * JavaFX safe copy of the name
+   */
+  StringProperty nameProperty();
 }

@@ -1,26 +1,27 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules;
 
+import java.time.Instant;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.parameters.ParameterSet;
@@ -39,7 +40,7 @@ public interface MZmineRunnableModule extends MZmineModule {
    * 
    * @return Module description
    */
-  @Nonnull
+  @NotNull
   public String getDescription();
 
   /**
@@ -56,19 +57,20 @@ public interface MZmineRunnableModule extends MZmineModule {
    *        need to perform these checks again.
    * @param tasks A collection where the module should add its newly created Tasks, if it creates
    *        any.
+   * @param moduleCallDate
    * @return Exit code of the operation. ExitCode.OK means the module was started properly, however
    *         it does not guarantee that the Tasks will finish without error. ExitCode.ERROR means
    *         there was a problem starting the module.
    */
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks);
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate);
 
   /**
    * Returns the category of the module (e.g. raw data processing, peak picking etc.). A menu item
    * for this module will be created according to the category.
    */
-  @Nonnull
+  @NotNull
   public MZmineModuleCategory getModuleCategory();
 
 }

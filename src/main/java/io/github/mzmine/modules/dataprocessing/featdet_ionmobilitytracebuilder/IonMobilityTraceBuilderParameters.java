@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_ionmobilitytracebuilder;
@@ -28,6 +28,7 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.jetbrains.annotations.NotNull;
 
 public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
@@ -40,7 +41,7 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
           new ScanSelection());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.001, 5,
+      "m/z tolerance between mobility scans to be assigned to the same mobilogram", 0.005, 10,
       false);
 
   public static final IntegerParameter minDataPointsRt = new IntegerParameter(
@@ -58,15 +59,15 @@ public class IonMobilityTraceBuilderParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter advancedParameters =
       new ParameterSetParameter("Advanced parameters",
-          "Allows adjustment of internal interpolation parameters in case no data point has "
-              + "been detected in a frame or a mobilogram.",
-          new OptionalImsTraceBuilderParameters());
+          "Allows adjustment of internal binning parameters for mobilograms",
+          new AdvancedImsTraceBuilderParameters());
 
   public IonMobilityTraceBuilderParameters() {
     super(new Parameter[]{rawDataFiles, scanSelection, mzTolerance, minDataPointsRt,
-        minTotalSignals, suffix, advancedParameters});
+        minTotalSignals, suffix, advancedParameters}, "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ion_mobility_trace_builder/ion-mobility-trace-builder.html");
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

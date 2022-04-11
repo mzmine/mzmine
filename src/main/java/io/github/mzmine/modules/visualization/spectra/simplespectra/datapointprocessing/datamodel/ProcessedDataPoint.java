@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
@@ -47,7 +47,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * @param dp DataPoints to convert.
    * @return Array of ProcessedDataPoints from DataPoints.
    */
-  public static ProcessedDataPoint[] convert(@Nonnull DataPoint[] dp) {
+  public static ProcessedDataPoint[] convert(@NotNull DataPoint[] dp) {
     ProcessedDataPoint[] pdp = new ProcessedDataPoint[dp.length];
     for (int i = 0; i < pdp.length; i++)
       pdp[i] = new ProcessedDataPoint(dp[i]);
@@ -59,14 +59,14 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    *
    * @return Array of ProcessedDataPoints from DataPoints.
    */
-  public static ProcessedDataPoint[] convert(@Nonnull double[] mz, @Nonnull double[] intensity) {
+  public static ProcessedDataPoint[] convert(@NotNull double[] mz, @NotNull double[] intensity) {
     ProcessedDataPoint[] pdp = new ProcessedDataPoint[mz.length];
     for (int i = 0; i < pdp.length; i++)
       pdp[i] = new ProcessedDataPoint(mz[i], intensity[i]);
     return pdp;
   }
 
-  public ProcessedDataPoint(@Nonnull DataPoint dp) {
+  public ProcessedDataPoint(@NotNull DataPoint dp) {
     super(dp);
   }
   /**
@@ -77,12 +77,12 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     super(mz, intensity);
   }
 
-  public ProcessedDataPoint(@Nonnull DataPoint dp, @Nonnull DPPResult<?> result) {
+  public ProcessedDataPoint(@NotNull DataPoint dp, @NotNull DPPResult<?> result) {
     this(dp);
     addResult(result);
   }
 
-  public ProcessedDataPoint(@Nonnull DataPoint dp, @Nonnull Collection<DPPResult<?>> results) {
+  public ProcessedDataPoint(@NotNull DataPoint dp, @NotNull Collection<DPPResult<?>> results) {
     this(dp);
     addAllResults(results);
   }
@@ -92,7 +92,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param result
    */
-  public synchronized void addResult(@Nonnull DPPResult<?> result) {
+  public synchronized void addResult(@NotNull DPPResult<?> result) {
     if (result == null)
       return;
 
@@ -107,7 +107,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param results
    */
-  public synchronized void addAllResults(@Nonnull Collection<DPPResult<?>> results) {
+  public synchronized void addAllResults(@NotNull Collection<DPPResult<?>> results) {
     if (results == null)
       return;
 
@@ -119,7 +119,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     }
   }
 
-  public synchronized void addAllResults(@Nonnull DPPResult<?>[] result) {
+  public synchronized void addAllResults(@NotNull DPPResult<?>[] result) {
     if (result == null)
       return;
 
@@ -181,7 +181,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    *
    * @return Returns List of all results of the given type. Null if no result exists.
    */
-  public @Nonnull List<DPPResult<?>> getAllResultsByType(DPPResult.ResultType type) {
+  public @NotNull List<DPPResult<?>> getAllResultsByType(DPPResult.ResultType type) {
     List<DPPResult<?>> list = new ArrayList<>();
 
     if (results == null)
@@ -217,20 +217,20 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       results.remove(i);
   }
 
-  public synchronized void removeResult(@Nonnull DPPResult<?> result) {
+  public synchronized void removeResult(@NotNull DPPResult<?> result) {
     // System.out.println(results.toString());
     if (results != null)
       results.remove(result);
     // System.out.println(results.toString());
   }
 
-  public synchronized void removeResults(@Nonnull List<DPPResult<?>> results) {
+  public synchronized void removeResults(@NotNull List<DPPResult<?>> results) {
     if (results != null)
       for (DPPResult<?> result : results)
         removeResult(result);
   }
 
-  public synchronized void removeAllResultsByType(@Nonnull DPPResult.ResultType type) {
+  public synchronized void removeAllResultsByType(@NotNull DPPResult.ResultType type) {
     List<DPPResult<?>> remove = new ArrayList<>();
     if (results != null) {
       for (DPPResult<?> result : results)

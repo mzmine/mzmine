@@ -12,8 +12,7 @@
  * Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -22,7 +21,6 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.graphicalnodes.FeatureShapeMobilogramChart;
-import io.github.mzmine.datamodel.features.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
@@ -31,24 +29,28 @@ import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
-public class FeatureShapeMobilogramType extends LinkedDataType
-    implements GraphicalColumType<Boolean> {
+public class FeatureShapeMobilogramType extends LinkedGraphicalType {
 
-  @Nonnull
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "feature_shape_mobilogram";
+  }
+
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Mobilograms";
   }
 
   @Override
-  public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, Boolean> cell,
-      TreeTableColumn<ModularFeatureListRow, Boolean> coll,
-      Boolean cellData, RawDataFile raw) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, Boolean> cell,
+      TreeTableColumn<ModularFeatureListRow, Boolean> coll, Boolean value, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
-    if (row == null || row.getRawDataFiles().stream()
+    if (row == null || !value || row.getRawDataFiles().stream()
         .filter(file -> (file instanceof IMSRawDataFile)).findAny().isEmpty()) {
       return null;
     }
@@ -74,4 +76,5 @@ public class FeatureShapeMobilogramType extends LinkedDataType
   public double getColumnWidth() {
     return DEFAULT_GRAPHICAL_CELL_WIDTH;
   }
+
 }

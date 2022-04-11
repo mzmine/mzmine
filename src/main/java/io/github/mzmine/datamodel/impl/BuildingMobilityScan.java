@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -21,12 +21,12 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.SortingDirection;
@@ -34,8 +34,8 @@ import io.github.mzmine.util.SortingProperty;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * During raw data import, we need to cache the m/z and intensity values of mobility scans, so we
@@ -50,13 +50,28 @@ public class BuildingMobilityScan implements MobilityScan {
   final double[] mzValues;
   int basePeakIndex;
 
+  /**
+   *
+   * @param scanNumber The scan number beginning with 0
+   * @param mzIntensities The m/z values [0][n] and intensity values [1][n]
+   */
+  public BuildingMobilityScan(int scanNumber, double[][] mzIntensities) {
+    this(scanNumber, mzIntensities[0], mzIntensities[1]);
+  }
+
+  /**
+   *
+   * @param scanNumber The scan number beginning with 0
+   * @param mzs The m/z values
+   * @param intensities The intensity values.
+   */
   public BuildingMobilityScan(int scanNumber, double[] mzs, double[] intensities) {
     assert intensities.length == mzs.length;
 
     this.scanNumber = scanNumber;
     boolean haveToSort = false;
 
-    // -1 is intended to be used in mobility scans. The SimpleMobilityScan will return null,
+    // -1 is intended to be used in mobility scans. The MobilityScan will return null,
     // it this value is -1
     basePeakIndex = -1;
     if (mzs.length > 1) {
@@ -120,15 +135,15 @@ public class BuildingMobilityScan implements MobilityScan {
   }
 
   @Override
-  public double[] getMzValues(@Nonnull double[] dst) {
-    // we store arrays anyway, so no point in making the user allocate a new one
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+  public double[] getMzValues(@NotNull double[] dst) {
+    System.arraycopy(mzValues, 0, dst, 0, mzValues.length);
+    return dst;
   }
 
   @Override
-  public double[] getIntensityValues(@Nonnull double[] dst) {
-    // we store arrays anyway, so no point in making the user allocate a new one
-    throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
+  public double[] getIntensityValues(@NotNull double[] dst) {
+    System.arraycopy(intensityValues, 0, dst, 0, intensityValues.length);
+    return dst;
   }
 
   @Override
@@ -176,7 +191,7 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public RawDataFile getDataFile() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
@@ -209,12 +224,12 @@ public class BuildingMobilityScan implements MobilityScan {
 
   @Nullable
   @Override
-  public ImsMsMsInfo getMsMsInfo() {
+  public PasefMsMsInfo getMsMsInfo() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
   @Override
-  public void setMassList(@Nonnull MassList massList) {
+  public void addMassList(@NotNull MassList massList) {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
@@ -223,9 +238,10 @@ public class BuildingMobilityScan implements MobilityScan {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public Iterator<DataPoint> iterator() {
     throw new UnsupportedOperationException("Not supported by " + this.getClass().getName());
   }
+
 }

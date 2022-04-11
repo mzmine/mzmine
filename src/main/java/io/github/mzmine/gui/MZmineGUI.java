@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This file is part of MZmine 3.
+ * This file is part of MZmine.
  *
- * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui;
@@ -34,34 +34,41 @@ import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.main.TmpFileCleanup;
 import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportModule;
+import io.github.mzmine.modules.io.import_rawdata_all.AllSpectralDataImportParameters;
+import io.github.mzmine.modules.io.import_spectral_library.SpectralLibraryImportParameters;
 import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
+import io.github.mzmine.project.impl.ProjectChangeEvent;
+import io.github.mzmine.project.impl.ProjectChangeListener;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.impl.WrappedTask;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.GUIUtils;
-import io.github.mzmine.util.RawDataFileUtils;
 import io.github.mzmine.util.javafx.FxColorUtil;
 import io.github.mzmine.util.javafx.FxIconUtil;
 import io.github.mzmine.util.javafx.groupablelistview.GroupableListView;
+import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -77,12 +84,14 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javax.annotation.Nonnull;
 import org.apache.commons.io.FilenameUtils;
 import org.controlsfx.control.StatusBar;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * MZmine JavaFX Application class
@@ -92,11 +101,10 @@ public class MZmineGUI extends Application implements Desktop {
   public static final int MAX_TABS = 7;
   private static final Image mzMineIcon = FxIconUtil.loadImageFromResources("MZmineIcon.png");
   private static final String mzMineFXML = "mainwindow/MainWindow.fxml";
-
+  private static final Logger logger = Logger.getLogger(MZmineGUI.class.getName());
   private static MainWindowController mainWindowController;
   private static Stage mainStage;
   private static Scene rootScene;
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public static void requestQuit() {
     MZmineCore.runLater(() -> {
@@ -171,40 +179,72 @@ public class MZmineGUI extends Application implements Desktop {
     MZmineCore.runLater(() -> {
 
       MZmineCore.getProjectManager().setCurrentProject(project);
+      if (mainWindowController != null) {
+        GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
+        rawDataList.setValues(project.getCurrentRawDataFiles());
 
-      GroupableListView<RawDataFile> rawDataList = mainWindowController.getRawDataList();
-      rawDataList.setValues(project.getRawDataFiles());
+        GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
+        featureListsList.setValues(project.getCurrentFeatureLists());
 
-      GroupableListView<FeatureList> featureListsList = mainWindowController.getFeatureListsList();
-      featureListsList.setValues(project.getFeatureLists());
+        var libraryList = mainWindowController.getSpectralLibraryList();
+        final var fxLibs = FXCollections.observableArrayList(project.getCurrentSpectralLibraries());
+        libraryList.setItems(fxLibs);
 
+        // add project listener to update the views
+        project.addProjectListener(new ProjectChangeListener() {
+          @Override
+          public void dataFilesChanged(ProjectChangeEvent<RawDataFile> event) {
+            switch (event.change()) {
+              case ADDED -> rawDataList.addItems(event.changedLists());
+              case REMOVED -> rawDataList.removeItems(event.changedLists());
+              case UPDATED, RENAMED -> rawDataList.updateItems();
+            }
+          }
+
+          @Override
+          public void featureListsChanged(ProjectChangeEvent<FeatureList> event) {
+            switch (event.change()) {
+              case ADDED -> featureListsList.addItems(event.changedLists());
+              case REMOVED -> featureListsList.removeItems(event.changedLists());
+              case UPDATED, RENAMED -> featureListsList.updateItems();
+            }
+          }
+
+          @Override
+          public void librariesChanged(ProjectChangeEvent<SpectralLibrary> event) {
+            MZmineCore.runLater(() -> fxLibs.setAll(project.getCurrentSpectralLibraries()));
+          }
+        });
+      }
     });
 
   }
 
-  @Nonnull
+  @NotNull
   public static List<RawDataFile> getSelectedRawDataFiles() {
-
     final GroupableListView<RawDataFile> rawDataListView = mainWindowController.getRawDataList();
     return ImmutableList.copyOf(rawDataListView.getSelectedValues());
-
   }
 
-  @Nonnull
+  @NotNull
   public static List<FeatureList> getSelectedFeatureLists() {
-
-    final GroupableListView<FeatureList> featureListView =
-        mainWindowController.getFeatureListsList();
+    final GroupableListView<FeatureList> featureListView = mainWindowController.getFeatureListsList();
     return ImmutableList.copyOf(featureListView.getSelectedValues());
-
   }
 
-  @Nonnull
+  @NotNull
+  public static List<SpectralLibrary> getSelectedSpectralLibraryList() {
+    final var spectralLibraryView = mainWindowController.getSpectralLibraryList();
+    return FXCollections.unmodifiableObservableList(
+        spectralLibraryView.getSelectionModel().getSelectedItems());
+  }
+
+  @NotNull
   public static <ModuleType extends MZmineRunnableModule> void setupAndRunModule(
       Class<ModuleType> moduleClass) {
 
-    final ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleClass);
+    final ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(moduleClass);
     ExitCode result = moduleParameters.showSetupDialog(true);
     if (result == ExitCode.OK) {
       MZmineCore.runMZmineModule(moduleClass, moduleParameters);
@@ -215,8 +255,8 @@ public class MZmineGUI extends Application implements Desktop {
   public static void showAboutWindow() {
     // Show the about window
     MZmineCore.runLater(() -> {
-      final URL aboutPage =
-          MZmineGUI.class.getClassLoader().getResource("aboutpage/AboutMZmine.html");
+      final URL aboutPage = MZmineGUI.class.getClassLoader()
+          .getResource("aboutpage/AboutMZmine.html");
       HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
       aboutWindow.show();
     });
@@ -250,37 +290,69 @@ public class MZmineGUI extends Application implements Desktop {
     boolean hasFileDropped = false;
     if (dragboard.hasFiles()) {
       hasFileDropped = true;
-      for (File selectedFile : dragboard.getFiles()) {
 
-        final String extension = FilenameUtils.getExtension(selectedFile.getName());
-        String[] rawDataFile =
-            {"cdf", "netcdf", "nc", "mzData", "mzML", "imzML", "mzXML", "raw", "tdf"};
-        final Boolean isRawDataFile = Arrays.asList(rawDataFile).contains(extension);
-        final Boolean isMZmineProject = extension.equals("mzmine");
+      final List<String> rawExtensions = List.of("mzml", "mzxml", "raw", "cdf", "netcdf", "nc",
+          "mzdata", "imzml", "tdf", "d", "tsf", "zip", "gz");
+      final List<String> libraryExtensions = List.of("json", "mgf", "msp", "jdx");
+
+      final List<File> rawDataFiles = new ArrayList<>();
+      final List<File> libraryFiles = new ArrayList<>();
+
+      for (File selectedFile : dragboard.getFiles()) {
+        final String extension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
+        final boolean isRawDataFile = rawExtensions.contains(extension);
+        final boolean isLibraryFile = libraryExtensions.contains(extension);
+        final boolean isMZmineProject = extension.equals("mzmine");
 
         Class<? extends MZmineRunnableModule> moduleJavaClass = null;
         if (isMZmineProject) {
+          logger.finest(
+              () -> "Importing project " + selectedFile.getAbsolutePath() + " via drag and drop.");
           moduleJavaClass = ProjectLoadModule.class;
-          ParameterSet moduleParameters =
-              MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+          ParameterSet moduleParameters = MZmineCore.getConfiguration()
+              .getModuleParameters(moduleJavaClass);
           moduleParameters.getParameter(projectFile).setValue(selectedFile);
           ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
           MZmineCore.runMZmineModule(moduleJavaClass, parametersCopy);
         } else if (isRawDataFile) {
-          // import files
-          List<Task> underlyingTasks = new ArrayList<>();
-          try {
-            RawDataFileUtils.createRawDataImportTasks(
-                MZmineCore.getProjectManager().getCurrentProject(), underlyingTasks, selectedFile);
-            if (underlyingTasks.size() > 0) {
-              MZmineCore.getTaskController().addTasks(underlyingTasks.toArray(new Task[0]));
-            }
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-
+          // add to raw files list
+          rawDataFiles.add(selectedFile);
         }
 
+        // in case a library format is also supported as raw data format - import as both
+        if (isLibraryFile) {
+          libraryFiles.add(selectedFile);
+        }
+      }
+
+      if (!rawDataFiles.isEmpty() || !libraryFiles.isEmpty()) {
+        if (!rawDataFiles.isEmpty()) {
+          logger.finest(() -> "Importing " + rawDataFiles.size() + " raw files via drag and drop: "
+              + rawDataFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+        }
+        if (!libraryFiles.isEmpty()) {
+          logger.finest(() -> "Importing " + libraryFiles.size() + " raw files via drag and drop: "
+              + libraryFiles.stream().map(File::getAbsolutePath).collect(Collectors.joining(", ")));
+        }
+
+        // set raw and library files to parameter
+        ParameterSet param = MZmineCore.getConfiguration()
+            .getModuleParameters(AllSpectralDataImportModule.class).cloneParameterSet();
+        param.setParameter(AllSpectralDataImportParameters.advancedImport, false);
+        param.setParameter(AllSpectralDataImportParameters.fileNames,
+            rawDataFiles.toArray(File[]::new));
+        param.setParameter(SpectralLibraryImportParameters.dataBaseFiles,
+            libraryFiles.toArray(File[]::new));
+
+        // start import task for libraries and raw data files
+        AllSpectralDataImportModule module = MZmineCore.getModuleInstance(
+            AllSpectralDataImportModule.class);
+        if (module != null) {
+          List<Task> tasks = new ArrayList<>();
+          module.runModule(MZmineCore.getProjectManager().getCurrentProject(), param, tasks,
+              Instant.now());
+          MZmineCore.getTaskController().addTasks(tasks.toArray(Task[]::new));
+        }
       }
     }
     event.setDropCompleted(hasFileDropped);
@@ -367,8 +439,8 @@ public class MZmineGUI extends Application implements Desktop {
      */
 
     // Activate project - bind it to the desktop's project tree
-    MZmineProjectImpl currentProject =
-        (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+    MZmineProjectImpl currentProject = (MZmineProjectImpl) MZmineCore.getProjectManager()
+        .getCurrentProject();
     MZmineGUI.activateProject(currentProject);
 
     // Check for updated version
@@ -378,8 +450,8 @@ public class MZmineGUI extends Application implements Desktop {
     nvcThread.start();
 
     // Tracker
-    GoogleAnalyticsTracker GAT =
-        new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
+    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)",
+        "/JAVA/Main/GUI");
     Thread gatThread = new Thread(GAT);
     gatThread.setPriority(Thread.MIN_PRIORITY);
     gatThread.start();
@@ -415,8 +487,13 @@ public class MZmineGUI extends Application implements Desktop {
 
   @Override
   public void openWebPage(URL url) {
+    openWebPage(String.valueOf(url));
+  }
+
+  @Override
+  public void openWebPage(String url) {
     HostServices openWPService = getHostServices();
-    openWPService.showDocument(String.valueOf(url));
+    openWPService.showDocument(url);
   }
 
   @Override
@@ -464,14 +541,22 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public void displayMessage(String title, String msg) {
     MZmineCore.runLater(() -> {
+
       Dialog<ButtonType> dialog = new Dialog<>();
       Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
       stage.getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
       stage.getIcons().add(mzMineIcon);
       dialog.setTitle(title);
-      dialog.setContentText(msg);
       dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+
+      final Text text = new Text();
+      text.setWrappingWidth(400);
+      text.setText(msg);
+      final FlowPane pane = new FlowPane(text);
+      pane.setPadding(new Insets(5));
+      dialog.getDialogPane().setContent(pane);
+
       dialog.showAndWait();
     });
   }
@@ -490,9 +575,15 @@ public class MZmineGUI extends Application implements Desktop {
   public ButtonType displayConfirmation(String msg, ButtonType... buttonTypes) {
 
     FutureTask<ButtonType> alertTask = new FutureTask<>(() -> {
-      Alert alert = new Alert(AlertType.CONFIRMATION, msg, buttonTypes);
+      Alert alert = new Alert(AlertType.CONFIRMATION, "", buttonTypes);
       alert.getDialogPane().getScene().getStylesheets()
           .addAll(MZmineCore.getDesktop().getMainWindow().getScene().getStylesheets());
+      Text text = new Text(msg);
+      text.setWrappingWidth(400);
+      final FlowPane pane = new FlowPane(text);
+      pane.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(pane);
+      alert.setWidth(400);
       alert.showAndWait();
       return alert.getResult();
     });
@@ -519,6 +610,11 @@ public class MZmineGUI extends Application implements Desktop {
   @Override
   public FeatureList[] getSelectedPeakLists() {
     return getSelectedFeatureLists().toArray(new FeatureList[0]);
+  }
+
+  @Override
+  public SpectralLibrary[] getSelectedSpectralLibraries() {
+    return getSelectedSpectralLibraryList().toArray(new SpectralLibrary[0]);
   }
 
   @Override
@@ -559,7 +655,7 @@ public class MZmineGUI extends Application implements Desktop {
     return tabs;
   }
 
-  @Nonnull
+  @NotNull
   @Override
   public List<MZmineTab> getTabsInMainWindow() {
     List<MZmineTab> tabs = new ArrayList<>();
@@ -573,8 +669,8 @@ public class MZmineGUI extends Application implements Desktop {
     return tabs;
   }
 
-  public ButtonType createAlertWithOptOut(String title, String headerText,
-      String message, String optOutMessage, Consumer<Boolean> optOutAction) {
+  public ButtonType createAlertWithOptOut(String title, String headerText, String message,
+      String optOutMessage, Consumer<Boolean> optOutAction) {
     // Credits: https://stackoverflow.com/questions/36949595/how-do-i-create-a-javafx-alert-with-a-check-box-for-do-not-ask-again
     FutureTask<ButtonType> task = new FutureTask<>(() -> {
       Alert alert = new Alert(AlertType.WARNING);
@@ -596,7 +692,12 @@ public class MZmineGUI extends Application implements Desktop {
         }
       });
       alert.getDialogPane().getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
-      alert.getDialogPane().setContentText(message);
+
+      Text text = new Text(message);
+      text.setWrappingWidth(400);
+      final FlowPane pane = new FlowPane(text);
+      pane.setPadding(new Insets(5));
+      alert.getDialogPane().setContent(pane);
       // Fool the dialog into thinking there is some expandable content
       // a Group won't take up any space if it has no children
       alert.getDialogPane().setExpandableContent(new Group());

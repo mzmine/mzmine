@@ -16,16 +16,17 @@
 
 package io.github.mzmine.modules.dataanalysis.anova;
 
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.Collection;
-import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineProcessingModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class AnovaModule implements MZmineProcessingModule {
 
@@ -34,25 +35,25 @@ public class AnovaModule implements MZmineProcessingModule {
       "Calculates one-way ANOVA test on the intensities of aligned features.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     FeatureList[] featureLists =
         parameters.getParameter(AnovaParameters.featureLists).getValue().getMatchingFeatureLists();
 
     for (FeatureList featureList : featureLists) {
-      tasks.add(new AnovaTask(featureList.getRows().toArray(FeatureListRow[]::new), parameters));
+      tasks.add(new AnovaTask(featureList.getRows().toArray(FeatureListRow[]::new), parameters, moduleCallDate));
     }
 
     return ExitCode.OK;
@@ -60,12 +61,12 @@ public class AnovaModule implements MZmineProcessingModule {
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
+  public @NotNull MZmineModuleCategory getModuleCategory() {
     return MZmineModuleCategory.DATAANALYSIS;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return AnovaParameters.class;
   }
 }

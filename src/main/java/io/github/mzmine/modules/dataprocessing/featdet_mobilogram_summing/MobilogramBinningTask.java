@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
@@ -33,10 +33,12 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Steffen https://github.com/SteffenHeu
@@ -49,17 +51,18 @@ public class MobilogramBinningTask extends AbstractTask {
   private final boolean createNewFlist;
   private final MZmineProject project;
   private final AtomicLong processedFeatures = new AtomicLong(0);
-  private final double timsBinningWidth;
-  private final double twimsBinningWidth;
-  private final double dtimsBinningWidth;
+  private final int timsBinningWidth;
+  private final int twimsBinningWidth;
+  private final int dtimsBinningWidth;
   private final BinningSource binningSource;
   private long totalFeatures = 1;
 
   public MobilogramBinningTask(@Nullable MemoryMapStorage storage,
-      @Nonnull final ModularFeatureList originalFeatureList,
-      @Nonnull final ParameterSet parameters,
-      @Nonnull final MZmineProject project) {
-    super(storage);
+      @NotNull final ModularFeatureList originalFeatureList,
+      @NotNull final ParameterSet parameters,
+      @NotNull final MZmineProject project,
+      @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
     this.parameters = parameters;
     this.originalFeatureList = originalFeatureList;
     suffix = parameters.getParameter(MobilogramBinningParameters.suffix).getValue();
@@ -91,7 +94,7 @@ public class MobilogramBinningTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     final ModularFeatureList flist = createNewFlist ? originalFeatureList
-        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage())
+        .createCopy(originalFeatureList.getName() + " " + suffix, getMemoryMapStorage(), false)
         : originalFeatureList;
 
     totalFeatures = flist.streamFeatures().count();
@@ -104,7 +107,7 @@ public class MobilogramBinningTask extends AbstractTask {
       final List<ModularFeature> features = (List<ModularFeature>) (List<? extends Feature>) flist
           .getFeatures(file);
 
-      final double binWidth = switch (((IMSRawDataFile) file).getMobilityType()) {
+      final int binWidth = switch (((IMSRawDataFile) file).getMobilityType()) {
         case TIMS -> timsBinningWidth;
         case TRAVELING_WAVE -> twimsBinningWidth;
         case DRIFT_TUBE -> dtimsBinningWidth;
@@ -134,7 +137,7 @@ public class MobilogramBinningTask extends AbstractTask {
     }
 
     flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters));
+        .add(new SimpleFeatureListAppliedMethod(MobilogramBinningModule.class, parameters, getModuleCallDate()));
     if (createNewFlist) {
       project.addFeatureList(flist);
     }

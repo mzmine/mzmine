@@ -25,20 +25,30 @@ import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
-import io.github.mzmine.modules.io.import_bruker_tdf.TDFImportTask;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess;
+import io.github.mzmine.datamodel.data_access.EfficientDataAccess.MobilityScanDataType;
+import io.github.mzmine.datamodel.data_access.MobilityScanDataAccess;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportModule;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportParameters;
+import io.github.mzmine.modules.io.import_rawdata_bruker_tdf.TDFImportTask;
+import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.exceptions.MissingMassListException;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -53,12 +63,13 @@ public class BrukerTdfTest {
     String str = BrukerTdfTest.class.getClassLoader()
         .getResource("rawdatafiles/200ngHeLaPASEF_2min_compressed.d").getFile();
     File file = new File(str);
-    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(),
+    IMSRawDataFile rawDataFile = new IMSRawDataFileImpl(file.getName(), null,
         MemoryMapStorage.forRawDataFile(), Color.BLACK);
 
     AtomicReference<TaskStatus> status = new AtomicReference<>(TaskStatus.WAITING);
 
-    AbstractTask importTask = new TDFImportTask(project, file, rawDataFile);
+    AbstractTask importTask = new TDFImportTask(project, file, rawDataFile, TDFImportModule.class,
+        new TDFImportParameters(), Instant.now());
     importTask.addTaskStatusListener((task, newStatus, oldStatus) -> {
       status.set(newStatus);
     });
@@ -120,5 +131,36 @@ public class BrukerTdfTest {
     Assert.assertEquals(Range.closed(246.15697362418837, 1422.918606530885),
         mobilityScan425.getDataPointMZRange());
 //    Assert.assertEquals(107494.0, mobilityScan425.getTIC(), 0.0001d);
+  }
+
+  @Disabled("Needs test file?")
+  @Test
+  public void testMobilogramScanDataAccess()
+      throws IOException, InterruptedException, MissingMassListException {
+    IMSRawDataFile file = importTestFile();
+    ScanSelection selection = new ScanSelection(1);
+    List<Frame> frames = (List<Frame>) selection.getMatchingScans(file.getFrames());
+    MobilityScanDataAccess access = EfficientDataAccess
+        .of(file, MobilityScanDataType.RAW, selection);
+    for (int i = 0; i < 5; i++) {
+      final Frame realFrame = frames.get(i);
+      final Frame accessFrame = access.nextFrame();
+      Assertions.assertEquals(realFrame, accessFrame);
+
+      for (int j = 0; j < realFrame.getNumberOfMobilityScans(); j++) {
+        Assertions.assertEquals(realFrame.getMobilityScan(j), accessFrame.getMobilityScan(j));
+
+        MobilityScan realMScan = realFrame.getMobilityScan(j);
+        MobilityScan accessMScan = access.nextMobilityScan();
+        Assertions.assertEquals(realMScan, accessMScan);
+        Assertions.assertEquals(realMScan.getNumberOfDataPoints(), access.getNumberOfDataPoints());
+        Assertions.assertEquals(realMScan.getMobility(), access.getMobility());
+
+        for (int m = 0; m < realMScan.getNumberOfDataPoints(); m++) {
+          Assertions.assertEquals(realMScan.getMzValue(m), access.getMzValue(m));
+          Assertions.assertEquals(realMScan.getIntensityValue(m), access.getIntensityValue(m));
+        }
+      }
+    }
   }
 }

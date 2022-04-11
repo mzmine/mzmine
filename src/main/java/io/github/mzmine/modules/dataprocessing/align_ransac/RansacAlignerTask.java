@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.align_ransac;
@@ -37,7 +37,9 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.RangeUtils;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,11 +48,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class RansacAlignerTask extends AbstractTask {
 
@@ -70,9 +73,10 @@ class RansacAlignerTask extends AbstractTask {
   // ID counter for the new peaklist
   private int newRowID = 1;
 
-  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists, ParameterSet parameters, @Nullable
-      MemoryMapStorage storage) {
-    super(storage);
+  public RansacAlignerTask(MZmineProject project, FeatureList[] featureLists,
+      ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate);
 
     this.project = project;
     this.featureLists = (ModularFeatureList[]) featureLists;
@@ -83,13 +87,13 @@ class RansacAlignerTask extends AbstractTask {
 
     mzTolerance = parameters.getParameter(RansacAlignerParameters.MZTolerance).getValue();
 
-    rtToleranceBefore =
-        parameters.getParameter(RansacAlignerParameters.RTToleranceBefore).getValue();
+    rtToleranceBefore = parameters.getParameter(RansacAlignerParameters.RTToleranceBefore)
+        .getValue();
 
     rtToleranceAfter = parameters.getParameter(RansacAlignerParameters.RTToleranceAfter).getValue();
 
-    sameChargeRequired =
-        parameters.getParameter(RansacAlignerParameters.SameChargeRequired).getValue();
+    sameChargeRequired = parameters.getParameter(RansacAlignerParameters.SameChargeRequired)
+        .getValue();
 
   }
 
@@ -127,6 +131,11 @@ class RansacAlignerTask extends AbstractTask {
     // Collect all data files
     List<RawDataFile> allDataFiles = new ArrayList<RawDataFile>();
 
+    // Create a new aligned feature list, add all distinct files
+    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
+        Arrays.stream(featureLists).flatMap(flist -> flist.getRawDataFiles().stream()).distinct()
+            .toList());
+
     for (ModularFeatureList featureList : featureLists) {
 
       for (RawDataFile dataFile : featureList.getRawDataFiles()) {
@@ -147,10 +156,6 @@ class RansacAlignerTask extends AbstractTask {
       }
     }
 
-    // Create a new aligned feature list
-    alignedFeatureList = new ModularFeatureList(featureListName, getMemoryMapStorage(),
-        allDataFiles.toArray(new RawDataFile[0]));
-
     // Iterate source feature lists
     for (FeatureList featureList : featureLists) {
 
@@ -165,7 +170,7 @@ class RansacAlignerTask extends AbstractTask {
         // If we have no mapping for this row, add a new one
         if (targetRow == null) {
           targetRow = new ModularFeatureListRow(alignedFeatureList, newRowID);
-          //(@Nonnull ModularFeatureList flist, int id, RawDataFile raw,
+          //(@NotNull ModularFeatureList flist, int id, RawDataFile raw,
           //    ModularFeature p)
           newRowID++;
           alignedFeatureList.addRow(targetRow);
@@ -194,20 +199,21 @@ class RansacAlignerTask extends AbstractTask {
 
       SortedMap<Double, Double> chromatogram = new TreeMap<>();
 
-      for (int i=0; i < feature.getNumberOfDataPoints(); i++) {
+      for (int i = 0; i < feature.getNumberOfDataPoints(); i++) {
         DataPoint dataPoint = feature.getDataPointAtIndex(i);
         double retTime = feature.getRetentionTimeAtIndex(i) + retTimeDelta;
-        if (dataPoint != null)
+        if (dataPoint != null) {
           chromatogram.put(retTime, dataPoint.getIntensity());
+        }
       }
     }
 
     // End of Edit
 
     // Add task description to peakList
-    alignedFeatureList
-        .addDescriptionOfAppliedTask(new SimpleFeatureListAppliedMethod("Ransac aligner",
-            RansacAlignerModule.class, parameters));
+    alignedFeatureList.addDescriptionOfAppliedTask(
+        new SimpleFeatureListAppliedMethod("Ransac aligner", RansacAlignerModule.class, parameters,
+            getModuleCallDate()));
 
     logger.info("Finished RANSAC aligner");
     setStatus(TaskStatus.FINISHED);
@@ -215,7 +221,6 @@ class RansacAlignerTask extends AbstractTask {
   }
 
   /**
-   *
    * @param peakList
    * @return
    */
@@ -254,8 +259,8 @@ class RansacAlignerTask extends AbstractTask {
       Range<Float> rtRange = rtToleranceAfter.getToleranceRange(rt);
 
       // Get all rows of the aligned peaklist within parameter limits
-      List<FeatureListRow> candidateRows = alignedFeatureList
-          .getRowsInsideScanAndMZRange(rtRange, mzRange);
+      List<FeatureListRow> candidateRows = alignedFeatureList.getRowsInsideScanAndMZRange(rtRange,
+          mzRange);
 
       for (FeatureListRow candidate : candidateRows) {
         RowVsRowScore score;

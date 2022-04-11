@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 package io.github.mzmine.modules.visualization.spectra.multimsms;
 
@@ -364,7 +364,7 @@ public class MultiMSMSPane extends BorderPane {
     // check raw
     if (raw != null && !rawContainsFragmentation(raw)) {
       // change to best of highest row
-      raw = Arrays.stream(rows).map(FeatureListRow::getBestFragmentation).filter(Objects::nonNull)
+      raw = Arrays.stream(rows).map(FeatureListRow::getMostIntenseFragmentScan).filter(Objects::nonNull)
           .findFirst().get().getDataFile();
     }
     // set raw and update
@@ -390,8 +390,8 @@ public class MultiMSMSPane extends BorderPane {
       if (best != null) {
         scan = best.getRepresentativeScan();
         EChartViewer cp = SpectrumChartFactory.createScanChartViewer(scan, showTitle, showLegend);
-        cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
         if (cp != null) {
+          cp.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
           msone = new ChartViewWrapper(cp);
         }
       }
@@ -416,8 +416,8 @@ public class MultiMSMSPane extends BorderPane {
     for (FeatureListRow row : rows) {
       EChartViewer c = MirrorChartFactory.createMSMSChartViewer(row, raw, showTitle, showLegend,
           alwaysShowBest, useBestForMissingRaw);
-      c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
       if (c != null) {
+        c.minHeightProperty().bind(pnCharts.heightProperty().divide(rows.length+1));
         group.add(new ChartViewWrapper(c));
       }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
@@ -47,13 +47,15 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.XYSeries;
 
 /**
@@ -66,9 +68,6 @@ public class MassCalibrationTask extends AbstractTask {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final ParameterSet parameters;
   private final RawDataFile dataFile;
-
-  // User parameters
-  private final String suffix;
 
   // scan counter
   protected int processedScans = 0, totalScans;
@@ -107,19 +106,18 @@ public class MassCalibrationTask extends AbstractTask {
    * @param previewRun
    */
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun) {
-    super(storageMemoryMap);
+      @Nullable MemoryMapStorage storageMemoryMap, boolean previewRun, @NotNull Instant moduleCallDate) {
+    super(storageMemoryMap, moduleCallDate);
     this.dataFile = dataFile;
     this.parameters = parameters;
     this.storageMemoryMap = storageMemoryMap;
     this.previewRun = previewRun;
 
-    this.suffix = parameters.getParameter(MassCalibrationParameters.suffix).getValue();
   }
 
   public MassCalibrationTask(RawDataFile dataFile, ParameterSet parameters,
-      MemoryMapStorage storageMemoryMap) {
-    this(dataFile, parameters, storageMemoryMap, false);
+      MemoryMapStorage storageMemoryMap, @NotNull Instant moduleCallDate) {
+    this(dataFile, parameters, storageMemoryMap, false, moduleCallDate);
   }
 
   /**
@@ -169,8 +167,11 @@ public class MassCalibrationTask extends AbstractTask {
     if (afterHook != null && isCanceled() == false) {
       afterHook.run();
     }
-    dataFile.getAppliedMethods().add(new SimpleFeatureListAppliedMethod(MassCalibrationModule.class,
-        parameters));
+    if(!previewRun) {
+      dataFile.getAppliedMethods().add(
+          new SimpleFeatureListAppliedMethod(MassCalibrationModule.class, parameters,
+              getModuleCallDate()));
+    }
   }
 
   /**
@@ -218,7 +219,7 @@ public class MassCalibrationTask extends AbstractTask {
     scanNumbers = dataFile.getScans();
     totalScans = scanNumbers.size();
 
-    // Check if we have at least one scan with a mass list of given name
+    // Check if we have at least one scan with a mass list
     boolean haveMassList = false;
     for (int i = 0; i < totalScans; i++) {
       Scan scan = scanNumbers.get(i);
@@ -358,6 +359,7 @@ public class MassCalibrationTask extends AbstractTask {
             StandardsListExtractorFactory.createFromFilename(standardsListFilename, false);
       }
       standardsList = standardsListExtractor.extractStandardsList();
+      standardsListExtractor.closeInputStreams();
 
       if (standardsList.getStandardMolecules().size() == 0) {
         throw new RuntimeException(

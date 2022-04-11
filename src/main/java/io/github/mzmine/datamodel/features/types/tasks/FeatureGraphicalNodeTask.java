@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types.tasks;
@@ -23,6 +23,9 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
@@ -33,6 +36,8 @@ import javafx.scene.layout.StackPane;
  */
 public class FeatureGraphicalNodeTask extends AbstractTask {
 
+  private static final Logger logger = Logger.getLogger(FeatureGraphicalNodeTask.class.getName());
+
   Class<? extends Node> nodeClass;
   private StackPane pane;
   private ModularFeature feature;
@@ -42,7 +47,7 @@ public class FeatureGraphicalNodeTask extends AbstractTask {
   public FeatureGraphicalNodeTask(Class<? extends Node> nodeClass, StackPane pane,
       ModularFeature feature,
       String collHeader) {
-    super(null); // no new data stored -> null
+    super(null, Instant.now()); // no new data stored -> null, date irrelevant
     this.nodeClass = nodeClass;
     this.pane = pane;
     this.feature = feature;
@@ -57,17 +62,22 @@ public class FeatureGraphicalNodeTask extends AbstractTask {
       // create instance of nodeClass node with (ModularFeatureListRow, AtomicDouble) constructor
       n = nodeClass.getConstructor(new Class[]{ModularFeature.class, AtomicDouble.class})
           .newInstance(feature, progress);
+
+      if (n != null) {
+        final Node node = n;
+        // save chart for later
+        feature.addBufferedColChart(collHeader, n);
+        Platform.runLater(() -> pane.getChildren().add(node));
+      }
+
     } catch (NoSuchMethodException | IllegalAccessException | InstantiationException
         | InvocationTargetException e) {
       e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      return;
     }
-    final Node node = n;
-    // save chart for later
-    feature.addBufferedColChart(collHeader, n);
 
-    if (n != null) {
-      Platform.runLater(() -> pane.getChildren().add(node));
-    }
     setStatus(TaskStatus.FINISHED);
     progress.set(1d);
   }

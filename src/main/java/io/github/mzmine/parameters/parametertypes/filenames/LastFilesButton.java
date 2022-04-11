@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.filenames;
@@ -30,12 +30,12 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A button with a pupup menu of files. Used as last files chooser
- * 
- * @author Robin Schmid
  *
+ * @author Robin Schmid
  */
 public class LastFilesButton extends Button implements LastFilesComponent {
 
@@ -81,6 +81,10 @@ public class LastFilesButton extends Button implements LastFilesComponent {
     });
   }
 
+  public List<File> getLastFiles() {
+    return lastFiles;
+  }
+
   @Override
   public void setLastFiles(List<File> lastFiles) {
     this.lastFiles = lastFiles;
@@ -104,6 +108,11 @@ public class LastFilesButton extends Button implements LastFilesComponent {
       });
       menu.getItems().add(item);
     });
+  }
+
+  @Nullable
+  public File getLastFile() {
+    return lastFiles != null && lastFiles.size() > 0 ? lastFiles.get(0) : null;
   }
 
   private String fileToString(File f) {

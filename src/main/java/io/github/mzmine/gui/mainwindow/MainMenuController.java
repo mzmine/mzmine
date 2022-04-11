@@ -1,40 +1,46 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- * This file is part of MZmine 3.
+ * This file is part of MZmine.
  *
- * MZmine 3 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
  *
- * MZmine 3 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine 3; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.MZmineGUI;
+import io.github.mzmine.gui.NewVersionCheck;
+import io.github.mzmine.gui.NewVersionCheck.CheckType;
+import io.github.mzmine.gui.mainwindow.introductiontab.MZmineIntroductionTab;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.modules.MZmineRunnableModule;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
+import io.github.mzmine.modules.tools.batchwizard.BatchWizardModule;
+import io.github.mzmine.modules.visualization.spectra.msn_tree.MSnTreeVisualizerModule;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
+import io.github.mzmine.util.ExitCode;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.mzmine.gui.Desktop;
-import io.github.mzmine.gui.MZmineGUI;
-import io.github.mzmine.gui.NewVersionCheck;
-import io.github.mzmine.gui.NewVersionCheck.CheckType;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
-import io.github.mzmine.util.ExitCode;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
@@ -42,11 +48,10 @@ import javafx.scene.control.MenuItem;
 
 /**
  * The controller class for MainMenu.fxml
- *
  */
 public class MainMenuController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainMenuController.class.getName());
 
   @FXML
   private Menu recentProjectsMenu;
@@ -54,6 +59,8 @@ public class MainMenuController {
   @FXML
   public void initialize() {
     fillRecentProjects();
+    // disable project
+    recentProjectsMenu.setDisable(true);
   }
 
   public void closeProject(Event event) {
@@ -71,8 +78,8 @@ public class MainMenuController {
      * There doesn't seem to be any way to obtain the log file name from the logging FileHandler, so
      * it is hard-coded here for now
      */
-    final Path logFilePath =
-        Paths.get(System.getProperty("java.io.tmpdir") + File.separator + "mzmine.log");
+    final Path logFilePath = Paths.get(
+        System.getProperty("user.home") + File.separator + "mzmine_0_0.log");
 
     try {
       Desktop gui = MZmineCore.getDesktop();
@@ -150,14 +157,19 @@ public class MainMenuController {
       return;
     }
 
-    ParameterSet moduleParameters =
-        MZmineCore.getConfiguration().getModuleParameters(moduleJavaClass);
+    ParameterSet moduleParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(moduleJavaClass);
 
     logger.info("Setting parameters for module " + module.getName());
 
-    ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK)
-      return;
+    try {
+      ExitCode exitCode = moduleParameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK) {
+        return;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    }
 
     ParameterSet parametersCopy = moduleParameters.cloneParameterSet();
     logger.finest("Starting module " + module.getName() + " with parameters " + parametersCopy);
@@ -182,22 +194,40 @@ public class MainMenuController {
     recentProjectsMenu.setDisable(false);
 
     // add items to load last used projects directly
-    recentProjects.stream().map(File::getAbsolutePath).forEach(name -> {
+    final MenuItem[] items = recentProjects.stream().map(File::getAbsolutePath).map(name -> {
       MenuItem item = new MenuItem(name);
 
       item.setOnAction(e -> {
         MenuItem c = (MenuItem) e.getSource();
-        if (c == null)
+        if (c == null) {
           return;
+        }
         File f = new File(c.getText());
         if (f.exists()) {
           // load file
-          ProjectOpeningTask newTask = new ProjectOpeningTask(f);
+          ProjectOpeningTask newTask = new ProjectOpeningTask(f, Instant.now());
           MZmineCore.getTaskController().addTask(newTask);
         }
       });
-      recentProjectsMenu.getItems().add(item);
-    });
+      return item;
+    }).toArray(MenuItem[]::new);
+    recentProjectsMenu.getItems().addAll(items);
+  }
+
+  public void handleAddIntroductionTab(ActionEvent event) {
+    assert MZmineCore.getDesktop() != null;
+    MZmineCore.getDesktop().addTab(new MZmineIntroductionTab());
+  }
+
+  public void showWizardTab(ActionEvent actionEvent) {
+    BatchWizardModule inst = MZmineCore.getModuleInstance(BatchWizardModule.class);
+    if (inst != null) {
+      inst.showTab();
+    }
+  }
+
+  public void showMSnTreeTab(ActionEvent actionEvent) {
+    MSnTreeVisualizerModule.showNewTab();
   }
 }
 

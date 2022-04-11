@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,36 +8,33 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataanalysis.bubbleplots.cvplot;
 
+import java.util.Vector;
+import java.util.logging.Logger;
+import org.jfree.data.xy.AbstractXYZDataset;
+import com.google.common.primitives.Doubles;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
-import java.util.Vector;
-import java.util.logging.Logger;
-
-import org.jfree.data.xy.AbstractXYZDataset;
-
-import com.google.common.primitives.Doubles;
-
-import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.modules.dataanalysis.bubbleplots.RTMZDataset;
 import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.util.MathUtils;
 import io.github.mzmine.util.FeatureMeasurementType;
+import io.github.mzmine.util.MathUtils;
 
 public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
 
@@ -118,6 +115,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
   }
 
+  @Override
   public String toString() {
     return datasetTitle;
   }
@@ -130,11 +128,12 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
   @Override
   public Comparable<?> getSeriesKey(int series) {
     if (series == 0)
-      return new Integer(1);
+      return 1;
     else
       return null;
   }
 
+  @Override
   public Number getZ(int series, int item) {
     if (series != 0)
       return null;
@@ -143,10 +142,12 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
     return colorCoords[item];
   }
 
+  @Override
   public int getItemCount(int series) {
     return xCoords.length;
   }
 
+  @Override
   public Number getX(int series, int item) {
     if (series != 0)
       return null;
@@ -155,6 +156,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
     return xCoords[item];
   }
 
+  @Override
   public Number getY(int series, int item) {
     if (series != 0)
       return null;
@@ -163,6 +165,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
     return yCoords[item];
   }
 
+  @Override
   public FeatureListRow getFeatureListRow(int item) {
     return featureListRows[item];
   }

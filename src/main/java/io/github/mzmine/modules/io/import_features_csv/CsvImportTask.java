@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.import_features_csv;
@@ -36,7 +36,10 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.MemoryMapStorage;
 import java.io.File;
 import java.io.FileReader;
-import javax.annotation.Nullable;
+import java.time.Instant;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CsvImportTask extends AbstractTask {
 
@@ -45,9 +48,9 @@ public class CsvImportTask extends AbstractTask {
   private final File fileName;
   private double percent = 0.0;
 
-  CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage) {
-    super(storage);
-    this.project = project;
+  CsvImportTask(MZmineProject project, ParameterSet parameters, @Nullable MemoryMapStorage storage,
+      @NotNull Instant moduleCallDate) {
+    super(storage, moduleCallDate); this.project = project;
     // first file only
     this.rawDataFile = parameters.getParameter(CsvImportParameters.dataFiles).getValue()
         .getMatchingRawDataFiles()[0];
@@ -72,7 +75,8 @@ public class CsvImportTask extends AbstractTask {
     try {
       FileReader fileReader = new FileReader(fileName);
       CSVReader csvReader = new CSVReader(fileReader);
-      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage, rawDataFile);
+      ModularFeatureList newFeatureList = new ModularFeatureList(fileName.getName(), storage,
+          rawDataFile);
       String[] dataLine;
       int counter = 0;
       while ((dataLine = csvReader.readNext()) != null) {
@@ -83,8 +87,7 @@ public class CsvImportTask extends AbstractTask {
           continue;
         }
         double feature_mz = 0.0, mzMin = 0.0, mzMax = 0.0;
-        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f,
-            abundance = 0f;
+        float feature_rt = 0f, intensity = 0f, rtMin = 0f, rtMax = 0f, feature_height = 0f, abundance = 0f;
         Range<Float> finalRTRange;
         Range<Double> finalMZRange;
         Range<Float> finalIntensityRange;
@@ -137,19 +140,18 @@ public class CsvImportTask extends AbstractTask {
           }
         }
 
-        Scan fragmentScan = null;
-        Scan[] allFragmentScans = new Scan[] {};
-
         Feature feature = new ModularFeature(newFeatureList, rawDataFile, feature_mz, feature_rt,
             feature_height, abundance, scanNumbers, finalDataPoint, status, representativeScan,
-            fragmentScan, allFragmentScans, finalRTRange, finalMZRange, finalIntensityRange);
+            List.of(), finalRTRange, finalMZRange, finalIntensityRange);
         newRow.addFeature(rawDataFile, feature);
         newFeatureList.addRow(newRow);
       }
 
-      if (isCanceled())
+      if (isCanceled()) {
         return;
+      }
 
+      fileReader.close();
       project.addFeatureList(newFeatureList);
     } catch (Exception e) {
       e.printStackTrace();

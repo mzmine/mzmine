@@ -1,37 +1,36 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.databases;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.google.common.collect.Range;
-
-import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.InetUtils;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class KEGGGateway implements DBGateway {
 
@@ -74,7 +73,7 @@ public class KEGGGateway implements DBGateway {
    * This method retrieves the details about a KEGG compound
    * 
    */
-  public DBCompound getCompound(String ID, ParameterSet parameters) throws IOException {
+  public CompoundDBAnnotation getCompound(String ID, ParameterSet parameters) throws IOException {
 
     String queryAddress = keggGetAddress + ID;
 
@@ -118,7 +117,7 @@ public class KEGGGateway implements DBGateway {
       structure3DURL = new URL(met3DStructureAddress1 + ID3DMet + met3DStructureAddress2);
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabases.KEGG, ID, compoundName, compoundFormula,
+    CompoundDBAnnotation newCompound = new SimpleCompoundDBAnnotation(OnlineDatabases.KEGG, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

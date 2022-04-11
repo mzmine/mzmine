@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.features.types;
@@ -27,33 +27,48 @@ import io.github.mzmine.datamodel.features.types.tasks.FeaturesGraphicalNodeTask
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.taskcontrol.TaskPriority;
+import java.util.Map;
 import javafx.beans.property.MapProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.layout.StackPane;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
-public class AreaShareType extends DataType<MapProperty<RawDataFile, ModularFeature>>
-    implements GraphicalColumType<MapProperty<RawDataFile, ModularFeature>> {
+public class AreaShareType extends DataType<Map<RawDataFile, ModularFeature>>
+    implements GraphicalColumType<Map<RawDataFile, ModularFeature>> {
 
-  @Nonnull
+  @NotNull
+  @Override
+  public final String getUniqueID() {
+    // Never change the ID for compatibility during saving/loading of type
+    return "area_share";
+  }
+
+  @NotNull
   @Override
   public String getHeaderString() {
     return "Area Share";
   }
 
   @Override
-  public MapProperty<RawDataFile, ModularFeature> createProperty() {
-    return new SimpleMapProperty<RawDataFile, ModularFeature>();
+  public Property<Map<RawDataFile, ModularFeature>> createProperty() {
+    return new SimpleObjectProperty<>();
+  }
+
+  @Override
+  public Class<Map<RawDataFile, ModularFeature>> getValueClass() {
+    return (Class) Map.class;
   }
 
   @Override
   public Node getCellNode(
-      TreeTableCell<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> cell,
-      TreeTableColumn<ModularFeatureListRow, MapProperty<RawDataFile, ModularFeature>> coll,
-      MapProperty<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
+      TreeTableCell<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> cell,
+      TreeTableColumn<ModularFeatureListRow, Map<RawDataFile, ModularFeature>> coll,
+      Map<RawDataFile, ModularFeature> cellData, RawDataFile raw) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
       return null;

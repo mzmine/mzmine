@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.impl;
@@ -21,15 +21,15 @@ package io.github.mzmine.datamodel.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.Frame;
-import io.github.mzmine.datamodel.ImsMsMsInfo;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.MobilityScan;
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.featuredata.impl.StorageUtils;
+import io.github.mzmine.datamodel.msms.PasefMsMsInfo;
 import io.github.mzmine.project.impl.IMSRawDataFileImpl;
-import java.nio.DoubleBuffer;
+import it.unimi.dsi.fastutil.doubles.DoubleImmutableList;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author https://github.com/SteffenHeu
@@ -46,31 +46,28 @@ import javax.annotation.Nullable;
  */
 public class SimpleFrame extends SimpleScan implements Frame {
 
-  /**
-   * key = scan num, value = mobility scan
-   */
-  private final List<MobilityScan> mobilitySubScans = new ArrayList<>();
   private final MobilityType mobilityType;
-  private Set<ImsMsMsInfo> precursorInfos;
+
+  @NotNull
+  private Set<PasefMsMsInfo> precursorInfos;
   private Range<Double> mobilityRange;
 
-  private DoubleBuffer mobilityBuffer;
-  private DoubleBuffer mobilityScanIntensityBuffer;
-  private DoubleBuffer mobilityScanMzBuffer;
+  private int mobilitySegment = -1;
+  private MobilityScanStorage mobilityScanStorage;
 
-  public SimpleFrame(@Nonnull RawDataFile dataFile, int scanNumber, int msLevel,
-      float retentionTime, double precursorMZ, int precursorCharge, @Nullable double[] mzValues,
-      @Nullable double[] intensityValues, MassSpectrumType spectrumType, PolarityType polarity,
-      String scanDefinition, @Nonnull Range<Double> scanMZRange, MobilityType mobilityType,
-      @Nullable Set<ImsMsMsInfo> precursorInfos) {
-    super(dataFile, scanNumber, msLevel, retentionTime, precursorMZ, precursorCharge, /*
+  public SimpleFrame(@NotNull RawDataFile dataFile, int scanNumber, int msLevel,
+      float retentionTime, @Nullable double[] mzValues, @Nullable double[] intensityValues,
+      MassSpectrumType spectrumType, PolarityType polarity, String scanDefinition,
+      @NotNull Range<Double> scanMZRange, MobilityType mobilityType,
+      @Nullable Set<PasefMsMsInfo> precursorInfos) {
+    super(dataFile, scanNumber, msLevel, retentionTime, null, /*
          * fragmentScans,
          */
         mzValues, intensityValues, spectrumType, polarity, scanDefinition, scanMZRange);
 
     this.mobilityType = mobilityType;
     mobilityRange = Range.singleton(0.d);
-    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>());
+    this.precursorInfos = Objects.requireNonNullElse(precursorInfos, new HashSet<>(0));
   }
 
   public void setDataPoints(double[] newMzValues, double[] newIntensityValues) {
@@ -84,17 +81,17 @@ public class SimpleFrame extends SimpleScan implements Frame {
    */
   @Override
   public int getNumberOfMobilityScans() {
-    return mobilitySubScans.size();
+    return mobilityScanStorage.getNumberOfMobilityScans();
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public MobilityType getMobilityType() {
     return mobilityType;
   }
 
   @Override
-  @Nonnull
+  @NotNull
   public Range<Double> getMobilityRange() {
     if (mobilityRange != null) {
       return mobilityRange;
@@ -102,19 +99,26 @@ public class SimpleFrame extends SimpleScan implements Frame {
     return Range.singleton(0.0);
   }
 
-  @Nonnull
+  public MobilityScanStorage getMobilityScanStorage() {
+    if (mobilityScanStorage == null) {
+      throw new IllegalStateException("Mobility scans not loaded during file import.");
+    }
+    return mobilityScanStorage;
+  }
+
+  @NotNull
   @Override
   public MobilityScan getMobilityScan(int num) {
-    return Objects.requireNonNull(mobilitySubScans.get(num));
+    return getMobilityScanStorage().getMobilityScan(num);
   }
 
   /**
    * @return Collection of mobility sub scans sorted by increasing scan num.
    */
-  @Nonnull
+  @NotNull
   @Override
   public List<MobilityScan> getMobilityScans() {
-    return ImmutableList.copyOf(mobilitySubScans);
+    return getMobilityScanStorage().getMobilityScans();
   }
 
   /**
@@ -123,138 +127,103 @@ public class SimpleFrame extends SimpleScan implements Frame {
    *
    * @param originalMobilityScans The mobility scans to store.
    */
-  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans) {
-    if (mobilityScanIntensityBuffer != null || mobilityScanMzBuffer != null) {
-      throw new IllegalStateException("Mobility scans can only be set to a frame once.");
+  public void setMobilityScans(List<BuildingMobilityScan> originalMobilityScans,
+      boolean useAsMassList) {
+    if (getMobilities() != null && (originalMobilityScans.size() != getMobilities().size())) {
+      throw new IllegalArgumentException(String.format(
+          "Number of mobility values (%d) does not match number of mobility scans (%d).",
+          getMobilities().size(), originalMobilityScans.size()));
     }
-
-    // determine offsets for each mobility scan
-    final int[] offsets = new int[originalMobilityScans.size()];
-
-    offsets[0] = 0;
-    for (int i = 1; i < offsets.length; i++) {
-      int oldOffset = offsets[i - 1];
-      int numPoints = originalMobilityScans.get(i - 1).getNumberOfDataPoints();
-      offsets[i] = oldOffset + numPoints;
-    }
-
-    // now create a big array that contains all m/z and intensity values so we can store it in a single buffer
-    final int numDatapoints =
-        offsets[offsets.length - 1] + originalMobilityScans.get(offsets.length - 1)
-            .getNumberOfDataPoints();
-
-    // now store all the data in a single array
-    double[] data = new double[numDatapoints];
-    int dpCounter = 0;
-    for (int i = 0; i < originalMobilityScans.size(); i++) {
-      BuildingMobilityScan currentScan = originalMobilityScans.get(i);
-      double[] currentIntensities = currentScan.getIntensityValues();
-      for (int j = 0; j < currentIntensities.length; j++) {
-        data[dpCounter] = currentIntensities[j];
-        dpCounter++;
-      }
-    }
-
-    mobilityScanIntensityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
-    if(getDataFile().getMemoryMapStorage() == null) {
-      data = new double[numDatapoints]; // cannot reuse the same array then
-    }
-    // same for mzs
-    dpCounter = 0;
-    for (int i = 0; i < originalMobilityScans.size(); i++) {
-      BuildingMobilityScan currentScan = originalMobilityScans.get(i);
-      double[] currentMzs = currentScan.getMzValues();
-      for (int j = 0; j < currentMzs.length; j++) {
-        data[dpCounter] = currentMzs[j];
-        dpCounter++;
-      }
-    }
-
-    mobilityScanMzBuffer =
-        StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(), data);
-
-    // now create the scans
-    for (int i = 0; i < originalMobilityScans.size(); i++) {
-      MobilityScan scan = originalMobilityScans.get(i);
-      mobilitySubScans.add(new SimpleMobilityScan(scan.getMobilityScanNumber(), this, offsets[i],
-          scan.getNumberOfDataPoints(), scan.getBasePeakIndex()));
-    }
+    mobilityScanStorage = new MobilityScanStorage(getDataFile().getMemoryMapStorage(), this,
+        originalMobilityScans, useAsMassList);
   }
 
   @Override
   public double getMobilityForMobilityScanNumber(int mobilityScanIndex) {
-    return mobilityBuffer.get(mobilityScanIndex);
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(
+        mobilitySegment).getDouble(mobilityScanIndex);
   }
 
   @Override
-  public double getMobilityForMobilityScan(MobilityScan scan) {
-    // correct the index with an offset in case there is one.
-    int index = mobilitySubScans.indexOf(scan) - mobilitySubScans.get(0).getMobilityScanNumber();
-    if (index >= 0) {
-      return mobilityBuffer.get(index);
+  public @Nullable DoubleImmutableList getMobilities() {
+    if (mobilitySegment == -1) {
+      return null;
     }
-    throw new IllegalArgumentException("Mobility scan does not belong to this frame.");
+    return ((IMSRawDataFile) (getDataFile())).getSegmentMobilities(mobilitySegment);
   }
 
+  @NotNull
   @Override
-  public DoubleBuffer getMobilities() {
-    return mobilityBuffer;
-  }
-
-  @Nonnull
-  @Override
-  public Set<ImsMsMsInfo> getImsMsMsInfos() {
+  public Set<PasefMsMsInfo> getImsMsMsInfos() {
     return precursorInfos;
   }
 
   @Nullable
   @Override
-  public ImsMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
+  public PasefMsMsInfo getImsMsMsInfoForMobilityScan(int mobilityScanNumber) {
     if (precursorInfos == null) {
       return null;
     }
-    Optional<ImsMsMsInfo> pcInfo = precursorInfos.stream()
+    Optional<PasefMsMsInfo> pcInfo = precursorInfos.stream()
         .filter(info -> info.getSpectrumNumberRange().contains(mobilityScanNumber)).findFirst();
     return pcInfo.orElse(null);
   }
 
   @Override
   public List<MobilityScan> getSortedMobilityScans() {
-    List<MobilityScan> result = new ArrayList<>(mobilitySubScans);
+    List<MobilityScan> result = new ArrayList<>(getMobilityScans());
     result.sort(Comparator.comparingDouble(MobilityScan::getMobility));
     return ImmutableList.copyOf(result);
   }
 
-  public DoubleBuffer setMobilities(double[] mobilities) {
-    mobilityBuffer = StorageUtils.storeValuesToDoubleBuffer(getDataFile().getMemoryMapStorage(),
-        mobilities);
+  public int setMobilities(double[] mobilities) {
+    mobilitySegment = ((IMSRawDataFile) getDataFile()).addMobilityValues(mobilities);
     mobilityRange = Range.singleton(mobilities[0]);
     mobilityRange = mobilityRange.span(Range.singleton(mobilities[mobilities.length - 1]));
-    return mobilityBuffer;
+    return mobilitySegment;
   }
 
-  public void setPrecursorInfos(@Nullable Set<ImsMsMsInfo> precursorInfos) {
-    this.precursorInfos = precursorInfos;
+  public void setPrecursorInfos(@Nullable Set<PasefMsMsInfo> precursorInfos) {
+    this.precursorInfos = precursorInfos != null ? precursorInfos : new HashSet<>();
   }
 
-  void getMobilityScanMzValues(SimpleMobilityScan scan, double[] dst) {
-    assert scan.getNumberOfDataPoints() <= dst.length;
-    mobilityScanMzBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+  /**
+   * @return The maximum number of data points in a mobility scan in this frame. -1 If no mobility
+   * scans have been added.
+   */
+  @Override
+  public int getMaxMobilityScanRawDataPoints() {
+    if (mobilityScanStorage == null) {
+      throw new IllegalStateException("Mobility scans not set");
+    }
+    return mobilityScanStorage.getRawMaxNumPoints();
   }
 
-  void getMobilityScanIntensityValues(SimpleMobilityScan scan, double[] dst) {
-    assert scan.getNumberOfDataPoints() <= dst.length;
-    mobilityScanIntensityBuffer.get(scan.getStorageOffset(), dst, 0, scan.getNumberOfDataPoints());
+  @Override
+  public int getTotalMobilityScanRawDataPoints() {
+    if (mobilityScanStorage == null) {
+      throw new IllegalStateException("Mobility scans not set");
+    }
+    return mobilityScanStorage.getRawTotalNumPoints();
   }
 
-  double getMobilityScanMzValue(SimpleMobilityScan scan, int index) {
-    assert index < scan.getNumberOfDataPoints();
-    return mobilityScanMzBuffer.get(scan.getStorageOffset() + index);
+  /**
+   * @return The maximum number of data points in a mobility scan in this frame. -1 If no mobility
+   * scans have been added.
+   */
+  @Override
+  public int getMaxMobilityScanMassListDataPoints() {
+    if (mobilityScanStorage == null) {
+      throw new IllegalStateException("Mobility scans not set");
+    }
+    return mobilityScanStorage.getMassListMaxNumPoints();
   }
 
-  double getMobilityScanIntensityValue(SimpleMobilityScan scan, int index) {
-    assert index < scan.getNumberOfDataPoints();
-    return mobilityScanIntensityBuffer.get(scan.getStorageOffset() + index);
+  @Override
+  public int getTotalMobilityScanMassListDataPoints() {
+    if (mobilityScanStorage == null) {
+      throw new IllegalStateException("Mobility scans not set");
+    }
+    return mobilityScanStorage.getMassListTotalNumPoints();
   }
-
 }

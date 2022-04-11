@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel;
@@ -30,18 +30,27 @@ import io.github.mzmine.main.MZmineCore;
  */
 public enum MobilityType {
 
-  NONE("none", "none"), //
-  TIMS("1/k0", "Vs/cm^2"), // trapped ion mobility spectrometry
-  DRIFT_TUBE("Drift time", "ms"), // drift tube
-  TRAVELING_WAVE("TODO", "TODO"), // traveling wave ion mobility spectrometry
-  FAIMS("TODO", "TODO"); // field asymmetric waveform ion mobility spectrometry
+  /**
+   * Undefined
+   */
+  NONE("none", "none", "none"), //
+  /**
+   * Mixed types in row bindings - aligned samples from different instruments
+   */
+  MIXED("none", "none", "mixed"), //
+  TIMS("1/k0", "Vs/cm^2", "TIMS"), // trapped ion mobility spectrometry
+  DRIFT_TUBE("Drift time", "ms", "DTIMS"), // drift tube
+  TRAVELING_WAVE("Drift time", "ms", "TWIMS"), // traveling wave ion mobility spectrometry
+  FAIMS("TODO", "TODO", "FAIMS"); // field asymmetric waveform ion mobility spectrometry
 
   private final String axisLabel;
   private final String unit;
+  private final String name;
 
-  MobilityType(String axisLabel, String unit) {
+  MobilityType(String axisLabel, String unit, String name) {
     this.axisLabel = axisLabel;
     this.unit = unit;
+    this.name = name;
   }
 
   public String getAxisLabel() {
@@ -54,5 +63,11 @@ public enum MobilityType {
 
   public String getUnit() {
     return unit;
+  }
+
+
+  @Override
+  public String toString() {
+    return name;
   }
 }

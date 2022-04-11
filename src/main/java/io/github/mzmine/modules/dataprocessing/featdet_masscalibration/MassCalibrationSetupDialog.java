@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_masscalibration;
@@ -27,15 +27,27 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.ExitCode;
+import java.time.Instant;
+import java.util.ArrayList;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.apache.commons.text.WordUtils;
-
-import java.util.ArrayList;
 
 /**
  * This class extends ParameterSetupDialog class to include mass calibration plots. This is used to
@@ -101,8 +113,8 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
     pnlDataFile = new FlowPane();
     pnlDataFile.getChildren().add(new Label("Data file "));
 
-    comboDataFileName = new ComboBox<RawDataFile>(
-        MZmineCore.getProjectManager().getCurrentProject().getRawDataFiles());
+    comboDataFileName = new ComboBox<>(FXCollections.observableList(
+        MZmineCore.getProjectManager().getCurrentProject().getCurrentRawDataFiles()));
     comboDataFileName.setOnAction(e -> {
       parametersChanged(false);
     });
@@ -159,7 +171,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
 
     chartsPane.visibleProperty().bind(previewCheckBox.selectedProperty());
     chartsPane.visibleProperty().addListener((c, o, n) -> {
-      if (n == true) {
+      if (n) {
         mainPane.setCenter(chartsPane);
         mainPane.setLeft(mainScrollPane);
         mainPane.autosize();
@@ -191,7 +203,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
   }
 
   protected void loadPreview(boolean rerun) {
-    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<String> errors = new ArrayList<>();
     boolean paramsOK = parameterSet.checkParameterValues(errors);
     if (!paramsOK) {
       return;
@@ -207,7 +219,7 @@ public class MassCalibrationSetupDialog extends ParameterSetupDialog {
         previewTask.cancel();
       }
 
-      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true);
+      previewTask = new MassCalibrationTask(previewDataFile, parameterSet, null, true, Instant.now());
 
       previewTask.setAfterHook(() -> Platform.runLater(() -> updatePreviewAfterTaskRun(rerun)));
       MZmineCore.getTaskController().addTask(previewTask);

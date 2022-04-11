@@ -1,23 +1,27 @@
 /*
  * Copyright 2006-2020 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package io.github.mzmine.util.spectraldb.parser;
 
+import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.impl.SimpleDataPoint;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -33,14 +37,9 @@ import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
-import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.taskcontrol.AbstractTask;
-import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+public class GnpsJsonParser extends SpectralDBTextParser {
 
-public class GnpsJsonParser extends SpectralDBParser {
-  private static Logger logger = Logger.getLogger(GnpsJsonParser.class.getName());
+  private final static Logger logger = Logger.getLogger(GnpsJsonParser.class.getName());
 
   public GnpsJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);
@@ -48,13 +47,15 @@ public class GnpsJsonParser extends SpectralDBParser {
 
   @Override
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+    super.parse(mainTask, dataBaseFile);
+
     logger.info("Parsing GNPS spectral library " + dataBaseFile.getAbsolutePath());
 
     int correct = 0;
     int error = 0;
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
+      for (String l; (l = br.readLine()) != null; ) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
           return false;
@@ -69,20 +70,23 @@ public class GnpsJsonParser extends SpectralDBParser {
             correct++;
             // add entry and process
             addLibraryEntry(entry);
-          } else
+          } else {
             error++;
+          }
         } catch (Exception ex) {
           error++;
           logger.log(Level.WARNING, "Error for entry", ex);
         } finally {
-          if (reader != null)
+          if (reader != null) {
             reader.close();
+          }
         }
         // to many errors? wrong data format?
         if (error > 5 && correct < 5) {
           logger.log(Level.WARNING, "This file was no GNPS spectral json library");
           return false;
         }
+        processedLines.incrementAndGet();
       }
     }
     // finish and process last entries
@@ -94,8 +98,9 @@ public class GnpsJsonParser extends SpectralDBParser {
   public SpectralDBEntry getDBEntry(JsonObject main) {
     // extract dps
     DataPoint[] dps = getDataPoints(main);
-    if (dps == null)
+    if (dps == null) {
       return null;
+    }
 
     // extract meta data
     Map<DBEntryField, Object> map = new EnumMap<>(DBEntryField.class);
@@ -110,17 +115,18 @@ public class GnpsJsonParser extends SpectralDBParser {
             o = main.getJsonNumber(id);
           } else {
             o = main.getString(id, null);
-            if (o != null && o.equals("N/A"))
+            if (o != null && o.equals("N/A")) {
               o = null;
+            }
           }
           // add value
           if (o != null) {
             if (o instanceof JsonNumber) {
               if (f.getObjectClass().equals(Integer.class)) {
                 o = ((JsonNumber) o).intValue();
-              } else if(f.getObjectClass().equals(Float.class)){
+              } else if (f.getObjectClass().equals(Float.class)) {
                 o = (float) ((JsonNumber) o).doubleValue();
-              }else {
+              } else {
                 o = ((JsonNumber) o).doubleValue();
               }
             }
@@ -138,14 +144,15 @@ public class GnpsJsonParser extends SpectralDBParser {
 
   /**
    * Data points or null
-   * 
+   *
    * @param main
    * @return
    */
   public DataPoint[] getDataPoints(JsonObject main) {
     JsonArray data = main.getJsonArray("peaks");
-    if (data == null)
+    if (data == null) {
       return null;
+    }
 
     DataPoint[] dps = new DataPoint[data.size()];
     try {

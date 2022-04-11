@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_mobilogram_summing;
@@ -23,34 +23,41 @@ import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.DoubleParameter;
+import io.github.mzmine.parameters.parametertypes.IntegerParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.util.ExitCode;
-import java.text.DecimalFormat;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Steffen https://github.com/SteffenHeu
  */
 public class MobilogramBinningParameters extends SimpleParameterSet {
 
+  public static final int DEFAULT_TIMS_BIN_WIDTH = 1;
+  public static final int DEFAULT_DTIMS_BIN_WIDTH = 1;
+  public static final int DEFAULT_TWIMS_BIN_WIDTH = 1;
+
   public static final FeatureListsParameter featureLists = new FeatureListsParameter();
 
-  public static final DoubleParameter timsBinningWidth = new DoubleParameter(
-      "TIMS binning width (Vs/cm²)",
-      "The binning width in mobility units of the selected raw data file.",
-      new DecimalFormat("0.0000"), 0.005, 0.00001, 1E6);
+  public static final IntegerParameter timsBinningWidth = new IntegerParameter(
+      "Override default TIMS (Vs/cm²) binning width",
+      "The binning width in scans of the selected raw data file.\n"
+          + " The default binning width is " + DEFAULT_TIMS_BIN_WIDTH + ".",
+      DEFAULT_TIMS_BIN_WIDTH, 1, 1000);
 
-  public static final DoubleParameter dtimsBinningWidth = new DoubleParameter(
-      "Drift tube binning width (ms)",
-      "The binning width in mobility units of the selected raw data file.",
-      new DecimalFormat("0.00"), 0.5, 0.00001, 1E6);
+  public static final IntegerParameter twimsBinningWidth = new IntegerParameter(
+      "Travelling wave (ms) binning width",
+      "The binning width in scans of the selected raw data file."
+          + "The default binning width is " + DEFAULT_TWIMS_BIN_WIDTH + ".",
+      DEFAULT_TWIMS_BIN_WIDTH, 1, 1000);
 
-  public static final DoubleParameter twimsBinningWidth = new DoubleParameter(
-      "Travelling wave binning width (ms)",
-      "The binning width in mobility units of the selected raw data file.",
-      new DecimalFormat("0.00"), 0.5, 0.00001, 1E6);
+  public static final IntegerParameter dtimsBinningWidth = new IntegerParameter(
+      "Drift tube (ms) binning width",
+      "The binning width in scans of the selected raw data file.\n"
+          + "The default binning width is " + DEFAULT_TIMS_BIN_WIDTH + ".",
+      DEFAULT_DTIMS_BIN_WIDTH, 1, 1000);
 
   public static final ComboParameter<BinningSource> summingSource = new ComboParameter<BinningSource>(
       "Data source",
@@ -72,6 +79,7 @@ public class MobilogramBinningParameters extends SimpleParameterSet {
         summingSource, createNewFeatureList, suffix});
   }
 
+  @NotNull
   @Override
   public IonMobilitySupport getIonMobilitySupport() {
     return IonMobilitySupport.ONLY;

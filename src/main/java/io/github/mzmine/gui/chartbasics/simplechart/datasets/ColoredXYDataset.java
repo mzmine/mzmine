@@ -1,27 +1,30 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart.datasets;
 
+import com.google.common.collect.Range;
+import com.google.errorprone.annotations.ForOverride;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleChartUtility;
 import io.github.mzmine.gui.chartbasics.simplechart.SimpleXYChart;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorProvider;
+import io.github.mzmine.gui.chartbasics.simplechart.providers.IntervalWidthProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.LabelTextProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.SeriesKeyProvider;
@@ -36,8 +39,8 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
@@ -57,12 +60,11 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected final SeriesKeyProvider<Comparable<?>> seriesKeyProvider;
   protected final LabelTextProvider labelTextProvider;
   protected final ToolTipTextProvider toolTipTextProvider;
-  protected final boolean autocompute;
-
+  protected final IntervalWidthProvider intervalWidthProvider;
+  private final RunOption runOption;
   // dataset stuff
   private final int seriesCount = 1;
   protected ObjectProperty<javafx.scene.paint.Color> fxColor;
-  protected Double minRangeValue;
 
   // task stuff
   protected SimpleObjectProperty<TaskStatus> status;
@@ -72,9 +74,13 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   protected boolean[] isLocalMaximum;
   protected boolean valuesComputed;
 
+  protected Range<Double> domainRange;
+  protected Range<Double> rangeRange;
+
   private ColoredXYDataset(XYValueProvider xyValueProvider,
       SeriesKeyProvider<Comparable<?>> seriesKeyProvider, LabelTextProvider labelTextProvider,
-      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider, boolean autocompute) {
+      ToolTipTextProvider toolTipTextProvider, ColorProvider colorProvider,
+      @NotNull final RunOption runOption) {
 
     // Task stuff
     this.computed = false;
@@ -87,17 +93,18 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     this.seriesKeyProvider = seriesKeyProvider;
     this.labelTextProvider = labelTextProvider;
     this.toolTipTextProvider = toolTipTextProvider;
+    if (xyValueProvider instanceof IntervalWidthProvider) {
+      this.intervalWidthProvider = (IntervalWidthProvider) xyValueProvider;
+    } else {
+      intervalWidthProvider = null;
+    }
+
     this.fxColor = new SimpleObjectProperty<>(colorProvider.getFXColor());
-
-    minRangeValue = Double.MAX_VALUE;
     this.computedItemCount = 0;
-
     fxColorProperty().addListener(((observable, oldValue, newValue) -> fireDatasetChanged()));
 
-    this.autocompute = autocompute;
-    if (autocompute) {
-      MZmineCore.getTaskController().addTask(this);
-    }
+    this.runOption = checkRunOption(runOption);
+    handleRunOption(runOption);
   }
 
   /**
@@ -105,18 +112,44 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    * finished.
    * <p></p>
    * Note: Computation task has to be started by the respective extending class.
-   *
-   * @param datasetProvider
-   * @param autocompute
    */
-  protected ColoredXYDataset(PlotXYDataProvider datasetProvider, boolean autocompute) {
+  public ColoredXYDataset(PlotXYDataProvider datasetProvider,
+      @NotNull final RunOption runOption) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, autocompute);
+        datasetProvider, runOption);
   }
 
-  public ColoredXYDataset(@Nonnull PlotXYDataProvider datasetProvider) {
+  public ColoredXYDataset(@NotNull PlotXYDataProvider datasetProvider) {
     this(datasetProvider, datasetProvider, datasetProvider, datasetProvider,
-        datasetProvider, true);
+        datasetProvider, RunOption.NEW_THREAD);
+  }
+
+  /**
+   *
+   */
+  protected void handleRunOption(@NotNull final RunOption runOption) {
+    switch (runOption) {
+      case THIS_THREAD -> run();
+      case NEW_THREAD -> MZmineCore.getTaskController().addTask(this);
+      case DO_NOT_RUN -> {
+      }
+    }
+  }
+
+  /**
+   * Checks if the thread and given run option are valid. Running on the FX thread is not allowed.
+   *
+   * @param runOption The requested run option.
+   * @return a valid run option.
+   */
+  protected final RunOption checkRunOption(final RunOption runOption) {
+    if (runOption == RunOption.THIS_THREAD && Platform.isFxApplicationThread()) {
+      logger.warning(() -> "Calculation of data set values was started on the JavaFX thread."
+          + " Creating a new thread instead. Provider: " + xyValueProvider.getClass().getName());
+      return RunOption.NEW_THREAD;
+    } else {
+      return runOption;
+    }
   }
 
   public java.awt.Color getAWTColor() {
@@ -199,8 +232,8 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   public int getValueIndex(final double domainValue, final double rangeValue) {
     // todo binary search somehow here
     for (int i = 0; i < computedItemCount; i++) {
-      if (Double.compare(domainValue, getXValue(0, i)) == 0) {
-//          && Double.compare(rangeValue, getYValue(0, i)) == 0) {
+      if (Double.compare(domainValue, getXValue(0, i)) == 0
+          && Double.compare(rangeValue, getYValue(0, i)) == 0) {
         return i;
       }
     }
@@ -237,7 +270,7 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
   }
 
   public Double getMinimumRangeValue() {
-    return minRangeValue;
+    return rangeRange != null ? rangeRange.lowerEndpoint() : 0;
   }
 
   /**
@@ -251,7 +284,6 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
    */
   @Override
   public void run() {
-
     status.set(TaskStatus.PROCESSING);
     xyValueProvider.computeValues(status);
     if (status.get() != TaskStatus.PROCESSING) {
@@ -262,22 +294,42 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     isLocalMaximum = new boolean[computedItemCount];
     valuesComputed = true;
 
-    for (int i = 0; i < xyValueProvider.getValueCount(); i++) {
-      if (xyValueProvider.getRangeValue(i) < minRangeValue.doubleValue()) {
-        minRangeValue = xyValueProvider.getRangeValue(i);
-      }
+    double minDomain = Double.POSITIVE_INFINITY;
+    double maxDomain = Double.NEGATIVE_INFINITY;
+    double minRange = Double.POSITIVE_INFINITY;
+    double maxRange = Double.NEGATIVE_INFINITY;
+
+    for (int i = 0; i < computedItemCount; i++) {
+      final double rangeValue = xyValueProvider.getRangeValue(i);
+      final double domainValue = xyValueProvider.getDomainValue(i);
+
+      minDomain = Math.min(domainValue, minDomain);
+      maxDomain = Math.max(domainValue, maxDomain);
+      minRange = Math.min(rangeValue, minRange);
+      maxRange = Math.max(rangeValue, maxRange);
+
       isLocalMaximum[i] = SimpleChartUtility.isLocalMaximum(this, 0, i);
     }
 
+    domainRange = computedItemCount > 0 ? Range.closed(minDomain, maxDomain) : Range.closed(0d, 1d);
+    rangeRange = computedItemCount > 0 ? Range.closed(minRange, maxRange) : Range.closed(0d, 1d);
+
+//    if (setToFinished) {
+    onCalculationsFinished();
+//    }
+  }
+
+  /**
+   * Sets the {@link Task#getStatus()} property to finished, fires a dataset changed event and sets
+   * {@link this#computed} to true.
+   */
+  protected void onCalculationsFinished() {
     computed = true;
     status.set(TaskStatus.FINISHED);
-//    if (!autocompute) {
-    if (Platform.isFxApplicationThread()) {
-      fireDatasetChanged();
-    } else {
-      Platform.runLater(this::fireDatasetChanged);
+    if (getRunOption()
+        != RunOption.THIS_THREAD) {  // no need to notify then, dataset will be up to date
+      MZmineCore.runLater(this::fireDatasetChanged);
     }
-//    }
   }
 
   @Override
@@ -322,24 +374,29 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
     status.set(TaskStatus.CANCELED);
   }
 
+
   @Override
   public Number getStartX(int series, int item) {
-    return getX(series, item);
+    return intervalWidthProvider != null ? getXValue(series, item)
+        - intervalWidthProvider.getIntervalWidth() / 2 : getX(series, item);
   }
 
   @Override
   public double getStartXValue(int series, int item) {
-    return getX(series, item).doubleValue();
+    return intervalWidthProvider != null ? getXValue(series, item)
+        - intervalWidthProvider.getIntervalWidth() / 2 : getXValue(series, item);
   }
 
   @Override
   public Number getEndX(int series, int item) {
-    return getX(series, item);
+    return intervalWidthProvider != null ? getXValue(series, item)
+        + intervalWidthProvider.getIntervalWidth() / 2 : getXValue(series, item);
   }
 
   @Override
   public double getEndXValue(int series, int item) {
-    return getX(series, item).doubleValue();
+    return intervalWidthProvider != null ? getXValue(series, item)
+        + intervalWidthProvider.getIntervalWidth() / 2 : getXValue(series, item);
   }
 
   @Override
@@ -367,5 +424,33 @@ public class ColoredXYDataset extends AbstractXYDataset implements Task, Interva
       return false;
     }
     return isLocalMaximum[item];
+  }
+
+  /**
+   * @return The domain value range. Null if called before the computation has been finished.
+   */
+  public Range<Double> getDomainValueRange() {
+    return domainRange;
+  }
+
+  /**
+   * @return The range value range. Null if called before the computation has been finished.
+   */
+  public Range<Double> getRangeValueRange() {
+    return rangeRange;
+  }
+
+  /**
+   * Returns the {@link RunOption} this data set was created with. Extending classes need to
+   * override this method in case they need to do additional assignments in the constructor and
+   * therefore pass {{@link RunOption#DO_NOT_RUN} in the constructor, as it is a protected variable
+   * in this class. Alternatively, the extending class can override {@link
+   * #onCalculationsFinished()}.
+   *
+   * @return The {@link RunOption} this data set was created with.
+   */
+  @ForOverride
+  protected RunOption getRunOption() {
+    return runOption;
   }
 }

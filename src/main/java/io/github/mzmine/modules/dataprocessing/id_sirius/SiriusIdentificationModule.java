@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,21 +8,21 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.id_sirius;
 
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
@@ -38,24 +38,24 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
   private static final String MODULE_DESCRIPTION = "Sirius identification method.";
 
   @Override
-  public @Nonnull String getName() {
+  public @NotNull String getName() {
     return MODULE_NAME;
   }
 
   @Override
-  public @Nonnull String getDescription() {
+  public @NotNull String getDescription() {
     return MODULE_DESCRIPTION;
   }
 
   @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
+  @NotNull
+  public ExitCode runModule(@NotNull MZmineProject project, @NotNull ParameterSet parameters,
+      @NotNull Collection<Task> tasks, @NotNull Instant moduleCallDate) {
 
     final FeatureList[] peakLists = parameters.getParameter(PeakListIdentificationParameters.peakLists)
         .getValue().getMatchingFeatureLists();
     for (final FeatureList peakList : peakLists) {
-      Task newTask = new PeakListIdentificationTask(parameters, peakList);
+      Task newTask = new PeakListIdentificationTask(parameters, peakList, moduleCallDate);
       tasks.add(newTask);
     }
 
@@ -67,7 +67,7 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
    *
    * @param row the feature list row.
    */
-  public static void showSingleRowIdentificationDialog(final FeatureListRow row) {
+  public static void showSingleRowIdentificationDialog(final FeatureListRow row, @NotNull Instant moduleCallDate) {
 
     assert Platform.isFxApplicationThread();
 
@@ -90,18 +90,18 @@ public class SiriusIdentificationModule implements MZmineProcessingModule {
       }
       else { // Run task.
         MZmineCore.getTaskController()
-            .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row));
+            .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row, moduleCallDate));
       }
     }
   }
 
   @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+  public @NotNull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.ANNOTATION;
   }
 
   @Override
-  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
     return PeakListIdentificationParameters.class;
   }
 }

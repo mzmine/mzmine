@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,79 +8,45 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.io.projectsave;
 
-import java.io.File;
+import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.util.ExitCode;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
+import java.io.File;
+import java.util.Objects;
 
-public class ProjectSaveParameters extends SimpleParameterSet {
-
-  public static final FileNameParameter projectFile = new FileNameParameter("Project file",
-      "File name of project to be saved", FileSelectionType.SAVE);
+public class ProjectSaveParameters extends ProjectSaveAsParameters {
 
   public ProjectSaveParameters() {
-    super(new Parameter[] {projectFile});
+    super();
   }
 
   @Override
   public ExitCode showSetupDialog(boolean valueCheckRequired) {
-
-    final File currentProjectFile =
-        MZmineCore.getProjectManager().getCurrentProject().getProjectFile();
+    // see if current project already has a location
+    // otherwise use parent SaveAs
+    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+    final File currentProjectFile = project.getProjectFile();
 
     if ((currentProjectFile != null) && (currentProjectFile.canWrite())) {
-      getParameter(projectFile).setValue(currentProjectFile);
+      final ProjectSaveOption projectType =
+          Objects.requireNonNullElse(project.isStandalone(), true) ? ProjectSaveOption.STANDALONE
+              : ProjectSaveOption.REFERENCING;
+
+      setParameter(projectFile, currentProjectFile);
+      setParameter(option, projectType);
       return ExitCode.OK;
+    } else {
+      return super.showSetupDialog(valueCheckRequired);
     }
-
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Open MZmine project");
-    fileChooser.getExtensionFilters().addAll(new ExtensionFilter("MZmine projects", "*.mzmine"),
-        new ExtensionFilter("All Files", "*.*"));
-
-    if (currentProjectFile != null) {
-      File currentDir = currentProjectFile.getParentFile();
-      if ((currentDir != null) && (currentDir.exists()))
-        fileChooser.setInitialDirectory(currentDir);
-    }
-
-    File selectedFile = fileChooser.showSaveDialog(null);
-    if (selectedFile == null)
-      return ExitCode.CANCEL;
-    if (!selectedFile.getName().endsWith(".mzmine")) {
-      selectedFile = new File(selectedFile.getPath() + ".mzmine");
-    }
-    if (selectedFile.exists()) {
-      Alert alert = new Alert(AlertType.CONFIRMATION,
-          selectedFile.getName() + " already exists, overwrite ?", ButtonType.YES, ButtonType.NO);
-      alert.showAndWait();
-
-      if (alert.getResult() != ButtonType.YES) {
-        return ExitCode.CANCEL;
-      }
-
-    }
-    getParameter(projectFile).setValue(selectedFile);
-
-    return ExitCode.OK;
-
   }
 }

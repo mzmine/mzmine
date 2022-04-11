@@ -1,19 +1,19 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.batchmode;
@@ -58,6 +58,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -72,7 +73,7 @@ import org.xml.sax.SAXException;
 
 public class BatchComponentController implements LastFilesComponent {
 
-  private static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
+  private final static Logger logger = Logger.getLogger(BatchComponentController.class.getName());
 
   // by using linked hash map, the items will be added to the tree view as specified in the modules list
   private final Map<MainCategory, TreeItem<Object>> mainCategoryItems = new LinkedHashMap<>();
@@ -116,35 +117,32 @@ public class BatchComponentController implements LastFilesComponent {
       }
     });
 
-    currentStepsList.setCellFactory(
-        param -> new DraggableListCell<>() {
-          @Override
-          protected void updateItem(MZmineProcessingStep<MZmineProcessingModule> item,
-              boolean empty) {
-            super.updateItem(item, empty);
-            if (empty || item == null) {
-              setText(null);
-              setGraphic(null);
-            }
-            if (item != null && !empty) {
-              setText(item.getModule().getName());
-              setGraphic(null);
-            }
-          }
-        });
+    currentStepsList.setCellFactory(param -> new DraggableListCell<>() {
+      @Override
+      protected void updateItem(MZmineProcessingStep<MZmineProcessingModule> item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+          setText(null);
+          setGraphic(null);
+        }
+        if (item != null && !empty) {
+          setText(item.getModule().getName());
+          setGraphic(null);
+        }
+      }
+    });
     currentStepsList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
     for (Class<? extends MZmineProcessingModule> moduleClass : BatchModeModulesList.MODULES) {
       final MZmineProcessingModule module = MZmineCore.getModuleInstance(moduleClass);
       final MZmineModuleCategory category = module.getModuleCategory();
-      final TreeItem<Object> categoryItem = categoryItems
-          .computeIfAbsent(category, c -> {
-            final TreeItem<Object> item = new TreeItem<>(c);
-            final TreeItem<Object> mainItem = mainCategoryItems
-                .computeIfAbsent(c.getMainCategory(), TreeItem::new);
-            mainItem.getChildren().add(item);
-            return item;
-          });
+      final TreeItem<Object> categoryItem = categoryItems.computeIfAbsent(category, c -> {
+        final TreeItem<Object> item = new TreeItem<>(c);
+        final TreeItem<Object> mainItem = mainCategoryItems.computeIfAbsent(c.getMainCategory(),
+            TreeItem::new);
+        mainItem.getChildren().add(item);
+        return item;
+      });
       categoryItem.getChildren().add(new TreeItem<>(new BatchModuleWrapper(module)));
     }
 
@@ -233,10 +231,9 @@ public class BatchComponentController implements LastFilesComponent {
     }
     if (selectedItem instanceof BatchModuleWrapper wrappedModule) {
       // Show method's set-up dialog.
-      final MZmineProcessingModule selectedMethod =
-          (MZmineProcessingModule) wrappedModule.getModule();
-      final ParameterSet methodParams =
-          MZmineCore.getConfiguration().getModuleParameters(selectedMethod.getClass());
+      final MZmineProcessingModule selectedMethod = (MZmineProcessingModule) wrappedModule.getModule();
+      final ParameterSet methodParams = MZmineCore.getConfiguration()
+          .getModuleParameters(selectedMethod.getClass());
 
       // Clone the parameter set
       final ParameterSet stepParams = methodParams.cloneParameterSet();
@@ -269,8 +266,8 @@ public class BatchComponentController implements LastFilesComponent {
       }
 
       // Make a new batch step
-      final MZmineProcessingStep<MZmineProcessingModule> step =
-          new MZmineProcessingStepImpl<>(selectedMethod, stepParams);
+      final MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<>(
+          selectedMethod, stepParams);
 
       // Add step to queue.
       batchQueue.add(step);
@@ -299,6 +296,17 @@ public class BatchComponentController implements LastFilesComponent {
   public void onLoadPressed(ActionEvent actionEvent) {
     try {
       final FileChooser chooser = new FileChooser();
+
+      final ExtensionFilter extension = new ExtensionFilter("MZmine batch files", "*.xml");
+      chooser.getExtensionFilters().add(extension);
+      chooser.getExtensionFilters().add(new ExtensionFilter("All files", "*.*"));
+      chooser.setSelectedExtensionFilter(extension);
+
+      final File lastFile = btnLoadLast.getLastFile();
+      if (lastFile != null) {
+        chooser.setInitialDirectory(lastFile.getParentFile());
+      }
+
       final File file = chooser.showOpenDialog(root.getScene().getWindow());
       if (file != null) {
         loadBatchSteps(file);
@@ -312,6 +320,15 @@ public class BatchComponentController implements LastFilesComponent {
   public void onSavePressed(ActionEvent actionEvent) {
     try {
       final FileChooser chooser = new FileChooser();
+      final ExtensionFilter extension = new ExtensionFilter("MZmine batch files", "*.xml");
+      chooser.getExtensionFilters().add(extension);
+      chooser.getExtensionFilters().add(new ExtensionFilter("All files", "*.*"));
+      chooser.setSelectedExtensionFilter(extension);
+
+      final File lastFile = btnLoadLast.getLastFile();
+      if (lastFile != null) {
+        chooser.setInitialDirectory(lastFile.getParentFile());
+      }
       final File file = chooser.showSaveDialog(root.getScene().getWindow());
       if (file != null) {
         saveBatchSteps(file);
@@ -387,8 +404,8 @@ public class BatchComponentController implements LastFilesComponent {
       throws ParserConfigurationException, TransformerException, FileNotFoundException {
 
     // Create the document.
-    final Document document =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+    final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        .newDocument();
     final Element element = document.createElement("batch");
     document.appendChild(element);
 
@@ -428,8 +445,8 @@ public class BatchComponentController implements LastFilesComponent {
 
     // Append, prepend, insert or replace.
     List<QueueOperations> operations = List.of(QueueOperations.values());
-    ChoiceDialog<QueueOperations> choiceDialog =
-        new ChoiceDialog<>(QueueOperations.Replace, operations);
+    ChoiceDialog<QueueOperations> choiceDialog = new ChoiceDialog<>(QueueOperations.Replace,
+        operations);
     choiceDialog.setTitle("Add Batch Steps");
     choiceDialog.setContentText("How should the loaded batch steps be added to the queue?");
     choiceDialog.showAndWait();

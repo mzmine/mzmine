@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,12 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.chartbasics.simplechart;
@@ -24,18 +24,13 @@ import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvi
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.util.components.ButtonCell;
 import io.github.mzmine.util.components.ColorTableCell;
-import java.util.Map;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
-import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
-import javafx.util.Callback;
 import org.controlsfx.glyphfont.Glyph;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -75,7 +70,7 @@ public class DatasetControlPane<T extends PlotXYDataProvider> extends AnchorPane
 //    tvOverview.setMaxSize(-1, -1);
 
     this.getChildren().add(tvOverview);
-    chart.addDatasetsChangedListener(this::onDatasetChanged);
+    chart.addDatasetChangeListener(this::datasetChanged);
     initialize();
   }
 
@@ -111,13 +106,13 @@ public class DatasetControlPane<T extends PlotXYDataProvider> extends AnchorPane
         });
   }
 
-  public void onDatasetChanged(Map<Integer, XYDataset> datasets) {
-    if (chart == null || datasets == null) {
+  public void datasetChanged(DatasetChangeEvent event) {
+    if (chart == null || event == null) {
       return;
     }
 
     tvOverview.getItems().clear();
-    tvOverview.getItems().addAll(datasets.values());
+    tvOverview.getItems().addAll(chart.getAllDatasets().values());
     EStandardChartTheme.fixLegend(chart.getChart());
   }
 

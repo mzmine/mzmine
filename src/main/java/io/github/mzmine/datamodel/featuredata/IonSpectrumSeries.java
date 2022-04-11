@@ -1,28 +1,33 @@
 /*
- *  Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
- *  This file is part of MZmine.
+ * This file is part of MZmine.
  *
- *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- *  General Public License as published by the Free Software Foundation; either version 2 of the
- *  License, or (at your option) any later version.
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- *  Public License for more details.
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License along with MZmine; if not,
- *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- *  USA
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.datamodel.featuredata;
 
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.util.MemoryMapStorage;
+import io.github.mzmine.util.ParsingUtils;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores combinations of intensity and mz values.
@@ -31,6 +36,25 @@ import javax.annotation.Nullable;
  * @author https://github.com/SteffenHeu
  */
 public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
+
+  /**
+   * @param writer   A writer to append the scans element to.
+   * @param series   The series containing scans to save.
+   * @param allScans All scans belonging to the current collection. <b>NOTE</b> As a general
+   *                 contract: No preselected list shall be given here, by default, the original
+   *                 selection shall be used. For example, when saving an EIC from a feature list,
+   *                 this should be passed all scans obtained from the {@link
+   *                 RawDataFile#getScans()} method, not the preselected scans obtained by {@link
+   *                 io.github.mzmine.datamodel.features.ModularFeatureList#getSeletedScans(RawDataFile)}.
+   */
+  public static <T extends MassSpectrum> void saveSpectraIndicesToXML(XMLStreamWriter writer,
+      IonSpectrumSeries<T> series, List<T> allScans) throws XMLStreamException {
+    writer.writeStartElement(CONST.XML_SCAN_LIST_ELEMENT);
+    writer.writeAttribute(CONST.XML_NUM_VALUES_ATTR, String.valueOf(series.getNumberOfValues()));
+    final int[] indices = ParsingUtils.getIndicesOfSubListElements(series.getSpectra(), allScans);
+    writer.writeCharacters(ParsingUtils.intArrayToString(indices, indices.length));
+    writer.writeEndElement();
+  }
 
   List<T> getSpectra();
 
@@ -65,7 +89,7 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param subset  The subset of spectra. sorted by their scan number (retention time or mobility)
    * @return The subset series.
    */
-  IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @Nonnull List<T> subset);
+  IonSpectrumSeries<T> subSeries(@Nullable MemoryMapStorage storage, @NotNull List<T> subset);
 
   /**
    * Creates a copy of this series using the same list of scans but possibly new mz/intensity
@@ -76,6 +100,8 @@ public interface IonSpectrumSeries<T extends MassSpectrum> extends IonSeries {
    * @param newIntensityValues
    * @return
    */
-  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage, @Nonnull double[] newMzValues,
-      @Nonnull double[] newIntensityValues);
+  IonSpectrumSeries<T> copyAndReplace(@Nullable MemoryMapStorage storage,
+      @NotNull double[] newMzValues, @NotNull double[] newIntensityValues);
+
+
 }

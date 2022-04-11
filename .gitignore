@@ -17,7 +17,5 @@ not-bio
 /out
 /*.xlsx
 /Ontologies
-src/main/resources/vendorlib/bruker/timsdata_x64.dll
 /src/test/log*
 /src/test/resources/rawdatafiles/200ngHeLaPASEF_2min_compressed.d
-

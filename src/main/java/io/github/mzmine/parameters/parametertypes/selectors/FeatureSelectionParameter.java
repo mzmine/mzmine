@@ -1,40 +1,36 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
- * 
+ * Copyright 2006-2021 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import java.util.Objects;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.XMLUtils;
 
 public class FeatureSelectionParameter
     implements UserParameter<List<FeatureSelection>, FeatureSelectionComponent> {
@@ -97,8 +93,8 @@ public class FeatureSelectionParameter
       Element selElement = (Element) selItems.item(i);
       Range<Integer> idRange = XMLUtils.parseIntegerRange(selElement, "id");
       Range<Double> mzRange = XMLUtils.parseDoubleRange(selElement, "mz");
-      Range<Float> rtRange = RangeUtils.toFloatRange(
-          Objects.requireNonNull(XMLUtils.parseDoubleRange(selElement, "rt")));
+      final Range<Double> rtDoubleRange = XMLUtils.parseDoubleRange(selElement, "rt");
+      Range<Float> rtRange = rtDoubleRange != null ? RangeUtils.toFloatRange(rtDoubleRange) : null;
       String name = XMLUtils.parseString(selElement, "name");
       FeatureSelection ps = new FeatureSelection(idRange, mzRange, rtRange, name);
       newValue.add(ps);

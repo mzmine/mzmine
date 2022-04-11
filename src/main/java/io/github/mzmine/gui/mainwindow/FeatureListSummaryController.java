@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,16 +8,17 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.gui.mainwindow;
 
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.main.MZmineCore;
@@ -29,15 +30,25 @@ import io.github.mzmine.modules.batchmode.BatchQueue;
 import io.github.mzmine.modules.impl.MZmineProcessingStepImpl;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.parametertypes.EmbeddedParameterSet;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
-import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
-import io.github.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import io.github.mzmine.util.ExitCode;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -46,12 +57,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javax.annotation.Nullable;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
+import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
 
-  private static final Logger logger = Logger
-      .getLogger(FeatureListSummaryController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureListSummaryController.class.getName());
 
   @FXML
   public TextField tfNumRows;
@@ -65,6 +79,9 @@ public class FeatureListSummaryController {
   public Label lbFeatureListName;
   @FXML
   public Button btnOpenInBatchQueue;
+  @FXML
+  public Button exportfeature;
+
 
   @FXML
   public void initialize() {
@@ -99,6 +116,18 @@ public class FeatureListSummaryController {
     lvAppliedMethods.setItems(featureList.getAppliedMethods());
   }
 
+  public void setRawDataFile(@Nullable RawDataFile file) {
+    clear();
+    if (file == null) {
+      return;
+    }
+
+    lbFeatureListName.setText(file.getName());
+    tfNumRows.setText(String.valueOf(file.getNumOfScans()));
+    tfCreated.setText(file.getAbsolutePath());
+    lvAppliedMethods.setItems(file.getAppliedMethods());
+  }
+
   public void clear() {
     lbFeatureListName.setText("None selected");
     tfNumRows.setText("");
@@ -112,18 +141,19 @@ public class FeatureListSummaryController {
     Object value = parameter.getValue();
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
-    sb.append(value.toString());
-    if (parameter instanceof ParameterSetParameter
-        || parameter instanceof OptionalModuleParameter) {
-      ParameterSet parameterSet =
-          parameter instanceof ParameterSetParameter ? ((ParameterSetParameter) parameter)
-              .getValue() : ((OptionalModuleParameter<?>) parameter).getEmbeddedParameters();
+    if (value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
+    if (parameter instanceof EmbeddedParameterSet embedded) {
+      ParameterSet parameterSet = embedded.getEmbeddedParameters();
       for (Parameter<?> parameter1 : parameterSet.getParameters()) {
         sb.append("\n\t");
         sb.append(parameterToString(parameter1));
       }
     }
-    if(parameter instanceof OptionalParameter) {
+    if (parameter instanceof OptionalParameter) {
       sb.append("\t(");
       sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
       sb.append(")");
@@ -161,7 +191,9 @@ public class FeatureListSummaryController {
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
-    batchModeParameters.showSetupDialog(true);
+    if (batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+      MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
+    }
   }
 
   private void setSelectionToLastBatchStep(ParameterSet parameters) {
@@ -175,6 +207,41 @@ public class FeatureListSummaryController {
             RawDataFilesSelectionType.BATCH_LAST_FILES);
         ((RawDataFilesParameter) parameter).setValue(rawDataFilesSelection);
       }
+    }
+  }
+
+  @FXML
+  //Export Record
+  void exportRecord() throws IOException {
+    ButtonType btn = MZmineCore.getDesktop()
+        .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",
+            ButtonType.YES, ButtonType.NO);
+    if (btn != ButtonType.YES) {
+      return;
+    }
+    FileChooser fc = new FileChooser();
+    fc.getExtensionFilters()
+        .addAll(new FileChooser.ExtensionFilter("comma-separated values", "*.csv"),
+            new FileChooser.ExtensionFilter("All File", "*.*"));
+    fc.setTitle("Save Feature List Summary");
+    File file = fc.showSaveDialog(new Stage());
+    try {
+      BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
+      PrintWriter pw = new PrintWriter(writer);
+      for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+        String sb = item.getDescription();
+        //StringBuilder sb = new StringBuilder(item.getDescription());
+        pw.println(sb);
+        ParameterSet parameterSet = item.getParameters();
+        for (Parameter<?> parameter : parameterSet.getParameters()) {
+          pw.println(parameterToString(parameter));
+        }
+        pw.println();
+      }
+      pw.flush();
+      pw.close();
+    } catch (Exception e) {
+      logger.info(e.getMessage());
     }
   }
 }
