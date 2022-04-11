@@ -148,6 +148,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
         continue;
       }
 
+      // todo remove first branch in a few versions so we can delete SpectralDBFeatureIdentity
       if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
           && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
           .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {

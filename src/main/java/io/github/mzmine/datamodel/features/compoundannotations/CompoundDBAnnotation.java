@@ -64,11 +64,11 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
-  Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
+  public static final Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
-  String XML_ELEMENT = "compound_db_annotation";
-  String XML_TYPE_ATTRIBUTE = "annotationtype";
-  String XML_NUM_ENTRIES_ATTR = "entries";
+  public static final String XML_ELEMENT = "compound_db_annotation";
+  public static final String XML_TYPE_ATTRIBUTE = "annotationtype";
+  public static final String XML_NUM_ENTRIES_ATTR = "entries";
 
   @NotNull
   static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
@@ -126,6 +126,7 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
   static CompoundDBAnnotation loadFromXML(@NotNull final XMLStreamReader reader,
       @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row)
       throws XMLStreamException {
+    // todo refactor to be loaded via FeatureAnnotation
     if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
       throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
     }
@@ -196,9 +197,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(key);
   }
 
-  Set<DataType<?>> getTypes();
+  public Set<DataType<?>> getTypes();
 
-  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable

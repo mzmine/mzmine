@@ -14,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 public interface FeatureAnnotation {
 
-  public static final String XML_ELEMENT = "featureannotation";
-  public static final String XML_TYPE_ATTR = "annotationtype";
+  public static final String XML_ELEMENT = "feature_annotation";
+  public static final String XML_TYPE_ATTR = "annotation_type";
 
   public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
