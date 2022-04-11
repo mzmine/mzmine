@@ -3,6 +3,7 @@ package io.github.mzmine.modules.visualization.compdb;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
@@ -32,10 +33,10 @@ import org.openscience.cdk.smiles.SmilesParser;
 
 public class CompoundDatabaseMatchPane extends BorderPane {
 
-  public static final int structureWidth = (int) Math.min((
-      Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3), 500);
-  public static final int structureHeight = (int) Math.min((
-      Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 6), 250);
+  public static final int structureWidth = (int) Math.min(
+      (Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 3), 500);
+  public static final int structureHeight = (int) Math.min(
+      (Toolkit.getDefaultToolkit().getScreenSize().getHeight() / 6), 250);
 
   private static final Logger logger = Logger.getLogger(CompoundDatabaseMatchPane.class.getName());
 
@@ -162,7 +163,8 @@ public class CompoundDatabaseMatchPane extends BorderPane {
       final Label valueLabel = new Label(strValue);
       if (row != null && row.getBestFeature() != null) {
         valueLabel.setOnMouseClicked(
-            e -> type.getDoubleClickAction(row, List.of(row.getBestFeature().getRawDataFile())));
+            e -> type.getDoubleClickAction(row, List.of(row.getBestFeature().getRawDataFile()),
+                new CompoundDatabaseMatchesType(), value));
       }
 
       pane.add(label, 0, rowCounter);

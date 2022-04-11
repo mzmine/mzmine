@@ -246,7 +246,7 @@ public abstract class DataType<T> {
     } else {
       throw new UnsupportedOperationException(
           "Programming error: No edit CellFactory for " + "data type: " + this.getHeaderString()
-          + " class " + this.getClass().toString());
+              + " class " + this.getClass().toString());
     }
   }
 
@@ -280,9 +280,19 @@ public abstract class DataType<T> {
     return List.of();
   }
 
+  /**
+   * @param row       The row the double click was applied to.
+   * @param file      The file the click was applied to. Either multiple (= row clicked, or a single
+   *                  = feature column clicked)
+   * @param superType The super type of the clicked daty type or null.
+   * @param value     The cell value or null.
+   * @return A runnable for execution. Must be explicitly executed on fx thread if the gui is
+   * modified.
+   */
   @Nullable
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
+      @NotNull List<RawDataFile> file, @Nullable DataType<?> superType,
+      @Nullable final Object value) {
     return null;
   }
 
