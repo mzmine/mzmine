@@ -171,7 +171,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
             continue;
           if (counter < 3) {
             int number = counter + 1;
-            annotation = annotation + " " + number + ". " + compound.getCompundName();
+            annotation = annotation + " " + number + ". " + compound.getCompoundName();
             counter++;
           }
         }

@@ -38,7 +38,7 @@ import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.DecimalFormat;
@@ -77,7 +77,7 @@ public class MirrorChartFactory {
    * @return
    */
   public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(
-      SpectralDBFeatureIdentity db) {
+      SpectralDBAnnotation db) {
 
     Scan scan = db.getQueryScan();
     if (scan == null) {
@@ -120,7 +120,7 @@ public class MirrorChartFactory {
 
     // create without data
     EChartViewer mirrorSpecrumPlot = createMirrorChartViewer("Query: " + scan.getScanDefinition(),
-        precursorMZA, rtA, null, "Library: " + db.getName(),
+        precursorMZA, rtA, null, "Library: " + db.getCompoundName(),
         precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
     // mirrorSpecrumPlot.setMaximumDrawWidth(4200); // TODO?
     // mirrorSpecrumPlot.setMaximumDrawHeight(2500);

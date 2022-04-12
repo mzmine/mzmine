@@ -30,7 +30,7 @@ import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.Arrays;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -214,7 +214,7 @@ public class MirrorScanWindowFX extends Stage {
    *
    * @param db
    */
-  public void setScans(SpectralDBFeatureIdentity db) {
+  public void setScans(SpectralDBAnnotation db) {
     pnMirror.getChildren().clear();
     neutralLossMirror.getChildren().removeAll();
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);

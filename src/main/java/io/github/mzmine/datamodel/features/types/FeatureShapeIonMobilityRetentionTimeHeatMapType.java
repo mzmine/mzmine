@@ -102,7 +102,7 @@ public class FeatureShapeIonMobilityRetentionTimeHeatMapType extends LinkedGraph
   @Nullable
   @Override
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
+      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
     return () -> MZmineCore.runLater(() -> MZmineCore.getDesktop()
         .addTab(new IMSFeatureVisualizerTab(row.getFeature(file.get(0)))));
   }

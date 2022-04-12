@@ -64,8 +64,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EmptyParameterSetupDialogBase extends Stage {
 
-  public static final Logger logger = Logger
-      .getLogger(EmptyParameterSetupDialogBase.class.getName());
+  public static final Logger logger = Logger.getLogger(
+      EmptyParameterSetupDialogBase.class.getName());
   protected final URL helpURL;
   // Parameters and their representation in the dialog
   protected final ParameterSet parameterSet;
@@ -146,7 +146,15 @@ public class EmptyParameterSetupDialogBase extends Stage {
     pnlButtons.getButtons().addAll(btnOK, btnCancel);
     pnlButtons.setPadding(new Insets(10.0));
 
-    if (helpURL != null) {
+    if (parameters.getOnlineHelpUrl() != null) { // if we have online docs, use those
+      btnHelp = new Button("Help");
+      btnHelp.setOnAction(e -> {
+        MZmineCore.getDesktop().openWebPage(parameters.getOnlineHelpUrl());
+      });
+
+      ButtonBar.setButtonData(btnHelp, ButtonData.HELP);
+      pnlButtons.getButtons().add(btnHelp);
+    } else if (helpURL != null) { // otherwise use old help url
       btnHelp = new Button("Help");
       btnHelp.setOnAction(e -> {
         if (helpWindow != null) {
