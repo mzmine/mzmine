@@ -273,8 +273,6 @@
         userData="io.github.mzmine.modules.io.import_features_mztabm.MZTabmImportModule"/>
       <MenuItem text="csv" onAction="#runModule"
         userData="io.github.mzmine.modules.io.import_features_csv.CsvImportModule"/>
-      <MenuItem text="Sirius project" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_import.SiriusResultsImportModule"/>
     </Menu>
 
     <Menu text="Export feature list">
@@ -431,10 +429,6 @@
           text="Precursor search in spectral libraries"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule"/>
-        <MenuItem
-          text="Rate compound annotations (Sirius)"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.SiriusRatingModule"/>
       </Menu>
 
       <Menu text="Search spectra">
@@ -457,6 +451,12 @@
         <MenuItem text="SIRIUS / CSI-FingerID"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
+        <MenuItem
+          text="Rate compound annotations (Sirius)"
+          onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.SiriusRatingModule"/>
+        <MenuItem text="Import annotations from Sirius project" onAction="#runModule"
+          userData="io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_import.SiriusResultsImportModule"/>
       </Menu>
 
       <SeparatorMenuItem/>

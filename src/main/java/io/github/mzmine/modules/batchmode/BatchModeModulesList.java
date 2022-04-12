@@ -94,6 +94,8 @@ import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
+import io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.SiriusRatingModule;
+import io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_import.SiriusResultsImportModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
@@ -284,6 +286,8 @@ public class BatchModeModulesList {
       PrecursorDBSearchModule.class, //
       SiriusIdentificationModule.class, //
       SpectralLibrarySearchModule.class, //
+      SiriusResultsImportModule.class, //
+      SiriusRatingModule.class, //
 
       /*
        * {@link io.github.mzmine.modules.MZmineModuleCategory.MainCategory#FEATURE_IO}
