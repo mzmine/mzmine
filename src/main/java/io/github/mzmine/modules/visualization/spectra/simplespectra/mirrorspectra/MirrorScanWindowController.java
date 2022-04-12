@@ -36,8 +36,8 @@ import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.components.ColorPickerTableCell;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -331,7 +331,7 @@ public class MirrorScanWindowController {
    *
    * @param db
    */
-  public void setScans(SpectralDBFeatureIdentity db) {
+  public void setScans(SpectralDBAnnotation db) {
     pnMirror.getChildren().clear();
     pnNLMirror.getChildren().removeAll();
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
