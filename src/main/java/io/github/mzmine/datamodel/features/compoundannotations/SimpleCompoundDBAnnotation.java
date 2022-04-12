@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
@@ -31,8 +31,6 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structur
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -41,12 +39,12 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import io.github.mzmine.util.FormulaUtils;
 import io.github.mzmine.util.RangeUtils;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -60,14 +58,16 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * Basic class for a compound annotation. The idea is not for it to be observable or so, but to
  * carry a flexible amount of data while providing a set of minimum defined entries.
  */
-public class SimpleCompoundDBAnnotation implements
-    CompoundDBAnnotation {
+public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
 
-  private final Map<DataType<?>, Object> data = new HashMap<>();
+  // TODO remove all references to this in next release
+  public static final String XML_TYPE_NAME_OLD = "simplecompounddbannotation";
 
-  public static final String XML_TYPE_NAME = "simplecompounddbannotation";
+  public static final String XML_ATTR = "simple_compound_db_annotation";
+
 
   private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
+  protected final Map<DataType<?>, Object> data = new HashMap<>();
 
   public SimpleCompoundDBAnnotation() {
   }
@@ -108,6 +108,53 @@ public class SimpleCompoundDBAnnotation implements
     }
   }
 
+  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
+      ModularFeatureListRow row) throws XMLStreamException {
+    final String startElementName = reader.getLocalName();
+    final String startElementAttrValue = Objects.requireNonNullElse(
+        reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE_OLD),
+        reader.getAttributeValue(null, XML_TYPE_ATTR));
+
+    if (!((reader.isStartElement() && startElementName.equals(XML_ELEMENT_OLD) // old case
+        && startElementAttrValue.equals(XML_TYPE_NAME_OLD))                   // old case
+        || (reader.isStartElement() && startElementName.equals(FeatureAnnotation.XML_ELEMENT)
+        && startElementAttrValue.equals(XML_ATTR)))) {
+      throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
+    }
+
+    final SimpleCompoundDBAnnotation id = new SimpleCompoundDBAnnotation();
+    final int numEntries = Integer.parseInt(reader.getAttributeValue(null, XML_NUM_ENTRIES_ATTR));
+
+    int i = 0;
+    while (reader.hasNext() && !(reader.isEndElement() && (reader.getLocalName()
+        .equals(XML_ELEMENT_OLD) || reader.getLocalName().equals(XML_ELEMENT)))) {
+      reader.next();
+
+      if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
+        continue;
+      }
+
+      final DataType<?> typeForId = DataTypes.getTypeForId(
+          reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
+      if (typeForId != null) {
+        Object o = typeForId.loadFromXML(reader, flist, row, null, null);
+        id.put((DataType) typeForId, o);
+      }
+      i++;
+
+      if (i > numEntries) {
+        break;
+      }
+    }
+
+    if (i > numEntries) {
+      throw new IllegalStateException(String.format(
+          "Finished reading db annotation, but did not find all types. Expected %d, found %d.",
+          numEntries, i));
+    }
+    return id;
+  }
+
   @Override
   public <T> T get(@NotNull DataType<T> key) {
     Object value = data.get(key);
@@ -119,6 +166,7 @@ public class SimpleCompoundDBAnnotation implements
     return (T) value;
   }
 
+  @Override
   public <T> T get(Class<? extends DataType<T>> key) {
     var actualKey = DataTypes.get(key);
     return get(actualKey);
@@ -145,6 +193,11 @@ public class SimpleCompoundDBAnnotation implements
     return (T) data.put(actualKey, value);
   }
 
+  @Override
+  public Set<DataType<?>> getTypes() {
+    return data.keySet();
+  }
+
   /**
    * Writes this object to xml using the given writer. A new element for this object is created in
    * the given method.
@@ -154,8 +207,7 @@ public class SimpleCompoundDBAnnotation implements
   @Override
   public void saveToXML(@NotNull final XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException {
-    writer.writeStartElement(CompoundDBAnnotation.XML_ELEMENT);
-    writer.writeAttribute(CompoundDBAnnotation.XML_TYPE_ATTRIBUTE, XML_TYPE_NAME);
+    writeOpeningTag(writer);
     writer.writeAttribute(CompoundDBAnnotation.XML_NUM_ENTRIES_ATTR, String.valueOf(data.size()));
 
     for (Entry<DataType<?>, Object> entry : data.entrySet()) {
@@ -176,47 +228,7 @@ public class SimpleCompoundDBAnnotation implements
       }
     }
 
-    writer.writeEndElement();
-  }
-
-  public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT)
-        && reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE).equals(XML_TYPE_NAME))) {
-      throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
-    }
-
-    final SimpleCompoundDBAnnotation id = new SimpleCompoundDBAnnotation();
-    final int numEntries = Integer.parseInt(reader.getAttributeValue(null, XML_NUM_ENTRIES_ATTR));
-
-    int i = 0;
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName()
-        .equals(XML_ELEMENT))) {
-      reader.next();
-
-      if (!(reader.isStartElement() && reader.getLocalName().equals(CONST.XML_DATA_TYPE_ELEMENT))) {
-        continue;
-      }
-
-      final DataType<?> typeForId = DataTypes.getTypeForId(
-          reader.getAttributeValue(null, CONST.XML_DATA_TYPE_ID_ATTR));
-      if (typeForId != null) {
-        Object o = typeForId.loadFromXML(reader, flist, row, null, null);
-        id.put((DataType)typeForId, o);
-      }
-      i++;
-
-      if (i > numEntries) {
-        break;
-      }
-    }
-
-    if (i > numEntries) {
-      throw new IllegalStateException(String.format(
-          "Finished reading db annotation, but did not find all types. Expected %d, found %d.",
-          numEntries, i));
-    }
-    return id;
+    writeClosingTag(writer);
   }
 
   @Override
@@ -315,26 +327,7 @@ public class SimpleCompoundDBAnnotation implements
 
   @Override
   public String toString() {
-
-    final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    final NumberFormat scoreFormat = MZmineCore.getConfiguration().getScoreFormat();
-    final IonType adductType = getAdductType();
-
-    final StringBuilder b = new StringBuilder();
-
-    if(getCompundName()!= null) {
-      b.append(getCompundName()).append(",");
-    }
-    if(getAdductType() != null) {
-      b.append(" ").append(getAdductType().toString(false)).append(", ");
-    }
-    if(getPrecursorMZ() != null) {
-      b.append(mzFormat.format(getPrecursorMZ())).append(", ");
-    }
-    if(getScore() != null) {
-      b.append(scoreFormat.format(getScore()));
-    }
-    return b.toString();
+    return getCompoundName();
   }
 
   @Override
@@ -346,7 +339,12 @@ public class SimpleCompoundDBAnnotation implements
       return false;
     }
     SimpleCompoundDBAnnotation that = (SimpleCompoundDBAnnotation) o;
-    return data.equals(that.data);
+    return Objects.equals(data, that.data);
+  }
+
+  @Override
+  public @NotNull String getXmlAttributeKey() {
+    return XML_ATTR;
   }
 
   @Override

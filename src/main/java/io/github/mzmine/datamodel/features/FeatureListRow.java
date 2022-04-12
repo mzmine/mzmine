@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -290,7 +290,7 @@ public interface FeatureListRow extends ModularDataModel {
    */
   void setCompoundAnnotations(List<CompoundDBAnnotation> annotations);
 
-  void addSpectralLibraryMatch(SpectralDBFeatureIdentity id);
+  void addSpectralLibraryMatch(SpectralDBAnnotation id);
 
   boolean isIdentified();
 
@@ -452,14 +452,14 @@ public interface FeatureListRow extends ModularDataModel {
    *
    * @param matches new list of matches
    */
-  void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches);
+  void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches);
 
   /**
    * List of library matches sorted from best (index 0) to last match
    *
    * @return list of library matches or an empty list
    */
-  @NotNull List<SpectralDBFeatureIdentity> getSpectralLibraryMatches();
+  @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches();
 
   /**
    * Add annotations from lipid search
@@ -471,7 +471,7 @@ public interface FeatureListRow extends ModularDataModel {
   // -- ModularFeatureListRow additions
   Stream<ModularFeature> streamFeatures();
 
-  void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches);
+  void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches);
 
   @Nullable Range<Float> getMobilityRange();
 

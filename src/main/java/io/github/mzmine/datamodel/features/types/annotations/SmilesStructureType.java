@@ -51,5 +51,4 @@ public class SmilesStructureType extends StringType implements EditableColumnTyp
   public StringConverter<String> getStringConverter() {
     return converter;
   }
-
 }
