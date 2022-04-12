@@ -4,6 +4,8 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.SimpleFeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusAnnotationListType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusConfidenceScoreType;
 import io.github.mzmine.modules.dataprocessing.id_sirius_cli.SiriusImportUtil;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -67,8 +70,8 @@ public class SiriusResultsImportTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  public boolean run(File siriusProjectDir, ModularFeatureList flist,
-      ImportOption importOption, Boolean replaceOldAnnotations) {
+  public boolean run(File siriusProjectDir, ModularFeatureList flist, ImportOption importOption,
+      Boolean replaceOldAnnotations) {
     final Map<Integer, FeatureListRow> rowMap = flist.getRows().stream()
         .collect(Collectors.toMap(FeatureListRow::getID, row -> row));
 
@@ -93,13 +96,16 @@ public class SiriusResultsImportTask extends AbstractTask {
           return false;
         }
 
-        final List<CompoundDBAnnotation> annotations = row.getCompoundAnnotations();
+        final List<CompoundDBAnnotation> annotations = row.get(SiriusAnnotationListType.class);
         final List<CompoundDBAnnotation> newList = new ArrayList<>();
         newList.add(annotation);
         if (!replaceOldAnnotations) {
           newList.addAll(annotations);
         }
-        row.setCompoundAnnotations(newList);
+        newList.sort((c1, c2) -> -1 * Float.compare(
+            Objects.requireNonNullElse(c1.get(SiriusConfidenceScoreType.class), 0f),
+            Objects.requireNonNullElse(c2.get(SiriusConfidenceScoreType.class), 0f)));
+        row.set(SiriusAnnotationListType.class, newList);
 
         progress++;
       }
@@ -116,12 +122,12 @@ public class SiriusResultsImportTask extends AbstractTask {
         final var rowId = entry.getValue();
         var annotations = entry.getValue();
 
-        if(annotations.isEmpty()) {
+        if (annotations.isEmpty()) {
           continue;
         }
 
-        if(importOption == ImportOption.TOP_TEN) {
-          annotations = annotations.subList(0, Math.min(annotations.size() -1, 10));
+        if (importOption == ImportOption.TOP_TEN) {
+          annotations = annotations.subList(0, Math.min(annotations.size() - 1, 10));
         }
 
         final FeatureListRow row = rowMap.get(rowId);
@@ -136,7 +142,7 @@ public class SiriusResultsImportTask extends AbstractTask {
         final List<CompoundDBAnnotation> currentAnnotations = row.getCompoundAnnotations();
         final List<CompoundDBAnnotation> newList = new ArrayList<>();
         newList.addAll(annotations);
-        if(!replaceOldAnnotations) {
+        if (!replaceOldAnnotations) {
           newList.addAll(currentAnnotations);
         }
         row.setCompoundAnnotations(newList);

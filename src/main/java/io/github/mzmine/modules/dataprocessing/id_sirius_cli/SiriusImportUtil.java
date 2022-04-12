@@ -12,7 +12,7 @@ import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.S
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusFingerIdScoreType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusIdType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusRankType;
-import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusScoreType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.sirius.SiriusZodiacScore;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
@@ -42,14 +42,14 @@ public class SiriusImportUtil {
   private static final int ROW_ID_GROUP = 3;
 
   private static final List<ImportType> fingerIdColumns = List.of(
+      new ImportType(true, "name", new CompoundNameType()), //
+      new ImportType(true, "adduct", new IonTypeType()), //
       new ImportType(true, "rank", new SiriusRankType()), //
       new ImportType(true, "ConfidenceScore", new SiriusConfidenceScoreType()), //
       new ImportType(true, "CSI:FingerIDScore", new SiriusFingerIdScoreType()), //
-      new ImportType(true, "ZodiacScore", new SiriusScoreType()), //
+      new ImportType(true, "ZodiacScore", new SiriusZodiacScore()), //
       new ImportType(true, "smiles", new SmilesStructureType()), //
       new ImportType(true, "pubchemids", new DatabaseMatchInfoType()), //
-      new ImportType(true, "name", new CompoundNameType()), //
-      new ImportType(true, "adduct", new IonTypeType()), //
       new ImportType(true, "molecularFormula", new FormulaType()),
       new ImportType(true, "id", new SiriusIdType()));
 
