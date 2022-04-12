@@ -109,7 +109,7 @@ public class SiriusExportTask extends AbstractTask {
   // next id for renumbering
   private long nextID = 1;
 
-  SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
+  public SiriusExportTask(ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
     this.featureLists = parameters.getParameter(SiriusExportParameters.FEATURE_LISTS).getValue()
         .getMatchingFeatureLists();

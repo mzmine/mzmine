@@ -1,4 +1,4 @@
-package io.github.mzmine.modules.dataprocessing.id_siriusimport;
+package io.github.mzmine.modules.dataprocessing.id_sirius_cli;
 
 import com.Ostermiller.util.CSVParser;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
@@ -37,7 +37,7 @@ public class SiriusImportUtil {
 
   private static final Logger logger = Logger.getLogger(SiriusImportUtil.class.getName());
 
-  private static final String featureDirRegex = "([\\d+])_([_a-zA-Z0-9.()\\s]" + "+)_(\\d+)";
+  private static final String featureDirRegex = "([\\d]+)_([_a-zA-Z0-9.()\\s]" + "+)_([\\d]+)";
   private static final Pattern featureDirPattern = Pattern.compile(featureDirRegex);
   private static final int ROW_ID_GROUP = 3;
 
@@ -81,7 +81,10 @@ public class SiriusImportUtil {
       if (annotation.hasValueForTypes(requiredTypesBestId)) {
         final String siriusId = annotation.get(SiriusIdType.class);
         final Matcher matcher = featureDirPattern.matcher(siriusId);
-        assert matcher.matches();
+        if(!matcher.matches()) {
+          logger.warning("Folder name does not match expected pattern " + siriusId);
+          continue;
+        }
         final String rowIdStr = matcher.group(ROW_ID_GROUP);
         annotationsMap.put(Integer.parseInt(rowIdStr), annotation);
       }
