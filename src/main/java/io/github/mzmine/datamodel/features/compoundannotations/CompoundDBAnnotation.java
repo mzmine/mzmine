@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.features.compoundannotations;
@@ -56,7 +56,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,17 +64,21 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
 
-  Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
+  public static final Logger logger = Logger.getLogger(CompoundDBAnnotation.class.getName());
 
-  String XML_ELEMENT = "compound_db_annotation";
-  String XML_TYPE_ATTRIBUTE = "annotationtype";
-  String XML_NUM_ENTRIES_ATTR = "entries";
+  public static final String XML_ELEMENT_OLD = "compound_db_annotation";
+  public static final String XML_TYPE_ATTRIBUTE_OLD = "annotationtype";
+  public static final String XML_NUM_ENTRIES_ATTR = "entries";
 
   @NotNull
   static List<CompoundDBAnnotation> buildCompoundsWithAdducts(
       CompoundDBAnnotation neutralAnnotation, IonNetworkLibrary library) {
     final List<CompoundDBAnnotation> annotations = new ArrayList<>();
     for (IonType adduct : library.getAllAdducts()) {
+      if (adduct.isUndefinedAdduct() || adduct.isUndefinedAdductParent() || adduct.getName()
+          .contains("?")) {
+        continue;
+      }
       try {
         annotations.add(neutralAnnotation.ionize(adduct));
       } catch (IllegalStateException e) {
@@ -122,22 +125,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     }
 
     throw new CannotDetermineMassException(annotation);
-  }
-
-  static CompoundDBAnnotation loadFromXML(@NotNull final XMLStreamReader reader,
-      @NotNull final ModularFeatureList flist, @NotNull final ModularFeatureListRow row)
-      throws XMLStreamException {
-    if (!(reader.isStartElement() && reader.getLocalName().equals(XML_ELEMENT))) {
-      throw new IllegalStateException("Invalid xml element to load CompoundDBAnnotation from.");
-    }
-
-    return switch (reader.getAttributeValue(null, XML_TYPE_ATTRIBUTE)) {
-      case SimpleCompoundDBAnnotation.XML_TYPE_NAME -> SimpleCompoundDBAnnotation.loadFromXML(
-          reader, flist, row);
-      case BioTransformerAnnotationImpl.XML_TYPE_NAME -> BioTransformerAnnotationImpl.loadFromXML(
-          reader, flist, row);
-      default -> null;
-    };
   }
 
   /**
@@ -197,9 +184,9 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(key);
   }
 
-  Set<DataType<?>> getTypes();
+  public Set<DataType<?>> getTypes();
 
-  void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
       ModularFeatureListRow row) throws XMLStreamException;
 
   @Nullable
@@ -219,7 +206,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(PrecursorMZType.class);
   }
 
-  @Override
   @Nullable
   public default String getSmiles() {
     return get(SmilesStructureType.class);

@@ -32,6 +32,7 @@ import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
 import io.github.mzmine.datamodel.featuredata.MobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonMobilitySeries;
 import io.github.mzmine.datamodel.featuredata.impl.SummedIntensityMobilitySeries;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.numbers.MobilityType;
@@ -166,7 +167,7 @@ public class IonMobilityUtils {
    * @return The mobility scan. Null if this feature does not possess a mobility dimension.
    */
   @Nullable
-  public static MobilityScan getBestMobilityScan(@NotNull final ModularFeature f) {
+  public static MobilityScan getBestMobilityScan(@NotNull final Feature f) {
     Scan bestScan = f.getRepresentativeScan();
     if (!(bestScan instanceof Frame bestFrame)) {
       return null;

@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -148,6 +148,7 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
         continue;
       }
 
+      // todo remove first branch in a few versions so we can delete SpectralDBFeatureIdentity
       if (reader.getLocalName().equals(FeatureIdentity.XML_GENERAL_IDENTITY_ELEMENT)
           && reader.getAttributeValue(null, FeatureIdentity.XML_IDENTITY_TYPE_ATTR)
           .equals(SpectralDBFeatureIdentity.XML_IDENTITY_TYPE)) {
@@ -156,7 +157,8 @@ public class SpectralLibraryMatchesType extends ListWithSubsType<SpectralDBAnnot
       } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)
           && reader.getAttributeValue(null, FeatureAnnotation.XML_TYPE_ATTR)
           .equals(SpectralDBAnnotation.XML_ATTR)) {
-        ids.add(SpectralDBAnnotation.loadFromXML(reader, flist.getRawDataFiles()));      }
+        ids.add(SpectralDBAnnotation.loadFromXML(reader, flist.getRawDataFiles()));
+      }
     }
 
     // never return null, if this type was saved we even need empty lists.

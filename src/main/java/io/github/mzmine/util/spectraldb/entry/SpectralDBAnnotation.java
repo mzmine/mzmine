@@ -1,3 +1,21 @@
+/*
+ *  Copyright 2006-2022 The MZmine Development Team
+ *
+ *  This file is part of MZmine.
+ *
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
+ *
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
+ */
+
 package io.github.mzmine.util.spectraldb.entry;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -25,7 +43,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class SpectralDBAnnotation implements FeatureAnnotation {
 
-  public static final String XML_ATTR = "spectrallibraryannotation";
+  public static final String XML_ATTR = "spectral_library_annotation";
+  private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
 
   private static final Logger logger = Logger.getLogger(SpectralDBAnnotation.class.getName());
 
@@ -34,8 +53,6 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
   private final Float ccsError;
   @Nullable
   private final Scan queryScan;
-
-  private static final String XML_CCS_ERROR_ELEMENT = "ccserror";
 
   public SpectralDBAnnotation(SpectralDBEntry entry, SpectralSimilarity similarity, Scan queryScan,
       @Nullable Float ccsError) {
@@ -47,27 +64,6 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
 
   public SpectralDBAnnotation(SpectralDBFeatureIdentity id) {
     this(id.getEntry(), id.getSimilarity(), id.getQueryScan(), id.getCCSError());
-  }
-
-  @Override
-  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
-      ModularFeatureListRow row) throws XMLStreamException {
-    writer.writeStartElement(FeatureAnnotation.XML_ELEMENT);
-    writer.writeAttribute(FeatureAnnotation.XML_TYPE_ATTR, XML_ATTR);
-
-    entry.saveToXML(writer);
-    similarity.saveToXML(writer);
-
-    writer.writeStartElement(XML_CCS_ERROR_ELEMENT);
-    writer.writeCharacters(ParsingUtils.parseNullableString(
-        this.ccsError != null ? String.valueOf(this.ccsError) : null));
-    writer.writeEndElement();
-
-    if (queryScan != null) {
-      Scan.saveScanToXML(writer, getQueryScan());
-    }
-
-    writer.writeEndElement();
   }
 
   public static FeatureAnnotation loadFromXML(XMLStreamReader reader,
@@ -102,8 +98,27 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
 
     assert entry != null && similarity != null;
 
-    SpectralDBAnnotation id = new SpectralDBAnnotation(entry, similarity, scan, ccsError);
-    return id;
+    return new SpectralDBAnnotation(entry, similarity, scan, ccsError);
+  }
+
+  @Override
+  public void saveToXML(@NotNull XMLStreamWriter writer, ModularFeatureList flist,
+      ModularFeatureListRow row) throws XMLStreamException {
+    writeOpeningTag(writer);
+
+    entry.saveToXML(writer);
+    similarity.saveToXML(writer);
+
+    writer.writeStartElement(XML_CCS_ERROR_ELEMENT);
+    writer.writeCharacters(ParsingUtils.parseNullableString(
+        this.ccsError != null ? String.valueOf(this.ccsError) : null));
+    writer.writeEndElement();
+
+    if (queryScan != null) {
+      Scan.saveScanToXML(writer, getQueryScan());
+    }
+
+    writeClosingTag(writer);
   }
 
   @Nullable
@@ -224,8 +239,8 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
     }
     SpectralDBAnnotation that = (SpectralDBAnnotation) o;
     return Objects.equals(getEntry(), that.getEntry()) && Objects.equals(getSimilarity(),
-        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects
-        .equals(getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
+        that.getSimilarity()) && Objects.equals(ccsError, that.ccsError) && Objects.equals(
+        getQueryScan().getScanNumber(), that.getQueryScan().getScanNumber())
         && getQueryScan().getDataFile().equals(that.getQueryScan().getDataFile());
   }
 
@@ -236,6 +251,12 @@ public class SpectralDBAnnotation implements FeatureAnnotation {
 
   @Override
   public String toString() {
-    return String.format("%s (%.3f)", getCompoundName(), Objects.requireNonNullElse(getScore(), 0f));
+    return String.format("%s (%.3f)", getCompoundName(),
+        Objects.requireNonNullElse(getScore(), 0f));
+  }
+
+  @Override
+  public @NotNull String getXmlAttributeKey() {
+    return XML_ATTR;
   }
 }

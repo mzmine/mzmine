@@ -60,7 +60,6 @@ import java.io.FileReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,31 +203,33 @@ public class LocalCSVDatabaseSearchTask extends AbstractTask {
         ccsTolerance);
   }
 
-  public static boolean checkMatchAnnotateRow(CompoundDBAnnotation annotation, FeatureListRow peakRow,
-      @Nullable final MZTolerance mzTolerance, @Nullable final RTTolerance rtTolerance,
-      @Nullable final MobilityTolerance mobTolerance, @Nullable final Double ccsTolerance) {
+  public static boolean checkMatchAnnotateRow(CompoundDBAnnotation annotation,
+      FeatureListRow peakRow, @Nullable final MZTolerance mzTolerance,
+      @Nullable final RTTolerance rtTolerance, @Nullable final MobilityTolerance mobTolerance,
+      @Nullable final Double ccsTolerance) {
     if (annotation.matches(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance)) {
       final CompoundDBAnnotation clone = annotation.clone();
-      clone.put(CompoundAnnotationScoreType.class, Objects.requireNonNullElse(
-          clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance), 0f));
-          clone.put(MzPpmDifferenceType.class,
-              (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
-                  peakRow.getAverageMZ()));
-          if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
-            clone.put(CCSRelativeErrorType.class,
-                PercentTolerance.getPercentError(annotation.get(CCSType.class),
-                    peakRow.getAverageCCS()));
-          }
-          if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
-            clone.put(RtRelativeErrorType.class,
-                PercentTolerance.getPercentError(annotation.get(RTType.class),
-                    peakRow.getAverageRT()));
-          }
+      final Float score = Objects.requireNonNullElse(
+          clone.getScore(peakRow, mzTolerance, rtTolerance, mobTolerance, ccsTolerance), 0f);
+      clone.put(CompoundAnnotationScoreType.class, score);
+      clone.put(MzPpmDifferenceType.class,
+          (float) MathUtils.getPpmDiff(Objects.requireNonNullElse(clone.getPrecursorMZ(), 0d),
+              peakRow.getAverageMZ()));
+      if (annotation.get(CCSType.class) != null && peakRow.getAverageCCS() != null) {
+        clone.put(CCSRelativeErrorType.class,
+            PercentTolerance.getPercentError(annotation.get(CCSType.class),
+                peakRow.getAverageCCS()));
+      }
+      if (annotation.get(RTType.class) != null && peakRow.getAverageRT() != null) {
+        clone.put(RtRelativeErrorType.class,
+            PercentTolerance.getPercentError(annotation.get(RTType.class), peakRow.getAverageRT()));
+      }
 
       peakRow.addCompoundAnnotation(clone);
-      final List<CompoundDBAnnotation> sorted = peakRow.getCompoundAnnotations()
-          .stream().filter(Objects::nonNull)
-          .sorted(Comparator.comparingDouble(CompoundDBAnnotation::getScore)).toList();
+      final List<CompoundDBAnnotation> sorted = peakRow.getCompoundAnnotations().stream()
+          .filter(Objects::nonNull).sorted(
+              (a1, a2) -> -1 * Double.compare(Objects.requireNonNullElse(a2.getScore(), 0f),
+                  Objects.requireNonNullElse(a2.getScore(), 0f))).toList();
       peakRow.setCompoundAnnotations(sorted);
       return true;
     }
