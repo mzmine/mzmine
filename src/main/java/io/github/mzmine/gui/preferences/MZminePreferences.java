@@ -247,10 +247,18 @@ public class MZminePreferences extends SimpleParameterSet {
       System.setProperty("http.proxySet", "true");
       System.setProperty("http.proxyHost", address);
       System.setProperty("http.proxyPort", port);
+
+      System.setProperty("https.proxySet", "true");
+      System.setProperty("https.proxyHost", address);
+      System.setProperty("https.proxyPort", port);
     } else {
       System.clearProperty("http.proxySet");
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
+
+      System.clearProperty("https.proxySet");
+      System.clearProperty("https.proxyHost");
+      System.clearProperty("https.proxyPort");
     }
   }
 

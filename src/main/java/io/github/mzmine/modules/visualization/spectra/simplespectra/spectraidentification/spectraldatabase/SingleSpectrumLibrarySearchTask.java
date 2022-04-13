@@ -31,7 +31,7 @@ import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanAlignment;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.awt.Color;
 import java.time.Instant;
 import java.util.List;
@@ -90,13 +90,13 @@ class SingleSpectrumLibrarySearchTask extends RowsSpectralMatchTask {
   }
 
   @Override
-  protected void addIdentities(FeatureListRow row, List<SpectralDBFeatureIdentity> matches) {
+  protected void addIdentities(FeatureListRow row, List<SpectralDBAnnotation> matches) {
     // we dont need row here
     addIdentities(matches);
   }
 
-  private void addIdentities(List<SpectralDBFeatureIdentity> matches) {
-    for (SpectralDBFeatureIdentity match : matches) {
+  private void addIdentities(List<SpectralDBAnnotation> matches) {
+    for (SpectralDBAnnotation match : matches) {
       try {
         // TODO put into separate method and add comments
         // get data points of matching scans

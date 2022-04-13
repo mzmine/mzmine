@@ -30,4 +30,14 @@ public class MissingMassListException extends RuntimeException {
     super("Missing mass list in scan " + ScanUtils.scanToString(scan, true) + ". " + message);
   }
 
+  /**
+   * This constructor is only to be used when no direct scan object is present. (e.g., {@link
+   * io.github.mzmine.datamodel.impl.MobilityScanStorage}) Use other constructors by default.
+   *
+   * @param message Error message
+   */
+  public MissingMassListException(String message) {
+    super(message);
+  }
+
 }

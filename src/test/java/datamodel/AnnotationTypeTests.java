@@ -278,7 +278,7 @@ public class AnnotationTypeTests {
     newIdentity.put(new MobilityType(), 0.56f);
     newIdentity.put(new IonTypeType(), ionType);
 
-    String name = newIdentity.getCompundName();
+    String name = newIdentity.getCompoundName();
 
     final CompoundDBAnnotation newIdentity2 = new SimpleCompoundDBAnnotation();
     newIdentity2.put(new CompoundNameType(), "mannose");

@@ -34,21 +34,18 @@ import org.jetbrains.annotations.NotNull;
 
 public class SmoothingParameters extends SimpleParameterSet {
 
-  public static final SmoothingAlgorithm sgSmoothing = MZmineCore
-      .getModuleInstance(SavitzkyGolaySmoothing.class);
+  public static final SmoothingAlgorithm sgSmoothing = MZmineCore.getModuleInstance(
+      SavitzkyGolaySmoothing.class);
 
   public static final SmoothingAlgorithm loessSmoothing = MZmineCore.getModuleInstance(
       LoessSmoothing.class);
 
   public static final SmoothingAlgorithm[] smoothingAlgorithms = new SmoothingAlgorithm[]{
       sgSmoothing, loessSmoothing};
-
-  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
-
   public static final ModuleComboParameter<SmoothingAlgorithm> smoothingAlgorithm = new ModuleComboParameter<SmoothingAlgorithm>(
       "Smoothing algorithm", "Please select a smoothing algorithm.", smoothingAlgorithms,
       sgSmoothing);
-
+  public static final FeatureListsParameter featureLists = new FeatureListsParameter();
   public static final OriginalFeatureListHandlingParameter handleOriginal = //
       new OriginalFeatureListHandlingParameter(false);
 
@@ -56,7 +53,8 @@ public class SmoothingParameters extends SimpleParameterSet {
       "The suffix to be added to processed feature lists.", "sm");
 
   public SmoothingParameters() {
-    super(new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix});
+    super(new Parameter[]{featureLists, smoothingAlgorithm, handleOriginal, suffix},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_smoothing/smoothing.html");
   }
 
   @Override

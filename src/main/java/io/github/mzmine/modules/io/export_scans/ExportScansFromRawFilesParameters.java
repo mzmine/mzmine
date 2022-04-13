@@ -20,8 +20,8 @@ package io.github.mzmine.modules.io.export_scans;
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
-import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileSelectionType;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -36,9 +36,11 @@ public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
   public static final ComboParameter<ScanFormats> formats = new ComboParameter<>("Format",
       "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
       ScanFormats.values(), ScanFormats.mgf);
+  public static final BooleanParameter export_masslist = new BooleanParameter(
+      "Export centroid mass list", "Exports the centroid mass list instead of raw data", true);
 
   public ExportScansFromRawFilesParameters() {
-    super(new Parameter[] {dataFiles, scanSelect, file, formats});
+    super(new Parameter[] {dataFiles, scanSelect, file, formats, export_masslist});
   }
 
 }

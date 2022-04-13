@@ -34,8 +34,10 @@ import io.github.mzmine.datamodel.msms.MsMsInfo;
 import io.github.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import io.github.mzmine.util.ArrayUtils;
 import io.github.mzmine.util.exceptions.MissingMassListException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +63,8 @@ public class MobilityScanDataAccess implements MobilityScan {
   protected int currentMobilityScanIndex = -1;
   protected int currentFrameIndex = -1;
   protected int currentSpectrumDatapointIndexOffset = 0;
+
+  protected final Map<Frame, Integer> frameIndexMap = new HashMap<>();
 
   /**
    * The intended use of this memory access is to loop over all scans and access data points via
@@ -234,6 +238,43 @@ public class MobilityScanDataAccess implements MobilityScan {
     currentFrame = null;
     currentNumberOfMobilityScans = -1;
     resetMobilityScan();
+  }
+
+  public void jumpToFrame(Frame frame) {
+    jumpToFrameIndex(indexOfFrame(frame));
+  }
+
+  public void jumpToFrameIndex(int index) {
+    if(index <= -1 || index >= eligibleFrames.size()) {
+      throw new IllegalArgumentException("Illegal index " + index);
+    }
+
+    currentFrameIndex = index -1;
+    nextFrame();
+  }
+
+  public int indexOfFrame(Frame frame) {
+    if(frameIndexMap.isEmpty()) {
+      int index = 0;
+      for (Frame eligibleFrame : eligibleFrames) {
+        final var val = frameIndexMap.put(eligibleFrame, index);
+        if(val != null) {
+          throw new IllegalStateException("Clash of Frame hash codes.");
+        }
+        index++;
+      }
+    }
+    final Integer index = frameIndexMap.get(frame);
+    return index != null ? index : -1;
+  }
+
+  public MobilityScan jumpToMobilityScan(MobilityScan scan) {
+    jumpToFrame(scan.getFrame());
+    MobilityScan mobilityScan = null;
+    while(currentMobilityScanIndex < scan.getMobilityScanNumber()) {
+      mobilityScan = nextMobilityScan();
+    }
+    return mobilityScan;
   }
 
   /**
