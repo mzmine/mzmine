@@ -143,7 +143,7 @@ public class BioTransformerTask extends AbstractTask {
           "Biotransformer task for %s. Processing educt %d/%d\tName: %s SMILES: %s",
           flist.getName(), predictions, numEducts, bestAnnotation.getCompoundName(), bestSmiles);
 
-      final List<BioTransformerAnnotation> bioTransformerAnnotations = singleRowPrediction(row,
+      final List<CompoundDBAnnotation> bioTransformerAnnotations = singleRowPrediction(row,
           bestSmiles, bestAnnotation.getCompoundName(), bioPath, parameters);
 
       if (bioTransformerAnnotations.isEmpty()) {
@@ -152,7 +152,7 @@ public class BioTransformerTask extends AbstractTask {
       }
 
       AtomicInteger numAnnotations = new AtomicInteger(0);
-      for (BioTransformerAnnotation annotation : bioTransformerAnnotations) {
+      for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
         flist.stream().filter(this::filterProductRow).forEach(r -> {
           if (LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
               null, null)) {
@@ -172,7 +172,7 @@ public class BioTransformerTask extends AbstractTask {
   }
 
   @NotNull
-  public static List<BioTransformerAnnotation> singleRowPrediction(@NotNull FeatureListRow row,
+  public static List<CompoundDBAnnotation> singleRowPrediction(@NotNull FeatureListRow row,
       @NotNull String bestSmiles, @Nullable String prefix, @NotNull File bioTransformerPath,
       @NotNull ParameterSet parameters) {
 
@@ -195,7 +195,7 @@ public class BioTransformerTask extends AbstractTask {
         file);
 
     BioTransformerUtil.runCommandAndWait(bioTransformerPath.getParentFile(), cmd);
-    final List<BioTransformerAnnotation> bioTransformerAnnotations;
+    final List<CompoundDBAnnotation> bioTransformerAnnotations;
     try {
       bioTransformerAnnotations = BioTransformerUtil.parseLibrary(file,
           ionLibrary.getAllAdducts().toArray(new IonType[0]), new AtomicBoolean(),

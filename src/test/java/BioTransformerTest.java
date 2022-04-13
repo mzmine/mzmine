@@ -1,8 +1,7 @@
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
-import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerAnnotation;
-import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerAnnotationImpl;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerParameters;
 import io.github.mzmine.modules.dataprocessing.id_biotransformer.BioTransformerUtil;
 import io.github.mzmine.parameters.ParameterSet;
@@ -48,11 +47,11 @@ public class BioTransformerTest {
     final URL resource = BioTransformerTest.class.getClassLoader()
         .getResource("biotransformer/transformation.csv");
     final File file = new File(resource.getFile());
-    final List<BioTransformerAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(
+    final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(
         file, new IonType[]{new IonType(IonModification.H)}, new AtomicBoolean(false),
         new AtomicInteger(0));
 
-    final CompoundDBAnnotation expected = new BioTransformerAnnotationImpl("C23H29N5O",
+    final CompoundDBAnnotation expected = new SimpleCompoundDBAnnotation("C23H29N5O",
         392.244486548d, new IonType(IonModification.H),
         "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C", "QMAQKWMYJDPUDV-UHFFFAOYSA-N",
         "EAWAG_RULE_BT0051_PATTERN3", "BTM00001", 2.3947f);
@@ -84,11 +83,11 @@ public class BioTransformerTest {
     Assertions.assertTrue(
         BioTransformerUtil.runCommandAndWait(biotransformer.getParentFile(), cmdLine));
 
-    final List<BioTransformerAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(
+    final List<CompoundDBAnnotation> compoundDBAnnotations = BioTransformerUtil.parseLibrary(
         outputFile, new IonType[]{new IonType(IonModification.H)}, new AtomicBoolean(false),
         new AtomicInteger(0));
 
-    final CompoundDBAnnotation expected = new BioTransformerAnnotationImpl("C23H29N5O",
+    final CompoundDBAnnotation expected = new SimpleCompoundDBAnnotation("C23H29N5O",
         392.24448654799994d, new IonType(IonModification.H),
         "CCCCC(=O)N(CC1=CC=C(C=C1)C2=CC=CC=C2C3=NNN=N3)CC(C)C", "QMAQKWMYJDPUDV-UHFFFAOYSA-N",
         "EAWAG_RULE_BT0051_PATTERN3", "BTM00001", 2.3947f);

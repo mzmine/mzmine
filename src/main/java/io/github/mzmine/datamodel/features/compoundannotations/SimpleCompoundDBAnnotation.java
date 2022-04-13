@@ -25,12 +25,20 @@ import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
+import io.github.mzmine.datamodel.features.types.annotations.InChIStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ALogPType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.EnzymeType;
+import io.github.mzmine.datamodel.features.types.annotations.compounddb.ReactionType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure2dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.Structure3dUrlType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
+import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
 import io.github.mzmine.datamodel.features.types.numbers.NeutralMassType;
+import io.github.mzmine.datamodel.features.types.numbers.PrecursorMZType;
+import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -64,7 +72,6 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
   public static final String XML_TYPE_NAME_OLD = "simplecompounddbannotation";
 
   public static final String XML_ATTR = "simple_compound_db_annotation";
-
 
   private static final Logger logger = Logger.getLogger(SimpleCompoundDBAnnotation.class.getName());
   protected final Map<DataType<?>, Object> data = new HashMap<>();
@@ -106,6 +113,21 @@ public class SimpleCompoundDBAnnotation implements CompoundDBAnnotation {
       put(NeutralMassType.class, MolecularFormulaManipulator.getMass(neutralFormula,
           MolecularFormulaManipulator.MonoIsotopic));
     }
+  }
+
+  /**
+   * Constructor for Bio transformer annotations
+   */
+  public SimpleCompoundDBAnnotation(String formula, double calculatedMz, IonType ionType,
+      String smiles, String inchi, String reaction, String enzyme, Float alogP) {
+    put(new FormulaType(), formula);
+    put(new PrecursorMZType(), calculatedMz);
+    put(new IonTypeType(), ionType);
+    put(new SmilesStructureType(), smiles);
+    put(new InChIStructureType(), inchi);
+    put(new ReactionType(), reaction);
+    put(new EnzymeType(), enzyme);
+    put(new ALogPType(), alogP);
   }
 
   public static CompoundDBAnnotation loadFromXML(XMLStreamReader reader, ModularFeatureList flist,

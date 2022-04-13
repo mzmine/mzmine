@@ -2,6 +2,7 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -69,7 +70,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
     description = "Biotransformer task - SMILES: " + smiles;
 
-    final List<BioTransformerAnnotation> bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
+    final List<CompoundDBAnnotation> bioTransformerAnnotations = BioTransformerTask.singleRowPrediction(
         row, smiles, prefix, bioPath, parameters);
 
     if (bioTransformerAnnotations.isEmpty()) {
@@ -78,7 +79,7 @@ public class SingleRowPredictionTask extends AbstractTask {
     }
 
     final ModularFeatureList flist = row.getFeatureList();
-    for (BioTransformerAnnotation annotation : bioTransformerAnnotations) {
+    for (CompoundDBAnnotation annotation : bioTransformerAnnotations) {
       flist.stream().forEach(
           r -> LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, r, mzTolerance, null,
               null, null));

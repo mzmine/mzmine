@@ -2,10 +2,13 @@ package io.github.mzmine.modules.dataprocessing.id_biotransformer;
 
 import com.Ostermiller.util.CSVParser;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchTask;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import io.github.mzmine.util.FormulaUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -19,9 +22,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class BioTransformerUtil {
 
+  static final int FORMULA_INDEX = 5;
+  static final int SMILES_INDEX = 2;
+  static final int INCHI_INDEX = 1;
+  static final int REACTION_INDEX = 13;
+  static final int ENZYME_INDEX = 11;
+  static final int ALOGP_INDEX = 7;
   private static final Logger logger = Logger.getLogger(BioTransformerUtil.class.getName());
 
   @Nullable
@@ -65,20 +76,20 @@ public class BioTransformerUtil {
     return cmdList;
   }
 
-  public static List<BioTransformerAnnotation> parseLibrary(final File file,
+  public static List<CompoundDBAnnotation> parseLibrary(final File file,
       final IonType[] ionTypes, @NotNull final AtomicBoolean canceled,
       @NotNull final AtomicInteger parsedLines) throws IOException {
 
     final FileReader dbFileReader = new FileReader(file);
     final CSVParser parser = new CSVParser(dbFileReader, ',');
 
-    final List<BioTransformerAnnotation> annotations = new ArrayList<>();
+    final List<CompoundDBAnnotation> annotations = new ArrayList<>();
 
     parser.getLine();
     String[] line = null;
     while ((line = parser.getLine()) != null && !canceled.get()) {
       for (final IonType ionType : ionTypes) {
-        annotations.add(BioTransformerAnnotation.fromCsvLine(line, ionType));
+        annotations.add(fromCsvLine(line, ionType));
       }
       parsedLines.getAndIncrement();
     }
@@ -86,9 +97,9 @@ public class BioTransformerUtil {
     return annotations;
   }
 
-  public static void matchLibraryToRow(List<BioTransformerAnnotation> annotations,
+  public static void matchLibraryToRow(List<CompoundDBAnnotation> annotations,
       FeatureListRow row, @Nullable final MZTolerance mzTolerance) {
-    for (BioTransformerAnnotation annotation : annotations) {
+    for (CompoundDBAnnotation annotation : annotations) {
       LocalCSVDatabaseSearchTask.checkMatchAnnotateRow(annotation, row, mzTolerance, null, null,
           null);
     }
@@ -127,5 +138,22 @@ public class BioTransformerUtil {
       return false;
     }
     return true;
+  }
+
+  public static CompoundDBAnnotation fromCsvLine(String[] lineValues, IonType ionType) {
+
+    final String smiles = lineValues[SMILES_INDEX];
+    final IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(
+        FormulaUtils.getFomulaFromSmiles(smiles));
+
+    final double mz = ionType.getMZ(MolecularFormulaManipulator.getMass(neutralFormula,
+        MolecularFormulaManipulator.MonoIsotopic));
+
+    final String strLogP = lineValues[ALOGP_INDEX];
+    final Float alogP = strLogP != null && !strLogP.isEmpty() ? Float.valueOf(strLogP) : null;
+
+    return new SimpleCompoundDBAnnotation(MolecularFormulaManipulator.getString(neutralFormula),
+        mz, ionType, smiles, lineValues[INCHI_INDEX], lineValues[REACTION_INDEX],
+        lineValues[ENZYME_INDEX], alogP);
   }
 }
