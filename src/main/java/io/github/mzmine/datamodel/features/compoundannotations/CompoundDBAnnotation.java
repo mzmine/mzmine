@@ -205,7 +205,6 @@ public interface CompoundDBAnnotation extends Cloneable, FeatureAnnotation {
     return get(PrecursorMZType.class);
   }
 
-  @Override
   public default boolean hasValueForTypes(DataType<?>... types) {
     for (DataType<?> type : types) {
       if (get(type) == null) {

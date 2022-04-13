@@ -5,6 +5,7 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
@@ -99,10 +100,10 @@ public class SiriusAnnotationListType extends ListWithSubsType<CompoundDBAnnotat
         continue;
       }
 
-      if (reader.getLocalName().equals(CompoundDBAnnotation.XML_ELEMENT)) {
-        final CompoundDBAnnotation id = CompoundDBAnnotation.loadFromXML(reader, flist, row);
-        if (id != null) {
-          ids.add(id);
+      if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)) {
+        final FeatureAnnotation id = FeatureAnnotation.loadFromXML(reader, flist, row);
+        if (id instanceof CompoundDBAnnotation sid) {
+          ids.add(sid);
         }
       }
     }
