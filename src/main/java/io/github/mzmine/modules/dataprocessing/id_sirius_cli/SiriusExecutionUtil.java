@@ -54,7 +54,7 @@ public class SiriusExecutionUtil {
 
   public static boolean writeCustomDatabase(final Map<String, CompoundDBAnnotation> db,
       final File file) {
-    if(!file.getParentFile().exists()) {
+    if (!file.getParentFile().exists()) {
       file.getParentFile().mkdirs();
     }
     try (var fileWriter = new FileWriter(file, false)) {
@@ -91,10 +91,11 @@ public class SiriusExecutionUtil {
     cmdList.add("-i");
     cmdList.add("\"" + database.getAbsolutePath() + "\"");
     cmdList.add("custom-db");
-    cmdList.add("--name");
-    cmdList.add(database.getName().substring(0, database.getName().lastIndexOf(".")));
-    cmdList.add("--output");
-    cmdList.add("\"" + database.getParentFile() + "\"");
+//    cmdList.add("--name");
+//    cmdList.add(database.getName().substring(0, database.getName().lastIndexOf(".")));
+    cmdList.add("--location");
+    cmdList.add("\"" + database.getParentFile() + File.separator + database.getName()
+        .substring(0, database.getName().lastIndexOf(".")) + "\"");
 
     final ProcessBuilder b = new ProcessBuilder();
     b.inheritIO();
@@ -133,9 +134,11 @@ public class SiriusExecutionUtil {
     cmdList.add("formula");
     cmdList.add("-d");
     cmdList.add("\"" + database.getAbsolutePath() + "\"");
+    cmdList.add("fingerprint");
     cmdList.add("structure");
     cmdList.add("-d");
     cmdList.add("\"" + database.getAbsolutePath() + "\"");
+    cmdList.add("write-summaries");
 
     final ProcessBuilder b = new ProcessBuilder(cmdList).directory(pathToSirius.getParentFile())
         .inheritIO();

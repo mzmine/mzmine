@@ -51,15 +51,15 @@ public class TestSiriusUtil {
     db.put(a1.getSmiles(), a1);
     db.put(a2.getSmiles(), a2);
 
-//    final File dbFile = new File("D:\\Programme\\sirius-gui\\files\\results_atenolol\\db.tsv");
-//    SiriusExecutionUtil.writeCustomDatabase(db, dbFile);
-//    final File dbFolder = SiriusExecutionUtil.generateCustomDatabase(dbFile,
-//        new File("D:\\Programme\\sirius-gui\\sirius.exe"));
-    final File dbFolder = new File("F:\\sirius_temp\\test\\100_ms_aligned_corr");
+    /*final File dbFile = new File("F:\\sirius_temp\\test\\db.tsv");
+    SiriusExecutionUtil.writeCustomDatabase(db, dbFile);
+    final File dbFolder = SiriusExecutionUtil.generateCustomDatabase(dbFile,
+        new File("D:\\Programme\\sirius_5\\sirius\\sirius.exe"));*/
+    final File dbFolder = new File("F:\\sirius_temp\\test\\db");
 
-    SiriusExecutionUtil.runFingerId(new File("F:\\sirius_temp\\test\\mgf.mgf"),
-        dbFolder, new File("F:\\sirius_temp\\test\\project"),
-        new File("D:\\Programme\\sirius-gui\\sirius.exe"));
+    SiriusExecutionUtil.runFingerId(new File("F:\\sirius_temp\\test\\100_ms_aligned_corr.mgf"),
+        dbFolder, new File("F:\\sirius_temp\\test\\project5"),
+        new File("D:\\Programme\\sirius_5\\sirius\\sirius.exe"));
     logger.info("done");
   }
 }
