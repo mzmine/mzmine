@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RtRelativeErrorType extends PercentType {
 
-  protected RtRelativeErrorType() {
+  public RtRelativeErrorType() {
     super();
   }
 
