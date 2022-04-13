@@ -23,7 +23,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -89,7 +89,7 @@ public class MirrorScanWindowFX extends Stage {
    *
    * @param db
    */
-  public void setScans(SpectralDBFeatureIdentity db) {
+  public void setScans(SpectralDBAnnotation db) {
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromSpectralDBPeakIdentity(db);
     contentPane.setCenter(mirrorSpecrumPlot);
   }

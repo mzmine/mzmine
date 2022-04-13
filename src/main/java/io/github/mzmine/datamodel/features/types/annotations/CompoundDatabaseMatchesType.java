@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.datamodel.features.types.annotations;
@@ -23,6 +23,8 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.FeatureAnnotation;
+import io.github.mzmine.datamodel.features.compoundannotations.SimpleCompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -49,17 +52,16 @@ import org.jetbrains.annotations.Nullable;
 public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnnotation> implements
     AnnotationType {
 
-  public CompoundDatabaseMatchesType() {
-  }
-
-
   public static final List<DataType> subTypes = List.of(new CompoundDatabaseMatchesType(),
       new CompoundNameType(), new CompoundAnnotationScoreType(), new FormulaType(),
       new IonTypeType(), new SmilesStructureType(), new InChIStructureType(), new PrecursorMZType(),
-      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(), new DatabaseMatchInfoType());
+      new MzPpmDifferenceType(), new NeutralMassType(), new RTType(), new CCSType(),
+      new DatabaseMatchInfoType());
+  private static final Logger logger = Logger.getLogger(
+      CompoundDatabaseMatchesType.class.getName());
   private static final Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> mapper = Map.ofEntries(
       //
-      createEntry(CompoundDatabaseMatchesType.class, match -> match.getCompoundName()), //
+      createEntry(CompoundDatabaseMatchesType.class, CompoundDBAnnotation::getCompoundName), //
       createEntry(CompoundNameType.class, CompoundDBAnnotation::getCompoundName), //
       createEntry(CompoundAnnotationScoreType.class, CompoundDBAnnotation::getScore),
       createEntry(FormulaType.class, CompoundDBAnnotation::getFormula), //
@@ -72,6 +74,14 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
       createEntry(RTType.class, match -> match.get(new RTType())), //
       createEntry(CCSType.class, CompoundDBAnnotation::getCCS),
       createEntry(DatabaseMatchInfoType.class, match -> match.get(DatabaseMatchInfoType.class)));
+
+  public CompoundDatabaseMatchesType() {
+  }
+
+  private static <T, R> R mapOrElse(@Nullable final T input, @NotNull final Function<T, R> mapper,
+      @Nullable R elze) {
+    return input != null ? mapper.apply(input) : elze;
+  }
 
   @Override
   public @NotNull String getUniqueID() {
@@ -91,11 +101,6 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
   @Override
   protected Map<Class<? extends DataType>, Function<CompoundDBAnnotation, Object>> getMapper() {
     return mapper;
-  }
-
-  private static <T, R> R mapOrElse(@Nullable final T input, @NotNull final Function<T, R> mapper,
-      @Nullable R elze) {
-    return input != null ? mapper.apply(input) : elze;
   }
 
   @Override
@@ -138,10 +143,20 @@ public class CompoundDatabaseMatchesType extends ListWithSubsType<CompoundDBAnno
         continue;
       }
 
-      if (reader.getLocalName().equals(CompoundDBAnnotation.XML_ELEMENT)) {
-        final CompoundDBAnnotation id = CompoundDBAnnotation.loadFromXML(reader, flist, row);
+      // todo remove upper branch in next release
+      if (reader.getLocalName().equals(CompoundDBAnnotation.XML_ELEMENT_OLD)) {
+        final CompoundDBAnnotation id = SimpleCompoundDBAnnotation.loadFromXML(reader, flist, row);
         if (id != null) {
           ids.add(id);
+        }
+      } else if (reader.getLocalName().equals(FeatureAnnotation.XML_ELEMENT)) {
+        final FeatureAnnotation id = FeatureAnnotation.loadFromXML(reader, flist, row);
+        if (id instanceof CompoundDBAnnotation cid) {
+          ids.add(cid);
+        } else {
+          logger.warning(
+              () -> "Unexpected annotation type in compound annotations: " + id.getClass()
+                  .getName());
         }
       }
     }
