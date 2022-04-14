@@ -109,7 +109,9 @@ public class SiriusImportUtil {
       }
 
       final File candidates = new File(dir, "structure_candidates.tsv");
-      checkFileAndThrow(candidates);
+      if(!isFileValid(candidates)) {
+        continue;
+      }
       // read candidates and keep only annotations with minimum types.
       final List<CompoundDBAnnotation> compoundDBAnnotations = readAnnotationsFromFile(
           candidates).stream().filter(a -> a.hasValueForTypes(requiredTypesCandidates)).toList();
@@ -207,7 +209,7 @@ public class SiriusImportUtil {
   }
 
   private static boolean isFileValid(File fingerIdFile) {
-    return !fingerIdFile.exists() || fingerIdFile.isDirectory();
+    return fingerIdFile.exists() && !fingerIdFile.isDirectory();
   }
 
   /**

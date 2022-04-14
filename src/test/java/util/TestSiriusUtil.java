@@ -23,7 +23,7 @@ public class TestSiriusUtil {
   @Disabled
   void testBestFingerIdImport() {
     final Map<Integer, CompoundDBAnnotation> integerCompoundDBAnnotationMap = SiriusImportUtil.readBestCompoundIdentifications(
-        new File("D:\\Programme\\sirius-gui\\files\\results_atenolol"));
+        new File("F:\\sirius_temp\\test\\project5"));
 
     Assertions.assertEquals(9, integerCompoundDBAnnotationMap.size());
   }
@@ -32,11 +32,12 @@ public class TestSiriusUtil {
   @Disabled
   void testAllCompoundCandidates() {
     final Map<Integer, List<CompoundDBAnnotation>> allCandidates = SiriusImportUtil.readAllStructureCandidatesFromProject(
-        new File("D:\\Programme\\sirius-gui\\files\\results_atenolol"));
+        new File("F:\\sirius_temp\\test\\project5"));
     logger.info(allCandidates.toString());
   }
 
   @Test
+  @Disabled
   void testSiriusDatabaseGeneration() {
 
     CompoundDBAnnotation a1 = new SimpleCompoundDBAnnotation();
