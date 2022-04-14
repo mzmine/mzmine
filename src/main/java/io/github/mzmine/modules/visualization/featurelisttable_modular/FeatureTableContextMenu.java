@@ -16,7 +16,6 @@
  *
  */
 
-
 package io.github.mzmine.modules.visualization.featurelisttable_modular;
 
 import com.google.common.collect.Range;
@@ -246,10 +245,17 @@ public class FeatureTableContextMenu extends ContextMenu {
   }
 
   private void initShowMenu() {
+    /*
     final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
         () -> !selectedRows.isEmpty());
     showXICItem.setOnAction(
         e -> ChromatogramVisualizerModule.visualizeFeatureListRows(selectedRows));
+    */
+
+    final MenuItem showXICItem = new ConditionalMenuItem("XIC (quick)",
+        () -> !selectedRows.isEmpty());
+    showXICItem.setOnAction(
+        e -> ChromatogramVisualizerModule.visualizeFeatureListRows(selectedRows, selectedFeatures));
 
     final MenuItem showXICSetupItem = new ConditionalMenuItem("XIC (dialog)",
         () -> !selectedRows.isEmpty());

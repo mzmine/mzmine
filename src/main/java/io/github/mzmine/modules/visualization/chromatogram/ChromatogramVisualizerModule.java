@@ -119,6 +119,45 @@ public class ChromatogramVisualizerModule implements MZmineRunnableModule {
     MZmineCore.getDesktop().addTab(window);
   }
 
+  public static void visualizeFeatureListRows(List<ModularFeatureListRow> rows, List<ModularFeature> selectedFeatures) {
+    final Map<Feature, String> labelsMap = new HashMap<>();
+    final Set<RawDataFile> files = new HashSet<>();
+
+    Range<Double> mzRange = null;
+    for (ModularFeatureListRow row : rows) {
+      for (ModularFeature feature : selectedFeatures) {
+          if(feature == null || feature.getFeatureStatus() == FeatureStatus.UNKNOWN) {
+            continue;
+          }
+          if (mzRange == null) {
+            mzRange = feature.getRawDataPointsMZRange();
+            double upper = mzRange.upperEndpoint();
+            double lower = mzRange.lowerEndpoint();
+            if ((upper - lower) < 0.000001) {
+              // Workaround to make ultra narrow mzRanges (e.g. from imported mzTab peaklist),
+              // a more reasonable default for a HRAM instrument (~5ppm)
+              double fiveppm = (upper * 5E-6);
+              mzRange = Range.closed(lower - fiveppm, upper + fiveppm);
+            }
+          } else {
+            mzRange = mzRange.span(feature.getRawDataPointsMZRange());
+          }
+
+          // Label the peak with the row's preferred identity.
+          final FeatureIdentity identity = row.getPreferredFeatureIdentity();
+          if (identity != null) {
+            labelsMap.put(feature, identity.getName());
+          }
+          files.add(feature.getRawDataFile());
+      }
+    }
+    ScanSelection scanSelection = new ScanSelection(1);
+
+    showNewTICVisualizerWindow(files.toArray(new RawDataFile[0]),
+        selectedFeatures.toArray(new Feature[selectedFeatures.size()]), labelsMap, scanSelection,
+        TICPlotType.BASEPEAK, mzRange);
+  }
+
   public static void visualizeFeatureListRows(Collection<ModularFeatureListRow> rows) {
     final Map<Feature, String> labelsMap = new HashMap<>();
     final Set<RawDataFile> files = new HashSet<>();
