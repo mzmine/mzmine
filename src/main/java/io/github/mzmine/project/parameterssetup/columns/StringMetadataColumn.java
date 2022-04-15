@@ -21,7 +21,7 @@ package io.github.mzmine.project.parameterssetup.columns;
 /**
  * Specific String-type implementation of the project parameter.
  */
-public final class StringMetadataColumn extends MetadataColumn {
+public final class StringMetadataColumn extends MetadataColumn<String> {
 
   public StringMetadataColumn(String title) {
     super(title);
@@ -29,5 +29,10 @@ public final class StringMetadataColumn extends MetadataColumn {
 
   public StringMetadataColumn(String title, String description) {
     super(title, description);
+  }
+
+  @Override
+  public boolean checkInput(Object value) {
+    return value instanceof String;
   }
 }

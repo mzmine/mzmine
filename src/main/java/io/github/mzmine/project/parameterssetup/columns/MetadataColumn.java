@@ -21,8 +21,10 @@ package io.github.mzmine.project.parameterssetup.columns;
 /**
  * Abstract parameter column sealed class, afterwards it will be inherited by the specific
  * parameters types.
+ *
+ * @param <T> datatype of the project parameter
  */
-public abstract sealed class MetadataColumn permits StringMetadataColumn, DoubleMetadataColumn,
+public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, DoubleMetadataColumn,
     DateMetadataColumn {
 
   /**
@@ -62,4 +64,12 @@ public abstract sealed class MetadataColumn permits StringMetadataColumn, Double
   public String getDescription() {
     return description;
   }
+
+  /**
+   * Validate input depending on it's type.
+   *
+   * @param value input to be validated
+   * @return true if input is valid, false otherwise
+   */
+  public abstract boolean checkInput(Object value);
 }

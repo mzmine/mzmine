@@ -21,7 +21,7 @@ package io.github.mzmine.project.parameterssetup.columns;
 /**
  * Specific Double-type implementation of the project parameter.
  */
-public final class DoubleMetadataColumn extends MetadataColumn {
+public final class DoubleMetadataColumn extends MetadataColumn<Double> {
 
   public DoubleMetadataColumn(String title) {
     super(title);
@@ -29,5 +29,10 @@ public final class DoubleMetadataColumn extends MetadataColumn {
 
   public DoubleMetadataColumn(String title, String description) {
     super(title, description);
+  }
+
+  @Override
+  public boolean checkInput(Object value) {
+    return value instanceof Double;
   }
 }

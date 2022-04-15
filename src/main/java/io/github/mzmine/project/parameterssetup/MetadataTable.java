@@ -29,9 +29,17 @@ import java.util.Set;
  */
 public class MetadataTable {
 
-  private final Map<MetadataColumn, Map<RawDataFile, ?>> data = new HashMap<>();
+  private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
 
-  public Map<MetadataColumn, Map<RawDataFile, ?>> getData() {
+  public MetadataTable() {
+    this.data = new HashMap<>();
+  }
+
+  public MetadataTable(Map<MetadataColumn<?>, Map<RawDataFile, Object>> data) {
+    this.data = data;
+  }
+
+  public Map<MetadataColumn<?>, Map<RawDataFile, Object>> getData() {
     return data;
   }
 
@@ -47,7 +55,7 @@ public class MetadataTable {
    *
    * @param column new parameter column
    */
-  public void addColumn(MetadataColumn column) {
+  public void addColumn(MetadataColumn<?> column) {
     data.putIfAbsent(column, new HashMap<>());
   }
 
@@ -56,7 +64,7 @@ public class MetadataTable {
    *
    * @param column parameter column
    */
-  public void removeColumn(MetadataColumn column) {
+  public void removeColumn(MetadataColumn<?> column) {
     data.remove(column);
   }
 
@@ -66,7 +74,7 @@ public class MetadataTable {
    * @param column project parameter column
    * @return true if it's contained, false otherwise
    */
-  public boolean hasColumn(MetadataColumn column) {
+  public boolean hasColumn(MetadataColumn<?> column) {
     return data.containsKey(column);
   }
 
@@ -75,7 +83,7 @@ public class MetadataTable {
    *
    * @return set with the parameters columns
    */
-  public Set<MetadataColumn> getColumns() {
+  public Set<MetadataColumn<?>> getColumns() {
     return data.keySet();
   }
 
@@ -86,8 +94,8 @@ public class MetadataTable {
    * @return parameterColumn or null in case if the parameter with the passed name isn't obtained in
    * the metadata table
    */
-  public MetadataColumn getColumnByName(String name) {
-    for (MetadataColumn column : getColumns()) {
+  public MetadataColumn<?> getColumnByName(String name) {
+    for (MetadataColumn<?> column : getColumns()) {
       if (column.getTitle().equals(name)) {
         return column;
       }
@@ -104,7 +112,7 @@ public class MetadataTable {
    * @param <T>         type of the project parameter
    * @return parameter value
    */
-  public <T> T getValue(MetadataColumn column, RawDataFile rawDataFile) {
+  public <T> T getValue(MetadataColumn<T> column, RawDataFile rawDataFile) {
     var row = data.get(column);
     if (row != null) {
       return (T) row.get(rawDataFile);
@@ -122,11 +130,11 @@ public class MetadataTable {
    * @param value  value to be set
    * @param <T>    type of the parameter
    */
-  public <T> void setParameterValue(MetadataColumn column, RawDataFile file, T value) {
+  public <T> void setValue(MetadataColumn<T> column, RawDataFile file, T value) {
     if (!data.containsKey(column)) {
       addColumn(column);
     }
 
-    data.put(column, Map.of(file, value));
+    data.get(column).put(file, value);
   }
 }

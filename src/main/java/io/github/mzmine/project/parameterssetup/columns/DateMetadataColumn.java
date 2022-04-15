@@ -18,10 +18,12 @@
 
 package io.github.mzmine.project.parameterssetup.columns;
 
+import java.time.LocalDateTime;
+
 /**
  * Specific Date-type implementation of the project parameter.
  */
-public final class DateMetadataColumn extends MetadataColumn {
+public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
 
   public DateMetadataColumn(String title) {
     super(title);
@@ -29,5 +31,10 @@ public final class DateMetadataColumn extends MetadataColumn {
 
   public DateMetadataColumn(String title, String description) {
     super(title, description);
+  }
+
+  @Override
+  public boolean checkInput(Object value) {
+    return value instanceof LocalDateTime;
   }
 }
