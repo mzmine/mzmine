@@ -19,6 +19,8 @@
 package io.github.mzmine.project.parameterssetup.columns;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * Specific Date-type implementation of the project parameter.
@@ -36,5 +38,17 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
   @Override
   public boolean checkInput(Object value) {
     return value instanceof LocalDateTime;
+  }
+
+  @Override
+  public LocalDateTime convert(String input) {
+    try {
+      //ISO-8601 format
+      return LocalDateTime.parse(input.trim());
+//      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+    } catch (DateTimeParseException ignored) {
+    }
+
+    return null;
   }
 }

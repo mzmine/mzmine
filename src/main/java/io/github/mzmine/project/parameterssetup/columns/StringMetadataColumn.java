@@ -35,4 +35,9 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
   public boolean checkInput(Object value) {
     return value instanceof String;
   }
+
+  @Override
+  public String convert(String input) {
+    return input.trim();
+  }
 }

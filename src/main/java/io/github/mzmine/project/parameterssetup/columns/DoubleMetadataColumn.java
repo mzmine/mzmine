@@ -35,4 +35,14 @@ public final class DoubleMetadataColumn extends MetadataColumn<Double> {
   public boolean checkInput(Object value) {
     return value instanceof Double;
   }
+
+  @Override
+  public Double convert(String input) {
+    try {
+      return Double.parseDouble(input.trim());
+    } catch (NumberFormatException ignored) {
+    }
+
+    return null;
+  }
 }

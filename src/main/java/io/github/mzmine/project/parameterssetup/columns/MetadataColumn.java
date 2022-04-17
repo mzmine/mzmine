@@ -72,4 +72,13 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    * @return true if input is valid, false otherwise
    */
   public abstract boolean checkInput(Object value);
+
+  /**
+   * Convert input string to the specific type of the parameter.
+   *
+   * @param input input string
+   * @return converted value of the specific type
+   */
+  public abstract T convert(String input);
+
 }

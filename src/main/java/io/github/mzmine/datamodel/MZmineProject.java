@@ -24,6 +24,7 @@ import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
 import io.github.mzmine.project.impl.ProjectChangeListener;
+import io.github.mzmine.project.parameterssetup.MetadataTable;
 import io.github.mzmine.util.spectraldb.entry.SpectralLibrary;
 import java.io.File;
 import java.util.Hashtable;
@@ -221,4 +222,8 @@ public interface MZmineProject {
   void fireDataFilesChangeEvent(List<RawDataFile> dataFiles, Type type);
 
   int getNumberOfDataFiles();
+
+  MetadataTable getProjectMetadata();
+
+  void setProjectMetadata(MetadataTable metadata);
 }
