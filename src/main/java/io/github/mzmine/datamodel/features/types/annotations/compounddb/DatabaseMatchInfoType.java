@@ -109,7 +109,7 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
 
   @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
+      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
     if (compoundAnnotations.isEmpty()) {
       return null;

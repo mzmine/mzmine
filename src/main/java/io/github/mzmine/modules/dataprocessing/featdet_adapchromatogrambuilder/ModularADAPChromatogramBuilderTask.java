@@ -22,6 +22,7 @@ package io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import io.github.mzmine.datamodel.IMSRawDataFile;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
@@ -129,7 +130,7 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
     if (scans.length == 0) {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("There are no scans satisfying filtering values. Consider updating filters "
-                      + "with \"Set filters\" in the \"Scans\" parameter.");
+          + "with \"Set filters\" in the \"Scans\" parameter.");
       return;
     }
 
@@ -143,9 +144,9 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (s.getRetentionTime() < prevRT) {
         setStatus(TaskStatus.ERROR);
         final String msg = "Retention time of scan #" + s.getScanNumber()
-                           + " is smaller then the retention time of the previous scan."
-                           + " Please make sure you only use scans with increasing retention times."
-                           + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+            + " is smaller then the retention time of the previous scan."
+            + " Please make sure you only use scans with increasing retention times."
+            + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
         setErrorMessage(msg);
         return;
       }
@@ -158,8 +159,8 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
       if (level != scans[i].getMSLevel()) {
         MZmineCore.getDesktop().displayMessage(null,
             "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
-            + "This will likely produce wrong results. "
-            + "Please, set the scan filter parameter to a specific MS level");
+                + "This will likely produce wrong results. "
+                + "Please, set the scan filter parameter to a specific MS level");
       }
     }
 
@@ -189,9 +190,16 @@ public class ModularADAPChromatogramBuilderTask extends AbstractTask {
         scan = scanData.nextScan();
       } catch (MissingMassListException e) {
         setStatus(TaskStatus.ERROR);
-        setErrorMessage(
-            "Scan #" + scanData.getCurrentScan().getScanNumber() + " from " + dataFile.getName()
-            + " does not have a mass list. Pleas run \"Raw data methods\" -> \"Mass detection\".");
+        StringBuilder b = new StringBuilder("Scan #");
+        b.append(scanData.getCurrentScan().getScanNumber()).append(" from ");
+        b.append(dataFile.getName());
+        b.append(
+            " does not have a mass list. Please run \"Raw data methods\" -> \"Mass detection\"");
+        if (dataFile instanceof IMSRawDataFile) {
+          b.append("\nIMS files require mass detection on the frame level (Scan type = \"Frames ");
+          b.append("only\" or \"All scan types\"");
+        }
+        setErrorMessage(b.toString());
         e.printStackTrace();
         return;
       }

@@ -37,6 +37,9 @@ containing the .app.
 sudo xattr -cr MZmine.app
 ```
 
+Find a step-by-step guide in the [documentations](https://mzmine.github.io/mzmine_documentation/getting_started.html#on-macos).
+
+
 ## Development
 
 ### Tutorial
