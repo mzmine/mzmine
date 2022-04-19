@@ -20,17 +20,29 @@ package io.github.mzmine.datamodel.identities;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
+import io.github.mzmine.util.ParsingUtils;
+import java.util.Objects;
+import java.util.logging.Logger;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MolecularFormulaIdentity {
+
+  private static final Logger logger = Logger.getLogger(MolecularFormulaIdentity.class.getName());
 
   @NotNull
   protected final IMolecularFormula cdkFormula;
   protected final Float rdbe;
   protected final double searchedNeutralMass;
 
+  public static final String XML_ELEMENT = "molecular_formula_identity";
+  public static final String SEARCHED_NEUTRAL_MASS_ATTR = "searched_neutral_mass";
 
   public MolecularFormulaIdentity(IMolecularFormula cdkFormula, double searchedNeutralMass) {
     this.cdkFormula = cdkFormula;
@@ -109,8 +121,7 @@ public class MolecularFormulaIdentity {
    * @param fMSMSscore
    * @return
    */
-  public float getScore(double neutralMass, float ppmMax, float fIsotopeScore,
-      float fMSMSscore) {
+  public float getScore(double neutralMass, float ppmMax, float fIsotopeScore, float fMSMSscore) {
     return getPPMScore(neutralMass, ppmMax);
   }
 
@@ -141,4 +152,27 @@ public class MolecularFormulaIdentity {
     return rdbe;
   }
 
+  public void saveToXML(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(XML_ELEMENT);
+    writer.writeAttribute(SEARCHED_NEUTRAL_MASS_ATTR,
+        ParsingUtils.numberToString(searchedNeutralMass));
+    writer.writeCharacters(getFormulaAsString());
+    writer.writeEndElement();
+  }
+
+  public static MolecularFormulaIdentity loadFromXML(XMLStreamReader reader)
+      throws XMLStreamException {
+    if (!reader.isStartElement() || !reader.getLocalName().equals(XML_ELEMENT)) {
+      throw new IllegalStateException(
+          "Unexpected xml element for MolecularFormulaIdentity: " + reader.getLocalName());
+    }
+    Double mass = ParsingUtils.stringToDouble(
+        reader.getAttributeValue(null, SEARCHED_NEUTRAL_MASS_ATTR));
+    final String formula = reader.getElementText();
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    var molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+
+
+    return new MolecularFormulaIdentity(molFormula, Objects.requireNonNull(mass));
+  }
 }
