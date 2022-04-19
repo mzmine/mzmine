@@ -202,7 +202,7 @@ public class SiriusImportUtil {
    * @param fingerIdFile The file.
    */
   private static void checkFileAndThrow(File fingerIdFile) {
-    if (isFileValid(fingerIdFile)) {
+    if (!isFileValid(fingerIdFile)) {
       throw new IllegalStateException(
           fingerIdFile.toString() + " does not exist or is not a file.");
     }
@@ -218,13 +218,13 @@ public class SiriusImportUtil {
    * @param siriusProjectDir The directory.
    */
   private static void checkProjectDirAndThrow(File siriusProjectDir) {
-    if (isProjectDirValid(siriusProjectDir)) {
+    if (!isProjectDirValid(siriusProjectDir)) {
       throw new IllegalStateException("Given sirius project dir " + siriusProjectDir.toString()
           + " does not exist or is not a directory.");
     }
   }
 
   private static boolean isProjectDirValid(File siriusProjectDir) {
-    return !siriusProjectDir.exists() || !siriusProjectDir.isDirectory();
+    return siriusProjectDir.exists() && siriusProjectDir.isDirectory();
   }
 }

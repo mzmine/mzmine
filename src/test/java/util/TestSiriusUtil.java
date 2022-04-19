@@ -6,6 +6,8 @@ import io.github.mzmine.datamodel.features.types.annotations.CompoundNameType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.modules.dataprocessing.id_sirius_cli.SiriusExecutionUtil;
 import io.github.mzmine.modules.dataprocessing.id_sirius_cli.SiriusImportUtil;
+import io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.AlgorithmProfile;
+import io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.SiriusDatabaseType;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +61,8 @@ public class TestSiriusUtil {
     final File dbFolder = new File("F:\\sirius_temp\\test\\db");
 
     SiriusExecutionUtil.runFingerId(new File("F:\\sirius_temp\\test\\100_ms_aligned_corr.mgf"),
-        dbFolder, new File("F:\\sirius_temp\\test\\project5"),
-        new File("D:\\Programme\\sirius_5\\sirius\\sirius.exe"));
+        AlgorithmProfile.QTOF, new File("F:\\sirius_temp\\test\\project5"),
+        new File("D:\\Programme\\sirius_5\\sirius\\sirius.exe"), dbFolder, SiriusDatabaseType.ONLY_COMPOUNDS);
     logger.info("done");
   }
 }

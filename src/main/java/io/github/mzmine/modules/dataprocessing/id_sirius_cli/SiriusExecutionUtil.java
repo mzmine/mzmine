@@ -9,6 +9,8 @@ import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotat
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.DataTypes;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
+import io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.AlgorithmProfile;
+import io.github.mzmine.modules.dataprocessing.id_sirius_cli.sirius_bridge.SiriusDatabaseType;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -120,8 +122,9 @@ public class SiriusExecutionUtil {
             + dbFolder.toString());
   }
 
-  public static void runFingerId(final File mgf, final File database, final File outputDir,
-      final File pathToSirius) {
+  public static void runFingerId(@NotNull final File mgf, @NotNull AlgorithmProfile presets,
+      @NotNull final File outputDir, @NotNull final File pathToSirius,
+      @Nullable final File database, @NotNull final SiriusDatabaseType dbType) {
     if (!pathToSirius.exists() || !pathToSirius.isFile()) {
       throw new IllegalArgumentException("Sirius not found at " + pathToSirius.toString());
     }
@@ -131,13 +134,23 @@ public class SiriusExecutionUtil {
     cmdList.add("\"" + mgf + "\"");
     cmdList.add("--output");
     cmdList.add("\"" + outputDir.getAbsolutePath() + "\"");
+    cmdList.add("config");
+    cmdList.add("--AlgorithmProfile");
+    cmdList.add(presets.commandName());
     cmdList.add("formula");
-    cmdList.add("-d");
-    cmdList.add("\"" + database.getAbsolutePath() + "\"");
+
+    final String dbString = dbType.getDbString(new File[]{database});
+    if(!dbString.isEmpty()) {
+      cmdList.add("-d");
+      cmdList.add(dbString);
+    }
+
     cmdList.add("fingerprint");
     cmdList.add("structure");
-    cmdList.add("-d");
-    cmdList.add("\"" + database.getAbsolutePath() + "\"");
+    if(!dbString.isBlank()) {
+      cmdList.add("-d");
+      cmdList.add(dbString);
+    }
     cmdList.add("write-summaries");
 
     final ProcessBuilder b = new ProcessBuilder(cmdList).directory(pathToSirius.getParentFile())

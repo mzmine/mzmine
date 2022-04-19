@@ -13,6 +13,7 @@ import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseMatchInfoType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonTypeType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.modules.io.projectload.version_3_0.CONST;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SiriusAnnotationListType extends ListWithSubsType<CompoundDBAnnotation> {
+public class SiriusAnnotationListType extends ListWithSubsType<CompoundDBAnnotation> implements
+    AnnotationType {
 
   @Override
   public @NotNull String getUniqueID() {

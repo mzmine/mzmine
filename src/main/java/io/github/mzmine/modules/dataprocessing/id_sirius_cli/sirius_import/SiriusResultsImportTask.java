@@ -99,7 +99,7 @@ public class SiriusResultsImportTask extends AbstractTask {
         final List<CompoundDBAnnotation> annotations = row.get(SiriusAnnotationListType.class);
         final List<CompoundDBAnnotation> newList = new ArrayList<>();
         newList.add(annotation);
-        if (!replaceOldAnnotations) {
+        if (!replaceOldAnnotations && annotations != null) {
           newList.addAll(annotations);
         }
         newList.sort((c1, c2) -> -1 * Float.compare(
@@ -119,7 +119,7 @@ public class SiriusResultsImportTask extends AbstractTask {
               + siriusProjectDir);
 
       for (Entry<Integer, List<CompoundDBAnnotation>> entry : database.entrySet()) {
-        final var rowId = entry.getValue();
+        final var rowId = entry.getKey();
         var annotations = entry.getValue();
 
         if (annotations.isEmpty()) {

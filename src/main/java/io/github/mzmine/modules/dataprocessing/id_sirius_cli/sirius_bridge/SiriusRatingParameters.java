@@ -4,6 +4,7 @@ import io.github.mzmine.modules.io.export_features_sirius.SiriusExportParameters
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.dialogs.ParameterSetupDialog;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.ParameterSetParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -29,8 +30,20 @@ public class SiriusRatingParameters extends SimpleParameterSet {
   public static final DirectoryParameter siriusProject = new DirectoryParameter(
       "Output directory (Sirius project)", "The directory for the generated sirius project.");
 
+  public static final ComboParameter<AlgorithmProfile> presets = new ComboParameter<>(
+      "Sirius algorithm preset", "Selects default values for the sirius algorithm presets.",
+      AlgorithmProfile.values(), AlgorithmProfile.QTOF);
+
+  public static final ComboParameter<SiriusDatabaseType> databases = new ComboParameter<>(
+      "Compound databases", """
+      Select compound databases to search in.
+      ALL_SIRIUS: all default sirius databases.
+      ONLY_COMPOUNDS: only compound database matches.
+      COMBINED: combines all other options. 
+      """, SiriusDatabaseType.values(), SiriusDatabaseType.ALL_SIRIUS);
+
   public SiriusRatingParameters() {
-    super(new Parameter[]{flist, siriusExportParam, siriusPath, siriusProject});
+    super(new Parameter[]{flist, siriusExportParam, siriusPath, siriusProject, presets, databases});
   }
 
   @Override
