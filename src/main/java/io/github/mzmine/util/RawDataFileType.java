@@ -31,8 +31,8 @@ public enum RawDataFileType {
   NETCDF, //
   THERMO_RAW, //
   WATERS_RAW, //
-  ZIP, //
-  GZIP, //
+  MZML_ZIP, //
+  MZML_GZIP, //
   ICPMSMS_CSV, //
   BRUKER_TDF, //
   BRUKER_TSF, //

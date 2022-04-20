@@ -30,7 +30,7 @@ public class SizeType extends IntegerType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "number_of_elements";
+    return "list_size";
   }
 
   @NotNull

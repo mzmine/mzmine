@@ -21,7 +21,7 @@ package io.github.mzmine.gui.chartbasics.simplechart.providers.impl.series;
 
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
-import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.ColorPropertyProvider;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYDataProvider;
 import io.github.mzmine.taskcontrol.TaskStatus;
@@ -52,7 +52,7 @@ public class IonTimeSeriesToXYProvider implements PlotXYDataProvider, ColorPrope
     this.color = color;
   }
 
-  public IonTimeSeriesToXYProvider(ModularFeature f) {
+  public IonTimeSeriesToXYProvider(Feature f) {
     series = f.getFeatureData();
     seriesKey = FeatureUtils.featureToString(f);
     color = new SimpleObjectProperty<>(f.getRawDataFile().getColor());

@@ -126,12 +126,7 @@ public class MobilityScanTest {
   private IMSRawDataFile createRawDataFile() {
     logger.info("Creating raw data file.");
     IMSRawDataFile rawDataFile = null;
-    try {
-      rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assert.fail();
-    }
+    rawDataFile = new IMSRawDataFileImpl("mobility scan test file", null, null, Color.WHITE);
     return rawDataFile;
   }
 
@@ -176,7 +171,7 @@ public class MobilityScanTest {
    * MZmine. Therefore it is crucial that the exceptions are thrown.
    */
   @Test
-  private void testMobilityScanStorageAssumptions() {
+  public void testMobilityScanStorageAssumptions() {
     final IMSRawDataFile rawDataFile = createRawDataFile();
     final SimpleFrame frame = new SimpleFrame(rawDataFile, 1, 1, 0f, new double[]{0d, 1},
         new double[]{15d, 1E5}, MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "test",
@@ -292,6 +287,32 @@ public class MobilityScanTest {
         }
         access.resetMobilityScan();
       }
+    }
+  }
+
+  @Test
+  public void testJumps() throws IOException {
+    IMSRawDataFile file = createRawDataFile();
+
+    final List<Frame> frames = makeSomeFrames(file, 10);
+    for (Frame frame : frames) {
+      file.addScan(frame);
+    }
+
+    final MobilityScanDataAccess access = new MobilityScanDataAccess(file, MobilityScanDataType.RAW,
+        frames);
+
+    final MobilityScan mobilityScan = frames.get(8).getMobilityScan(23);
+    final MobilityScan jumped = access.jumpToMobilityScan(mobilityScan);
+
+    Assertions.assertEquals(mobilityScan.getFrame(), access.getFrame());
+    Assertions.assertEquals(mobilityScan, jumped);
+    Assertions.assertEquals(mobilityScan.getMobilityScanNumber(), access.getMobilityScanNumber());
+    Assertions.assertEquals(mobilityScan.getNumberOfDataPoints(), access.getNumberOfDataPoints());
+
+    for(int i = 0; i < mobilityScan.getNumberOfDataPoints(); i++) {
+      Assertions.assertEquals(mobilityScan.getIntensityValue(i), access.getIntensityValue(i));
+      Assertions.assertEquals(mobilityScan.getMzValue(i), access.getMzValue(i));
     }
   }
 }

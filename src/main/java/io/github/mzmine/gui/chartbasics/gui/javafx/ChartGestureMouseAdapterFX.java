@@ -18,16 +18,6 @@
 
 package io.github.mzmine.gui.chartbasics.gui.javafx;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.logging.Logger;
-import org.jfree.chart.ChartRenderingInfo;
-import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.EntityCollection;
-import org.jfree.chart.fx.ChartCanvas;
-import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.fx.interaction.MouseHandlerFX;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Entity;
 import io.github.mzmine.gui.chartbasics.gestures.ChartGesture.Event;
@@ -41,9 +31,19 @@ import io.github.mzmine.gui.chartbasics.gestures.ChartGestureHandler.Handler;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.GestureMouseAdapter;
 import io.github.mzmine.gui.chartbasics.gui.wrapper.MouseEventWrapper;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import org.jfree.chart.ChartRenderingInfo;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.fx.interaction.MouseHandlerFX;
 
 /**
  * Handles drag zooming of charts on a {@link ChartCanvas}. This handler should be configured with
@@ -268,9 +268,11 @@ public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHan
    */
   @Override
   public void handleMouseClicked(ChartCanvas canvas, MouseEvent eOrig) {
-    if (gestureHandlers == null || gestureHandlers.isEmpty()
-        || !(listensFor(Event.CLICK) || listensFor(Event.DOUBLE_CLICK)))
+    // if mouse was moved during click - do not count click
+    if (!eOrig.isStillSincePress() || gestureHandlers == null || gestureHandlers.isEmpty() || !(
+        listensFor(Event.CLICK) || listensFor(Event.DOUBLE_CLICK))) {
       return;
+    }
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
     ChartEntity entity = findChartEntity(e);

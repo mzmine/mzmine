@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.numbers.abstr.IntegerType;
 import io.github.mzmine.datamodel.identities.iontype.IonIdentity;
 import io.github.mzmine.datamodel.identities.iontype.IonNetwork;
@@ -45,7 +46,7 @@ public class IonNetworkIDType extends IntegerType {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "ion_network_id";
+    return "iin_id";
   }
 
   @NotNull
@@ -57,7 +58,7 @@ public class IonNetworkIDType extends IntegerType {
   @Nullable
   @Override
   public Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
-      @NotNull List<RawDataFile> file) {
+      @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
 
     var ionIdentity = row.getBestIonIdentity();
     if (ionIdentity == null) {

@@ -304,7 +304,7 @@ runtime {
             // additional options for jpackage
             imageOptions = ["--icon", "src/main/resources/MZmineIcon.icns"]
             installerOptions = ["--license-file", "LICENSE.txt"]
-            installerName = "MZmine_MacOS_installer"
+            installerName = "MZmine_macOS_installer"
         }
         if (OperatingSystem.current().isLinux()) {
             // leave installer type empty to generate all that match

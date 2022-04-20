@@ -345,31 +345,6 @@ public class FeatureConvertors {
           "Can not create modular feature from resolvedPeak of non-modular feature list.");
     }
 
-    ModularFeature modularFeature = new ModularFeature(featureList);
-
-    // Add values to feature
-    modularFeature.set(FragmentScanNumbersType.class, resolvedPeak.getAllMS2FragmentScanNumbers());
-    //    modularFeature.set(ScanNumbersType.class, List.of(resolvedPeak.getScanNumbers()));
-
-    modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
-    modularFeature.set(IsotopePatternType.class, resolvedPeak.getIsotopePattern());
-    modularFeature.set(FeatureInformationType.class, resolvedPeak.getPeakInformation());
-    modularFeature.set(ChargeType.class, resolvedPeak.getCharge());
-
-    modularFeature.set(RawFileType.class, resolvedPeak.getRawDataFile());
-    modularFeature.set(DetectionType.class, resolvedPeak.getFeatureStatus());
-    modularFeature.set(MZType.class, resolvedPeak.getMZ());
-    modularFeature.set(RTType.class, (float) resolvedPeak.getRT());
-    modularFeature.set(HeightType.class, (float) resolvedPeak.getHeight());
-    modularFeature.set(AreaType.class, (float) resolvedPeak.getArea());
-    modularFeature.set(BestScanNumberType.class, resolvedPeak.getRepresentativeScanNumber());
-
-    // Data points of feature
-    //    modularFeature.set(DataPointsType.class, resolvedPeak.getDataPoints());
-    //    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
-    //        ((ModularFeatureList) resolvedPeak.getPeakList()).getMemoryMapStorage(),
-    //        resolvedPeak.getDataPoints().stream().collect(Collectors.toList()),
-    //        Arrays.asList(resolvedPeak.getScanNumbers()));
     IonTimeSeries<? extends Scan> resolvedData = null;
     if (originalData instanceof SimpleIonTimeSeries) {
       resolvedData = ((SimpleIonTimeSeries) originalData).subSeries(
@@ -384,38 +359,9 @@ public class FeatureConvertors {
           "Smoothing is not yet supported for this kind of data. " + originalData.getClass()
               .getName());
     }
-    modularFeature.set(FeatureDataType.class, resolvedData);
 
-    // Ranges
-    Range<Float> rtRange = Range.closed(resolvedPeak.getRawDataPointsRTRange().lowerEndpoint(),
-        resolvedPeak.getRawDataPointsRTRange().upperEndpoint());
-    Range<Double> mzRange = Range.closed(resolvedPeak.getRawDataPointsMZRange().lowerEndpoint(),
-        resolvedPeak.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange = Range.closed(
-        resolvedPeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-        resolvedPeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    modularFeature.set(MZRangeType.class, mzRange);
-    modularFeature.set(RTRangeType.class, rtRange);
-    modularFeature.set(IntensityRangeType.class, intensityRange);
-
-    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2 this way
-    // modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-    //    .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
-    //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
-
-    // Quality parameters
-    float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }
+    final ModularFeature modularFeature = new ModularFeature(featureList,
+        resolvedPeak.getRawDataFile(), resolvedData, FeatureStatus.DETECTED);
 
     return modularFeature;
   }

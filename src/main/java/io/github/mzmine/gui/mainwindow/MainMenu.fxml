@@ -202,8 +202,8 @@
       <MenuItem onAction="#runModule"
         text="ADAP chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-      <MenuItem text="GridMass" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
+      <!--<MenuItem text="GridMass" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>-->
       <MenuItem onAction="#runModule"
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
@@ -515,7 +515,7 @@
 
     <SeparatorMenuItem/>
 
-    <MenuItem onAction="#runModule" text="MS/MS plot"
+    <MenuItem onAction="#runModule" text="MS/MS scatter plot"
       userData="io.github.mzmine.modules.visualization.msms.MsMsVisualizerModule"/>
     <MenuItem onAction="#runModule" text="Feature networking"
       userData="io.github.mzmine.modules.visualization.networking.AnnotationNetworkModule"/>

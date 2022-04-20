@@ -44,6 +44,13 @@ public class LoessSmoothing implements SmoothingAlgorithm {
     this.smoothMobility = true;
   }
 
+  public  LoessSmoothing(boolean smoothRt, int rtWidth, boolean smoothMobility, int mobilityWidth) {
+    this.smoothRt = smoothRt;
+    this.rtWidth = rtWidth;
+    this.smoothMobility = smoothMobility;
+    this.mobilityWidth = mobilityWidth;
+  }
+
   public LoessSmoothing(ParameterSet parameters) {
     this.mobilityWidth = parameters.getParameter(LoessSmoothingParameters.mobilitySmoothing)
         .getEmbeddedParameter().getValue();

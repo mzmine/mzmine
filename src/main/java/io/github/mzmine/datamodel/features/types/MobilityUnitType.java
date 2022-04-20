@@ -20,9 +20,14 @@ package io.github.mzmine.datamodel.features.types;
 
 import io.github.mzmine.datamodel.MobilityType;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.features.ModularDataModel;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.RowBinding;
+import io.github.mzmine.datamodel.features.SimpleRowBinding;
+import io.github.mzmine.datamodel.features.types.modifiers.BindingsType;
+import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -79,9 +84,34 @@ public class MobilityUnitType extends DataType<MobilityType> {
       @NotNull ModularFeatureListRow row, @Nullable ModularFeature feature,
       @Nullable RawDataFile file) throws XMLStreamException {
     String name = reader.getElementText();
-    if(name.isEmpty()) {
+    if (name.isEmpty()) {
       return null;
     }
     return MobilityType.valueOf(name);
+  }
+
+  @Override
+  public @NotNull List<RowBinding> createDefaultRowBindings() {
+    return List.of(new SimpleRowBinding(this, BindingsType.CONSENSUS));
+  }
+
+  public Object evaluateBindings(@NotNull BindingsType bindingType,
+      @NotNull List<? extends ModularDataModel> models) {
+    if (bindingType == BindingsType.CONSENSUS) {
+      MobilityType unit = null;
+      for (var model : models) {
+        final MobilityType tmpUnit = model.get(this);
+        if (tmpUnit != null) {
+          if (unit == null) {
+            unit = tmpUnit;
+          } else if (unit != tmpUnit) {
+            return MobilityType.MIXED;
+          }
+        }
+      }
+      return unit == null ? MobilityType.NONE : unit;
+    } else {
+      return super.evaluateBindings(bindingType, models);
+    }
   }
 }

@@ -45,6 +45,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Rectangle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IMSRawDataOverviewControlPanel extends GridPane {
@@ -53,17 +54,17 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
       + "Greatly impacts performance of this overview.\n Influences mobilogram, ion trace building "
       + "and the frame overview heatmap.";
 
-  public static final String TOOLTIP_FRAME_NL = "Noise level for frame processing. Influences EIC"
-      + " building and frame chart.";
+  public static final String TOOLTIP_FRAME_NL =
+      "Noise level for frame processing. Influences EIC" + " building and frame chart.";
 
-  public static final String TOOLTIP_MZTOL = "m/z tolerance for EIC, ion trace and mobilogram "
-      + "building";
+  public static final String TOOLTIP_MZTOL =
+      "m/z tolerance for EIC, ion trace and mobilogram " + "building";
 
-  public static final String TOOLTIP_SCANSEL = "Scan selection for EIC, ion trace and mobilogram "
-      + "building";
+  public static final String TOOLTIP_SCANSEL =
+      "Scan selection for EIC, ion trace and mobilogram " + "building";
 
-  public static final String TOOLTIP_RTRANGE = "Retention time range around the selected m/z to "
-      + "build EICs and ion traces.";
+  public static final String TOOLTIP_RTRANGE =
+      "Retention time range around the selected m/z to " + "build EICs and ion traces.";
 
   public static final String TOOLTIP_BINWIDTH = "Bin width in for mobility dimension to build "
       + "mobilograms.\nAutomatically set to a multiple of the actual acquisition step size.";
@@ -83,6 +84,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   private double frameNoiseLevel;
   private double mobilityScanNoiseLevel;
+  private DoubleRangeComponent mobilogramRangeComp;
 
   IMSRawDataOverviewControlPanel(IMSRawDataOverviewPane pane, double frameNoiseLevel,
       double mobilityScanNoiseLevel, MZTolerance mzTolerance, ScanSelection scanSelection,
@@ -110,8 +112,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
     MZToleranceComponent mzToleranceComponent = new MZToleranceComponent();
     mzToleranceComponent.setValue(mzTolerance);
-    DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat,
-        2d);
+    DoubleComponent rtWidthComponent = new DoubleComponent(100, 0d, Double.MAX_VALUE, rtFormat, 2d);
     ScanSelectionComponent scanSelectionComponent = new ScanSelectionComponent();
     scanSelectionComponent.setValue(scanSelection);
     IntegerComponent binWidthComponent = new IntegerComponent(100, 1, 10);
@@ -119,8 +120,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
     setPadding(new Insets(5));
     setVgap(5);
-    getColumnConstraints().addAll(new ColumnConstraints(150),
-        new ColumnConstraints());
+    getColumnConstraints().addAll(new ColumnConstraints(150), new ColumnConstraints());
     Label lblMobilityScanNoiseLevel = new Label("Mobility scan noise level");
     lblMobilityScanNoiseLevel.setTooltip(new Tooltip(TOOLTIP_MOBILITYSCAN_NL));
     add(lblMobilityScanNoiseLevel, 0, 0);
@@ -146,9 +146,9 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     add(lblBinWidth, 0, 5);
     add(binWidthComponent, 1, 5);
 
-    DoubleRangeComponent mobilogramRangeComp = new DoubleRangeComponent(mzFormat);
-    mobilogramRangesList = new ListView<>(
-        FXCollections.observableArrayList());
+    mobilogramRangeComp = createMobilogramRangeComp(mzToleranceComponent);
+
+    mobilogramRangesList = new ListView<>(FXCollections.observableArrayList());
     mobilogramRangesList.setMaxHeight(150);
     mobilogramRangesList.setMaxWidth(240);
     mobilogramRangesList.setPrefWidth(240);
@@ -174,8 +174,8 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
           setGraphic(null);
           return;
         }
-        setText(mzFormat.format(item.lowerEndpoint()) + " - " + mzFormat
-            .format(item.upperEndpoint()));
+        setText(
+            mzFormat.format(item.lowerEndpoint()) + " - " + mzFormat.format(item.upperEndpoint()));
         SimpleColorPalette colors = MZmineCore.getConfiguration().getDefaultColorPalette().clone();
         colors.remove(pane.getRawDataFile().getColor());
         setGraphic(new Rectangle(10, 10, colors.get(getMobilogramRangesList().indexOf(item))));
@@ -185,13 +185,10 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     Button update = new Button("Update");
     update.setOnAction(e -> {
       try {
-        frameNoiseLevel =
-            Double.parseDouble(frameNoiseLevelComponent.getText());
-        mobilityScanNoiseLevel =
-            Double.parseDouble(mobilityScanNoiseLevelComponent.getText());
+        frameNoiseLevel = Double.parseDouble(frameNoiseLevelComponent.getText());
+        mobilityScanNoiseLevel = Double.parseDouble(mobilityScanNoiseLevelComponent.getText());
         frameNoiseLevelComponent.setText(intensityFormat.format(frameNoiseLevel));
-        mobilityScanNoiseLevelComponent
-            .setText(intensityFormat.format(mobilityScanNoiseLevel));
+        mobilityScanNoiseLevelComponent.setText(intensityFormat.format(mobilityScanNoiseLevel));
         rtWidth = Float.parseFloat(rtWidthComponent.getText());
         rtWidthComponent.setText(rtFormat.format(rtWidth));
         scanSelection = scanSelectionComponent.getValue();
@@ -222,6 +219,36 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     add(buttons, 0, 12, 2, 1);
   }
 
+  @NotNull
+  private DoubleRangeComponent createMobilogramRangeComp(
+      MZToleranceComponent mzToleranceComponent) {
+    return new DoubleRangeComponent(mzFormat) {
+      @Override
+      public Range<Double> getValue() {
+        String minString = minTxtField.getText();
+        String maxString = maxTxtField.getText();
+
+        Number minValue = null;
+        Number maxValue = null;
+        try {
+          minValue = format.parse(minString.trim());
+          maxValue = format.parse(maxString.trim());
+        } catch (Exception e) {
+          logger.info(e.toString());
+        }
+        if (minValue != null && maxValue != null) {
+          return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
+        } else if (minValue != null) {
+          return mzToleranceComponent.getValue().getToleranceRange(minValue.doubleValue());
+        } else if (maxValue != null) {
+          return mzToleranceComponent.getValue().getToleranceRange(maxValue.doubleValue());
+        }
+        return null;
+
+      }
+    };
+  }
+
   public MZTolerance getMzTolerance() {
     return mzTolerance;
   }
@@ -234,8 +261,7 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
     return scanSelection;
   }
 
-  public void setScanSelection(
-      ScanSelection scanSelection) {
+  public void setScanSelection(ScanSelection scanSelection) {
     this.scanSelection = scanSelection;
   }
 
@@ -271,5 +297,11 @@ public class IMSRawDataOverviewControlPanel extends GridPane {
 
   public void setMobilityScanNoiseLevel(double mobilityScanNoiseLevel) {
     this.mobilityScanNoiseLevel = mobilityScanNoiseLevel;
+  }
+
+  public void setRangeToMobilogramRangeComp(@Nullable Range<Double> range) {
+    if (range != null) {
+      mobilogramRangeComp.setValue(range);
+    }
   }
 }

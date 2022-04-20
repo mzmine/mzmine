@@ -22,6 +22,7 @@ import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureList.FeatureListAppliedMethod;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.numbers.IDType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -178,4 +179,32 @@ public class FeatureListUtils {
     return score / scorers;
   }
 
+  /**
+   * Sort feature list by retention time (default)
+   *
+   * @param featureList target list
+   */
+  public static void sortByDefaultRT(FeatureList featureList) {
+    // sort rows by rt
+    featureList.getRows().sort(FeatureListRowSorter.DEFAULT_RT);
+  }
+
+  /**
+   * Sort feature list by retention time and reset IDs starting with 1
+   *
+   * @param featureList target list
+   * @param renumberIDs renumber rows
+   */
+  public static void sortByDefaultRT(FeatureList featureList, boolean renumberIDs) {
+    sortByDefaultRT(featureList);
+    if (!renumberIDs) {
+      return;
+    }
+    // reset IDs
+    int newRowID = 1;
+    for (var row : featureList.getRows()) {
+      row.set(IDType.class, newRowID);
+      newRowID++;
+    }
+  }
 }

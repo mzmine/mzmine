@@ -16,24 +16,20 @@
  *
  */
 
-package io.github.mzmine.datamodel.features.types.annotations.compounddb;
+package io.github.mzmine.modules.io.export_features_csv;
 
-import io.github.mzmine.datamodel.features.types.numbers.abstr.ScoreType;
-import org.jetbrains.annotations.NotNull;
+/**
+ * @author Robin Schmid (https://github.com/robinschmid)
+ */
+public enum TableFormat {
+  /**
+   * The standard table format that mzmine uses for display with columns for each type
+   */
+  WIDE,
+  /**
+   * AN export format where each type is a new row in the table: Columns are:
+   * feature_id,sample,type,value
+   */
+  LONG;
 
-public class CompoundAnnotationScoreType extends ScoreType {
-
-  public CompoundAnnotationScoreType() {
-    super();
-  }
-
-  @Override
-  public @NotNull String getUniqueID() {
-    return "compound_annotation_score";
-  }
-
-  @Override
-  public @NotNull String getHeaderString() {
-    return "Score";
-  }
 }

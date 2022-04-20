@@ -52,7 +52,6 @@ import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
 import io.github.mzmine.project.impl.RawDataFileImpl;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -68,12 +67,7 @@ public class AnnotationTypeTests {
   void manualAnnotationTypeTest() {
 
     RawDataFile file = null;
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     // test load/save for row
@@ -163,12 +157,7 @@ public class AnnotationTypeTests {
   @Test
   void identityTypeTest() {
     RawDataFile file = null;
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     // test load/save for row
@@ -289,7 +278,7 @@ public class AnnotationTypeTests {
     newIdentity.put(new MobilityType(), 0.56f);
     newIdentity.put(new IonTypeType(), ionType);
 
-    String name = newIdentity.getCompundName();
+    String name = newIdentity.getCompoundName();
 
     final CompoundDBAnnotation newIdentity2 = new SimpleCompoundDBAnnotation();
     newIdentity2.put(new CompoundNameType(), "mannose");
@@ -304,12 +293,7 @@ public class AnnotationTypeTests {
     var value = new ArrayList<>(List.of(newIdentity, newIdentity2));
 
     RawDataFile file = null;
-    try {
-      file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Assertions.fail("Cannot initialise data file.");
-    }
+    file = new RawDataFileImpl("testfile", null, null, Color.BLACK);
     Assertions.assertNotNull(file);
 
     // test load/save for row

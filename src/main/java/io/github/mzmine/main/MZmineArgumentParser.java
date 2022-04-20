@@ -43,6 +43,7 @@ public class MZmineArgumentParser {
   private File preferencesFile;
   private File tempDirectory;
   private boolean isKeepRunningAfterBatch = false;
+  private boolean loadTdfPseudoProfile = false;
   private KeepInMemory isKeepInMemory = null;
 
   public void parse(String[] args) {
@@ -71,6 +72,11 @@ public class MZmineArgumentParser {
     keepInMemory.setRequired(false);
     options.addOption(keepInMemory);
 
+    Option loadTdfPseudoProfile = new Option("tdfpseudoprofile", false,
+        "Loads pseudo-profile frame spectra for tdf files instead of centroided spectra.");
+    loadTdfPseudoProfile.setRequired(false);
+    options.addOption(loadTdfPseudoProfile);
+
     CommandLineParser parser = new BasicParser();
     HelpFormatter formatter = new HelpFormatter();
     CommandLine cmd;
@@ -93,7 +99,7 @@ public class MZmineArgumentParser {
       if (stemp != null) {
         logger.info(
             () -> "Temp directory set by command line, will override all other definitions: "
-                  + stemp);
+                + stemp);
         tempDirectory = new File(stemp);
       }
 
@@ -107,9 +113,12 @@ public class MZmineArgumentParser {
       String keepInData = cmd.getOptionValue(keepInMemory.getLongOpt());
       if (keepInData != null) {
         isKeepInMemory = KeepInMemory.parse(keepInData);
-        logger.info(
-            () -> "the -m / --memory argument was set to " + isKeepInMemory.toString()
-                  + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
+        logger.info(() -> "the -m / --memory argument was set to " + isKeepInMemory.toString()
+            + " to keep objects in RAM (scan data, features, etc) which are otherwise stored in memory mapped ");
+      }
+
+      if(cmd.hasOption(loadTdfPseudoProfile.getOpt())) {
+        this.loadTdfPseudoProfile = true;
       }
 
     } catch (ParseException e) {
@@ -158,5 +167,8 @@ public class MZmineArgumentParser {
     return isKeepInMemory;
   }
 
+  public boolean isLoadTdfPseudoProfile() {
+    return loadTdfPseudoProfile;
+  }
 }
 

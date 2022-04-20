@@ -23,7 +23,6 @@ import com.google.common.primitives.Doubles;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.msms.DDAMsMsInfo;
 import io.github.mzmine.gui.chartbasics.simplechart.providers.PlotXYZDataProvider;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
@@ -39,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -195,7 +193,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       // Check the scan for the mass list of
       if (scan.getMassList() == null) {
         status.setValue(TaskStatus.CANCELED);
-        Platform.runLater(() -> {
+        MZmineCore.runLater(() -> {
           Alert alert = new Alert(AlertType.ERROR);
           alert.setTitle("Mass detection issue");
           alert.setHeaderText("Masses are not detected properly for the " + dataFile.getName()
@@ -219,10 +217,9 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
       }
 
       // Skip empty scans and check parent m/z and rt bounds
-      int precursorCharge = scan.getMsMsInfo() instanceof DDAMsMsInfo info ?
-          Objects.requireNonNullElse(info.getPrecursorCharge(), -1) : -1;
+      int precursorCharge = Objects.requireNonNullElse(scan.getPrecursorCharge(), -1);
 
-      if (scan.getBasePeakMz() == null || !mzRange.contains((double) precursorCharge)
+      if (scan.getBasePeakMz() == null || !mzRange.contains(scan.getPrecursorMz())
           || !rtRange.contains(scan.getRetentionTime())
           || scan.getMassList().getNumberOfDataPoints() < 1) {
         processedScans++;
@@ -267,7 +264,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
 
       // Precursor intensity
       double precursorIntensity = 0;
-      double precursorMz = scan.getMsMsInfo() instanceof DDAMsMsInfo info ? info.getIsolationMz() : 0d;
+      double precursorMz = Objects.requireNonNullElse(scan.getPrecursorMz(), -1d);
       if (lastMS1Scan != null) {
 
         // Sum intensities of all ions from MS1 scan with similar m/z values
@@ -340,7 +337,7 @@ public class MsMsDataProvider implements PlotXYZDataProvider {
     // Show message, if there is nothing to plot
     if (dataPoints.isEmpty()) {
       status.setValue(TaskStatus.CANCELED);
-      Platform.runLater(() -> {
+      MZmineCore.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING);
         alert.setTitle("Suspicious module parameters");
         alert.setHeaderText("There are no data points in " + dataFile.getName()

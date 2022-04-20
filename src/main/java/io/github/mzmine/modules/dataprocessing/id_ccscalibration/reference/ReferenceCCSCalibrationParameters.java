@@ -69,7 +69,7 @@ public class ReferenceCCSCalibrationParameters extends SimpleParameterSet {
 
   public ReferenceCCSCalibrationParameters() {
     super(new Parameter[]{files, flists, referenceList, mzTolerance, mobTolerance, rtRange,
-        minHeight});
+        minHeight}, "https://mzmine.github.io/mzmine_documentation/module_docs/id_ccs_calibration/ccs_calibration.html#reference-css-calibration");
   }
 
   @Override

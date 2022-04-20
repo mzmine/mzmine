@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ * Copyright 2006-2021 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -8,11 +8,12 @@
  * License, or (at your option) any later version.
  *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 package io.github.mzmine.modules.dataprocessing.featdet_recursiveimsbuilder;
@@ -42,6 +43,7 @@ import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 import io.github.mzmine.util.DataTypeUtils;
 import io.github.mzmine.util.FeatureConvertors;
+import io.github.mzmine.util.FeatureListUtils;
 import io.github.mzmine.util.MemoryMapStorage;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.SpectraMerging;
@@ -53,7 +55,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -219,8 +220,8 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
         return;
       }
 
-      final ModularFeature f = FeatureConvertors
-          .tempIMTraceToModularFeature(trace, file, binningMobilogramDataAccess, flist);
+      final ModularFeature f = FeatureConvertors.tempIMTraceToModularFeature(trace, file,
+          binningMobilogramDataAccess, flist);
       final ModularFeatureListRow row = new ModularFeatureListRow(flist, id, f);
       row.set(FeatureShapeMobilogramType.class, true);
       flist.addRow(row);
@@ -228,9 +229,13 @@ public class RecursiveIMSBuilderTask extends AbstractTask {
       stepProcessed.getAndIncrement();
     }
 
+    // sort and reset IDs here to have the same sorting for every feature list
+    FeatureListUtils.sortByDefaultRT(flist, true);
+
     flist.getAppliedMethods().addAll(file.getAppliedMethods());
-    flist.getAppliedMethods()
-        .add(new SimpleFeatureListAppliedMethod(RecursiveIMSBuilderModule.class, parameters, getModuleCallDate()));
+    flist.getAppliedMethods().add(
+        new SimpleFeatureListAppliedMethod(RecursiveIMSBuilderModule.class, parameters,
+            getModuleCallDate()));
     DataTypeUtils.addDefaultIonMobilityTypeColumns(flist);
     project.addFeatureList(flist);
 

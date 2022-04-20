@@ -32,7 +32,7 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSLibraryMatch.ATT;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -445,12 +445,12 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.NEUTRAL_MASS.toString(), mzForm.format(net.getNeutralMass()));
       node.setAttribute(NodeAtt.MAX_INTENSITY.toString(), intensityForm.format(net.getHeightSum()));
 
-      final SpectralDBFeatureIdentity bestMatch = net.keySet().stream()
+      final SpectralDBAnnotation bestMatch = net.keySet().stream()
           .map(FeatureListRow::getSpectralLibraryMatches).flatMap(List::stream).max(
               Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getCompoundName());
         node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
             DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));
@@ -543,11 +543,11 @@ public class FeatureNetworkGenerator {
       node.setAttribute(NodeAtt.CHARGE.toString(), row.getRowCharge());
       node.setAttribute(NodeAtt.GROUP_ID.toString(), row.getGroupID());
 
-      final SpectralDBFeatureIdentity bestMatch = row.getSpectralLibraryMatches().stream().max(
+      final SpectralDBAnnotation bestMatch = row.getSpectralLibraryMatches().stream().max(
           Comparator.comparingDouble(a -> a.getSimilarity().getScore())).orElse(null);
       if (bestMatch != null) {
         double score = bestMatch.getSimilarity().getScore();
-        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getName());
+        node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH_SUMMARY.toString(), bestMatch.getCompoundName());
         node.setAttribute(NodeAtt.SPECTRAL_LIB_MATCH.toString(), bestMatch.getEntry().getOrElse(
             DBEntryField.NAME, ""));
         node.setAttribute(NodeAtt.SPECTRAL_LIB_SCORE.toString(), scoreForm.format(score));

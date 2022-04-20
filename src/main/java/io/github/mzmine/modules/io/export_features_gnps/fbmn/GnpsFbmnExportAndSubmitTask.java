@@ -65,6 +65,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   private final File baseFile;
   private final ModularFeatureList[] featureLists;
   private final int totalSteps = 4;
+  private final FeatureTableExportType csvType;
   private int currentStep = 0;
   private Task currentTask;
   private String currentDescription = "Export to GNPS FBMN and IIMN";
@@ -76,6 +77,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     featureLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FEATURE_LISTS)
         .getValue().getMatchingFeatureLists();
     featureMeasure = parameters.getValue(GnpsFbmnExportAndSubmitParameters.FEATURE_INTENSITY);
+    csvType = parameters.getValue(GnpsFbmnExportAndSubmitParameters.CSV_TYPE);
     baseFile = FileAndPathUtil.eraseFormat(
         parameters.getValue(GnpsFbmnExportAndSubmitParameters.FILENAME));
     parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(baseFile);
@@ -131,26 +133,32 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
       return;
     }
 
+    int csvLineCount = 0;
+    final boolean allCSV = FeatureTableExportType.ALL.equals(csvType);
     // add old csv quant table for old FBMN support
-    currentDescription = "Exporting GNPS legacy csv format (simple csv)";
-    currentTask = addLegacyQuantTableTask(parameters);
-    currentTask.run();
-    currentStep++;
-    int csvLegacyCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+    if (allCSV || FeatureTableExportType.SIMPLE.equals(csvType)) {
+      currentDescription = "Exporting GNPS legacy csv format (simple csv)";
+      currentTask = addLegacyQuantTableTask(parameters);
+      currentTask.run();
+      currentStep++;
 
-    if (checkTaskCanceledOrFailed()) {
-      return;
+      csvLineCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+      if (checkTaskCanceledOrFailed()) {
+        return;
+      }
     }
 
     // add new csv export for whole table
-    currentDescription = "Exporting MZmine csv format (complete feature table csv)";
-    currentTask = addFullQuantTableTask(parameters);
-    currentTask.run();
-    currentStep++;
-    int csvCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+    if (allCSV || FeatureTableExportType.COMPREHENSIVE.equals(csvType)) {
+      currentDescription = "Exporting MZmine csv format (complete feature table csv)";
+      currentTask = addFullQuantTableTask(parameters);
+      currentTask.run();
+      currentStep++;
 
-    if (checkTaskCanceledOrFailed()) {
-      return;
+      csvLineCount = ((ProcessedItemsCounter) currentTask).getProcessedItems();
+      if (checkTaskCanceledOrFailed()) {
+        return;
+      }
     }
 
     // add csv extra edges
@@ -167,14 +175,14 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     final File folder = baseFile.getParentFile();
     // csv count is always the same
     // MGF and csv only of MS2 is required for export
-    if (csvCount == csvLegacyCount && (!filter.requiresMS2() || csvCount == mgfCount)) {
+    if (!filter.requiresMS2() || csvLineCount == mgfCount) {
       logger.log(Level.INFO,
-          String.format("GNPS export succeeded. mgf MS2=%d;  csv rows=%d", mgfCount, csvCount));
+          String.format("GNPS export succeeded. mgf MS2=%d;  csv rows=%d", mgfCount, csvLineCount));
       currentDescription = "All GNPS exports successful";
     } else {
       final String error = String.format(
           "GNPS export resulted in files with different length despite using the same filter. Try to use this module manually after running a batch. mgf MS2=%d;  csv rows=%d",
-          mgfCount, csvCount);
+          mgfCount, csvLineCount);
       currentDescription = "Error during csv export";
       logger.log(Level.WARNING, error);
       setErrorMessage(error);
@@ -245,7 +253,8 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     FeatureListRowsFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER)
         .getValue();
 
-    return new CSVExportModularTask(featureLists, full, ",", ";", filter, getModuleCallDate());
+    return new CSVExportModularTask(featureLists, full, ",", ";", filter, true,
+        getModuleCallDate());
   }
 
 
@@ -261,6 +270,9 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     LegacyExportRowCommonElement[] common = new LegacyExportRowCommonElement[]{
         LegacyExportRowCommonElement.ROW_ID, LegacyExportRowCommonElement.ROW_MZ,
         LegacyExportRowCommonElement.ROW_RT,
+        // ion mobility columns
+        LegacyExportRowCommonElement.ROW_ION_MOBILITY,
+        LegacyExportRowCommonElement.ROW_ION_MOBILITY_UNIT, LegacyExportRowCommonElement.ROW_CCS,
         // extra for ion identity networking
         LegacyExportRowCommonElement.ROW_CORR_GROUP_ID,
         LegacyExportRowCommonElement.ROW_MOL_NETWORK_ID,
