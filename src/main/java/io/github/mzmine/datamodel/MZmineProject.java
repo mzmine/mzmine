@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel;
 
 import io.github.mzmine.datamodel.features.FeatureList;
-import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.modules.io.projectload.CachedIMSRawDataFile;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.project.impl.ProjectChangeEvent.Type;
@@ -134,8 +133,7 @@ public interface MZmineProject {
 
   void removeProjectListener(ProjectChangeListener newListener);
 
-
-  void removeFeatureLists(@NotNull List<ModularFeatureList> featureLists);
+  void removeFeatureLists(@NotNull List<FeatureList> featureLists);
 
   /**
    * Returns all feature lists which contain given data file
