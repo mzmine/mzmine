@@ -3,6 +3,7 @@ package io.github.mzmine.modules.dataprocessing.align_lcimage;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.ImageType;
 import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
@@ -13,6 +14,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.mobilitytolerance.M
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
 
 public class LcImageAlignerParameters extends SimpleParameterSet {
 
@@ -63,5 +65,10 @@ public class LcImageAlignerParameters extends SimpleParameterSet {
     }
 
     return superCheck && errorMessages.isEmpty();
+  }
+
+  @Override
+  public @NotNull IonMobilitySupport getIonMobilitySupport() {
+    return IonMobilitySupport.SUPPORTED;
   }
 }

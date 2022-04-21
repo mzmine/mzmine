@@ -112,6 +112,8 @@ public class LcImageAlignerTask extends AbstractTask {
                 true)).sorted(new FeatureListRowSorter(SortingProperty.MZ, SortingDirection.Ascending))
         .toList();
 
+    logger.finest(() -> "Copied " + lcRows.size() + " LC rows.");
+
     // score all rows (parallel)
     imageList.parallelStream().forEach(imageRow -> {
       if (isCanceled()) {
@@ -136,6 +138,8 @@ public class LcImageAlignerTask extends AbstractTask {
       scoredRows.getAndIncrement();
     });
 
+    logger.finest(() -> "Created " + scores.size() + " RowVsRowScores.");
+
     if (isCanceled()) {
       return;
     }
@@ -143,6 +147,8 @@ public class LcImageAlignerTask extends AbstractTask {
     final RowVsRowScore[] sortedScores = scores.stream().sorted(Comparator.reverseOrder())
         .toArray(RowVsRowScore[]::new);
     totalScores.set(scores.size());
+
+    logger.finest("Aligning best images to their LC rows.");
     addFeaturesBasedOnScores(sortedScores, alignedFlist);
 
     lcRows.forEach(alignedFlist::addRow);
@@ -176,17 +182,17 @@ public class LcImageAlignerTask extends AbstractTask {
 
     for (RowVsRowScore score : scores) {
       final FeatureListRow alignedRow = score.getAlignedBaseRow(); // lc row = aligned row
-      final FeatureListRow row = score.getRowToAdd();
-      if (alignedRowsMap.getOrDefault(row, false)) {
-        logger.finest(() -> "Will align feature " + row.getID() + " multiple times");
-        // in join aligner we would stop here
-      }
-      for (Feature feature : row.getFeatures()) {
+      final FeatureListRow imageRow = score.getRowToAdd();
+//      if (alignedRowsMap.getOrDefault(row, false)) {
+//        logger.finest(() -> "Will align feature " + row.getID() + " multiple times");
+//         in join aligner we would stop here
+//      }
+      for (Feature feature : imageRow.getFeatures()) {
         final RawDataFile dataFile = feature.getRawDataFile();
         if (!alignedRow.hasFeature(
             dataFile)) { // only add the best fit. If there is a fit already, don't align.
           alignedRow.addFeature(dataFile, new ModularFeature(alignedList, feature), false);
-          alignedRowsMap.put(row, true);
+          alignedRowsMap.put(imageRow, true);
         }
       }
     }
