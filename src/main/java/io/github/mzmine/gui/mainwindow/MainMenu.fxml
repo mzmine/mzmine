@@ -202,8 +202,8 @@
       <MenuItem onAction="#runModule"
         text="ADAP chromatogram builder"
         userData="io.github.mzmine.modules.dataprocessing.featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule"/>
-      <MenuItem text="GridMass" onAction="#runModule"
-        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>
+      <!--<MenuItem text="GridMass" onAction="#runModule"
+        userData="io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule"/>-->
       <MenuItem onAction="#runModule"
         text="Targeted feature detection"
         userData="io.github.mzmine.modules.dataprocessing.featdet_targeted.TargetedFeatureDetectionModule"/>
@@ -447,9 +447,6 @@
         <MenuItem text="MS2 similarity search"
           onAction="#runModule"
           userData="io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule"/>
-        <MenuItem text="SIRIUS / CSI-FingerID"
-          onAction="#runModule"
-          userData="io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule"/>
       </Menu>
 
       <SeparatorMenuItem/>
