@@ -40,17 +40,18 @@ public class IsotopeFinderParameters extends SimpleParameterSet {
   public static final IntegerParameter maxCharge = new IntegerParameter(
       "Maximum charge of isotope m/z",
       "Maximum possible charge of isotope distribution m/z's. All present m/z values obtained by dividing "
-      + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
-      + "but insert an integer greater than 1 if you want to consider ions of higher charge states.",
+          + "isotope masses with 1, 2, ..., maxCharge values will be considered. The default value is 1, "
+          + "but insert an integer greater than 1 if you want to consider ions of higher charge states.",
       1, true, 1, 1000);
 
   public static final ComboParameter<ScanRange> scanRange = new ComboParameter<>("Search in scans",
       " Options to search isotopes in the single most intense scan"
-      + " or within all scans in full-width at half maximum range.", ScanRange.values(),
+          + " or within all scans in full-width at half maximum range.", ScanRange.values(),
       ScanRange.SINGLE_MOST_INTENSE);
 
   public IsotopeFinderParameters() {
-    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange});
+    super(new UserParameter[]{featureLists, elements, isotopeMzTolerance, maxCharge, scanRange},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/filter_isotope_finder/isotope_finder.html");
   }
 
   @Override

@@ -50,7 +50,12 @@ public class DataTypes {
             try {
               Object o = classInfo.load().getDeclaredConstructor().newInstance();
               if (o instanceof DataType dt) {
-                map.put(dt.getUniqueID(), dt);
+                var value = map.put(dt.getUniqueID(), dt);
+                if (value != null) {
+                  throw new IllegalStateException(
+                      "FATAL: Multiple data types with unique ID " + dt.getUniqueID() + "\n"
+                          + value.getClass().getName() + "\n" + dt.getClass().getName());
+                }
                 TYPES.put(dt.getClass(), dt);
               }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -72,7 +77,7 @@ public class DataTypes {
   }
 
   public static <T> DataType<T> get(DataType<T> instance) {
-    return get((Class)instance.getClass());
+    return get((Class) instance.getClass());
   }
 
   public static <T> DataType<T> get(Class<? extends DataType<T>> clazz) {
@@ -80,7 +85,6 @@ public class DataTypes {
   }
 
   /**
-   *
    * @return A collection of all data type instances.
    */
   public static Collection<DataType> getInstances() {
