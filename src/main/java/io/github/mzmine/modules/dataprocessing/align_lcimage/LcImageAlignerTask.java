@@ -26,18 +26,22 @@ import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LcImageAlignerTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(LcImageAlignerTask.class.getName());
+  private final Boolean useMobTol;
+  private final String flistName;
 
   private String description;
   private double totalRows;
@@ -51,7 +55,7 @@ public class LcImageAlignerTask extends AbstractTask {
   private final ParameterSet parameters;
   private final MZmineProject project;
   private final FeatureList lcFeatureList;
-  private final FeatureList imageList;
+  private final List<FeatureList> imageLists;
   private final MZTolerance mzTol;
   private final MobilityTolerance mobTol;
 
@@ -66,25 +70,35 @@ public class LcImageAlignerTask extends AbstractTask {
         LcImageAlignerParameters.flists).getMatchingFeatureLists();
 
     // checked in setup dialog
-    imageList = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> flist.getFeatureTypes().containsValue(new ImageType())).findAny()
-        .orElse(null);
-    lcFeatureList = Arrays.stream(matchingFeatureLists)
-        .filter(flist -> !flist.getFeatureTypes().containsValue(new ImageType())).findAny()
-        .orElse(null);
+    imageLists = Arrays.stream(matchingFeatureLists)
+        .filter(flist -> flist.getFeatureTypes().containsValue(new ImageType()))
+        .map(list -> (FeatureList) list).toList();
 
-    totalRows = imageList.getNumberOfRows();
+    final List<FeatureList> featureLists = Arrays.stream(matchingFeatureLists)
+        .filter(flist -> !flist.getFeatureTypes().containsValue(new ImageType()))
+        .map(list -> (FeatureList) list).toList();
+    if (featureLists.size() > 1) {
+      logger.warning(
+          "More than one DI/LC feature list selected. Using " + featureLists.get(0).getName());
+    }
+    lcFeatureList = featureLists.get(0);
+
+    totalRows = imageLists.stream().mapToInt(FeatureList::getNumberOfRows).sum();
     mzTol = parameters.getValue(LcImageAlignerParameters.mzTolerance);
-    mobTol = parameters.getValue(LcImageAlignerParameters.mobTolerance);
+    useMobTol = parameters.getValue(LcImageAlignerParameters.mobTolerance);
+    mobTol = parameters.getParameter(LcImageAlignerParameters.mobTolerance).getEmbeddedParameter()
+        .getValue();
     mzWeight = parameters.getValue(LcImageAlignerParameters.mzWeight);
     mobWeight = parameters.getValue(LcImageAlignerParameters.mobilityWeight);
-    description =
-        "Aligning images from " + imageList.getName() + " on LC feature list " + lcFeatureList.getName();
+    flistName = parameters.getValue(LcImageAlignerParameters.name)
+        .replace("{lc}", lcFeatureList.getName());
+    description = "Aligning images from " + imageLists.stream().map(FeatureList::getName)
+        .collect(Collectors.joining(", ")) + " on LC feature list " + lcFeatureList.getName();
   }
 
   @Override
   public String getTaskDescription() {
-    return null;
+    return description;
   }
 
   @Override
@@ -100,10 +114,12 @@ public class LcImageAlignerTask extends AbstractTask {
     // align images to all possible base list rows
     final ConcurrentLinkedDeque<RowVsRowScore> scores = new ConcurrentLinkedDeque<>();
 
-    final List<FeatureList> sourceLists = List.of(lcFeatureList, imageList);
+    final List<FeatureList> sourceLists = new ArrayList<>();
+    sourceLists.add(lcFeatureList);
+    sourceLists.addAll(imageLists);
     final List<RawDataFile> allDataFiles = FeatureListUtils.getAllDataFiles(sourceLists);
-    final ModularFeatureList alignedFlist = new ModularFeatureList(this.lcFeatureList.getName() + " img",
-        getMemoryMapStorage(), allDataFiles);
+    final ModularFeatureList alignedFlist = new ModularFeatureList(flistName, getMemoryMapStorage(),
+        allDataFiles);
     FeatureListUtils.transferRowTypes(alignedFlist, sourceLists);
     FeatureListUtils.transferSelectedScans(alignedFlist, sourceLists);
 
@@ -115,7 +131,7 @@ public class LcImageAlignerTask extends AbstractTask {
     logger.finest(() -> "Copied " + lcRows.size() + " LC rows.");
 
     // score all rows (parallel)
-    imageList.parallelStream().forEach(imageRow -> {
+    imageLists.stream().flatMap(FeatureList::stream).parallel().forEach(imageRow -> {
       if (isCanceled()) {
         return;
       }
@@ -124,7 +140,7 @@ public class LcImageAlignerTask extends AbstractTask {
       final double maxMzDiff = RangeUtils.rangeLength(mzRange) / 2;
       final Float mobility = imageRow.getAverageMobility();
       final Range<Float> mobRange =
-          mobility != null ? mobTol.getToleranceRange(mobility) : Range.all();
+          mobility != null && useMobTol ? mobTol.getToleranceRange(mobility) : Range.all();
       final double maxMobDiff = mobRange.equals(Range.all()) ? Double.POSITIVE_INFINITY
           : RangeUtils.rangeLength(mobRange);
 
