@@ -160,7 +160,8 @@ public class BioTransformerTask extends AbstractTask {
           }
         });
       }
-      description = "Annotated " + numAnnotations + " rows for as transformations of " + bestAnnotation.getCompoundName();
+      description = "Annotated " + numAnnotations + " rows for as transformations of "
+          + bestAnnotation.getCompoundName();
       predictions++;
     }
 
@@ -218,15 +219,20 @@ public class BioTransformerTask extends AbstractTask {
   @Nullable
   private FeatureAnnotation getBestAnnotation(@NotNull FeatureListRow row,
       @Nullable StringProperty compoundName) {
+
+    final SmilesSource smilesSource = parameters.getValue(BioTransformerParameters.smilesSource);
+
     final List<SpectralDBAnnotation> spectralLibraryMatches = row.getSpectralLibraryMatches();
-    if (!spectralLibraryMatches.isEmpty()) {
+    if (!spectralLibraryMatches.isEmpty() && (smilesSource == SmilesSource.ALL
+        || smilesSource == SmilesSource.SPECTRAL_LIBRARY)) {
       final String smiles = spectralLibraryMatches.get(0).getEntry()
           .getOrElse(DBEntryField.SMILES, null);
       return spectralLibraryMatches.get(0);
     }
 
     final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
-    if (!compoundAnnotations.isEmpty()) {
+    if (!compoundAnnotations.isEmpty() && (smilesSource == SmilesSource.ALL
+        || smilesSource == SmilesSource.COMPOUND_DB)) {
       return compoundAnnotations.get(0);
     }
 

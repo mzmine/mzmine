@@ -26,7 +26,6 @@ public class BioTransformerFilterParameters extends SimpleParameterSet {
           "Products will only be assigned to products above this intensity.",
           MZmineCore.getConfiguration().getIntensityFormat(), 1E4));
 
-
   public BioTransformerFilterParameters() {
     super(new Parameter[] {eductMustHaveMsMs, minEductHeight, productMustHaveMsMs, minProductHeight});
   }

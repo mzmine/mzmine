@@ -22,7 +22,6 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
-import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
 import io.github.mzmine.datamodel.features.compoundannotations.DatabaseMatchInfo;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.main.MZmineCore;
@@ -91,8 +90,8 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
 
     final String database_id = ParsingUtils.readNullableString(
         reader.getAttributeValue(null, "database_id"));
-    final OnlineDatabases database = OnlineDatabases.valueOf(ParsingUtils.readNullableString(
-        reader.getAttributeValue(null, "database_name")));
+    final OnlineDatabases database = OnlineDatabases.valueOf(
+        ParsingUtils.readNullableString(reader.getAttributeValue(null, "database_name")));
     final String url = reader.getElementText();
 
     return new DatabaseMatchInfo(database, database_id, url);
@@ -110,15 +109,9 @@ public class DatabaseMatchInfoType extends DataType<DatabaseMatchInfo> {
   @Override
   public @Nullable Runnable getDoubleClickAction(@NotNull ModularFeatureListRow row,
       @NotNull List<RawDataFile> file, DataType<?> superType, @Nullable final Object value) {
-    final List<CompoundDBAnnotation> compoundAnnotations = row.getCompoundAnnotations();
-    if (compoundAnnotations.isEmpty()) {
-      return null;
-    }
 
-    final DatabaseMatchInfo databaseId = compoundAnnotations.get(0)
-        .get(DatabaseMatchInfoType.class);
-    if (databaseId == null || databaseId.onlineDatabase() == null || databaseId.id() == null
-        || databaseId.url() == null) {
+    if (!(value instanceof DatabaseMatchInfo databaseId) || databaseId.onlineDatabase() == null
+        || databaseId.id() == null || databaseId.url() == null) {
       return null;
     }
 

@@ -43,14 +43,26 @@ public class BioTransformerParameters extends SimpleParameterSet {
   public static final ParameterSetParameter ionLibrary = new ParameterSetParameter("Ion Library",
       "Potential ionizations of product molecules.", new IonLibraryParameterSet());
 
+  public static final ComboParameter<SmilesSource> smilesSource = new ComboParameter<>(
+      "Smiles source", """
+      Select smiles from which annotation types shall be used for the prediction.
+      Spectral library = Smiles from spectral library matches
+      Compound DB = Smiles from compound database annotations
+      All = All of the above. 
+      """, SmilesSource.values(), SmilesSource.ALL);
+
   public BioTransformerParameters() {
-    super(new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam
-        /*, cmdOptions*/});
+    super(
+        new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam,
+            smilesSource
+            /*, cmdOptions*/});
   }
 
   public BioTransformerParameters(boolean singleRow) {
-    super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol, ionLibrary, filterParam}
-        : new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary, filterParam});
+    super(singleRow ? new Parameter[]{bioPath, transformationType, steps, mzTol, ionLibrary,
+        filterParam}
+        : new Parameter[]{flists, bioPath, transformationType, steps, mzTol, ionLibrary,
+            filterParam});
 
     /*final ParameterSet moduleParameters = MZmineCore.getConfiguration()
         .getModuleParameters(BioTransformerModule.class);
