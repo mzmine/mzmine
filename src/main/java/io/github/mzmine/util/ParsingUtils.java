@@ -161,7 +161,7 @@ public class ParsingUtils {
       return null;
     }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
-    if(vals.length != 2) {
+    if (vals.length != 2) {
       throw new IllegalStateException("Error while parsing double range from string " + str);
     }
     return Range.closed(Double.parseDouble(vals[0]), Double.parseDouble(vals[1]));
@@ -172,7 +172,7 @@ public class ParsingUtils {
       return null;
     }
     String[] vals = str.replaceAll("\\[", "").replaceAll("\\]", "").split(SEPARATOR);
-    if(vals.length != 2) {
+    if (vals.length != 2) {
       throw new IllegalStateException("Error while parsing float range from string " + str);
     }
     return Range.closed(Float.parseFloat(vals[0]), Float.parseFloat(vals[1]));
@@ -341,5 +341,58 @@ public class ParsingUtils {
   public static IonType parseIon(String str) {
     Pattern.compile("(\\[)?(\\d*)(M)([\\+\\-])([a-zA-Z_0-9\\\\+\\\\-]*)([\\]])?([\\d])?([\\+\\-])");
     return null;
+  }
+
+  /**
+   * @param number A number or null
+   * @return The string representation of the given number. ({@link CONST#XML_NULL_VALUE} for null).
+   */
+  @NotNull
+  public static String numberToString(@Nullable Number number) {
+    if (number == null) {
+      return CONST.XML_NULL_VALUE;
+    } else {
+      return String.valueOf(number);
+    }
+  }
+
+  /**
+   * Converts a string to a double. If the string is equal to {@link CONST#XML_NULL_VALUE}, null is
+   * returned.
+   *
+   * @param str The string.
+   * @return The Double.
+   */
+  @Nullable
+  public static Double stringToDouble(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Double.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
+  /**
+   * Converts a string to a float. If the string is equal to {@link CONST#XML_NULL_VALUE}, null is
+   * returned.
+   *
+   * @param str The string.
+   * @return The float.
+   */
+  @Nullable
+  public static Float stringToFloat(@Nullable String str) {
+    if (str == null || str.equals(CONST.XML_NULL_VALUE)) {
+      return null;
+    }
+
+    try {
+      return Float.valueOf(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
   }
 }
