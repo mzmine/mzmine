@@ -4,9 +4,13 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -47,13 +51,25 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
   private void selectionChanged() {
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
     GridPane pane = new GridPane();
-    final List<CompoundDBAnnotation> compoundAnnotations = selectedRow.getCompoundAnnotations();
-    int i = 0;
-    for (CompoundDBAnnotation annotation : compoundAnnotations) {
+
+    final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
+    final Collection<DataType> dataTypes = selectedRow.getTypes().values();
+    for (DataType dataType : dataTypes) {
+      if (dataType instanceof ListWithSubsType<?> listType && dataType instanceof AnnotationType) {
+        final List<?> list = selectedRow.get(listType);
+        if (list != null && !list.isEmpty()) {
+          list.stream().filter(c -> c instanceof CompoundDBAnnotation)
+              .forEach(c -> compoundAnnotations.add((CompoundDBAnnotation) c));
+        }
+      }
+    }
+
+    for (int i = 0, j = 0; i < compoundAnnotations.size(); i++) {
+      CompoundDBAnnotation annotation = compoundAnnotations.get(i);
       final CompoundDatabaseMatchPane matchPane = new CompoundDatabaseMatchPane(annotation,
           selectedRow);
-      pane.add(matchPane, 0, i++);
-      pane.add(new Separator(Orientation.HORIZONTAL), 0, i++);
+      pane.add(matchPane, 0, j++);
+      pane.add(new Separator(Orientation.HORIZONTAL), 0, j++);
     }
     scrollPane.setContent(pane);
   }
