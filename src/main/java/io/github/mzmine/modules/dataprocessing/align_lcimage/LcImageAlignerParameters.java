@@ -1,3 +1,21 @@
+/*
+ *  Copyright 2006-2022 The MZmine Development Team
+ *
+ *  This file is part of MZmine.
+ *
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
+ *
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
+ */
+
 package io.github.mzmine.modules.dataprocessing.align_lcimage;
 
 import io.github.mzmine.datamodel.features.ModularFeatureList;
@@ -20,7 +38,8 @@ import org.jetbrains.annotations.NotNull;
 public class LcImageAlignerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter flists = new FeatureListsParameter("Feature lists",
-      "Select two feature lists. The image feature list and the (pre-aligned) LC feature list.", 2, Integer.MAX_VALUE);
+      "Select at least two feature lists. The image feature list(s) are aligned to a single (pre-aligned) LC feature list.",
+      2, Integer.MAX_VALUE);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
       "The file-to-file tolerance for two features.", 0.005, 10);
