@@ -30,12 +30,18 @@ import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
+import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
+import io.github.mzmine.datamodel.features.types.DataType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualFeature;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -460,5 +466,21 @@ public class FeatureUtils {
     } else {
       return null;
     }
+  }
+
+  @NotNull
+  public static List<CompoundDBAnnotation> extractAllCompoundAnnotations(FeatureListRow selectedRow) {
+    final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
+    final Collection<DataType> dataTypes = selectedRow.getTypes().values();
+    for (DataType dataType : dataTypes) {
+      if (dataType instanceof ListWithSubsType<?> listType && dataType instanceof AnnotationType) {
+        final List<?> list = selectedRow.get(listType);
+        if (list != null && !list.isEmpty()) {
+          list.stream().filter(c -> c instanceof CompoundDBAnnotation)
+              .forEach(c -> compoundAnnotations.add((CompoundDBAnnotation) c));
+        }
+      }
+    }
+    return compoundAnnotations;
   }
 }

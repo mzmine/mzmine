@@ -4,13 +4,10 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.compoundannotations.CompoundDBAnnotation;
-import io.github.mzmine.datamodel.features.types.DataType;
-import io.github.mzmine.datamodel.features.types.ListWithSubsType;
-import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.gui.mainwindow.MZmineTab;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.featurelisttable_modular.FeatureTableFX;
-import java.util.ArrayList;
+import io.github.mzmine.util.FeatureUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +21,7 @@ import javafx.scene.layout.GridPane;
 import org.jetbrains.annotations.NotNull;
 
 public class CompoundDatabaseMatchTab extends MZmineTab {
+
   private final FeatureTableFX table;
   private final ScrollPane scrollPane;
 
@@ -50,19 +48,13 @@ public class CompoundDatabaseMatchTab extends MZmineTab {
 
   private void selectionChanged() {
     final ModularFeatureListRow selectedRow = table.getSelectedRow();
+    if(selectedRow == null) {
+      return;
+    }
     GridPane pane = new GridPane();
 
-    final List<CompoundDBAnnotation> compoundAnnotations = new ArrayList<>();
-    final Collection<DataType> dataTypes = selectedRow.getTypes().values();
-    for (DataType dataType : dataTypes) {
-      if (dataType instanceof ListWithSubsType<?> listType && dataType instanceof AnnotationType) {
-        final List<?> list = selectedRow.get(listType);
-        if (list != null && !list.isEmpty()) {
-          list.stream().filter(c -> c instanceof CompoundDBAnnotation)
-              .forEach(c -> compoundAnnotations.add((CompoundDBAnnotation) c));
-        }
-      }
-    }
+    final List<CompoundDBAnnotation> compoundAnnotations = FeatureUtils.extractAllCompoundAnnotations(
+        selectedRow);
 
     for (int i = 0, j = 0; i < compoundAnnotations.size(); i++) {
       CompoundDBAnnotation annotation = compoundAnnotations.get(i);
