@@ -18,6 +18,7 @@
 package datamodel;
 
 import io.github.mzmine.datamodel.FeatureIdentity;
+import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.annotations.PossibleIsomerType;
 import io.github.mzmine.datamodel.features.types.annotations.RdbeType;
 import io.github.mzmine.datamodel.features.types.annotations.SmilesStructureType;
 import io.github.mzmine.datamodel.features.types.annotations.compounddb.DatabaseNameType;
+import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonAdductType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonNetworkIDType;
@@ -50,16 +52,23 @@ import io.github.mzmine.datamodel.features.types.numbers.scores.LipidAnnotationM
 import io.github.mzmine.datamodel.identities.iontype.IonModification;
 import io.github.mzmine.datamodel.identities.iontype.IonType;
 import io.github.mzmine.datamodel.impl.SimpleFeatureIdentity;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.ResultFormula;
 import io.github.mzmine.modules.dataprocessing.id_localcsvsearch.LocalCSVDatabaseSearchModule;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.project.impl.RawDataFileImpl;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class AnnotationTypeTests {
 
@@ -307,5 +316,31 @@ public class AnnotationTypeTests {
 
     Assertions.assertNotEquals(newIdentity, newIdentity2);
     Assertions.assertNotEquals(newIdentity, null);
+  }
+
+  @Test
+  void formulaListTypeTest() {
+    final IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    final IMolecularFormula form1 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+        "C15H28F2O2", builder);
+    final IMolecularFormula form2 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+        "C18H34O2", builder);
+    final IMolecularFormula form3 = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(
+        "GdC50H80O10N4", builder);
+
+    ResultFormula formula1 = new ResultFormula(form1,
+        IsotopePatternCalculator.calculateIsotopePattern(form1, 0.01, 1, PolarityType.POSITIVE),
+        0.5f, 0.1f, Map.of(513.25, "C132", 200.26, "COF"),
+        MolecularFormulaManipulator.getMass(form1, 3));
+    ResultFormula formula2 = new ResultFormula(form2,
+        IsotopePatternCalculator.calculateIsotopePattern(form2, 0.01, 1, PolarityType.POSITIVE),
+        0.5f, 0.1f, null, MolecularFormulaManipulator.getMass(form1, 3));
+    ResultFormula formula3 = new ResultFormula(form3, null, 0.5f, null, null,
+        MolecularFormulaManipulator.getMass(form1, 3));
+
+    final List<ResultFormula> value = List.of(formula1, formula2, formula3);
+    final FormulaListType type = new FormulaListType();
+
+    DataTypeTestUtils.simpleDataTypeSaveLoadTest(type, value);
   }
 }
