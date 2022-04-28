@@ -298,7 +298,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
 
   @Override
-  public void removeFeatureLists(@NotNull List<ModularFeatureList> featureLists) {
+  public void removeFeatureLists(@NotNull List<FeatureList> featureLists) {
     try {
       featureLock.writeLock().lock();
 
