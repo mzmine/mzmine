@@ -32,7 +32,11 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 class MetadataTableTest {
 
   MetadataTable emptyMetadataTable;
@@ -50,12 +54,13 @@ class MetadataTableTest {
   MetadataColumn<Double> column2 = new DoubleMetadataColumn(columnName2);
   MetadataColumn<LocalDateTime> column3 = new DateMetadataColumn(columnName3);
   MetadataColumn<String> columnNew = new StringMetadataColumn(columnNameNew, columnValueNew);
-  String rawDataFileName1 = "file1";
-  String rawDataFileName2 = "file2";
-  String rawDataFileName3 = "file3";
-  RawDataFile rawDataFile1 = new RawDataFileImpl(rawDataFileName1, null, null);
-  RawDataFile rawDataFile2 = new RawDataFileImpl(rawDataFileName2, null, null);
-  RawDataFile rawDataFile3 = new RawDataFileImpl(rawDataFileName3, null, null);
+
+  @Mock
+  RawDataFile rawDataFile1;
+  @Mock
+  RawDataFile rawDataFile2;
+  @Mock
+  RawDataFile rawDataFile3;
 
   @BeforeEach
   void setUp() {
