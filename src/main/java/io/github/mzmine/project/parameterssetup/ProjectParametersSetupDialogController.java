@@ -25,6 +25,7 @@ import io.github.mzmine.gui.helpwindow.HelpWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
 import io.github.mzmine.parameters.parametertypes.StringParameter;
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import io.github.mzmine.project.parameterssetup.columns.DoubleMetadataColumn;
 import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
 import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
@@ -100,9 +101,8 @@ public class ProjectParametersSetupDialogController {
       fileParametersValue.add(new SimpleStringProperty(rawFile.getName()));
       for (MetadataColumn<?> column : columns) {
         // either convert parameter value to string or display an empty string in case if it's unset
-        fileParametersValue.add(new SimpleStringProperty(
-            metadataTable.getValue(column, rawFile) == null ? ""
-                : metadataTable.getValue(column, rawFile).toString()));
+        Object value = metadataTable.getValue(column, rawFile);
+        fileParametersValue.add(new SimpleStringProperty(value == null ? "" : value.toString()));
       }
       tableRows.add(fileParametersValue);
     }
@@ -151,48 +151,40 @@ public class ProjectParametersSetupDialogController {
         }
 
         // pattern match the metadata column type
-        // if the parameter value is in the right format then save it to the metadata table,
-        // otherwise show alert dialog
-        switch (parameter) {
+        // derive the example value from the parameter's type
+        String parameterMatchedType = "undef";
+        String parameterMatchedExample = "undef";
+        MetadataColumn parameterMatched = switch (parameter) {
           case StringMetadataColumn stringMetadataColumn -> {
-            if (parameter.checkInput(parameter.convert(parameterValueNew))) {
-              metadataTable.setValue(stringMetadataColumn, rawDataFile,
-                  stringMetadataColumn.convert(parameterValueNew));
-            } else {
-              Alert alert = new Alert(Alert.AlertType.INFORMATION);
-              alert.setTitle("Wrong parameter value format");
-              alert.setHeaderText(null);
-              alert.setContentText(
-                  "Please respect the String parameter value format, e.g. \"String\"");
-              alert.showAndWait();
-            }
+            parameterMatchedType = "String";
+            parameterMatchedExample = "\"String\"";
+            yield stringMetadataColumn;
           }
           case DoubleMetadataColumn doubleMetadataColumn -> {
-            if (parameter.checkInput(parameter.convert(parameterValueNew))) {
-              metadataTable.setValue(doubleMetadataColumn, rawDataFile,
-                  doubleMetadataColumn.convert(parameterValueNew));
-            } else {
-              Alert alert = new Alert(Alert.AlertType.INFORMATION);
-              alert.setTitle("Wrong parameter value format");
-              alert.setHeaderText(null);
-              alert.setContentText(
-                  "Please respect the Double parameter value format, e.g. \"1.46\"");
-              alert.showAndWait();
-            }
+            parameterMatchedType = "Double";
+            parameterMatchedExample = "\"1.46\"";
+            yield doubleMetadataColumn;
           }
           case DateMetadataColumn dateMetadataColumn -> {
-            if (parameter.checkInput(parameter.convert(parameterValueNew))) {
-              metadataTable.setValue(dateMetadataColumn, rawDataFile,
-                  dateMetadataColumn.convert(parameterValueNew));
-            } else {
-              Alert alert = new Alert(Alert.AlertType.INFORMATION);
-              alert.setTitle("Wrong parameter value format");
-              alert.setHeaderText(null);
-              alert.setContentText(
-                  "Please respect the Datetime parameter value format, e.g. \"2022-12-24T10:11:36\"");
-              alert.showAndWait();
-            }
+            parameterMatchedType = "Datetime";
+            parameterMatchedExample = "\"2022-12-24T10:11:36\"";
+            yield dateMetadataColumn;
           }
+        };
+
+        // if the parameter value is in the right format then save it to the metadata table,
+        // otherwise show alert dialog
+        Object convertedParameterInput = parameterMatched.convert(parameterValueNew);
+        if (parameter.checkInput(convertedParameterInput)) {
+          metadataTable.setValue(parameterMatched, rawDataFile, convertedParameterInput);
+        } else {
+          Alert alert = new Alert(Alert.AlertType.INFORMATION);
+          alert.setTitle("Wrong parameter value format");
+          alert.setHeaderText(null);
+          alert.setContentText(
+              "Please respect the " + parameterMatchedType + " parameter value format, e.g. "
+                  + parameterMatchedExample);
+          alert.showAndWait();
         }
         // need to render
         updateParametersToTable();
@@ -226,14 +218,14 @@ public class ProjectParametersSetupDialogController {
       }
 
       // add the new column to the parameters table
-      switch (parameterType.getValue()) {
-        case "String" -> {
+      switch (AvailableTypes.valueOf(parameterType.getValue())) {
+        case TEXT -> {
           metadataTable.addColumn(new StringMetadataColumn(parameterTitle.getValue()));
         }
-        case "Double" -> {
+        case DOUBLE -> {
           metadataTable.addColumn(new DoubleMetadataColumn(parameterTitle.getValue()));
         }
-        case "Datetime" -> {
+        case DATETIME -> {
           metadataTable.addColumn(new DateMetadataColumn(parameterTitle.getValue()));
         }
       }
