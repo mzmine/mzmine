@@ -19,7 +19,6 @@
 package parameterssetup;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.project.impl.RawDataFileImpl;
 import io.github.mzmine.project.parameterssetup.MetadataTable;
 import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
 import io.github.mzmine.project.parameterssetup.columns.DoubleMetadataColumn;
