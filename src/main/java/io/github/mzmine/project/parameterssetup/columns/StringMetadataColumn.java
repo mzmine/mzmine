@@ -37,7 +37,7 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
   }
 
   @Override
-  public String convert(String input) {
-    return input.trim();
+  public String convert(String input, String defaultValue) {
+    return input == null ? defaultValue : input.trim();
   }
 }

@@ -79,6 +79,6 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    * @param input input string
    * @return converted value of the specific type
    */
-  public abstract T convert(String input);
+  public abstract T convert(String input, T defaultValue);
 
 }
