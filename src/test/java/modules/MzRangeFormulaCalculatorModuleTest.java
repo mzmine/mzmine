@@ -38,7 +38,7 @@ public class MzRangeFormulaCalculatorModuleTest {
     Assertions.assertEquals(Range.closed(17.02857658009093, 17.048576580090934),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4",
             IonizationType.POSITIVE_HYDROGEN, tol));
-    Assertions.assertEquals(Range.closed(15.014023675909064, 15.034023675909063),
+    Assertions.assertEquals(Range.closed(15.014023675909066, 15.034023675909065),
         MzRangeFormulaCalculatorModule.getMzRangeFromFormula("CH4",
             IonizationType.NEGATIVE_HYDROGEN, tol));
     Assertions.assertEquals(Range.closed(129.00688760790908, 129.02688760790906),

@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.modules.tools.mzrangecalculator;
@@ -29,7 +29,6 @@ import io.github.mzmine.util.FormulaUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * m/z range calculator module. Calculates m/z range from a given chemical formula and m/z
@@ -90,15 +89,8 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
       return null;
     }
 
-    @Nullable IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(formula);
-    if (neutralFormula == null) {
-      return Range.closed(0d, 1000d);
-    }
-
-    final double neutralMass = MolecularFormulaManipulator.getMass(neutralFormula,
-        MolecularFormulaManipulator.MonoIsotopic);
-    final double ionizedMass =
-        (ionType.getAddedMass() + neutralMass) / Math.abs(ionType.getCharge());
+    final IMolecularFormula iMolecularFormula = ionType.ionizeFormula(formula);
+    final double ionizedMass = FormulaUtils.calculateMzRatio(iMolecularFormula);
 
     return mzTolerance.getToleranceRange(ionizedMass);
   }
