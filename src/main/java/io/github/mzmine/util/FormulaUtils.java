@@ -1,18 +1,19 @@
 /*
- * Copyright 2006-2020 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.util;
@@ -43,7 +44,10 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
-  public static final double electronMass = 0.00054857990946;
+  /**
+   * https://physics.nist.gov/cgi-bin/cuu/Value?meu|search_for=electron+mass 2022/05/04
+   */
+  public static final double electronMass = 0.000548579909065;
   private static Logger logger = Logger.getLogger(FormulaUtils.class.getName());
 
   /**
@@ -213,8 +217,24 @@ public class FormulaUtils {
     double mass = MolecularFormulaManipulator.getMass(mf, MolecularFormulaManipulator.MonoIsotopic);
     mass -= charge * electronMass;
 
-    double mz = Math.abs(mass / charge);
-    return mz;
+    return Math.abs(mass / charge);
+  }
+
+  /**
+   * Calculates the m/z of the given formula. Formula must have a charge, otherwise the
+   *
+   * @param formula The formula.
+   * @return the calculated m/z ratio. if the formula's charge is null or 0,
+   * Double.POSITIVE_INFINITY is returned.
+   */
+  public static double calculateMzRatio(@NotNull final IMolecularFormula formula) {
+    final Integer charge = formula.getCharge();
+    if (charge == null || charge == 0) {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    return (MolecularFormulaManipulator.getMass(formula, MolecularFormulaManipulator.MonoIsotopic)
+        - charge * electronMass) / Math.abs(charge);
   }
 
   public static double calculateExactMass(String formula) {
@@ -246,41 +266,9 @@ public class FormulaUtils {
     return totalMass;
   }
 
-  /**
-   * Modifies the formula according to the ionization type
-   @deprecated Does not work properly.
-   @Deprecated
-  public static String ionizeFormula(String formula, IonType ionType, int charge) {
-    StringBuilder combinedFormula = new StringBuilder();
-    combinedFormula.append(formula);
-    for (int i = 0; i < charge; i++) {
-      combinedFormula.append(ionType.getName());
-    }
-
-    Map<String, Integer> parsedFormula = parseFormula(combinedFormula.toString());
-    return formatFormula(parsedFormula);
-  }*/
-
-  /**
-   * Modifies the formula according to the ionization type.
-   * @deprecated Does not work properly.
-   */
-  @Deprecated
-  public static String ionizeFormula(String formula, IonizationType ionType, int charge) {
-
-    // No ionization
-    if (ionType == IonizationType.NO_IONIZATION) {
-      return formula;
-    }
-
-    StringBuilder combinedFormula = new StringBuilder();
-    combinedFormula.append(formula);
-    for (int i = 0; i < charge; i++) {
-      combinedFormula.append(ionType.getAdductName());
-    }
-
-    Map<String, Integer> parsedFormula = parseFormula(combinedFormula.toString());
-    return formatFormula(parsedFormula);
+  public static String ionizeFormula(String formula, IonizationType ionType) {
+    final IMolecularFormula form = ionType.ionizeFormula(formula);
+    return MolecularFormulaManipulator.getString(form);
   }
 
   /**
@@ -491,15 +479,14 @@ public class FormulaUtils {
    */
   @Nullable
   public static IMolecularFormula getFomulaFromSmiles(@Nullable String smiles) {
-    if(smiles == null) {
+    if (smiles == null) {
       return null;
     }
     try {
       final IAtomContainer iAtomContainer = new SmilesParser(
           SilentChemObjectBuilder.getInstance()).parseSmiles(smiles);
-      IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
+      return MolecularFormulaManipulator.getMolecularFormula(
           iAtomContainer);
-      return molecularFormula;
     } catch (InvalidSmilesException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
     }
@@ -515,7 +502,7 @@ public class FormulaUtils {
    */
   @Nullable
   public static IMolecularFormula getNeutralFormula(@Nullable final String formula) {
-    if(formula == null) {
+    if (formula == null) {
       return null;
     }
     final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
@@ -532,7 +519,7 @@ public class FormulaUtils {
    */
   @Nullable
   public static IMolecularFormula getNeutralFormula(@Nullable final IMolecularFormula formula) {
-    if(formula == null) {
+    if (formula == null) {
       return null;
     }
 
@@ -548,7 +535,7 @@ public class FormulaUtils {
 
         final boolean adjusted = MolecularFormulaManipulator.adjustProtonation(molecularFormula,
             -charge);
-        if (!adjusted || formula.getCharge() != null) {
+        if (!adjusted || molecularFormula.getCharge() != 0) {
           logger.info(() -> "Cannot determine neutral formula by adjusting protons. " + string);
           return null;
         }
@@ -557,6 +544,18 @@ public class FormulaUtils {
     } catch (CloneNotSupportedException e) {
       logger.log(Level.SEVERE, e.getMessage(), e);
       return null;
+    }
+  }
+
+  @Nullable
+  public static IMolecularFormula cloneFormula(@Nullable final IMolecularFormula formula) {
+    if(formula == null) {
+      return null;
+    }
+    try {
+      return (IMolecularFormula) formula.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new IllegalArgumentException("Cannot clone given formula. " + formula);
     }
   }
 }
