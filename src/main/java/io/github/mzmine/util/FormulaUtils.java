@@ -19,7 +19,6 @@ package io.github.mzmine.util;
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import io.github.mzmine.datamodel.identities.iontype.IonType;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
@@ -249,7 +248,8 @@ public class FormulaUtils {
 
   /**
    * Modifies the formula according to the ionization type
-   */
+   @deprecated Does not work properly.
+   @Deprecated
   public static String ionizeFormula(String formula, IonType ionType, int charge) {
     StringBuilder combinedFormula = new StringBuilder();
     combinedFormula.append(formula);
@@ -259,11 +259,13 @@ public class FormulaUtils {
 
     Map<String, Integer> parsedFormula = parseFormula(combinedFormula.toString());
     return formatFormula(parsedFormula);
-  }
+  }*/
 
   /**
-   * Modifies the formula according to the ionization type
+   * Modifies the formula according to the ionization type.
+   * @deprecated Does not work properly.
    */
+  @Deprecated
   public static String ionizeFormula(String formula, IonizationType ionType, int charge) {
 
     // No ionization

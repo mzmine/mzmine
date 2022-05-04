@@ -46,7 +46,7 @@ public enum IonizationType {
 
   NAME6("[M+H+Na]2+","NaH",23.996494,PolarityType.POSITIVE,-2.69999106549233,1,2),//
 
-  NAME7("[M+2H+Na]3+","NaH2",25.00377,PolarityType.POSITIVE,-3.81393441779917,1,3),//
+  NAME7("[M+2H+Na]3+","NaH2",25.0037736,PolarityType.POSITIVE,-3.81393441779917,1,3),//
 
   NAME8("[M+H+K]2+","KH",39.970434,PolarityType.POSITIVE,-2.23415082118236,1,2),//
 
@@ -139,7 +139,6 @@ public enum IonizationType {
   NAME_10("[2M-H]-","",-1.007276,PolarityType.NEGATIVE,-0.978509392194437,2,-1),//
 
   NAME_11("[3M-H]-","",-1.007276,PolarityType.NEGATIVE,-1.99274983130905,3,-1);
-
 
   // log10freq records log base 10 observed frequency of adducts and fragments from available LC-MS1
   // spectra for pure compounds available in the NIST database introduced in CliqueMS algorithm. The

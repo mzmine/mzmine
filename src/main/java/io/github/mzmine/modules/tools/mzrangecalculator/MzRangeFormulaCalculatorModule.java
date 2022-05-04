@@ -18,10 +18,7 @@
 
 package io.github.mzmine.modules.tools.mzrangecalculator;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
@@ -29,6 +26,10 @@ import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.FormulaUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
  * m/z range calculator module. Calculates m/z range from a given chemical formula and m/z
@@ -55,43 +56,51 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
   @Nullable
   public static Range<Double> showRangeCalculationDialog() {
 
-    ParameterSet myParameters =
-        MZmineCore.getConfiguration().getModuleParameters(MzRangeFormulaCalculatorModule.class);
+    ParameterSet myParameters = MZmineCore.getConfiguration()
+        .getModuleParameters(MzRangeFormulaCalculatorModule.class);
 
-    if (myParameters == null)
+    if (myParameters == null) {
       return null;
+    }
 
     ExitCode exitCode = myParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK)
+    if (exitCode != ExitCode.OK) {
       return null;
+    }
 
     return getMzRangeFromFormula(myParameters);
   }
 
   @Nullable
   public static Range<Double> getMzRangeFromFormula(ParameterSet myParameters) {
-    String formula =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.formula).getValue().trim();
-    IonizationType ionType =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.ionType).getValue();
-    MZTolerance mzTolerance =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.mzTolerance).getValue();
-    Integer charge =
-        myParameters.getParameter(MzRangeFormulaCalculatorParameters.charge).getValue();
+    String formula = myParameters.getParameter(MzRangeFormulaCalculatorParameters.formula)
+        .getValue().trim();
+    IonizationType ionType = myParameters.getParameter(MzRangeFormulaCalculatorParameters.ionType)
+        .getValue();
+    MZTolerance mzTolerance = myParameters.getParameter(
+        MzRangeFormulaCalculatorParameters.mzTolerance).getValue();
 
-    return getMzRangeFromFormula(formula, ionType, mzTolerance, charge);
+    return getMzRangeFromFormula(formula, ionType, mzTolerance);
   }
 
   @Nullable
   public static Range<Double> getMzRangeFromFormula(String formula, IonizationType ionType,
-      MZTolerance mzTolerance, Integer charge) {
-    if ((formula == null) || (ionType == null) || (mzTolerance == null) || (charge == null))
+      MZTolerance mzTolerance) {
+    if ((formula == null) || (ionType == null) || (mzTolerance == null)) {
       return null;
+    }
 
-    String ionizedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
-    double calculatedMZ = FormulaUtils.calculateExactMass(ionizedFormula, charge) / charge;
+    @Nullable IMolecularFormula neutralFormula = FormulaUtils.getNeutralFormula(formula);
+    if (neutralFormula == null) {
+      return Range.closed(0d, 1000d);
+    }
 
-    return mzTolerance.getToleranceRange(calculatedMZ);
+    final double neutralMass = MolecularFormulaManipulator.getMass(neutralFormula,
+        MolecularFormulaManipulator.MonoIsotopic);
+    final double ionizedMass =
+        (ionType.getAddedMass() + neutralMass) / Math.abs(ionType.getCharge());
+
+    return mzTolerance.getToleranceRange(ionizedMass);
   }
 
 }
