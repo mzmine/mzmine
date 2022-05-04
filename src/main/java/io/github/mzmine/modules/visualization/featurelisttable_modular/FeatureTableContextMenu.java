@@ -43,7 +43,6 @@ import io.github.mzmine.modules.dataprocessing.id_formulaprediction.FormulaPredi
 import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils.MatchedLipid;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
@@ -226,22 +225,13 @@ public class FeatureTableContextMenu extends ContextMenu {
     nistSearchItem.setOnAction(
         e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
 
-    // Comments from MZmine 2 source:
-    // TODO: what is going on here?
-    // TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1
-    final MenuItem siriusItem = new ConditionalMenuItem("Sirius structure prediction",
-        () -> selectedRows.size() == 1);
-    siriusItem.setOnAction(
-        e -> SiriusIdentificationModule.showSingleRowIdentificationDialog(selectedRows.get(0),
-            Instant.now()));
-
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
         () -> selectedRows.size() == 1);
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
     searchMenu.getItems()
-        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, siriusItem,
+        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem,
             new SeparatorMenuItem(), formulaPredictionItem);
   }
 

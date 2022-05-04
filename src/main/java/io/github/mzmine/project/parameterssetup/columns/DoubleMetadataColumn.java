@@ -16,18 +16,33 @@
  *
  */
 
-package io.github.mzmine.modules.dataprocessing.id_sirius;
+package io.github.mzmine.project.parameterssetup.columns;
 
-public class ScanMassListException extends RuntimeException {
-  public ScanMassListException(String msg) {
-    super(msg);
+/**
+ * Specific Double-type implementation of the project parameter.
+ */
+public final class DoubleMetadataColumn extends MetadataColumn<Double> {
+
+  public DoubleMetadataColumn(String title) {
+    super(title);
   }
 
-  public ScanMassListException(Throwable t) {
-    super(t);
+  public DoubleMetadataColumn(String title, String description) {
+    super(title, description);
   }
 
-  public ScanMassListException(String msg, Throwable t) {
-    super(msg, t);
+  @Override
+  public boolean checkInput(Object value) {
+    return value instanceof Double;
+  }
+
+  @Override
+  public Double convert(String input, Double defaultValue) {
+    try {
+      return input == null ? defaultValue : Double.parseDouble(input.trim());
+    } catch (NumberFormatException ignored) {
+    }
+
+    return null;
   }
 }

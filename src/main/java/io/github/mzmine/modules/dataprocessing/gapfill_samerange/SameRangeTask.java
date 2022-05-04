@@ -51,19 +51,20 @@ import org.jetbrains.annotations.Nullable;
 
 class SameRangeTask extends AbstractTask {
 
+  private final static Logger logger = Logger.getLogger(SameRangeTask.class.getName());
+
   private final MZmineProject project;
   private final OriginalFeatureListOption handleOriginal;
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-  private ModularFeatureList peakList, processedPeakList;
+  private final ModularFeatureList peakList;
+  private ModularFeatureList processedPeakList;
 
-  private String suffix;
-  private MZTolerance mzTolerance;
+  private final String suffix;
+  private final MZTolerance mzTolerance;
 
-  private int processedRows, totalRows;
-  private AtomicInteger processedRowsAtomic;
-  ;
+  private int totalRows;
+  private final AtomicInteger processedRowsAtomic = new AtomicInteger(0);
 
-  private ParameterSet parameters;
+  private final ParameterSet parameters;
 
   SameRangeTask(MZmineProject project, FeatureList peakList, ParameterSet parameters,
       @Nullable MemoryMapStorage storage, @NotNull Instant moduleCallDate) {
@@ -91,17 +92,15 @@ class SameRangeTask extends AbstractTask {
     totalRows = peakList.getNumberOfRows();
 
     // Get feature list columns
-    RawDataFile columns[] = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
+    RawDataFile[] columns = peakList.getRawDataFiles().toArray(RawDataFile[]::new);
 
     // Create new feature list
     processedPeakList = new ModularFeatureList(peakList + " " + suffix, getMemoryMapStorage(),
         columns);
 
-    processedRowsAtomic = new AtomicInteger(0);
-
     List<FeatureListRow> outputList = Collections.synchronizedList(new ArrayList<>());
 
-    peakList.parallelStream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
+    peakList.stream().map(r -> (ModularFeatureListRow) r).forEach(sourceRow -> {
       // Canceled?
       if (isCanceled()) {
         return;
@@ -131,7 +130,7 @@ class SameRangeTask extends AbstractTask {
       processedRowsAtomic.getAndAdd(1);
     });
 
-    outputList.stream().forEach(newRow -> {
+    outputList.forEach(newRow -> {
       processedPeakList.addRow(newRow);
     });
 
