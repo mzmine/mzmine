@@ -74,4 +74,13 @@ public class FormulaUtilsTest {
     Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose), MolecularFormulaManipulator.getString(n5));
     Assertions.assertEquals(MolecularFormulaManipulator.getString(neutralGlucose), MolecularFormulaManipulator.getString(n6));
   }
+
+  @Test
+  void testCalcMz() {
+    // M - H + 2Na
+    final IMolecularFormula molecularFormula = MolecularFormulaManipulator.getMolecularFormula(
+        "[C6H11O6Na2]+", SilentChemObjectBuilder.getInstance());
+
+    Assertions.assertEquals((float) 225.0345531, (float)FormulaUtils.calculateMzRatio(molecularFormula));
+  }
 }
