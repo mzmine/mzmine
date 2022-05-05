@@ -33,6 +33,7 @@ public class MirrorScanWindowFXML extends Stage {
 
   public MirrorScanWindowFXML() {
     super();
+    setTitle("Spectral mirror plots");
 
     final FXMLLoader loader = new FXMLLoader(getClass().getResource("MirrorScanWindow.fxml"));
     try {
