@@ -37,7 +37,8 @@ public class ExternalCCSCalibrationParameters extends SimpleParameterSet {
       false);
 
   public ExternalCCSCalibrationParameters() {
-    super(new Parameter[]{files, calibrationFile});
+    super(new Parameter[]{files, calibrationFile},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ccs_calibration/ccs_calibration.html#importing-a-ccs-calibration");
   }
 
   @Override

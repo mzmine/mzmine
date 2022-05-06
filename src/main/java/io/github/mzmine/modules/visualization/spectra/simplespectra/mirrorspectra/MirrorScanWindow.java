@@ -28,7 +28,7 @@ import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.color.SimpleColorPalette;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
@@ -112,7 +112,7 @@ public class MirrorScanWindow extends JFrame {
    *
    * @param db
    */
-  public void setScans(SpectralDBFeatureIdentity db) {
+  public void setScans(SpectralDBAnnotation db) {
     Scan scan = db.getQueryScan();
     if (scan == null)
       return;
@@ -151,7 +151,7 @@ public class MirrorScanWindow extends JFrame {
     contentPane.removeAll();
     // create without data
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorChartPanel(
-        "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
+        "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getCompoundName(),
         precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
     mirrorSpecrumPlot.setMaximumDrawWidth(4200);
     mirrorSpecrumPlot.setMaximumDrawHeight(2500);

@@ -49,8 +49,8 @@ import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
 import io.github.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarityParameters;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -240,9 +240,9 @@ public class IMSScanTypesTest {
     SpectralSimilarity similarity = simFunc.getSimilarity(param, new MZTolerance(0.005, 15), 0,
         ScanUtils.extractDataPoints(library), ScanUtils.extractDataPoints(query));
 
-    List<SpectralDBFeatureIdentity> value = List.of(
-        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching", null),
-        new SpectralDBFeatureIdentity(query, entry, similarity, "Spectral DB matching", 0.034f));
+    List<SpectralDBAnnotation> value = List.of(
+        new SpectralDBAnnotation(entry, similarity, query, null),
+        new SpectralDBAnnotation(entry, similarity, query, 0.034f));
 
     DataTypeTestUtils.testSaveLoad(type, value, flist, row, null, null);
     DataTypeTestUtils.testSaveLoad(type, Collections.emptyList(), flist, row, null, null);

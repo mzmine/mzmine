@@ -86,7 +86,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog {
     if (selectedPeakLists.length >= 2) {
       peakListsComboX.getSelectionModel().select(selectedPeakLists[0]);
       peakListsComboY.getSelectionModel().select(selectedPeakLists[1]);
-    } else {
+    } else if (featureLists.size() > 1){
       peakListsComboX.getSelectionModel().select(featureLists.get(0));
       peakListsComboY.getSelectionModel().select(featureLists.get(1));
     }
