@@ -47,7 +47,6 @@ public interface Scan extends MassSpectrum, Comparable<Scan> {
       throws XMLStreamException {
     if (scan instanceof SimpleScan || scan instanceof Frame) {
       writer.writeStartElement(CONST.XML_RAW_FILE_SCAN_ELEMENT);
-
       writer.writeAttribute(Scan.XML_SCAN_TYPE_ATTR, SimpleScan.XML_SCAN_TYPE);
       String name = scan.getDataFile().getName();
       writer.writeAttribute(CONST.XML_RAW_FILE_ELEMENT, name);

@@ -52,7 +52,7 @@ import net.csibio.aird.enums.AirdType;
 import net.csibio.aird.enums.MsLevel;
 import net.csibio.aird.parser.BaseParser;
 import net.csibio.aird.parser.DDAParser;
-import net.csibio.aird.parser.v2.DIAParser;
+import net.csibio.aird.parser.DIAParser;
 import net.csibio.aird.util.AirdScanUtil;
 import net.csibio.aird.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
@@ -116,7 +116,7 @@ public class AirdImportTask extends AbstractTask {
       totalScans = airdInfo.getTotalScanCount().intValue();
       switch (AirdType.getType(airdInfo.getType())) {
         case DDA -> loadAsDDA((DDAParser) parser);
-        case DIA_SWATH -> loadAsDIA((DIAParser) parser);
+        case DIA -> loadAsDIA((DIAParser) parser);
         default -> {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Unsupported Aird Type:" + airdInfo.getType());
@@ -198,7 +198,7 @@ public class AirdImportTask extends AbstractTask {
     boolean isMinute = airdInfo.getRtUnit().equals("minute");
     List<BlockIndex> indexList = airdInfo.getIndexList();
     for (BlockIndex index : indexList) {
-      TreeMap<Float, Spectrum> map = parser.getSpectrums(index);
+      TreeMap<Float, Spectrum<double[]>> map = parser.getSpectra(index);
       List<Integer> numList = index.getNums();
       List<Float> rtList = index.getRts();
       List<WindowRange> rangeList = index.getRangeList();
@@ -213,7 +213,7 @@ public class AirdImportTask extends AbstractTask {
     }
   }
 
-  private SimpleScan buildSimpleScan(Spectrum spectrum, List<CV> cvList, WindowRange windowRange,
+  private SimpleScan buildSimpleScan(Spectrum<double[]> spectrum, List<CV> cvList, WindowRange windowRange,
       Integer num, float rt, int msLevel, Scan parentScan, boolean isMinute) {
     MassSpectrumType massSpectrumType = null;
     PolarityType polarityType = null;
@@ -263,7 +263,7 @@ public class AirdImportTask extends AbstractTask {
     }
 
     SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel, rt * (isMinute ? 60 : 1),
-        msMsInfo, spectrum.mzs(), ArrayUtil.fromFloatToDouble(spectrum.ints()), massSpectrumType,
+        msMsInfo, spectrum.getMzs(), ArrayUtil.fromFloatToDouble(spectrum.getInts()), massSpectrumType,
         polarityType, filterString, mzRange);
     return msScan;
   }
