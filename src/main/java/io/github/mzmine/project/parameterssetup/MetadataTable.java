@@ -20,9 +20,20 @@ package io.github.mzmine.project.parameterssetup;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Holds the metadata of a project and represents it as a table (parameters are columns).
@@ -30,6 +41,8 @@ import java.util.Set;
 public class MetadataTable {
 
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
+
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MetadataTable() {
     this.data = new HashMap<>();
@@ -136,5 +149,67 @@ public class MetadataTable {
     }
 
     data.get(column).put(file, value);
+  }
+
+  /**
+   * Export the metadata table using .tsv format.
+   * todo: add extra argument defining the format of the exported data (e.g. GNPS or .tsv)
+   * File format would be:
+   * ====================================================================
+   * NAME DESC FILE VALUE
+   * ====================================================================
+   * NAME  - parameter name
+   * DESC  - description of the parameter
+   * FILE  - name of the file to which the parameter belong to
+   * VALUE - value of the parameter
+   *
+   * @param file the file in which exported metadata will be stored
+   * @return true if the export was successful, false otherwise
+   */
+  public boolean export(File file) {
+    try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+      // in case if there's no metadata to export
+      if (data.isEmpty()) {
+        logger.info("There's no metadata to export");
+        return false;
+      }
+
+      // create the .tsv file header
+      String[] headerFields = {"NAME", "DESC", "FILE", "VALUE"};
+      String header = String.join("\t", headerFields);
+      header += System.lineSeparator();
+      // write the header down
+      bufferedWriter.write(header);
+      logger.info("Header was successfully written down");
+
+      // write the parameters value down
+      for (var param : data.keySet()) {
+        var record = data.get(param);
+        for (var rawDataFile : record.keySet()) {
+          var paramVal = record.get(rawDataFile);
+          // create the record line
+          List<String> lineFieldsValues = new ArrayList<>();
+
+          lineFieldsValues.add(param.getTitle());
+          lineFieldsValues.add(param.getDescription());
+          lineFieldsValues.add(rawDataFile.getName());
+          lineFieldsValues.add(paramVal.toString());
+
+          String line = String.join("\t", lineFieldsValues);
+          line += System.lineSeparator();
+          bufferedWriter.write(line);
+        }
+      }
+
+      logger.info("The metadata table was successfully exported");
+    } catch (FileNotFoundException fileNotFoundException) {
+      logger.info("Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
+      return false;
+    } catch (IOException ioException) {
+      logger.info("Error while writing the exported metadata down: " + ioException.getMessage());
+      return false;
+    }
+
+    return true;
   }
 }
