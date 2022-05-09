@@ -67,7 +67,8 @@ public class GroupMS2SubParameters extends SimpleParameterSet {
 
   public GroupMS2SubParameters() {
     super(new Parameter[]{rtTol, mzTol, limitRTByFeature, combineTimsMsMs,
-        lockMS2ToFeatureMobilityRange, outputNoiseLevel});
+            lockMS2ToFeatureMobilityRange, outputNoiseLevel},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_ms2_scan_pairing/ms2_scan_pairing.html");
   }
 
   @Override
