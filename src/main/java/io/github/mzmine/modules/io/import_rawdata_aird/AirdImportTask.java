@@ -113,7 +113,7 @@ public class AirdImportTask extends AbstractTask {
             "Parsing Cancelled, The aird index file(.json, metadata) not exists or the json file is broken.");
         return;
       }
-      totalScans = airdInfo.getTotalScanCount().intValue();
+      totalScans = airdInfo.getTotalCount().intValue();
       switch (AirdType.getType(airdInfo.getType())) {
         case DDA -> loadAsDDA((DDAParser) parser);
         case DIA -> loadAsDIA((DIAParser) parser);
@@ -162,7 +162,7 @@ public class AirdImportTask extends AbstractTask {
       setErrorMessage("Parsing Cancelled, No MS1 Scan found.");
       return;
     }
-    boolean isMinute = airdInfo.getRtUnit().equals("minute");
+    boolean isMinute = "minute".equals(airdInfo.getRtUnit());
 
     for (int i = 0; i < msList.size(); i++) {
       DDAMs ms1 = msList.get(i);
@@ -221,23 +221,20 @@ public class AirdImportTask extends AbstractTask {
     Double lowestMz = null;
     Double highestMz = null;
 
+    if (airdInfo.getPolarity().equals(PolarityType.POSITIVE.name())) {
+      polarityType = PolarityType.POSITIVE;
+    }
+    if (airdInfo.getPolarity().equals(PolarityType.NEGATIVE.name())) {
+      polarityType = PolarityType.NEGATIVE;
+    }
+    if (airdInfo.getMsType().equals(MassSpectrumType.PROFILE.name())) {
+      massSpectrumType = MassSpectrumType.PROFILE;
+    }
+    if (airdInfo.getMsType().equals(MassSpectrumType.CENTROIDED.name())) {
+      massSpectrumType = MassSpectrumType.CENTROIDED;
+    }
+
     for (CV cv : cvList) {
-      if (cv.getCvid().contains(PSI.cvPolarityPositive)) {
-        polarityType = PolarityType.POSITIVE;
-        continue;
-      }
-      if (cv.getCvid().contains(PSI.cvPolarityNegative)) {
-        polarityType = PolarityType.NEGATIVE;
-        continue;
-      }
-      if (cv.getCvid().contains(PSI.cvProfileSpectrum)) {
-        massSpectrumType = MassSpectrumType.PROFILE;
-        continue;
-      }
-      if (cv.getCvid().contains(PSI.cvCentroidSpectrum)) {
-        massSpectrumType = MassSpectrumType.CENTROIDED;
-        continue;
-      }
       if (cv.getCvid().contains(PSI.cvScanFilterString)) {
         filterString = cv.getValue();
         continue;
@@ -262,9 +259,10 @@ public class AirdImportTask extends AbstractTask {
       msMsInfo = buildMsMsInfo(airdInfo, windowRange, parentScan);
     }
 
-    SimpleScan msScan = new SimpleScan(newMZmineFile, num, msLevel, rt * (isMinute ? 60 : 1),
+    SimpleScan msScan = new SimpleScan(newMZmineFile, num+1, msLevel, rt * (isMinute ? 60 : 1),
         msMsInfo, spectrum.getMzs(), ArrayUtil.fromFloatToDouble(spectrum.getInts()), massSpectrumType,
         polarityType, filterString, mzRange);
+
     return msScan;
   }
 
