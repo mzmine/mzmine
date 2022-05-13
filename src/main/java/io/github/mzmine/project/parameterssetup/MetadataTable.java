@@ -18,21 +18,31 @@
 
 package io.github.mzmine.project.parameterssetup;
 
+import static io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes.DATETIME;
+import static io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes.DOUBLE;
+import static io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes.TEXT;
+
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
+import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
+import io.github.mzmine.project.parameterssetup.columns.DoubleMetadataColumn;
 import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
+import io.github.mzmine.project.parameterssetup.columns.StringMetadataColumn;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -42,7 +52,16 @@ public class MetadataTable {
 
   private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  // define the header fields names of the file with imported metadata
+  private enum HeaderFields {
+    NAME, DESC, TYPE, FILE, VALUE
+  }
+
+  // we will need HeaderFields enum converted into array
+  private final String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
+      .toArray(String[]::new);
+
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public MetadataTable() {
     this.data = new HashMap<>();
@@ -156,9 +175,10 @@ public class MetadataTable {
    * todo: add extra argument defining the format of the exported data (e.g. GNPS or .tsv)
    * File format would be:
    * ====================================================================
-   * NAME DESC FILE VALUE
+   * NAME TYPE DESC FILE VALUE
    * ====================================================================
    * NAME  - parameter name
+   * TYPE  - type of the parameter
    * DESC  - description of the parameter
    * FILE  - name of the file to which the parameter belong to
    * VALUE - value of the parameter
@@ -166,8 +186,8 @@ public class MetadataTable {
    * @param file the file in which exported metadata will be stored
    * @return true if the export was successful, false otherwise
    */
-  public boolean export(File file) {
-    try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+  public boolean exportMetadata(File file) {
+    try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, false))) {
       // in case if there's no metadata to export
       if (data.isEmpty()) {
         logger.info("There's no metadata to export");
@@ -175,8 +195,7 @@ public class MetadataTable {
       }
 
       // create the .tsv file header
-      String[] headerFields = {"NAME", "DESC", "FILE", "VALUE"};
-      String header = String.join("\t", headerFields);
+      String header = String.join("\t", HeaderFieldsArr);
       header += System.lineSeparator();
       // write the header down
       bufferedWriter.write(header);
@@ -187,11 +206,18 @@ public class MetadataTable {
         var record = data.get(param);
         for (var rawDataFile : record.keySet()) {
           var paramVal = record.get(rawDataFile);
+          // pattern match the parameter type
+          AvailableTypes paramType = switch (param) {
+            case (StringMetadataColumn stringMetadataColumn) -> TEXT;
+            case (DoubleMetadataColumn doubleMetadataColumn) -> DOUBLE;
+            case (DateMetadataColumn dateMetadataColumn) -> DATETIME;
+          };
+
           // create the record line
           List<String> lineFieldsValues = new ArrayList<>();
-
           lineFieldsValues.add(param.getTitle());
           lineFieldsValues.add(param.getDescription());
+          lineFieldsValues.add(paramType.toString());
           lineFieldsValues.add(rawDataFile.getName());
           lineFieldsValues.add(paramVal.toString());
 
@@ -207,6 +233,111 @@ public class MetadataTable {
       return false;
     } catch (IOException ioException) {
       logger.info("Error while writing the exported metadata down: " + ioException.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Import the metadata to the metadata table.
+   * todo: add extra argument defining the format of the imported data (e.g. GNPS or .tsv)
+   *
+   * @param file       source of the metadata
+   * @param appendMode whether the new metadata should be appended or they should replace the old
+   *                   metadata
+   * @return true if the metadata were successfully imported, false otherwise
+   */
+  public boolean importMetadata(File file, boolean appendMode) {
+    try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+      // create the .tsv file header
+      String header = String.join("\t", HeaderFieldsArr);
+      // compare the headers
+      if (!header.equals(bufferedReader.readLine())) {
+        logger.info("Import failed: wrong format of the header");
+        return false;
+      }
+      logger.info("The header corresponds, OK");
+
+      // find the field position in the string
+      // it's useful in case if you imagine that the position of a field could be changed,
+      // with this implementation no code changes would be necessary
+      int namePos = IntStream.range(0, HeaderFieldsArr.length)
+          .filter(i -> HeaderFieldsArr[i].equals(HeaderFields.NAME.toString())).findFirst()
+          .orElse(-1);
+      int typePos = IntStream.range(0, HeaderFieldsArr.length)
+          .filter(i -> HeaderFieldsArr[i].equals(HeaderFields.TYPE.toString())).findFirst()
+          .orElse(-1);
+      int descPos = IntStream.range(0, HeaderFieldsArr.length)
+          .filter(i -> HeaderFieldsArr[i].equals(HeaderFields.DESC.toString())).findFirst()
+          .orElse(-1);
+      int filePos = IntStream.range(0, HeaderFieldsArr.length)
+          .filter(i -> HeaderFieldsArr[i].equals(HeaderFields.FILE.toString())).findFirst()
+          .orElse(-1);
+      int valuePos = IntStream.range(0, HeaderFieldsArr.length)
+          .filter(i -> HeaderFieldsArr[i].equals(HeaderFields.VALUE.toString())).findFirst()
+          .orElse(-1);
+      if (namePos == -1 || typePos == -1 || descPos == -1 || filePos == -1 || valuePos == -1) {
+        logger.info("Import failed: bad fields to pos mapping");
+        return false;
+      }
+
+      // we will need the info about the rawDataFiles to decide whether to import a parameter or not
+      // if the parameter structure is normal but there's no such file for it to be mapped to, then
+      // we will just skip this parameter
+      RawDataFile[] files = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+
+      String line;
+      while ((line = bufferedReader.readLine()) != null) {
+        String[] splitLine = line.split("\t");
+
+        if (splitLine.length != HeaderFieldsArr.length) {
+          logger.info("Import failed: wrong number of the fields in line");
+          return false;
+        }
+
+        // find if there's a rawDataFile corresponding to this parameter in the project
+        int rawDataFileInd;
+        logger.info(splitLine[filePos] + " " + files.length);
+        if ((rawDataFileInd = IntStream.range(0, files.length)
+            .filter(i -> files[i].getName().equals(splitLine[filePos])).findFirst().orElse(-1))
+            != -1) {
+          // match the parameter according to its type
+          MetadataColumn parameterMatched = switch (AvailableTypes.valueOf(splitLine[typePos])) {
+            case TEXT -> {
+              yield new StringMetadataColumn(splitLine[namePos]);
+            }
+            case DOUBLE -> {
+              yield new DoubleMetadataColumn(splitLine[namePos]);
+            }
+            case DATETIME -> {
+              yield new DateMetadataColumn(splitLine[namePos]);
+            }
+          };
+          logger.info("RawDataFile corresponding to this metadata parameter is found");
+
+          // if the parameter value is in the right format then save it to the metadata table,
+          // otherwise abort importing
+          Object convertedParameterInput = parameterMatched.convert(splitLine[valuePos], null);
+          if (parameterMatched.checkInput(convertedParameterInput)) {
+            setValue(parameterMatched, files[rawDataFileInd], convertedParameterInput);
+          } else {
+            logger.info("Import failed: wrong parameter value format");
+            return false;
+          }
+          // todo: need to update the metadata table when removing a RawDataFile
+          //       the second option is to add equals() and hashCode() methods
+          //       for RawDataFiles; it will work to, but imho the 1. option is better
+        }
+      }
+
+      logger.info("Metadata table: ");
+      getData().forEach((par, value) -> logger.info(par.getTitle() + ":" + value));
+    } catch (FileNotFoundException fileNotFoundException) {
+      logger.info("Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
+      return false;
+    } catch (IOException ioException) {
+      logger.info("Error while reading the metadata: " + ioException.getMessage());
       return false;
     }
 

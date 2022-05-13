@@ -31,6 +31,7 @@ import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
 import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
 import io.github.mzmine.project.parameterssetup.columns.StringMetadataColumn;
 import io.github.mzmine.util.ExitCode;
+import java.io.File;
 import java.time.LocalDateTime;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -62,6 +63,8 @@ public class ProjectParametersSetupDialogController {
     parameterTable.setEditable(true);
     parameterTable.getSelectionModel().setCellSelectionEnabled(true);
     fileList = currentProject.getDataFiles();
+    metadataTable.importMetadata(new File("metadata_exp.tsv"), false);
+
     updateParametersToTable();
   }
 
@@ -287,6 +290,9 @@ public class ProjectParametersSetupDialogController {
 
   @FXML
   public void onClickOK(ActionEvent actionEvent) {
+    // testing export
+    metadataTable.exportMetadata(new File("metadata_exp.tsv"));
+
     currentStage.close();
   }
 

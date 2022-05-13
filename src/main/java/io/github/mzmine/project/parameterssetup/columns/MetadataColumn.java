@@ -81,4 +81,27 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    */
   public abstract T convert(String input, T defaultValue);
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MetadataColumn)) {
+      return false;
+    }
+
+    MetadataColumn<?> that = (MetadataColumn<?>) o;
+
+    if (!title.equals(that.title)) {
+      return false;
+    }
+    return description != null ? description.equals(that.description) : that.description == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = title.hashCode();
+    result = 31 * result + (description != null ? description.hashCode() : 0);
+    return result;
+  }
 }
