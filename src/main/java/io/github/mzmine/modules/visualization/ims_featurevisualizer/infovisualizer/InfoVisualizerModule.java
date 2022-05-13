@@ -16,24 +16,30 @@
  *
  */
 
-package io.github.mzmine.modules.visualization.infovisualizer;
+package io.github.mzmine.modules.visualization.ims_featurevisualizer.infovisualizer;
 
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import io.github.mzmine.datamodel.features.FeatureList;
+import org.jetbrains.annotations.NotNull;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.ParameterSet;
 
-public class InfoVisualizerParameters extends SimpleParameterSet {
+public class InfoVisualizerModule implements MZmineModule {
 
-  /**
-   * Windows size and position
-   */
-  public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+  private static final String MODULE_NAME = "Feature list info window";
 
-  /**
-   * Create the parameter set.
-   */
-  public InfoVisualizerParameters() {
-    super(new Parameter[] {windowSettings});
+  @Override
+  public @NotNull String getName() {
+    return MODULE_NAME;
+  }
+
+  public static void showNewPeakListInfo(FeatureList featureList) {
+    InfoVisualizerWindow newWindow = new InfoVisualizerWindow(featureList);
+    newWindow.show();
+  }
+
+  @Override
+  public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
+    return InfoVisualizerParameters.class;
   }
 
 }

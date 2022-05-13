@@ -20,6 +20,7 @@ package io.github.mzmine.util.scans;
 
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.AtomicDouble;
+import gnu.trove.list.array.TDoubleArrayList;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Frame;
 import io.github.mzmine.datamodel.IMSRawDataFile;
@@ -470,7 +471,7 @@ public class ScanUtils {
           }
 
           double slope = (rightNeighbourValue - leftNeighbourValue) / (rightNeighbourBinIndex
-                                                                       - leftNeighbourBinIndex);
+              - leftNeighbourBinIndex);
           binValues[binIndex] = leftNeighbourValue + slope * (binIndex - leftNeighbourBinIndex);
 
         }
@@ -1564,6 +1565,80 @@ public class ScanUtils {
           new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
       return Arrays.copyOf(scan, n);
     }
+  }
+
+  /**
+   * Filters the raw mz + intensity data of a scan to remove neighbouring zeros.
+   * @param scan The scan.
+   * @return A multidimensional array with the filtered values. [0] are m/zs, [1] are
+   * intensities.
+   */
+  public static double[][] removeExtraZeros(double[][] scan) {
+    // remove all extra zeros
+    final int numDp = scan.length;
+    final TDoubleArrayList filteredMzs = new TDoubleArrayList();
+    final TDoubleArrayList filteredIntensities = new TDoubleArrayList();
+    filteredMzs.add(scan[0][0]);
+    filteredIntensities.add(scan[0][1]);
+    for (int i = 1; i < numDp - 1;
+        i++) { // previous , this and next are zero --> do not add this data point
+      if (scan[i-1][1] != 0 || scan[i][1] != 0
+          || scan[i+1][1] != 0) {
+        filteredMzs.add(scan[i][0]);
+        filteredIntensities.add(scan[i][1]);
+      }
+    }
+    filteredMzs.add(scan[numDp-1][0]);
+    filteredIntensities.add(scan[numDp-1][1]);
+
+    //Convert the ArrayList to an array.
+    double[][] filteredScan = new double[filteredMzs.size()][2];
+    for( int i = 0; i < filteredMzs.size(); i++){
+      filteredScan[i][0] = filteredMzs.get(i);
+      filteredScan[i][1] = filteredIntensities.get(i);
+    }
+
+    return filteredScan;
+  }
+
+  /**
+   * Scans a list of scans to find the max intensity value.
+   * @param scans The list of scans.
+   * @return The max intensity.
+   */
+  public static double getMaxIntensity(List<double[][]> scans){
+
+    //Getting the maximal intensity from the list of spectra.
+    double maxIntensity = 0;
+    for (double[][] scan : scans) {
+      for (double[] datapoints : scan) {
+        if (datapoints[1] > maxIntensity) {
+          maxIntensity = datapoints[1];
+        }
+      }
+    }
+    return  maxIntensity;
+  }
+
+  /**
+   * Method to get the min m/z-value from a list of scans.
+   * @param scans The scans.
+   * @return Returns the minimal m/z-value.
+   */
+  public static double getMinMZ(List<double[][]> scans){
+
+    double[][] firstScan = scans.get(0);
+    double minMZ = firstScan[0][0];
+
+    for(int i = 1; i < scans.size(); i++){
+      double[][] scan = scans.get(i);
+      double minMzScan = scan[0][0];
+      if(minMzScan < minMZ){
+        minMZ = minMzScan;
+      }
+    }
+
+    return minMZ;
   }
 
   /**
