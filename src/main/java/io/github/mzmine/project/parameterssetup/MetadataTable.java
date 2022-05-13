@@ -101,6 +101,19 @@ public class MetadataTable {
   }
 
   /**
+   * Remove the all parameters values for a passed file.
+   *
+   * @param file file for which parameters values should be deleted.
+   */
+  public void removeFile(RawDataFile file) {
+    // iterate through the all parameters and try to delete the parameters
+    // values mapped to the passed file
+    for (var param : data.keySet()) {
+      data.get(param).remove(file);
+    }
+  }
+
+  /**
    * Is the specified metadata column obtained in the metadata table?
    *
    * @param column project parameter column
