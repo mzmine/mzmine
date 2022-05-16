@@ -24,13 +24,14 @@ import org.jetbrains.annotations.NotNull;
 public class MassvoltammogramTab extends MZmineTab {
 
   private final Image MOVE_PLOT_ICON = FxIconUtil.loadImageFromResources(
-      "icons/Massvoltammogram/btnMove.png");
+      "icons/massvoltammogram/btnMove.png");
   private final Image RESET_PLOT_ICON = FxIconUtil.loadImageFromResources(
-      "icons/Massvoltammogram/btnReset.png");
+      "icons/massvoltammogram/btnReset.png");
   private final Image ROTATE_PLOT_ICON = FxIconUtil.loadImageFromResources(
-      "icons/Massvoltammogram/btnRotate.png");
+      "icons/massvoltammogram/btnRotate.png");
   private final Image EXPORT_PLOT_ICON = FxIconUtil.loadImageFromResources("icons/exporticon.png");
-  private final Image EDIT_MZ_RANGE_ICON = FxIconUtil.loadImageFromResources("icons/Massvoltammogram/btnEditMzRange.png");
+  private final Image EDIT_MZ_RANGE_ICON = FxIconUtil.loadImageFromResources(
+      "icons/massvoltammogram/btnEditMzRange.png");
 
   @Override
   public @NotNull Collection<? extends RawDataFile> getRawDataFiles() {

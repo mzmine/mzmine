@@ -72,8 +72,6 @@ public class MassvoltamogramUtils {
     final double minMzUserInput = mzRange.lowerEndpoint();
     final double maxMzUserInput = mzRange.upperEndpoint();
 
-    System.out.println(minMZ);
-
     for (double[][] scan : scans) {
 
       //Initializing DoubleArrayLists to add the m/z and intensity values to.
