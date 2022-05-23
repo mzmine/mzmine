@@ -1,0 +1,152 @@
+/*
+ *  Copyright 2006-2020 The MZmine Development Team
+ *
+ *  This file is part of MZmine.
+ *
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
+ *
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
+ */
+
+package io.github.mzmine.modules.dataprocessing.id_ccscalibration.external;
+
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.CCSCalibration;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.DriftTubeCCSCalibration;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+public class AgilentImsCalibrationReader {
+
+  private static final Logger logger = Logger.getLogger(
+      AgilentImsCalibrationReader.class.getName());
+
+  private static final String AGILENT_ACQDATA = "AcqData";
+  private static final String AGILENT_CALIBRATION_FILE = "OverrideImsCal.xml";
+
+  private AgilentImsCalibrationReader() {}
+
+  public static CCSCalibration readCalibrationFile(@NotNull final File file)
+      throws RuntimeException {
+    final File calFile = findCalibrationFilePath(file);
+
+    if (calFile == null) {
+      throw new IllegalArgumentException("Cannot find calibration file " + file.getAbsolutePath());
+    }
+
+    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+
+    DocumentBuilder dBuilder;
+    Document calibration;
+    try {
+      dBuilder = dbFactory.newDocumentBuilder();
+      calibration = dBuilder.parse(calFile);
+    } catch (ParserConfigurationException | IOException | SAXException e) {
+      logger.log(Level.WARNING, "Cannot parse calibration file. %s".formatted(e.getMessage()), e);
+      throw new IllegalArgumentException(
+          "Cannot parse calibration file " + calFile.getAbsolutePath());
+    }
+
+    XPathFactory factory = XPathFactory.newInstance();
+    XPath xpath = factory.newXPath();
+
+    final String sampleName = calFile.getParentFile().getParentFile().getName();
+    try {
+      XPathExpression driftGasExpression = xpath.compile(
+          "//OverrideImsCalibration/SingleFieldCcsCalibration/DriftGas");
+      Element gasElement = (Element) driftGasExpression.evaluate(calibration, XPathConstants.NODE);
+      logger.finest(() -> "Calibration: " + sampleName + " DriftGas: " + gasElement.getTextContent()
+          + " mass=" + gasElement.getAttribute("mass"));
+      if (!gasElement.getTextContent().equals("N2")) {
+        throw new IllegalArgumentException(
+            "CCS calibration is not supported for drift gases other than nitrogen.");
+      }
+
+      XPathExpression tfixExpresison = xpath.compile(
+          "//OverrideImsCalibration/SingleFieldCcsCalibration/TFix");
+      Element tfixElement = (Element) tfixExpresison.evaluate(calibration, XPathConstants.NODE);
+      logger.finest(() -> "Calibration: " + sampleName + " tfix: " + tfixElement.getTextContent());
+      final double tfix = Double.parseDouble(tfixElement.getTextContent());
+
+      XPathExpression betaExpression = xpath.compile(
+          "//OverrideImsCalibration/SingleFieldCcsCalibration/Beta");
+      Element betaElement = (Element) betaExpression.evaluate(calibration, XPathConstants.NODE);
+      logger.finest(() -> "Calibration: " + sampleName + " beta: " + betaElement.getTextContent());
+      final double beta = Double.parseDouble(betaElement.getTextContent());
+
+      return new DriftTubeCCSCalibration(beta, tfix, -1, -1);
+
+    } catch (XPathExpressionException e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
+    } throw new IllegalStateException("Cannot evaluate calibration file.");
+  }
+
+  /**
+   * Finds the calibration file from a file path. The path can be the .d directory, the AcqData
+   * directory or the OverrideImsCal.xml.
+   *
+   * @param file The initial file path.
+   * @return The path to the OverrideImsCal.xml.
+   */
+  @Nullable
+  private static File findCalibrationFilePath(@NotNull File file) {
+    if (!file.exists()) {
+      logger.warning(
+          () -> "Cannot read calibration file. File does not exist. " + file.getAbsolutePath());
+      return null;
+    }
+
+    final File calibrationFile;
+    if (file.isDirectory()) {
+      if (file.getName().endsWith(".d")) {
+        calibrationFile = new File(
+            file.getAbsolutePath() + File.separator + AGILENT_ACQDATA + File.separator
+                + AGILENT_CALIBRATION_FILE);
+        if (!calibrationFile.exists()) {
+          logger.warning(() -> "Agilent raw " + file.getAbsolutePath() + " is not calibrated. File "
+              + file.toPath().relativize(calibrationFile.toPath()) + " does not exist.");
+          return null;
+        }
+      } else if (file.getName().endsWith(AGILENT_ACQDATA)) {
+        calibrationFile = new File(
+            file.getAbsolutePath() + File.separator + AGILENT_CALIBRATION_FILE);
+        if (!calibrationFile.exists()) {
+          logger.warning(() -> "Agilent raw " + file.getAbsolutePath() + " is not calibrated. File "
+              + file.toPath().relativize(calibrationFile.toPath()) + " does not exist.");
+          return null;
+        }
+      } else {
+        logger.warning(() -> "Invalid calibration file path." + file.getAbsolutePath());
+        return null;
+      }
+    } else if (file.isFile() && file.getName().equals(AGILENT_CALIBRATION_FILE)) {
+      calibrationFile = file;
+    } else {
+      logger.warning(() -> "Invalid calibration file path." + file.getAbsolutePath());
+      return null;
+    }
+    return calibrationFile;
+  }
+}

@@ -43,7 +43,7 @@ public class IsotopePatternType extends DataType<IsotopePattern> {
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "isotope_pattern";
+    return "isotopes";
   }
 
   @Override

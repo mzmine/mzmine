@@ -31,6 +31,7 @@ import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureGroupType;
 import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeaturesType;
+import io.github.mzmine.datamodel.features.types.ListWithSubsType;
 import io.github.mzmine.datamodel.features.types.annotations.CompoundDatabaseMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.LipidMatchListType;
 import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotation;
@@ -38,6 +39,7 @@ import io.github.mzmine.datamodel.features.types.annotations.ManualAnnotationTyp
 import io.github.mzmine.datamodel.features.types.annotations.SpectralLibraryMatchesType;
 import io.github.mzmine.datamodel.features.types.annotations.formula.FormulaListType;
 import io.github.mzmine.datamodel.features.types.annotations.iin.IonIdentityListType;
+import io.github.mzmine.datamodel.features.types.modifiers.AnnotationType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.CCSType;
 import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
@@ -57,7 +59,7 @@ import io.github.mzmine.util.FeatureUtils;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 import io.github.mzmine.util.scans.FragmentScanSorter;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -263,7 +265,7 @@ public class ModularFeatureListRow implements FeatureListRow {
     }
     if (!flist.equals(feature.getFeatureList())) {
       throw new IllegalArgumentException("Cannot add feature with different feature list to this "
-                                         + "row. Create feature with the correct feature list as an argument.");
+          + "row. Create feature with the correct feature list as an argument.");
     }
     if (raw == null) {
       throw new IllegalArgumentException("Raw file cannot be null");
@@ -496,7 +498,8 @@ public class ModularFeatureListRow implements FeatureListRow {
   @Override
   public List<FeatureIdentity> getPeakIdentities() {
     ManualAnnotation manual = getManualAnnotation();
-    return manual == null ? List.of() : manual.getIdentities();
+    return manual == null ? List.of()
+        : Objects.requireNonNullElse(manual.getIdentities(), List.of());
   }
 
   public void setPeakIdentities(List<FeatureIdentity> identities) {
@@ -550,6 +553,27 @@ public class ModularFeatureListRow implements FeatureListRow {
     return list != null ? list : List.of();
   }
 
+  /**
+   * Checks if this row contains an annotation based on the {@link ListWithSubsType} and the {@link
+   * AnnotationType} and if the corresponding entry is not null or empty.
+   *
+   * @return True if a value that is not null or empty for a {@link ListWithSubsType} and a {@link
+   * AnnotationType} is contained in this feature.
+   */
+  @Override
+  public boolean isIdentified() {
+    for (Entry<DataType, Object> entry : getMap().entrySet()) {
+      final DataType dt = entry.getKey();
+      if (dt instanceof ListWithSubsType<?> listType && dt instanceof AnnotationType) {
+        final List<?> list = get(listType);
+        if (list != null && !list.isEmpty()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public void setCompoundAnnotations(List<CompoundDBAnnotation> annotations) {
     synchronized (getMap()) {
@@ -558,9 +582,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void addSpectralLibraryMatch(SpectralDBFeatureIdentity id) {
+  public void addSpectralLibraryMatch(SpectralDBAnnotation id) {
     synchronized (getMap()) {
-      List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
+      List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
       if (matches == null) {
         matches = new ArrayList<>();
       }
@@ -570,9 +594,9 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void addSpectralLibraryMatches(List<SpectralDBFeatureIdentity> matches) {
+  public void addSpectralLibraryMatches(List<SpectralDBAnnotation> matches) {
     synchronized (getMap()) {
-      List<SpectralDBFeatureIdentity> old = get(SpectralLibraryMatchesType.class);
+      List<SpectralDBAnnotation> old = get(SpectralLibraryMatchesType.class);
       if (old == null) {
         old = new ArrayList<>();
       }
@@ -588,16 +612,15 @@ public class ModularFeatureListRow implements FeatureListRow {
   }
 
   @Override
-  public void setSpectralLibraryMatch(List<SpectralDBFeatureIdentity> matches) {
+  public void setSpectralLibraryMatch(List<SpectralDBAnnotation> matches) {
     synchronized (getMap()) {
       set(SpectralLibraryMatchesType.class, matches);
     }
   }
 
   @Override
-  @NotNull
-  public List<SpectralDBFeatureIdentity> getSpectralLibraryMatches() {
-    List<SpectralDBFeatureIdentity> matches = get(SpectralLibraryMatchesType.class);
+  public @NotNull List<SpectralDBAnnotation> getSpectralLibraryMatches() {
+    List<SpectralDBAnnotation> matches = get(SpectralLibraryMatchesType.class);
     return matches == null ? List.of() : matches;
   }
 
@@ -692,6 +715,22 @@ public class ModularFeatureListRow implements FeatureListRow {
 
     return null;
   }
+
+
+  @Override
+  public boolean hasIsotopePattern() {
+    ModularFeature[] features = getFilesFeatures().values().toArray(new ModularFeature[0]);
+
+    for (ModularFeature feature : features) {
+      IsotopePattern ip = feature.getIsotopePattern();
+      if (ip != null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
 
   public List<ResultFormula> getFormulas() {
     return get(FormulaListType.class);

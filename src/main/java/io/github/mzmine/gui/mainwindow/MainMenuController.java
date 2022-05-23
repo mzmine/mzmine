@@ -38,6 +38,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -50,7 +51,7 @@ import javafx.scene.control.MenuItem;
  */
 public class MainMenuController {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MainMenuController.class.getName());
 
   @FXML
   private Menu recentProjectsMenu;
@@ -161,9 +162,13 @@ public class MainMenuController {
 
     logger.info("Setting parameters for module " + module.getName());
 
-    ExitCode exitCode = moduleParameters.showSetupDialog(true);
-    if (exitCode != ExitCode.OK) {
-      return;
+    try {
+      ExitCode exitCode = moduleParameters.showSetupDialog(true);
+      if (exitCode != ExitCode.OK) {
+        return;
+      }
+    } catch (Exception e) {
+      logger.log(Level.WARNING, e.getMessage(), e);
     }
 
     ParameterSet parametersCopy = moduleParameters.cloneParameterSet();

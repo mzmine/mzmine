@@ -19,6 +19,8 @@
 package io.github.mzmine.gui.mainwindow.introductiontab;
 
 import io.github.mzmine.gui.mainwindow.SimpleTab;
+import io.github.mzmine.util.javafx.HtmlLinkOpenExternalBrowserListener;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 public class MZmineIntroductionTab extends SimpleTab {
@@ -27,7 +29,10 @@ public class MZmineIntroductionTab extends SimpleTab {
     super("Welcome to MZmine 3");
 
     final WebView browser = new WebView();
-    browser.getEngine().load(getClass().getResource("MZmineIntroduction.html").toString());
+    final WebEngine engine = browser.getEngine();
+    engine.load(getClass().getResource("MZmineIntroduction.html").toString());
+    engine.getLoadWorker().stateProperty()
+        .addListener(new HtmlLinkOpenExternalBrowserListener(browser));
     super.setContent(browser);
   }
 }

@@ -45,7 +45,7 @@ public class SavitzkyGolayFeatureResolverParameters extends GeneralResolverParam
 
   public SavitzkyGolayFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, MIN_PEAK_HEIGHT,
-        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE});
+        PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL, RENGINE_TYPE, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override

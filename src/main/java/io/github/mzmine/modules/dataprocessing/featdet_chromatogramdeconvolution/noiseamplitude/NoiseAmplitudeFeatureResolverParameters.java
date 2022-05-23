@@ -44,7 +44,7 @@ public class NoiseAmplitudeFeatureResolverParameters extends GeneralResolverPara
 
   public NoiseAmplitudeFeatureResolverParameters() {
     super(new Parameter[]{PEAK_LISTS, SUFFIX, handleOriginal, groupMS2Parameters, MIN_PEAK_HEIGHT,
-        PEAK_DURATION, NOISE_AMPLITUDE});
+        PEAK_DURATION, NOISE_AMPLITUDE, MIN_NUMBER_OF_DATAPOINTS});
   }
 
   @Override

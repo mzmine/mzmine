@@ -48,45 +48,41 @@ import org.jetbrains.annotations.NotNull;
 
 public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
+  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
+  public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT = new OptionalModuleParameter<>(
+      "Submit to GNPS", "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
+  public static final ComboParameter<FeatureListRowsFilter> FILTER = new ComboParameter<>(
+      "Filter rows",
+      "Limit the exported rows to those with MS/MS data or annotated rows (with ion identity)",
+      FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
+  public static final BooleanParameter OPEN_FOLDER = new BooleanParameter("Open folder",
+      "Opens the export folder", false);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>(
+      "Merge MS/MS (experimental)",
+      "Merge high-quality MS/MS instead of exporting just the most intense one.",
+      new MsMsSpectraMergeParameters(), true);
+  public static final ComboParameter<FeatureTableExportType> CSV_TYPE = new ComboParameter<>(
+      "CSV export",
+      "Either the new comprehensive export of MZmine 3 or the legacy export from MZmine 2",
+      FeatureTableExportType.values(), FeatureTableExportType.SIMPLE);
+  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY = new ComboParameter<>(
+      "Feature intensity", "Intensity in the quantification table (csv).",
+      FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
   private static final List<ExtensionFilter> extensions = List.of( //
       new ExtensionFilter("MGF mascot file (spectra)", "*.mgf"), //
       new ExtensionFilter("All files", "*.*") //
   );
-
-
-  public static final FeatureListsParameter FEATURE_LISTS = new FeatureListsParameter();
-
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Base name of the output files (.MGF and .CSV). "
-      + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-      + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
-      + "If the file already exists, it will be overwritten.",
-      extensions, FileSelectionType.SAVE);
-
-  public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT =
-      new OptionalModuleParameter<>("Submit to GNPS",
-          "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
-
-  public static final ComboParameter<FeatureListRowsFilter> FILTER = new ComboParameter<>(
-      "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows (with ion identity)",
-      FeatureListRowsFilter.values(), FeatureListRowsFilter.MS2_OR_ION_IDENTITY);
-
-  public static final BooleanParameter OPEN_FOLDER =
-      new BooleanParameter("Open folder", "Opens the export folder", false);
-
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
-      new OptionalModuleParameter<>("Merge MS/MS (experimental)",
-          "Merge high-quality MS/MS instead of exporting just the most intense one.",
-          new MsMsSpectraMergeParameters(), true);
-
-  public static final ComboParameter<FeatureMeasurementType> FEATURE_INTENSITY =
-      new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
-          FeatureMeasurementType.values(), FeatureMeasurementType.AREA);
+          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
+          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourceFeatureListNameblah.mgf\"). "
+          + "If the file already exists, it will be overwritten.", extensions,
+      FileSelectionType.SAVE);
 
 
   public GnpsFbmnExportAndSubmitParameters() {
-    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY, SUBMIT,
-        OPEN_FOLDER});
+    super(new Parameter[]{FEATURE_LISTS, FILENAME, MERGE_PARAMETER, FILTER, FEATURE_INTENSITY,
+        CSV_TYPE, SUBMIT, OPEN_FOLDER}, "https://mzmine.github.io/mzmine_documentation/module_docs/GNPS_export/gnps_export.html");
   }
 
   @Override

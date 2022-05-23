@@ -18,23 +18,19 @@
 
 package io.github.mzmine.parameters.parametertypes.selectors;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.features.FeatureList;
 import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.util.RangeUtils;
+import io.github.mzmine.util.XMLUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import java.util.Objects;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
-
-import io.github.mzmine.parameters.UserParameter;
-import io.github.mzmine.util.XMLUtils;
 
 public class FeatureSelectionParameter
     implements UserParameter<List<FeatureSelection>, FeatureSelectionComponent> {
@@ -97,8 +93,8 @@ public class FeatureSelectionParameter
       Element selElement = (Element) selItems.item(i);
       Range<Integer> idRange = XMLUtils.parseIntegerRange(selElement, "id");
       Range<Double> mzRange = XMLUtils.parseDoubleRange(selElement, "mz");
-      Range<Float> rtRange = RangeUtils.toFloatRange(
-          Objects.requireNonNull(XMLUtils.parseDoubleRange(selElement, "rt")));
+      final Range<Double> rtDoubleRange = XMLUtils.parseDoubleRange(selElement, "rt");
+      Range<Float> rtRange = rtDoubleRange != null ? RangeUtils.toFloatRange(rtDoubleRange) : null;
       String name = XMLUtils.parseString(selElement, "name");
       FeatureSelection ps = new FeatureSelection(idRange, mzRange, rtRange, name);
       newValue.add(ps);

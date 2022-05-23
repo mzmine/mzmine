@@ -39,6 +39,16 @@ import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesParamete
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.util.ExitCode;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -47,12 +57,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 import org.jetbrains.annotations.Nullable;
 
 public class FeatureListSummaryController {
 
-  private static final Logger logger = Logger
-      .getLogger(FeatureListSummaryController.class.getName());
+  private static final Logger logger = Logger.getLogger(
+      FeatureListSummaryController.class.getName());
 
   @FXML
   public TextField tfNumRows;
@@ -66,6 +79,9 @@ public class FeatureListSummaryController {
   public Label lbFeatureListName;
   @FXML
   public Button btnOpenInBatchQueue;
+  @FXML
+  public Button exportfeature;
+
 
   @FXML
   public void initialize() {
@@ -125,7 +141,11 @@ public class FeatureListSummaryController {
     Object value = parameter.getValue();
     StringBuilder sb = new StringBuilder(name);
     sb.append(":\t");
-    sb.append(value.toString());
+    if (value.getClass().isArray()) {
+      sb.append(Arrays.toString((Object[]) value));
+    } else {
+      sb.append(value.toString());
+    }
     if (parameter instanceof EmbeddedParameterSet embedded) {
       ParameterSet parameterSet = embedded.getEmbeddedParameters();
       for (Parameter<?> parameter1 : parameterSet.getParameters()) {
@@ -133,7 +153,7 @@ public class FeatureListSummaryController {
         sb.append(parameterToString(parameter1));
       }
     }
-    if(parameter instanceof OptionalParameter) {
+    if (parameter instanceof OptionalParameter) {
       sb.append("\t(");
       sb.append(((OptionalParameter<?>) parameter).getEmbeddedParameter().getValue());
       sb.append(")");
@@ -171,7 +191,7 @@ public class FeatureListSummaryController {
         .getModuleParameters(BatchModeModule.class);
     batchModeParameters.getParameter(BatchModeParameters.batchQueue).setValue(queue);
 
-    if(batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
+    if (batchModeParameters.showSetupDialog(true) == ExitCode.OK) {
       MZmineCore.runMZmineModule(BatchModeModule.class, batchModeParameters.cloneParameterSet());
     }
   }
@@ -187,6 +207,41 @@ public class FeatureListSummaryController {
             RawDataFilesSelectionType.BATCH_LAST_FILES);
         ((RawDataFilesParameter) parameter).setValue(rawDataFilesSelection);
       }
+    }
+  }
+
+  @FXML
+  //Export Record
+  void exportRecord() throws IOException {
+    ButtonType btn = MZmineCore.getDesktop()
+        .displayConfirmation("Export Feature Summary List\nDo you wish to continue?",
+            ButtonType.YES, ButtonType.NO);
+    if (btn != ButtonType.YES) {
+      return;
+    }
+    FileChooser fc = new FileChooser();
+    fc.getExtensionFilters()
+        .addAll(new FileChooser.ExtensionFilter("comma-separated values", "*.csv"),
+            new FileChooser.ExtensionFilter("All File", "*.*"));
+    fc.setTitle("Save Feature List Summary");
+    File file = fc.showSaveDialog(new Stage());
+    try {
+      BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
+      PrintWriter pw = new PrintWriter(writer);
+      for (FeatureListAppliedMethod item : lvAppliedMethods.getItems()) {
+        String sb = item.getDescription();
+        //StringBuilder sb = new StringBuilder(item.getDescription());
+        pw.println(sb);
+        ParameterSet parameterSet = item.getParameters();
+        for (Parameter<?> parameter : parameterSet.getParameters()) {
+          pw.println(parameterToString(parameter));
+        }
+        pw.println();
+      }
+      pw.flush();
+      pw.close();
+    } catch (Exception e) {
+      logger.info(e.getMessage());
     }
   }
 }

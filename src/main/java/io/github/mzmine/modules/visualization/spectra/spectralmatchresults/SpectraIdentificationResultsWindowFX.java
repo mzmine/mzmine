@@ -20,7 +20,7 @@ package io.github.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBFeatureIdentity;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,8 +55,8 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
   private final Font headerFont = new Font("Dialog Bold", 16);
   private final GridPane pnGrid;
   private final javafx.scene.control.ScrollPane scrollPane;
-  private final List<SpectralDBFeatureIdentity> totalMatches;
-  private final Map<SpectralDBFeatureIdentity, SpectralMatchPanelFX> matchPanels;
+  private final List<SpectralDBAnnotation> totalMatches;
+  private final Map<SpectralDBAnnotation, SpectralMatchPanelFX> matchPanels;
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
 
@@ -143,7 +143,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
    *
    * @param match
    */
-  public synchronized void addMatches(SpectralDBFeatureIdentity match) {
+  public synchronized void addMatches(SpectralDBAnnotation match) {
     if (!totalMatches.contains(match)) {
       // add
       totalMatches.add(match);
@@ -165,12 +165,12 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
    *
    * @param matches
    */
-  public synchronized void addMatches(List<SpectralDBFeatureIdentity> matches) {
+  public synchronized void addMatches(List<SpectralDBAnnotation> matches) {
     if (matches.isEmpty()) {
       return;
     }
     // add all
-    for (SpectralDBFeatureIdentity match : matches) {
+    for (SpectralDBAnnotation match : matches) {
       if (!totalMatches.contains(match)) {
         // add
         totalMatches.add(match);
@@ -194,7 +194,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
 
     // reversed sorting (highest cosine first
     synchronized (totalMatches) {
-      totalMatches.sort((SpectralDBFeatureIdentity a, SpectralDBFeatureIdentity b) -> Double
+      totalMatches.sort((SpectralDBAnnotation a, SpectralDBAnnotation b) -> Double
           .compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
     }
     // renew layout and show
@@ -217,7 +217,7 @@ public class SpectraIdentificationResultsWindowFX extends Stage {
     synchronized (totalMatches) {
       pnGrid.getChildren().clear();
       int row = 0;
-      for (SpectralDBFeatureIdentity match : totalMatches) {
+      for (SpectralDBAnnotation match : totalMatches) {
         Pane pn = matchPanels.get(match);
         if (pn != null) {
           pnGrid.add(pn, 0, row);

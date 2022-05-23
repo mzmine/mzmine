@@ -14,7 +14,9 @@
   ~ Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License along with MZmine; if not,
-  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+  ~ write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+  ~ USA
+  ~
   -->
 
 <?import io.github.mzmine.gui.colorpicker.ColorPickerMenuItem?>
@@ -80,7 +82,8 @@
                                     text="Show mass spectrum"/>
                                   <MenuItem onAction="#handleShow2DPlot" text="Show 2D plot"/>
                                   <MenuItem onAction="#handleShow3DPlot" text="Show 3D plot"/>
-                                  <MenuItem onAction="#handleShowMsMsPlot" text="Show MS/MS plot"/>
+                                  <MenuItem onAction="#handleShowMsMsPlot"
+                                    text="Show MS/MS scatter plot"/>
 
                                   <SeparatorMenuItem/>
                                   <MenuItem onAction="#handleRawDataSort" text="Sort alphabetically"/>
@@ -93,13 +96,10 @@
                                   <Menu text="Raw data export">
                                     <MenuItem text="Export raw data file to mzML"
                                       onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.rawdataexport.RawDataExportModule" />
+                                      userData="io.github.mzmine.modules.io.export_rawdata_mzml.MzMLExportModule" />
                                     <MenuItem text="Export scans mgf, txt, msp and mzML"
                                       onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.exportscans.ExportScansFromRawFilesModule" />
-                                    <MenuItem text="Extract scans to CSV file"
-                                      onAction="#runModule"
-                                      userData="io.github.mzmine.modules.io.exportscans.ExportScansModule" />
+                                      userData="io.github.mzmine.modules.io.export_scans.ExportScansFromRawFilesModule" />
                                   </Menu>
                                   <MenuItem fx:id="rawDataRenameMenuItem"
                                     onAction="#handleRenameRawData" text="Rename"/>

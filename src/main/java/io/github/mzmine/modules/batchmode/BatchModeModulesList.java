@@ -73,6 +73,8 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.export.Export
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.MS2SimilarityModule;
 import io.github.mzmine.modules.dataprocessing.id_camera.CameraSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_ccscalc.CCSCalcModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.external.ExternalCCSCalibrationModule;
+import io.github.mzmine.modules.dataprocessing.id_ccscalibration.reference.ReferenceCCSCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.id_cliquems.CliqueMSModule;
 import io.github.mzmine.modules.dataprocessing.id_formulapredictionfeaturelist.FormulaPredictionFeatureListModule;
 import io.github.mzmine.modules.dataprocessing.id_gnpsresultsimport.GNPSResultsImportModule;
@@ -91,7 +93,6 @@ import io.github.mzmine.modules.dataprocessing.id_ms2search.Ms2SearchModule;
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBSearchModule;
-import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusIdentificationModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
@@ -268,6 +269,8 @@ public class BatchModeModulesList {
        */
       CameraSearchModule.class, //
       CCSCalcModule.class, //
+      ExternalCCSCalibrationModule.class, //
+      ReferenceCCSCalibrationModule.class, //
       CliqueMSModule.class, //
       GroupMS2Module.class, //
       FormulaPredictionFeatureListModule.class, //
@@ -278,7 +281,6 @@ public class BatchModeModulesList {
       NistMsSearchModule.class, //
       OnlineDBSearchModule.class, //
       PrecursorDBSearchModule.class, //
-      SiriusIdentificationModule.class, //
       SpectralLibrarySearchModule.class, //
 
       /*

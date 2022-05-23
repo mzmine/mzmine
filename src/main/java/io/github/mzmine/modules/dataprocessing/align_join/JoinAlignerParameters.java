@@ -39,22 +39,23 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
   public static final FeatureListsParameter peakLists = new FeatureListsParameter();
 
-  public static final StringParameter peakListName =
-      new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
+  public static final StringParameter peakListName = new StringParameter("Feature list name",
+      "Feature list name", "Aligned feature list");
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter MZWeight =
-      new DoubleParameter("Weight for m/z", "Score for perfectly matching m/z values");
+  public static final DoubleParameter MZWeight = new DoubleParameter("Weight for m/z",
+      "Score for perfectly matching m/z values");
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final DoubleParameter RTWeight =
-      new DoubleParameter("Weight for RT", "Score for perfectly matching RT values");
+  public static final DoubleParameter RTWeight = new DoubleParameter("Weight for RT",
+      "Score for perfectly matching RT values");
 
-  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance =
-      new OptionalParameter<>(new MobilityToleranceParameter("Mobility tolerance",
-          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"), false);
+  public static final OptionalParameter<MobilityToleranceParameter> mobilityTolerance = new OptionalParameter<>(
+      new MobilityToleranceParameter("Mobility tolerance",
+          "If checked, mobility of features will be compared for alignment. This parameter then specifies the tolerance range for matching mobility values"),
+      false);
 
   public static final DoubleParameter mobilityWeight = new DoubleParameter("Mobility weight",
       "Score for perfectly matching mobility values. Only taken into account if \"Mobility tolerance\" is activated.",
@@ -82,8 +83,9 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
   public JoinAlignerParameters() {
     super(new Parameter[]{peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
-        mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
-        compareIsotopePattern, compareSpectraSimilarity, handleOriginal});
+            mobilityTolerance, mobilityWeight, SameChargeRequired, SameIDRequired,
+            compareIsotopePattern, compareSpectraSimilarity, handleOriginal},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/join_aligner/join_aligner.html");
   }
 
   @NotNull

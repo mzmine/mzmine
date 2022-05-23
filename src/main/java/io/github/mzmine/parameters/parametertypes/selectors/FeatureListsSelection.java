@@ -29,9 +29,9 @@ import java.util.stream.Stream;
 public class FeatureListsSelection implements Cloneable {
 
   private FeatureListsSelectionType selectionType = FeatureListsSelectionType.GUI_SELECTED_FEATURELISTS;
-  private ModularFeatureList specificFeatureLists[];
+  private ModularFeatureList[] specificFeatureLists;
   private String namePattern;
-  private ModularFeatureList batchLastFeatureLists[];
+  private ModularFeatureList[] batchLastFeatureLists;
 
 
   /**

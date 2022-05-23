@@ -142,7 +142,7 @@ public class IonIdentityListType extends ListWithSubsType<IonIdentity> implement
   @Override
   public final String getUniqueID() {
     // Never change the ID for compatibility during saving/loading of type
-    return "ion_identity_list";
+    return "ion_identities";
   }
 
   @Override

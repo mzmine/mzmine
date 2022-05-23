@@ -85,6 +85,8 @@ public interface MZmineConfiguration {
 
   public NumberFormat getPPMFormat();
 
+  public NumberFormat getPercentFormat();
+
   public UnitFormat getUnitFormat();
 
   public void loadConfiguration(File file) throws IOException;

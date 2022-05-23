@@ -35,7 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
-class SpectralLibraryImportTask extends AbstractTask {
+public class SpectralLibraryImportTask extends AbstractTask {
 
   private static final Logger logger = Logger.getLogger(SpectralLibraryImportTask.class.getName());
 

@@ -79,7 +79,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public ADAPChromatogramBuilderParameters() {
     super(new Parameter[]{dataFiles, scanSelection, minimumScanSpan, minGroupIntensity,
-        minHighestPoint, mzTolerance, suffix, allowSingleScans});
+            minHighestPoint, mzTolerance, suffix, allowSingleScans},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/featdet_adap_chromatogram_builder/adap-chromatogram-builder.html");
   }
 
   @Override
@@ -125,9 +126,8 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
           .createAlertWithOptOut("Confirmation", "Single consecutive scan selected.",
               "The number of consecutive scans was set to <= 1.\nThis can lead to more noise"
                   + " detected as EICs.\nDo you want to proceed?", "Do not show again.",
-              b -> this.getParameter(allowSingleScans).getValue()
-                  .put("optoutsinglescancheck", b));
-      if(buttonType.equals(ButtonType.YES)) {
+              b -> this.getParameter(allowSingleScans).getValue().put("optoutsinglescancheck", b));
+      if (buttonType.equals(ButtonType.YES)) {
         return true;
       }
       return false;

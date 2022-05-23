@@ -21,7 +21,6 @@ package io.github.mzmine.modules.dataprocessing.id_ccscalc;
 import io.github.mzmine.parameters.UserParameter;
 import io.github.mzmine.parameters.impl.IonMobilitySupport;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.BooleanParameter;
 import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.mztochargeparameter.MzToChargeParameter;
 import io.github.mzmine.parameters.parametertypes.selectors.FeatureListsParameter;
@@ -38,13 +37,9 @@ public class CCSCalcParameters extends SimpleParameterSet {
               + "be calculated for features with an assigned charge.\nOverlapping ranges are not allowed."),
       false);
 
-  public static final BooleanParameter createNewFeatureList = new BooleanParameter(
-      "Create new feature list",
-      "If checked, a new feature list will be created. Otherwise, the values will be put "
-          + "into the selected feature list(s).");
-
   public CCSCalcParameters() {
-    super(new UserParameter[]{featureLists, assumeChargeStage, createNewFeatureList});
+    super(new UserParameter[]{featureLists, assumeChargeStage},
+        "https://mzmine.github.io/mzmine_documentation/module_docs/id_ccs_calibration/ccs_calibration.html#calculating-ccs-values");
   }
 
   @NotNull
