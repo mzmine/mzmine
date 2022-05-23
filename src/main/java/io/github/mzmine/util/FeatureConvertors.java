@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ *  Copyright 2006-2022 The MZmine Development Team
  *
- * This file is part of MZmine.
+ *  This file is part of MZmine.
  *
- * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ *  MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ *  General Public License as published by the Free Software Foundation; either version 2 of the
+ *  License, or (at your option) any later version.
  *
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ *  MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with MZmine; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ *  You should have received a copy of the GNU General Public License along with MZmine; if not,
+ *  write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ *  USA
  */
 
 package io.github.mzmine.util;
@@ -39,14 +39,11 @@ import io.github.mzmine.datamodel.features.ModularFeature;
 import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.types.DetectionType;
 import io.github.mzmine.datamodel.features.types.FeatureDataType;
-import io.github.mzmine.datamodel.features.types.FeatureInformationType;
 import io.github.mzmine.datamodel.features.types.FeatureShapeIonMobilityRetentionTimeHeatMapType;
-import io.github.mzmine.datamodel.features.types.IsotopePatternType;
 import io.github.mzmine.datamodel.features.types.RawFileType;
 import io.github.mzmine.datamodel.features.types.numbers.AreaType;
 import io.github.mzmine.datamodel.features.types.numbers.AsymmetryFactorType;
 import io.github.mzmine.datamodel.features.types.numbers.BestScanNumberType;
-import io.github.mzmine.datamodel.features.types.numbers.ChargeType;
 import io.github.mzmine.datamodel.features.types.numbers.FragmentScanNumbersType;
 import io.github.mzmine.datamodel.features.types.numbers.FwhmType;
 import io.github.mzmine.datamodel.features.types.numbers.HeightType;
@@ -68,6 +65,8 @@ import io.github.mzmine.util.scans.ScanUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedSet;
@@ -262,73 +261,15 @@ public class FeatureConvertors {
 
   public static ModularFeature ChromatogramToModularFeature(ModularFeatureList featureList,
       Chromatogram sameRangePeak) {
+    final Hashtable<Scan, DataPoint> dataPointsMap = sameRangePeak.getDataPointsMap();
+    final List<Entry<Scan, DataPoint>> sorted = dataPointsMap.entrySet().stream()
+        .sorted(Comparator.comparing(Entry::getKey)).toList();
+    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(featureList.getMemoryMapStorage(),
+        sorted.stream().map(Entry::getValue).toList(),
+        sorted.stream().map(Entry::getKey).toList());
 
-    if (sameRangePeak.getPeakList() == null) {
-      throw new NullPointerException("Feature list of the sameRangePeak is null.");
-    }
-
-    if (!(sameRangePeak.getPeakList() instanceof ModularFeatureList)) {
-      throw new IllegalArgumentException(
-          "Can not create modular feature from sameRangePeak of non-modular feature list.");
-    }
-
-    ModularFeature modularFeature = new ModularFeature(featureList);
-
-    modularFeature.set(FragmentScanNumbersType.class,
-        List.of(sameRangePeak.getAllMS2FragmentScanNumbers()));
-    //    modularFeature.set(ScanNumbersType.class, List.of(sameRangePeak.getScanNumbers()));
-
-    modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
-    modularFeature.set(IsotopePatternType.class, sameRangePeak.getIsotopePattern());
-    modularFeature.set(FeatureInformationType.class, sameRangePeak.getPeakInformation());
-    modularFeature.set(ChargeType.class, sameRangePeak.getCharge());
-
-    modularFeature.set(RawFileType.class, sameRangePeak.getRawDataFile());
-    modularFeature.set(DetectionType.class, sameRangePeak.getFeatureStatus());
-    modularFeature.set(MZType.class, sameRangePeak.getMZ());
-    modularFeature.set(RTType.class, (float) sameRangePeak.getRT());
-    modularFeature.set(HeightType.class, (float) sameRangePeak.getHeight());
-    modularFeature.set(AreaType.class, (float) sameRangePeak.getArea());
-    modularFeature.set(BestScanNumberType.class, sameRangePeak.getRepresentativeScanNumber());
-
-    // Data points of feature
-    //    modularFeature.set(DataPointsType.class, new ArrayList<>(sameRangePeak.getDataPoints()));
-    SimpleIonTimeSeries timeSeries = createSimpleTimeSeries(
-        ((ModularFeatureList) sameRangePeak.getPeakList()).getMemoryMapStorage(),
-        sameRangePeak.getDataPoints().stream().collect(Collectors.toList()),
-        Arrays.asList(sameRangePeak.getScanNumbers()));
-    modularFeature.set(FeatureDataType.class, timeSeries);
-
-    // Ranges
-    Range<Float> rtRange = Range.closed(sameRangePeak.getRawDataPointsRTRange().lowerEndpoint(),
-        sameRangePeak.getRawDataPointsRTRange().upperEndpoint());
-    Range<Double> mzRange = Range.closed(sameRangePeak.getRawDataPointsMZRange().lowerEndpoint(),
-        sameRangePeak.getRawDataPointsMZRange().upperEndpoint());
-    Range<Float> intensityRange = Range.closed(
-        sameRangePeak.getRawDataPointsIntensityRange().lowerEndpoint().floatValue(),
-        sameRangePeak.getRawDataPointsIntensityRange().upperEndpoint().floatValue());
-    modularFeature.set(MZRangeType.class, mzRange);
-    modularFeature.set(RTRangeType.class, rtRange);
-    modularFeature.set(IntensityRangeType.class, intensityRange);
-
-    // TODO this is controlled during feature deconvolution or with a module - do not get all MS2 this way
-    // modularFeature.setAllMS2FragmentScanNumbers(IntStream.of(ScanUtils
-    //    .findAllMS2FragmentScans(resolvedPeak.getRawDataFile(), rtRange, mzRange)).boxed()
-    //    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
-
-    // Quality parameters
-    float fwhm = QualityParameters.calculateFWHM(modularFeature);
-    if (!Float.isNaN(fwhm)) {
-      modularFeature.set(FwhmType.class, fwhm);
-    }
-    float tf = QualityParameters.calculateTailingFactor(modularFeature);
-    if (!Float.isNaN(tf)) {
-      modularFeature.set(TailingFactorType.class, tf);
-    }
-    float af = QualityParameters.calculateAsymmetryFactor(modularFeature);
-    if (!Float.isNaN(af)) {
-      modularFeature.set(AsymmetryFactorType.class, af);
-    }
+    ModularFeature modularFeature = new ModularFeature(featureList, sameRangePeak.getRawDataFile(),
+        timeSeries, FeatureStatus.DETECTED);
 
     return modularFeature;
   }
