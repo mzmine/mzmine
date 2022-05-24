@@ -7,53 +7,47 @@ import io.github.mzmine.modules.dataprocessing.id_ecmscalcpotential.EcmsUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.scans.ScanUtils;
 import java.time.Instant;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jmol.script.T;
 
 public class MassvoltammogramTask extends AbstractTask {
 
   /**
    * tubing length in mm
    */
-  private final double tubingLength;
+  private final double tubingLength = MassvoltammogramParameters.tubingLengthMM.getValue();
   /**
    * tubing id in mm
    */
-  private final double tubingId;
+  private final double tubingId = MassvoltammogramParameters.tubingIdMM.getValue();
   /**
    * flow rate in uL/min
    */
-  private final double flowRate;
+  private final double flowRate = MassvoltammogramParameters.flowRateMicroLiterPerMin.getValue();
   /**
    * potential ramp speed in mV/s
    */
-  private final double potentialRampSpeed;
+  private final double potentialRampSpeed = MassvoltammogramParameters.potentialRampSpeed.getValue();
   /**
    * step size between drawn spectra in mV
    */
-  private final double stepSize;
+  private final double stepSize = MassvoltammogramParameters.stepSize.getValue();
   /**
    * potential range of mass voltammogram in mV
    */
-  private final Range<Double> potentialRange;
+  private final Range<Double> potentialRange = MassvoltammogramParameters.potentialRange.getValue();
   /**
    * m/z range of drawn spectra
    */
-  private final Range<Double> mzRange;
+  private final Range<Double> mzRange = MassvoltammogramParameters.mzRange.getValue();
 
 
   public MassvoltammogramTask(@NotNull ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate);
-
-    tubingLength = parameters.getValue(MassvoltammogramParameters.tubingLengthMM);
-    tubingId = parameters.getValue(MassvoltammogramParameters.tubingIdMM);
-    flowRate = parameters.getValue(MassvoltammogramParameters.flowRateMicroLiterPerMin);
-    potentialRampSpeed = parameters.getValue(MassvoltammogramParameters.potentialRampSpeed);
-    stepSize = parameters.getValue(MassvoltammogramParameters.stepSize);
-    potentialRange = parameters.getValue(MassvoltammogramParameters.potentialRange);
-    mzRange = parameters.getValue(MassvoltammogramParameters.mzRange);
   }
 
   @Override
@@ -81,6 +75,13 @@ public class MassvoltammogramTask extends AbstractTask {
     //Creating a list with all needed scans.
     final List<double[][]> scans = MassvoltamogramUtils.getScans(file, delayTimeMin, potentialRange,
         potentialRampSpeed, stepSize);
+
+    //Checking weather the scans were extracted correctly.
+    if(scans.size() == 0){
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("The entered parameters do not match the selected data file!\nThe massvolatamogarm cannot be created.\nCheck the entered parameters for plausibility.");
+      return;
+    }
 
     //Extracting all spectra within the given m/z-range.
     final List<double[][]> spectra = MassvoltamogramUtils.extractMZRangeFromScan(scans,

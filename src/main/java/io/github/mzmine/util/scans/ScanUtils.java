@@ -1627,9 +1627,11 @@ public class ScanUtils {
    */
   public static double getMinMZ(List<double[][]> scans){
 
+    //Setting the absolute minimal m7z-value equal to the first scans minimal m/z-value.
     double[][] firstScan = scans.get(0);
     double minMZ = firstScan[0][0];
 
+    //Checking all the other scans in the list weather there is an even smaller m/z-value.
     for(int i = 1; i < scans.size(); i++){
       double[][] scan = scans.get(i);
       double minMzScan = scan[0][0];

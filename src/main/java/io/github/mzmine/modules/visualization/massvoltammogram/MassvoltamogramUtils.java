@@ -39,7 +39,12 @@ public class MassvoltamogramUtils {
     //Adding scans with the given step size until the maximal potential is reached.
     for (int i = 0; potential <= potentialRange.upperEndpoint(); i++) {
       final float rt = EcmsUtils.getRtAtPotential(delayTime, potentialSpeedRamp, potential);
-      final Scan scan = rawDataFile.getScanNumberAtRT(rt);
+      final Scan scan = rawDataFile.getScanNumberAtRT(rt, 1);
+
+      //Breaking the loop if the calculated rt exceeds the max rt of the data file.
+      if(scan == null){
+        break;
+      }
 
       final double[][] scanAsArray = new double[scan.getNumberOfDataPoints()][3];
 

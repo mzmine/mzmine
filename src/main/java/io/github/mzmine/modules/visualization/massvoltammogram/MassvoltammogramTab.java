@@ -164,8 +164,7 @@ public class MassvoltammogramTab extends MZmineTab {
     final double divisor = MassvoltamogramUtils.getDivisor(maxIntensity);
     final double[][] firstScan = scans.get(0);
     final double[][] lastScan = scans.get(scans.size() - 1);
-    final double minPotential = firstScan[0][2];
-    final double maxPotential = lastScan[0][2];
+    final Range<Double> potentialRange = MassvoltammogramParameters.potentialRange.getValue();
 
     //Removing the old line plots from the plot panel
     plot.removeAllPlots();
@@ -173,7 +172,7 @@ public class MassvoltammogramTab extends MZmineTab {
     //Adding the new plots and setting the axis up correctly.
     MassvoltamogramUtils.addSpectraToPlot(spectraWithoutZeros, divisor, plot);
     plot.setFixedBounds(0, newMzRange.lowerEndpoint(), newMzRange.upperEndpoint());
-    plot.setFixedBounds(1, minPotential, maxPotential);
+    plot.setFixedBounds(1, potentialRange.lowerEndpoint(), potentialRange.upperEndpoint());
 
     this.plot = plot;
   }
