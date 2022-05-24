@@ -79,7 +79,7 @@ public class MassvoltammogramTask extends AbstractTask {
     //Checking weather the scans were extracted correctly.
     if(scans.size() == 0){
       setStatus(TaskStatus.ERROR);
-      setErrorMessage("The entered parameters do not match the selected data file!\nThe massvolatamogarm cannot be created.\nCheck the entered parameters for plausibility.");
+      setErrorMessage("The entered parameters do not match the selected data file!\nThe massvolatammogarm cannot be created.\nCheck the entered parameters for plausibility.");
       return;
     }
 
