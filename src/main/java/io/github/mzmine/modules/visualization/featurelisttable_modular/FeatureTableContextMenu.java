@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -228,9 +228,10 @@ public class FeatureTableContextMenu extends ContextMenu {
     nistSearchItem.setOnAction(
         e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
 
-    // submit GNPS MASST search
-    final MenuItem masstSearch = new ConditionalMenuItem("Submit single MASST search (on GNPS)",
-        () -> selectedRows.size() == 1 && selectedRows.get(0).hasMs2Fragmentation());
+    // submit GNPS MASST search job
+    final MenuItem masstSearch = new ConditionalMenuItem(
+        "Submit MASST public data search (on GNPS)",
+        () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1);
     masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
 
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
