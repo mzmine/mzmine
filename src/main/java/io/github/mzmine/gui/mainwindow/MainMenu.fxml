@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright 2006-2022 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -543,7 +543,7 @@
     <MenuItem text="Isotope pattern preview"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule"/>
-    <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror plot (USI enabled)"/>
+    <MenuItem onAction="#showSpectralMirrorDialog" text="Spectral mirror (USI enabled)"/>
     <MenuItem text="Kovats index extraction"
       onAction="#runModule"
       userData="io.github.mzmine.modules.tools.kovats.KovatsIndexExtractionModule"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -24,6 +24,9 @@ import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameter
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.spectraldb.parser.GnpsJsonParser;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -32,9 +35,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -137,7 +137,6 @@ public class GNPSUtils {
               .getValue();
       File iinEdges = !exportIIN ? null
           : FileAndPathUtil.getRealFilePath(folder, name + "_edges_msannotation", "csv");
-      ;
 
       return submitFbmnJob(mgf, quan, meta, new File[]{iinEdges}, title, email, username, password,
           presets, openWebsite);
@@ -223,7 +222,7 @@ public class GNPSUtils {
       try {
         JSONObject res = new JSONObject(EntityUtils.toString(resEntity));
         String url = res.getString("url");
-        logger.info("Response: " + res.toString());
+        logger.info("Response: " + res);
 
         if (url != null && !url.isEmpty()) {
           Desktop.getDesktop().browse(new URI(url));

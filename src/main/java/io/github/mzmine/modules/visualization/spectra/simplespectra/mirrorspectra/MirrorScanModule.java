@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -21,7 +21,6 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.Task;
 import io.github.mzmine.util.ExitCode;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MirrorScanModule implements MZmineRunnableModule {
 
-  private static final String MODULE_NAME = "Spectral mirror plot (USI enabled)";
+  private static final String MODULE_NAME = "Spectral mirror (USI enabled)";
   private static final String MODULE_DESCRIPTION = "Compare spectra";
 
   @Override
@@ -45,7 +44,7 @@ public class MirrorScanModule implements MZmineRunnableModule {
 
   @Override
   public @NotNull Class<? extends ParameterSet> getParameterSetClass() {
-    return IsotopePatternPreviewParameters.class;
+    return MirrorScanParameters.class;
   }
 
   public @NotNull String getDescription() {
