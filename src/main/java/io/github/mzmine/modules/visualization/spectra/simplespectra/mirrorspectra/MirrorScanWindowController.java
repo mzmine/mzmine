@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -15,7 +15,6 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-
 package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
 import io.github.mzmine.datamodel.DataPoint;
@@ -30,11 +29,13 @@ import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similari
 import io.github.mzmine.modules.dataprocessing.group_metacorrelate.msms.similarity.SignalAlignmentAnnotation;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MirrorChartFactory;
 import io.github.mzmine.util.components.ColorPickerTableCell;
 import io.github.mzmine.util.scans.ScanUtils;
+import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
@@ -54,6 +55,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -72,6 +74,7 @@ public class MirrorScanWindowController {
   public TextField txtTop;
   @FXML
   public TextField txtBottom;
+  private final ParameterSet parameters;
 
   // components
   @FXML
@@ -124,6 +127,13 @@ public class MirrorScanWindowController {
   // data
   private EChartViewer mirrorSpecrumPlot;
   private EChartViewer neutralLossMirrorSpecrumPlot;
+  @FXML
+  public TitledPane pnParams;
+  private ParameterSetupPane parameterSetupPane;
+
+  public MirrorScanWindowController() {
+    parameters = MZmineCore.getConfiguration().getModuleParameters(MirrorScanModule.class);
+  }
 
   @FXML
   public void initialize() {
@@ -178,14 +188,17 @@ public class MirrorScanWindowController {
     txtBottom.textProperty().addListener((observable, oldValue, newValue) -> {
       pause.playFromStart();
     });
+
+    parameterSetupPane = new ParameterSetupPane(true, false, parameters);
+    pnParams.setContent(parameterSetupPane);
   }
 
   private Color getColor(SignalAlignmentAnnotation match) {
     return switch (match) {
       case MATCH -> MZmineCore.getConfiguration().getDefaultColorPalette().getPositiveColor();
       case MODIFIED -> MZmineCore.getConfiguration().getDefaultColorPalette().getNegativeColor();
-      case NONE, FILTERED -> MZmineCore.getConfiguration().getDefaultColorPalette()
-          .getNeutralColor();
+      case NONE, FILTERED ->
+          MZmineCore.getConfiguration().getDefaultColorPalette().getNeutralColor();
     };
   }
 
@@ -212,19 +225,29 @@ public class MirrorScanWindowController {
   }
 
   private MZTolerance getMzTolerance() {
-    final ParameterSet params = MZmineCore.getConfiguration()
-        .getModuleParameters(MirrorScanModule.class);
-    return params.getValue(MirrorScanParameters.mzTol);
+    parameterSetupPane.updateParameterSetFromComponents();
+    return parameters.getValue(MirrorScanParameters.mzTol);
   }
 
   private void calcSpectralSimilarity(DataPoint[] dpsA, double precursorMZA, DataPoint[] dpsB,
       double precursorMZB) {
-    final MZTolerance mzTol = getMzTolerance();
+
+    parameterSetupPane.updateParameterSetFromComponents();
+    final MZTolerance mzTol = parameters.getValue(MirrorScanParameters.mzTol);
+    boolean removePrecursor = parameters.getValue(MirrorScanParameters.removePrecursor);
+    Weights weights = parameters.getValue(MirrorScanParameters.weight);
+
+    if (removePrecursor) {
+      MZTolerance removePrecursorMzTol = parameters.getParameter(
+          MirrorScanParameters.removePrecursor).getEmbeddedParameter().getValue();
+      dpsA = ScanUtils.removeSignals(dpsA, precursorMZA, removePrecursorMzTol);
+      dpsB = ScanUtils.removeSignals(dpsB, precursorMZB, removePrecursorMzTol);
+    }
 
     // needs to be sorted
     Arrays.sort(dpsA, DataPointSorter.DEFAULT_INTENSITY);
     Arrays.sort(dpsB, DataPointSorter.DEFAULT_INTENSITY);
-    SpectralSimilarity cosine = MS2SimilarityTask.createMS2Sim(mzTol, dpsA, dpsB, 2);
+    SpectralSimilarity cosine = MS2SimilarityTask.createMS2Sim(mzTol, dpsA, dpsB, 2, weights);
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(

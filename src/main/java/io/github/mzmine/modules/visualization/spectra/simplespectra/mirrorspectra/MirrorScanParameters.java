@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -20,13 +20,23 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspect
 
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.ComboParameter;
+import io.github.mzmine.parameters.parametertypes.OptionalParameter;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import io.github.mzmine.util.scans.similarity.Weights;
 
 public class MirrorScanParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTol = new MZToleranceParameter("m/z tolerance",
       "Tolerance to match signals in both scans", 0.0025, 20);
+
+  public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
+      "Weights for m/z and intensity", Weights.VALUES, Weights.MASSBANK);
+
+  public static final OptionalParameter<MZToleranceParameter> removePrecursor = new OptionalParameter<>(
+      new MZToleranceParameter("Remove m/z around precursor", "Removes residual precursor signals",
+          10, 20));
 
   /**
    * Windows size and position
@@ -34,7 +44,7 @@ public class MirrorScanParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public MirrorScanParameters() {
-    super(new Parameter[]{mzTol, windowSettings});
+    super(new Parameter[]{mzTol, weight, removePrecursor, windowSettings});
   }
 
 }

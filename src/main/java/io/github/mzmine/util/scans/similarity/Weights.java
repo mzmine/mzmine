@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -26,7 +26,6 @@ import java.text.MessageFormat;
  * Weights for intensity/mz weighting in similarity scoring
  *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
  */
 public class Weights {
 
@@ -57,7 +56,7 @@ public class Weights {
   public static final Weights MASSBANK = new Weights("MassBank", 0.5, 2);
   public static final Weights NIST_GC = new Weights("NIST (GC)", 0.6, 3);
   public static final Weights NIST11 = new Weights("NIST11 (LC)", 0.53, 1.3);
-  public static final Weights[] VALUES = new Weights[]{NONE, MASSBANK, NIST11, NIST_GC};
+  public static final Weights[] VALUES = new Weights[]{NONE, SQRT, MASSBANK, NIST11, NIST_GC};
 
   private final String name;
   private final double mz;

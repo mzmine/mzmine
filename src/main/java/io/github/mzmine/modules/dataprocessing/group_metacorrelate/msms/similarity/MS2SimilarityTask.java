@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -156,6 +156,21 @@ public class MS2SimilarityTask extends AbstractTask {
   /**
    * Make sure to use arrays sorted by intensity
    *
+   * @param minMatch minimum overlapping signals in the two mass lists sortedA and sortedB
+   * @param sortedA  sorted array of data points (by intensity)
+   * @param sortedB  sorted array of data points (by intensity)
+   * @param mzTol    the tolerance to match signals
+   * @return the spectral similarity if number of overlapping signals >= minimum, else null
+   */
+  public static SpectralSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] sortedA,
+      DataPoint[] sortedB, int minMatch, Weights weights) {
+    return createMS2SimModificationAware(mzTol, weights, sortedA, sortedB, minMatch, SIZE_OVERLAP,
+        -1d, -1d);
+  }
+
+  /**
+   * Make sure to use arrays sorted by intensity
+   *
    * @param minMatch        minimum overlapping signals in the two mass lists sortedA and sortedB
    * @param overlapFunction different functions to determin the size of overlap
    * @param sortedA         sorted array of data points (by intensity)
@@ -170,6 +185,27 @@ public class MS2SimilarityTask extends AbstractTask {
       DataPoint[] sortedA, DataPoint[] sortedB, double minMatch,
       Function<List<DataPoint[]>, Integer> overlapFunction, double precursorMzA,
       double precursorMzB) {
+    return createMS2SimModificationAware(mzTol, Weights.SQRT, sortedA, sortedB, minMatch,
+        overlapFunction, precursorMzA, precursorMzB);
+  }
+
+  /**
+   * Make sure to use arrays sorted by intensity
+   *
+   * @param minMatch        minimum overlapping signals in the two mass lists sortedA and sortedB
+   * @param overlapFunction different functions to determin the size of overlap
+   * @param sortedA         sorted array of data points (by intensity)
+   * @param sortedB         sorted array of data points (by intensity)
+   * @param precursorMzA    precursor mz of array sortedA, only used if useModAwareCosine is active
+   * @param precursorMzB    precursor mz of array sortedB, only used if useModAwareCosine is active
+   * @param mzTol           the tolerance to match signals
+   * @return the spectral similarity if number of overlapping signals >= minimum, else null
+   */
+  @Nullable
+  public static SpectralSimilarity createMS2SimModificationAware(MZTolerance mzTol, Weights weights,
+      DataPoint[] sortedA, DataPoint[] sortedB, double minMatch,
+      Function<List<DataPoint[]>, Integer> overlapFunction, double precursorMzA,
+      double precursorMzB) {
     // align
     final List<DataPoint[]> aligned = alignDataPoints(precursorMzA, precursorMzB, mzTol, sortedB,
         sortedA);
@@ -181,7 +217,7 @@ public class MS2SimilarityTask extends AbstractTask {
     if (overlap >= minMatch) {
       // cosine
       double[][] diffArray = ScanAlignment.toIntensityMatrixWeighted(aligned,
-          Weights.MASSBANK.getIntensity(), Weights.MASSBANK.getMz());
+          weights.getIntensity(), weights.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
 
       int sizeA = 0;
@@ -228,12 +264,30 @@ public class MS2SimilarityTask extends AbstractTask {
   public static CosinePairContributions calculateModifiedCosineSimilarityContributions(
       MZTolerance mzTol, DataPoint[] sortedA, DataPoint[] sortedB, double precursorMzA,
       double precursorMzB) {
+    return calculateModifiedCosineSimilarityContributions(mzTol, Weights.SQRT, sortedA, sortedB,
+        precursorMzA, precursorMzB);
+  }
+
+  /**
+   * Make sure to use arrays sorted by intensity
+   *
+   * @param mzTol        the tolerance to match signals
+   * @param sortedA      sorted array of data points (by intensity)
+   * @param sortedB      sorted array of data points (by intensity)
+   * @param precursorMzA precursor mz of array sortedA, only used if useModAwareCosine is active
+   * @param precursorMzB precursor mz of array sortedB, only used if useModAwareCosine is active
+   * @return the spectral similarity if number of overlapping signals >= minimum, else null
+   */
+  public static CosinePairContributions calculateModifiedCosineSimilarityContributions(
+      MZTolerance mzTol, Weights weights, DataPoint[] sortedA, DataPoint[] sortedB,
+      double precursorMzA, double precursorMzB) {
     // align
     final List<DataPoint[]> aligned = alignDataPoints(precursorMzA, precursorMzB, mzTol, sortedB,
         sortedA);
     if (aligned.size() >= 2) {
       // cosine
-      double[][] diffArray = ScanAlignment.toIntensityArray(aligned);
+      double[][] diffArray = ScanAlignment.toIntensityMatrixWeighted(aligned,
+          weights.getIntensity(), weights.getMz());
 
       final double cosineDivisor = Similarity.cosineDivisor(diffArray);
       double[] contributions = new double[diffArray.length];
@@ -281,6 +335,7 @@ public class MS2SimilarityTask extends AbstractTask {
   public static int calcOverlap(List<DataPoint[]> aligned) {
     return (int) aligned.stream().filter(dp -> dp[0] != null && dp[1] != null).count();
   }
+
 
   @Override
   public void run() {

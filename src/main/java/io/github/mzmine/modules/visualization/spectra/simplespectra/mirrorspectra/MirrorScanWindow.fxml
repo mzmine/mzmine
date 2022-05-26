@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright 2006-2021 The MZmine Development Team
+  ~ Copyright 2006-2022 The MZmine Development Team
   ~
   ~ This file is part of MZmine.
   ~
@@ -209,6 +209,8 @@
                   </GridPane>
                </content>
             </TitledPane>
+
+            <TitledPane animated="false" graphicTextGap="0.0" text="Parameters" fx:id="pnParams"/>
          </panes>
       </Accordion>
    </top>
