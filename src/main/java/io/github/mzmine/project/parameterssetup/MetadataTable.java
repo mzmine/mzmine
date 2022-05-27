@@ -61,7 +61,7 @@ public class MetadataTable {
   private final String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
       .toArray(String[]::new);
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
 
   public MetadataTable() {
     this.data = new HashMap<>();
