@@ -18,6 +18,7 @@
 
 package io.github.mzmine.project.parameterssetup.columns;
 
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -38,6 +39,11 @@ public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
   @Override
   public boolean checkInput(Object value) {
     return value instanceof LocalDateTime;
+  }
+
+  @Override
+  public AvailableTypes getType() {
+    return AvailableTypes.DATETIME;
   }
 
   @Override

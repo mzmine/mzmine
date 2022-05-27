@@ -221,12 +221,8 @@ public class MetadataTable {
       for (var column : data.entrySet()) {
         for (var rawDataFile : column.getValue().keySet()) {
           var cellVal = column.getValue().get(rawDataFile);
-          // pattern match the parameter type
-          AvailableTypes paramType = switch (column.getKey()) {
-            case (StringMetadataColumn stringMetadataColumn) -> TEXT;
-            case (DoubleMetadataColumn doubleMetadataColumn) -> DOUBLE;
-            case (DateMetadataColumn dateMetadataColumn) -> DATETIME;
-          };
+          // get parameter type
+          AvailableTypes paramType = column.getKey().getType();
 
           // create the record line
           List<String> lineFieldsValues = new ArrayList<>();

@@ -18,6 +18,8 @@
 
 package io.github.mzmine.project.parameterssetup.columns;
 
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
+
 /**
  * Specific String-type implementation of the project parameter.
  */
@@ -34,6 +36,11 @@ public final class StringMetadataColumn extends MetadataColumn<String> {
   @Override
   public boolean checkInput(Object value) {
     return value instanceof String;
+  }
+
+  @Override
+  public AvailableTypes getType() {
+    return AvailableTypes.TEXT;
   }
 
   @Override

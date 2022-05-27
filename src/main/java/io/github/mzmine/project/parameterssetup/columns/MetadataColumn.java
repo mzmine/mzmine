@@ -18,6 +18,7 @@
 
 package io.github.mzmine.project.parameterssetup.columns;
 
+import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
@@ -75,6 +76,13 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
    * @return true if input is valid, false otherwise
    */
   public abstract boolean checkInput(Object value);
+
+  /**
+   * Get type of the parameter in this column.
+   *
+   * @return type of the parameter
+   */
+  public abstract AvailableTypes getType();
 
   /**
    * Convert input string to the specific type of the parameter.
