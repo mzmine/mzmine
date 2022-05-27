@@ -28,14 +28,22 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 class MetadataTableTest {
 
   MetadataTable emptyMetadataTable;
@@ -63,10 +71,10 @@ class MetadataTableTest {
 
   @BeforeEach
   void setUp() {
-    Map<MetadataColumn<?>, Map<RawDataFile, Object>> data = new HashMap<>();
-    Map<RawDataFile, Object> row1 = new HashMap<>();
-    Map<RawDataFile, Object> row2 = new HashMap<>();
-    Map<RawDataFile, Object> row3 = new HashMap<>();
+    Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data = new HashMap<>();
+    ConcurrentMap<RawDataFile, Object> row1 = new ConcurrentHashMap<>();
+    ConcurrentMap<RawDataFile, Object> row2 = new ConcurrentHashMap<>();
+    ConcurrentMap<RawDataFile, Object> row3 = new ConcurrentHashMap<>();
     row1.put(rawDataFile1, columnValue1);
     row2.put(rawDataFile2, columnValue2);
     row3.put(rawDataFile3, columnValue3);

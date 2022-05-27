@@ -41,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -50,7 +52,7 @@ import java.util.stream.Stream;
  */
 public class MetadataTable {
 
-  private final Map<MetadataColumn<?>, Map<RawDataFile, Object>> data;
+  private final Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data;
 
   // define the header fields names of the file with imported metadata
   private enum HeaderFields {
@@ -67,11 +69,11 @@ public class MetadataTable {
     this.data = new HashMap<>();
   }
 
-  public MetadataTable(Map<MetadataColumn<?>, Map<RawDataFile, Object>> data) {
+  public MetadataTable(Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data) {
     this.data = data;
   }
 
-  public Map<MetadataColumn<?>, Map<RawDataFile, Object>> getData() {
+  public Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> getData() {
     return data;
   }
 
@@ -88,7 +90,7 @@ public class MetadataTable {
    * @param column new parameter column
    */
   public void addColumn(MetadataColumn<?> column) {
-    data.putIfAbsent(column, new HashMap<>());
+    data.putIfAbsent(column, new ConcurrentHashMap<>());
   }
 
   /**
