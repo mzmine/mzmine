@@ -131,6 +131,12 @@ public class MirrorScanWindowController {
   public TitledPane pnParams;
   private ParameterSetupPane parameterSetupPane;
 
+  // last spectra
+  private double precursorMZA;
+  private DataPoint[] dpsA;
+  private double precursorMZB;
+  private DataPoint[] dpsB;
+
   public MirrorScanWindowController() {
     parameters = MZmineCore.getConfiguration().getModuleParameters(MirrorScanModule.class);
   }
@@ -185,8 +191,19 @@ public class MirrorScanWindowController {
     txtTop.textProperty().addListener((observable, oldValue, newValue) -> pause.playFromStart());
     txtBottom.textProperty().addListener((observable, oldValue, newValue) -> pause.playFromStart());
 
-    parameterSetupPane = new ParameterSetupPane(true, false, parameters);
+    parameterSetupPane = new ParameterSetupPane(true, true, parameters) {
+      @Override
+      protected void callOkButton() {
+        updateAll();
+      }
+    };
     pnParams.setContent(parameterSetupPane);
+  }
+
+  private void updateAll() {
+    if (dpsA != null) {
+      setScans(precursorMZA, dpsA, precursorMZB, dpsB);
+    }
   }
 
   private Color getColor(SignalAlignmentAnnotation match) {
@@ -200,6 +217,11 @@ public class MirrorScanWindowController {
 
   public void setScans(double precursorMZA, DataPoint[] dpsA, double precursorMZB,
       DataPoint[] dpsB) {
+    this.precursorMZA = precursorMZA;
+    this.dpsA = dpsA;
+    this.precursorMZB = precursorMZB;
+    this.dpsB = dpsB;
+
     pnMirror.getChildren().removeAll();
     pnNLMirror.getChildren().removeAll();
 

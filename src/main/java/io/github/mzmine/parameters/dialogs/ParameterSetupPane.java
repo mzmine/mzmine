@@ -121,12 +121,13 @@ public class ParameterSetupPane extends BorderPane {
 
     // Add buttons to the ButtonBar
     pnlButtons = new ButtonBar();
-    pnlButtons.setPadding(new Insets(10.0));
+    pnlButtons.setPadding(new Insets(1));
     if (addOkButton) {
       btnOK = new Button("OK");
       btnOK.setOnAction(e -> callOkButton());
       pnlButtons.getButtons().addAll(btnOK);
       ButtonBar.setButtonData(btnOK, ButtonData.OK_DONE);
+      ButtonBar.setButtonData(btnOK, ButtonData.LEFT);
     }
 
     if (parameters.getOnlineHelpUrl() != null) { // if we have online docs, use those
