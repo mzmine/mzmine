@@ -202,7 +202,8 @@ public class MetadataTable {
    * @return true if the export was successful, false otherwise
    */
   public boolean exportMetadata(File file) {
-    try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, false))) {
+    try (FileWriter fw = new FileWriter(file,
+        false); BufferedWriter bufferedWriter = new BufferedWriter(fw)) {
       // in case if there's no metadata to export
       if (data.isEmpty()) {
         logger.info("There's no metadata to export");
@@ -264,7 +265,8 @@ public class MetadataTable {
    * @return true if the metadata were successfully imported, false otherwise
    */
   public boolean importMetadata(File file, boolean appendMode) {
-    try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+    try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
+        fr)) {
       // create the .tsv file header
       String header = String.join("\t", HeaderFieldsArr);
       // compare the headers
