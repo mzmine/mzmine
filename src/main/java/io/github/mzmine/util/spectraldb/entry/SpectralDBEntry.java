@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -49,6 +49,11 @@ public class SpectralDBEntry {
     this.dps = dps;
   }
 
+  public SpectralDBEntry(double precursorMZ, int charge, DataPoint[] dps) {
+    this(precursorMZ, dps);
+    fields.put(DBEntryField.CHARGE, charge);
+  }
+
   public SpectralDBEntry(Map<DBEntryField, Object> fields, DataPoint[] dps) {
     this.fields = fields;
     this.dps = dps;
@@ -71,10 +76,10 @@ public class SpectralDBEntry {
         continue;
       }
       switch (reader.getLocalName()) {
-        case CONST.XML_MZ_VALUES_ELEMENT -> mzs = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
-        case CONST.XML_INTENSITY_VALUES_ELEMENT -> intensities = ParsingUtils
-            .stringToDoubleArray(reader.getElementText());
+        case CONST.XML_MZ_VALUES_ELEMENT ->
+            mzs = ParsingUtils.stringToDoubleArray(reader.getElementText());
+        case CONST.XML_INTENSITY_VALUES_ELEMENT ->
+            intensities = ParsingUtils.stringToDoubleArray(reader.getElementText());
         case XML_DB_FIELD_LIST_ELEMENT -> fields = loadDBEntriesFromXML(reader);
         default -> {
         }

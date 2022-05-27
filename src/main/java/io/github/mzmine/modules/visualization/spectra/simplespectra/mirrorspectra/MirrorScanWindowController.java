@@ -48,7 +48,6 @@ import java.util.logging.Logger;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -61,7 +60,8 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 /**
- * @author Robin Schmid (https://github.com/robinschmid)
+ * @author Robin Schmid (<a
+ * href="https://github.com/robinschmid">https://github.com/robinschmid</a>)
  */
 
 public class MirrorScanWindowController {
@@ -182,12 +182,8 @@ public class MirrorScanWindowController {
     //
     PauseTransition pause = new PauseTransition(Duration.seconds(1));
     pause.setOnFinished(event -> loadSpectra());
-    txtTop.textProperty().addListener((observable, oldValue, newValue) -> {
-      pause.playFromStart();
-    });
-    txtBottom.textProperty().addListener((observable, oldValue, newValue) -> {
-      pause.playFromStart();
-    });
+    txtTop.textProperty().addListener((observable, oldValue, newValue) -> pause.playFromStart());
+    txtBottom.textProperty().addListener((observable, oldValue, newValue) -> pause.playFromStart());
 
     parameterSetupPane = new ParameterSetupPane(true, false, parameters);
     pnParams.setContent(parameterSetupPane);
@@ -232,6 +228,9 @@ public class MirrorScanWindowController {
   private void calcSpectralSimilarity(DataPoint[] dpsA, double precursorMZA, DataPoint[] dpsB,
       double precursorMZB) {
 
+    tableMirror.getItems().clear();
+    tableNLMIrror.getItems().clear();
+
     parameterSetupPane.updateParameterSetFromComponents();
     final MZTolerance mzTol = parameters.getValue(MirrorScanParameters.mzTol);
     boolean removePrecursor = parameters.getValue(MirrorScanParameters.removePrecursor);
@@ -260,7 +259,7 @@ public class MirrorScanWindowController {
     }
 
     //modified cosine
-    cosine = MS2SimilarityTask.createMS2SimModificationAware(mzTol, dpsA, dpsB, 2,
+    cosine = MS2SimilarityTask.createMS2SimModificationAware(mzTol, weights, dpsA, dpsB, 2,
         MS2SimilarityTask.SIZE_OVERLAP, precursorMZA, precursorMZB);
     if (cosine != null) {
       lbMirrorModifiedStats.setText(String.format(
@@ -271,7 +270,7 @@ public class MirrorScanWindowController {
 
       // get contributions of all data points
       final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
-          mzTol, dpsA, dpsB, precursorMZA, precursorMZB);
+          mzTol, weights, dpsA, dpsB, precursorMZA, precursorMZB);
 
       if (contributions != null) {
         List<TableData> data = new ArrayList<>(contributions.size());
@@ -298,7 +297,7 @@ public class MirrorScanWindowController {
     Arrays.sort(nlA, DataPointSorter.DEFAULT_INTENSITY);
     Arrays.sort(nlB, DataPointSorter.DEFAULT_INTENSITY);
 
-    cosine = MS2SimilarityTask.createMS2Sim(mzTol, nlA, nlB, 2);
+    cosine = MS2SimilarityTask.createMS2Sim(mzTol, nlA, nlB, 2, weights);
     if (cosine != null) {
       lbNeutralLossStats.setText(String.format(
           "cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
@@ -308,7 +307,7 @@ public class MirrorScanWindowController {
 
       // get contributions of all data points
       final CosinePairContributions contributions = MS2SimilarityTask.calculateModifiedCosineSimilarityContributions(
-          mzTol, nlA, nlB, -1, -1);
+          mzTol, weights, nlA, nlB, -1, -1);
 
       if (contributions != null) {
         List<TableData> data = new ArrayList<>(contributions.size());
@@ -336,9 +335,6 @@ public class MirrorScanWindowController {
 
   /**
    * Set scan and mirror scan and create chart
-   *
-   * @param scan
-   * @param mirror
    */
   public void setScans(Scan scan, Scan mirror) {
     setScans(scan.getPrecursorMz(), ScanUtils.extractDataPoints(scan.getMassList()),
@@ -369,15 +365,21 @@ public class MirrorScanWindowController {
   }
 
 
-  public void openGnpsLibExample(ActionEvent event) {
-    txtTop.setText("CCMSLIB00000579250");
-    txtBottom.setText("CCMSLIB00000579252");
+  public void openGnpsLibExample() {
+//    tauro cholic acid
+    txtTop.setText("CCMSLIB00005435561");
+//    glycocholic acid
+    txtBottom.setText("CCMSLIB00005435513");
+//    alanine cholic acid
+//    txtBottom.setText("CCMSLIB00005465895");
+//    txtTop.setText("CCMSLIB00000579250");
+//    txtBottom.setText("CCMSLIB00000579252");
   }
 
   private void loadGnpsLibrary(String id1, String id2) {
     try {
-      final SpectralDBEntry top = GNPSUtils.accessLibrarySpectrum(id1);
-      final SpectralDBEntry bottom = GNPSUtils.accessLibrarySpectrum(id2);
+      final SpectralDBEntry top = GNPSUtils.accessLibraryOrUSISpectrum(id1);
+      final SpectralDBEntry bottom = GNPSUtils.accessLibraryOrUSISpectrum(id2);
 
       setScans(top.getPrecursorMZ(), top.getDataPoints(), bottom.getPrecursorMZ(),
           bottom.getDataPoints());
@@ -386,17 +388,17 @@ public class MirrorScanWindowController {
     }
   }
 
-  public void openUSIExample1(ActionEvent event) {
+  public void openUSIExample1() {
     // Phenylalanine conjugated deoxycholic acid
     // Tyrosine conjugated deoxycholic acid putative [M-H2O+H]+
-    txtTop.setText("CCMSLIB00005716807");
-    txtBottom.setText("CCMSLIB00005467948");
+    txtTop.setText("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00005716807");
+    txtBottom.setText("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00005467948");
   }
 
-  public void openUSIExample2(ActionEvent event) {
+  public void openUSIExample2() {
     // Phenylalanine conjugated deoxycholic acid
     // Tyrosine conjugated deoxycholic acid putative
-    txtTop.setText("CCMSLIB00005716807");
-    txtBottom.setText("CCMSLIB00005467946");
+    txtTop.setText("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00005716807");
+    txtBottom.setText("mzspec:GNPS:GNPS-LIBRARY:accession:CCMSLIB00005467946");
   }
 }
