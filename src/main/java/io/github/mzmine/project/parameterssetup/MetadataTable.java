@@ -206,7 +206,7 @@ public class MetadataTable {
         false); BufferedWriter bufferedWriter = new BufferedWriter(fw)) {
       // in case if there's no metadata to export
       if (data.isEmpty()) {
-        logger.info("There's no metadata to export");
+        logger.warning("There's no metadata to export");
         return false;
       }
 
@@ -218,12 +218,11 @@ public class MetadataTable {
       logger.info("Header was successfully written down");
 
       // write the parameters value down
-      for (var param : data.keySet()) {
-        var record = data.get(param);
-        for (var rawDataFile : record.keySet()) {
-          var paramVal = record.get(rawDataFile);
+      for (var column : data.entrySet()) {
+        for (var rawDataFile : column.getValue().keySet()) {
+          var cellVal = column.getValue().get(rawDataFile);
           // pattern match the parameter type
-          AvailableTypes paramType = switch (param) {
+          AvailableTypes paramType = switch (column.getKey()) {
             case (StringMetadataColumn stringMetadataColumn) -> TEXT;
             case (DoubleMetadataColumn doubleMetadataColumn) -> DOUBLE;
             case (DateMetadataColumn dateMetadataColumn) -> DATETIME;
@@ -231,11 +230,11 @@ public class MetadataTable {
 
           // create the record line
           List<String> lineFieldsValues = new ArrayList<>();
-          lineFieldsValues.add(param.getTitle());
-          lineFieldsValues.add(param.getDescription());
+          lineFieldsValues.add(column.getKey().getTitle());
+          lineFieldsValues.add(column.getKey().getDescription());
           lineFieldsValues.add(paramType.toString());
           lineFieldsValues.add(rawDataFile.getName());
-          lineFieldsValues.add(paramVal.toString());
+          lineFieldsValues.add(cellVal.toString());
 
           String line = String.join("\t", lineFieldsValues);
           line += System.lineSeparator();
@@ -245,10 +244,10 @@ public class MetadataTable {
 
       logger.info("The metadata table was successfully exported");
     } catch (FileNotFoundException fileNotFoundException) {
-      logger.info("Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
+      logger.severe("Couldn't open file for metadata export: " + fileNotFoundException.getMessage());
       return false;
     } catch (IOException ioException) {
-      logger.info("Error while writing the exported metadata down: " + ioException.getMessage());
+      logger.severe("Error while writing the exported metadata down: " + ioException.getMessage());
       return false;
     }
 
@@ -271,7 +270,7 @@ public class MetadataTable {
       String header = String.join("\t", HeaderFieldsArr);
       // compare the headers
       if (!header.equals(bufferedReader.readLine())) {
-        logger.info("Import failed: wrong format of the header");
+        logger.severe("Import failed: wrong format of the header");
         return false;
       }
       logger.info("The header corresponds, OK");
@@ -295,7 +294,7 @@ public class MetadataTable {
           .filter(i -> HeaderFieldsArr[i].equals(HeaderFields.VALUE.toString())).findFirst()
           .orElse(-1);
       if (namePos == -1 || typePos == -1 || descPos == -1 || filePos == -1 || valuePos == -1) {
-        logger.info("Import failed: bad fields to pos mapping");
+        logger.severe("Import failed: bad fields to pos mapping");
         return false;
       }
 
@@ -309,7 +308,7 @@ public class MetadataTable {
         String[] splitLine = line.split("\t");
 
         if (splitLine.length != HeaderFieldsArr.length) {
-          logger.info("Import failed: wrong number of the fields in line");
+          logger.severe("Import failed: wrong number of the fields in line");
           return false;
         }
 
@@ -339,7 +338,7 @@ public class MetadataTable {
           if (parameterMatched.checkInput(convertedParameterInput)) {
             setValue(parameterMatched, files[rawDataFileInd], convertedParameterInput);
           } else {
-            logger.info("Import failed: wrong parameter value format");
+            logger.severe("Import failed: wrong parameter value format");
             return false;
           }
           // todo: need to update the metadata table when removing a RawDataFile
@@ -351,10 +350,10 @@ public class MetadataTable {
       logger.info("Metadata table: ");
       getData().forEach((par, value) -> logger.info(par.getTitle() + ":" + value));
     } catch (FileNotFoundException fileNotFoundException) {
-      logger.info("Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
+      logger.severe("Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
       return false;
     } catch (IOException ioException) {
-      logger.info("Error while reading the metadata: " + ioException.getMessage());
+      logger.severe("Error while reading the metadata: " + ioException.getMessage());
       return false;
     }
 
