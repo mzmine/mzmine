@@ -314,18 +314,9 @@ public class MetadataTable {
         if ((rawDataFileInd = IntStream.range(0, files.length)
             .filter(i -> files[i].getName().equals(splitLine[filePos])).findFirst().orElse(-1))
             != -1) {
-          // match the parameter according to its type
-          MetadataColumn parameterMatched = switch (AvailableTypes.valueOf(splitLine[typePos])) {
-            case TEXT -> {
-              yield new StringMetadataColumn(splitLine[namePos]);
-            }
-            case DOUBLE -> {
-              yield new DoubleMetadataColumn(splitLine[namePos]);
-            }
-            case DATETIME -> {
-              yield new DateMetadataColumn(splitLine[namePos]);
-            }
-          };
+          // create a column instance according to the parameter type
+          MetadataColumn parameterMatched = MetadataColumn.forType(
+              AvailableTypes.valueOf(splitLine[typePos]), splitLine[namePos]);
           logger.info("RawDataFile corresponding to this metadata parameter is found");
 
           // if the parameter value is in the right format then save it to the metadata table,
