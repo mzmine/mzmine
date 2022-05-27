@@ -18,6 +18,9 @@
 
 package io.github.mzmine.project.parameterssetup.columns;
 
+import java.util.Objects;
+import javax.validation.constraints.NotNull;
+
 /**
  * Abstract parameter column sealed class, afterwards it will be inherited by the specific
  * parameters types.
@@ -30,21 +33,21 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
   /**
    * Title (name) of the parameter.
    */
-  private final String title;
+  private final @NotNull String title;
 
   /**
-   * Description (optional) of the parameter
+   * Description (optional) of the parameter.
    */
-  private final String description;
+  private final @NotNull String description;
 
   public MetadataColumn(String title) {
-    this.title = title;
-    this.description = "None";
+    this.title = (title != null && !title.isBlank()) ? title : "None";
+    this.description = "";
   }
 
   public MetadataColumn(String title, String description) {
-    this.title = title;
-    this.description = description;
+    this.title = (title != null && !title.isBlank()) ? title : "None";
+    this.description = (description != null) ? description : "";
   }
 
   /**
@@ -89,19 +92,12 @@ public abstract sealed class MetadataColumn<T> permits StringMetadataColumn, Dou
     if (!(o instanceof MetadataColumn)) {
       return false;
     }
-
     MetadataColumn<?> that = (MetadataColumn<?>) o;
-
-    if (!title.equals(that.title)) {
-      return false;
-    }
-    return description != null ? description.equals(that.description) : that.description == null;
+    return title.equals(that.title) && description.equals(that.description);
   }
 
   @Override
   public int hashCode() {
-    int result = title.hashCode();
-    result = 31 * result + (description != null ? description.hashCode() : 0);
-    return result;
+    return Objects.hash(title, description);
   }
 }
