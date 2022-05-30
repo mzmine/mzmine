@@ -30,6 +30,7 @@ import io.github.mzmine.gui.chartbasics.gui.javafx.EChartViewer;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
+import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -256,6 +257,7 @@ public class MirrorChartFactory {
     XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
     XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
 
+    var labelGenerator = new PseudoSpectraItemLabelGenerator(mirrorSpecrumPlot);
     // add all datapoints to a dataset that are not present in subsequent
     // masslist
     for (int i = 0; i < tags.length; i++) {
@@ -304,6 +306,12 @@ public class MirrorChartFactory {
 
       libraryPlot.setDataset(i, ldata);
       libraryPlot.setRenderer(i, renderer2);
+
+      renderer.setSeriesItemLabelGenerator(0, labelGenerator);
+      renderer2.setSeriesItemLabelGenerator(0, labelGenerator);
+      renderer.setDefaultItemLabelsVisible(true);
+      renderer2.setDefaultItemLabelsVisible(true);
+
       renderer2.setDefaultSeriesVisibleInLegend(false, false);
     }
 
@@ -338,6 +346,7 @@ public class MirrorChartFactory {
     EStandardChartTheme theme = MZmineCore.getConfiguration().getDefaultChartTheme();
     theme.apply(mirrorSpecrumPlot.getChart());
     mirrorSpecrumPlot.getChart().getLegend().setVisible(true);
+
     return mirrorSpecrumPlot;
   }
 
