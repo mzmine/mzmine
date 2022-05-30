@@ -18,27 +18,25 @@
 
 package io.github.mzmine.util.web;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.http.ParseException;
 
-/**
- * Simple representation of a response from web api. Extracts the URL from the json or text
- * response
- *
- * @param response   response text
- * @param url        extracted URL or empty string
- * @param statusCode the status code from the request
- * @author <a href="https://github.com/robinschmid">Robin Schmid</a>
- */
-public record RequestResponse(String response, String url, int statusCode) {
+public class WebUtils {
 
-  private static final Logger logger = Logger.getLogger(RequestResponse.class.getName());
-  public static RequestResponse NONE = new RequestResponse("", "", -1);
+  private static final Logger logger = Logger.getLogger(WebUtils.class.getName());
 
-  public void openURL() {
-    WebUtils.openURL(url);
-  }
-
-  public boolean isSuccess() {
-    return statusCode / 200 == 1;
+  public static void openURL(String url) {
+    if (Desktop.isDesktopSupported() && !url.isBlank()) {
+      try {
+        Desktop.getDesktop().browse(new URI(url));
+      } catch (ParseException | IOException | URISyntaxException e) {
+        logger.log(Level.WARNING, "Cannot open browser for URL: " + url, e);
+      }
+    }
   }
 }
