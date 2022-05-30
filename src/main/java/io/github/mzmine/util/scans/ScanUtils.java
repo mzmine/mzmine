@@ -1610,8 +1610,7 @@ public class ScanUtils {
    */
   public static DataPoint[] removeSignals(DataPoint[] dps, double mz, MZTolerance tolerance) {
     Range<Double> range = tolerance.getToleranceRange(mz);
-    return Arrays.stream(dps).filter(dp -> !range.contains(mz)).toArray(DataPoint[]::new);
-
+    return Arrays.stream(dps).filter(dp -> !range.contains(dp.getMZ())).toArray(DataPoint[]::new);
   }
 
   /**
