@@ -36,7 +36,7 @@ public class MirrorScanParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<MZToleranceParameter> removePrecursor = new OptionalParameter<>(
       new MZToleranceParameter("Remove m/z around precursor", "Removes residual precursor signals",
-          10, 20));
+          5, 0));
 
   /**
    * Windows size and position
