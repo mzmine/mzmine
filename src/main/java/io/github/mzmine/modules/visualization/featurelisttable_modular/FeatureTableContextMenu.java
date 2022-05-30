@@ -29,8 +29,11 @@ import io.github.mzmine.datamodel.MergedMassSpectrum;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.IonMobilogramTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeries;
+import io.github.mzmine.datamodel.featuredata.IonTimeSeriesUtils;
 import io.github.mzmine.datamodel.features.Feature;
 import io.github.mzmine.datamodel.features.ModularFeature;
+import io.github.mzmine.datamodel.features.ModularFeatureList;
 import io.github.mzmine.datamodel.features.ModularFeatureListRow;
 import io.github.mzmine.datamodel.features.types.DataType;
 import io.github.mzmine.datamodel.features.types.ImageType;
@@ -397,6 +400,11 @@ public class FeatureTableContextMenu extends ContextMenu {
     final MenuItem showPeakRowSummaryItem = new ConditionalMenuItem("Row(s) summary", () ->
         /* !selectedRows.isEmpty() */ false); // todo, not implemented yet
 
+    final MenuItem showNormalizedImage = new ConditionalMenuItem("Show Normalized Image",
+        () -> selectedFeature != null
+            && selectedFeature.getRawDataFile() instanceof ImagingRawDataFile);
+    showImageFeatureItem.setOnAction(e -> addNormalizedImageTab());
+
     showMenu.getItems()
         .addAll(showXICItem, showXICSetupItem, showIMSFeatureItem, showImageFeatureItem,
             new SeparatorMenuItem(), show2DItem, show3DItem, showIntensityPlotItem,
@@ -405,7 +413,18 @@ public class FeatureTableContextMenu extends ContextMenu {
             extractSumSpectrumFromMobScans, showMSMSItem, showMSMSMirrorItem, showAllMSMSItem,
             new SeparatorMenuItem(), showIsotopePatternItem, showCompoundDBResults,
             showSpectralDBResults, showMatchedLipidSignals, new SeparatorMenuItem(),
-            showPeakRowSummaryItem);
+            showPeakRowSummaryItem, showNormalizedImage);
+  }
+
+  private void addNormalizedImageTab() {
+    final IonTimeSeries<? extends Scan> featureData = selectedFeature.getFeatureData();
+    final IonTimeSeries<? extends Scan> normalized = IonTimeSeriesUtils.normalizeToAvgTic(
+        featureData, null);
+
+    ModularFeature f = new ModularFeature((ModularFeatureList) selectedFeature.getFeatureList(),
+        selectedFeature.getRawDataFile(), normalized, FeatureStatus.MANUAL);
+    ImageVisualizerTab tab = new ImageVisualizerTab(f);
+    MZmineCore.getDesktop().addTab(tab);
   }
 
   private void onShown() {
