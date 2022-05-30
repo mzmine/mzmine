@@ -103,7 +103,7 @@ public class MassvoltammogramTab extends MZmineTab {
 
     //Creating a button to export the plot.
     final Button exportButton = new Button(null, new ImageView(EXPORT_PLOT_ICON));
-    exportButton.setTooltip(new Tooltip("Export the massvolatmmogram."));
+    exportButton.setTooltip(new Tooltip("Export the massvoltammogram."));
     exportButton.setOnAction(e -> MassvoltammogramExport.exportPlot(this.plot));
     exportButton.setMinSize(35, 35);
 
