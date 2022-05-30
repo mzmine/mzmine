@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -76,8 +76,7 @@ public class MirrorChartFactory {
    * @param db
    * @return
    */
-  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(
-      SpectralDBAnnotation db) {
+  public static EChartViewer createMirrorPlotFromSpectralDBPeakIdentity(SpectralDBAnnotation db) {
 
     Scan scan = db.getQueryScan();
     if (scan == null) {
@@ -305,6 +304,7 @@ public class MirrorChartFactory {
 
       libraryPlot.setDataset(i, ldata);
       libraryPlot.setRenderer(i, renderer2);
+      renderer2.setDefaultSeriesVisibleInLegend(false, false);
     }
 
     // add legend
