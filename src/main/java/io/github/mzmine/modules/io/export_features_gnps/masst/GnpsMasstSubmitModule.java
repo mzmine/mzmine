@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -20,6 +20,7 @@ package io.github.mzmine.modules.io.export_features_gnps.masst;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MassSpectrum;
+import io.github.mzmine.datamodel.features.FeatureListRow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
@@ -31,6 +32,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Directly submits a new MASST job from MZmine
@@ -44,16 +46,18 @@ public class GnpsMasstSubmitModule implements MZmineRunnableModule {
   private static final String MODULE_NAME = "Submit GNPS MASST search";
   private static final String MODULE_DESCRIPTION = "Submit an MS2 spectrum to GNPS MASST search, searching against public data.";
 
-  public static ExitCode submitSingleMASSTJob(double precursorMZ, MassSpectrum spectrum) {
-    return submitSingleMASSTJob(precursorMZ, ScanUtils.extractDataPoints(spectrum));
+  public static ExitCode submitSingleMASSTJob(@Nullable FeatureListRow row, double precursorMZ,
+      MassSpectrum spectrum) {
+    return submitSingleMASSTJob(row, precursorMZ, ScanUtils.extractDataPoints(spectrum));
   }
 
-  public static ExitCode submitSingleMASSTJob(double precursorMZ, DataPoint[] dataPoints) {
+  public static ExitCode submitSingleMASSTJob(@Nullable FeatureListRow row, double precursorMZ,
+      DataPoint[] dataPoints) {
     final ParameterSet parameters = MZmineCore.getConfiguration()
         .getModuleParameters(GnpsMasstSubmitModule.class);
     if (parameters.showSetupDialog(true) == ExitCode.OK) {
-      MZmineCore.getTaskController()
-          .addTask(new GnpsMasstSubmitTask(precursorMZ, dataPoints, parameters, Instant.now()));
+      MZmineCore.getTaskController().addTask(
+          new GnpsMasstSubmitTask(row, precursorMZ, dataPoints, parameters, Instant.now()));
       return ExitCode.OK;
     }
     return ExitCode.CANCEL;

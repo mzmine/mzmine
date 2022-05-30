@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -30,14 +30,19 @@
 package io.github.mzmine.modules.io.export_features_gnps.masst;
 
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.features.FeatureListRow;
+import io.github.mzmine.datamodel.features.types.abstr.UrlShortName;
+import io.github.mzmine.datamodel.features.types.annotations.MasstUrlType;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
+import io.github.mzmine.util.web.RequestResponse;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Submit MASST job to GNPS
@@ -50,6 +55,7 @@ public class GnpsMasstSubmitTask extends AbstractTask {
 
   private final MasstDatabase database;
   private final String description;
+  private final FeatureListRow row;
   private final double precursorMZ;
   private final DataPoint[] dataPoints;
   private final Double minCosine;
@@ -61,11 +67,13 @@ public class GnpsMasstSubmitTask extends AbstractTask {
   private final String email;
   private final String password;
   private final String username;
-  private double progress = 0d;
+  private final double progress = 0d;
 
-  GnpsMasstSubmitTask(double precursorMZ, DataPoint[] dataPoints, ParameterSet parameters,
-      @NotNull Instant moduleCallDate) {
+
+  GnpsMasstSubmitTask(@Nullable FeatureListRow row, double precursorMZ, DataPoint[] dataPoints,
+      ParameterSet parameters, @NotNull Instant moduleCallDate) {
     super(null, moduleCallDate); // no new data stored -> null
+    this.row = row;
     this.precursorMZ = precursorMZ;
     this.dataPoints = dataPoints;
     minCosine = parameters.getValue(GnpsMasstSubmitParameters.cosineScore);
@@ -96,10 +104,15 @@ public class GnpsMasstSubmitTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      boolean success = GNPSUtils.submitMASSTJob(description, dataPoints, precursorMZ, database,
-          minCosine, parentMzTol, fragmentMzTol, minMatchedSignals, searchAnalogs, email, username,
-          password, openWebsite);
-      if (!success) {
+      RequestResponse response = GNPSUtils.submitMASSTJob(description, dataPoints, precursorMZ,
+          database, minCosine, parentMzTol, fragmentMzTol, minMatchedSignals, searchAnalogs, email,
+          username, password, openWebsite);
+
+      String url = response.url();
+      if (row != null && !url.isBlank()) {
+        row.set(MasstUrlType.class, new UrlShortName(url, url));
+      }
+      if (!response.isSuccess()) {
         logger.log(Level.WARNING, "GNPS MASST submit failed");
       }
     } catch (Exception e) {

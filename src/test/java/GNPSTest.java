@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -20,9 +20,9 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
+import io.github.mzmine.util.web.RequestResponse;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +30,6 @@ import org.junit.jupiter.api.Test;
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class GNPSTest {
-
-  private static final Logger logger = Logger.getLogger(GNPSTest.class.getName());
 
   @Test
   void testMasstSearch() throws IOException {
@@ -58,8 +56,9 @@ public class GNPSTest {
         .toArray(DataPoint[]::new);
 
     // the description will limit the submission to a test
-    boolean success = GNPSUtils.submitMASSTJob("MZMINE_TEST_SUBMISSION_ADD_TEST_PART", dps, 1044.66,
-        MasstDatabase.ALL, 0.7, 1d, 0.5, 6, false, "", "", "", false);
-    Assert.assertTrue(success);
+    RequestResponse response = GNPSUtils.submitMASSTJob("MZMINE_TEST_SUBMISSION_ADD_TEST_PART", dps,
+        1044.66, MasstDatabase.ALL, 0.7, 1d, 0.5, 6, false, "", "", "", false);
+    Assert.assertEquals("Test Passed", response.response());
+    Assert.assertTrue(response.isSuccess());
   }
 }

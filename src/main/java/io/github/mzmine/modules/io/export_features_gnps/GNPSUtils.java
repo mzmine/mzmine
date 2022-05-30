@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -23,6 +23,7 @@ import io.github.mzmine.modules.io.export_features_gnps.fbmn.GnpsFbmnSubmitParam
 import io.github.mzmine.modules.io.export_features_gnps.gc.GnpsGcSubmitParameters;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
 import io.github.mzmine.util.files.FileAndPathUtil;
+import io.github.mzmine.util.web.RequestResponse;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -169,9 +170,9 @@ public class GNPSUtils {
   }
 
 
-  public static boolean submitMASSTJob(DataPoint[] data, double precursorMZ, MasstDatabase database,
-      double minCosine, double parentMzTol, double fragmentMzTol, int minMatchedSignals,
-      boolean searchAnalogs, boolean openWebsite) throws IOException {
+  public static @NotNull RequestResponse submitMASSTJob(DataPoint[] data, double precursorMZ,
+      MasstDatabase database, double minCosine, double parentMzTol, double fragmentMzTol,
+      int minMatchedSignals, boolean searchAnalogs, boolean openWebsite) throws IOException {
     return submitMASSTJob("MZmine3 MASST submission", data, precursorMZ, database, minCosine,
         parentMzTol, fragmentMzTol, minMatchedSignals, searchAnalogs, "", "", "", openWebsite);
   }
@@ -193,22 +194,22 @@ public class GNPSUtils {
    * @param username          optional username
    * @param password          optional password
    * @param openWebsite       open the website if successfull
-   * @return true if the request was successful
+   * @return URL if successful otherwise empty string
    * @throws IOException
    */
-  public static boolean submitMASSTJob(String description, DataPoint[] data, double precursorMZ,
-      MasstDatabase database, double minCosine, double parentMzTol, double fragmentMzTol,
-      int minMatchedSignals, boolean searchAnalogs, String email, String username, String password,
-      boolean openWebsite) throws IOException {
+  public static @NotNull RequestResponse submitMASSTJob(String description, DataPoint[] data,
+      double precursorMZ, MasstDatabase database, double minCosine, double parentMzTol,
+      double fragmentMzTol, int minMatchedSignals, boolean searchAnalogs, String email,
+      String username, String password, boolean openWebsite) throws IOException {
     if (data.length < minMatchedSignals) {
       logger.warning(() -> String.format(
           "Cannot MASST search when spectrum contains less data points (%d) than minimum matched signals (%d).",
           data.length, minMatchedSignals));
-      return false;
+      return RequestResponse.NONE;
     }
     if (precursorMZ <= 1) {
       logger.warning("Cannot MASST search with this precursor m/z=" + precursorMZ);
-      return false;
+      return RequestResponse.NONE;
     }
 
     final String data_tab_sep = Arrays.stream(data).map(d -> d.getMZ() + "\t" + d.getIntensity())
@@ -240,25 +241,33 @@ public class GNPSUtils {
 
       try (CloseableHttpResponse response = client.execute(httpPost)) {
         logger.info("GNPS submit response status: " + response.getStatusLine());
-        HttpEntity resEntity = response.getEntity();
-        if (resEntity != null) {
-          final String requestResult = EntityUtils.toString(resEntity);
-          logger.info("GNPS MASST response: " + requestResult);
+        RequestResponse res = getResponse(response);
 
-          // all 200s are success
-          if (response.getStatusLine().getStatusCode() / 200 == 1) {
-            // open job website
-            if (openWebsite) {
-              openWebsite(requestResult);
-            }
-            EntityUtils.consume(resEntity);
-            return true;
-          }
+        if (res.isSuccess() && res.url().isBlank()) {
+          logger.log(Level.WARNING,
+              "Error while submitting GNPS job, cannot read response URL as json or text");
         }
+
+        if (openWebsite) {
+          res.openURL();
+        }
+        return res;
       }
     }
+  }
 
-    return false;
+  @NotNull
+  private static RequestResponse getResponse(CloseableHttpResponse response) {
+    String requestResult = "";
+    try {
+      HttpEntity entity = response.getEntity();
+      requestResult = EntityUtils.toString(entity);
+      EntityUtils.consume(entity);
+    } catch (IOException e) {
+      //
+    }
+    return new RequestResponse(requestResult, extractUrl(requestResult),
+        response.getStatusLine().getStatusCode());
   }
 
   /**
@@ -266,25 +275,9 @@ public class GNPSUtils {
    */
   private static void openWebsite(String requestResult) {
     if (Desktop.isDesktopSupported()) {
-      String url = "";
-      try {
-        JSONObject res = new JSONObject(requestResult);
-        url = res.getString("url");
-        logger.info("Response: " + res);
+      String url = extractUrl(requestResult);
 
-      } catch (ParseException | JSONException e) {
-        // try reading the link from text - maybe type was plain text
-        // parse from html response link, e.g.:
-        // <a href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=theTaskID">
-        url = StringUtils.substringBetween(requestResult, "<a href=\"", "\">");
-
-        if (url == null || url.isBlank()) {
-          logger.log(Level.SEVERE,
-              "Error while submitting GNPS job, cannot read response URL as json or text", e);
-        }
-      }
-
-      if (url != null && !url.isBlank()) {
+      if (!url.isBlank()) {
         try {
           Desktop.getDesktop().browse(new URI(url));
         } catch (ParseException | IOException | URISyntaxException e) {
@@ -292,6 +285,26 @@ public class GNPSUtils {
         }
       }
     }
+  }
+
+  /**
+   * Read URL from json or text response
+   *
+   * @param requestResult json or text format response
+   * @return URL or empty string
+   */
+  private static @NotNull String extractUrl(String requestResult) {
+    String url = "";
+    try {
+      JSONObject res = new JSONObject(requestResult);
+      url = res.getString("url");
+    } catch (ParseException | JSONException e) {
+      // try reading the link from text - maybe type was plain text
+      // parse from html response link, e.g.:
+      // <a href="https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=theTaskID">
+      url = StringUtils.substringBetween(requestResult, "<a href=\"", "\">");
+    }
+    return url == null ? "" : url;
   }
 
   /**

@@ -451,7 +451,7 @@ public class FeatureTableContextMenu extends ContextMenu {
           logger.warning("Missing mass list. Run mass detection on MS2 scans to run MASST search");
           return;
         }
-        GnpsMasstSubmitModule.submitSingleMASSTJob(row.getAverageMZ(), ms2.getMassList());
+        GnpsMasstSubmitModule.submitSingleMASSTJob(row, row.getAverageMZ(), ms2.getMassList());
       }
     }
   }
