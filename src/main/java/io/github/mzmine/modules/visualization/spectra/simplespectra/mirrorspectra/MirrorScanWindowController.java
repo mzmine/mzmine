@@ -33,7 +33,8 @@ import io.github.mzmine.parameters.dialogs.ParameterSetupPane;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import io.github.mzmine.util.DataPointSorter;
 import io.github.mzmine.util.MirrorChartFactory;
-import io.github.mzmine.util.components.ColorPickerTableCell;
+import io.github.mzmine.util.components.ColorTableCell;
+import io.github.mzmine.util.components.ColorTableCell.Style;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.similarity.Weights;
 import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
@@ -157,7 +158,7 @@ public class MirrorScanWindowController {
     colContribution.setCellValueFactory(
         row -> new SimpleDoubleProperty(row.getValue().contribution()).asObject());
 
-    colMatchColor.setCellFactory(ColorPickerTableCell::new);
+    colMatchColor.setCellFactory(col -> new ColorTableCell<>(Style.CIRCLE));
     colMzTop.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
     colMzBottom.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
     colIntensityTop.setCellFactory(col -> new FormattedTableCell<>(config.getIntensityFormat()));
@@ -177,7 +178,7 @@ public class MirrorScanWindowController {
     colContribution1.setCellValueFactory(
         row -> new SimpleDoubleProperty(row.getValue().contribution()).asObject());
 
-    colMatchColor1.setCellFactory(ColorPickerTableCell::new);
+    colMatchColor1.setCellFactory(col -> new ColorTableCell<>(Style.CIRCLE));
     colMzTop1.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
     colMzBottom1.setCellFactory(col -> new FormattedTableCell<>(config.getMZFormat()));
     colIntensityTop1.setCellFactory(col -> new FormattedTableCell<>(config.getIntensityFormat()));
@@ -272,7 +273,7 @@ public class MirrorScanWindowController {
 
     if (cosine != null) {
       lbMirrorStats.setText(String.format(
-          "   cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
+          "    cosine=%1.3f; matched signals=%d; explained intensity top=%1.3f; explained intensity bottom=%1.3f; matched signals top=%1.3f; matched signals bottom=%1.3f",
           cosine.cosine(), cosine.overlap(), cosine.explainedIntensityB(),
           cosine.explainedIntensityA(), cosine.overlap() / (double) cosine.sizeB(),
           cosine.overlap() / (double) cosine.sizeA()));
@@ -308,6 +309,7 @@ public class MirrorScanWindowController {
         }
         tableMirror.getItems().setAll(data);
         colContribution.setSortType(SortType.DESCENDING);
+        tableMirror.getSortOrder().setAll(colContribution);
       }
     } else {
       lbMirrorModifiedStats.setText("");
@@ -346,6 +348,7 @@ public class MirrorScanWindowController {
 
         tableNLMIrror.getItems().addAll(data);
         colContribution1.setSortType(SortType.DESCENDING);
+        tableNLMIrror.getSortOrder().setAll(colContribution1);
       }
 
     } else {
