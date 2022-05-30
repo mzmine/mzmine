@@ -41,6 +41,8 @@ import io.github.mzmine.util.spectraldb.entry.DataPointsTag;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBAnnotation;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import java.io.IOException;
+import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,6 +78,10 @@ public class MirrorScanWindowController {
   @FXML
   public TextField txtBottom;
   private final ParameterSet parameters;
+  @FXML
+  public Label lbTitleCos;
+  @FXML
+  public Label lbTitleNL;
 
   // components
   @FXML
@@ -223,6 +229,10 @@ public class MirrorScanWindowController {
     this.precursorMZB = precursorMZB;
     this.dpsB = dpsB;
 
+    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    String precursorString = MessageFormat.format(": {0}↔{1}; top↔bottom",
+        mzFormat.format(precursorMZA), mzFormat.format(precursorMZB));
+
     pnMirror.getChildren().removeAll();
     pnNLMirror.getChildren().removeAll();
 
@@ -231,8 +241,11 @@ public class MirrorScanWindowController {
     mirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, true, dpsA,
         precursorMZA, dpsB, precursorMZB);
     pnMirror.setCenter(mirrorSpecrumPlot);
+    lbTitleCos.setText("Modified cosine mirror" + precursorString);
 
+    // create neutral loss spec
     if (precursorMZA > 0 && precursorMZB > 0) {
+      lbTitleNL.setText("Neutral loss mirror" + precursorString);
       neutralLossMirrorSpecrumPlot = MirrorChartFactory.createMirrorPlotFromAligned(mzTol, false,
           ScanUtils.getNeutralLossSpectrum(dpsA, precursorMZA), precursorMZA,
           ScanUtils.getNeutralLossSpectrum(dpsB, precursorMZB), precursorMZB);

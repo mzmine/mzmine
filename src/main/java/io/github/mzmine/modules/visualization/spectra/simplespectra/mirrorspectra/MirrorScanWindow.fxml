@@ -18,26 +18,12 @@
   ~
   -->
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Accordion?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="650.0" prefWidth="800.0"
-  xmlns="http://javafx.com/javafx/15.0.1"
-  fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane prefHeight="650.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindowController">
    <center>
       <GridPane BorderPane.alignment="CENTER">
          <children>
@@ -47,16 +33,16 @@
                      <top>
                         <VBox BorderPane.alignment="CENTER">
                            <children>
-                              <Label text="MS/MS mirror (modified cosine)">
+                              <Label fx:id="lbTitleCos" text="MS/MS mirror (modified cosine)">
                                  <font>
-                                    <Font name="System Bold" size="12.0"/>
+                                    <Font name="System Bold" size="12.0" />
                                  </font>
                               </Label>
-                              <Label text="scores" fx:id="lbMirrorStats"/>
-                              <Label text="scores" fx:id="lbMirrorModifiedStats"/>
+                              <Label fx:id="lbMirrorStats" text="scores" />
+                              <Label fx:id="lbMirrorModifiedStats" text="scores" />
                            </children>
                            <padding>
-                              <Insets left="5.0"/>
+                              <Insets left="5.0" />
                            </padding>
                         </VBox>
                      </top>
@@ -66,30 +52,23 @@
                         <ScrollPane fitToHeight="true" fitToWidth="true">
                            <BorderPane>
                               <center>
-                                 <TableView BorderPane.alignment="CENTER" fx:id="tableMirror">
+                                 <TableView fx:id="tableMirror" BorderPane.alignment="CENTER">
                                     <columns>
                                        <TableColumn editable="false" prefWidth="75.0" text="top">
                                           <columns>
-                                             <TableColumn prefWidth="75.0" text="mz"
-                                               fx:id="colMzTop"/>
-                                             <TableColumn editable="false" prefWidth="70.0"
-                                               text="intensity" fx:id="colIntensityTop"/>
+                                             <TableColumn fx:id="colMzTop" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityTop" editable="false" prefWidth="70.0" text="intensity" />
                                           </columns>
                                        </TableColumn>
                                        <TableColumn editable="false" prefWidth="75.0" text="bottom">
                                           <columns>
-                                             <TableColumn editable="false" prefWidth="75.0"
-                                               text="mz" fx:id="colMzBottom"/>
-                                             <TableColumn editable="false" prefWidth="70.0"
-                                               text="intensity" fx:id="colIntensityBottom"/>
+                                             <TableColumn fx:id="colMzBottom" editable="false" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityBottom" editable="false" prefWidth="70.0" text="intensity" />
                                           </columns>
                                        </TableColumn>
-                                       <TableColumn editable="false" prefWidth="25" text="c"
-                                         fx:id="colMatchColor"/>
-                                       <TableColumn editable="false" prefWidth="75.0" text="match"
-                                         fx:id="colMatch"/>
-                                       <TableColumn editable="false" prefWidth="100.0"
-                                         text="contribution" fx:id="colContribution"/>
+                                       <TableColumn fx:id="colMatchColor" editable="false" prefWidth="25" text="c" />
+                                       <TableColumn fx:id="colMatch" editable="false" prefWidth="75.0" text="match" />
+                                       <TableColumn fx:id="colContribution" editable="false" prefWidth="100.0" text="contribution" />
                                     </columns>
                                  </TableView>
                               </center>
@@ -99,21 +78,21 @@
                   </BorderPane>
                </items>
             </SplitPane>
-            <SplitPane GridPane.rowIndex="1" dividerPositions="0.7">
+            <SplitPane dividerPositions="0.7" GridPane.rowIndex="1">
                <items>
                   <BorderPane fx:id="pnNLMirror">
                      <top>
                         <VBox BorderPane.alignment="CENTER">
                            <children>
-                              <Label text="Neutral loss mirror">
+                              <Label fx:id="lbTitleNL" text="Neutral loss mirror">
                                  <font>
-                                    <Font name="System Bold" size="12.0"/>
+                                    <Font name="System Bold" size="12.0" />
                                  </font>
                               </Label>
-                              <Label text="scores" fx:id="lbNeutralLossStats"/>
+                              <Label fx:id="lbNeutralLossStats" text="scores" />
                            </children>
                            <padding>
-                              <Insets left="5.0"/>
+                              <Insets left="5.0" />
                            </padding>
                         </VBox>
                      </top>
@@ -123,30 +102,23 @@
                         <ScrollPane fitToHeight="true" fitToWidth="true">
                            <BorderPane>
                               <center>
-                                 <TableView BorderPane.alignment="CENTER" fx:id="tableNLMIrror">
+                                 <TableView fx:id="tableNLMIrror" BorderPane.alignment="CENTER">
                                     <columns>
                                        <TableColumn editable="false" prefWidth="75.0" text="top">
                                           <columns>
-                                             <TableColumn prefWidth="75.0" text="mz"
-                                               fx:id="colMzTop1"/>
-                                             <TableColumn editable="false" prefWidth="70.0"
-                                               text="intensity" fx:id="colIntensityTop1"/>
+                                             <TableColumn fx:id="colMzTop1" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityTop1" editable="false" prefWidth="70.0" text="intensity" />
                                           </columns>
                                        </TableColumn>
                                        <TableColumn editable="false" prefWidth="75.0" text="bottom">
                                           <columns>
-                                             <TableColumn editable="false" prefWidth="75.0"
-                                               text="mz" fx:id="colMzBottom1"/>
-                                             <TableColumn editable="false" prefWidth="70.0"
-                                               text="intensity" fx:id="colIntensityBottom1"/>
+                                             <TableColumn fx:id="colMzBottom1" editable="false" prefWidth="75.0" text="mz" />
+                                             <TableColumn fx:id="colIntensityBottom1" editable="false" prefWidth="70.0" text="intensity" />
                                           </columns>
                                        </TableColumn>
-                                       <TableColumn editable="false" prefWidth="25" text="c"
-                                         fx:id="colMatchColor1"/>
-                                       <TableColumn editable="false" prefWidth="75.0" text="match"
-                                         fx:id="colMatch1"/>
-                                       <TableColumn editable="false" prefWidth="100.0"
-                                         text="contribution" fx:id="colContribution1"/>
+                                       <TableColumn fx:id="colMatchColor1" editable="false" prefWidth="25" text="c" />
+                                       <TableColumn fx:id="colMatch1" editable="false" prefWidth="75.0" text="match" />
+                                       <TableColumn fx:id="colContribution1" editable="false" prefWidth="100.0" text="contribution" />
                                     </columns>
                                  </TableView>
                               </center>
@@ -158,11 +130,11 @@
             </SplitPane>
          </children>
          <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES"/>
+            <ColumnConstraints hgrow="SOMETIMES" />
          </columnConstraints>
          <rowConstraints>
-            <RowConstraints vgrow="SOMETIMES"/>
-            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="SOMETIMES" />
          </rowConstraints>
       </GridPane>
    </center>
@@ -173,44 +145,39 @@
                <content>
                   <GridPane hgap="4.0" vgap="3.0">
                      <children>
-                        <HBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="5.0">
+                        <HBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                            <children>
-                              <Button mnemonicParsing="false" onAction="#openGnpsLibExample"
-                                text="GNPS library"/>
-                              <Button mnemonicParsing="false" onAction="#openUSIExample1"
-                                text="USI1"/>
-                              <Button mnemonicParsing="false" onAction="#openUSIExample2"
-                                text="USI2"/>
+                              <Button mnemonicParsing="false" onAction="#openGnpsLibExample" text="GNPS library" />
+                              <Button mnemonicParsing="false" onAction="#openUSIExample1" text="USI1" />
+                              <Button mnemonicParsing="false" onAction="#openUSIExample2" text="USI2" />
                            </children>
                         </HBox>
-                        <Label GridPane.halignment="RIGHT" GridPane.rowIndex="1" text="top"/>
-                        <Label GridPane.halignment="RIGHT" GridPane.rowIndex="2" text="bottom"/>
-                        <Label GridPane.columnIndex="1"
-                          text="Spectrum number | GNPS library ID | USI">
+                        <Label text="top" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+                        <Label text="bottom" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+                        <Label text="Spectrum number | GNPS library ID | USI" GridPane.columnIndex="1">
                            <font>
-                              <Font name="System Bold" size="12.0"/>
+                              <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <Label GridPane.rowIndex="3" text="examples"/>
-                        <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="txtTop"/>
-                        <TextField GridPane.columnIndex="1" GridPane.rowIndex="2"
-                          fx:id="txtBottom"/>
+                        <Label text="examples" GridPane.rowIndex="3" />
+                        <TextField fx:id="txtTop" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="txtBottom" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                      </children>
                      <columnConstraints>
-                        <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="0.0"/>
-                        <ColumnConstraints hgrow="ALWAYS"/>
+                        <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="0.0" />
+                        <ColumnConstraints hgrow="ALWAYS" />
                      </columnConstraints>
                      <rowConstraints>
-                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                        <RowConstraints vgrow="SOMETIMES"/>
-                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                        <RowConstraints vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                        <RowConstraints vgrow="SOMETIMES" />
                      </rowConstraints>
                   </GridPane>
                </content>
             </TitledPane>
 
-            <TitledPane animated="false" graphicTextGap="0.0" text="Parameters" fx:id="pnParams"/>
+            <TitledPane fx:id="pnParams" animated="false" graphicTextGap="0.0" text="Parameters" />
          </panes>
       </Accordion>
    </top>
