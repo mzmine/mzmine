@@ -325,6 +325,9 @@ public class MirrorChartFactory {
     libraryPlot.getRangeAxis().setLabel("rel. intensity [%]");
     domainPlot.getDomainAxis().setLabel("m/z");
 
+    queryPlot.getRangeAxis().setUpperMargin(0.12);
+    libraryPlot.getRangeAxis().setUpperMargin(0.12);
+
     queryPlot.setDomainGridlinesVisible(false);
     queryPlot.setDomainMinorGridlinesVisible(false);
     libraryPlot.setDomainGridlinesVisible(false);
