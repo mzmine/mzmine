@@ -231,7 +231,7 @@ public class FeatureTableContextMenu extends ContextMenu {
     // submit GNPS MASST search job
     final MenuItem masstSearch = new ConditionalMenuItem(
         "Submit MASST public data search (on GNPS)",
-        () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) > 1);
+        () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1);
     masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
 
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
