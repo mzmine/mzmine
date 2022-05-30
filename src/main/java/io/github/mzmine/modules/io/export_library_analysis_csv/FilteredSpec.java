@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,6 +22,9 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 /**
+ * this package private record holds precomputed filtered spectral and neutral loss data for a
+ * spectral library entry
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 record FilteredSpec(SpectralDBEntry entry, DataPoint[] dps, DataPoint[] neutralLosses,

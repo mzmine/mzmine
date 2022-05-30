@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Run analysis of spectral similarity in parallel
+ *
  * @author Robin Schmid (https://github.com/robinschmid)
  */
 public class LibraryAnalysisSubTask extends AbstractTask {
