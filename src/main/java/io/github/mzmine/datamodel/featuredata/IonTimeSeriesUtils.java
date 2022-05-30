@@ -106,7 +106,7 @@ public class IonTimeSeriesUtils {
         .orElseThrow(() -> new IllegalStateException("Cannot determine average TIC"));
 
     for (int i = 0; i < series.getNumberOfValues(); i++) {
-      intensities[i] = series.getIntensity(i) * scans.get(i).getTIC() / avgTic;
+      intensities[i] = series.getIntensity(i) / scans.get(i).getTIC() * avgTic;
     }
 
     series.getMzValues(mzs);

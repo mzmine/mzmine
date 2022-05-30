@@ -35,7 +35,7 @@ public class ImageToCsvExportParameters extends SimpleParameterSet {
   public static final BooleanParameter normalize = new BooleanParameter("Normalize to average TIC",
           """
           If selected, the intensities will be normalized to the average TIC of the whole raw data file.
-          Example: NormalizedIntensity = Intensity_pixel * TIC_pixel / AvgTIC_file 
+          Example: NormalizedIntensity = Intensity_pixel / TIC_pixel * AvgTIC_file 
           """, false);
 
   public static final ComboParameter<HandleMissingValues> handleMissingSpectra = new ComboParameter<>(
