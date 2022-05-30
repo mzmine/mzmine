@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -23,6 +23,14 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonValue.ValueType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -36,14 +44,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
 import org.jetbrains.annotations.Nullable;
 
 // top level json objects/arrays
@@ -57,7 +57,7 @@ public class MonaJsonParser extends SpectralDBTextParser {
 
   private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData", SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
 
-  private static Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
+  private static final Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
 
   public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
     super(bufferEntries, processor);

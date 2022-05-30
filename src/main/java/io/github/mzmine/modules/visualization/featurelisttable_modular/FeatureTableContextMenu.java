@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -47,6 +47,7 @@ import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipidutils
 import io.github.mzmine.modules.dataprocessing.id_nist.NistMsSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectral_library_match.SpectralLibrarySearchModule;
+import io.github.mzmine.modules.io.export_features_gnps.masst.GnpsMasstSubmitModule;
 import io.github.mzmine.modules.io.export_features_sirius.SiriusExportModule;
 import io.github.mzmine.modules.io.export_image_csv.ImageToCsvExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
@@ -78,6 +79,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -95,6 +97,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class FeatureTableContextMenu extends ContextMenu {
 
+  private static final Logger logger = Logger.getLogger(FeatureTableContextMenu.class.getName());
   final Menu showMenu;
   final Menu searchMenu;
   final Menu idsMenu;
@@ -228,14 +231,20 @@ public class FeatureTableContextMenu extends ContextMenu {
     nistSearchItem.setOnAction(
         e -> NistMsSearchModule.singleRowSearch(table.getFeatureList(), selectedRows.get(0)));
 
+    // submit GNPS MASST search job
+    final MenuItem masstSearch = new ConditionalMenuItem(
+        "Submit MASST public data search (on GNPS)",
+        () -> selectedRows.size() == 1 && getNumberOfRowsWithFragmentScans(selectedRows) >= 1);
+    masstSearch.setOnAction(e -> submitMasstGNPSSearch(selectedRows));
+
     final MenuItem formulaPredictionItem = new ConditionalMenuItem("Predict molecular formula",
         () -> selectedRows.size() == 1);
     formulaPredictionItem.setOnAction(
         e -> FormulaPredictionModule.showSingleRowIdentificationDialog(selectedRows.get(0)));
 
     searchMenu.getItems()
-        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem,
-            new SeparatorMenuItem(), formulaPredictionItem);
+        .addAll(onlineDbSearchItem, spectralDbSearchItem, nistSearchItem, new SeparatorMenuItem(),
+            formulaPredictionItem, new SeparatorMenuItem(), masstSearch);
   }
 
   private void initShowMenu() {
@@ -445,6 +454,24 @@ public class FeatureTableContextMenu extends ContextMenu {
 
     for (MenuItem item : getItems()) {
       updateItem(item);
+    }
+  }
+
+  /**
+   * Mass spectrometry search tool job on GNPS
+   */
+  private void submitMasstGNPSSearch(List<ModularFeatureListRow> rows) {
+    // single
+    if (rows.size() == 1) {
+      final ModularFeatureListRow row = rows.get(0);
+      final Scan ms2 = row.getMostIntenseFragmentScan();
+      if (ms2 != null) {
+        if (ms2.getMassList() == null) {
+          logger.warning("Missing mass list. Run mass detection on MS2 scans to run MASST search");
+          return;
+        }
+        GnpsMasstSubmitModule.submitSingleMASSTJob(row, row.getAverageMZ(), ms2.getMassList());
+      }
     }
   }
 
