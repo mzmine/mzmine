@@ -20,12 +20,11 @@ import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.modules.io.export_features_gnps.GNPSUtils;
 import io.github.mzmine.modules.io.export_features_gnps.masst.MasstDatabase;
+import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import io.github.mzmine.util.web.RequestResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import org.junit.Assert;
-import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;
-import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -35,12 +34,9 @@ import org.junit.jupiter.api.Test;
  */
 public class GNPSTest {
 
-  private static final Logger logger = Logger.getLogger(GNPSTest.class.getName());
-
   @Test
   @Disabled
   void testLibraryAccess() throws IOException {
-    String libraryID = "https://gnps.ucsd.edu/ProteoSAFe/SpectrumCommentServlet?SpectrumID=CCMSLIB00005463737";
     SpectralDBEntry spec = GNPSUtils.accessLibrarySpectrum("CCMSLIB00005463737");
     Assertions.assertNotNull(spec);
     Assertions.assertTrue(spec.getDataPoints().length > 0);
