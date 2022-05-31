@@ -89,8 +89,8 @@
 }
 
 .tab-pane > *.tab-header-area > *.headers-region > *.tab:selected:top {
-  -fx-padding: 1;
-  -fx-border-width: 2.5;
+  -fx-padding: 0.5;
+  -fx-border-width: 2;
 
   -fx-focus-color: transparent;
   -fx-faint-focus-color: transparent;
