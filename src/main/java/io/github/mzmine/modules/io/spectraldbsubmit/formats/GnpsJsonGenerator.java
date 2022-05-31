@@ -128,7 +128,7 @@ public class GnpsJsonGenerator {
    * @param dps
    * @return
    */
-  private static JsonArray genJSONData(DataPoint[] dps) {
+  public static JsonArray genJSONData(DataPoint[] dps) {
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {

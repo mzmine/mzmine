@@ -4,6 +4,7 @@ import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.featuredata.impl.SimpleIonTimeSeries;
 import io.github.mzmine.util.DataPointUtils;
 import io.github.mzmine.util.MathUtils;
+import io.github.mzmine.util.MemoryMapStorage;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -68,8 +69,8 @@ public class IonTimeSeriesUtils {
     assert series.getNumberOfValues() <= newScans.size();
 
     if (outMzBuffer != null) {
-      final double avgMz = MathUtils
-          .calcAvg(DataPointUtils.getDoubleBufferAsArray(series.getMZValueBuffer()));
+      final double avgMz = MathUtils.calcAvg(
+          DataPointUtils.getDoubleBufferAsArray(series.getMZValueBuffer()));
       Arrays.fill(outMzBuffer, avgMz);
     }
 
@@ -95,4 +96,21 @@ public class IonTimeSeriesUtils {
     }
   }
 
+  public static <T extends IonTimeSeries<? extends Scan>> T normalizeToAvgTic(T series, @Nullable final
+      MemoryMapStorage storage) {
+    final List<? extends Scan> scans = series.getSpectra();
+    final double[] intensities = new double[scans.size()];
+    final double[] mzs = new double[scans.size()];
+
+    final double avgTic = scans.stream().mapToDouble(Scan::getTIC).average()
+        .orElseThrow(() -> new IllegalStateException("Cannot determine average TIC"));
+
+    for (int i = 0; i < series.getNumberOfValues(); i++) {
+      intensities[i] = series.getIntensity(i) / scans.get(i).getTIC() * avgTic;
+    }
+
+    series.getMzValues(mzs);
+
+    return (T) series.copyAndReplace(storage, mzs, intensities);
+  }
 }
