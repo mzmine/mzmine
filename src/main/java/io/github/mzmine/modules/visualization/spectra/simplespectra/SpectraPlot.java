@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -58,7 +58,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Cursor;
-import javafx.scene.control.ContextMenu;
 import javafx.util.Pair;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -80,15 +79,11 @@ import org.jfree.data.xy.XYDataset;
  */
 public class SpectraPlot extends EChartViewer implements LabelColorMatch {
 
-  // peak labels color
-  private static final Color labelsColor = Color.darkGray;
-  // grid color
-  private static final Color gridColor = Color.lightGray;
   // initially, plotMode is set to null, until we load first scan
   private final ObjectProperty<SpectrumPlotType> plotMode;
   /**
-   * Contains coordinated of labels for each dataset. It is supposed to be updated by {@link
-   * SpectraItemLabelGenerator}.
+   * Contains coordinated of labels for each dataset. It is supposed to be updated by
+   * {@link SpectraItemLabelGenerator}.
    */
   private final Map<XYDataset, List<Pair<Double, Double>>> datasetToLabelsCoords = new HashMap<>();
   /**
@@ -97,17 +92,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
   protected BooleanProperty matchLabelColors;
   protected ObjectProperty<SpectrumCursorPosition> cursorPosition;
 
-  // legend - moved to EStandardChartTheme ~SteffenHeu
-  // private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
   // Spectra processing
   protected DataPointProcessingController controller;
   protected EStandardChartTheme theme;
-  private JFreeChart chart;
-  private XYPlot plot;
-  // title font - moved to EStandardChartTheme ~SteffenHeu
-  // private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-  // private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
-  private TextTitle chartTitle, chartSubTitle;
+  private final JFreeChart chart;
+  private final XYPlot plot;
+  private final TextTitle chartTitle;
+  private final TextTitle chartSubTitle;
   private boolean isotopesVisible = true, peaksVisible = true, itemLabelsVisible = true, dataPointsVisible = false;
   // We use our own counter, because plot.getDatasetCount() just keeps
   // increasing even when we remove old data sets
@@ -161,10 +152,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     // set rendering order
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-    // set grid properties - TODO: do we want gridlines in spectra?
-    plot.setDomainGridlinePaint(gridColor);
-    plot.setRangeGridlinePaint(gridColor);
-
     NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
@@ -179,55 +166,8 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
     yAxis.setNumberFormatOverride(intensityFormat);
     yAxis.setUpperMargin(0.1); // some margin for m/z labels
-
     // only allow positive values for the axes
     ChartLogics.setAxesTypesPositive(chart);
-
-    // set focusable state to receive key events
-    // setFocusable(true);
-
-    // register key handlers
-    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), masterPlot,
-    // "PREVIOUS_SCAN");
-    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), masterPlot,
-    // "NEXT_SCAN");
-    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
-    // FxMenuUtil.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
-
-    ContextMenu popupMenu = getContextMenu();
-
-    // add items to popup menu
-    /*
-     * if (masterPlot instanceof SpectraVisualizerTab) {
-     *
-     * FxMenuUtil.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
-     * "EXPORT_SPECTRA"); FxMenuUtil.addMenuItem(popupMenu, "Create spectral library entry",
-     * masterPlot, "CREATE_LIBRARY_ENTRY");
-     *
-     * popupMenu.addSeparator();
-     *
-     * FxMenuUtil.addMenuItem(popupMenu, "Toggle centroid/continuous mode", masterPlot,
-     * "TOGGLE_PLOT_MODE"); FxMenuUtil.addMenuItem(popupMenu,
-     * "Toggle displaying of data points in continuous mode", masterPlot, "SHOW_DATA_POINTS");
-     * FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of peak values", masterPlot,
-     * "SHOW_ANNOTATIONS"); FxMenuUtil.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
-     * masterPlot, "SHOW_PICKED_PEAKS");
-     *
-     * FxMenuUtil.addMenuItem(popupMenu, "Reset removed titles to visible", this,
-     * "SHOW_REMOVED_TITLES");
-     *
-     * popupMenu.addSeparator();
-     *
-     * FxMenuUtil.addMenuItem(popupMenu, "Set axes range", masterPlot, "SETUP_AXES");
-     *
-     * FxMenuUtil.addMenuItem(popupMenu, "Set same range to all windows", masterPlot,
-     * "SET_SAME_RANGE");
-     *
-     * popupMenu.addSeparator();
-     *
-     * FxMenuUtil.addMenuItem(popupMenu, "Add isotope pattern", masterPlot, "ADD_ISOTOPE_PATTERN");
-     * }
-     */
 
     // reset zoom history
     ZoomHistory history = getZoomHistory();
@@ -235,11 +175,13 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       history.clear();
     }
 
-    theme.apply(chart);
+    theme.apply(this);
 
     // set crosshair (selection) properties
     plot.setDomainCrosshairVisible(false);
     plot.setRangeCrosshairVisible(false);
+
+    setMinHeight(100);
 
     // set processingAllowed
     setProcessingAllowed(processingAllowed);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -87,7 +87,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
   private final TICPlotRenderer defaultRenderer;
   protected EStandardChartTheme theme;
   // properties
-  private ObjectProperty<TICPlotType> plotType;
+  private final ObjectProperty<TICPlotType> plotType;
   private MenuItem RemoveFilePopupMenu;
 
   private int nextDataSetNum;
@@ -126,7 +126,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     showSpectrumRequest = false;
 
     setMinWidth(300.0);
-    setMinHeight(300.0);
+    setMinHeight(100);
 
     setPrefWidth(600.0);
     setPrefHeight(400.0);
@@ -324,7 +324,7 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
           getXYPlot().getRangeAxis().setAutoRange(true);
         }
       } else if (event.getY() > this.getRenderingInfo().getPlotInfo().getPlotArea().getMaxY() - 41
-                 && event.getClickCount() == 2) {
+          && event.getClickCount() == 2) {
         // Reset zoom on X-axis
         getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
         // restoreAutoDomainBounds();
@@ -410,10 +410,10 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
 
   public synchronized int addDataSet(final XYDataset dataSet) {
     if ((dataSet instanceof TICDataSet) && (((TICDataSet) dataSet).getPlotType()
-                                            != getPlotType())) {
+        != getPlotType())) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-                                         + "' does not have a compatible plotType. Expected '"
-                                         + this.getPlotType().toString() + "'");
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
     }
     try {
       final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
@@ -488,8 +488,8 @@ public class TICPlot extends EChartViewer implements LabelColorMatch {
     // Check if the dataSet to be added is compatible with the type of plot.
     if (dataSet.getPlotType() != getPlotType()) {
       throw new IllegalArgumentException("Added dataset of class '" + dataSet.getClass()
-                                         + "' does not have a compatible plotType. Expected '"
-                                         + this.getPlotType().toString() + "'");
+          + "' does not have a compatible plotType. Expected '" + this.getPlotType().toString()
+          + "'");
     }
     return addDataSetAndRenderer(dataSet, renderer);
   }
