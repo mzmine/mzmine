@@ -1,46 +1,81 @@
+/*
+ * Copyright 2006-2022 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with MZmine; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ */
 
 /* dark mode stuff */
 
 .root {
-    -fx-base: black;
+  -fx-base: black;
 
-    -fx-accent: derive(#56b4e9,-50%);
-    -fx-focus-color: -fx-accent;
-    -fx-font-color: lightgray;
+  -fx-accent: derive(#56b4e9, -50%);
+  -fx-focus-color: -fx-accent;
+  -fx-font-color: lightgray;
 
-    /*-fx-control-inner-background: -fx-base;*/
-    /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
+  /*-fx-control-inner-background: -fx-base;*/
+  /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
 }
 
 /** declare colors here
  deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
-  -pane-bg-match: derive(-fx-base, 30%);
+  -pane-bg-match: derive(-fx-base, 30%)
+;
 
-  /** control bg -> button, checkbox...**/
-  -control-bg: #202020;
-  -control-bg-hovered: #252525;
-  -divider-bg: -control-bg;
-  -menu-bg: -control-bg;
-  -list-bg: -control-bg;
+/** control bg -> button, checkbox...**/
+  -control-bg: #202020
+;
+  -control-bg-hovered: #252525
+;
+  -divider-bg: -control-bg
+;
+  -menu-bg: -control-bg
+;
+  -list-bg: -control-bg
+;
 
-  -column-header-bg: -control-bg;
-  -scroll-bar-bg: derive(-fx-base, 15%);
+  -column-header-bg: -control-bg
+;
+  -scroll-bar-bg: derive(-fx-base, 15%)
+;
 
-  -highlight: #56b4e9;
-  -selection-highlight-outline: -highlight;
+  -highlight: #56b4e9
+;
+  -highlight-dark: #19475d
+;
+  -selection-highlight-outline: -highlight
+;
 
-  /** **/
+/** **/
 
-  -default-border-color: derive(-fx-base, 10%);
+  -default-border-color: derive(-fx-base, 10%)
+;
 
-  -selection-unfocused: derive(-fx-base, 10%);
+  -selection-unfocused: derive(-fx-base, 10%)
+;
 
-  -cell-odd-bg: -list-bg;
-  -cell-even-bg: derive(-list-bg, 2%);
-  -cell-selected-bg: derive(-control-bg, 20%);
+  -cell-odd-bg: -list-bg
+;
+  -cell-even-bg: derive(-list-bg, 2%)
+;
+  -cell-selected-bg: derive(-control-bg, 20%)
+;
 
-  -text-color: -fx-font-color;
+  -text-color: -fx-font-color
+;
 }
 /** All panes **/
 /*.grid-pane, .anchor-pane, .border-pane, .split-pane, .stack-pane, .flow-pane, .v-box, .h-box, .region-match-chart-bg  {
@@ -51,7 +86,7 @@
   -fx-background-color: -pane-bg-match;
 }
 
-.label{
+.label {
   -fx-text-fill: -text-color;
 }
 
@@ -60,9 +95,9 @@
 }
 
 /** Controls **/
-.button, .combo-box, .choice-box, .check-box > .box  {
+.button, .combo-box, .choice-box, .check-box > .box {
   -fx-background-color: -control-bg;
-  -fx-border-color: -control-bg;
+  -fx-border-color: -highlight-dark;
 }
 
 .button:hover, .choice-box:hover, .combo-box:hover, .check-box > .box:hover {
@@ -93,7 +128,7 @@
   -fx-text-fill: -text-color;
 }
 
-  /** also counts for TreeTableView **/
+/** also counts for TreeTableView **/
 .column-header, .filler {
   -fx-border-color: -default-border-color;
   -fx-background-color: -column-header-bg;
@@ -131,9 +166,14 @@
 .tab-pane {
   -fx-background-color: -pane-bg-match;
 }
+
 .tab {
   -fx-background-color: derive(-control-bg, 10%);
   -fx-border-style: solid solid hidden solid;
+}
+
+.tab-pane > *.tab-header-area > *.headers-region > *.tab:top {
+  -fx-background-color: -default-border-color
 }
 
 .tab:selected { /** constantly show an outline when the tab is selected, but no focus outline **/

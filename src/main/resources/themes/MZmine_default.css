@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The MZmine Development Team
+ * Copyright 2006-2022 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -21,6 +21,11 @@
   -fx-background-radius: 2, 2;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 4, 0, 0, 1);
   -fx-border-radius: 2, 2;
+}
+
+.check-box > .box {
+  /*Smaller check boxes*/
+  -fx-padding: 0px;
 }
 
 .small-check-box > .box {
@@ -45,6 +50,7 @@
 .menu-bar {
   -fx-font-size: 10pt;
 }
+
 .menu-item {
   -fx-font-size: 10pt;
 }
@@ -54,31 +60,50 @@
 .split-pane:horizontal > .split-pane-divider {
   -fx-border-insets: 0;
 }
+
 .split-pane:vertical > .split-pane-divider {
   -fx-border-insets: 0;
 }
 
 /** TabPane **/
 .tab {
-  -fx-padding: 1;
-  -fx-background-radius: 2, 0;
+  -fx-padding: -3;
+  -fx-background-radius: 0, 0;
   -fx-border-radius: 0;
-  -fx-border-insets: 1;
-  -fx-border-color:transparent;
+  -fx-border-insets: 0;
+  -fx-border-color: transparent;
 }
-.tab-pane>*.tab-header-area>*.headers-region>*.tab:selected:top{
-	-fx-padding : 1;
-	-fx-border-width: 3;
 
-	-fx-focus-color: transparent;
+.tab-pane {
+  -fx-tab-min-width: 50px;
+  -fx-tab-min-height: 16px;
+  -fx-tab-max-height: 16px;
+}
+
+.tab-pane *.tab-header-area *.tab-header-background {
+  -fx-background-color: transparent;
+}
+
+.tab-pane .tab-header-area {
+  -fx-padding: 0 0 0 0;
+}
+
+.tab-pane > *.tab-header-area > *.headers-region > *.tab:selected:top {
+  -fx-padding: 0.5;
+  -fx-border-width: 2;
+
+  -fx-focus-color: transparent;
   -fx-faint-focus-color: transparent;
   -fx-border-style: hidden hidden solid hidden;
 }
-.tab-pane>*.tab-header-area>*.headers-region>*.tab:selected>*.tab-container>*.tab-label{
-	-fx-font-size : 13.0;
+
+.tab-pane > *.tab-header-area > *.headers-region > *.tab:selected > *.tab-container > *.tab-label {
+  -fx-font-size: 12.0;
 }
-.tab-pane>*.tab-header-area>*.headers-region>*.tab:top{
-	-fx-padding : 1;
+
+.tab-pane > *.tab-header-area > *.headers-region > *.tab:top {
+  -fx-padding: 1;
+  /*-fx-background-color: transparent;*/
 }
 
 /** ScrollPane **/
@@ -88,21 +113,21 @@
 }
 
 .table-column {
-    -fx-alignment: CENTER-LEFT;
+  -fx-alignment: CENTER-LEFT;
 }
 
 .tooltip {
-    -fx-font-size: 10.0pt;
-    -fx-show-delay: 10ms;
+  -fx-font-size: 10.0pt;
+  -fx-show-delay: 10ms;
 }
 
 .splashText {
-	-fx-font-size: 8.0pt;
+  -fx-font-size: 8.0pt;
 }
 
 #memoryBarLabel {
-	-fx-font-size: 9.0pt;
-	-fx-label-padding: 0.0 20.0 0.0 20.0;
+  -fx-font-size: 9.0pt;
+  -fx-label-padding: 0.0 20.0 0.0 20.0;
 }
 
 .title-label {
