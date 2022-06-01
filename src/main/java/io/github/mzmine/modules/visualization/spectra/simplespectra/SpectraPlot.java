@@ -15,7 +15,6 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-
 package io.github.mzmine.modules.visualization.spectra.simplespectra;
 
 import com.google.common.collect.Range;
@@ -71,7 +70,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 
 /**
@@ -160,7 +158,6 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     xAxis.setNumberFormatOverride(mzFormat);
     xAxis.setUpperMargin(0.01); // have some margin so m/z labels are not cut off
     xAxis.setLowerMargin(0.01);
-    xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
 
     // set the Y axis (intensity) properties
     NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
