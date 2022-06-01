@@ -76,8 +76,8 @@
 
 .tab-pane {
   -fx-tab-min-width: 50px;
-  -fx-tab-min-height: 18px;
-  -fx-tab-max-height: 18px;
+  -fx-tab-min-height: 17px;
+  -fx-tab-max-height: 17px;
 }
 
 .tab-pane *.tab-header-area *.tab-header-background {
@@ -102,7 +102,7 @@
 }
 
 .tab-pane > *.tab-header-area > *.headers-region > *.tab:top {
-  -fx-padding: 1;
+  -fx-padding: 2;
   /*-fx-background-color: transparent;*/
 }
 
