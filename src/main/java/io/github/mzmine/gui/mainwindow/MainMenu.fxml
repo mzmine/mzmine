@@ -562,16 +562,18 @@
   </Menu>
 
   <!-- WINDOWS -->
-  <WindowsMenu/>
+  <WindowsMenu>
+    <Menu text="Task manager">
+      <MenuItem text="Hide" onAction="#hideTaskViewer"/>
+      <MenuItem text="Main window" onAction="#setTaskViewerBottom"/>
+      <MenuItem text="External window" onAction="#setTaskViewerExternal"/>
+      <MenuItem text="Tab" onAction="#setTaskViewerTab"/>
+    </Menu>
+    <SeparatorMenuItem/>
+  </WindowsMenu>
 
   <!-- HELP -->
   <Menu text="Help">
-    <Menu text="Task manager">
-      <MenuItem text="Hide" onAction="#hideTaskViewer"/>
-      <MenuItem text="Bottom" onAction="#setTaskViewerBottom"/>
-      <MenuItem text="External" onAction="#setTaskViewerExternal"/>
-      <MenuItem text="Tab" onAction="#setTaskViewerTab"/>
-    </Menu>
     <MenuItem text="About MZmine" onAction="#showAbout"/>
     <MenuItem text="Open documentation (MZmine 3)" onAction="#openLink"
       userData="https://mzmine.github.io/mzmine_documentation/"/>
