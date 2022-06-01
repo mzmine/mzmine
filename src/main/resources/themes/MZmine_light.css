@@ -16,64 +16,51 @@
  *
  */
 
+
 /* dark mode stuff */
 
 .root {
-  -fx-base: #F8F8F8;
+    -fx-base: #F8F8F8;
 
-  -fx-accent: derive(#009e73, 30%);
-  -fx-focus-color: -fx-accent;
-  -fx-font-color: black;
+    -fx-accent: derive(#009e73,30%);
+    -fx-focus-color: -fx-accent;
+    -fx-font-color: black;
 
-  /*-fx-control-inner-background: -fx-base;*/
-  /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
+    /*-fx-control-inner-background: -fx-base;*/
+    /*-fx-control-inner-background-alt: -fx-control-inner-background ;*/
 }
 
 /** declare colors here
  deriving most of the colors off the default one makes it easy to get uniform looking themes **/
 {
-  -pane-bg-match: -fx-base
-;
+  -pane-bg-match: -fx-base;
 
-/** control bg -> button, checkbox...**/
-  -control-bg: #D0D0D0
-;
-  -control-bg-hovered: #D5D5D5
-;
-  -menu-bg: -fx-base
-;
-  -divider-bg: -control-bg
-;
-  -list-bg: -fx-base
-;
+  /** control bg -> button, checkbox...**/
+  -control-bg: #D0D0D0;
+  -control-bg-hovered: #D5D5D5;
 
-  -column-header-bg: -control-bg
-;
-  -scroll-bar-bg: derive(-fx-base, 15%)
-;
+  -menu-bg: -fx-base;
+  -divider-bg: -control-bg;
+  -list-bg: -fx-base;
+  -tab-color: #efefef;
 
-  -highlight: #009e73
-;
-  -selection-highlight-outline: -highlight
-;
+  -column-header-bg: -control-bg;
+  -scroll-bar-bg: derive(-fx-base, 15%);
 
-/** **/
+  -highlight: #009e73;
+  -selection-highlight-outline: -highlight;
 
-  -default-border-color: derive(-fx-base, 10%)
-;
+  /** **/
 
-  -selection-unfocused: derive(-fx-base, 10%)
-;
+  -default-border-color: derive(-fx-base, 10%);
 
-  -cell-odd-bg: -list-bg
-;
-  -cell-even-bg: derive(-list-bg, 2%)
-;
-  -cell-selected-bg: derive(-control-bg, 20%)
-;
+  -selection-unfocused: derive(-fx-base, 10%);
 
-  -text-color: -fx-font-color
-;
+  -cell-odd-bg: -list-bg;
+  -cell-even-bg: derive(-list-bg, 2%);
+  -cell-selected-bg: derive(-control-bg, 20%);
+
+  -text-color: -fx-font-color;
 }
 /** All panes **/
 /*.grid-pane, .anchor-pane, .border-pane, .split-pane, .stack-pane, .flow-pane, .v-box, .h-box, .region-match-chart-bg  {
@@ -89,7 +76,7 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -fx-background-color: -pane-bg-match;
 }
 
-.label {
+.label{
   -fx-text-fill: -text-color;
 }
 
@@ -98,7 +85,7 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 }
 
 /** Controls **/
-.button, .combo-box, .choice-box, .check-box > .box {
+.button, .combo-box, .choice-box, .check-box > .box  {
   -fx-background-color: -control-bg;
   -fx-border-color: -control-bg;
 }
@@ -131,7 +118,7 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
   -fx-text-fill: -text-color;
 }
 
-/** also counts for TreeTableView **/
+  /** also counts for TreeTableView **/
 .column-header, .filler {
   -fx-border-color: -default-border-color;
   -fx-background-color: -column-header-bg;
@@ -170,14 +157,13 @@ GridPane, AnchorPane, BorderPane, SplitPane, StackPane, FlowPane, VBox, HBox {
 .tab-pane {
   -fx-background-color: -pane-bg-match;
 }
-
 .tab {
   -fx-background-color: derive(-control-bg, 10%);
   -fx-border-style: solid solid hidden solid;
 }
 
 .tab-pane > *.tab-header-area > *.headers-region > *.tab:top {
-  -fx-background-color: #efefef
+  -fx-background-color: -tab-color
 }
 
 .tab:selected { /** constantly show an outline when the tab is selected, but no focus outline **/

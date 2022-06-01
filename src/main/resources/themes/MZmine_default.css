@@ -68,16 +68,16 @@
 /** TabPane **/
 .tab {
   -fx-padding: -3;
-  -fx-background-radius: 0, 0;
+  -fx-background-radius: 2, 0;
   -fx-border-radius: 0;
-  -fx-border-insets: 0;
+  -fx-border-insets: 1;
   -fx-border-color: transparent;
 }
 
 .tab-pane {
   -fx-tab-min-width: 50px;
-  -fx-tab-min-height: 16px;
-  -fx-tab-max-height: 16px;
+  -fx-tab-min-height: 18px;
+  -fx-tab-max-height: 18px;
 }
 
 .tab-pane *.tab-header-area *.tab-header-background {
