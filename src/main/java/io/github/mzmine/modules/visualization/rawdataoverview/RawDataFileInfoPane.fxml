@@ -107,8 +107,8 @@
           text="Precursor m/z"/>
         <TableColumn fx:id="mzRangeColumn" editable="false" prefWidth="115" text="m/z range"/>
         <TableColumn fx:id="scanTypeColumn" editable="false" prefWidth="95.0" text="Scan type"/>
-        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="58.0" text="Polarity"/>
-        <TableColumn fx:id="definitionColumn" minWidth="0.0"  prefWidth="125.0"
+        <TableColumn fx:id="polarityColumn" editable="false" prefWidth="62.0" text="Polarity"/>
+        <TableColumn fx:id="definitionColumn" minWidth="15"  prefWidth="125.0"
           text="Scan definition" editable="false"/>
       </columns>
     </TableView>
