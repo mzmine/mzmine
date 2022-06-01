@@ -274,10 +274,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       dataPointsVisible = !dataPointsVisible;
       for (int i = 0; i < plot.getDatasetCount(); i++) {
         XYItemRenderer renderer = plot.getRenderer(i);
-        if (!(renderer instanceof ContinuousRenderer)) {
+        if (!(renderer instanceof ContinuousRenderer contRend)) {
           continue;
         }
-        ContinuousRenderer contRend = (ContinuousRenderer) renderer;
         contRend.setDefaultShapesVisible(dataPointsVisible);
       }
     });
@@ -533,9 +532,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     removeDataPointProcessingResultDataSets();
 
     // if enabled, do the data point processing as set up by the user
-    XYDataset dataSet = getMainScanDataSet();
-    if (dataSet instanceof ScanDataSet) {
-      Scan scan = ((ScanDataSet) dataSet).getScan();
+    ScanDataSet dataSet = getMainScanDataSet();
+    if (dataSet != null) {
+      Scan scan = dataSet.getScan();
       MSLevel mslevel = inst.decideMSLevel(scan);
       controller = new DataPointProcessingController(inst.getProcessingQueue(mslevel), this, scan);
       inst.addController(controller);
@@ -576,7 +575,7 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
       if (newValue == true) {
         for (int i = 0; i < getXYPlot().getDatasetCount(); i++) {
           XYDataset dataset = getXYPlot().getDataset();
-          if (dataset == null || !(dataset instanceof ScanDataSet)) {
+          if (!(dataset instanceof ScanDataSet)) {
             continue;
           }
           XYItemRenderer renderer = getXYPlot().getRendererForDataset(dataset);
@@ -625,10 +624,9 @@ public class SpectraPlot extends EChartViewer implements LabelColorMatch {
     for (int i = 0; i < numOfDataSets; i++) {
       XYDataset ds = getXYPlot().getDataset(i);
 
-      if (ds == null || !(ds instanceof ScanDataSet)) {
+      if (!(ds instanceof ScanDataSet scanDataSet)) {
         continue;
       }
-      ScanDataSet scanDataSet = (ScanDataSet) ds;
       int index = scanDataSet.getIndex(selectedMZ, selectedIntensity);
       if (index >= 0) {
         return new SpectrumCursorPosition(selectedIntensity, selectedMZ, scanDataSet.getScan());
