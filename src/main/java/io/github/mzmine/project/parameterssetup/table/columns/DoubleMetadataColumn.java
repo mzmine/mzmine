@@ -16,43 +16,38 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.project.parameterssetup.table.columns;
 
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 /**
- * Specific Date-type implementation of the project parameter.
+ * Specific Double-type implementation of the project parameter.
  */
-public final class DateMetadataColumn extends MetadataColumn<LocalDateTime> {
+public final class DoubleMetadataColumn extends MetadataColumn<Double> {
 
-  public DateMetadataColumn(String title) {
+  public DoubleMetadataColumn(String title) {
     super(title);
   }
 
-  public DateMetadataColumn(String title, String description) {
+  public DoubleMetadataColumn(String title, String description) {
     super(title, description);
   }
 
   @Override
   public boolean checkInput(Object value) {
-    return value instanceof LocalDateTime;
+    return value instanceof Double;
   }
 
   @Override
   public AvailableTypes getType() {
-    return AvailableTypes.DATETIME;
+    return AvailableTypes.DOUBLE;
   }
 
   @Override
-  public LocalDateTime convert(String input, LocalDateTime defaultValue) {
+  public Double convert(String input, Double defaultValue) {
     try {
-      //ISO-8601 format
-      return input == null ? defaultValue : LocalDateTime.parse(input.trim());
-//      return LocalDateTime.parse(input.trim(), DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
-    } catch (DateTimeParseException ignored) {
+      return input == null ? defaultValue : Double.parseDouble(input.trim());
+    } catch (NumberFormatException ignored) {
     }
 
     return null;

@@ -16,19 +16,12 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup;
-
-import static io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes.DATETIME;
-import static io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes.DOUBLE;
-import static io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes.TEXT;
+package io.github.mzmine.project.parameterssetup.table;
 
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
-import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.DoubleMetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.StringMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -37,173 +30,36 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-/**
- * Holds the metadata of a project and represents it as a table (parameters are columns).
- */
-public class MetadataTable {
+public class LongTableExportUtility implements TableExportUtility {
 
-  private final Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data;
+  private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
+
+  private final MetadataTable metadataTable;
 
   // define the header fields names of the file with imported metadata
   private enum HeaderFields {
     NAME, DESC, TYPE, FILE, VALUE
   }
 
-  // we will need HeaderFields enum converted into array
-  private final String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
-      .toArray(String[]::new);
-
-  private static final Logger logger = Logger.getLogger(MetadataTable.class.getName());
-
-  public MetadataTable() {
-    this.data = new HashMap<>();
+  public LongTableExportUtility(MetadataTable metadataTable) {
+    this.metadataTable = metadataTable;
   }
 
-  public MetadataTable(Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> data) {
-    this.data = data;
-  }
-
-  public Map<MetadataColumn<?>, ConcurrentMap<RawDataFile, Object>> getData() {
-    return data;
-  }
-
-  /**
-   * Clear the metadata table up.
-   */
-  public void clearData() {
-    data.clear();
-  }
-
-  /**
-   * Add new parameter column to the metadata table.
-   *
-   * @param column new parameter column
-   */
-  public void addColumn(MetadataColumn<?> column) {
-    data.putIfAbsent(column, new ConcurrentHashMap<>());
-  }
-
-  /**
-   * Remove parameter column from the metadata table.
-   *
-   * @param column parameter column
-   */
-  public void removeColumn(MetadataColumn<?> column) {
-    data.remove(column);
-  }
-
-  /**
-   * Remove the all parameters values for a passed file.
-   *
-   * @param file file for which parameters values should be deleted.
-   */
-  public void removeFile(RawDataFile file) {
-    // iterate through the all parameters and try to delete the parameters
-    // values mapped to the passed file
-    for (var param : data.keySet()) {
-      data.get(param).remove(file);
-    }
-  }
-
-  /**
-   * Is the specified metadata column obtained in the metadata table?
-   *
-   * @param column project parameter column
-   * @return true if it's contained, false otherwise
-   */
-  public boolean hasColumn(MetadataColumn<?> column) {
-    return data.containsKey(column);
-  }
-
-  /**
-   * Return parameters columns of the metadata table.
-   *
-   * @return set with the parameters columns
-   */
-  public Set<MetadataColumn<?>> getColumns() {
-    return data.keySet();
-  }
-
-  /**
-   * Return parameter column with the corresponding parameter name.
-   *
-   * @param name name of the parameter
-   * @return parameterColumn or null in case if the parameter with the passed name isn't obtained in
-   * the metadata table
-   */
-  public MetadataColumn<?> getColumnByName(String name) {
-    for (MetadataColumn<?> column : getColumns()) {
-      if (column.getTitle().equals(name)) {
-        return column;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Return parameter value of the corresponding RawData file.
-   *
-   * @param column      project parameter column
-   * @param rawDataFile RawData file
-   * @param <T>         type of the project parameter
-   * @return parameter value
-   */
-  public <T> T getValue(MetadataColumn<T> column, RawDataFile rawDataFile) {
-    var row = data.get(column);
-    if (row != null) {
-      return (T) row.get(rawDataFile);
-    }
-
-    return null;
-  }
-
-  /**
-   * Try to set particular value of the parameter of the RawData file. The parameter column will be
-   * added in case if it wasn't previously obtained in the table.
-   *
-   * @param column project parameter column
-   * @param file   RawData file
-   * @param value  value to be set
-   * @param <T>    type of the parameter
-   */
-  public <T> void setValue(MetadataColumn<T> column, RawDataFile file, T value) {
-    if (!data.containsKey(column)) {
-      addColumn(column);
-    }
-
-    data.get(column).put(file, value);
-  }
-
-  /**
-   * Export the metadata table using .tsv format.
-   * todo: add extra argument defining the format of the exported data (e.g. GNPS or .tsv)
-   * File format would be:
-   * ====================================================================
-   * NAME TYPE DESC FILE VALUE
-   * ====================================================================
-   * NAME  - parameter name
-   * TYPE  - type of the parameter
-   * DESC  - description of the parameter
-   * FILE  - name of the file to which the parameter belong to
-   * VALUE - value of the parameter
-   *
-   * @param file the file in which exported metadata will be stored
-   * @return true if the export was successful, false otherwise
-   */
-  public boolean exportMetadata(File file) {
+  @Override
+  public boolean exportTo(File file) {
     try (FileWriter fw = new FileWriter(file,
         false); BufferedWriter bufferedWriter = new BufferedWriter(fw)) {
+      // we will need HeaderFields enum converted into array
+      String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
+          .toArray(String[]::new);
+
+      var data = metadataTable.getData();
+
       // in case if there's no metadata to export
       if (data.isEmpty()) {
         logger.warning("There's no metadata to export");
@@ -250,18 +106,14 @@ public class MetadataTable {
     return true;
   }
 
-  /**
-   * Import the metadata to the metadata table.
-   * todo: add extra argument defining the format of the imported data (e.g. GNPS or .tsv)
-   *
-   * @param file       source of the metadata
-   * @param appendMode whether the new metadata should be appended or they should replace the old
-   *                   metadata
-   * @return true if the metadata were successfully imported, false otherwise
-   */
-  public boolean importMetadata(File file, boolean appendMode) {
-    try (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
+  @Override
+  public boolean importFrom(File file, boolean appendMode) {
+    try  (FileReader fr = new FileReader(file); BufferedReader bufferedReader = new BufferedReader(
         fr)) {
+      // we will need HeaderFields enum converted into array
+      String[] HeaderFieldsArr = Stream.of(HeaderFields.values()).map(Enum::toString)
+          .toArray(String[]::new);
+
       // create the .tsv file header
       String header = String.join("\t", HeaderFieldsArr);
       // compare the headers
@@ -323,7 +175,7 @@ public class MetadataTable {
           // otherwise abort importing
           Object convertedParameterInput = parameterMatched.convert(splitLine[valuePos], null);
           if (parameterMatched.checkInput(convertedParameterInput)) {
-            setValue(parameterMatched, files[rawDataFileInd], convertedParameterInput);
+            metadataTable.setValue(parameterMatched, files[rawDataFileInd], convertedParameterInput);
           } else {
             logger.severe("Import failed: wrong parameter value format");
             return false;
@@ -335,7 +187,7 @@ public class MetadataTable {
       }
 
       logger.info("Metadata table: ");
-      getData().forEach((par, value) -> logger.info(par.getTitle() + ":" + value));
+      metadataTable.getData().forEach((par, value) -> logger.info(par.getTitle() + ":" + value));
     } catch (FileNotFoundException fileNotFoundException) {
       logger.severe("Couldn't open file for metadata import: " + fileNotFoundException.getMessage());
       return false;

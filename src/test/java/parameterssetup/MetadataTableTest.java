@@ -19,28 +19,22 @@
 package parameterssetup;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.project.parameterssetup.MetadataTable;
-import io.github.mzmine.project.parameterssetup.columns.DateMetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.DoubleMetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.MetadataColumn;
-import io.github.mzmine.project.parameterssetup.columns.StringMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.MetadataTable;
+import io.github.mzmine.project.parameterssetup.table.columns.DateMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.DoubleMetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.MetadataColumn;
+import io.github.mzmine.project.parameterssetup.table.columns.StringMetadataColumn;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)

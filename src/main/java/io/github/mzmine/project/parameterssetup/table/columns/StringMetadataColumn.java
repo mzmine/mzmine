@@ -16,40 +16,35 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.project.parameterssetup.table.columns;
 
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 
 /**
- * Specific Double-type implementation of the project parameter.
+ * Specific String-type implementation of the project parameter.
  */
-public final class DoubleMetadataColumn extends MetadataColumn<Double> {
+public final class StringMetadataColumn extends MetadataColumn<String> {
 
-  public DoubleMetadataColumn(String title) {
+  public StringMetadataColumn(String title) {
     super(title);
   }
 
-  public DoubleMetadataColumn(String title, String description) {
+  public StringMetadataColumn(String title, String description) {
     super(title, description);
   }
 
   @Override
   public boolean checkInput(Object value) {
-    return value instanceof Double;
+    return value instanceof String;
   }
 
   @Override
   public AvailableTypes getType() {
-    return AvailableTypes.DOUBLE;
+    return AvailableTypes.TEXT;
   }
 
   @Override
-  public Double convert(String input, Double defaultValue) {
-    try {
-      return input == null ? defaultValue : Double.parseDouble(input.trim());
-    } catch (NumberFormatException ignored) {
-    }
-
-    return null;
+  public String convert(String input, String defaultValue) {
+    return input == null ? defaultValue : input.trim();
   }
 }

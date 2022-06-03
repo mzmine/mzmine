@@ -16,7 +16,7 @@
  *
  */
 
-package io.github.mzmine.project.parameterssetup.columns;
+package io.github.mzmine.project.parameterssetup.table.columns;
 
 import io.github.mzmine.project.parameterssetup.ProjectMetadataParameters.AvailableTypes;
 import java.util.Objects;
